@@ -3,12 +3,9 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// "Who's playing?" (Docs/Profiles.md, holo look: Docs/Mockups/whos-playing-holo.html, "Shelf 4" of Docs/Mockups/whos-playing-shelves.html, mechanical clamp cradles and a marker-pen name from Docs/Mockups/whos-playing-mechanical.html): a screen of its own before the main
-    /// menu on every launch, a floppy disk per profile standing on a wall shelf under the disk drive. Click one to play as it; Manage shows Rename and
-    /// Delete (Delete asks twice); the + card makes a new one. The main menu's "Switch profile" opens it again.
-    /// There are at most ProfileStore.MaxProfiles (3) profiles, and always four boxes: three slots (an empty one says
-    /// "Empty") and the New profile box, which is grayed out while all three slots are full. That keeps the move to and
-    /// from the main menu (ProfileTransition.cs) the same every time.
+    /// Profiles on "Who's playing?" (Docs/Profiles.md): the screen's state, choosing, naming and renaming a profile, and the disks'
+    /// art (each profile's floppy disk, with its easter-egg looks). The screen itself is the disk carousel (DiskCarousel.cs); choosing
+    /// a disk plays the boot sequence to the main menu (ProfileTransition.cs). Up to ProfileStore.MaxProfiles (50) profiles.
     /// Choosing a profile makes it the active one (ProfileStore.cs): its records, rank, saved runs and name.
     public partial class ArenaApp
     {
@@ -19,28 +16,6 @@ namespace Arena
         List<ProfileInfo> whoList = new List<ProfileInfo>();
         bool profileChosen;           // a profile was picked on this screen: the name field now edits its name
 
-        const float WhoCardW = 184f, WhoCardH = 184f, WhoCardGap = 60f, WhoCardTop = 280f;  // a disk's box: square, standing on the shelf (DrawWhoShelf)
-        const int WhoSlots = ProfileStore.MaxProfiles;  // profile slots; the New profile box is the box after them
-
-        /// Where box i sits (0 to 2: the slots; 3: New profile). Always four, so the layout never changes.
-        static Rect WhoBox(int i)
-        {
-            float rowW = (WhoSlots + 1) * WhoCardW + WhoSlots * WhoCardGap;
-            return new Rect(W / 2f - rowW / 2f + i * (WhoCardW + WhoCardGap), WhoCardTop, WhoCardW, WhoCardH);
-        }
-
-        bool WhoFull => whoList.Count >= WhoSlots;
-
-        /// The box under the mouse that can be clicked (a profile, or New profile while there's room), or -1.
-        int WhoHotSlot()
-        {
-            var m = Event.current.mousePosition;
-            for (int i = 0; i <= WhoSlots; i++)
-                if (WhoBox(i).Contains(m) && (i == WhoSlots ? !WhoFull : WhoInSlot(i) != null))
-                    return i;
-            return -1;
-        }
-        ProfileInfo WhoInSlot(int i) => i < whoList.Count && i < WhoSlots ? whoList[i] : null;
         static Color WhoColor(ProfileInfo p) => p == null ? Ui.Muted : RankLook.TierColor(p.Rank);
 
         void OpenWho()
@@ -52,6 +27,7 @@ namespace Arena
             whoArmed = null;
             whoAutoNew = false;
             WhoRefresh();
+            CarCenterOn(ProfileStore.ActiveId);
         }
 
         void WhoRefresh() => whoList = ProfileStore.List();
@@ -117,187 +93,6 @@ namespace Arena
             whoEdit = null;
             whoError = "";
             WhoRefresh();
-        }
-
-        void DrawWho()
-        {
-            float t = Time.unscaledTime;
-            if (whoList.Count == 0 && ProfileStore.Root != null && !whoAutoNew && whoEdit == null)
-            {
-                WhoRefresh();
-                if (whoList.Count == 0)
-                {
-                    whoAutoNew = true;
-                    whoEdit = "new";
-                    whoName = "";
-                    whoFocus = true;
-                }
-            }
-            bool editing = whoEdit != null;
-            if (editing && Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Escape && whoList.Count > 0)
-            {
-                whoEdit = null;
-                whoError = "";
-                Event.current.Use();
-                editing = false;
-            }
-            DrawWhoChrome(1f);  // the menu's title screen, band, rooms and drive bay (MenuHolo.cs)
-            // The drive your disk goes into (DriveSlot.cs); its readout follows the slot under the mouse.
-            var drive = DriveEmpty();
-            int hot = editing || whoManage ? -1 : WhoHotSlot();
-            if (hot >= 0 && hot < WhoSlots && WhoInSlot(hot) != null)
-                drive.text = "INSERT: " + WhoInSlot(hot).Name.ToUpperInvariant();
-            else if (hot == WhoSlots)
-                drive.text = "FORMAT NEW DISK";
-            DrawDriveSlot(1f, drive);
-
-            if (Event.current.type == EventType.Repaint)
-                for (int i = 0; i <= WhoSlots; i++)
-                    whoTagLit[i] = Mathf.MoveTowards(whoTagLit[i], i == hot ? 1f : 0f, Time.unscaledDeltaTime * 7f);
-            DrawWhoShelf();
-            for (int i = 0; i <= WhoSlots; i++)
-            {
-                var r = WhoBox(i);
-                if (i == WhoSlots)
-                    DrawWhoNewCard(r, !editing && !whoManage && !WhoFull);
-                else if (WhoInSlot(i) != null)
-                    DrawWhoCard(r, WhoInSlot(i), t, !editing);
-                else
-                    DrawWhoEmptyCard(r);
-            }
-
-            float y = WhoShelfTop + 54f + 40f;  // (under the shelf)
-            if (editing)
-                DrawWhoEditor(new Rect(W / 2f - 250f, Mathf.Min(y, H - 160f), 500f, 118f));
-            else if (whoError.Length > 0)
-                Ui.Label(new Rect(W / 2f - 250f, y, 500f, 24f), whoError, 14, Ui.Warn, TextAnchor.MiddleCenter);
-            if (!editing && whoList.Count > 0)
-            {
-                // Manage profiles is a keycap like the main menu's Play (KeyUi.cs), with the same VHS hover.
-                var kr = new Rect(W / 2f - 150f, H - 118f, 300f, 74f);
-                if (MenuVhs.Draw(kr, "TRK 03", true, fxReduced, () => KeyUi.Key(kr, whoManage ? "Done" : "Manage profiles", PixelArt.Get("ui_gear"), 26, whoManage)))
-                {
-                    whoManage = !whoManage;
-                    whoArmed = null;
-                    whoError = "";
-                }
-            }
-        }
-
-        // ---- the shelf and the disks (look of "Shelf 4, Display shelf" of Docs/Mockups/whos-playing-shelves.html) ----
-
-        readonly float[] whoLift = new float[WhoSlots + 1];  // how far each disk is lifted by the mouse (0..1, eased; opens its clamps)
-        readonly float[] whoTagLit = new float[WhoSlots + 1];  // how lit each slot's tag on the shelf is (0..1, eased; on under the mouse)
-
-        /// Where the shelf's top edge is: the disks stand on their pedestals just above it.
-        const float WhoShelfTop = WhoCardTop + WhoCardH + 16f;
-
-        /// A vertical gradient drawn as thin strips (the game's boxes are flat, so depth is built from strips).
-        static void WhoBand(Rect r, Color top, Color bottom, float step = 3f)
-        {
-            int n = Mathf.Max(1, Mathf.CeilToInt(r.height / step));
-            float h = r.height / n;
-            for (int i = 0; i < n; i++)
-                Ui.Fill(new Rect(r.x, r.y + i * h, r.width, h + 0.5f), Color.Lerp(top, bottom, (i + 0.5f) / n));
-        }
-
-        /// A louvred vent: a dark recess with slits.
-        static void WhoVent(Rect r)
-        {
-            Ui.Pill(r, new Color(0.1f, 0.13f, 0.31f));
-            Ui.Pill(new Rect(r.x + 1f, r.y + 2f, r.width - 2f, r.height - 3f), new Color(0.02f, 0.03f, 0.09f));
-            for (float x = r.x + 5f; x < r.xMax - 9f; x += 12f)
-                Ui.Fill(new Rect(x, r.y + 4f, 6f, r.height - 8f), new Color(0.1f, 0.14f, 0.32f));
-        }
-
-        /// One cradle's clamp post: a metal post with a lamp at its top and a bolt at its foot. open (0..1) slides it outwards.
-        static void WhoClamp(Rect r, bool lit)
-        {
-            Ui.Pill(new Rect(r.x + 1f, r.y + 4f, r.width, r.height), new Color(0f, 0f, 0f, 0.4f));
-            Ui.Pill(r, new Color(0.47f, 0.58f, 0.88f));
-            var inner = new Rect(r.x + 1.5f, r.y + 1.5f, r.width - 3f, r.height - 3f);
-            Ui.Pill(inner, new Color(0.15f, 0.2f, 0.44f));
-            Ui.Fill(new Rect(inner.x + inner.width * 0.28f, inner.y + 3f, inner.width * 0.34f, inner.height - 6f), new Color(0.45f, 0.55f, 0.82f, 0.75f));
-            var lamp = new Rect(r.center.x - 5f, r.y + 9f, 10f, 10f);
-            if (lit)
-            {
-                Ui.Dot(new Rect(lamp.x - 4f, lamp.y - 4f, 18f, 18f), new Color(0.42f, 1f, 0.6f, 0.22f));
-                Ui.Dot(lamp, new Color(0.42f, 1f, 0.6f));
-            }
-            else
-                Ui.Dot(lamp, new Color(0.07f, 0.1f, 0.25f));
-            KeyUi.Bolt(new Vector2(r.center.x, r.yMax - 12f), 8f);
-        }
-
-        /// The wall, the shelf, and under every disk its cradle: a pedestal with a clamp post either side, which open as the
-        /// disk lifts (look "Mechanical 2, Clamp cradles" of Docs/Mockups/whos-playing-mechanical.html). Drawn under the disks.
-        void DrawWhoShelf()
-        {
-            float top = WhoShelfTop, left = 70f, w = W - 140f;
-            var wall = new Rect(left + 20f, WhoCardTop - 8f, w - 40f, top - WhoCardTop + 8f + 54f);
-            // the wall: a dark see-through rack with faint scanlines and a neon edge (Docs/Mockups/whos-playing-holo.html)
-            Ui.Pill(new Rect(wall.x, wall.y + 6f, wall.width, wall.height), new Color(0f, 0f, 0f, 0.4f));
-            WhoBand(wall, new Color(0.047f, 0.075f, 0.16f, 0.93f), new Color(0.04f, 0.06f, 0.13f, 0.93f), 6f);
-            for (float y = wall.y + 3f; y < wall.yMax; y += 4f)
-                Ui.Fill(new Rect(wall.x + 2f, y, wall.width - 4f, 1f), new Color(0.36f, 0.52f, 0.91f, 0.04f));
-            if (BeginUiGl())
-            {
-                UiModelAt(V2.Zero, 1f);
-                NeonRect(wall, NeonFlicker(Time.unscaledTime, 7f, 1.4f));
-                HoloCorners(new Rect(left, wall.y, w, wall.height), 1f);  // round the rack and its shelf (the shelf is the wider)
-                EndUiGl();
-            }
-
-            // the shelf: a lit top edge, then the front face with a vent at each end and a plate for each slot
-            Ui.Pill(new Rect(left, top + 12f, w, 48f), new Color(0f, 0f, 0f, 0.35f));
-            WhoBand(new Rect(left, top, w, 14f), new Color(0.53f, 0.63f, 0.93f), new Color(0.27f, 0.35f, 0.6f), 2f);
-            Ui.Fill(new Rect(left + 3f, top, w - 6f, 2f), new Color(0.9f, 0.95f, 1f, 0.9f));  // its lit lip, glowing
-            WhoBand(new Rect(left, top + 14f, w, 40f), new Color(0.24f, 0.3f, 0.55f), new Color(0.1f, 0.14f, 0.32f), 3f);
-            Ui.Rim(new Rect(left, top, w, 54f), new Color(0.42f, 0.52f, 0.84f), 0.6f);
-            WhoVent(new Rect(left + 20f, top + 22f, 100f, 24f));
-            WhoVent(new Rect(left + w - 120f, top + 22f, 100f, 24f));
-
-            for (int i = 0; i <= WhoSlots; i++)
-            {
-                var r = WhoBox(i);
-                var info = i < WhoSlots ? WhoInSlot(i) : null;
-                bool lit = info != null && info.Id == ProfileStore.ActiveId;
-                float open = whoManage ? 0f : whoLift[i] * 9f, k = r.width / 200f;
-                // the pedestal under the disk
-                var ped = new Rect(r.x - 18f * k, r.yMax - 4f * k, r.width + 36f * k, 20f * k);
-                Ui.Pill(new Rect(ped.x + 2f, ped.y + 6f, ped.width - 4f, ped.height), new Color(0f, 0f, 0f, 0.45f));
-                Ui.Pill(ped, new Color(0.47f, 0.58f, 0.88f));
-                WhoBand(new Rect(ped.x + 1.5f, ped.y + 1.5f, ped.width - 3f, ped.height - 3f), new Color(0.32f, 0.41f, 0.71f), new Color(0.1f, 0.14f, 0.31f), 2f);
-                Ui.Fill(new Rect(ped.x + 4f, ped.y + 1f, ped.width - 8f, 1f), new Color(1f, 1f, 1f, 0.3f));
-                for (float gx = ped.x + 14f * k; gx < ped.xMax - 24f * k; gx += 16f * k)
-                    Ui.Fill(new Rect(gx, ped.y + 8f * k, 10f * k, 3f), new Color(0.04f, 0.055f, 0.13f));
-                // the clamps, either side of the disk
-                float ch = 84f * k, cw = 22f * k;
-                WhoClamp(new Rect(r.x - 28f * k - open, r.yMax - ch + 6f * k, cw, ch), lit);
-                WhoClamp(new Rect(r.xMax + 6f * k + open, r.yMax - ch + 6f * k, cw, ch), lit);
-                // the slot's plate on the shelf face
-                var plate = new Rect(r.center.x - 50f, top + 19f, 100f, 30f);
-                if (whoManage)
-                    Ui.Pill(plate, new Color(0.012f, 0.024f, 0.07f));
-                else
-                    DrawWhoTag(plate, i == WhoSlots ? "NEW" : "SLOT " + (i + 1), whoTagLit[i]);  // MenuHolo.cs
-            }
-        }
-
-        /// A dashed disk outline (the chamfered corner is at the top right): for the empty slot and New profile.
-        static void DrawWhoGhost(Rect r, Color c)
-        {
-            const float ch = 24f, dash = 7f, gap = 6f;
-            for (float x = r.x + 2f; x < r.xMax - ch - dash; x += dash + gap)
-                Ui.Fill(new Rect(x, r.y, dash, 2f), c);
-            for (float y = r.y + ch + 4f; y < r.yMax - dash; y += dash + gap)
-                Ui.Fill(new Rect(r.xMax - 2f, y, 2f, dash), c);
-            for (float x = r.x + 2f; x < r.xMax - dash; x += dash + gap)
-                Ui.Fill(new Rect(x, r.yMax - 2f, dash, 2f), c);
-            for (float y = r.y + 2f; y < r.yMax - dash; y += dash + gap)
-                Ui.Fill(new Rect(r.x, y, 2f, dash), c);
-            for (int i = 0; i < 4; i++)
-                Ui.Fill(new Rect(r.xMax - ch + i * 6f - 1f, r.y + i * 6f + 1f, 3f, 3f), c);
         }
 
         /// The Mission: Impossible disk: a pale magneto-optical disk, blood-spattered, with a small generic "230 MB" label.
@@ -597,83 +392,6 @@ namespace Arena
                 Ui.Fill(new Rect(st.x, st.y, 1.5f, st.height), red);
                 Ui.Fill(new Rect(st.xMax - 1.5f, st.y, 1.5f, st.height), red);
                 Ui.Label(st, "LAST USED", Mathf.Max(8, Mathf.RoundToInt(9f * k)), red, TextAnchor.MiddleCenter, true);
-            }
-        }
-
-        void DrawWhoCard(Rect r, ProfileInfo p, float t, bool live)
-        {
-            int slot = Mathf.Clamp(whoList.IndexOf(p), 0, WhoSlots);
-            bool hover = live && !whoManage && r.Contains(Event.current.mousePosition);
-            bool current = p.Id == ProfileStore.ActiveId;
-            if (Event.current.type == EventType.Repaint)
-                whoLift[slot] = Mathf.MoveTowards(whoLift[slot], hover ? 1f : 0f, Time.unscaledDeltaTime * 7f);
-            float lift = live && !whoManage ? whoLift[slot] : 0f;
-            var d = new Rect(r.x, r.y - 12f * lift, r.width, r.height);
-            DrawWhoDisk(d, p, current);
-            float sel = whoManage ? 0f : whoLift[slot];  // selected (under the mouse, or picked and lifting): a neon border round the disk (MenuHolo.cs)
-            if (sel > 0.01f && BeginUiGl())
-            {
-                UiModelAt(V2.Zero, 1f);
-                NeonRect(new Rect(d.x - 6f, d.y - 6f, d.width + 12f, d.height + 12f), sel);
-                EndUiGl();
-            }
-            if (whoManage && live)
-            {
-                float by = WhoShelfTop + 54f + 22f, bx = r.center.x - 78f;
-                if (DkKey(new Rect(bx, by, 74f, 26f), "Rename", Ui.Neutral, false, 13))
-                {
-                    whoEdit = p.Id;
-                    whoName = p.Name;
-                    whoError = "";
-                    whoFocus = true;
-                }
-                bool armed = whoArmed == p.Id;
-                GUI.enabled = whoList.Count > 1;
-                if (DkKey(new Rect(bx + 82f, by, 74f, 26f), armed ? "Sure?" : "Delete", armed ? CrtStyle.Danger : Ui.Neutral, false, 13))
-                {
-                    if (!armed)
-                        whoArmed = p.Id;
-                    else
-                    {
-                        ProfileStore.Delete(p.Id);
-                        whoArmed = null;
-                        savesCountT = 0f;
-                        WhoRefresh();
-                    }
-                }
-                GUI.enabled = true;
-            }
-            else if (live && Ui.HitArea(r))
-                ChooseProfile(p.Id);
-        }
-
-        /// An unused slot: a dashed disk outline that says so. It can't be clicked; New profile fills the first one.
-        void DrawWhoEmptyCard(Rect r)
-        {
-            DrawWhoHolo(r, 0.8f, 0f);  // a hologram disk (MenuHolo.cs)
-            Ui.Label(new Rect(r.x, r.y + r.height / 2f - 14f, r.width, 28f), "Empty", 18, new Color(0.56f, 0.66f, 0.88f, 0.85f), TextAnchor.MiddleCenter, true);
-        }
-
-        /// The fourth box: a dashed disk. With all slots full it is grayed out and does nothing.
-        void DrawWhoNewCard(Rect r, bool live)
-        {
-            bool full = WhoFull;
-            bool hover = live && !full && r.Contains(Event.current.mousePosition);
-            var dim = new Color(1f, 1f, 1f, full ? 0.25f : 1f);
-            DrawWhoHolo(r, full ? 0.35f : 1f, hover ? 1f : 0f);  // a hologram disk (MenuHolo.cs)
-            // the + pulses (a glow behind it swelling), unless the slots are full
-            float pulse = full || fxReduced || !fxOn ? 0f : 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 3.9f);
-            var plusR = new Rect(r.x, r.y + r.height / 2f - 50f, r.width, 60f);
-            Ui.Label(plusR, "+", 44 + Mathf.RoundToInt(5f * pulse), full ? dim : hover ? Color.white : new Color(0.84f, 0.89f, 1f), TextAnchor.MiddleCenter, true);
-            Ui.Label(new Rect(r.x, r.y + r.height / 2f + 8f, r.width, 24f), "New profile", 17, full ? dim : hover ? Color.white : new Color(0.66f, 0.75f, 0.94f), TextAnchor.MiddleCenter, true);
-            if (full)
-                Ui.Label(new Rect(r.x, r.y + r.height / 2f + 32f, r.width, 18f), "All " + WhoSlots + " slots used", 11, dim, TextAnchor.MiddleCenter);
-            if (live && !full && Ui.HitArea(r))
-            {
-                whoEdit = "new";
-                whoName = "";
-                whoError = "";
-                whoFocus = true;
             }
         }
 

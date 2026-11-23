@@ -2,57 +2,58 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The eject key on the disk drive (look A, "Keycap", of Docs/Mockups/disk-eject.html) and the spring pop it plays (animation B): about 2.9 s,
-    /// the way back to the "Who's playing?" picker (it replaced the menu's "Switch profile" tab). Its clock `profEjT` runs in seconds from the click:
-    ///   0.0 s   the key sinks; 0.2 s the drive's light turns amber and the four cells drain (EJECTING <name>)
-    ///   0.5 s   latch click, slit flash; the disk kicks out of the slit about 40 % and bounces on a spring; the readout blinks TAKE DISK
-    ///   1.4 s   it slides the rest of the way out (1.7 s), the menu fades
-    ///   1.7 s   it flies to its cradle on the shelf (2.6 s); the picker fades in from 1.9 s; the clamps close (2.6 to 2.9 s)
-    /// It rides on the profile move's flags (`profTr` with `profEj`) so the menu counts as still in its intro (nothing clicks) and any key skips it.
+    /// The eject key beside the drive in the monitor's chin, and the way back to Who's playing? it plays (the disk boot sequence in
+    /// reverse, about 2.7 s). Its clock `profEjT` runs in seconds from the click:
+    ///   0.0 s   the key sinks; the case powers down (its lights, lamps and profile screen go out, 0.1 to 0.35 s)
+    ///   0.2 s   the drive's light turns amber and the cells drain (EJECTING <name>)
+    ///   0.4 s   the case lifts back up under the monitor (to 0.85 s)
+    ///   0.5 s   latch, slit flash: the disk kicks out of the slit about 40 % and bounces on a spring (TAKE DISK blinking), then comes
+    ///           the rest of the way out, tipping upright (1.4 to 1.7 s)
+    ///   0.9 s   VECTOR COLOSSEUM backspaces away, WHO'S PLAYING? types on (1.5 to 2.1 s)
+    ///   1.7 s   the disk drops back to the middle of the carousel (2.4 s), the rest of the carousel fading in round it (1.9 to 2.6 s)
+    /// It rides on the profile move's flags (`profTr` with `profEj`), so the menu takes no clicks and any key skips it.
     /// Reduced effects or Visual effects off: no animation, the picker just opens. Drawing and sound only, no protocol change.
     public partial class ArenaApp
     {
-        const float EjLen = 2.9f;
-        const float EjPopAt = 0.5f, EjOutAt = 1.4f, EjFlyAt = 1.7f, EjLandAt = 2.6f;
+        const float EjLen = 2.7f, EjPopAt = 0.5f, EjOutAt = 1.4f, EjFlyAt = 1.7f, EjLandAt = 2.4f;
 
         bool profEj;               // the eject move is playing (profTr is set too)
         float profEjT, profEjPrev;
         float ejHover;             // 0 to 1: the key's hover glow
 
-        static Rect EjectKeyRect => new Rect(W / 2f + DriveW / 2f + 12f, DriveY - 15f, 38f, 30f);
+        static Rect EjectKeyRect => new Rect(DriveX0 + DriveW + 12f, DriveY - 14f, 34f, 28f);
 
         bool EjectAvailable => ProfileStore.Root != null && ProfileStore.ActiveId.Length > 0 && Profile.Current.Name.Length > 0;
 
-        /// The eject key, right of the drive on the menu (called from DrawMenu), there from the first frame like the drive. live: it takes clicks (the menu isn't in its intro).
+        /// The eject key, right of the drive (on the menu's monitor). live: it takes clicks.
         void DrawDriveEject(float alpha, bool live)
         {
             if (alpha <= 0f)
                 return;
             var r = EjectKeyRect;
-            var mouse = Event.current.mousePosition;
-            bool usable = live && !profTr && EjectAvailable;  // otherwise the key is there but dimmed: while the disk goes in, or with no profile loaded
-            bool hot = usable && r.Contains(mouse);
+            bool usable = live && !profTr && EjectAvailable;
+            bool hot = usable && r.Contains(Event.current.mousePosition);
             if (Event.current.type == EventType.Repaint)
                 ejHover = Mathf.MoveTowards(ejHover, hot ? 1f : 0f, Time.unscaledDeltaTime * 8f);
             float press = profEj ? Seg(profEjT, 0f, 0.08f) * (1f - Seg(profEjT, 0.2f, 0.3f)) : 0f;
-            bool spent = (profEj && profEjT > 0.3f) || (!usable && !profEj);  // dimmed: used (the disk is coming out), or nothing to eject
             WithAlpha(alpha, () =>
             {
-                float dy = 2f * press, h = ejHover;
-                Ui.Pill(new Rect(r.x, r.y + 3f, r.width, r.height), new Color(0f, 0f, 0f, 0.4f));
-                Ui.Pill(new Rect(r.x, r.y + dy, r.width, r.height), Color.Lerp(new Color(0.106f, 0.149f, 0.337f), new Color(0.165f, 0.227f, 0.47f), h));
-                Ui.Rim(new Rect(r.x, r.y + dy, r.width, r.height), Color.Lerp(new Color(0.45f, 0.65f, 1f), ScanColor, h), 0.55f + 0.45f * h);
-                if (press < 0.5f)
-                    Ui.Fill(new Rect(r.x + 8f, r.y + 2f, r.width - 16f, 1f), new Color(0.75f, 0.83f, 1f, 0.3f));
-                DrawEjectGlyph(r.center.x, r.center.y + dy, Color.Lerp(new Color(0.75f, 0.83f, 1f, spent ? 0.35f : 0.85f), Color.white, h));
+                float dy = 3f * press, h = ejHover;
+                Ui.RoundBox(new Rect(r.x, r.y + 4f, r.width, r.height), new Color(0.086f, 0.09f, 0.102f), 5);
+                var cap = new Rect(r.x, r.y + dy, r.width, r.height);
+                Ui.RoundBox(cap, new Color(0.043f, 0.047f, 0.059f), 5);
+                Ui.RoundGrad(new Rect(cap.x + 1.5f, cap.y + 1.5f, cap.width - 3f, cap.height - 3f), 4f, new[] { 0f, 0.6f, 1f },
+                    new[] { Color.Lerp(new Color(0.302f, 0.314f, 0.345f), Color.white, 0.12f * h), new Color(0.173f, 0.18f, 0.204f), new Color(0.129f, 0.133f, 0.153f) });
+                Ui.Fill(new Rect(cap.x + 5f, cap.y + 1.5f, cap.width - 10f, 1f), new Color(1f, 1f, 1f, 0.35f));
+                DrawEjectGlyph(cap.center.x, cap.center.y + 1f, Color.Lerp(new Color(0.81f, 0.878f, 1f, usable || profEj ? 0.85f : 0.35f), Color.white, h));
                 if (h > 0.3f && !profEj)  // the tooltip, under the key
                 {
                     var tip = new Rect(r.center.x - 43f, r.yMax + 8f, 86f, 22f);
                     WithAlpha(h, () =>
                     {
-                        Ui.Pill(tip, new Color(0.043f, 0.067f, 0.19f));
-                        Ui.Rim(tip, new Color(0.45f, 0.65f, 1f), 0.5f);
-                        Ui.Label(tip, "EJECT DISK", 11, new Color(0.81f, 0.88f, 1f), TextAnchor.MiddleCenter, true);
+                        Ui.RoundBox(tip, new Color(0.07f, 0.075f, 0.09f, 0.95f), 4);
+                        EdgeRing(tip, 1f, MachNeon.WithAlpha(0.5f));
+                        Ui.Label(tip, "EJECT DISK", 11, MachNeon, TextAnchor.MiddleCenter, true);
                     });
                 }
             });
@@ -68,12 +69,12 @@ namespace Arena
             Ui.Fill(new Rect(cx - 7f, cy + 3f, 14f, 3f), c);
         }
 
-        /// The eject key was clicked: play the spring pop, or just show the picker.
+        /// The eject key was clicked: play the way back, or just show the picker.
         void StartProfEject()
         {
             WhoRefresh();
             int slot = whoList.FindIndex(p => p.Id == ProfileStore.ActiveId);
-            if (!ProfTrFull || slot < 0 || slot >= WhoSlots)
+            if (!ProfTrFull || slot < 0)
             {
                 OpenWho();
                 return;
@@ -89,7 +90,9 @@ namespace Arena
             profEjPrev = -0.0001f;
             profTrAge = 0f;
             profTrSlot = slot;
-            menuIntroT = MenuIntroLen - 0.001f;  // the menu stays fully drawn, and takes no clicks
+            whoCarPos = whoCarTarget = slot;
+            menuPlayOpen = menuJoinOpen = false;
+            menuIntroT = MenuIntroLen - 0.001f;  // the menu takes no clicks
         }
 
         /// Update (from TickProfTr): run the clock and its sounds.
@@ -114,58 +117,49 @@ namespace Arena
                 profEj = false;
                 menuIntroT = MenuIntroLen;
                 OpenWho();
-                whoLift[profTrSlot] = 0f;
             }
         }
 
-        static readonly (float t, Sfx sfx, float vol)[] EjCues =
-        {
-            (0.00f, Sfx.MenuEject, 0.7f),   // the key: three falling beeps (MenuSoundBank.cs)
-            (0.45f, Sfx.DiskClick, 0.8f),   // the latch lets go
-            (0.50f, Sfx.DiskEject, 0.7f),   // the spring kicks the disk out
-            (1.70f, Sfx.DiskFly, 0.6f),     // it flies to the shelf
-            (2.60f, Sfx.DiskLift, 0.5f),    // the clamps close on it
-        };
+        static readonly Sfx[] EjCueSfx = { Sfx.MenuEject, Sfx.BayClack, Sfx.BossWhoosh, Sfx.DiskClick, Sfx.DiskEject, Sfx.DiskFly, Sfx.DiskLift };
+        static readonly float[] EjCueAt = { 0f, 0.15f, 0.4f, 0.45f, 0.5f, 1.7f, 2.4f };
+        static readonly float[] EjCueVol = { 0.7f, 0.45f, 0.3f, 0.8f, 0.7f, 0.6f, 0.5f };
 
         void PlayProfEjCues(float a, float b)
         {
+            if (b <= a || sounds == null)
+                return;
             float now = Time.unscaledTime;
-            foreach (var c in EjCues)
-                if (a < c.t && c.t <= b)
-                    sounds.Play(c.sfx, c.vol, now);
-            // the title screen: VECTOR COLOSSEUM flaps away, then WHO'S PLAYING? clacks on (MenuHolo.cs DrawTitleRetype)
-            TitleFlapCues(CrtTitleText, a, b, 1.1f, 1.7f, false);
-            TitleFlapCues(WhoTitleText, a, b, 1.9f, 2.5f, true);
+            for (int i = 0; i < EjCueAt.Length; i++)
+                if (a < EjCueAt[i] && EjCueAt[i] <= b)
+                    sounds.Play(EjCueSfx[i], EjCueVol[i], now);
+            TitleFlapCues(CrtTitleText, a, b, 0.9f, 1.4f, false);
+            TitleFlapCues(WhoTitleText, a, b, 1.5f, 2.1f, true);
         }
 
         /// The drive for the eject clock E: the cells drain with an amber light, a flash as the disk kicks out, TAKE DISK blinking, then empty.
-        static DriveState DriveEjectAt(float E, string name, Color col)
+        static DriveState DriveEjectAt(float E, string name)
         {
             if (E < 0.2f)
-                return DriveLoaded(name, col);
+                return DriveLoaded(name);
             if (E >= EjFlyAt)
-                return DriveEmpty();
+                return DriveEmpty("INSERT: " + name.ToUpperInvariant());
             var s = DriveEmpty();
-            s.glowCol = col;
-            s.led = DriveAmber;
-            s.ledA = 1f;
+            s.ledOn = true;
             if (E < EjPopAt)
             {
-                s.ledA = 0.65f + 0.35f * Mathf.Sin(E * 16f);
+                s.ledOn = Mathf.FloorToInt(E * 14f) % 2 == 0;
                 s.prog = 1f - Seg(E, 0.2f, EjPopAt);
-                s.glow = 0.4f * s.prog;
                 s.text = "EJECTING " + name.ToUpperInvariant();
             }
             else
             {
-                s.glow = 0.7f * (1f - Seg(E, EjPopAt, 1.0f));
                 s.flash = E < 0.8f ? 1f - Seg(E, EjPopAt, 0.8f) : 0f;
                 s.text = Mathf.FloorToInt(E * 4f) % 2 == 1 ? "TAKE DISK" : "TAKE DISK  >";
             }
             return s;
         }
 
-        /// How far out of the slit the disk is, as a share of its height (0 to 1): a spring kick to about 0.4 with a bounce, a hang, then the rest.
+        /// How far out of the slit the disk is (0 to 1): a spring kick to about 0.4 with a bounce, a hang, then the rest.
         static float EjOut(float E)
         {
             if (E < EjOutAt)
@@ -176,55 +170,49 @@ namespace Arena
             return Mathf.Lerp(0.4f, 1f, EaseInOut(Seg(E, EjOutAt, EjFlyAt)));
         }
 
-        /// The whole screen during the eject: the menu fading out, the picker fading in, the drive staying put, and the disk
-        /// popping out of the slit and flying to its cradle.
+        /// The monitor's title during the eject: VECTOR COLOSSEUM backspacing away, then WHO'S PLAYING? typed.
+        static MonTitle EjectTitleAt(float E)
+        {
+            if (E < 0.9f)
+                return TitleAll(CrtTitleText);
+            if (E < 1.4f)
+                return new MonTitle { text = CrtTitleText, typed = Mathf.RoundToInt(CrtTitleText.Length * (1f - Seg(E, 0.9f, 1.4f))), flat = true };
+            if (E < 1.5f)
+                return new MonTitle { text = WhoTitleText, typed = 0, flat = true };
+            if (E < 2.1f)
+                return new MonTitle { text = WhoTitleText, typed = Mathf.FloorToInt(WhoTitleText.Length * Seg(E, 1.5f, 2.1f)), flat = true };
+            return TitleAll(WhoTitleText);
+        }
+
+        /// The whole screen during the eject: the case powering down and lifting away, the monitor retyping, and the disk popping out
+        /// of the slit and dropping back onto the carousel.
         void DrawProfEj()
         {
             float E = profEjT, t = Time.unscaledTime;
-            var info = WhoInSlot(profTrSlot);
-            var R = WhoBox(profTrSlot);
-            float menuA = 1f - Seg(E, EjOutAt, 2.1f), whoA = Seg(E, 1.9f, 2.6f);
-            whoLift[profTrSlot] = 1f - Seg(E, EjLandAt, EjLen);  // its clamps stay open until it lands
-            if (menuA > 0f)
-                WithAlpha(menuA, DrawMenu);
-            DrawWhoChrome(whoA, false);  // the picker's rooms (MenuHolo.cs)
-            // The title screen and the drive bay stay put at full strength: VECTOR COLOSSEUM backspaces away, then WHO'S PLAYING? types on.
-            DrawDriveBay(1f);
-            if (E < 1.9f)
-                DrawTitleRetype(CrtTitleText, Mathf.RoundToInt(CrtTitleText.Length * (1f - Seg(E, 1.1f, 1.7f))));
-            else
-                DrawTitleRetype(WhoTitleText, Mathf.FloorToInt(WhoTitleText.Length * Seg(E, 1.9f, 2.5f)));
-            if (whoA > 0f)
-                WithAlpha(whoA, () =>
-                {
-                    DrawWhoShelf();
-                    for (int i = 0; i <= WhoSlots; i++)
-                        if (i != profTrSlot)
-                            DrawWhoBoxStatic(i, WhoBox(i), t);
-                });
+            var info = WhoAt(profTrSlot);
+            float power = 1f - Seg(E, 0.1f, 0.35f), lift = Seg(E, 0.4f, 0.85f);
+            DrawMachineCase(99f, -470f * lift * lift, 1f, power, false, t);
+            var title = EjectTitleAt(E);
             var S = DriveForMenu();
-            DrawDriveSlot(1f, S);  // the drive stays at full strength while the menu fades behind it
+            DrawMonitor(title, S, E < 0.85f, false);  // (the eject key goes with the case)
+            DrawWhoStill(Seg(E, 1.9f, 2.6f));
             if (info == null || E < EjPopAt)
             {
                 DrawDriveLip(1f, S);
                 return;
             }
-            float D = DriveDiskSize, cx = W / 2f - D / 2f, slitY = DriveY + 4f;
+            float size = CarSize * 0.77f;
             if (E < EjFlyAt)
             {
-                float y = slitY - D + EjOut(E) * D;
-                // Behind the drive's face: only the part below the slit shows, so it comes out of it.
-                GUI.BeginGroup(new Rect(0f, slitY, W, H - slitY));
-                DrawWhoDisk(new Rect(cx, y - slitY, D, D), info, true);
-                GUI.EndGroup();
+                float k = 1f - EjOut(E);  // 1: in, 0: out and upright below the slit
+                float top = Mathf.Lerp(232f, DriveY - size * 0.6f, k * k * k), tilt = 62f * k;
+                DrawTiltedDisk(info, DriveSlitCx, top, size, tilt, 0f);
+                DrawMonitorAbove(DriveY - 4f, title, S);
             }
             else
             {
-                float f = EaseInOut(Seg(E, EjFlyAt, EjLandAt));
-                float s = Mathf.Lerp(D, R.width, f);
-                DrawWhoDisk(new Rect(Mathf.Lerp(cx, R.x, f), Mathf.Lerp(slitY, R.y, f), s, s), info, true);
-                if (E >= EjLandAt)  // landed: its box (the name under it) fades in over the disk
-                    WithAlpha(Seg(E, EjLandAt, EjLen), () => DrawWhoBoxStatic(profTrSlot, R, t));
+                float c = EaseInOut(Seg(E, EjFlyAt, EjLandAt));
+                DrawTiltedDisk(info, Mathf.Lerp(DriveSlitCx, CarCx, c), Mathf.Lerp(232f, CarCy - CarSize / 2f, c), Mathf.Lerp(size, CarSize, c), 0f, 0f);
             }
             DrawDriveLip(1f, S);
         }

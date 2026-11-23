@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Main Menu Machines</title>
+<!-- Status: mockup (approximate: browser drawing, not the game's Ui.cs/DevKit.cs). Three main menus where a small Play key opens a physical part onto the saved-runs screen. -->
+<style>
+:root{
+  --bg:#0b0b0e; --text:#e8eaf0; --muted:#9aa0ad;
+  --ink:#66a3ff; --ink-dim:#2c4f8a; --glass:#040a18;
+  --metal-hi:#5b5e66; --metal:#3a3c42; --metal-lo:#1c1d21; --edge:#0e0f12;
+  --neon:#cfe0ff; --green:#6bff99; --amber:#ffb547; --red:#ff5a5a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{max-width:1100px;margin:0 auto;padding:24px 16px 8px}
+h1{margin:0 0 6px;font-size:22px}
+header p{margin:0;color:var(--muted)}
+.design{max-width:1100px;margin:22px auto 34px;padding:0 16px}
+.design h2{margin:0 0 4px;font-size:17px}
+.design .note{margin:0 0 10px;color:var(--muted)}
+.frame{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:6px;background:#140608}
+.stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0}
+
+/* the Holo Floor background */
+.sky{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 52%,#6e2230 0%,#3a1018 38%,#120406 75%)}
+.floor{position:absolute;left:-400px;right:-400px;top:372px;height:600px;transform:perspective(260px) rotateX(62deg);transform-origin:50% 0;
+  background:
+   linear-gradient(90deg,rgba(255,90,110,.55) 1px,transparent 1px) 0 0/64px 64px,
+   linear-gradient(0deg,rgba(255,90,110,.55) 1px,transparent 1px) 0 0/64px 64px;}
+.horizon{position:absolute;left:0;right:0;top:371px;height:1px;background:rgba(255,190,200,.7)}
+
+/* shared pieces */
+.metal{background:linear-gradient(180deg,var(--metal-hi),var(--metal) 30%,var(--metal-lo));border:2px solid var(--edge);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 10px 18px rgba(0,0,0,.45)}
+.neon{box-shadow:0 0 0 2px var(--neon),0 0 10px 2px rgba(160,195,255,.45),inset 0 1px 0 rgba(255,255,255,.35)}
+.crt{background:var(--glass);border:3px solid #0a0b0e;box-shadow:inset 0 0 0 1px #1a2440,inset 0 0 40px rgba(60,110,220,.18)}
+.crt::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px);pointer-events:none}
+.title{position:absolute;color:#a9c6ff;font:900 78px/1 Arial Black,Arial,sans-serif;letter-spacing:1px;text-shadow:0 0 14px rgba(110,160,255,.55),3px 0 0 rgba(255,70,90,.55),-3px 0 0 rgba(70,200,255,.55)}
+.chin{position:absolute;color:#9aa0ad;font:700 10px/1 Arial,sans-serif;letter-spacing:1px}
+.led{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.vent{position:absolute;background:repeating-linear-gradient(90deg,#0b0c0f 0 5px,transparent 5px 10px)}
+.hvent{position:absolute;background:repeating-linear-gradient(0deg,#0b0c0f 0 4px,transparent 4px 9px)}
+
+/* keys: a graphite keycap with a coloured legend lamp */
+.key{position:absolute;border-radius:7px;cursor:pointer;user-select:none;
+  background:linear-gradient(180deg,#4d5058,#2c2e34 60%,#212227);border:2px solid #0b0c0f;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 6px 0 #16171a,0 9px 12px rgba(0,0,0,.5);
+  color:#e9ecf2;font:800 20px/1 Arial,sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;transition:transform .08s,box-shadow .08s}
+.key:hover{filter:brightness(1.12)}
+.key:active,.key.down{transform:translateY(5px);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 1px 0 #16171a,0 3px 6px rgba(0,0,0,.5)}
+.key .lamp{width:9px;height:9px;border-radius:50%;background:#1c2a20;flex:none}
+.key.on .lamp{background:var(--green);box-shadow:0 0 8px var(--green)}
+.key.play{color:#fff}
+.key.play .tri{width:0;height:0;border-left:14px solid #7dffa8;border-top:9px solid transparent;border-bottom:9px solid transparent;filter:drop-shadow(0 0 5px rgba(125,255,168,.7))}
+.key.small{font-size:15px}
+
+/* the drive */
+.drive{position:absolute;height:34px;border-radius:5px;background:#0b0c10;border:1px solid #2a2d35;box-shadow:inset 0 2px 4px #000}
+.drive .slit{position:absolute;left:58px;right:46px;top:13px;height:7px;background:#000;border-radius:3px;box-shadow:0 1px 0 rgba(255,255,255,.15)}
+.drive .dl{position:absolute;left:14px;top:10px;color:#8b93a6;font:700 11px Arial}
+.drive .dot{position:absolute;right:16px;top:13px;width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.drive .lbl{position:absolute;left:0;right:0;top:40px;text-align:center;color:#8b93a6;font:700 10px Arial;letter-spacing:1px}
+
+/* the profile chip on a small screen */
+.chip{position:absolute;padding:8px 12px;display:flex;align-items:center;gap:12px}
+.chip .av{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#c9d6ff,#5872b8);flex:none}
+.chip .nm{color:#eaf0ff;font:800 18px/1.1 Arial}
+.chip .rk{color:#7e95c9;font:700 11px/1.4 Arial;letter-spacing:.5px}
+.chip .xp{height:4px;width:140px;background:#14203b;border-radius:2px;margin-top:4px}
+.chip .xp i{display:block;height:100%;width:22%;background:var(--ink);border-radius:2px}
+.chip .badge{margin-left:auto;width:30px;height:34px;clip-path:polygon(50% 0,100% 16%,100% 60%,50% 100%,0 60%,0 16%);background:linear-gradient(#8ea2cf,#3a4b73);color:#fff;font:800 13px/34px Arial;text-align:center}
+
+/* the runs screen content */
+.runs{position:absolute;inset:0;padding:14px 18px;color:var(--ink);font:700 12px Arial}
+.runs .h{font:800 22px Arial;color:#8fb6ff;letter-spacing:.5px}
+.runs .row{display:flex;align-items:center;gap:18px;border-top:1px solid #1c2c52;padding:8px 0}
+.runs .big{font:800 26px Arial;color:#9cc0ff}
+.runs .sm{color:#5f7fbd;font:700 11px Arial}
+.runs .cont{margin-left:auto;border:2px solid var(--ink);padding:7px 16px;color:#cfe0ff;font:800 14px Arial}
+.runs .del{border:1px dashed #a33;color:#e55;padding:6px 10px;font:800 12px Arial}
+.runs .new{margin-top:6px;border:2px solid #3e6bc4;text-align:center;padding:8px;color:#cfe0ff;font:800 15px Arial;background:rgba(80,130,255,.08)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;color:var(--muted);font-size:13px}
+.legend b{color:var(--text)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Main menu machines</h1>
+  <p>Three fresh layouts. Click <b>Play</b> on each: a physical part opens onto the saved-runs screen; click it again (or Back) to close. Approximate browser mockup: the game draws with its own widgets, so glows and type will differ in Unity.</p>
+</header>
+
+<!-- A: Deck, the screen flips up from a hatch in the deck's top -->
+<section class="design">
+  <h2>A · Console deck: a hatch flips up into a screen</h2>
+  <p class="note">The monitor sits on a low, wide deck. The small keys and the drive are on the deck's front. Play unlatches a hatch in the deck's top, which hinges up into a screen standing between the deck and the monitor.</p>
+  <div class="frame"><div class="stage" id="sA">
+    <div class="sky"></div><div class="floor"></div><div class="horizon"></div>
+    <!-- monitor -->
+    <div class="metal" style="position:absolute;left:150px;top:28px;width:980px;height:190px;border-radius:14px"></div>
+    <div class="crt neon" style="position:absolute;left:170px;top:44px;width:940px;height:138px;border-radius:6px"></div>
+    <div class="title" style="left:0;right:0;top:72px;text-align:center">VECTOR COLOSSEUM</div>
+    <div class="chin" style="left:188px;top:196px">ARENA CRT-14</div><div class="led" style="left:1086px;top:197px"></div>
+    <!-- the hatch's screen (behind the deck's top edge, hinged at its bottom) -->
+    <div id="aLid" style="position:absolute;left:330px;top:232px;width:620px;height:230px;transform-origin:50% 100%;transform:perspective(900px) rotateX(-88deg);transition:transform .7s cubic-bezier(.3,1.35,.5,1)">
+      <div class="metal" style="position:absolute;inset:0;border-radius:10px"></div>
+      <div class="crt" style="position:absolute;left:14px;top:12px;right:14px;bottom:30px;border-radius:4px;overflow:hidden">
+        <div class="runs"><div class="h">YOUR RUNS_</div>
+          <div class="row"><div><div class="sm">LATEST RUN</div><div class="big">Wave 24</div></div><div class="sm">Anthony · Knight Tank<br>Aleon · Elementalist DPS</div><div class="cont">▶ CONTINUE</div></div>
+          <div class="row"><div class="big" style="font-size:18px">8</div><div class="sm">Nov 5 · 3120 · 11 min</div><div class="cont" style="padding:5px 10px;font-size:12px">▶ CONTINUE</div><div class="del">DEL</div></div>
+          <div class="new">▶ New run</div></div>
+      </div>
+    </div>
+    <!-- deck: top surface then front face -->
+    <div style="position:absolute;left:150px;top:448px;width:980px;height:30px;background:linear-gradient(180deg,#2a2c31,#4a4d55);clip-path:polygon(4% 0,96% 0,100% 100%,0 100%)"></div>
+    <div id="aSeam" style="position:absolute;left:330px;top:456px;width:620px;height:14px;background:#0c0d10;clip-path:polygon(1% 0,99% 0,100% 100%,0 100%);box-shadow:inset 0 2px 3px #000;transition:opacity .2s"></div>
+    <div class="metal neon" style="position:absolute;left:150px;top:478px;width:980px;height:150px;border-radius:0 0 14px 14px"></div>
+    <div class="crt" style="position:absolute;left:180px;top:500px;width:300px;height:62px;border-radius:5px"><div class="chip" style="inset:0"><div class="av"></div><div><div class="nm">Anthony</div><div class="rk">CHALLENGER · RANK 14</div><div class="xp"><i></i></div></div><div class="badge">14</div></div></div>
+    <div class="drive" style="left:180px;top:578px;width:300px"><span class="dl">A:</span><span class="slit"></span><span class="dot"></span></div>
+    <div class="key play" style="left:520px;top:506px;width:200px;height:70px" onclick="toggle('A')"><span class="lamp"></span><span class="tri"></span>PLAY</div>
+    <div class="key small" style="left:744px;top:506px;width:170px;height:56px">JOIN</div>
+    <div class="key small" style="left:930px;top:506px;width:170px;height:56px">SETTINGS</div>
+    <div class="key small" style="left:930px;top:576px;width:170px;height:36px;font-size:13px">QUIT</div>
+    <div class="vent" style="left:744px;top:584px;width:170px;height:22px"></div>
+    <div class="led" style="left:1100px;top:492px"></div>
+  </div></div>
+  <div class="legend"><span><b>Feel:</b> the hatch hinges up with a small overshoot, then settles</span><span><b>Profile:</b> its own small screen on the deck</span></div>
+</section>
+
+<!-- B: Case, a roll-up shutter over a bay -->
+<section class="design">
+  <h2>B · Desktop case: a roller shutter rolls up off a screen</h2>
+  <p class="note">A tall case under the monitor with a bay in the middle, covered by a ribbed metal roller shutter. The keys run down the left side; the profile screen and drive are on the right. Play rolls the shutter up into the case to bare the runs screen.</p>
+  <div class="frame"><div class="stage" id="sB">
+    <div class="sky"></div><div class="floor"></div><div class="horizon"></div>
+    <div class="metal" style="position:absolute;left:150px;top:22px;width:980px;height:176px;border-radius:14px"></div>
+    <div class="crt neon" style="position:absolute;left:170px;top:36px;width:940px;height:128px;border-radius:6px"></div>
+    <div class="title" style="left:0;right:0;top:61px;text-align:center">VECTOR COLOSSEUM</div>
+    <div class="chin" style="left:188px;top:177px">ARENA CRT-14</div><div class="led" style="left:1086px;top:178px"></div>
+    <!-- case -->
+    <div class="metal neon" style="position:absolute;left:150px;top:214px;width:980px;height:438px;border-radius:8px 8px 14px 14px"></div>
+    <!-- left: keys -->
+    <div class="key play" style="left:184px;top:250px;width:210px;height:70px" onclick="toggle('B')"><span class="lamp"></span><span class="tri"></span>PLAY</div>
+    <div class="key small" style="left:184px;top:340px;width:210px;height:52px">JOIN GAME</div>
+    <div class="key small" style="left:184px;top:410px;width:210px;height:52px">SETTINGS</div>
+    <div class="key small" style="left:184px;top:578px;width:210px;height:40px;font-size:13px">QUIT</div>
+    <div class="hvent" style="left:184px;top:484px;width:210px;height:70px"></div>
+    <!-- middle: the bay and its shutter -->
+    <div style="position:absolute;left:424px;top:246px;width:432px;height:376px;border-radius:6px;background:#0a0b0e;box-shadow:inset 0 4px 10px #000;overflow:hidden">
+      <div class="crt" style="position:absolute;inset:10px;border-radius:4px;overflow:hidden">
+        <div class="runs"><div class="h">YOUR RUNS_</div>
+          <div class="row" style="flex-wrap:wrap"><div><div class="sm">LATEST RUN</div><div class="big">Wave 24</div></div><div class="cont">▶ CONTINUE</div><div class="sm" style="width:100%">Anthony · Knight Tank &nbsp; Aleon · Elementalist DPS</div></div>
+          <div class="row"><div class="big" style="font-size:18px">8</div><div class="sm">Nov 5 · 11 min</div><div class="cont" style="padding:5px 10px;font-size:12px">▶ CONTINUE</div></div>
+          <div class="row"><div class="big" style="font-size:18px">5</div><div class="sm">Nov 2 · 7 min</div><div class="cont" style="padding:5px 10px;font-size:12px">▶ CONTINUE</div></div>
+          <div class="new">▶ New run</div></div>
+      </div>
+      <div id="bShutter" style="position:absolute;left:0;right:0;top:0;height:100%;transition:transform .9s cubic-bezier(.6,0,.25,1);
+        background:repeating-linear-gradient(180deg,#5a5d65 0,#43464d 9px,#2a2c31 16px,#16171a 18px);box-shadow:0 4px 8px rgba(0,0,0,.6)">
+        <div style="position:absolute;left:50%;bottom:16px;width:90px;height:12px;margin-left:-45px;border-radius:6px;background:#121316;box-shadow:inset 0 2px 3px #000"></div>
+      </div>
+      <div style="position:absolute;left:0;right:0;top:0;height:10px;background:linear-gradient(#000,transparent)"></div>
+    </div>
+    <!-- right: profile screen, drive, lights -->
+    <div class="crt" style="position:absolute;left:886px;top:250px;width:214px;height:110px;border-radius:5px"><div class="chip" style="inset:0;flex-wrap:wrap;align-content:center"><div class="av"></div><div><div class="nm">Anthony</div><div class="rk">RANK 14</div></div><div class="xp" style="width:180px"><i></i></div></div></div>
+    <div class="drive" style="left:886px;top:390px;width:214px"><span class="dl">A:</span><span class="slit"></span><span class="dot"></span><span class="lbl">ANTHONY READY</span></div>
+    <div class="hvent" style="left:886px;top:470px;width:214px;height:84px"></div>
+    <div class="led" style="left:892px;top:592px"></div><div class="chin" style="left:906px;top:591px">POWER</div>
+    <div class="led" style="left:972px;top:592px;background:var(--amber);box-shadow:0 0 8px var(--amber)"></div><div class="chin" style="left:986px;top:591px">DISK</div>
+  </div></div>
+  <div class="legend"><span><b>Feel:</b> the shutter rattles up slat by slat into the case's top</span><span><b>Profile:</b> a small screen above the drive</span></div>
+</section>
+
+<!-- C: Cabinet, bay doors split under the marquee -->
+<section class="design">
+  <h2>C · Cabinet: two blast doors slide apart</h2>
+  <p class="note">The title is the cabinet's marquee. Below it, two armoured doors meet at a centre seam with warning stripes. The control deck at the bottom has round arcade buttons, the profile readout and the disk slot. Play slides the doors apart sideways onto the runs screen.</p>
+  <div class="frame"><div class="stage" id="sC">
+    <div class="sky"></div><div class="floor"></div><div class="horizon"></div>
+    <!-- marquee -->
+    <div class="metal" style="position:absolute;left:150px;top:24px;width:980px;height:156px;border-radius:12px"></div>
+    <div class="crt neon" style="position:absolute;left:168px;top:38px;width:944px;height:128px;border-radius:6px"></div>
+    <div class="title" style="left:0;right:0;top:63px;text-align:center">VECTOR COLOSSEUM</div>
+    <!-- door frame -->
+    <div class="metal neon" style="position:absolute;left:150px;top:190px;width:980px;height:290px;border-radius:6px"></div>
+    <div style="position:absolute;left:330px;top:206px;width:620px;height:258px;background:#08090b;border-radius:4px;box-shadow:inset 0 3px 8px #000;overflow:hidden">
+      <div class="crt" style="position:absolute;inset:8px;border-radius:3px;overflow:hidden">
+        <div class="runs"><div class="h">YOUR RUNS_</div>
+          <div class="row"><div><div class="sm">LATEST RUN</div><div class="big">Wave 24</div></div><div class="sm">Anthony · Knight Tank<br>Aleon · Elementalist DPS</div><div class="cont">▶ CONTINUE</div></div>
+          <div class="row"><div class="big" style="font-size:18px">8</div><div class="sm">Nov 5 · 3120 · 11 min</div><div class="cont" style="padding:5px 10px;font-size:12px">▶ CONTINUE</div><div class="del">DEL</div></div>
+          <div class="new">▶ New run</div></div>
+      </div>
+      <div id="cL" style="position:absolute;left:0;top:0;width:50%;height:100%;transition:transform .75s cubic-bezier(.7,0,.2,1);
+        background:linear-gradient(90deg,#3a3c42,#55585f 60%,#3a3c42);border-right:2px solid #0b0c0f">
+        <div style="position:absolute;right:0;top:0;bottom:0;width:22px;background:repeating-linear-gradient(135deg,#d9a43a 0 10px,#151517 10px 20px)"></div>
+        <div class="hvent" style="left:40px;top:60px;width:180px;height:120px;opacity:.7"></div></div>
+      <div id="cR" style="position:absolute;right:0;top:0;width:50%;height:100%;transition:transform .75s cubic-bezier(.7,0,.2,1);
+        background:linear-gradient(90deg,#3a3c42,#55585f 40%,#3a3c42);border-left:2px solid #0b0c0f">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:22px;background:repeating-linear-gradient(45deg,#d9a43a 0 10px,#151517 10px 20px)"></div>
+        <div class="hvent" style="right:40px;top:60px;width:180px;height:120px;opacity:.7"></div></div>
+    </div>
+    <div class="hvent" style="left:180px;top:226px;width:120px;height:220px"></div>
+    <div class="hvent" style="left:980px;top:226px;width:120px;height:220px"></div>
+    <!-- control deck (angled) -->
+    <div style="position:absolute;left:120px;top:494px;width:1040px;height:150px;background:linear-gradient(180deg,#4a4d55,#26282d);clip-path:polygon(3% 0,97% 0,100% 100%,0 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)"></div>
+    <div style="position:absolute;left:120px;top:644px;width:1040px;height:44px;background:linear-gradient(180deg,#1c1d21,#101114);border-radius:0 0 12px 12px"></div>
+    <div class="crt" style="position:absolute;left:200px;top:528px;width:270px;height:62px;border-radius:5px"><div class="chip" style="inset:0"><div class="av"></div><div><div class="nm">Anthony</div><div class="rk">RANK 14</div><div class="xp" style="width:110px"><i></i></div></div><div class="badge">14</div></div></div>
+    <div class="drive" style="left:200px;top:606px;width:270px"><span class="dl">A:</span><span class="slit"></span><span class="dot"></span></div>
+    <!-- round buttons -->
+    <div onclick="toggle('C')" style="position:absolute;left:560px;top:520px;width:96px;height:96px;border-radius:50%;cursor:pointer;background:radial-gradient(circle at 40% 35%,#9dffbe,#2fc463 55%,#167a3a);box-shadow:0 0 0 7px #17181b,0 0 0 9px #3d4047,0 8px 0 9px #0b0c0f,0 0 24px rgba(80,255,140,.35)"></div>
+    <div style="position:absolute;left:540px;top:626px;width:136px;text-align:center;color:#e9ecf2;font:800 15px Arial">PLAY</div>
+    <div style="position:absolute;left:720px;top:538px;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#a8c6ff,#4876d8 55%,#22417f);box-shadow:0 0 0 6px #17181b,0 0 0 8px #3d4047,0 6px 0 8px #0b0c0f"></div>
+    <div style="position:absolute;left:700px;top:614px;width:104px;text-align:center;color:#c9cdd6;font:800 12px Arial">JOIN</div>
+    <div style="position:absolute;left:840px;top:538px;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#e6e8ee,#8d9099 55%,#4b4e55);box-shadow:0 0 0 6px #17181b,0 0 0 8px #3d4047,0 6px 0 8px #0b0c0f"></div>
+    <div style="position:absolute;left:820px;top:614px;width:104px;text-align:center;color:#c9cdd6;font:800 12px Arial">SETTINGS</div>
+    <div style="position:absolute;left:964px;top:548px;width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffb0b0,#d83b3b 55%,#7d1b1b);box-shadow:0 0 0 5px #17181b,0 0 0 7px #3d4047,0 5px 0 7px #0b0c0f"></div>
+    <div style="position:absolute;left:946px;top:606px;width:80px;text-align:center;color:#c9cdd6;font:800 11px Arial">QUIT</div>
+  </div></div>
+  <div class="legend"><span><b>Feel:</b> the doors unlock with a clunk, then slide apart fast and ease out</span><span><b>Profile:</b> a readout on the control deck beside the disk slot</span></div>
+</section>
+
+<script>
+const open = {A:false,B:false,C:false};
+function toggle(k){
+  open[k] = !open[k];
+  if (k==='A'){
+    document.getElementById('aLid').style.transform = open.A ? 'perspective(900px) rotateX(0deg)' : 'perspective(900px) rotateX(-88deg)';
+    document.getElementById('aSeam').style.opacity = open.A ? 0 : 1;
+  }
+  if (k==='B') document.getElementById('bShutter').style.transform = open.B ? 'translateY(-100%)' : 'translateY(0)';
+  if (k==='C'){
+    document.getElementById('cL').style.transform = open.C ? 'translateX(-100%)' : 'translateX(0)';
+    document.getElementById('cR').style.transform = open.C ? 'translateX(100%)' : 'translateX(0)';
+  }
+  document.querySelectorAll('#s'+k+' .key.play').forEach(e=>e.classList.toggle('on',open[k]));
+}
+function fit(){ document.querySelectorAll('.frame').forEach(f=>{ f.querySelector('.stage').style.transform='scale('+(f.clientWidth/1280)+')'; }); }
+addEventListener('resize',fit); fit();
+</script>
+</body>
+</html>

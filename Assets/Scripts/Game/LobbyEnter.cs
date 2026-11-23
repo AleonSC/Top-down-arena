@@ -97,21 +97,14 @@ namespace Arena
             bool modeScreen = OnModeScreen;  // a new lobby opens on the Game Mode screen (ModeScreenUi.cs): the card grows into its page
             var r = fade ? MenuCard : LerpRect(MenuCard, modeScreen ? ModePageRect : LobbyBodyRect, k);
 
-            // The disk drive under the title (DriveSlot.cs) is gone before the box grows up over it, and drawn first so the box covers any
-            // of it that is left (leaving plays this backwards: the drive comes back as the box settles below it).
-            float driveA = fade ? 1f - Seg(e, 0.1f, 0.4f) : 1f - Seg(k, 0f, 0.25f);
-            DrawDriveBay(driveA);  // the ledge it sits in goes with it
-            DrawDriveSlot(driveA, DriveIdle());
-
-            // The bottom bar and your player card drop away and fade.
-            float drop = Seg(e, 0f, 0.35f);
-            if (drop < 1f)
-                WithAlpha(1f - drop, () =>
+            // The machine (the monitor and the case, MenuMachine.cs) fades as the bay's screen grows out of it into the loadout
+            // panel (leaving plays this backwards: the machine comes back round the panel as it settles into the bay).
+            float machA = fade ? 1f - Seg(e, 0.1f, 0.4f) : 1f - Seg(k, 0f, 0.35f);
+            if (machA > 0f)
+                WithAlpha(machA, () =>
                 {
-                    GUI.BeginGroup(new Rect(0f, drop * drop * drop * 160f, W, H));
+                    DrawMenuMachine(99f, false, t, false);  // (its title is the one flying off to become LOBBY, below)
                     DrawMenuSecondary(t, false);
-                    GUI.EndGroup();
-                    DrawMenuPlayerCard(t, 1f, 1f, false);
                 });
 
             // The card grows into the loadout panel; its insides fade at once.
@@ -244,13 +237,15 @@ namespace Arena
                 HoloBoot.Over(clip, e - a, b - a);
         }
 
+        /// Draws at a times the current opacity (nests: a fade inside a fade multiplies).
         void WithAlpha(float a, System.Action draw)
         {
             var old = GUI.color;
-            Ui.Alpha = a;
+            float oldA = Ui.Alpha;
+            Ui.Alpha = oldA * a;
             GUI.color = old.ScaleAlpha(a);
             draw();
-            Ui.Alpha = 1f;
+            Ui.Alpha = oldA;
             GUI.color = old;
         }
     }

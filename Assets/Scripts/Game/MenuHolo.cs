@@ -89,73 +89,6 @@ namespace Arena
 
         const string WhoTitleText = "WHO'S PLAYING?";
 
-        /// IMGUI: the picker's chrome, the same as the main menu's (Docs/Mockups/whos-playing-holo.html), without its rooms:
-        /// WHO'S PLAYING? on the menu's CRT title screen with its neon, and the drive bay ledge under it. a: its opacity
-        /// (the picker fades in the moves to and from the menu, ProfileTransition.cs, DiskEject.cs).
-        void DrawWhoChrome(float a, bool title = true)
-        {
-            if (a <= 0f)
-                return;
-            WithAlpha(a, () =>
-            {
-                if (title)
-                    DrawTitleRetype(WhoTitleText, -1);
-            });
-            if (title)
-                DrawDriveBay(a);
-        }
-
-        /// The title screen showing `text` with its first n letters up (-1: all, with the cursor waiting after it), flat and in place:
-        /// the moves between the picker and the menu keep the screen and only erase and retype its line.
-        void DrawTitleRetype(string text, int n)
-        {
-            crtFull = text;
-            crtFlat = true;
-            crtTyped = n >= text.Length ? -1 : n;
-            DrawCrtBack();
-            if (crtTyped != 0)
-                DrawCrtTitle(new Rect(0f, MenuTitleY - MenuTitleSize * 0.6f, W, MenuTitleSize * 1.2f));
-            DrawCrtFront();
-            DrawTitleNeon(1f);
-            crtFull = CrtTitleText;
-            crtFlat = false;
-            crtTyped = -1;
-        }
-
-        /// IMGUI: a slot's plate on the shelf: a dark CRT tag, lit in neon while its slot is under the mouse.
-        void DrawWhoTag(Rect r, string text, float lit)
-        {
-            Ui.Pill(r, new Color(0.012f, 0.024f, 0.07f));
-            Ui.Rim(r, Color.Lerp(new Color(0.17f, 0.25f, 0.47f), new Color(0.66f, 0.8f, 1f), lit), 0.8f);
-            Ui.Label(r, text, 14, Color.Lerp(new Color(0.5f, 0.63f, 0.91f), new Color(0.9f, 0.95f, 1f), lit), TextAnchor.MiddleCenter, true);
-        }
-
-        /// IMGUI: an empty slot or New profile as a hologram disk: a faint blue body with scanlines, a scan band sliding down it, a
-        /// flicker now and then, and the dashed outline (DrawWhoGhost) on top. hover brightens it.
-        void DrawWhoHolo(Rect r, float a, float hover)
-        {
-            float t = Time.unscaledTime;
-            float flick = fxReduced || !fxOn ? 1f : MathX.Fmod(t, 4f) > 1.92f && MathX.Fmod(t, 4f) < 2.08f ? 0.6f : 1f;
-            a *= flick;
-            const float ch = 24f;  // the chamfered top right corner, as DrawWhoGhost draws it
-            var body = new Color(0.36f, 0.52f, 0.91f, (0.07f + 0.07f * hover) * a);
-            Ui.Fill(new Rect(r.x, r.y + ch, r.width, r.height - ch), body);
-            Ui.Fill(new Rect(r.x, r.y, r.width - ch, ch), body);
-            for (float y = r.y + 2f; y < r.yMax; y += 3f)  // scanlines
-                Ui.Fill(new Rect(r.x + 2f, y, (y < r.y + ch ? r.width - ch : r.width) - 4f, 1f), new Color(0.5f, 0.66f, 1f, 0.06f * a));
-            if (!fxReduced && fxOn)
-            {
-                float sy = r.y + MathX.Fmod(t * 60f, r.height + 30f) - 30f;
-                for (int i = 0; i < 10; i++)  // the scan band: brightest in its middle
-                {
-                    float y = sy + i * 3f;
-                    if (y >= r.y && y < r.yMax - 3f)
-                        Ui.Fill(new Rect(r.x + 2f, y, (y < r.y + ch ? r.width - ch : r.width) - 4f, 3f), new Color(0.62f, 0.75f, 1f, 0.12f * Mathf.Sin(Mathf.PI * (i + 0.5f) / 10f) * a));
-                }
-            }
-            DrawWhoGhost(r, Color.Lerp(new Color(0.5f, 0.66f, 1f, 0.5f * a), new Color(0.81f, 0.88f, 1f, 0.95f * a), hover));
-        }
-
         // --- Sounds (MenuSoundBank.cs) -----------------------------------------------------------------------------------------
 
         int roomsHeard = -1, neonHeard = -1;
@@ -362,61 +295,7 @@ namespace Arena
 
         // --- The drive bay ledge ------------------------------------------------------------------------------------------
 
-        /// The ledge under the title: it runs out to halfway between the title's ends and the box's sides, from the title's
-        /// bottom edge to just under the drive's readout, with its bottom corners cut.
-        static Rect DriveBayRect => new Rect((112f + MenuCard.x) / 2f, 186f, W - (112f + MenuCard.x), 64f);
         const float BayCut = 10f;
-
-        /// IMGUI: the ledge (drawn after the title, before the drive and its eject key). Its body covers the title's neon where they
-        /// join, so the two read as one piece.
-        void DrawDriveBay(float a)
-        {
-            if (a <= 0f || !BeginUiGl())
-                return;
-            UiModelAt(V2.Zero, 1f);
-            var r = DriveBayRect;
-            float x0 = r.x, x1 = r.xMax, y0 = r.y - 3f, y1 = r.yMax, c = BayCut;
-            // the body: dark at the top (under the title) to a deep blue, with the bottom corners cut
-            var top = new Rgba(0.04f, 0.05f, 0.09f, a);
-            var bot = new Rgba(0.07f, 0.1f, 0.19f, a);
-            GradQuad(new V2(x0, y0), new V2(x1, y0), new V2(x1, y1 - c), new V2(x0, y1 - c), top, top.Mix(bot, 0.85f));
-            SetColor(top.Mix(bot, 0.85f));
-            Quad(new V2(x0, y1 - c), new V2(x1, y1 - c), new V2(x1 - c, y1), new V2(x0 + c, y1));
-            // vents either side of the drive
-            var vent = new Rgba(0.23f, 0.31f, 0.53f, 0.55f * a);
-            float vy = r.y + 22f;
-            for (int side = 0; side < 2; side++)
-            {
-                float vx0 = side == 0 ? x0 + 26f : W / 2f + DriveW / 2f + 70f, vx1 = side == 0 ? W / 2f - DriveW / 2f - 26f : x1 - 26f;
-                for (float x = vx0; x + 6f <= vx1; x += 10f)
-                    FillRect(x, vy, 6f, 18f, vent);
-            }
-            // the neon down the sides and along the bottom (the top joins the title, so it has none)
-            float n = a * NeonFlicker(Time.unscaledTime, 9f, 3f);
-            NeonPath(new[] { new V2(x0, r.y), new V2(x0, y1 - c), new V2(x0 + c, y1), new V2(x1 - c, y1), new V2(x1, y1 - c), new V2(x1, r.y) }, false, n);
-            EndUiGl();
-        }
-
-        /// IMGUI: the eject key's lamp, a small green light that breathes (dim while there's nothing to eject).
-        void DrawEjectLamp(float a)
-        {
-            if (a <= 0f)
-                return;
-            var r = EjectKeyRect;
-            bool on = EjectAvailable && !profTr && !profEj;
-            float t = Time.unscaledTime, pulse = fxReduced ? 1f : 0.72f + 0.28f * Mathf.Sin(t * 2.6f);
-            var green = new Color(0.49f, 1f, 0.69f);
-            var c = new Vector2(r.xMax - 8f, r.y + 8f);
-            WithAlpha(a, () =>
-            {
-                if (on)
-                {
-                    Ui.Dot(new Rect(c.x - 9f, c.y - 9f, 18f, 18f), green.WithAlpha(0.18f * pulse));
-                    Ui.Dot(new Rect(c.x - 5.5f, c.y - 5.5f, 11f, 11f), green.WithAlpha(0.35f * pulse));
-                }
-                Ui.Dot(new Rect(c.x - 3f, c.y - 3f, 6f, 6f), on ? green.WithAlpha(0.6f + 0.4f * pulse) : new Color(0.2f, 0.32f, 0.26f));
-            });
-        }
 
         // --- Rooms ----------------------------------------------------------------------------------------------------------
 

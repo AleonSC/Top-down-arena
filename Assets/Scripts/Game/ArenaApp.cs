@@ -167,7 +167,10 @@ namespace Arena
             SyncNameFromProfile();  // the active profile's name is yours (ProfilesUi.cs)
             whoOpen = !(opts.ContainsKey("host") || opts.ContainsKey("join") || opts.ContainsKey("autostart"));  // "Who's playing?" first, unless started from the command line
             if (whoOpen)
+            {
                 WhoRefresh();
+                CarCenterOn(ProfileStore.ActiveId);  // the carousel opens on the profile used last (DiskCarousel.cs)
+            }
             if (opts.TryGetValue("name", out v)) nameText = v;
             if (opts.TryGetValue("port", out v)) portText = v;
             if (opts.TryGetValue("role", out v))
@@ -567,8 +570,8 @@ namespace Arena
                     else
                         CloseWindow(() => profileOpen = false);  // ProfileUi.cs
                 }
-                else if (menuPlayOpen && session.Screen == AppScreen.Menu && GUIUtility.keyboardControl == 0)
-                    PlayPickerBack();  // the saved-runs picker: back to the older runs' first page, or to the menu (SavesUi.cs)
+                else if ((menuPlayOpen || menuJoinOpen) && session.Screen == AppScreen.Menu && GUIUtility.keyboardControl == 0)
+                    PlayPickerBack();  // the case's bay: the shutter rolls back down (SavesUi.cs, MenuMachine.cs)
             }
             if (session.Screen == AppScreen.Game && !RecallActive && !escTaken)  // (nothing to open while everyone's beaming out: Recall.cs)
             {

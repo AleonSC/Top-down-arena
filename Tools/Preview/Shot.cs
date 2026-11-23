@@ -77,6 +77,12 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("WIN95") != null) names[2] = "Windows 95";  // the Windows 95 disk easter egg
     if (Environment.GetEnvironmentVariable("MI") != null) names[0] = "Mission Impossible";  // the Mission: Impossible disk easter egg
     int[] ranks = { 14, 6, 3 };
+    // MANY=<n>: n profiles (up to 50), for the carousel's count and wrap.
+    if (Environment.GetEnvironmentVariable("MANY") != null) {
+      string[] pool = { "Anthony", "Little Bee", "Sam", "Aleon", "Rook", "Mira", "Juno", "Kestrel", "Pip", "Nova", "Ash", "Wren", "Bram", "Ivy", "Cato", "Lux", "Odile", "Fenn", "Rue", "Tamsin", "Hugo", "Sable", "Quill", "Zara", "Moss", "Echo", "Vale", "Rhea", "Otto", "Briar", "Indy", "Kai", "Lark", "Nell", "Orrin", "Pax", "Rowan", "Sky", "Teo", "Uma", "Vex", "Wynn", "Xan", "Yara", "Zed", "Ada", "Bo", "Cleo", "Dax", "Elio" };
+      names = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Take(pool, Math.Min(50, int.Parse(Environment.GetEnvironmentVariable("MANY")))));
+      ranks = new int[names.Length]; for (int k = 0; k < names.Length; k++) ranks[k] = 1 + (k * 7 + 13) % 28;
+    }
     for (int i = 0; i < names.Length; i++) {
       string id = ProfileStore.Create(names[i]);
       new Profile { Name = names[i], Xp = Rank.XpAt(ranks[i]) + 40, RunsWon = ranks[i] / 3, RunsLost = ranks[i] * 2 }.SaveTo(Path.Combine(dir, "profiles", id));
