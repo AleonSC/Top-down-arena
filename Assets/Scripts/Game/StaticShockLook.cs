@@ -26,7 +26,9 @@ namespace Arena
         static readonly Rgba AcHalo = new Rgba(0.55f, 0.43f, 1f), AcInner = new Rgba(0.745f, 0.86f, 1f), AcRim = new Rgba(0.784f, 0.706f, 1f), AcBolt = new Rgba(0.71f, 0.61f, 1f);
         static readonly Rgba AcTrail = new Rgba(0.59f, 0.47f, 1f), AcSpark = new Rgba(0.85f, 0.78f, 1f), AcRing = new Rgba(0.85f, 0.8f, 1f), AcBurstBolt = new Rgba(0.65f, 0.55f, 1f);
         static readonly Rgba AcFlash = new Rgba(0.92f, 0.9f, 1f), AcBurstSpark = new Rgba(0.9f, 0.86f, 1f), AcInnerRing = new Rgba(0.62f, 0.89f, 1f);
-        const float ShkStrike = 18f;  // the bolts are re-struck this many times a second
+        const float ShkStrike = 18f;
+        static readonly Rgba ShkHotLink = new Rgba(0.82f, 0.95f, 1f);  // a fully ramped link's glow: nearly white
+        static Rgba ShkHotGlow(float heat) => new Rgba(ShkLinkGlow.R + (ShkHotLink.R - ShkLinkGlow.R) * heat, ShkLinkGlow.G + (ShkHotLink.G - ShkLinkGlow.G) * heat, ShkLinkGlow.B + (ShkHotLink.B - ShkLinkGlow.B) * heat);  // the bolts are re-struck this many times a second
 
         // ---- lightning geometry: midpoint displacement, five levels (33 points), seeded so a seed holds its shape
 
@@ -77,6 +79,28 @@ namespace Arena
         readonly List<Enemy> shkIn = new List<Enemy>();
         readonly List<int> shkFrom = new List<int>();
         readonly HashSet<int> shkWired = new HashSet<int>();
+        // How long each enemy (by id) and room turret (by where it stands) has been wired on this screen, the shock's
+        // ramp as this screen sees it: the bolts to it thicken and run hotter as the shock grows (Game.StaticRamp).
+        readonly Dictionary<long, float> shkHeat = new Dictionary<long, float>(), shkHeatSeen = new Dictionary<long, float>();
+        readonly List<long> shkHeatGone = new List<long>();
+        float shkClock;
+
+        static long ShkTurretKey(V2 p) => long.MinValue + ((long)(int)Mathf.Round(p.X) << 24) + (int)Mathf.Round(p.Y) + 10000000;
+
+        /// 0 to 1: how far along its ramp the shock on this target is.
+        float ShkHeatOf(long key)
+        {
+            float h;
+            return shkHeat.TryGetValue(key, out h) ? Mathf.Clamp01(h / Game.StaticRamp) : 0f;
+        }
+
+        void ShkWarm(long key, float dt)
+        {
+            float h;
+            shkHeat.TryGetValue(key, out h);
+            shkHeat[key] = h + dt;
+            shkHeatSeen[key] = shkClock;
+        }
 
         bool ShkShowable(Enemy e) => e.Hp > 0f && !game.IsSpawning(e);
 
@@ -103,18 +127,32 @@ namespace Arena
             if (dt <= 0f)
                 return;
             shkWired.Clear();
+            shkClock += dt;
             foreach (var p in game.Players.Values)
             {
                 if (!ShkConeUp(p))
                     continue;
                 ShkCircuit(p);
+                foreach (var tr in game.RoomTrapList)
+                    if (tr.Kind == TrapKind.Turret && Game.InStaticCone(Game.StaticHand(p, p.Disp), p.Aim, Game.StaticRangeOf(p), tr.Pos, RoomTraps.TurretHitR))
+                        ShkWarm(ShkTurretKey(tr.Pos), dt);
                 foreach (var e in shkIn)
                 {
                     shkWired.Add(e.Id);
-                    if (Rnd(0f, 1f) < dt * 14f)
+                    ShkWarm(e.Id, dt);
+                    if (Rnd(0f, 1f) < dt * (14f + 20f * ShkHeatOf(e.Id)))
                         AddPart(new Part { Kind = PSpark, Pos = e.Disp + new V2(Rnd(-e.Radius, e.Radius), Rnd(-e.Radius, e.Radius)),
                             Vel = V2.FromAngle(Rnd(0f, MathX.Tau)) * Rnd(40f, 140f), Life = Rnd(0.25f, 0.6f), Max = 0.6f, Size = 1.8f, Col = ShkSparkCol });
                 }
+            }
+            shkHeatGone.Clear();
+            foreach (var kv in shkHeatSeen)
+                if (shkClock - kv.Value > Game.StaticForget)
+                    shkHeatGone.Add(kv.Key);
+            foreach (long k in shkHeatGone)
+            {
+                shkHeat.Remove(k);
+                shkHeatSeen.Remove(k);
             }
             foreach (var p in game.Players.Values)
             {
@@ -235,11 +273,22 @@ namespace Arena
             for (int i = 0; i < shkIn.Count; i++)
             {
                 V2 from = shkFrom[i] < 0 ? h : shkIn[shkFrom[i]].Disp, to = shkIn[i].Disp;
-                ShkDrawBolt(from, to, Mathf.Min(28f, (to - from).Length * 0.18f), ShkSeed(fr, shkIn[i].Id, 3), ShkLinkGlow, Rgba.White, 2.2f, 1f);
+                float heat = ShkHeatOf(shkIn[i].Id);  // the bolt thickens and whitens as the shock grows
+                ShkDrawBolt(from, to, Mathf.Min(28f, (to - from).Length * 0.18f), ShkSeed(fr, shkIn[i].Id, 3), ShkHotGlow(heat), Rgba.White, 1.8f + 1.0f * heat, 1f);
                 uint es = ShkSeed(fr, shkIn[i].Id, 5);
-                GlowDisc(to, shkIn[i].Radius * 2.6f, ShkEnemyGlow, 0.45f * (0.6f + 0.4f * Rand01(ref es)));
+                GlowDisc(to, shkIn[i].Radius * (2.4f + 1.2f * heat), ShkEnemyGlow, (0.4f + 0.3f * heat) * (0.6f + 0.4f * Rand01(ref es)));
                 if (Rand01(ref es) < 0.5f)
                     Arc(to, shkIn[i].Radius, 2f, new Rgba(0.74f, 0.94f, 1f, 0.8f), 20);
+            }
+            // Room turrets in it take the shock too: a bolt from the hand.
+            foreach (var tr in game.RoomTrapList)
+            {
+                if (tr.Kind != TrapKind.Turret || !Game.InStaticCone(h, aim, R, tr.Pos, RoomTraps.TurretHitR))
+                    continue;
+                long key = ShkTurretKey(tr.Pos);
+                float heat = ShkHeatOf(key);
+                ShkDrawBolt(h, tr.Pos, Mathf.Min(28f, (tr.Pos - h).Length * 0.18f), ShkSeed(fr, (int)(key & 0xffffff), 23), ShkHotGlow(heat), Rgba.White, 1.8f + 1.0f * heat, 1f);
+                GlowDisc(tr.Pos, RoomTraps.TurretHitR * (1.8f + 0.8f * heat), ShkEnemyGlow, 0.4f + 0.3f * heat);
             }
             // Gold bolts to teammates in it.
             foreach (var q in game.Players.Values)

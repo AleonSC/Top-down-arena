@@ -1077,6 +1077,12 @@ static partial class Shot {
       var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
       int frames = Math.Max(2, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("STATICSHOCK"), ci) * 60f));
       V2 cursor = alt ? home + new V2(360f, 10f) : home + new V2(260f, 0f);
+      if (Environment.GetEnvironmentVariable("SSHEAT") != null) {  // SSHEAT=<s>: every enemy has already been in the cone that long (the shock's ramp)
+        float heat0 = float.Parse(Environment.GetEnvironmentVariable("SSHEAT"), ci);
+        var hostT = (System.Collections.Generic.Dictionary<int, float>)typeof(Game).GetField("staticShockT", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(gm);
+        var lookT = (System.Collections.Generic.Dictionary<long, float>)typeof(ArenaApp).GetField("shkHeat", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(app);
+        foreach (var e in foes) { hostT[e.Id] = heat0; lookT[e.Id] = heat0; }
+      }
       for (int f = 0; f < frames; f++) {
         me.Pos = me.Disp = home; me.Aim = 0f; for (int i = 0; i < foes.Count; i++) { foes[i].Pos = foes[i].Disp = keep[i]; foes[i].FireT = 99f; }
         for (int i = 0; i < mates.Count && i < 2; i++) { mates[i].Pos = mates[i].Disp = home + mateAt[i]; mates[i].Hp = mates[i].MaxHp; }
