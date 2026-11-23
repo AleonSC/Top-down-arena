@@ -203,9 +203,16 @@ namespace Arena
                 MiniWoundCells(new Rect(hr.x, hr.y + 64f, hr.width, 8f), me, 20, a);
                 if (me.Wound > 0.5f)  // how much of your health no heal brings back, on the title row
                     MiniText(new Rect(hr.x, hr.y, hr.width, 16f), "WOUND -" + Mathf.CeilToInt(me.Wound), 16, red, a, TextAnchor.MiddleRight);
+                float extraX = mx + CrtUi.TitleWidth(max, 24) + 8f;
+                if (me.Role == Role.Tank)  // the Tank's Ironhide (Ironhide.cs): steel after the max, dim while the refill waits
+                {
+                    string iron = "+" + Mathf.CeilToInt(Game.Ironhide(me));
+                    MiniText(new Rect(extraX, hr.y + 30f, 90f, 26f), iron, 24, me.IronWait > 0f ? dim : CrtStyle.Steel, a);
+                    extraX += CrtUi.TitleWidth(iron, 24) + 8f;
+                }
                 if (me.OverHp > 0f)  // a health shrine's health past max (Shrines.cs): gold, after the max and as a gold strip over the cells
                 {
-                    MiniText(new Rect(mx + CrtUi.TitleWidth(max, 24) + 8f, hr.y + 30f, 90f, 26f), "+" + Mathf.CeilToInt(me.OverHp), 24, CrtStyle.Gold, a);
+                    MiniText(new Rect(extraX, hr.y + 30f, 90f, 26f), "+" + Mathf.CeilToInt(me.OverHp), 24, CrtStyle.Gold, a);
                     MiniCells(new Rect(hr.x, hr.y + 59f, hr.width, 3f), Mathf.Clamp01(me.OverHp / Mathf.Max(1f, me.MaxHp)), 20, CrtStyle.Gold, a);
                 }
             }

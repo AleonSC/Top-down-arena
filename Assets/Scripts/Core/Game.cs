@@ -1602,6 +1602,7 @@ namespace Arena
                 p.SurgeT = Math.Max(0f, p.SurgeT - dt);  // Arcane Surge
                 p.GhostT = Math.Max(0f, p.GhostT - dt);  // Ghost Step
                 TickMomentum(p, dt);  // Momentum.cs
+                TickIronhide(p, dt);  // Ironhide.cs
                 p.SwiftT = Math.Max(0f, p.SwiftT - dt);
                 p.DashT = Math.Max(0f, p.DashT - dt);
                 p.TauntT = Math.Max(0f, p.TauntT - dt);
@@ -1734,7 +1735,7 @@ namespace Arena
                         Heal(p, AuraSelfHeal * p.Stats.AuraHealMult * dt, p, AuraSource);
                     foreach (var q in Players.Values)
                         if (q != p && q.Pos.CloserThan(p.Pos, p.AuraRange))
-                            Heal(q, AuraHeal * p.Stats.AuraHealMult * dt, p, AuraSource);
+                            Heal(q, AuraHealAt(p, q.Pos) * dt, p, AuraSource);
                 }
             }
 
@@ -1765,6 +1766,16 @@ namespace Arena
         }
 
         // --- Helpers -----------------------------------------------------------
+
+        /// HP/s a Healer's aura gives an ally standing at `at`: AuraHealNear next to them, AuraHealRim at the rim,
+        /// 0 outside (x the Sanctuary multiplier).
+        public static float AuraHealAt(Player healer, V2 at)
+        {
+            float r = healer.AuraRange, d = (at - healer.Pos).Length;
+            if (d >= r)
+                return 0f;
+            return (AuraHealNear + (AuraHealRim - AuraHealNear) * d / r) * healer.Stats.AuraHealMult;
+        }
 
         public bool IsSpawning(Enemy e) => IsHost ? e.SpawnT > 0f : e.Spawning;
 

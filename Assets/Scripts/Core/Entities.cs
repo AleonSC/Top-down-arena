@@ -208,6 +208,7 @@ namespace Arena
         public bool Downed;
         public int MomentumStacks;  // the DPS role passive (Momentum.cs)
         public float MomentumT;
+        public float IronLost, IronWait;  // the Tank role passive (Ironhide.cs): shield taken off, seconds until it refills (replicated)
         public float Revive, FireCd, BarrierT, InvulnT, OverdriveT, AdrenalineT, SwiftT, Flash, LevelFlash;  // AdrenalineT: the Healer's Adrenaline Shot (Adrenaline.cs)
         public float TauntT;  // Roar: enemies target this player
         public float DashT;   // replicated: the Ninja's Healing Dash, seconds of sprint left (Ninja.cs)

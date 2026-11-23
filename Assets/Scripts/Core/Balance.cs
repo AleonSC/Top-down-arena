@@ -88,7 +88,9 @@ namespace Arena
         // --- The Healer's aura (every Healer heals allies near them) -------------------------------------------------
 
         public const float AuraRange = 170f;
-        const float AuraHeal = 9f;
+        // HP/s an ally gets: AuraHealNear next to the Healer, falling in a straight line to AuraHealRim at the edge
+        // (about 9 HP/s averaged over the circle; x the aura's heal multiplier). AuraHealAt has the curve.
+        public const float AuraHealNear = 17f, AuraHealRim = 5f;
         public const float AuraSelfHeal = 1f;  // HP/s the aura heals the Healer themselves (x the aura's heal multiplier)
         const string AuraSource = "aura";
         // A Healer's heals past full health become a shield: up to this share of the target's max health, for this long.

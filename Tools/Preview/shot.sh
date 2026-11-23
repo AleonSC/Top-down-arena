@@ -17,6 +17,8 @@
 # SPRINT=<s> (the Dodge's held sprint that long in, running right with its fading wake; mode hud).
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
 # MOMENTUM=<0-5> (the DPS passive's stack pips round you; mode hud, 2 players).
+# IRONHIDE=<shield 0-75>[,<wait s>] (the Tank's Ironhide plates; mode hud, 1 player, ZOOM=3).
+# HEALAURA=1|2 (the Healer aura, HealerAuraLook.cs: a Tank near the Healer (2: near the rim) and a DPS outside; mode hud, 3 players, ZOOM=2.2).
 # NONSHOOT=1 (the Hook Thrower caught mid-move: aiming, harpoon out, spinning, open after a miss).
 # PORTALS=1 (spawn portals: opening, letting a burst out, a flank behind you with its arrow, closing; SpawnPortalLook.cs; PORTALSURGE=1 in a surge, PORTALSEAL=<0-1> a sealed flash that far through).
 # CULT=1 (the Twin Reapers' cult mid-move: Wisps, Acolyte, Gravedigger, Shade, Bound pairs (tether, revive), Scythe Wraith, Lamplighters, Mourner).

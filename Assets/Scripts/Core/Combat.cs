@@ -63,6 +63,7 @@ namespace Arena
                 if (p.MercyT > 0f && soak > 0f)  // a Lightbringer's ward took it: the plate facing the shot flashes (Lightbringer.cs)
                     LightMark(p, 3, (RiotImpactPoint(p) - p.Pos).Angle, false);
             }
+            amount = IronhideSoak(p, amount);  // then the Tank's Ironhide (Ironhide.cs)
             if (p.OverHp > 0f)  // then a health shrine's health past max (Shrines.cs)
             {
                 float soak = Math.Min(p.OverHp, amount);
