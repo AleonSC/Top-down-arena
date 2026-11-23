@@ -16,14 +16,14 @@ namespace Arena
         // under the box. A header CRT screen ("MAIN MENU_") sits over the buttons with a physical Quit key beside it, like the picker's Back (Docs/Mockups/menu-screen-key-pairs.html, look E). The port is in Settings (Gameplay).
         // The first time the menu shows, it draws itself in (MenuIntro.cs); each piece asks MenuIntroK how far in it is.
         const float MenuTitleY = 126f, MenuTitleSize = 74f, MenuAxisY = 188f, MenuAxisHalf = 390f;
-        static readonly Rect MenuCard = new Rect(W / 2f - 340f, 268f, 680f, 320f);  // taller than the picker needs (the saved-runs list gets the extra)
-        static readonly Rect MenuPlayerRect = new Rect(MenuCard.x, MenuCard.yMax + 22f, MenuCard.width, 64f);  // your player card, under the box (lined up with its sides)
-        static readonly Rect MenuHostRect = new Rect(MenuCard.x + 30f, MenuCard.y + 68f, 620f, 140f);  // the Play button
-        static readonly Rect MenuJoinRect = new Rect(MenuCard.x + 30f, MenuCard.y + 224f, 303f, 64f);
-        static readonly Rect MenuSettingsRect = new Rect(MenuCard.x + 347f, MenuCard.y + 224f, 303f, 64f);
-        static readonly Rect MenuJoinRow = new Rect(W / 2f - 340f, MenuCard.yMax + 12f, 680f, 64f);
-        static readonly Rect MenuHeaderRect = new Rect(MenuCard.x + 30f, MenuCard.y + 10f, 488f, 44f);  // the header screen (same spot as the picker's)
-        static readonly Rect MenuQuitKey = new Rect(MenuCard.xMax - 30f - 120f, MenuCard.y + 10f, 120f, 44f);  // the Quit key beside it
+        static Rect MenuCard => new Rect(W / 2f - 340f, MenuComputer ? 292f : 268f, 680f, 320f);  // taller than the picker needs (the saved-runs list gets the extra); the computer mockup (MenuComputer.cs) drops it under the case's drive row
+        static Rect MenuPlayerRect => new Rect(MenuCard.x, MenuCard.yMax + (MenuComputer ? 30f : 22f), MenuCard.width, 64f);  // your player card, under the box (lined up with its sides)
+        static Rect MenuHostRect => new Rect(MenuCard.x + 30f, MenuCard.y + 68f, 620f, 140f);  // the Play button
+        static Rect MenuJoinRect => new Rect(MenuCard.x + 30f, MenuCard.y + 224f, 303f, 64f);
+        static Rect MenuSettingsRect => new Rect(MenuCard.x + 347f, MenuCard.y + 224f, 303f, 64f);
+        static Rect MenuJoinRow => new Rect(W / 2f - 340f, MenuCard.yMax + 12f, 680f, 64f);
+        static Rect MenuHeaderRect => new Rect(MenuCard.x + 30f, MenuCard.y + 10f, 488f, 44f);  // the header screen (same spot as the picker's)
+        static Rect MenuQuitKey => new Rect(MenuCard.xMax - 30f - 120f, MenuCard.y + 10f, 120f, 44f);  // the Quit key beside it
         bool menuJoinOpen;    // Join opened the address row
         bool menuPlayOpen;    // Play opened the saved-runs picker in the box (SavesUi.cs)
         float menuPlayK;      // 0 = the menu's buttons, 1 = the picker; in between the bay doors are moving (MenuServo.cs)
@@ -35,20 +35,29 @@ namespace Arena
             float t = Time.unscaledTime;
             DrawMenuIntroBackdrop();  // the background fading up as the intro starts (MenuIntro.cs)
             float box = MenuIntroK(1.65f, 2.0f);
-            if (BeginUiGl())  // under everything: the rooms (MenuHolo.cs)
+            Ui.Graphite = MenuComputer;
+            if (MenuComputer)
+                DriveY = MenuPcDriveY;
+            if (!MenuComputer && BeginUiGl())  // under everything: the rooms (MenuHolo.cs)
             {
                 DrawMenuRooms(t, MenuIntroPlaying ? 0f : 1f);
                 EndUiGl();
             }
-            DrawMenuTitle(t);
             float axis = EaseOut(MenuAxisK);
-            DrawDriveBay(axis);  // the ledge under the title that houses the drive (MenuHolo.cs)
+            if (MenuComputer)
+            {
+                DrawMenuPcCase(axis);  // the case the monitor stands on (MenuComputer.cs)
+                WithAlpha(axis, () => DrawPcMonitor(false));
+            }
+            DrawMenuTitle(t);
+            if (!MenuComputer)
+                DrawDriveBay(axis);  // the ledge under the title that houses the drive (MenuHolo.cs)
             DrawDriveSlot(axis, DriveForMenu());  // the disk drive under the title (DriveSlot.cs)
             DrawDriveEject(axis, !MenuIntroPlaying);  // its eject key, right of it (DiskEject.cs)
             DrawEjectLamp(axis);
             if (box > 0f)
                 TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => DkPanel(MenuCard)));
-            if (BeginUiGl())
+            if (!MenuComputer && BeginUiGl())
             {
                 DrawBoxNeon(MenuCard, MenuIntroK(2.0f, 2.3f));  // the box's neon edge (MenuHolo.cs)
                 float snap = MenuIntroK(1.85f, 2.0f), off = 18f * (1f - EaseOut(snap));
@@ -63,6 +72,8 @@ namespace Arena
             if (cardK > 0f)
                 DrawMenuPlayerCard(t, 1f, cardK, live);
             DrawMenuIntroFade();  // the short version of the intro: a fade (MenuIntro.cs)
+            Ui.Graphite = false;
+            DriveY = 206f;
         }
 
         /// The title, drawn in ink then filled during the intro.

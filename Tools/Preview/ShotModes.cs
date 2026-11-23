@@ -467,6 +467,7 @@ static partial class Shot {
         if (Environment.GetEnvironmentVariable("BG") != null) { set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG"))); set("menuBgOverride", true); set("bgProfile", Profile.Current); } }  // BG=0: the Holo Floor behind it
       // records: the Records page, with made-up saves and a profile (SavesUi.cs).
       if (mode == "records" || mode == "cosmetics" || mode == "profile" || mode == "menu") PreviewSaves();
+      if (mode == "menu" && Environment.GetEnvironmentVariable("MENUPC") != null) { ArenaApp.MenuComputer = true; if (Environment.GetEnvironmentVariable("BG") != null) { set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG"))); set("menuBgOverride", true); set("bgProfile", Profile.Current); } }  // MENUPC=1: the main menu as the computer (MenuComputer.cs)
       // menu: PLAY=1 shows the saved-runs picker in the box after Play (NOSAVES=1: with no saves; MORE=1: extra saves; SCROLL=n: scroll the list n px).
       if (mode == "menu" && Environment.GetEnvironmentVariable("PLAY") != null) {
         if (Environment.GetEnvironmentVariable("MORE") != null) { for (int i = 0; i < 6; i++) { var x = new RunSave { Id = "m" + i, SavedAt = Shot.Now.AddDays(-3 - i), Wave = 3 + i, Score = 900 * (i + 1), RunTime = 300f * (i + 1) }; x.Seats.Add(new SeatSave { Name = "Anthony", Role = Role.Dps, Kit = Kit.Ninja, Weapon = 0, Ability = 0, Level = 3 + i }); SaveStore.Write(x); } }

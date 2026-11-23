@@ -56,7 +56,7 @@ namespace Arena
                 UiModelAt(V2.Zero, 1f);
                 NeonRect(TitleNeonRect, a * NeonFlicker(Time.unscaledTime, 9f, 3f));
                 NeonSparkSound(9f, 3f, a);
-                HoloCorners(TitleNeonRect, a, bottom: !(whoOpen && WhoDrawer));  // (the picker's drawer layouts: one frame from the title to the drawer)
+                HoloCorners(TitleNeonRect, a, bottom: !(whoOpen && WhoDrawer) && !MenuComputer);  // (the picker's drawer layouts: one frame from the title to the drawer)
                 EndUiGl();
             }
         }

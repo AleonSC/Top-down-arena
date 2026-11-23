@@ -265,16 +265,30 @@ namespace Arena
 
         /// IMGUI: the title as a monitor: a chunky graphite bezel round the title's screen, a chin under it with a brand strip and a
         /// power LED, and the neck going down behind the disk box to the case.
-        void DrawWhoMonitor()
+        void DrawWhoMonitor() => DrawPcMonitor(true);
+
+        /// The monitor's bezel and chin round the title; neck: its neck down behind the disk box (the picker), or none (the main
+        /// menu's computer, where it stands on the case).
+        void DrawPcMonitor(bool neck)
         {
             var n = TitleNeonRect;
             var bz = new Rect(n.x - 14f, n.y - 14f, n.width + 28f, n.height + 14f + 30f);
-            // the neck, down behind the disk box
+            if (neck)
+                DrawPcNeck(bz);
+            DrawPcBezel(n, bz);
+        }
+
+        void DrawPcNeck(Rect bz)
+        {
             var neck = new Rect(W / 2f - 70f, bz.yMax - 6f, 140f, WhoBoxRect.y + 30f - bz.yMax);
             Ui.Fill(neck, new Color(0.07f, 0.075f, 0.085f));
             WhoBand(new Rect(neck.x + 2f, neck.y, neck.width - 4f, neck.height), new Color(0.24f, 0.25f, 0.28f), new Color(0.12f, 0.125f, 0.14f), 2f);
             Ui.Fill(new Rect(neck.x + 2f, neck.y, 1f, neck.height), new Color(1f, 1f, 1f, 0.12f));
             Ui.Fill(new Rect(neck.x + 10f, neck.y, neck.width - 20f, 6f), new Color(0f, 0f, 0f, 0.4f));  // the chin's shadow on it
+        }
+
+        void DrawPcBezel(Rect n, Rect bz)
+        {
             // the bezel
             Ui.Pill(new Rect(bz.x + 2f, bz.y + 8f, bz.width - 4f, bz.height), new Color(0f, 0f, 0f, 0.45f));
             Ui.Pill(bz, new Color(0.06f, 0.063f, 0.072f));
