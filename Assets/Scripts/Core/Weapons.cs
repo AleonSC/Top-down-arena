@@ -7,7 +7,7 @@ namespace Arena
     public partial class Game
     {
         /// Everything that speeds up firing: upgrades, Overdrive (Adrenaline Shot doesn't stack with it: the bigger wins), Artillery Assault, Counterstance.
-        float FireRate(Player p) => p.Stats.FireRateMult * MomentumMult(p) * Math.Max(p.OverdriveT > 0f ? 2f : 1f, p.AdrenalineT > 0f ? AdrenalineFire : 1f) * (Storming(p) ? 3f : 1f)
+        float FireRate(Player p) => p.Stats.FireRateMult * MomentumMult(p) * Math.Max(p.OverdriveT > 0f ? 2f : 1f, p.AdrenalineT > 0f ? AdrenalineFire : 1f) * (Storming(p) ? 3f : 1f) * (p.OverchargeT > 0f ? OverchargeFire : 1f)  // Overcharge (StaticShock.cs)
             * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f) * (p.SurgeT > 0f ? 1f + p.Stats.SurgeRate : 1f)  // Arcane Surge
             * (OverclockOn(p) ? OverclockMult : 1f);  // an Overclock Chip (Gadgets.cs)
 
@@ -514,6 +514,8 @@ namespace Arena
                     return StasisReach * p.Stats.ShotSpeedMult;
                 case WeaponId.LeechTendrils:  // Leech Tendrils reach from your edge (Hemomancer.cs)
                     return p.Def.BodyR + GraspReach(p);
+                case WeaponId.StaticShock:  // the cone (StaticShock.cs)
+                    return StaticHand(p, p.Pos).DistanceTo(p.Pos) + StaticRangeOf(p);
                 case WeaponId.RadiantOrb:  // as far out as the orb can go (RadiantOrb.cs)
                     return RadiantReach(p);
                 case WeaponId.VeinTether:  // a beam from your edge (Hemomancer.cs)

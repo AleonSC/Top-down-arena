@@ -29,6 +29,7 @@ namespace Arena
             { WeaponId.RadiantOrb, 37f },
             { WeaponId.ChainLight, 80f },
             { WeaponId.Nimbus, 26f },
+            { WeaponId.StaticShock, 8f },
             { WeaponId.Fireball, 71f },
             { WeaponId.Waterball, 56f },
             { WeaponId.Earthball, 82f },

@@ -91,6 +91,8 @@ namespace Arena
                 case WeaponId.StormHammer:  // most of its damage is the smash; the electrified enemy's arcs are a little extra
                     QueueHammerThrow(p, extra, dmg);  // the hammer rises, snaps forward and leaves your hand (StormHammer.cs)
                     break;
+                case WeaponId.StaticShock:
+                    break;  // held, never fired (StaticShock.cs)
                 case WeaponId.RadiantOrb:
                     break;  // held on the cursor instead of fired (RadiantOrb.cs); extra projectiles become Light Orbs circling you (TickMinions)
                 case WeaponId.ChainLight:

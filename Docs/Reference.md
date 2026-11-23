@@ -57,6 +57,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Radiant Orb | Healer | 0.2 s | 8 | - | 520 | 37 | Primary Fire: Hold to guide an orb of light: it burns enemies and heals allies it passes over. |
 | Chain Light | Healer | 0.5 s | 40 | - | - | 80 | Primary Fire: A cone of light whose damage is shared between every enemy in it. |
 | Nimbus | Healer | 0.6 s | 16 | - | 380 | 26 | Primary Fire: A storm cloud over your cursor: click to call lightning, and its rain heals allies and soaks enemies.  Alternative Fire: The cloud becomes a hurricane that drags enemies in and heals allies. |
+| Static Shock | Healer | 0.1 s | 10 | - | 200 | 8 | Primary Fire: Hold for a short cone of static that wires enemies into one circuit and shocks them, harder the longer they stay. Teammates it touches get Overcharge: faster movement and shots for 10 s.  Alternative Fire: Arc Cannon: a giant ball of lightning rolls through everyone to your cursor and bursts into a stunning shock. |
 | Fireball | Dps | 0.5 s | 32 | 430 x 1.4 s | - | 71 | Primary Fire: A big, slow fireball that rolls through enemies and sets them burning. |
 | Arc Lightning | Dps | 0.25 s | 16 | - | - | 116 | Primary Fire: Hold to tag up to 10 enemies, let go to chain lightning through them and stun.  Alternative Fire: Three forked bolts at the enemies nearest your cursor. |
 | Ice Shards | Dps | 0.3 s | 7 | 520 x 1 s | - | 70 | Primary Fire: Ice shards orbit you, then launch homing at nearby enemies. |

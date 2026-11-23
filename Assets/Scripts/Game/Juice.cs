@@ -334,6 +334,7 @@ namespace Arena
             UpdateFloodSound();  // FloodLook.cs: Flood's stamp, lapping and drain
             UpdateCoverSound();  // DeployableCoverLook.cs: Deployable Cover's build and break
             UpdateDecoySound();  // DecoyDummyLook.cs: Decoy Dummy's throw, squeaks, pop and deflate
+            UpdateStaticShockLook(dt);  // StaticShockLook.cs: sparks off wired enemies and the Arc Cannon, Overcharge trails
 
             JuiceNewEffects(me);
             JuiceEnemies(t, dt);
@@ -1154,6 +1155,7 @@ namespace Arena
             DrawRadiantStardust();  // the Radiant Orb's trail (RadiantOrbLooks.cs)
             DrawArcLightningGlow();  // Arc Lightning's lock-on chain (ArcLockLook.cs)
             DrawWindClashGlow();  // Wind Clash's waves and Tempest (WindClashLook.cs)
+            DrawStaticShockGlow();  // Static Shock's cone, circuit, Overcharge and Arc Cannon (StaticShockLook.cs)
             DrawBloodBlastGlow();  // the Blood Blast's Cleave, Tide and returning blood (BloodBlastLook.cs)
             DrawFrostLanceGlow();  // the Frost Lance's head, slams, shatters and Absolute Zero (FrostLanceLook.cs)
             DrawWarhornGlow();  // Warhorn Volley's horn, burning arrowheads and fires (WarhornVolleyLook.cs)
