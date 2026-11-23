@@ -459,6 +459,7 @@ static partial class Program
         Test("fireflyroot", "the Sprite Staff's firefly hops and the Treant Rod's root lash", () => FireflyRootTest(Dt)),
         Test("practice", "the Practice Range (with the lobby, modifiers, paths and the Bazaar)", () => PracticeTest(Dt)),
         Test("healersolo", "Healers alone: aura self-heal, overheal shields, Martyr's ward, Phoenix, Adrenaline Shot", () => HealerSoloTest(Dt)),
+        Test("ironhide", "the Tank role passive Ironhide: shield before health, the wait and refill, breaking, downed, snapshot, Tanks only; the Healer aura's falloff", () => IronhideTest(Dt)),
         Test("momentum", "the DPS role passive Momentum: kill stacks, speed and fire rate, ageing, downed, snapshot, DPS only", () => MomentumTest(Dt)),
         Test("adrenaline", "the Adrenaline Shot: cursor targeting, speed, fire rate, damage cut, expiry, Long Dose, capstone", () => AdrenalineTest(Dt)),
         Test("difficulty", "difficulty presets and Custom: lobby, sync, saves, and what each number changes", () => DifficultyTest(Dt)),
@@ -577,6 +578,7 @@ static partial class Program
 
     static int Main(string[] args)
     {
+        Game.IronhideOff = true;  // tests read a Tank's health loss exactly; IronhideTest turns it on (Ironhide.cs)
         if (args.Length == 1 && args[0] == "extras-list")
         {
             foreach (var n in CiExtras)

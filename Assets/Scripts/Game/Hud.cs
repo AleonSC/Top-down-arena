@@ -372,6 +372,8 @@ namespace Arena
             }
             GhostBar(hp, frac, HealthColor(frac), PlayerKey(p.Id, true));
             DrawWound(hp, p);  // the part no heal can bring back (carried across waves) (HealthBars.cs)
+            if (Game.Ironhide(p) > 0f)  // the Tank's Ironhide: a steel stripe along the bottom (Ironhide.cs)
+                Ui.Bar(new Rect(hp.x + 1f, hp.yMax - 2f, (hp.width - 2f) * Mathf.Clamp01(Game.Ironhide(p) / Mathf.Max(1f, p.MaxHp)), 2f), 1f, CrtStyle.Steel, new Color(0f, 0f, 0f, 0f));
             if (p.ShieldHp > 0f)
                 Ui.Bar(new Rect(hp.x + 1f, hp.yMax - 2f, (hp.width - 2f) * Mathf.Clamp01(p.ShieldHp / Mathf.Max(1f, p.MaxHp)), 2f), 1f, new Color(0.55f, 0.8f, 1f), new Color(0f, 0f, 0f, 0f));
             if (p.OverHp > 0f)  // a health shrine's health past max: a gold stripe along the top (Shrines.cs)
@@ -500,6 +502,8 @@ namespace Arena
             {
                 GhostBar(hpBar, frac, hpCol, PlayerKey(p.Id, true));
                 DrawWound(hpBar, p);  // the part no heal can bring back (carried across waves) (HealthBars.cs)
+                if (Game.Ironhide(p) > 0f)  // the Tank's Ironhide: a steel stripe along the bottom (Ironhide.cs)
+                    Ui.Bar(new Rect(hpBar.x + 2f, hpBar.yMax - 4f, (hpBar.width - 4f) * Mathf.Clamp01(Game.Ironhide(p) / Mathf.Max(1f, p.MaxHp)), 3f), 1f, CrtStyle.Steel, new Color(0f, 0f, 0f, 0f));
                 if (p.ShieldHp > 0f)  // a shield: a blue stripe along the bottom of the health bar
                     Ui.Bar(new Rect(hpBar.x + 2f, hpBar.yMax - 4f, (hpBar.width - 4f) * Mathf.Clamp01(p.ShieldHp / Mathf.Max(1f, p.MaxHp)), 3f), 1f, new Color(0.55f, 0.8f, 1f), new Color(0f, 0f, 0f, 0f));
                 if (p.OverHp > 0f)  // a health shrine's health past max: a gold stripe along the top (Shrines.cs)

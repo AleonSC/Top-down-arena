@@ -471,6 +471,8 @@ namespace Arena
                 DrawSwiftness(p, t);  // cyan ring and speed streaks (HolyCrossLook.cs)
             if (p.MomentumStacks > 0)
                 DrawMomentum(p, t);  // pips on a ring, one per stack (MomentumLook.cs)
+            if (p.Role == Role.Tank)
+                DrawIronhide(p, t);  // five steel plates on a ring (IronhideLook.cs)
             if (p.AdrenalineT > 0f)
                 DrawAdrenaline(p, t);  // heartbeat rings and a thumping heart (AdrenalineLook.cs)
             if (p.AegisT > 0f)  // Aeroaegis: the gust shell (AeroaegisLook.cs)

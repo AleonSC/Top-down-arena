@@ -218,7 +218,7 @@ static partial class Program
             for (float x = 0f; x <= (b - a).Length; x += Game.ChalkStep) { var d = new InkDot { Pos = a + (b - a).Normalized() * x, T = 3f, Owner = 1, Stroke = 900 }; g.Ink.Add(d); l.Add(d); }
             return l.ToArray();
         };
-        allyAt = from + new V2(100f, 60f);  // first beside where the line will be: your own aura mends them a little, so that's the baseline
+        allyAt = from + new V2(-150f, 60f);  // first as far from you as the line, the other side: your own aura mends them a little (more the closer they are), so that's the baseline
         ally.Hp = ally.MaxHp * 0.3f;
         a0 = ally.Hp;
         play(1f, idle);

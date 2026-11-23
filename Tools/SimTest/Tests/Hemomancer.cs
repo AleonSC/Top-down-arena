@@ -193,6 +193,7 @@ static partial class Program
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var hp = g.Players[1];
         var cp = g.Players[2];
+        cp.Stats.AuraHealMult = 9f / Game.AuraHealAt(cp, cp.Pos + new V2(40f, 0f));  // the checks below were tuned to the flat 9 HP/s aura; the friend stands 40 px off
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         Check(hp.Kit == Kit.Hemomancer && Math.Abs(hp.MaxHp - Defs.Get(Role.Tank).Hp) < 0.5f && Math.Abs(hp.Speed - Defs.Get(Role.Tank).Speed) < 0.5f,
             "Hemomancers have full health and normal speed");

@@ -52,6 +52,7 @@ namespace Arena
         public static readonly Color Desc = new Color(0.55f, 0.7f, 0.97f);   // small descriptions on a screen (the drawer menus)
         public static readonly Color Head = new Color(0.35f, 0.85f, 0.91f);  // section headings (the mockup's teal)
         public static readonly Color Gold = new Color(1f, 0.8f, 0.35f);       // number tiles, highlights, coins (the one gold; was also CrtStyle.Gold)
+        public static readonly Color Steel = new Color(0.62f, 0.85f, 1f);     // the Tank's Ironhide shield on the HUD (Ironhide.cs; IronhideLook.cs draws the same in the world)
         public const float TextGlow = 0.16f;  // CrtUi.Text: the four faint copies round glowing text
 
         // The big boxes and the screen round them (the lobby, and the drawer menus that sit on its loadout box)

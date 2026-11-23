@@ -219,14 +219,14 @@ namespace Arena
             new RoleDef
             {
                 Name = "Tank", Ability = "Barrier", Color = new Rgba(0.35f, 0.6f, 1f),
-                Hp = 200f, Speed = 185f, HitR = 9f, BodyR = 18f, FireInterval = 0.45f, AbilityCd = 12f,
-                Desc = "The front line. The biggest health pool and a slower step, and enemies prefer to target you, so stand between them and your team. Your weapons and abilities block, shove and soak: barriers, shields and cover that buy your allies room to work.",
+                Hp = 150f, Speed = 185f, HitR = 9f, BodyR = 18f, FireInterval = 0.45f, AbilityCd = 12f,
+                Desc = "The front line. A slower step, and enemies prefer to target you, so stand between them and your team. Ironhide: a 75-point shield takes hits before your health and refills 3 s after the last one. Your weapons and abilities block, shove and soak: barriers, shields and cover that buy your allies room to work.",
             },
             new RoleDef
             {
                 Name = "Healer", Ability = "Mend Pulse", Color = new Rgba(0.35f, 1f, 0.55f),
                 Hp = 140f, Speed = 215f, HitR = 7f, BodyR = 14f, FireInterval = 0.25f, AbilityCd = 10f,  // 140 (was 120): healers took 7 of 9 downs in a recorded run
-                Desc = "Keeps the team standing. Your aura heals allies within 170 px for 9 HP a second and you for 1; healing past full health becomes a short shield. Your abilities boost, protect and bring the fallen back, and they work on you when you fight alone.",
+                Desc = "Keeps the team standing. Your aura heals allies within 170 px, 17 HP a second next to you down to 5 at its edge, and you for 1; healing past full health becomes a short shield. Your abilities boost, protect and bring the fallen back, and they work on you when you fight alone.",
             },
             new RoleDef
             {
