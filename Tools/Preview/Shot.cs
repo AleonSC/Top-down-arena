@@ -297,6 +297,41 @@ static partial class Shot {
       int pk = 0; foreach (var wp in host.Game.Players.Values) { wp.Pos = wp.Disp = new V2(Game.Width / 2f + (pk++ == 0 ? -140f : 140f), Game.Height / 2f + 260f); wp.Aim = -MathX.Pi / 2f; }
       set("wardenIntroFrom", wi);
     }
+    // WARDENSHEET=all: fifteen Wardens in a grid, one per pose (WardenBodyLook.cs), left to right, top to bottom: walking, fan (just fired),
+    // fan (racking), spiral, radio, exposed, cross (baton slam), cross (dash), gas throw, riot shield, charge wind-up, charging, armoring up,
+    // last stand, stunned. Use with NINJA=0 ZOOM=0.75 shot.sh x hud 3 1 1. WARDENSHEET=<1-15>: only that pose, in the middle (ZOOM=3).
+    if (Environment.GetEnvironmentVariable("WARDENSHEET") != null)
+    {
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear();
+      var wsp2 = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      Action<WardenState, Enemy>[] sets = {
+        (w, e) => { w.Turn = WardenTurn.Rest; },
+        (w, e) => { w.Turn = WardenTurn.Fan; w.TurnT = 0.67f; },
+        (w, e) => { w.Turn = WardenTurn.Fan; w.TurnT = 0.5f; w.FanWarn = 0.17f; w.FanAim = e.Facing; },
+        (w, e) => { w.Turn = WardenTurn.Spiral; w.TurnT = 1.1f; },
+        (w, e) => { w.Turn = WardenTurn.Light; w.LightMode = WardenLight.Follow; w.LightT = 0.5f; w.TurnT = 0.5f; },
+        (w, e) => { w.Turn = WardenTurn.Light; w.LightMode = WardenLight.Follow; w.LightT = 5f; w.ExposedT = 2f; w.LightDisp = w.Light = e.Pos + new V2(40f, -30f); },
+        (w, e) => { w.Turn = WardenTurn.Cross; w.TurnT = 4.22f; },
+        (w, e) => { w.Turn = WardenTurn.Cross; w.TurnT = 3.4f; w.Dashing = true; },
+        (w, e) => { w.Turn = WardenTurn.Gas; w.Stage = WardenStage.Lockdown; w.TurnT = 4.12f; },
+        (w, e) => { w.Turn = WardenTurn.Rioters; w.Stage = WardenStage.Riot; w.TurnT = 2f; w.RiotShield = w.RiotShieldMax = 100f; w.Aux = e.Facing; },
+        (w, e) => { w.Turn = WardenTurn.Charge; w.Stage = WardenStage.Riot; w.TurnT = 0.6f; w.Aux = e.Facing; },
+        (w, e) => { w.Turn = WardenTurn.Charge; w.Stage = WardenStage.Riot; w.TurnT = 1.3f; w.Aux = e.Facing; },
+        (w, e) => { w.Stage = WardenStage.Riot; w.TransT = 0.9f; w.TransTo = WardenStage.LastStand; },
+        (w, e) => { w.Stage = WardenStage.LastStand; w.Turn = WardenTurn.LastStand; w.TurnT = 2f; w.Armor = w.ArmorMax = 100f; },
+        (w, e) => { w.Turn = WardenTurn.Rest; w.StunT = 1f; },
+      };
+      int only = 0; int.TryParse(Environment.GetEnvironmentVariable("WARDENSHEET"), out only);
+      for (int i = 0; i < sets.Length; i++)
+      {
+        if (only > 0 && i != only - 1) continue;
+        var at = only > 0 ? new V2(Game.Width / 2f, Game.Height / 2f) : new V2(Game.Width / 2f + (i % 5 - 2) * 290f, Game.Height / 2f + (i / 5 - 1) * 250f);
+        var we = (Enemy)wsp2.Invoke(host.Game, new object[] { EnemyType.Warden, at, 0f, 0, false });
+        we.Spawning = false; we.SpawnT = 0f; we.Disp = we.Pos = at; we.Facing = -0.35f;
+        we.Warden = new WardenState(); sets[i](we.Warden, we);
+      }
+      foreach (var wp in host.Game.Players.Values) { wp.Pos = wp.Disp = only > 0 ? new V2(Game.Width / 2f + 120f, Game.Height / 2f + 50f) : new V2(Game.Width / 2f, Game.Height / 2f + 380f); wp.Aim = MathX.Pi; }
+    }
     // LAUNCH=<seconds>: a run launching from the lobby, that far in (LaunchIntro.cs).
     launchAt = Environment.GetEnvironmentVariable("LAUNCH") != null ? float.Parse(Environment.GetEnvironmentVariable("LAUNCH")) : -1f;
     if (launchAt >= 0f) {

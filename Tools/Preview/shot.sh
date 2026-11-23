@@ -22,6 +22,7 @@
 # NONSHOOT=1 (the Hook Thrower caught mid-move: aiming, harpoon out, spinning, open after a miss).
 # PORTALS=1 (spawn portals: opening, letting a burst out, a flank behind you with its arrow, closing; SpawnPortalLook.cs; PORTALSURGE=1 in a surge, PORTALSEAL=<0-1> a sealed flash that far through).
 # CULT=1 (the Twin Reapers' cult mid-move: Wisps, Acolyte, Gravedigger, Shade, Bound pairs (tether, revive), Scythe Wraith, Lamplighters, Mourner).
+# WARDENSHEET=all|<1-15> (the Warden's poses, WardenBodyLook.cs: all fifteen in a grid, or one in the middle; NINJA=0 ZOOM=2 shot.sh x hud 3 1 1).
 # CROWD=<n> (a Warden mob of n round you, for a crowd's draw cost; NINJA=0, e.g. shot.sh x hud 3 1 2). VTXTRACE=1 (any shot: print the world frame's top vertex sources; run mono shot.exe in out/ to see it).
 # PERFRUN=<secs>[,boss] PERFIDLE=<secs> [PERFMAP=<pieces>] (draw cost: a Quick Play breach wave drawn every frame, printing vertices and draw ms; PERFMAP: a grown map; ShotPerf.cs; e.g. shot.sh x hud 7 1 2; with SURVIVAL=840 SURVMARKS=55: Survival's room).
 # SWORD=1 (the Acolyte's sickle cut in each phase: closing in, wind-up, cut, recovery).
