@@ -10,7 +10,8 @@ namespace Arena
     public static partial class Expansion
     {
         /// Sets RoomDoor.Pass on the doors of every One-way piece (from Build). A door that is some One-way piece's both-ways door stays both
-        /// ways for everyone, so two One-way pieces side by side never leave either without one. Opened walls (wide gaps) always stay both ways.
+        /// ways for everyone, so two One-way pieces side by side never leave either without one. Opened walls (wide gaps) always stay both ways,
+        /// and so does a door into a mini-boss room or a dead end (MustStayOpen), so a fight there never leaves you stuck.
         static void MarkOneWayDoors(IList<ExpansionRoom> rooms, int[] group, List<RoomDoor> doors)
         {
             var heads = new List<int>();
@@ -31,13 +32,28 @@ namespace Arena
                 for (int i = 0; i < doors.Count; i++)
                 {
                     var d = doors[i];
-                    if (!OutOf(d, group, h) || free.Contains(i) || d.Pass != 0 || d.Width > 0f)
+                    if (!OutOf(d, group, h) || free.Contains(i) || d.Pass != 0 || d.Width > 0f || MustStayOpen(rooms, group, doors, i, h))
                         continue;
                     bool inward = OneWayInward(d.Pos);
                     bool bInside = group[d.B] == h;
                     d.Pass = (sbyte)(inward == bInside ? 1 : -1);
                     doors[i] = d;
                 }
+        }
+
+        /// Is the room on the far side of this door (from the piece with group head h) one a one-way door would trap you in or shut you out of
+        /// (owner Nov 23)? A mini-boss room (its door locks for the duel, then you must walk back out), or a dead end: its only door is this one.
+        static bool MustStayOpen(IList<ExpansionRoom> rooms, int[] group, List<RoomDoor> doors, int i, int h)
+        {
+            var d = doors[i];
+            int g = group[d.A] == h ? group[d.B] : group[d.A];
+            for (int a = 1; a < group.Length; a++)
+                if (group[a] == g && rooms[a - 1].Kind == RoomKind.Gatekeeper)
+                    return true;
+            for (int j = 0; j < doors.Count; j++)
+                if (j != i && OutOf(doors[j], group, g))
+                    return false;
+            return true;
         }
 
         /// Does this door join the piece (group head h) to a room outside it?
