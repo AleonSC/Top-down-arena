@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Who's Playing Machine</title>
+<!-- Status: mockup (approximate: browser drawing, not the game's Ui.cs/DevKit.cs). The Who's playing? screen on design B of main-menu-machines.html. -->
+<style>
+:root{
+  --bg:#0b0b0e; --text:#e8eaf0; --muted:#9aa0ad;
+  --ink:#66a3ff; --ink-dim:#2c4f8a; --glass:#040a18;
+  --metal-hi:#5b5e66; --metal:#3a3c42; --metal-lo:#1c1d21; --edge:#0e0f12;
+  --neon:#cfe0ff; --green:#6bff99; --amber:#ffb547; --red:#ff5a5a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{max-width:1100px;margin:0 auto;padding:24px 16px 8px}
+h1{margin:0 0 6px;font-size:22px}
+header p{margin:0;color:var(--muted)}
+.design{max-width:1100px;margin:22px auto 34px;padding:0 16px}
+.design h2{margin:0 0 4px;font-size:17px}
+.design .note{margin:0 0 10px;color:var(--muted)}
+.frame{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:6px;background:#140608}
+.stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0}
+
+/* the Holo Floor background */
+.sky{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 52%,#6e2230 0%,#3a1018 38%,#120406 75%)}
+.floor{position:absolute;left:-400px;right:-400px;top:372px;height:600px;transform:perspective(260px) rotateX(62deg);transform-origin:50% 0;
+  background:
+   linear-gradient(90deg,rgba(255,90,110,.55) 1px,transparent 1px) 0 0/64px 64px,
+   linear-gradient(0deg,rgba(255,90,110,.55) 1px,transparent 1px) 0 0/64px 64px;}
+.horizon{position:absolute;left:0;right:0;top:371px;height:1px;background:rgba(255,190,200,.7)}
+
+/* shared pieces */
+.metal{background:linear-gradient(180deg,var(--metal-hi),var(--metal) 30%,var(--metal-lo));border:2px solid var(--edge);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 10px 18px rgba(0,0,0,.45)}
+.neon{box-shadow:0 0 0 2px var(--neon),0 0 10px 2px rgba(160,195,255,.45),inset 0 1px 0 rgba(255,255,255,.35)}
+.crt{background:var(--glass);border:3px solid #0a0b0e;box-shadow:inset 0 0 0 1px #1a2440,inset 0 0 40px rgba(60,110,220,.18)}
+.crt::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px);pointer-events:none}
+.title{position:absolute;color:#a9c6ff;font:900 78px/1 Arial Black,Arial,sans-serif;letter-spacing:1px;text-shadow:0 0 14px rgba(110,160,255,.55),3px 0 0 rgba(255,70,90,.55),-3px 0 0 rgba(70,200,255,.55)}
+.chin{position:absolute;color:#9aa0ad;font:700 10px/1 Arial,sans-serif;letter-spacing:1px}
+.led{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.vent{position:absolute;background:repeating-linear-gradient(90deg,#0b0c0f 0 5px,transparent 5px 10px)}
+.hvent{position:absolute;background:repeating-linear-gradient(0deg,#0b0c0f 0 4px,transparent 4px 9px)}
+
+/* keys: a graphite keycap with a coloured legend lamp */
+.key{position:absolute;border-radius:7px;cursor:pointer;user-select:none;
+  background:linear-gradient(180deg,#4d5058,#2c2e34 60%,#212227);border:2px solid #0b0c0f;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 6px 0 #16171a,0 9px 12px rgba(0,0,0,.5);
+  color:#e9ecf2;font:800 20px/1 Arial,sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;transition:transform .08s,box-shadow .08s}
+.key:hover{filter:brightness(1.12)}
+.key:active,.key.down{transform:translateY(5px);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 1px 0 #16171a,0 3px 6px rgba(0,0,0,.5)}
+.key .lamp{width:9px;height:9px;border-radius:50%;background:#1c2a20;flex:none}
+.key.on .lamp{background:var(--green);box-shadow:0 0 8px var(--green)}
+.key.play{color:#fff}
+.key.play .tri{width:0;height:0;border-left:14px solid #7dffa8;border-top:9px solid transparent;border-bottom:9px solid transparent;filter:drop-shadow(0 0 5px rgba(125,255,168,.7))}
+.key.small{font-size:15px}
+
+/* the drive */
+.drive{position:absolute;height:34px;border-radius:5px;background:#0b0c10;border:1px solid #2a2d35;box-shadow:inset 0 2px 4px #000}
+.drive .slit{position:absolute;left:58px;right:46px;top:13px;height:7px;background:#000;border-radius:3px;box-shadow:0 1px 0 rgba(255,255,255,.15)}
+.drive .dl{position:absolute;left:14px;top:10px;color:#8b93a6;font:700 11px Arial}
+.drive .dot{position:absolute;right:16px;top:13px;width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.drive .lbl{position:absolute;left:0;right:0;top:40px;text-align:center;color:#8b93a6;font:700 10px Arial;letter-spacing:1px}
+
+/* the profile chip on a small screen */
+.chip{position:absolute;padding:8px 12px;display:flex;align-items:center;gap:12px}
+.chip .av{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#c9d6ff,#5872b8);flex:none}
+.chip .nm{color:#eaf0ff;font:800 18px/1.1 Arial}
+.chip .rk{color:#7e95c9;font:700 11px/1.4 Arial;letter-spacing:.5px}
+.chip .xp{height:4px;width:140px;background:#14203b;border-radius:2px;margin-top:4px}
+.chip .xp i{display:block;height:100%;width:22%;background:var(--ink);border-radius:2px}
+.chip .badge{margin-left:auto;width:30px;height:34px;clip-path:polygon(50% 0,100% 16%,100% 60%,50% 100%,0 60%,0 16%);background:linear-gradient(#8ea2cf,#3a4b73);color:#fff;font:800 13px/34px Arial;text-align:center}
+
+/* the runs screen content */
+.runs{position:absolute;inset:0;padding:14px 18px;color:var(--ink);font:700 12px Arial}
+.runs .h{font:800 22px Arial;color:#8fb6ff;letter-spacing:.5px}
+.runs .row{display:flex;align-items:center;gap:18px;border-top:1px solid #1c2c52;padding:8px 0}
+.runs .big{font:800 26px Arial;color:#9cc0ff}
+.runs .sm{color:#5f7fbd;font:700 11px Arial}
+.runs .cont{margin-left:auto;border:2px solid var(--ink);padding:7px 16px;color:#cfe0ff;font:800 14px Arial}
+.runs .del{border:1px dashed #a33;color:#e55;padding:6px 10px;font:800 12px Arial}
+.runs .new{margin-top:6px;border:2px solid #3e6bc4;text-align:center;padding:8px;color:#cfe0ff;font:800 15px Arial;background:rgba(80,130,255,.08)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;color:var(--muted);font-size:13px}
+.legend b{color:var(--text)}
+</style>
+
+</head>
+<body>
+<header><h1>Who's playing? · machine B</h1><p>Hover the disks, click one to load it. Approximate browser mockup: the game draws with its own widgets, so glows and type will differ in Unity.</p></header>
+<style>
+.disk{position:absolute;width:150px;height:150px;cursor:pointer;transition:transform .18s ease-out;z-index:3}
+.disk .b{position:absolute;inset:0;border-radius:4px;clip-path:polygon(0 0,91% 0,100% 9%,100% 100%,0 100%);box-shadow:inset 0 0 0 2px rgba(0,0,0,.35)}
+.disk .sh{position:absolute;left:30px;top:0;width:78px;height:46px;background:linear-gradient(90deg,#9aa0ab,#e3e6ec 45%,#b9bec8);border:1px solid #6d727c}
+.disk .sh i{position:absolute;right:12px;top:6px;width:16px;height:30px;background:#14161a;border-radius:2px}
+.disk .lb{position:absolute;left:12px;right:12px;top:58px;height:80px;background:#f3ecd9;border-radius:2px;padding:6px 8px;color:#2b3a66;font:700 9px Arial}
+.disk .lb .n{font:400 22px/1.1 "Segoe Print","Bradley Hand","Comic Sans MS",cursive;color:#1d2a52;margin-top:2px;white-space:nowrap;overflow:hidden}
+.disk .lb .s{font:700 10px Arial;color:#4a5a86;margin-top:4px}
+.disk:hover{transform:translateY(-12px)}
+.disk.ghost .b{background:transparent!important;border:2px dashed #5e6f99;clip-path:none;box-shadow:none}
+.disk.ghost{cursor:default}
+.disk.new{cursor:pointer}
+.disk.new .plus{position:absolute;left:0;right:0;top:44px;text-align:center;color:#aac0f0;font:300 44px/1 Arial}
+.disk.new .t{position:absolute;left:0;right:0;top:96px;text-align:center;color:#aac0f0;font:800 13px Arial}
+.disk.flying{transition:transform .9s cubic-bezier(.5,0,.3,1),opacity .25s .75s;z-index:9}
+.lip{position:absolute;height:22px;background:linear-gradient(180deg,#6a6d75,#3b3d43 50%,#222328);border:1px solid #0b0c0f;border-radius:2px;z-index:4;box-shadow:0 -1px 0 rgba(255,255,255,.3)}
+.tag{position:absolute;width:64px;height:16px;top:3px;background:#07090d;border:1px solid #2b3550;border-radius:3px;color:#8fa6d8;font:800 9px/14px Arial;text-align:center}
+#bayHead{position:absolute;z-index:2;transition:opacity .3s;left:440px;top:256px;width:400px;height:26px;color:#8fb6ff;font:800 14px/26px Arial;letter-spacing:1px;text-align:center}
+.reset{display:inline-block;margin-top:10px;padding:6px 12px;border:1px solid #444;border-radius:6px;color:#ccc;cursor:pointer;background:#1a1b1f}
+</style>
+<section class="design">
+  <h2>Who's playing? on the B machine</h2>
+  <p class="note">The same case as the main menu. Here its shutter starts rolled up, and the bay is a disk rack holding your three disks and a blank "New profile" disk. Hover a disk: it lifts, the right-hand screen shows that profile, and the drive reads "INSERT: NAME". Click it: the disk flies into the drive, the shutter rolls down over the rack, and the same machine becomes the main menu (the monitor retypes, the left keys turn into Play / Join / Settings).</p>
+  <div class="frame"><div class="stage" id="sW">
+    <div class="sky"></div><div class="floor"></div><div class="horizon"></div>
+    <div class="metal" style="position:absolute;left:150px;top:22px;width:980px;height:176px;border-radius:14px"></div>
+    <div class="crt neon" style="position:absolute;left:170px;top:36px;width:940px;height:128px;border-radius:6px"></div>
+    <div class="title" id="wTitle" style="left:0;right:0;top:61px;text-align:center">WHO'S PLAYING?_</div>
+    <div class="chin" style="left:188px;top:177px">ARENA CRT-14</div><div class="led" style="left:1086px;top:178px"></div>
+    <div class="metal neon" style="position:absolute;left:150px;top:214px;width:980px;height:438px;border-radius:8px 8px 14px 14px"></div>
+    <!-- left keys -->
+    <div class="key small" id="k1" style="left:184px;top:250px;width:210px;height:70px;font-size:17px">MANAGE<br>PROFILES</div>
+    <div class="key small" id="k2" style="left:184px;top:340px;width:210px;height:52px;visibility:hidden">JOIN GAME</div>
+    <div class="key small" id="k3" style="left:184px;top:410px;width:210px;height:52px;visibility:hidden">SETTINGS</div>
+    <div class="key small" style="left:184px;top:578px;width:210px;height:40px;font-size:13px">QUIT</div>
+    <div class="hvent" id="kv" style="left:184px;top:340px;width:210px;height:214px"></div>
+    <!-- the bay: a disk rack, under the shutter -->
+    <div style="position:absolute;left:424px;top:246px;width:432px;height:376px;border-radius:6px;background:linear-gradient(180deg,#121318,#08090b);box-shadow:inset 0 4px 10px #000;overflow:hidden;z-index:1">
+      <div style="position:absolute;left:0;right:0;top:0;height:3px;background:rgba(180,205,255,.35);box-shadow:0 0 18px 6px rgba(120,160,255,.18)"></div>
+    </div>
+    <div id="bayHead">SELECT A DISK</div>
+    <div class="lip" style="left:440px;top:436px;width:400px"><span class="tag" style="left:76px">SLOT 1</span><span class="tag" style="left:256px">SLOT 2</span></div>
+    <div class="lip" style="left:440px;top:596px;width:400px"><span class="tag" style="left:76px">SLOT 3</span><span class="tag" style="left:256px">NEW</span></div>
+    <div class="disk" data-n="Anthony" data-r="CHALLENGER · RANK 14" data-s="4 wins · 32 runs" data-c="#3f6fd8" style="left:470px;top:296px"><div class="b" style="background:linear-gradient(180deg,#4f7fe6,#2f57b8)"></div><div class="sh"><i></i></div><div class="lb">SLOT 1<div class="n">Anthony</div><div class="s">Rank 14 · 32 runs</div></div></div>
+    <div class="disk" data-n="Little Bee" data-r="RECRUIT · RANK 3" data-s="1 win · 7 runs" style="left:660px;top:296px"><div class="b" style="background:linear-gradient(180deg,#7d8290,#545866)"></div><div class="sh"><i></i></div><div class="lb">SLOT 2<div class="n">Little Bee</div><div class="s">Rank 3 · 7 runs</div></div></div>
+    <div class="disk" data-n="Sam" data-r="RECRUIT · RANK 6" data-s="2 wins · 14 runs" style="left:470px;top:456px"><div class="b" style="background:linear-gradient(180deg,#7d8290,#545866)"></div><div class="sh"><i></i></div><div class="lb">SLOT 3<div class="n">Sam</div><div class="s">Rank 6 · 14 runs</div></div></div>
+    <div class="disk ghost new" data-new="1" style="left:660px;top:456px"><div class="b"></div><div class="plus">+</div><div class="t">NEW PROFILE</div></div>
+    <!-- shutter (starts rolled up) -->
+    <div style="position:absolute;left:424px;top:246px;width:432px;height:376px;overflow:hidden;z-index:6;pointer-events:none">
+      <div id="wShutter" style="position:absolute;inset:0;transform:translateY(-100%);transition:transform .9s cubic-bezier(.6,0,.25,1);
+        background:repeating-linear-gradient(180deg,#5a5d65 0,#43464d 9px,#2a2c31 16px,#16171a 18px);box-shadow:0 4px 8px rgba(0,0,0,.6)">
+        <div style="position:absolute;left:50%;bottom:16px;width:90px;height:12px;margin-left:-45px;border-radius:6px;background:#121316;box-shadow:inset 0 2px 3px #000"></div></div>
+      <div style="position:absolute;left:0;right:0;top:0;height:10px;background:linear-gradient(#000,transparent)"></div>
+    </div>
+    <!-- right: the profile screen, the drive, the lights -->
+    <div class="crt" style="position:absolute;left:886px;top:250px;width:214px;height:110px;border-radius:5px">
+      <div id="pEmpty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#4f6aa5;font:800 13px Arial;letter-spacing:1px">NO DISK_</div>
+      <div id="pFull" class="chip" style="inset:0;flex-wrap:wrap;align-content:center;display:none"><div class="av"></div><div><div class="nm" id="pN">Anthony</div><div class="rk" id="pR">RANK 14</div><div class="rk" id="pS" style="color:#5f7fbd">4 wins</div></div></div>
+    </div>
+    <div class="drive" id="drv" style="left:886px;top:390px;width:214px;z-index:8"><span class="dl">A:</span><span class="slit"></span><span class="dot" id="dDot" style="background:#3a2a10;box-shadow:none"></span><span class="lbl" id="dL">DRIVE A: EMPTY</span></div>
+    <div class="hvent" style="left:886px;top:470px;width:214px;height:84px"></div>
+    <div class="led" style="left:892px;top:592px"></div><div class="chin" style="left:906px;top:591px">POWER</div>
+    <div class="led" id="dLed" style="left:972px;top:592px;background:#3a2a10;box-shadow:none"></div><div class="chin" style="left:986px;top:591px">DISK</div>
+  </div></div>
+  <span class="reset" onclick="wReset()">↺ Reset</span>
+</section>
+<script>
+const W = { busy:false };
+const disks = [...document.querySelectorAll('#sW .disk')];
+const $ = id => document.getElementById(id);
+function show(d){
+  if (W.busy) return;
+  if (!d){ $('pEmpty').style.display='flex'; $('pFull').style.display='none'; $('dL').textContent='DRIVE A: EMPTY'; return; }
+  if (d.dataset.new){ $('pEmpty').style.display='flex'; $('pEmpty').textContent='BLANK DISK_'; $('pFull').style.display='none'; $('dL').textContent='FORMAT NEW DISK'; return; }
+  $('pEmpty').style.display='none'; $('pFull').style.display='flex';
+  $('pN').textContent=d.dataset.n; $('pR').textContent=d.dataset.r; $('pS').textContent=d.dataset.s;
+  $('dL').textContent='INSERT: '+d.dataset.n.toUpperCase();
+}
+disks.forEach(d=>{
+  d.addEventListener('mouseenter',()=>show(d));
+  d.addEventListener('mouseleave',()=>{ if(!W.busy){ $('pEmpty').textContent='NO DISK_'; show(null);} });
+  d.addEventListener('click',()=>{ if (!d.dataset.new) pick(d); });
+});
+function typeTitle(t){ const el=$('wTitle'); let i=0; el.textContent='_'; const iv=setInterval(()=>{ i++; el.textContent=t.slice(0,i)+(i<t.length?'_':''); if(i>=t.length) clearInterval(iv); },45); }
+function pick(d){
+  if (W.busy) return; W.busy=true; W.d=d;
+  const x0=parseFloat(d.style.left), y0=parseFloat(d.style.top);
+  // fly to the drive's slit (the disk shrinks to the slit's width and slides in)
+  const tx = 886+107-75 - x0, ty = 390-150 - y0;
+  d.classList.add('flying'); d.style.transform='translate('+tx+'px,'+ty+'px) scale(.78)';
+  setTimeout(()=>{ d.style.transform='translate('+tx+'px,'+(ty+150)+'px) scale(.78)'; d.style.opacity=0; $('dDot').style.cssText='background:#ffb547;box-shadow:0 0 8px #ffb547'; $('dLed').style.cssText='left:972px;top:592px;background:#ffb547;box-shadow:0 0 8px #ffb547'; $('dL').textContent='READING '+d.dataset.n.toUpperCase()+'…'; },950);
+  setTimeout(()=>{ $('wShutter').style.transform='translateY(0)'; $('bayHead').style.opacity=0; },1500);
+  setTimeout(()=>{ $('dL').textContent=d.dataset.n.toUpperCase()+' READY'; $('dDot').style.cssText='background:#6bff99;box-shadow:0 0 8px #6bff99';
+    $('k1').innerHTML='<span class="lamp"></span><span class="tri"></span>PLAY'; $('k1').className='key play'; $('k1').style.fontSize='20px';
+    $('k2').style.visibility='visible'; $('k3').style.visibility='visible'; $('kv').style.top='484px'; $('kv').style.height='70px';
+    typeTitle('VECTOR COLOSSEUM'); },2300);
+}
+function wReset(){
+  W.busy=false; const d=W.d; if (d){ d.classList.remove('flying'); d.style.transform=''; d.style.opacity=1; }
+  $('wShutter').style.transform='translateY(-100%)'; $('bayHead').style.opacity=1; $('wTitle').textContent="WHO'S PLAYING?_";
+  $('k1').className='key small'; $('k1').innerHTML='MANAGE<br>PROFILES'; $('k1').style.fontSize='17px';
+  $('k2').style.visibility='hidden'; $('k3').style.visibility='hidden'; $('kv').style.top='340px'; $('kv').style.height='214px';
+  $('dDot').style.cssText='background:#3a2a10;box-shadow:none'; $('dLed').style.cssText='left:972px;top:592px;background:#3a2a10;box-shadow:none';
+  $('pEmpty').textContent='NO DISK_'; show(null);
+}
+function fit(){ document.querySelectorAll('.frame').forEach(f=>{ f.querySelector('.stage').style.transform='scale('+(f.clientWidth/1280)+')'; }); }
+addEventListener('resize',fit); fit();
+</script>
+
+</body>
+</html>
