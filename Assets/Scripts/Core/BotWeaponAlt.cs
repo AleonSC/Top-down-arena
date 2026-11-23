@@ -305,13 +305,8 @@ namespace Arena
                     return false;
                 case WeaponId.Stonespear:  // the volley at the boss or out of reach, with a few spears up
                     return !late && e != null && CountBits(me.SsMask) >= 2 && Tap(e.Def.IsBoss || !v.InReach || EnemiesNear(e.Pos, 120f) >= 2, 2f);
-                case WeaponId.GrenadeLauncher:  // smoke when a pack closes in, back to HE when it's spent or clear
-                {
-                    if (late || me.GlSwap > 0f)
-                        return false;
-                    bool smoke = EnemiesNear(me.Pos, 220f) >= 3 && me.GlSmokeUsed < GlSmokeMax;
-                    return Tap(me.GlMode == 1 ? !smoke : smoke, 2f);
-                }
+                case WeaponId.GrenadeLauncher:  // a smoke canister when a pack closes in
+                    return !late && me.GlSmokeUsed < GlSmokeMax && Tap(EnemiesNear(me.Pos, 220f) >= 3, 2f);
             }
             return null;
         }
@@ -338,6 +333,8 @@ namespace Arena
                         return Tap(v.Incoming == 0 && BotDanger < 0.5f, 1f);
                     }
                     return Tap(v.Incoming >= 3, 1f);
+                case WeaponId.StaticShock:  // the Arc Cannon into a crowd or the boss (StaticShock.cs)
+                    return !late && e != null && v.ShootD < CannonReach && Tap(ArcLocalCd <= 0f && (e.Def.IsBoss || EnemiesNear(e.Pos, CannonBurstR) >= 3), 1f);
                 case WeaponId.WindClash:  // the Tempest into a barrage or a crowd
                     return Tap(TempestLocalCd <= 0f && me.WcTempestT <= 0f && (v.Incoming >= 3 || EnemiesNear(me.Pos, 120f) >= 3), 1f);
                 case WeaponId.WyvernStaff:  // the Wyrm Slam on a group

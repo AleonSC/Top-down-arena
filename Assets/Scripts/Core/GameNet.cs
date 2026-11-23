@@ -841,6 +841,8 @@ namespace Arena
             s.Byte(ref p.TpSide);  // the Twin Pistols (TwinPistols.cs)
             s.Float(ref p.TpLaserT);
             s.Float(ref p.TpCd);
+            s.Bool(ref p.StaticOn);  // Static Shock (StaticShock.cs)
+            s.Float(ref p.OverchargeT);
             for (int k = 0; k < 2; k++)  // the Embolus Spears (EmbolusSpears.cs)
             {
                 s.Byte(ref p.EsSt[k]);

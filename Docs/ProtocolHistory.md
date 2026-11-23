@@ -3,6 +3,8 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 470: Ironhide (the Tank role passive): the player snapshot gains `IronLost` and `IronWait` (floats, after `MomentumT`)
+- 469: Static Shock (Healer Elementalist 4th weapon): `WeaponId.StaticShock`; Player snapshot gains `StaticOn` (bool) and `OverchargeT` (float) after `TpCd`; `Msg.WeaponDash` kind 56 `DashArcCannon`; `FxKind` ArcBall, ArcBurst, Overcharge added at the end
 - 468: the Hangout mode: `Msg.Start` ends with a Hangout flag (after Survival's); new `Msg.HangoutOpen` (client -> host: open the Hangout; HangoutGame.cs)
 - 467: Scattergun Double Barrel becomes the Shock Grenade: `Player.ScatShells` is 0 to 3; `ZoneKind.ShockGrenade` added at the end (Alt lobs it, `Msg.WeaponDash` kind 21 unchanged); no snapshot format change.
 

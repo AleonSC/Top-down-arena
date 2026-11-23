@@ -377,6 +377,7 @@ namespace Arena
             DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)
             DrawTempest(p, t);  // Wind Clash's Tempest (WindClashLook.cs)
+            DrawStaticShockUnder(p, t);  // Overcharge's gold ring; the plain cone (StaticShockLook.cs)
             if (p.CoatT > 0f)
                 DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (HemomancerLook.cs)
             if (p.DoseT > 0f)  // dosed by Medicine Darts: green motes rising off you while it heals

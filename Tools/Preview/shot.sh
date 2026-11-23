@@ -85,6 +85,7 @@
 # STONESPEAR=<s> (the Elementalist DPS Stonespear that long into the mockup's loop: slam at 0, throws at 1.3 and 1.85 s, Alt volley at 2.6 s; SSMOVE=1 walking down (the spears trail); SSTECT=1 with Tectonic; mode hud; StonespearLook.cs).
 # GRENADE=<s> (the Tank Soldier's Grenade Launcher that long into a fight: fire held at a pack GLAT px ahead; GLSMOKE=1 Alt then smoke canisters from 0.6 s; GLSWAP=1 Alt only; GLIDLE=1; mode hud; GrenadeLauncherLook.cs).
 # DOUBLEBARREL=<s> (the Soldier DPS Double Barrel that long into a fight: fire held at three dummies in a line; DBBOTH=1 Alt both barrels at 0.3 s; DBIDLE=1 not firing; mode hud; DoubleBarrelLook.cs).
+# STATICSHOCK=<s> (the Healer Elementalist's Static Shock that long into a fight: fire held at a pack, a teammate in the cone gets Overcharge; SSALT=1 the Arc Cannon at 0.1 s through a teammate; mode hud, 3 players; StaticShockLook.cs).
 # TWINPISTOLS=<s> (the Healer Soldier Twin Pistols that long into a fight: fire held at a pack 260 px ahead; TPLASER=1 Alt (Laser Sights) at 0.1 s; TPIDLE=1 not firing; TwinPistolsLook.cs).
 # WHIP=<s> (the Revolver's Pistol Whip that long into a fight: grunts and enemy shots in front, Alt at 0.1 s; WHIPIDLE=1 no press; mode hud; PistolWhipLook.cs).
 # UNDERTOW=<meter>,<s held> (the Repulsion Cannon's Undertow meter, and its pull held that long on a pack of grunts; mode hud).
