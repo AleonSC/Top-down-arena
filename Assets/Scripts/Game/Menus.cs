@@ -16,8 +16,8 @@ namespace Arena
         // under the box. A header CRT screen ("MAIN MENU_") sits over the buttons with a physical Quit key beside it, like the picker's Back (Docs/Mockups/menu-screen-key-pairs.html, look E). The port is in Settings (Gameplay).
         // The first time the menu shows, it draws itself in (MenuIntro.cs); each piece asks MenuIntroK how far in it is.
         const float MenuTitleY = 126f, MenuTitleSize = 74f, MenuAxisY = 188f, MenuAxisHalf = 390f;
-        static Rect MenuCard => new Rect(W / 2f - 340f, MenuComputer ? 292f : 268f, 680f, 320f);  // taller than the picker needs (the saved-runs list gets the extra); the computer mockup (MenuComputer.cs) drops it under the case's drive row
-        static Rect MenuPlayerRect => new Rect(MenuCard.x, MenuCard.yMax + (MenuComputer ? 30f : 22f), MenuCard.width, 64f);  // your player card, under the box (lined up with its sides)
+        static Rect MenuCard => new Rect(W / 2f - 340f, MenuComputer ? 366f : 268f, 680f, 320f);  // taller than the picker needs (the saved-runs list gets the extra); the computer mockup (MenuComputer.cs) drops it under the case's drive row
+        static Rect MenuPlayerRect => MenuComputer ? new Rect(MenuCard.x, MenuPcRiser.y + 10f, MenuCard.width, 62f) : new Rect(MenuCard.x, MenuCard.yMax + 22f, MenuCard.width, 64f);  // (the computer: on the riser's screen, MenuComputer.cs)  // your player card, under the box (lined up with its sides)
         static Rect MenuHostRect => new Rect(MenuCard.x + 30f, MenuCard.y + 68f, 620f, 140f);  // the Play button
         static Rect MenuJoinRect => new Rect(MenuCard.x + 30f, MenuCard.y + 224f, 303f, 64f);
         static Rect MenuSettingsRect => new Rect(MenuCard.x + 347f, MenuCard.y + 224f, 303f, 64f);
@@ -35,7 +35,6 @@ namespace Arena
             float t = Time.unscaledTime;
             DrawMenuIntroBackdrop();  // the background fading up as the intro starts (MenuIntro.cs)
             float box = MenuIntroK(1.65f, 2.0f);
-            Ui.Graphite = MenuComputer;
             if (MenuComputer)
                 DriveY = MenuPcDriveY;
             if (!MenuComputer && BeginUiGl())  // under everything: the rooms (MenuHolo.cs)
@@ -44,18 +43,22 @@ namespace Arena
                 EndUiGl();
             }
             float axis = EaseOut(MenuAxisK);
+            Ui.Graphite = MenuComputer;  // the computer's hardware is graphite; what's on its screens and keys keeps its colour
             if (MenuComputer)
             {
                 DrawMenuPcCase(axis);  // the case the monitor stands on (MenuComputer.cs)
                 WithAlpha(axis, () => DrawPcMonitor(false));
             }
+            Ui.Graphite = false;
             DrawMenuTitle(t);
+            Ui.Graphite = MenuComputer;
             if (!MenuComputer)
                 DrawDriveBay(axis);  // the ledge under the title that houses the drive (MenuHolo.cs)
             DrawDriveSlot(axis, DriveForMenu());  // the disk drive under the title (DriveSlot.cs)
             DrawDriveEject(axis, !MenuIntroPlaying);  // its eject key, right of it (DiskEject.cs)
             DrawEjectLamp(axis);
-            if (box > 0f)
+            Ui.Graphite = false;
+            if (box > 0f && !MenuComputer)  // (the computer: the keys sit straight on the case's face, no box of their own)
                 TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => DkPanel(MenuCard)));
             if (!MenuComputer && BeginUiGl())
             {
@@ -72,7 +75,6 @@ namespace Arena
             if (cardK > 0f)
                 DrawMenuPlayerCard(t, 1f, cardK, live);
             DrawMenuIntroFade();  // the short version of the intro: a fade (MenuIntro.cs)
-            Ui.Graphite = false;
             DriveY = 206f;
         }
 
@@ -103,7 +105,7 @@ namespace Arena
             if (!live && Event.current.type != EventType.Repaint)
                 return;
             float name = MenuIntroK(1.75f, 2.1f), host = MenuIntroK(1.8f, 2.2f), join = MenuIntroK(2.0f, 2.3f), cont = MenuIntroK(2.1f, 2.4f);
-            if (name >= 1f)   // the box's corner screws
+            if (name >= 1f && !MenuComputer)   // the box's corner screws
                 foreach (var b in new[] { new Vector2(MenuCard.x + 9f, MenuCard.y + 9f), new Vector2(MenuCard.xMax - 9f, MenuCard.y + 9f), new Vector2(MenuCard.x + 9f, MenuCard.yMax - 9f), new Vector2(MenuCard.xMax - 9f, MenuCard.yMax - 9f) })
                     KeyUi.Bolt(b, 7f);
             if (live && Event.current.type == EventType.Repaint)

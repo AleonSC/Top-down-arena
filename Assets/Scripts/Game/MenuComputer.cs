@@ -4,19 +4,22 @@ namespace Arena
 {
     /// The main menu as the computer (a mockup, preview MENUPC=1; the Who's playing? screen's layout 5 is the same machine): the
     /// title is the monitor, standing on the case; the case's top row holds the floppy drive with your disk in it and its eject key,
-    /// with the power button and lights on the left; the menu box below is the case's small screen and keys, so Play still opens the
-    /// saved runs in it. Drawn in graphite (Ui.Graphite).
+    /// with the power button and lights on the left; the menu's screen and keys sit on the case's face below it, so Play still opens the
+    /// saved runs in that screen. The hardware is drawn in graphite (Ui.Graphite); the screens and keys keep their colour.
     public partial class ArenaApp
     {
         public static bool MenuComputer;
 
-        const float MenuPcDriveY = 248f;  // the drive's slit, in the case's top row
+        const float MenuPcDriveY = 322f;  // the drive's slit, in the case's top row
 
-        /// The case: from under the monitor to just under the menu box, as wide as the monitor's screen.
-        static Rect MenuPcCase => new Rect(WhoEdge, TitleNeonRect.yMax + 34f, W - 2f * WhoEdge, MenuCard.yMax + 16f - (TitleNeonRect.yMax + 34f));
+        /// The riser between the monitor and the case: the monitor stands on it, and its small screen shows your player card.
+        static Rect MenuPcRiser => new Rect(W / 2f - 372f, TitleNeonRect.yMax + 26f, 744f, 82f);
+
+        /// The case: from under the riser to just under the menu's keys, as wide as the monitor's screen.
+        static Rect MenuPcCase => new Rect(WhoEdge, MenuPcRiser.yMax, W - 2f * WhoEdge, MenuCard.yMax + 14f - MenuPcRiser.yMax);
 
         /// IMGUI: the case: graphite, lit along its top where the monitor stands, a drive row with the power button, lights, vents and
-        /// the drive's bay, then the recess the menu box sits in, vents down both sides, and the neon round it all.
+        /// the drive's bay, then the menu's screen and keys straight on its face, vents down both sides, and the neon round it all.
         void DrawMenuPcCase(float a)
         {
             if (a <= 0f)
@@ -35,8 +38,22 @@ namespace Arena
                     EndUiGl();
                 }
                 Ui.Fill(new Rect(c.x + 2f, c.y + 1f, c.width - 4f, 1f), new Color(1f, 1f, 1f, 0.35f));  // the lit top edge
-                for (int i = 0; i < 10; i++)                                                             // the monitor's shadow on it
-                    Ui.Fill(new Rect(c.x + 8f, c.y + 2f + i, c.width - 16f, 1f), new Color(0f, 0f, 0f, 0.5f * (1f - i / 10f) * (1f - i / 10f)));
+                // the riser on the case, the monitor on the riser: its body, a shadow on the case under it, and the small screen
+                // the player card shows on (a dark glass recess; the card itself is drawn on it by DrawMenuPlayerCard)
+                var rz = MenuPcRiser;
+                for (int i = 0; i < 10; i++)
+                    Ui.Fill(new Rect(rz.x + 6f, c.y + 2f + i, rz.width - 12f, 1f), new Color(0f, 0f, 0f, 0.5f * (1f - i / 10f) * (1f - i / 10f)));
+                Ui.Fill(rz, new Color(0.06f, 0.063f, 0.072f));
+                WhoBand(new Rect(rz.x + 2f, rz.y, rz.width - 4f, rz.height), new Color(0.26f, 0.27f, 0.3f), new Color(0.15f, 0.155f, 0.175f), 2f);
+                Ui.Fill(new Rect(rz.x + 2f, rz.y, 1f, rz.height), new Color(1f, 1f, 1f, 0.15f));
+                for (int i = 0; i < 8; i++)                                                              // the monitor's shadow on the riser
+                    Ui.Fill(new Rect(rz.x + 2f, rz.y + i, rz.width - 4f, 1f), new Color(0f, 0f, 0f, 0.5f * (1f - i / 8f) * (1f - i / 8f)));
+                var glass = new Rect(MenuPlayerRect.x - 6f, MenuPlayerRect.y - 5f, MenuPlayerRect.width + 12f, MenuPlayerRect.height + 10f);
+                Ui.Pill(new Rect(glass.x - 1f, glass.y - 1f, glass.width + 2f, glass.height + 2f), new Color(1f, 1f, 1f, 0.08f));
+                Ui.Pill(glass, new Color(0.02f, 0.025f, 0.04f));
+                Ui.Fill(new Rect(glass.x + 6f, glass.y + 1f, glass.width - 12f, 3f), new Color(0f, 0f, 0f, 0.5f));
+                Ui.Dot(new Rect(rz.xMax - 22f, rz.center.y - 3f, 6f, 6f), new Color(0.42f, 1f, 0.6f));  // its own little power light
+                Ui.Dot(new Rect(rz.xMax - 25f, rz.center.y - 6f, 12f, 12f), new Color(0.42f, 1f, 0.6f, 0.2f));
                 // the drive row: its bay in the middle, the power button and lights on the left, vents on the right
                 var bay = new Rect(W / 2f - DriveW / 2f - 18f, MenuPcDriveY - 26f, DriveW + 18f + 18f + 60f, 54f);
                 Ui.Pill(new Rect(bay.x - 1f, bay.y - 1f, bay.width + 2f, bay.height + 2f), new Color(1f, 1f, 1f, 0.07f));
@@ -64,16 +81,10 @@ namespace Arena
                     Ui.Fill(new Rect(x, MenuPcDriveY - 14f, 5f, 28f), new Color(0.04f, 0.042f, 0.05f, 0.85f));
                 for (float x = bay.xMax + 24f; x < c.xMax - 30f; x += 10f)
                     Ui.Fill(new Rect(x, MenuPcDriveY - 14f, 5f, 28f), new Color(0.04f, 0.042f, 0.05f, 0.85f));
-                // a panel line under the drive row, then the recess the menu box sits in, with vents down both sides of it
-                float ry = MenuCard.y - 14f;
-                Ui.Fill(new Rect(c.x + 14f, ry, c.width - 28f, 1f), new Color(0f, 0f, 0f, 0.4f));
-                Ui.Fill(new Rect(c.x + 14f, ry + 1f, c.width - 28f, 1f), new Color(1f, 1f, 1f, 0.06f));
-                var rec = new Rect(MenuCard.x - 10f, MenuCard.y - 8f, MenuCard.width + 20f, MenuCard.height + 16f);
-                Ui.Pill(new Rect(rec.x - 1f, rec.y - 1f, rec.width + 2f, rec.height + 2f), new Color(1f, 1f, 1f, 0.08f));
-                Ui.Pill(rec, new Color(0.03f, 0.032f, 0.038f));
-                foreach (float vx in new[] { c.x + 40f, rec.xMax + 40f })
+                // vents down both sides of the keys, which sit straight on the case's face
+                foreach (float vx in new[] { c.x + 40f, MenuCard.xMax + 40f })
                     for (float y = MenuCard.y + 20f; y < MenuCard.yMax - 20f; y += 10f)
-                        Ui.Fill(new Rect(vx, y, rec.x - c.x - 80f, 5f), new Color(0.04f, 0.042f, 0.05f, 0.85f));
+                        Ui.Fill(new Rect(vx, y, MenuCard.x - c.x - 80f, 5f), new Color(0.04f, 0.042f, 0.05f, 0.85f));
                 if (BeginUiGl())
                 {
                     UiModelAt(V2.Zero, 1f);
