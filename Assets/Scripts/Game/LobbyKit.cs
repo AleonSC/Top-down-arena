@@ -475,7 +475,11 @@ namespace Arena
             return cur;
         }
 
-        public static void StatBar(Rect r, string name, string value, float frac, Color c, bool calm)
+        public static void StatBar(Rect r, string name, string value, float frac, Color c, bool calm) =>
+            StatBar(r, name, value, frac, c, calm, 0f, c);
+
+        /// extra > 0: a second segment of colour extraC on the end of the fill (the Tank's Ironhide on Health).
+        public static void StatBar(Rect r, string name, string value, float frac, Color c, bool calm, float extra, Color extraC)
         {
             const float nameW = 70f, valW = 64f;
             Ui.Label(new Rect(r.x, r.y, nameW, r.height), name.ToUpperInvariant(), 12, CrtStyle.Dim, TextAnchor.MiddleLeft, true);
@@ -498,6 +502,21 @@ namespace Arena
                 var cap = new Rect(fr.xMax - 2f, fr.y - 3f, 3f, fr.height + 6f);                              // the bright end cap
                 Ui.Glow(cap, c, 0.1f * k);
                 Ui.Fill(cap, Color.white);
+            }
+            if (extra > 0f)  // the extra segment, starting where the fill ends, with its own lit edge and a gap before it
+            {
+                float ew = tr.width * Mathf.Clamp01(BarShown(name + "+", extra, calm));
+                var er = new Rect(fr.xMax + 2f, tr.y, Mathf.Min(ew, tr.xMax - fr.xMax - 2f), tr.height);
+                if (er.width > 0f)
+                {
+                    if (!calm)
+                        Ui.Glow(er, extraC, 0.05f);
+                    Ui.Fill(er, Color.Lerp(extraC, Color.black, 0.25f));
+                    Ui.Fill(new Rect(er.x, er.y, er.width, er.height * 0.6f), extraC);
+                    Ui.Fill(new Rect(er.x, er.y + 1f, er.width, 2f), Color.Lerp(extraC, Color.white, 0.55f));
+                    for (float x = er.x + 6f; x < er.xMax - 1f; x += 6f)  // plate seams
+                        Ui.Fill(new Rect(x, er.y, 1f, er.height), new Color(0.02f, 0.04f, 0.08f, 0.6f));
+                }
             }
             var vr = new Rect(r.xMax - valW, r.y, valW, r.height);
             int s = FitSize(value, 13, 10, vr.width);

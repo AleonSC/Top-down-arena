@@ -662,7 +662,11 @@ namespace Arena
             previewPlayer.Weapon = wdef;
             float reach = game.WeaponRange(previewPlayer);
             float sy = r.y + BottomTop + 64f, sStep = Mathf.Max(26f, (r.yMax - 3f - 22f - sy) / 3f);  // the four bars spread down: the last ends on the detail box's bottom
-            LobbyKit.StatBar(new Rect(lx, sy, lw, 22f), "Health", hp + " HP", Mathf.Clamp01(hp / 340f), new Color(0.3f, 1f, 0.48f), calm);
+            if (me.Role == Role.Tank)  // the Tank's Ironhide shield (Ironhide.cs) as a steel segment on the end of the health
+                LobbyKit.StatBar(new Rect(lx, sy, lw, 22f), "Health", hp + " + " + (int)Game.IronhideMax, Mathf.Clamp01(hp / 340f), new Color(0.3f, 1f, 0.48f), calm,
+                    Game.IronhideMax / 340f, CrtStyle.Steel);
+            else
+                LobbyKit.StatBar(new Rect(lx, sy, lw, 22f), "Health", hp + " HP", Mathf.Clamp01(hp / 340f), new Color(0.3f, 1f, 0.48f), calm);
             float speed = Defs.Get(me.Role).Speed * Defs.KitSpeedMult(me.Kit);
             LobbyKit.StatBar(new Rect(lx, sy + sStep, lw, 22f), "Speed", Mathf.RoundToInt(speed).ToString(), Mathf.Clamp01(speed / 300f), new Color(0.31f, 0.65f, 1f), calm);
             LobbyKit.StatBar(new Rect(lx, sy + 2f * sStep, lw, 22f), wdef.Melee ? "Reach" : "Range", Mathf.RoundToInt(reach) + " px", Mathf.Clamp01(reach / 1100f), new Color(1f, 0.76f, 0.28f), calm);
@@ -1043,6 +1047,8 @@ namespace Arena
             {
                 float hpMult = classPage ? Defs.KitHpMult(me.Kit) : 1f, spMult = classPage ? Defs.KitSpeedMult(me.Kit) : 1f;
                 tiles.Add(new[] { Mathf.RoundToInt(roleDef.Hp * hpMult).ToString(), "HEALTH" });
+                if (me.Role == Role.Tank)
+                    tiles.Add(new[] { ((int)Game.IronhideMax).ToString(), "SHIELD" });  // Ironhide (Ironhide.cs)
                 tiles.Add(new[] { Mathf.RoundToInt(roleDef.Speed * spMult).ToString(), "SPEED" });
             }
             else if (detailSel == 0)
