@@ -23,6 +23,24 @@ namespace Arena
             GUI.backgroundColor = old;
         }
 
+        static readonly Dictionary<int, GUIStyle> rimStyles = new Dictionary<int, GUIStyle>();
+
+        /// The outline of a rounded box: a line `width` px (1 to 6) along its inside edge, following the corners.
+        public static void RoundRim(Rect r, Color c, int radius, int width)
+        {
+            if (r.width <= 0f || r.height <= 0f || c.a <= 0.003f)
+                return;
+            radius = Mathf.Clamp(radius, 1, 32);
+            width = Mathf.Clamp(width, 1, 6);
+            int key = radius * 8 + width;
+            if (!rimStyles.TryGetValue(key, out var st) || st.normal.background == null)
+                rimStyles[key] = st = Style(Rounded(radius, new Color(1f, 1f, 1f, 0f), new Color(1f, 1f, 1f, 0f), Color.white, width), radius);
+            var old = GUI.backgroundColor;
+            GUI.backgroundColor = Faded(c);
+            GUI.Box(r, GUIContent.none, st);
+            GUI.backgroundColor = old;
+        }
+
         /// A rounded box filled with a vertical gradient through the given stops (positions 0 to 1, colours), drawn one
         /// row at a time with each row cut in at the corners, so the curve stays round.
         public static void RoundGrad(Rect r, float radius, float[] at, Color[] cols)

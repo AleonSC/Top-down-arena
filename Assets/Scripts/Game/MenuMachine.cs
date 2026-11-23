@@ -64,7 +64,7 @@ namespace Arena
                 GUIUtility.ScaleAroundPivot(new Vector2(1f, squash), new Vector2(W / 2f, CaseRect.yMax));
             float hit = Seg(T, 3.35f, 3.38f) * (1f - Seg(T, 3.38f, 3.9f));
             Metal(CaseRect, 12);
-            NeonBox(CaseRect, 1f, hit);
+            NeonBox(CaseRect, 1f, hit, 12);
             DrawCaseKeys(T, power, live);
             HVent(new Rect(184f, 524f, 210f, 76f));
             DrawBay(T, live, t);

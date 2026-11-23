@@ -117,11 +117,7 @@ namespace Arena
                 var type = Event.current.type;
                 if (live && maxScroll > 0f)
                 {
-                    if (inside && type == EventType.ScrollWheel)
-                    {
-                        menuListScroll += Event.current.delta.y * 24f;
-                        Event.current.Use();
-                    }
+                    menuListScroll += WheelOver(list, live) * 24f;  // MachineLook.cs
                     if (type == EventType.MouseDown && grab.Contains(mouse))
                         menuListDrag = true;
                     if (menuListDrag && (type == EventType.MouseDown || type == EventType.MouseDrag))
