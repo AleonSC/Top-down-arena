@@ -1,0 +1,255 @@
+<!-- Status: mockup (approximate: browser drawing). The disk going into the monitor's drive and the main menu case dropping out from under the monitor; published as an artifact. -->
+<title>Disk Boot Sequence</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one 16:9 game stage scaled to the page width, a transport bar under it (play, scrub, speed), then the beat sheet. Single dark look: it is a game screen. */
+:root{
+  color-scheme:dark;
+  --page:#0c0c10; --panel:#16171c; --line:#2a2c34; --text:#e7e9ef; --muted:#9a9fac; --accent:#8fb6ff;
+  --ink:#a9c6ff; --glass:#040a18; --neon:#cfe0ff; --green:#6bff99; --amber:#ffb547;
+  --ui:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; --display:"Space Grotesk","Inter",system-ui,sans-serif; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--text);font:14px/1.5 var(--ui)}
+.wrap{max-width:1120px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
+h1{margin:0;font:700 22px/1.2 var(--display);text-wrap:balance}
+.lede{margin:0;color:var(--muted);max-width:70ch}
+.frame{position:relative;width:100%;max-width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:8px;background:#140608;border:1px solid var(--line)}
+.stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.bar button{font:600 13px var(--ui);color:var(--text);background:#23252c;border:1px solid #3a3d47;border-radius:6px;padding:7px 14px;cursor:pointer}
+.bar button:hover{border-color:var(--accent)}
+.bar button:focus-visible,.bar input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.bar button.sel{border-color:var(--accent);color:var(--accent)}
+.bar input[type=range]{flex:1 1 220px;min-width:0;accent-color:var(--accent)}
+.clock{font:600 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--accent);min-width:64px;text-align:right}
+.beats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+.beat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 11px;cursor:pointer;min-width:0}
+.beat.on{border-color:var(--accent)}
+.beat b{display:block;font:700 12px var(--display);letter-spacing:.04em;text-transform:uppercase;color:var(--text)}
+.beat span{display:block;font:12px var(--mono);color:var(--accent);font-variant-numeric:tabular-nums}
+.beat p{margin:4px 0 0;color:var(--muted);font-size:12.5px}
+
+/* ---- the scene ---- */
+.sky{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 52%,#6e2230 0%,#3a1018 38%,#120406 75%)}
+.floor{position:absolute;left:-400px;right:-400px;top:372px;height:600px;transform:perspective(260px) rotateX(62deg);transform-origin:50% 0;
+  background:linear-gradient(90deg,rgba(255,90,110,.55) 1px,transparent 1px) 0 0/64px 64px,linear-gradient(0deg,rgba(255,90,110,.55) 1px,transparent 1px) 0 0/64px 64px}
+.horizon{position:absolute;left:0;right:0;top:371px;height:1px;background:rgba(255,190,200,.7)}
+.metal{position:absolute;background:linear-gradient(180deg,#5b5e66,#3a3c42 30%,#1c1d21);border:2px solid #0e0f12;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 10px 18px rgba(0,0,0,.45)}
+.neon{box-shadow:0 0 0 2px var(--neon),0 0 10px 2px rgba(160,195,255,.45),inset 0 1px 0 rgba(255,255,255,.35)}
+.crt{position:absolute;background:var(--glass);border:3px solid #0a0b0e;box-shadow:inset 0 0 0 1px #1a2440,inset 0 0 40px rgba(60,110,220,.18);overflow:hidden}
+.crt::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px);pointer-events:none}
+.title{position:absolute;left:0;right:0;top:57px;text-align:center;color:var(--ink);font:900 78px/1 "Arial Black",Arial,sans-serif;letter-spacing:1px;white-space:pre;
+  text-shadow:0 0 14px rgba(110,160,255,.55),3px 0 0 rgba(255,70,90,.55),-3px 0 0 rgba(70,200,255,.55)}
+.chin{position:absolute;color:#9aa0ad;font:700 10px/1 Arial,sans-serif;letter-spacing:1px}
+.vent{position:absolute;background:repeating-linear-gradient(90deg,#0b0c0f 0 5px,transparent 5px 10px)}
+.hvent{position:absolute;background:repeating-linear-gradient(0deg,#0b0c0f 0 4px,transparent 4px 9px)}
+.dot{position:absolute;width:8px;height:8px;border-radius:50%}
+.drive{position:absolute;left:475px;top:176px;width:330px;height:34px;border-radius:5px;background:#0b0c10;border:1px solid #2a2d35;box-shadow:inset 0 2px 4px #000}
+.slit{position:absolute;left:52px;width:200px;top:13px;height:8px;background:#000;border-radius:3px}
+.lip{position:absolute;left:52px;width:200px;top:20px;height:2px;background:rgba(255,255,255,.22);border-radius:1px}
+.cells{position:absolute;right:12px;top:12px;display:flex;gap:4px}
+.cells i{width:7px;height:10px;border-radius:1px;background:#1b2238}
+.dlabel{position:absolute;left:475px;top:216px;width:330px;text-align:center;color:#8b93a6;font:700 10px Arial;letter-spacing:1px}
+.disk{position:absolute;left:0;top:0;width:260px;height:260px;transform-origin:50% 0}
+.disk .b{position:absolute;inset:0;border-radius:6px;clip-path:polygon(0 0,92% 0,100% 8%,100% 100%,0 100%);box-shadow:inset 0 0 0 3px rgba(0,0,0,.3),inset 0 -14px 24px rgba(0,0,0,.25)}
+.disk .sh{position:absolute;left:56px;top:0;width:132px;height:80px;background:linear-gradient(90deg,#9aa0ab,#eef0f4 45%,#b9bec8);border:1px solid #6d727c;border-top:none}
+.disk .sh i{position:absolute;right:20px;top:10px;width:26px;height:54px;background:#14161a;border-radius:3px}
+.disk .lb{position:absolute;left:20px;right:20px;top:100px;bottom:20px;background:#f3ecd9;border-radius:3px;padding:8px 12px;color:#2b3a66;font:700 11px Arial;background-image:repeating-linear-gradient(180deg,transparent 0 27px,rgba(80,110,170,.25) 27px 28px)}
+.disk .lb .n{font:400 34px/1.15 "Segoe Print","Bradley Hand","Comic Sans MS",cursive;color:#1d2a52;white-space:nowrap}
+.disk .lb .s{font:700 13px Arial;color:#4a5a86;margin-top:6px}
+.disk .badge{position:absolute;right:30px;top:108px;width:34px;height:40px;clip-path:polygon(50% 0,100% 16%,100% 60%,50% 100%,0 60%,0 16%);background:linear-gradient(#8ea2cf,#3a4b73);color:#fff;font:800 14px/40px Arial;text-align:center}
+.key{position:absolute;border-radius:7px;background:linear-gradient(180deg,#4d5058,#2c2e34 60%,#212227);border:2px solid #0b0c0f;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 6px 0 #16171a,0 9px 12px rgba(0,0,0,.5);color:#e9ecf2;font:800 15px/1 Arial,sans-serif;display:flex;align-items:center;justify-content:center;gap:10px}
+.lamp{width:9px;height:9px;border-radius:50%;background:#1c2a20;flex:none}
+.tri{width:0;height:0;border-left:14px solid #7dffa8;border-top:9px solid transparent;border-bottom:9px solid transparent}
+.arrow{position:absolute;top:548px;width:54px;height:54px;border-radius:50%;background:linear-gradient(180deg,#4d5058,#26282d);border:2px solid #0b0c0f;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 5px 0 #141518;color:#cfe0ff;font:900 24px/50px Arial;text-align:center}
+.count{position:absolute;left:0;right:0;top:568px;text-align:center;color:#c9d6f5;font:800 12px Arial;letter-spacing:2px}
+.puff{position:absolute;width:14px;height:14px;border-radius:50%;background:rgba(255,200,210,.5);filter:blur(3px)}
+@media (prefers-reduced-motion: reduce){ .note-rm{display:block!important} }
+</style>
+
+<div class="wrap">
+  <h1>Disk boot sequence</h1>
+  <p class="lede">You pick a disk in Who's playing?. It travels up to the drive in the monitor's chin and slides into the slot. The drive reads it while the monitor retypes the title. Then the main menu's case drops out from under the monitor, lands, and powers on. The sequence is 4.8 seconds; scrub the bar or slow it down to study each beat. This is an approximate browser mockup: glows and type will differ in the game.</p>
+  <p class="lede note-rm" style="display:none">Your system asks for reduced motion, so it won't autoplay. Press Play or scrub the bar.</p>
+
+  <div class="frame" id="frame"><div class="stage" id="stage">
+    <div class="sky"></div><div class="floor"></div><div class="horizon"></div>
+    <div id="puffs"></div>
+
+    <!-- the main menu case, falling out from under the monitor (clipped to below the monitor's bottom edge) -->
+    <div style="position:absolute;left:0;top:238px;width:1280px;height:482px;overflow:hidden">
+      <div id="case" style="position:absolute;left:0;top:-238px;width:1280px;height:720px;transform-origin:640px 696px">
+        <div class="metal" id="caseBody" style="left:150px;top:256px;width:980px;height:440px;border-radius:8px 8px 14px 14px"></div>
+        <div class="key" style="left:184px;top:290px;width:210px;height:70px;font-size:20px"><span class="lamp" id="l1"></span><span class="tri"></span>PLAY</div>
+        <div class="key" style="left:184px;top:380px;width:210px;height:52px"><span class="lamp" id="l2"></span>JOIN GAME</div>
+        <div class="key" style="left:184px;top:450px;width:210px;height:52px"><span class="lamp" id="l3"></span>SETTINGS</div>
+        <div class="key" style="left:184px;top:622px;width:210px;height:40px;font-size:13px">QUIT</div>
+        <div class="hvent" style="left:184px;top:524px;width:210px;height:76px"></div>
+        <div style="position:absolute;left:424px;top:288px;width:432px;height:376px;border-radius:6px;background:#0a0b0e;overflow:hidden">
+          <div id="shutter" style="position:absolute;inset:0;background:repeating-linear-gradient(180deg,#5a5d65 0,#43464d 9px,#2a2c31 16px,#16171a 18px)"><div style="position:absolute;left:50%;bottom:16px;width:90px;height:12px;margin-left:-45px;border-radius:6px;background:#121316;box-shadow:inset 0 2px 3px #000"></div></div>
+        </div>
+        <div class="crt" style="left:886px;top:290px;width:214px;height:150px;border-radius:5px">
+          <div id="scrOn" style="position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:#cfe0ff;box-shadow:0 0 12px #9cc0ff;opacity:0"></div>
+          <div id="scr" style="position:absolute;inset:0;padding:22px 16px;opacity:0">
+            <div style="display:flex;gap:12px;align-items:center"><div style="width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#c9d6ff,#5872b8)"></div>
+            <div><div style="color:#eaf0ff;font:800 19px Arial">Anthony</div><div style="color:#7e95c9;font:700 11px Arial;letter-spacing:.5px">CHALLENGER · RANK 14</div></div></div>
+            <div style="height:4px;background:#14203b;border-radius:2px;margin-top:18px"><i style="display:block;height:100%;width:22%;background:#66a3ff;border-radius:2px"></i></div>
+          </div>
+        </div>
+        <div class="hvent" style="left:886px;top:466px;width:214px;height:120px"></div>
+        <div class="dot" id="pw" style="left:892px;top:632px;background:#183020"></div><div class="chin" style="left:906px;top:631px">POWER</div>
+        <div class="dot" id="dk" style="left:972px;top:632px;background:#3a2a10"></div><div class="chin" style="left:986px;top:631px">DISK</div>
+      </div>
+    </div>
+
+    <!-- Who's playing? carousel pieces -->
+    <div id="who">
+      <div class="disk" id="sideL2" style="transform:translate(70px,300px) scale(.4);opacity:.45"></div>
+      <div class="disk" id="sideL1" style="transform:translate(245px,286px) scale(.6);opacity:.85"></div>
+      <div class="disk" id="sideR1" style="transform:translate(775px,286px) scale(.6);opacity:.85"></div>
+      <div class="disk" id="sideR2" style="transform:translate(950px,300px) scale(.4);opacity:.45"></div>
+      <div class="arrow" style="left:440px">‹</div><div class="arrow" style="left:786px">›</div>
+      <div class="count">PROFILE 1 OF 12</div>
+      <div class="key" style="left:380px;top:628px;width:250px;height:58px">⚙ MANAGE PROFILES</div>
+      <div class="key" style="left:650px;top:628px;width:250px;height:58px">＋ NEW PROFILE</div>
+    </div>
+
+    <!-- the monitor -->
+    <div id="mon" style="position:absolute;inset:0">
+      <div class="metal" style="left:150px;top:18px;width:980px;height:222px;border-radius:14px"></div>
+      <div class="crt neon" id="glass" style="left:170px;top:32px;width:940px;height:128px;border-radius:6px"></div>
+      <div class="title" id="title">WHO'S PLAYING?_</div>
+      <div class="chin" style="left:188px;top:186px">ARENA CRT-14</div>
+      <div class="vent" style="left:188px;top:204px;width:220px;height:16px;opacity:.8"></div>
+      <div class="vent" style="left:872px;top:204px;width:200px;height:16px;opacity:.8"></div>
+      <div class="dot" style="left:1086px;top:187px;background:var(--green);box-shadow:0 0 8px var(--green)"></div>
+      <div class="drive"><span class="chin" style="left:14px;top:12px;color:#8b93a6;font-size:11px">A:</span><div class="slit" id="slit"></div>
+        <div class="cells" id="cells"><i></i><i></i><i></i><i></i></div></div>
+      <div class="dlabel" id="dlabel">INSERT: ANTHONY</div>
+      <div class="dot" id="led" style="left:739px;top:189px;background:#3a2a10"></div>
+    </div>
+
+    <!-- the chosen disk, clipped at the slit's line so it slides in through it -->
+    <div style="position:absolute;left:0;right:0;top:190px;bottom:0;overflow:hidden;pointer-events:none">
+      <div class="disk" id="disk" style="top:-190px"></div>
+    </div>
+    <div class="lip" id="lipOver" style="position:absolute;left:527px;top:196px;z-index:5"></div>
+    <div id="flash" style="position:absolute;left:527px;top:189px;width:200px;height:8px;border-radius:3px;background:#fff;box-shadow:0 0 18px 6px rgba(200,225,255,.8);opacity:0"></div>
+  </div></div>
+
+  <div class="bar" role="group" aria-label="Playback">
+    <button id="play" type="button">▶ Play</button>
+    <input id="scrub" type="range" min="0" max="4.8" step="0.01" value="0" aria-label="Time">
+    <span class="clock" id="clock">0.00 s</span>
+    <button type="button" class="spd sel" data-s="1">1×</button>
+    <button type="button" class="spd" data-s="0.5">½×</button>
+    <button type="button" class="spd" data-s="0.25">¼×</button>
+  </div>
+
+  <div class="beats" id="beats"></div>
+</div>
+
+<script>
+const T_END = 4.8;
+const BEATS = [
+  {t:0.00, e:0.35, n:"Pick", p:"The middle disk lifts and the rest of the carousel fades away."},
+  {t:0.35, e:1.05, n:"Carry", p:"The disk rises toward the drive and shrinks to the slot's width."},
+  {t:1.05, e:1.80, n:"Insert", p:"It tips back and slides in through the slot; the slot's lower lip stays over it."},
+  {t:1.80, e:2.85, n:"Read", p:"Flash, amber light, read cells ticking. The monitor erases WHO'S PLAYING?"},
+  {t:2.60, e:3.35, n:"Retype", p:"VECTOR COLOSSEUM types in. The drive reads ANTHONY READY in green."},
+  {t:2.90, e:3.70, n:"Drop", p:"The case falls out from under the monitor, lands with a squash and a bounce, and the monitor shakes."},
+  {t:3.70, e:4.80, n:"Power on", p:"POWER and DISK lights, the key lamps one by one, then the profile screen switches on."},
+];
+const $ = id => document.getElementById(id);
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const seg=(t,a,b)=>clamp((t-a)/(b-a));
+const lerp=(a,b,k)=>a+(b-a)*k;
+const easeIO=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2, easeIn=k=>k*k*k, easeOut=k=>1-Math.pow(1-k,3);
+function diskHTML(name,col,dark,rank,line){ return '<div class="b" style="background:linear-gradient(180deg,'+col+','+dark+')"></div><div class="sh"><i></i></div><div class="lb">SLOT 1<div class="n">'+name+'</div><div class="s">'+line+'</div></div><div class="badge">'+rank+'</div>'; }
+$('disk').innerHTML = diskHTML('Anthony','#4f7fe6','#2a4aa0',14,'Challenger · Rank 14');
+$('sideL1').innerHTML = diskHTML('Wren','#3d4a63','#252d3d',7,'Recruit · Rank 7');
+$('sideL2').innerHTML = diskHTML('Ash','#7d4fc4','#4a2f75',3,'Recruit · Rank 3');
+$('sideR1').innerHTML = diskHTML('Little Bee','#6b7080','#40434d',21,'Veteran · Rank 21');
+$('sideR2').innerHTML = diskHTML('Sam','#c0392b','#73221a',28,'Veteran · Rank 28');
+const OLD="WHO'S PLAYING?", NEW="VECTOR COLOSSEUM";
+const puffs=[]; for(let i=0;i<10;i++){ const d=document.createElement('div'); d.className='puff'; $('puffs').appendChild(d); puffs.push({el:d, side:i<5?-1:1, k:(i%5)/5}); }
+
+function render(t){
+  // pick: lift; others fade
+  const pick=seg(t,0,.35), fade=seg(t,.15,.5);
+  $('who').style.opacity = 1-fade;
+  // the disk's path: centre (x 640, top 262) -> under the drive (top 250, scale .87) -> in through the slit
+  const carry=easeIO(seg(t,.35,1.05)), ins=seg(t,1.05,1.8);
+  let s = lerp(1.0,.77,carry) + .03*Math.sin(Math.PI*pick)*(1-carry);
+  let top = lerp(262 - 14*easeOut(pick), 232, carry);
+  let tilt = 0, wob = Math.sin(seg(t,.95,1.2)*Math.PI*2)*2*(1-seg(t,.95,1.2));
+  if (ins>0){ const k=easeIn(ins); top = lerp(232, 194 - 260*s*0.6, k); tilt = lerp(0,62,easeOut(ins)); }
+  const d=$('disk'); d.style.transform='translate('+(lerp(640,627,carry)-130)+'px,'+top+'px) scale('+s+') perspective(700px) rotateX('+tilt+'deg) rotate('+wob+'deg)';
+  d.style.transformOrigin='50% 0'; d.style.opacity = t<1.8?1:0;
+  d.style.filter = 'drop-shadow(0 '+(12-8*carry)+'px 14px rgba(0,0,0,.55))';
+  // the slit: flash on the way in
+  const fl = seg(t,1.72,1.82)*(1-seg(t,1.82,2.05)); $('flash').style.opacity=fl;
+  // drive light, cells and label
+  let led='#3a2a10', glow='none', label='INSERT: ANTHONY';
+  if (t>=1.05 && t<1.8) label='INSERT: ANTHONY';
+  if (t>=1.8){ label='DISK DETECTED'; led='#ffb547'; glow='0 0 8px #ffb547'; }
+  if (t>=2.0 && t<2.85){ label='READING ANTHONY…'; const on=Math.floor(t*14)%2===0; led=on?'#ffb547':'#5a3d12'; glow=on?'0 0 9px #ffb547':'none'; }
+  if (t>=2.85){ label='ANTHONY READY'; led='#6bff99'; glow='0 0 9px #6bff99'; }
+  $('led').style.background=led; $('led').style.boxShadow=glow; $('dlabel').textContent=label;
+  $('dlabel').style.color = t>=2.85 ? '#b7f5cc' : '#8b93a6';
+  const rk=seg(t,2.0,2.8); [...$('cells').children].forEach((c,i)=>{ const lit = t>=2.85 || (rk>0 && rk*4>i); c.style.background = t>=2.85 ? '#2c7a4a' : lit ? '#ffb547' : '#1b2238'; c.style.boxShadow = lit&&t<2.85?'0 0 6px #ffb547':'none'; });
+  // title: erase, then type
+  let txt;
+  if (t<1.95) txt=OLD+(Math.floor(t*2.5)%2?' ':'_');
+  else if (t<2.45){ const n=Math.round(lerp(OLD.length,0,seg(t,1.95,2.45))); txt=OLD.slice(0,n)+'_'; }
+  else if (t<2.6) txt='_';
+  else { const n=Math.round(lerp(0,NEW.length,seg(t,2.6,3.3))); txt=NEW.slice(0,n)+(n<NEW.length||Math.floor(t*2.5)%2?'_':' '); }
+  $('title').textContent=txt;
+  // monitor flicker while reading
+  $('glass').style.filter = (t>2.0&&t<2.85&&Math.floor(t*20)%5===0)?'brightness(1.25)':'none';
+  // the case: falls out from under the monitor, squash, bounce, settle
+  const fall=seg(t,2.9,3.35); let cy=lerp(-470,0,easeIn(fall)), sy=1;
+  if (t>=3.35 && t<3.45){ sy=1-.035*Math.sin(seg(t,3.35,3.45)*Math.PI); }
+  if (t>=3.45 && t<3.7){ cy=-14*Math.sin(seg(t,3.45,3.7)*Math.PI)*.8; }
+  $('case').style.transform='translateY('+cy+'px) scaleY('+sy+')';
+  const hit = seg(t,3.35,3.38)*(1-seg(t,3.38,3.9));
+  $('caseBody').style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,.35),0 10px 18px rgba(0,0,0,.45),0 0 0 2px #cfe0ff,0 0 '+(10+26*hit)+'px '+(2+6*hit)+'px rgba(160,195,255,'+(.45+.45*hit)+')';
+  $('caseBody').style.opacity = t<2.9 ? 0 : 1;
+  // monitor shake on landing
+  const sh = seg(t,3.35,3.6), amp = 4*(1-sh)*(sh>0&&sh<1?1:0);
+  $('mon').style.transform='translate('+(Math.sin(t*90)*amp*.5)+'px,'+(Math.cos(t*77)*amp)+'px)';
+  // dust off the case's bottom corners
+  const dk=seg(t,3.35,3.95);
+  puffs.forEach(p=>{ const r=dk*(60+80*p.k); p.el.style.left=(640+p.side*(470+r))+'px'; p.el.style.top=(690-dk*(10+24*p.k))+'px';
+    p.el.style.opacity = dk>0&&dk<1 ? (1-dk)*.8 : 0; p.el.style.transform='scale('+(1+dk*2.5)+')'; });
+  // power on
+  const onAt=(a,id,col)=>{ const on=t>=a; $(id).style.background=on?col:(id==='pw'?'#183020':id==='dk'?'#3a2a10':'#1c2a20'); $(id).style.boxShadow=on?'0 0 8px '+col:'none'; };
+  onAt(3.75,'pw','#6bff99'); onAt(3.85,'dk','#ffb547'); onAt(3.95,'l1','#6bff99'); onAt(4.05,'l2','#6bff99'); onAt(4.15,'l3','#6bff99');
+  if (t>=4.25){ $('l2').style.background='#1c2a20'; $('l2').style.boxShadow='none'; $('l3').style.background='#1c2a20'; $('l3').style.boxShadow='none'; }
+  const crt=seg(t,4.0,4.3); $('scrOn').style.opacity = crt>0&&crt<1 ? 1 : 0; $('scrOn').style.transform='scaleX('+easeOut(crt)+') scaleY('+(1+ (crt>.7? (crt-.7)*120:0))+')';
+  $('scr').style.opacity = seg(t,4.25,4.45);
+  $('shutter').style.transform = 'translateY('+(t>4.4&&t<4.6?Math.sin(seg(t,4.4,4.6)*Math.PI*3)*2:0)+'px)';
+  // transport
+  $('clock').textContent=t.toFixed(2)+' s'; $('scrub').value=t;
+  document.querySelectorAll('.beat').forEach((b,i)=>b.classList.toggle('on', t>=BEATS[i].t && t<BEATS[i].e+(i===BEATS.length-1?1:0)));
+}
+
+// beats list
+BEATS.forEach(b=>{ const el=document.createElement('div'); el.className='beat'; el.tabIndex=0;
+  el.innerHTML='<b>'+b.n+'</b><span>'+b.t.toFixed(2)+'–'+b.e.toFixed(2)+' s</span><p>'+b.p+'</p>';
+  const go=()=>{ playing=false; $('play').textContent='▶ Play'; now=b.t+.001; render(now); };
+  el.onclick=go; el.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } };
+  $('beats').appendChild(el); });
+
+let now=0, playing=false, speed=1, last=0;
+function tick(ts){ if(playing){ const dt=last?(ts-last)/1000:0; now+=dt*speed; if(now>=T_END){ now=T_END; playing=false; $('play').textContent='↺ Replay'; } render(now); } last=ts; requestAnimationFrame(tick); }
+$('play').onclick=()=>{ if(now>=T_END) now=0; playing=!playing; $('play').textContent=playing?'❚❚ Pause':'▶ Play'; };
+$('scrub').oninput=e=>{ playing=false; $('play').textContent='▶ Play'; now=+e.target.value; render(now); };
+document.querySelectorAll('.spd').forEach(b=>b.onclick=()=>{ speed=+b.dataset.s; document.querySelectorAll('.spd').forEach(x=>x.classList.toggle('sel',x===b)); });
+function fit(){ const f=$('frame'); $('stage').style.transform='scale('+(f.clientWidth/1280)+')'; }
+addEventListener('resize',fit); fit(); render(0); requestAnimationFrame(tick);
+let reduce=false; try{ reduce=matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+if(!reduce){ setTimeout(()=>{ if(!playing&&now===0){ playing=true; $('play').textContent='❚❚ Pause'; } },700); }
+</script>
