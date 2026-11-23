@@ -49,7 +49,7 @@ namespace Arena
         {
             savedRuns = SaveStore.List();
             deleteArmed = null;
-            menuJoinOpen = false;
+            menuJoinOpen = menuSetOpen = false;
             menuListScroll = menuListShown = 0f;
             menuListDrag = false;
             menuPlayOpen = true;
@@ -61,6 +61,7 @@ namespace Arena
             deleteArmed = null;
             menuPlayOpen = false;
             menuJoinOpen = false;
+            menuSetOpen = false;
         }
 
         /// Starts a fresh run: what Play used to do.

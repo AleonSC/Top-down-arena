@@ -68,7 +68,9 @@ namespace Arena
                 return;
             if (ShutterOpen <= 0f)
                 return;
-            if (menuJoinOpen)
+            if (menuSetOpen)
+                DrawBaySettings(MenuCard, false);
+            else if (menuJoinOpen)
                 DrawBayJoin(MenuCard, false);
             else
                 DrawPlayPicker(t, false);

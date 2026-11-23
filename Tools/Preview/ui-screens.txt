@@ -16,6 +16,9 @@ boot-land         whotr     PROFTR=3.4,0
 boot-power        whotr     PROFTR=4.2,0
 eject-pop         whotr     PROFEJ=0.9,0
 menu-join         menu      JOINOPEN=1
+menu-settings     menu      MENUSET=-1
+menu-set-fx       menu      MENUSET=1
+menu-set-keys     menu      MENUSET=3
 profile           profile
 cosmetics         cosmetics
 cosmetics-skin    cosmetics SECTION=7

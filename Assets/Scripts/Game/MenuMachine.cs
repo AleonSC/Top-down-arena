@@ -6,7 +6,7 @@ namespace Arena
     /// graphite case in a neon outline under the monitor, with Play, Join game, Settings and Quit as keycaps down its left, a bay in the
     /// middle behind a ribbed roller shutter, your profile on a small screen at the right (click it for your profile) over a grille and the
     /// POWER and DISK lights. Play rolls the shutter up onto your saved runs (Continue, delete, New run); Join game onto the host address
-    /// and Connect; pressing the key again (or Esc) rolls it back down.
+    /// and Connect; Settings onto the settings (BaySettings.cs); pressing the key again (or Esc) rolls it back down.
     /// Its entrance reads the machine clock MachT (seconds of the disk boot sequence): the case falls out from under the monitor (2.9 s),
     /// lands with a squash, a bounce, a neon flare, the monitor jolting and dust puffing off its feet (3.35 s), then powers on: POWER,
     /// DISK, the key lamps one by one, the profile screen switching on like a tube (3.75 to 4.45 s), a rattle of the shutter (4.4 s).
@@ -96,7 +96,7 @@ namespace Arena
             bool on = power > 0.5f;
             int playLamp = on ? BootLamp(T, 3.95f, 1) : 0;
             int joinLamp = on ? BootLamp(T, 4.05f, menuJoinOpen ? 1 : 0) : 0;
-            int setLamp = on ? BootLamp(T, 4.15f, settingsOpen ? 1 : 0) : 0;
+            int setLamp = on ? BootLamp(T, 4.15f, menuSetOpen ? 1 : 0) : 0;
             if (MachKey(PlayKeyRect, "PLAY", 20, live, playLamp, null, true))
             {
                 MenuSound(Sfx.MenuPlay);
@@ -112,12 +112,12 @@ namespace Arena
                 MenuSound(Sfx.MenuKey);
                 menuJoinOpen = !menuJoinOpen;
                 if (menuJoinOpen)
-                    menuPlayOpen = false;
+                    menuPlayOpen = menuSetOpen = false;
             }
             if (MachKey(SettingsKeyRect, "SETTINGS", 15, live, setLamp))
             {
                 MenuSound(Sfx.MenuKey);
-                settingsOpen = true;
+                ToggleMenuSettings();  // BaySettings.cs: Settings on the bay's screen
             }
             if (MachKey(QuitKeyRect, "QUIT", 13, live))
                 QuitWithSound();  // MenuHolo.cs: the tube switching off, then quit
@@ -133,7 +133,7 @@ namespace Arena
             Ui.RoundBox(b, new Color(0.039f, 0.043f, 0.055f), 6);
             if (live && Event.current.type == EventType.Repaint)
             {
-                float target = menuPlayOpen || menuJoinOpen ? 1f : 0f;
+                float target = menuPlayOpen || menuJoinOpen || menuSetOpen ? 1f : 0f;
                 float before = menuPlayK;
                 menuPlayK = fxOn && !fxReduced ? Mathf.MoveTowards(menuPlayK, target, Time.unscaledDeltaTime / MenuPlayLen) : target;
                 if (before == 0f && menuPlayK > 0f)
@@ -147,7 +147,9 @@ namespace Arena
             if (open > 0f)
             {
                 bool screenLive = live && menuPlayK >= 1f;
-                if (menuJoinOpen)
+                if (menuSetOpen)
+                    DrawBaySettings(MenuCard, screenLive);
+                else if (menuJoinOpen)
                     DrawBayJoin(MenuCard, screenLive);
                 else
                     DrawPlayPicker(t, screenLive);

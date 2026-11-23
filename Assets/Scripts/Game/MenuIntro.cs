@@ -32,7 +32,7 @@ namespace Arena
             bool onMenu = session.Screen == AppScreen.Menu;
             if (onMenu && menuLastScreen != AppScreen.Menu)
             {
-                menuPlayOpen = false;                 // the box is back on Play (SavesUi.cs)
+                menuPlayOpen = menuJoinOpen = menuSetOpen = false;  // the case's shutter is down (MenuMachine.cs)
                 menuPlayK = 0f;
             }
             menuLastScreen = session.Screen;
