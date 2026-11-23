@@ -529,6 +529,8 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("MENUINTRO") != null) { set("menuIntroDone", true); set("menuIntroT", float.Parse(Environment.GetEnvironmentVariable("MENUINTRO"), System.Globalization.CultureInfo.InvariantCulture)); }
       // BG=<n>: the menu background behind the menu, Who's playing? and the boot sequence (0: the Holo Floor, the game's own).
       if ((mode == "menu" || mode == "who" || mode == "whotr") && Environment.GetEnvironmentVariable("BG") != null) { set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG"))); set("menuBgOverride", true); set("bgProfile", Profile.Current); }
+      // MENUSET=<-1..3>: Settings on the bay's screen (BaySettings.cs): -1 the tiles, 0 Audio, 1 Visual effects, 2 Gameplay, 3 Keybinds; SETSCROLL=<px>.
+      if (mode == "menu" && Environment.GetEnvironmentVariable("MENUSET") != null) { int sg = int.Parse(Environment.GetEnvironmentVariable("MENUSET")); set("menuSetOpen", true); set("menuSetGroup", sg); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); set("menuSetShown", sg); set("menuSetShownAt", -100f); set("menuPlayK", 1f); if (Environment.GetEnvironmentVariable("SETSCROLL") != null) set("menuSetScroll", float.Parse(Environment.GetEnvironmentVariable("SETSCROLL"))); }
       if (Environment.GetEnvironmentVariable("JOINOPEN") != null) { set("menuJoinOpen", true); set("menuPlayK", 1f); }
       // MENUT=<s>: the menu's clock (Time.unscaledTime), e.g. MENUT=3 for the rooms drawn round the title and box (MenuHolo.cs).
       if (Environment.GetEnvironmentVariable("MENUT") != null) Time.unscaledTime = float.Parse(Environment.GetEnvironmentVariable("MENUT"), System.Globalization.CultureInfo.InvariantCulture);

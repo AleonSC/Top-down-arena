@@ -2028,7 +2028,11 @@ their sides in 0.22 s. With Reduced effects they slide in and out with no trails
   POWER and DISK lights. Until you have opened your profile once (and for at most your first five launches on that profile), a small
   purple **YOUR PROFILE** tag beside the screen bounces toward it; clicking the tag opens the profile too. **Play** rolls the shutter up
   onto your saved runs (see Saved runs); **Join game** rolls it up onto the host's address and **Connect** (and how joining is going,
-  with **Cancel**); pressing the key again or Esc rolls it back down. **New run** boots the lobby like a CRT out of the bay's screen: a
+  with **Cancel**); **Settings** rolls it up onto **SETTINGS** on the bay's screen: four tiles (Audio, Visual effects, Gameplay, Keybinds;
+  the arrow keys and Enter work too), and picking one switches the small screen off to a bright line and on again with that group's
+  settings, all on the same screen (bar sliders with − and +, ON / OFF keys, rows of choices, key caps you click then press a key to
+  rebind, the network port; a long page scrolls; each change flashes SAVED); **‹ BACK** or Esc returns to the tiles. Pressing the key
+  again, or Esc, rolls the shutter back down. (The lobby's and pause menu's Settings keep the side drawer.) **New run** boots the lobby like a CRT out of the bay's screen: a
   link log types itself, squeezes into a bright line, and the line opens top and bottom like an old TV warming up to show the whole
   lobby. Its entrance is the end of the **disk boot sequence** (see Profiles): the case falls out from under the monitor, lands with a
   squash, a small bounce, a flare of its neon, the monitor jolting and dust puffing off its feet, then powers on (POWER, DISK, the key

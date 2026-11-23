@@ -46,7 +46,7 @@ namespace Arena
             whoCarPos = whoCarTarget = slot;  // the picked disk is the one in the middle
             menuIntroDone = true;  // this is the menu's intro now
             menuIntroT = 0f;
-            menuPlayOpen = menuJoinOpen = false;
+            menuPlayOpen = menuJoinOpen = menuSetOpen = false;
             menuPlayK = 0f;
         }
 
