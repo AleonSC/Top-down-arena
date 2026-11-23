@@ -20,13 +20,14 @@ namespace Arena
         bool profileChosen;           // a profile was picked on this screen: the name field now edits its name
 
         const float WhoCardW = 184f, WhoCardH = 184f, WhoCardGap = 60f;  // a disk's box: square, standing on the shelf (DrawWhoShelf)
-        static float WhoCardTop => WhoLayout == 0 ? 280f : 222f;
+        static float WhoCardTop => WhoLayout == 0 ? 280f : WhoLayout == 5 ? 244f : 222f;
 
         /// The screen's graphite look (Ui.Graphite: the blues drawn as greys; the disks and the neon keep their colours).
         public static bool WhoGraphite = true;
 
         /// Layout mockups (preview WHOLAYOUT=): 0 the drive under the title; with the drive and Manage profiles in a console under the shelf:
-        /// 1 hanging, side by side; 2 hanging, stacked; 3 a full-width drawer flush under the shelf.
+        /// 1 hanging, side by side; 2 hanging, stacked; 3 and 4 a drawer under the shelf; 5 the computer (the title is its monitor, the
+        /// disks stand in a disk box on its case, the drive is in the case's front panel).
         public static int WhoLayout;
 
         /// The console under the shelf (layouts 1 to 3).
@@ -141,7 +142,12 @@ namespace Arena
         void DrawWho()
         {
             Ui.Graphite = WhoGraphite;
-            if (WhoLayout != 0)
+            if (WhoLayout == 5)
+            {
+                DriveCx = W / 2f;
+                DriveY = WhoCase.y + 50f;
+            }
+            else if (WhoLayout != 0)
             {
                 var c = WhoConsole;
                 DriveCx = WhoLayout == 1 ? c.x + 34f + DriveW / 2f : W / 2f;
@@ -158,6 +164,8 @@ namespace Arena
         {
             if (WhoLayout == 0)
                 return new Rect(W / 2f - kw / 2f, H - 118f, kw, 74f);
+            if (WhoLayout == 5)
+                return new Rect(WhoCase.xMax - 30f - WhoSideKeyW, WhoCase.y + 26f, WhoSideKeyW, 74f);
             var c = WhoConsole;
             if (WhoLayout == 2 || WhoLayout == 4)
                 return new Rect(W / 2f - kw / 2f, c.y + 92f, kw, 74f);
@@ -247,6 +255,139 @@ namespace Arena
             EndUiGl();
         }
 
+        // ---- layout 5, the computer: the title is its monitor, the disks stand in a disk box on its case, the drive is in the case ----
+
+        /// The case: a desktop chassis as wide as the monitor's screen, under the disk box.
+        static Rect WhoCase => new Rect(WhoEdge, WhoCardTop + WhoCardH + 40f, W - 2f * WhoEdge, 124f);
+
+        /// The disk box: an open-top caddy the disks stand in, on top of the case.
+        static Rect WhoBoxRect => new Rect(WhoEdge + 34f, WhoCardTop + 70f, W - 2f * WhoEdge - 68f, WhoCardH - 30f);
+
+        /// IMGUI: the title as a monitor: a chunky graphite bezel round the title's screen, a chin under it with a brand strip and a
+        /// power LED, and the neck going down behind the disk box to the case.
+        void DrawWhoMonitor()
+        {
+            var n = TitleNeonRect;
+            var bz = new Rect(n.x - 14f, n.y - 14f, n.width + 28f, n.height + 14f + 30f);
+            // the neck, down behind the disk box
+            var neck = new Rect(W / 2f - 70f, bz.yMax - 6f, 140f, WhoBoxRect.y + 30f - bz.yMax);
+            Ui.Fill(neck, new Color(0.07f, 0.075f, 0.085f));
+            WhoBand(new Rect(neck.x + 2f, neck.y, neck.width - 4f, neck.height), new Color(0.24f, 0.25f, 0.28f), new Color(0.12f, 0.125f, 0.14f), 2f);
+            Ui.Fill(new Rect(neck.x + 2f, neck.y, 1f, neck.height), new Color(1f, 1f, 1f, 0.12f));
+            Ui.Fill(new Rect(neck.x + 10f, neck.y, neck.width - 20f, 6f), new Color(0f, 0f, 0f, 0.4f));  // the chin's shadow on it
+            // the bezel
+            Ui.Pill(new Rect(bz.x + 2f, bz.y + 8f, bz.width - 4f, bz.height), new Color(0f, 0f, 0f, 0.45f));
+            Ui.Pill(bz, new Color(0.06f, 0.063f, 0.072f));
+            var face = new Rect(bz.x + 2f, bz.y + 2f, bz.width - 4f, bz.height - 4f);
+            Ui.Pill(face, new Color(0.2f, 0.21f, 0.24f));
+            WhoBand(new Rect(face.x + 4f, face.y + 2f, face.width - 8f, face.height - 4f), new Color(0.3f, 0.31f, 0.35f), new Color(0.13f, 0.135f, 0.15f), 2f);
+            Ui.Fill(new Rect(face.x + 10f, face.y + 1f, face.width - 20f, 1f), new Color(1f, 1f, 1f, 0.3f));
+            // the chin: a brand strip on the left, a power LED and its button on the right
+            float cy = n.yMax + 15f;
+            Ui.Pill(new Rect(face.x + 22f, cy - 6f, 120f, 12f), new Color(0.07f, 0.075f, 0.085f));
+            Ui.Label(new Rect(face.x + 22f, cy - 8f, 120f, 16f), "ARENA  CRT-14", 10, new Color(0.62f, 0.64f, 0.7f), TextAnchor.MiddleCenter, true);
+            for (int i = 0; i < 6; i++)
+                Ui.Fill(new Rect(W / 2f - 54f + i * 20f, cy - 1f, 12f, 3f), new Color(0.05f, 0.055f, 0.065f));  // a speaker grille in the middle
+            var btn = new Rect(face.xMax - 52f, cy - 7f, 26f, 14f);
+            Ui.Pill(btn, new Color(0.06f, 0.063f, 0.072f));
+            WhoBand(new Rect(btn.x + 1.5f, btn.y + 1.5f, btn.width - 3f, btn.height - 3f), new Color(0.4f, 0.42f, 0.47f), new Color(0.2f, 0.21f, 0.24f), 1f);
+            Ui.Dot(new Rect(face.xMax - 74f, cy - 3f, 6f, 6f), new Color(0.42f, 1f, 0.6f));
+            Ui.Dot(new Rect(face.xMax - 77f, cy - 6f, 12f, 12f), new Color(0.42f, 1f, 0.6f, 0.2f));
+        }
+
+        /// IMGUI: the case: a graphite chassis with the floppy drive in the middle of its front panel, the power button and activity
+        /// lights on the left, Manage profiles on the right, and the neon round it; the disk box's shadow falls on its top.
+        void DrawWhoCase()
+        {
+            var c = WhoCase;
+            float cut = 14f;
+            Ui.Pill(new Rect(c.x + 4f, c.y + 8f, c.width - 8f, c.height), new Color(0f, 0f, 0f, 0.5f));
+            WhoBand(new Rect(c.x, c.y, c.width, c.height - cut), new Color(0.24f, 0.25f, 0.28f), new Color(0.1f, 0.105f, 0.12f), 2f);
+            if (BeginUiGl())
+            {
+                UiModelAt(V2.Zero, 1f);
+                SetColor(new Rgba(0.1f, 0.105f, 0.12f));
+                Quad(new V2(c.x, c.yMax - cut), new V2(c.xMax, c.yMax - cut), new V2(c.xMax - cut, c.yMax), new V2(c.x + cut, c.yMax));
+                EndUiGl();
+            }
+            Ui.Fill(new Rect(c.x + 2f, c.y + 1f, c.width - 4f, 1f), new Color(1f, 1f, 1f, 0.35f));                 // the lit top edge
+            var bx = WhoBoxRect;
+            for (int i = 0; i < 10; i++)                                                                              // the disk box's shadow
+                Ui.Fill(new Rect(bx.x + 6f, c.y + 2f + i, bx.width - 12f, 1f), new Color(0f, 0f, 0f, 0.55f * (1f - i / 10f) * (1f - i / 10f)));
+            // a panel line across the front, under the drive's bay
+            Ui.Fill(new Rect(c.x + 14f, c.y + 22f, c.width - 28f, 1f), new Color(0f, 0f, 0f, 0.4f));
+            Ui.Fill(new Rect(c.x + 14f, c.y + 23f, c.width - 28f, 1f), new Color(1f, 1f, 1f, 0.06f));
+            // the drive's bay: a recess the drive sits in
+            var bay = new Rect(W / 2f - DriveW / 2f - 18f, c.y + 28f, DriveW + 36f, 68f);
+            Ui.Pill(new Rect(bay.x - 1f, bay.y - 1f, bay.width + 2f, bay.height + 2f), new Color(1f, 1f, 1f, 0.07f));
+            Ui.Pill(bay, new Color(0.03f, 0.032f, 0.038f));
+            Ui.Fill(new Rect(bay.x + 6f, bay.y + 1f, bay.width - 12f, 3f), new Color(0f, 0f, 0f, 0.5f));
+            // the power button and the activity lights
+            var pb = new Rect(c.x + 36f, c.y + 40f, 40f, 40f);
+            Ui.Dot(new Rect(pb.x - 3f, pb.y - 3f, pb.width + 6f, pb.height + 6f), new Color(0.04f, 0.042f, 0.05f));
+            Ui.Dot(pb, new Color(0.34f, 0.35f, 0.39f));
+            Ui.Dot(new Rect(pb.x + 4f, pb.y + 3f, pb.width - 8f, pb.height - 10f), new Color(0.45f, 0.47f, 0.52f));
+            var ink = new Color(0.14f, 0.15f, 0.17f);  // the power symbol: a ring with a bar through its top
+            Ui.Dot(new Rect(pb.center.x - 8f, pb.center.y - 7f, 16f, 16f), ink, true);
+            Ui.Fill(new Rect(pb.center.x - 3f, pb.center.y - 11f, 6f, 8f), new Color(0.45f, 0.47f, 0.52f));
+            Ui.Fill(new Rect(pb.center.x - 1f, pb.center.y - 11f, 2f, 9f), ink);
+            string[] names = { "POWER", "DISK" };
+            for (int i = 0; i < 2; i++)
+            {
+                float ly = c.y + 44f + i * 20f;
+                var led = new Rect(c.x + 96f, ly + 3f, 14f, 5f);
+                var col = i == 0 ? new Color(0.42f, 1f, 0.6f) : new Color(0.25f, 0.2f, 0.1f);
+                if (i == 0)
+                    Ui.Pill(new Rect(led.x - 3f, led.y - 3f, led.width + 6f, led.height + 6f), col.WithAlpha(0.22f));
+                Ui.Fill(led, col);
+                Ui.Label(new Rect(led.xMax + 8f, ly - 3f, 80f, 16f), names[i], 10, new Color(0.62f, 0.64f, 0.7f), TextAnchor.MiddleLeft, true);
+            }
+            // vent slats between the lights and the drive
+            for (float x = c.x + 196f; x < bay.x - 22f; x += 10f)
+                Ui.Fill(new Rect(x, c.y + 42f, 5f, 40f), new Color(0.04f, 0.042f, 0.05f, 0.85f));
+            if (BeginUiGl())
+            {
+                UiModelAt(V2.Zero, 1f);
+                NeonPath(new[] { new V2(c.x, c.y), new V2(c.xMax, c.y), new V2(c.xMax, c.yMax - cut), new V2(c.xMax - cut, c.yMax), new V2(c.x + cut, c.yMax), new V2(c.x, c.yMax - cut) }, true, NeonFlicker(Time.unscaledTime, 11f, 2f));
+                EndUiGl();
+            }
+        }
+
+        /// IMGUI: the disk box behind the disks: its back wall, its end walls and a divider between each pair of disks.
+        void DrawWhoBoxBack()
+        {
+            var b = WhoBoxRect;
+            WhoBand(new Rect(b.x, b.y, b.width, b.height), new Color(0.1f, 0.105f, 0.12f), new Color(0.05f, 0.053f, 0.06f), 3f);
+            Ui.Fill(new Rect(b.x, b.y, b.width, 2f), new Color(0.45f, 0.47f, 0.52f));  // the back wall's top edge
+            for (int i = 0; i < WhoSlots; i++)
+            {
+                float x = (WhoBox(i).xMax + WhoBox(i + 1).x) / 2f;
+                var d = new Rect(x - 4f, b.y + 22f, 8f, b.yMax - b.y - 22f);
+                Ui.Fill(d, new Color(0.06f, 0.063f, 0.072f));
+                WhoBand(new Rect(d.x + 1f, d.y + 1f, d.width - 2f, d.height - 1f), new Color(0.36f, 0.38f, 0.43f), new Color(0.16f, 0.17f, 0.19f), 2f);
+                Ui.Fill(new Rect(d.x + 1f, d.y + 1f, d.width - 2f, 1f), new Color(1f, 1f, 1f, 0.35f));
+            }
+        }
+
+        /// IMGUI: the disk box's front, over the disks' feet: a graphite face with each slot's tag on it.
+        void DrawWhoBoxFront()
+        {
+            var b = WhoBoxRect;
+            var f = new Rect(b.x - 8f, WhoCardTop + WhoCardH - 16f, b.width + 16f, WhoCase.y - (WhoCardTop + WhoCardH - 16f));
+            Ui.Pill(new Rect(f.x, f.y - 3f, f.width, 8f), new Color(0f, 0f, 0f, 0.35f));
+            Ui.Pill(f, new Color(0.06f, 0.063f, 0.072f));
+            WhoBand(new Rect(f.x + 2f, f.y + 2f, f.width - 4f, f.height - 2f), new Color(0.34f, 0.355f, 0.39f), new Color(0.16f, 0.165f, 0.185f), 2f);
+            Ui.Fill(new Rect(f.x + 6f, f.y + 2f, f.width - 12f, 1f), new Color(1f, 1f, 1f, 0.45f));  // the lit lip
+            for (int i = 0; i <= WhoSlots; i++)
+            {
+                var plate = new Rect(WhoBox(i).center.x - 50f, f.y + (f.height - 26f) / 2f + 1f, 100f, 26f);
+                if (whoManage)
+                    Ui.Pill(plate, new Color(0.012f, 0.024f, 0.07f));
+                else
+                    DrawWhoTag(plate, i == WhoSlots ? "NEW" : "SLOT " + (i + 1), whoTagLit[i]);
+            }
+        }
+
         void DrawWhoBody()
         {
             float t = Time.unscaledTime;
@@ -280,12 +421,21 @@ namespace Arena
             if (Event.current.type == EventType.Repaint)
                 for (int i = 0; i <= WhoSlots; i++)
                     whoTagLit[i] = Mathf.MoveTowards(whoTagLit[i], i == hot ? 1f : 0f, Time.unscaledDeltaTime * 7f);
-            if (WhoLayout != 0)
-                DrawWhoConsole();
-            DrawDriveSlot(1f, drive);
-            DrawWhoShelf();
-            if (WhoDrawer)
-                DrawWhoDrawerNeon();
+            if (WhoLayout == 5)
+            {
+                DrawWhoCase();
+                DrawDriveSlot(1f, drive);
+                DrawWhoBoxBack();
+            }
+            else
+            {
+                if (WhoLayout != 0)
+                    DrawWhoConsole();
+                DrawDriveSlot(1f, drive);
+                DrawWhoShelf();
+                if (WhoDrawer)
+                    DrawWhoDrawerNeon();
+            }
             for (int i = 0; i <= WhoSlots; i++)
             {
                 var r = WhoBox(i);
@@ -296,6 +446,8 @@ namespace Arena
                 else
                     DrawWhoEmptyCard(r);
             }
+            if (WhoLayout == 5)
+                DrawWhoBoxFront();
 
             float y = WhoShelfTop + 54f + 40f;  // (under the shelf)
             if (editing)
@@ -306,11 +458,11 @@ namespace Arena
             {
                 // Manage profiles is a keycap like the main menu's Play (KeyUi.cs), with the same VHS hover.
                 float kw = KeyUi.WhoStyle == 2 ? 380f : KeyUi.WhoStyle == 1 ? 330f : 300f;
-                if (WhoLayout == 3)
+                if (WhoLayout == 3 || WhoLayout == 5)
                     kw = WhoSideKeyW;
                 var kr = WhoManageRect(kw);
                 if (MenuVhs.Draw(kr, "TRK 03", true, fxReduced, () => KeyUi.WhoStyle > 0
-                    ? KeyUi.Graphite(kr, whoManage ? "Done" : "Manage profiles", PixelArt.Get("ui_gear"), WhoLayout == 3 ? 22 : 26, whoManage, KeyUi.WhoStyle == 2)
+                    ? KeyUi.Graphite(kr, whoManage ? "Done" : "Manage profiles", PixelArt.Get("ui_gear"), WhoLayout == 3 || WhoLayout == 5 ? 22 : 26, whoManage, KeyUi.WhoStyle == 2)
                     : KeyUi.Key(kr, whoManage ? "Done" : "Manage profiles", PixelArt.Get("ui_gear"), 26, whoManage)))
                 {
                     whoManage = !whoManage;

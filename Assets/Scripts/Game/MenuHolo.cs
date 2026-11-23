@@ -104,6 +104,8 @@ namespace Arena
                 return;
             WithAlpha(a, () =>
             {
+                if (title && WhoLayout == 5)
+                    DrawWhoMonitor();  // ProfilesUi.cs: the title as the computer's monitor
                 if (title)
                     DrawTitleRetype(WhoTitleText, -1);
             });
