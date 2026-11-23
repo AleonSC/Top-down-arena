@@ -2,24 +2,21 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The main menu drawing itself in, the first time it shows after the game starts ("pen plot", option B of
-    /// Docs/Mockups/menu-d.html), 2.75 s:
-    ///   0.0 s   the background fades up; the x-axis draws out from the origin
-    ///   0.35 s  the empty CRT screen drops in from above and bounces onto the axis (a flash as it lands); from 0.95 s the title types out
-        ///   1.65 s  the box opens out of its middle and its plot corners snap on
-    ///   1.75 s  your name card, then PLAY rise into it, then Join game and Settings; Quit slides up; the box's neon lights (2.0 s)
-    ///   2.75 s  the rooms (MenuHolo.cs) start once the intro is over
-    /// Any key or click skips to the end, under a quick channel flip (SkipStatic.cs). Nothing in the menu takes a click until it's over (MenuIntroPlaying). Coming back
-    /// from the lobby or a run doesn't play it again. Reduced effects or Visual effects off: a 0.45 s fade instead.
-    /// Each piece of the menu asks MenuIntroK(a, b) how far in it is (1 when no intro is playing).
+    /// The main menu's own entrance, the end of the disk boot sequence (Docs/Mockups/disk-boot-sequence.html; ProfileTransition.cs plays
+    /// the whole of it from Who's playing?). The menu reads one machine clock, MachT (MenuMachine.cs), from 2.6 s on, so the intro's
+    /// second 0 is the boot's 2.6 s: the title types on the monitor (0 to 0.7 s), the case drops out from under it and lands (0.3 to
+    /// 1.1 s), then powers on (to 2.2 s). Any key or click skips to the end, under a quick channel flip (SkipStatic.cs). Nothing in the
+    /// menu takes a click until it's over (MenuIntroPlaying). Coming back from the lobby or a run doesn't play it again. Reduced
+    /// effects or Visual effects off: a 0.45 s fade instead. Each piece of the menu asks MenuIntroK(a, b) how far in it is (1 when no
+    /// intro is playing).
     public partial class ArenaApp
     {
-        const float MenuIntroLenFull = 2.75f, MenuIntroLenFade = 0.45f;
+        const float MenuIntroLenFull = 2.2f, MenuIntroLenFade = 0.45f;
         float menuIntroT = -1f;            // seconds into the intro; below 0 when none has started
         bool menuIntroDone;                // it has started once this launch
         AppScreen menuLastScreen = AppScreen.Lobby;
 
-        const float MenuIntroBuiltAt = 2.55f;  // the last piece (the bottom bar) is drawn by now: a skip after it has nothing left to flip over
+        const float MenuIntroBuiltAt = 1.9f;  // the case has powered on by now: a skip after it has nothing left to flip over
         bool MenuIntroBuilt => menuIntroT >= MenuIntroBuiltAt;
 
         bool MenuIntroFull => fxOn && !fxReduced;
@@ -62,7 +59,10 @@ namespace Arena
             }
             else
             {
+                float before = menuIntroT;
                 menuIntroT += dt;
+                if (MenuIntroFull)
+                    PlayMachineCues(2.6f + before, 2.6f + menuIntroT);  // the case's drop and power-on (MenuMachine.cs)
                 TickTitleTyping();
             }
         }
@@ -106,74 +106,23 @@ namespace Arena
         }
 
 
-        /// The title: during the intro the CRT screen falls in empty and the title types onto it; otherwise as usual.
-        void DrawMenuTitleText(Rect r)
-        {
-            if (!(MenuIntroPlaying && MenuIntroFull))
-            {
-                DrawCrtBack();
-                DrawCrtTitle(r);
-                DrawCrtFront();
-                DrawTitleNeon(1f);  // MenuHolo.cs
-                return;
-            }
-            // The empty screen falls in from above the window and bounces onto the axis (with a flash), then the title types out.
-            float T = menuIntroT;
-            if (profTr)
-            {
-                // From the picker: the screen never left, so it doesn't drop in. WHO'S PLAYING? backspaces away once the disk is in,
-                // then the menu's title types on as usual.
-                float typing = Seg(T, CrtTypeAt, CrtTypeAt + CrtTypeLen);
-                if (typing <= 0f)
-                {
-                    DrawTitleRetype(WhoTitleText, Mathf.RoundToInt(WhoTitleText.Length * (1f - Seg(profTrT, 2.4f, 3.2f))));
-                    return;
-                }
-                crtTyped = T >= CrtTypeAt + CrtTypeLen + CrtFlipLen ? -1 : Mathf.FloorToInt(typing * CrtTitleText.Length);
-                DrawCrtBack();
-                DrawCrtTitle(r);
-                DrawCrtFront();
-                DrawTitleNeon(1f);
-                crtTyped = -1;
-                return;
-            }
-            if (T < CrtDropAt)
-                return;
-            float bt = T - CrtDropAt, fall = CrtFallLen;
-            float dy = bt < fall ? -(CrtBox.yMax + 24f) * (1f - (bt / fall) * (bt / fall))
-                : -22f * Mathf.Exp(-(bt - fall) * 6f) * Mathf.Abs(Mathf.Sin((bt - fall) * 11f));
-            crtDy = dy;
-            crtFlash = Mathf.Max(0f, 1f - Mathf.Abs(bt - fall) / 0.12f);
-            float typeK = Seg(T, CrtTypeAt, CrtTypeAt + CrtTypeLen);
-            crtTyped = T >= CrtTypeAt + CrtTypeLen + CrtFlipLen ? -1 : Mathf.FloorToInt(typeK * "VECTOR COLOSSEUM".Length);  // (held until the last letter has flipped in)
-            DrawCrtBack();
-            if (crtTyped != 0)
-                DrawCrtTitle(r);
-            DrawCrtFront();
-            DrawTitleNeon(Seg(T, CrtDropAt, CrtDropAt + CrtFallLen));
-            crtDy = 0f; crtFlash = 0f; crtTyped = -1;
-        }
-
         static readonly Color CrtGreen = new Color(0.62f, 0.78f, 1f), CrtGlow = new Color(0.25f, 0.5f, 1f);  // (blue now; the names are from when it was green)
-        const float CrtDropAt = 0.35f, CrtFallLen = 0.32f, CrtTypeAt = 0.95f, CrtTypeLen = 0.6f;  // intro seconds
+        const float CrtTypeAt = 0f, CrtTypeLen = 0.7f;  // intro seconds: the title types on the monitor (boot 2.6 to 3.3 s)
         static float crtDy, crtFlash;  // while the screen is falling in: how far it is from home, and the flash as it lands
         static int crtTyped = -1;      // letters typed so far; -1 = all of them
         static string crtFull = CrtTitleText;  // the line on the screen (WHO'S PLAYING? while the moves to and from the picker retype it)
         static bool crtFlat;           // its letters are shown flat (no flip-in): a line being erased or retyped by DrawTitleRetype
-        static Rect CrtBox => new Rect(W / 2f - 520f, MenuTitleY - 52f + crtDy, 1040f, 104f);
+        static Rect CrtBox => new Rect(W / 2f - 470f, 32f + crtDy, 940f, 128f);  // the monitor's glass (PcMonitor.cs)
 
-        /// The title as text on a CRT (Docs/Mockups/title-styles.html, look 4): a bezel round a dark blue glass screen.
+        /// The monitor's glass (Docs/Mockups/disk-boot-sequence.html): a near-black blue screen in a thin dark border, a faint blue
+        /// rim inside it and a soft glow towards the middle.
         void DrawCrtBack()
         {
             var box = CrtBox;
-            Ui.Pill(new Rect(box.x - 8f, box.y - 8f, box.width + 16f, box.height + 16f), new Color(0.23f, 0.26f, 0.3f));
-            Ui.Pill(new Rect(box.x - 5f, box.y - 5f, box.width + 10f, box.height + 10f), new Color(0.125f, 0.14f, 0.16f));
-            Ui.Pill(new Rect(box.x - 1f, box.y - 1f, box.width + 2f, box.height + 2f), new Color(0.03f, 0.035f, 0.04f));
-            for (int i = 0; i < 6; i++)  // glass: dark at the edges, lighter towards the middle
-            {
-                float k = i / 5f;
-                Ui.Pill(new Rect(box.x + i * 20f, box.y + i * 6f, box.width - i * 40f, box.height - i * 12f), Color.Lerp(CrtUi.T(new Color(0.004f, 0.01f, 0.03f)), CrtUi.T(new Color(0.05f, 0.1f, 0.22f)), k));
-            }
+            Ui.RoundBox(new Rect(box.x - 3f, box.y - 3f, box.width + 6f, box.height + 6f), new Color(0.039f, 0.043f, 0.055f), 8);
+            Ui.RoundBox(box, CrtUi.T(new Color(0.016f, 0.039f, 0.094f)), 6);
+            Ui.RadialGlow(new Rect(box.x + 40f, box.y + 4f, box.width - 80f, box.height - 8f), CrtUi.T(new Color(0.235f, 0.43f, 0.86f)).WithAlpha(0.2f));
+            EdgeRing(new Rect(box.x + 1f, box.y + 1f, box.width - 2f, box.height - 2f), 1f, CrtUi.T(new Color(0.102f, 0.141f, 0.251f)));
         }
 
         /// Over the text: rolling scanlines, a glow along the screen's edge, a glare, and a blinking cursor in the bottom corner.
@@ -188,7 +137,6 @@ namespace Arena
                 Ui.Fill(new Rect(0f, y, box.width, 2f), new Color(0f, 0f, 0f, 0.28f));
             Ui.Fill(new Rect(24f, 5f, box.width * 0.35f, 2f), new Color(1f, 1f, 1f, 0.07f));  // glare
             GUI.EndGroup();
-            Ui.Rim(box, CrtGlow, 0.3f);
             if (crtFlash > 0f)
                 Ui.Fill(new Rect(box.x + 7f, box.y + 7f, box.width - 14f, box.height - 14f), new Color(0.6f, 0.75f, 1f, 0.35f * crtFlash));
             if (crtTyped >= 0)

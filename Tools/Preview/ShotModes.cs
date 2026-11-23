@@ -432,16 +432,20 @@ static partial class Shot {
     }
     else if (mode == "menu" || mode == "records" || mode == "cosmetics" || mode == "profile" || mode == "settings" || mode == "who" || mode == "whotr" || mode == "pacman")
     {
-      // who: the "Who's playing?" screen with made-up profiles (TWO=1: two of them, so one slot says Empty; MANAGE=1: Rename and Delete showing; EMPTY=1: none yet).
-      // whotr: the move between the picker and the menu (ProfileTransition.cs), PROFTR=<clock 0..5.4>,<slot 0..2>[,back].
+      // who: the "Who's playing?" disk carousel with made-up profiles (TWO=1: two of them; MANY=<n>: n of them, up to 50; MANAGE=1: Rename and Delete
+      // under the middle disk; NEWDISK=<name>: naming a new profile, the blank disk in the middle; CARPOS=<disks>: the carousel that far round, e.g. 0.5 mid-scroll;
+      // EMPTY=1: none yet).
+      // whotr: the disk boot sequence to the menu (ProfileTransition.cs), PROFTR=<clock 0..4.8>,<profile index>.
       if (mode == "whotr") {
         PreviewWho();
-        var pt = (Environment.GetEnvironmentVariable("PROFTR") ?? "0,0,back").Split(',');
+        var pt = (Environment.GetEnvironmentVariable("PROFTR") ?? "0,0").Split(',');
         float ptT = float.Parse(pt[0], System.Globalization.CultureInfo.InvariantCulture);
-        set("profTr", true); set("profTrT", ptT); set("profTrSlot", int.Parse(pt[1])); set("profTrFwd", pt.Length < 3);
-        set("menuIntroDone", true); set("menuIntroT", Mathf.Min(2.749f, 0.35f + Mathf.Max(0f, ptT - 3.0f)));
-        // PROFEJ=<0..2.9>,<slot>: the eject key's move instead (DiskEject.cs); the menu stays fully drawn.
-        if (Environment.GetEnvironmentVariable("PROFEJ") != null) { var pe = Environment.GetEnvironmentVariable("PROFEJ").Split(','); set("profEj", true); set("profEjT", float.Parse(pe[0], System.Globalization.CultureInfo.InvariantCulture)); set("profTrSlot", pe.Length > 1 ? int.Parse(pe[1]) : 0); set("profTrFwd", false); set("menuIntroT", 2.749f); }
+        int slot = pt.Length > 1 ? int.Parse(pt[1]) : 0;
+        set("profTr", true); set("profTrT", ptT); set("profTrSlot", slot); set("profTrFwd", true);
+        set("whoCarPos", (float)slot); set("whoCarTarget", (float)slot);
+        set("menuIntroDone", true); set("menuIntroT", Mathf.Clamp(ptT - 2.6f, 0f, 2.199f));
+        // PROFEJ=<0..2.7>,<profile index>: the eject's way back instead (DiskEject.cs).
+        if (Environment.GetEnvironmentVariable("PROFEJ") != null) { var pe = Environment.GetEnvironmentVariable("PROFEJ").Split(','); int es = pe.Length > 1 ? int.Parse(pe[1]) : 0; set("profEj", true); set("profEjT", float.Parse(pe[0], System.Globalization.CultureInfo.InvariantCulture)); set("profTrSlot", es); set("whoCarPos", (float)es); set("whoCarTarget", (float)es); set("profTrFwd", false); set("menuIntroT", 2.199f); }
         typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null);
       }
       // pacman: the Pac-Man game's screen (PacmanUi.cs). PACKEYS=l1.7,u0.6: steer left for 1.7 s, then up for 0.6 s (letters l r u d), after READY; PACPAUSE=1: the pause screen.
@@ -461,18 +465,19 @@ static partial class Shot {
         if (Environment.GetEnvironmentVariable("PACOVER") != null) pg.State = PacState.Over;
         if (Environment.GetEnvironmentVariable("PACPAUSE") != null) set("pacPaused", true);
       }
-      if (mode == "who") { ArenaApp.WhoLayout = int.Parse(Environment.GetEnvironmentVariable("WHOLAYOUT") ?? "0"); ArenaApp.WhoGraphite = Environment.GetEnvironmentVariable("WHODARK") != "0"; }  // WHOLAYOUT=0-3: layout mockups; WHODARK=0: the blue look
-      if (mode == "who" && Environment.GetEnvironmentVariable("WHOKEY") != null) KeyUi.WhoStyle = int.Parse(Environment.GetEnvironmentVariable("WHOKEY"));  // WHOKEY=1|2: Manage profiles as Graphite or Machined
-      if (mode == "who") { PreviewWho(); set("whoOpen", true); if (Environment.GetEnvironmentVariable("MANAGE") != null) set("whoManage", true); typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null);
-        if (Environment.GetEnvironmentVariable("BG") != null) { set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG"))); set("menuBgOverride", true); set("bgProfile", Profile.Current); } }  // BG=0: the Holo Floor behind it
+      if (mode == "who") {
+        PreviewWho(); set("whoOpen", true); if (Environment.GetEnvironmentVariable("MANAGE") != null) set("whoManage", true); typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null);
+        typeof(ArenaApp).GetMethod("CarCenterOn", f2).Invoke(app, new object[] { ProfileStore.ActiveId });
+        if (Environment.GetEnvironmentVariable("NEWDISK") != null) { typeof(ArenaApp).GetMethod("StartNewProfile", f2).Invoke(app, null); set("whoName", Environment.GetEnvironmentVariable("NEWDISK")); set("whoCarPos", typeof(ArenaApp).GetField("whoCarTarget", f2).GetValue(app)); set("whoFocus", false); }
+        if (Environment.GetEnvironmentVariable("CARPOS") != null) { float cp = float.Parse(Environment.GetEnvironmentVariable("CARPOS"), System.Globalization.CultureInfo.InvariantCulture); set("whoCarPos", cp); set("whoCarTarget", cp); }
+      }
       // records: the Records page, with made-up saves and a profile (SavesUi.cs).
       if (mode == "records" || mode == "cosmetics" || mode == "profile" || mode == "menu") PreviewSaves();
-      if (mode == "menu" && Environment.GetEnvironmentVariable("MENUPC") != null) { ArenaApp.MenuComputer = true; if (Environment.GetEnvironmentVariable("BG") != null) { set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG"))); set("menuBgOverride", true); set("bgProfile", Profile.Current); } }  // MENUPC=1: the main menu as the computer (MenuComputer.cs)
       // menu: PLAY=1 shows the saved-runs picker in the box after Play (NOSAVES=1: with no saves; MORE=1: extra saves; SCROLL=n: scroll the list n px).
       if (mode == "menu" && Environment.GetEnvironmentVariable("PLAY") != null) {
         if (Environment.GetEnvironmentVariable("MORE") != null) { for (int i = 0; i < 6; i++) { var x = new RunSave { Id = "m" + i, SavedAt = Shot.Now.AddDays(-3 - i), Wave = 3 + i, Score = 900 * (i + 1), RunTime = 300f * (i + 1) }; x.Seats.Add(new SeatSave { Name = "Anthony", Role = Role.Dps, Kit = Kit.Ninja, Weapon = 0, Ability = 0, Level = 3 + i }); SaveStore.Write(x); } }
         typeof(ArenaApp).GetMethod("OpenPlayPicker", f2).Invoke(app, null); set("menuPlayK", 1f);
-        // PLAYK=<0..1>: that far through the Play move (MenuServo.cs); PLAYBACK=1: going back to the menu instead.
+        // PLAYK=<0..1>: the shutter that far up (MenuMachine.cs); PLAYBACK=1: rolling back down instead.
         if (Environment.GetEnvironmentVariable("PLAYK") != null) { set("menuPlayK", float.Parse(Environment.GetEnvironmentVariable("PLAYK"), System.Globalization.CultureInfo.InvariantCulture)); if (Environment.GetEnvironmentVariable("PLAYBACK") != null) set("menuPlayOpen", false); }
         if (Environment.GetEnvironmentVariable("NOSAVES") != null) set("savedRuns", new System.Collections.Generic.List<RunSave>());
         if (Environment.GetEnvironmentVariable("SCROLL") != null) { float sc = float.Parse(Environment.GetEnvironmentVariable("SCROLL"), System.Globalization.CultureInfo.InvariantCulture); set("menuListScroll", sc); set("menuListShown", sc); }
@@ -522,7 +527,9 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("WINCLOSE") != null) { set("winClosingAt", 0f); set("winCloseK", float.Parse(Environment.GetEnvironmentVariable("WINCLOSE"), System.Globalization.CultureInfo.InvariantCulture)); }
       // MENUINTRO=<seconds>: the main menu that far into its intro (MenuIntro.cs); JOINOPEN=1: Join's address row open.
       if (Environment.GetEnvironmentVariable("MENUINTRO") != null) { set("menuIntroDone", true); set("menuIntroT", float.Parse(Environment.GetEnvironmentVariable("MENUINTRO"), System.Globalization.CultureInfo.InvariantCulture)); }
-      if (Environment.GetEnvironmentVariable("JOINOPEN") != null) { set("menuJoinOpen", true); set("menuBottomHide", 1f); }
+      // BG=<n>: the menu background behind the menu, Who's playing? and the boot sequence (0: the Holo Floor, the game's own).
+      if ((mode == "menu" || mode == "who" || mode == "whotr") && Environment.GetEnvironmentVariable("BG") != null) { set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG"))); set("menuBgOverride", true); set("bgProfile", Profile.Current); }
+      if (Environment.GetEnvironmentVariable("JOINOPEN") != null) { set("menuJoinOpen", true); set("menuPlayK", 1f); }
       // MENUT=<s>: the menu's clock (Time.unscaledTime), e.g. MENUT=3 for the rooms drawn round the title and box (MenuHolo.cs).
       if (Environment.GetEnvironmentVariable("MENUT") != null) Time.unscaledTime = float.Parse(Environment.GetEnvironmentVariable("MENUT"), System.Globalization.CultureInfo.InvariantCulture);
       // ROOMS=<s>: the rooms that far into their sequence (MenuHolo.cs DrawRooms: one every 3.5 s, three at most).

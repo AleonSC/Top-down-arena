@@ -37,21 +37,14 @@ namespace Arena
             }
         }
 
-        // --- Play: the saved-runs picker inside the menu's box -------------------------------------
+        // --- Play: the saved runs on the bay's screen, behind the case's shutter (MenuMachine.cs) ------------------
 
         float menuListScroll;   // the saved-runs list's scroll target, in pixels from the top
         float menuListShown;    // where it is drawn (eased toward the target)
         bool menuListDrag;      // the scroll bar's thumb is being dragged
-        string menuHdrShown;    // the header screen's text as typed so far (null = not shown yet, so it appears at once)
-        float menuHdrT;         // time until the next character is typed or erased
-        const float MenuHdrCharTime = 0.025f;
-        const float RunRowLatestH = 126f, RunRowH = 52f;  // the newest run's row is tall; every other row is compact
+        const float RunRowLatestH = 96f, RunRowH = 48f;  // the newest run's row is tall; every other row is compact
 
-        /// Where the saved runs scroll (a CRT screen under the header), and the New run button under it.
-        static Rect RunsScreenRect(Rect c) => new Rect(c.x + 30f, c.y + 62f, 620f, 190f);
-        static Rect NewRunRect(Rect c) => new Rect(c.x + 30f, c.y + 262f, 620f, 46f);
-
-        /// Play was clicked: the box shows the picker (a new run, or your saved runs).
+        /// Play was clicked: the shutter rolls up onto your saved runs (or Start a run).
         void OpenPlayPicker()
         {
             savedRuns = SaveStore.List();
@@ -59,15 +52,15 @@ namespace Arena
             menuJoinOpen = false;
             menuListScroll = menuListShown = 0f;
             menuListDrag = false;
-            menuHdrShown = null;
             menuPlayOpen = true;
         }
 
-        /// Esc or Back: out of the picker to the menu's buttons.
+        /// Esc, or Play / Join game again: the shutter rolls back down.
         void PlayPickerBack()
         {
             deleteArmed = null;
             menuPlayOpen = false;
+            menuJoinOpen = false;
         }
 
         /// Starts a fresh run: what Play used to do.
@@ -95,36 +88,31 @@ namespace Arena
             deleteArmed = null;
         }
 
-        /// The box after Play: every saved run on one scrolling CRT screen, the newest first and larger, each with Continue and a
-        /// delete key (DEL, then REALLY?), and New run under it. With no saves it says so, on the screen, and offers New run.
-        bool servoPicker;  // drawn inside the Play move (MenuServo.cs): the header, Quit/Back key and New run are drawn there
-
+        /// The bay's screen after Play (the screen is MenuCard): YOUR RUNS, every saved run on a scrolling list, the newest first and
+        /// taller (its squad, Continue, a delete key: DEL, then REALLY?), and New run at the foot. With no saves it says so.
         void DrawPlayPicker(float t, bool live)
         {
-            var c = MenuCard;
-            if (!servoPicker)
-                DrawPickerHeader(c, live);
+            var scr = MenuCard;
             bool calm = fxReduced;
-            var scr = RunsScreenRect(c);
-            var newRun = NewRunRect(c);
             bool any = savedRuns.Count > 0;
-            if (!servoPicker)
-                KeyUi.Bezel(scr);   // the Play move draws its own, following the opening screen (MenuServo.cs)
             RunSave toContinue = null, toDelete = null;
             var mouse = Event.current.mousePosition;
-            bool inside = live && scr.Contains(mouse);  // clicks on rows count only while the mouse is really over the screen
             CrtUi.Begin(scr);
+            bool cursor = !calm && Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0;
+            CrtUi.Text(new Rect(scr.x + 18f, scr.y + 12f, scr.width - 36f, 32f), (any ? "YOUR RUNS" : "START A RUN") + (cursor ? "_" : " "), 22, CrtStyle.Ink, TextAnchor.MiddleLeft, true, calm);
+            Ui.Fill(new Rect(scr.x + 12f, scr.y + 50f, scr.width - 24f, 1f), CrtStyle.Ink.WithAlpha(0.25f));
+            var list = new Rect(scr.x + 12f, scr.y + 52f, scr.width - 24f, scr.height - 52f - 62f);
+            bool inside = live && list.Contains(mouse);
             if (!any)
             {
-                CrtUi.Text(new Rect(scr.x + 20f, scr.y + 44f, scr.width - 40f, 26f), "NO SAVED RUNS YET.", 20, CrtStyle.Ink, TextAnchor.MiddleCenter, true, calm);
-                CrtUi.Text(new Rect(scr.x + 40f, scr.y + 76f, scr.width - 80f, 44f), "Start a run: it's saved from its first wave on, until it's won or lost.", 14, CrtStyle.Dim, TextAnchor.UpperCenter, false, calm);
+                CrtUi.Text(new Rect(list.x, list.y + 50f, list.width, 26f), "NO SAVED RUNS YET.", 18, CrtStyle.Ink, TextAnchor.MiddleCenter, true, calm);
+                CrtUi.Text(new Rect(list.x + 20f, list.y + 84f, list.width - 40f, 44f), "Start a run: it's saved from its first wave on, until it's won or lost.", 13, CrtStyle.Dim, TextAnchor.UpperCenter, false, calm);
             }
             else
             {
-                float total = RunRowLatestH + (savedRuns.Count - 1) * RunRowH, maxScroll = Mathf.Max(0f, total - scr.height);
-                var grab = new Rect(scr.xMax - 18f, scr.y, 18f, scr.height);  // the scroll bar, with a wide grip
-                float thumbH = Mathf.Max(24f, (scr.height - 8f) * scr.height / total);
-                float trackH = scr.height - 8f - thumbH;
+                float total = RunRowLatestH + (savedRuns.Count - 1) * RunRowH, maxScroll = Mathf.Max(0f, total - list.height);
+                var grab = new Rect(list.xMax - 14f, list.y, 14f, list.height);
+                float thumbH = Mathf.Max(24f, (list.height - 8f) * list.height / total), trackH = list.height - 8f - thumbH;
                 var type = Event.current.type;
                 if (live && maxScroll > 0f)
                 {
@@ -136,7 +124,7 @@ namespace Arena
                     if (type == EventType.MouseDown && grab.Contains(mouse))
                         menuListDrag = true;
                     if (menuListDrag && (type == EventType.MouseDown || type == EventType.MouseDrag))
-                        menuListScroll = Mathf.Clamp01((mouse.y - scr.y - 4f - thumbH / 2f) / Mathf.Max(1f, trackH)) * maxScroll;
+                        menuListScroll = Mathf.Clamp01((mouse.y - list.y - 4f - thumbH / 2f) / Mathf.Max(1f, trackH)) * maxScroll;
                     if (type == EventType.MouseUp)
                         menuListDrag = false;
                 }
@@ -144,43 +132,39 @@ namespace Arena
                 if (type == EventType.Repaint)
                     menuListShown = fxOn && !fxReduced ? Mathf.Lerp(menuListShown, menuListScroll, 1f - Mathf.Exp(-16f * Time.unscaledDeltaTime)) : menuListScroll;
                 menuListShown = Mathf.Clamp(menuListShown, 0f, maxScroll);
-                float sc = menuListShown, rowW = scr.width - 14f;
-                GUI.BeginGroup(scr);  // the rows are drawn in the screen's own coordinates, so anything past its edge is clipped
-                float y = -sc;
+                float rowW = list.width - (maxScroll > 0f ? 14f : 0f);
+                GUI.BeginGroup(list);  // the rows in the list's own coordinates, clipped at its edges
+                float y = -menuListShown;
                 int below = 0;
                 for (int i = 0; i < savedRuns.Count; i++)
                 {
                     float h = i == 0 ? RunRowLatestH : RunRowH;
-                    if (y + h > 0f && y < scr.height)
-                        DrawRunRow(new Rect(0f, y, rowW, h), savedRuns[i], i == 0, calm, ref toContinue, ref toDelete);
-                    if (y + h * 0.5f > scr.height)
+                    if (y + h > 0f && y < list.height)
+                        DrawRunRow(new Rect(0f, y, rowW, h), savedRuns[i], i == 0, calm, live && inside, ref toContinue, ref toDelete);
+                    if (y + h * 0.5f > list.height)
                         below++;
                     y += h;
                 }
                 GUI.EndGroup();
                 if (maxScroll > 0f)
                 {
-                    var track = new Rect(scr.xMax - 9f, scr.y + 4f, 5f, scr.height - 8f);
+                    var track = new Rect(list.xMax - 8f, list.y + 4f, 4f, list.height - 8f);
                     Ui.Fill(track, CrtStyle.Ink.WithAlpha(0.1f));
-                    Ui.Fill(new Rect(track.x, track.y + trackH * (sc / maxScroll), track.width, thumbH), menuListDrag ? CrtStyle.Ink : CrtStyle.Dim);
-                    if (below > 0 && sc < maxScroll - 1f)  // "more below": a fade at the foot of the screen with a count
+                    Ui.Fill(new Rect(track.x, track.y + trackH * (menuListShown / maxScroll), track.width, thumbH), menuListDrag ? CrtStyle.Ink : CrtStyle.Dim);
+                    if (below > 0 && menuListShown < maxScroll - 1f)
                     {
                         for (int k = 0; k < 8; k++)
-                            Ui.Fill(new Rect(scr.x, scr.yMax - 22f + k * 2.75f, rowW, 2.75f), CrtStyle.Bg.WithAlpha(0.95f * (k + 1) / 8f));
-                        CrtUi.Text(new Rect(scr.x, scr.yMax - 19f, rowW, 16f), "\u25bc " + below + " MORE", 12, CrtStyle.Ink, TextAnchor.MiddleCenter, true, calm);
+                            Ui.Fill(new Rect(list.x, list.yMax - 22f + k * 2.75f, rowW, 2.75f), CrtStyle.Bg.WithAlpha(0.95f * (k + 1) / 8f));
+                        CrtUi.Text(new Rect(list.x, list.yMax - 19f, rowW, 16f), "\u25bc " + below + " MORE", 11, CrtStyle.Ink, TextAnchor.MiddleCenter, true, calm);
                     }
                 }
             }
-            CrtUi.End(scr, Time.unscaledTime, calm);
-            if (servoPicker)
-                return;
-            if (MenuVhs.Draw(newRun, "TRK 03", live, fxReduced, () => KeyUi.Key(newRun, "New run", PixelArt.Get("ui_play"), 20)) && live)
+            if (DkKey(new Rect(scr.x + 12f, scr.yMax - 54f, scr.width - 24f, 42f), "NEW RUN", false, calm, icon: PixelArt.Get("ui_play"), size: 16, rawSize: true) && live)
             {
-                MenuSound(Sfx.MenuPlay);  // the Play key's power chord (MenuSoundBank.cs)
+                MenuSound(Sfx.MenuPlay);
                 StartNewRun();
             }
-            if (!inside)
-                return;
+            CrtUi.End(scr, Time.unscaledTime, calm);
             if (toContinue != null)
             {
                 MenuSound(Sfx.RunContinue);
@@ -190,113 +174,41 @@ namespace Arena
                 DeleteRun(toDelete);
         }
 
-        /// One saved run as a row of the list (r is in the screen's own coordinates). The newest run is tall, with its squad and tags;
-        /// the rest are one line. Both have Continue and a delete key.
-        void DrawRunRow(Rect r, RunSave s, bool latest, bool calm, ref RunSave toContinue, ref RunSave toDelete)
+        /// One saved run as a row (r in the list's own coordinates). The newest: LATEST RUN, its wave large, its squad, Continue and the
+        /// delete key. The rest: the wave, when it was saved and how long it ran, Continue and the delete key.
+        void DrawRunRow(Rect r, RunSave s, bool latest, bool calm, bool live, ref RunSave toContinue, ref RunSave toDelete)
         {
             bool armed = deleteArmed == s.Id;
             RunRowHover(r, s.Id);  // the phosphor tick as the mouse comes onto a run (MenuHolo.cs)
-            var rule = CrtStyle.Ink.WithAlpha(0.25f);
             if (armed)
                 Ui.Fill(r, CrtStyle.Danger.WithAlpha(0.08f));
             else if (latest)
                 Ui.Fill(r, CrtStyle.Ink.WithAlpha(0.04f));
-            Ui.Fill(new Rect(r.x, r.yMax - 1f, r.width, 1f), rule);
-            string delLabel = armed ? "REALLY?" : "DEL";
+            Ui.Fill(new Rect(r.x, r.yMax - 1f, r.width, 1f), CrtStyle.Ink.WithAlpha(0.2f));
+            string del = armed ? "REALLY?" : "DEL";
             if (latest)
             {
-                // Run column: label, wave, then Saved / Score / Played as label-value pairs.
-                float x = r.x + 18f;
-                CrtUi.Text(new Rect(x, r.y + 8f, 140f, 14f), "LATEST RUN", 10, CrtStyle.Dim, TextAnchor.MiddleLeft, false, calm);
-                CrtUi.Text(new Rect(x, r.y + 20f, 160f, 34f), "Wave " + (s.ShownWave + 1) + (s.Endless ? " (endless)" : ""), 26, CrtStyle.Ink, TextAnchor.MiddleLeft, true, calm);
-                string[] labs = { "SAVED", "SCORE", "PLAYED" };
-                string[] vals = { s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), s.Score.ToString(), (int)(s.RunTime / 60f) + " min" };
-                for (int i = 0; i < 3; i++)
-                {
-                    CrtUi.Text(new Rect(x, r.y + 56f + i * 15f, 50f, 14f), labs[i], 10, CrtStyle.Dim, TextAnchor.MiddleLeft, false, calm);
-                    CrtUi.Text(new Rect(x + 52f, r.y + 55f + i * 15f, 110f, 15f), vals[i], 12, CrtStyle.Ink, TextAnchor.MiddleLeft, false, calm);
-                }
-                Ui.Fill(new Rect(r.x + 184f, r.y + 12f, 1f, 86f), rule);
-                // Squad column: one line per player, colour bar, name, then class.
-                float sx = r.x + 202f;
-                CrtUi.Text(new Rect(sx, r.y + 8f, 100f, 14f), "SQUAD", 10, CrtStyle.Dim, TextAnchor.MiddleLeft, false, calm);
-                for (int i = 0; i < s.Seats.Count && i < 3; i++)
+                CrtUi.Text(new Rect(r.x + 8f, r.y + 8f, 140f, 14f), "LATEST RUN", 10, CrtStyle.Dim, TextAnchor.MiddleLeft, false, calm);
+                CrtUi.Text(new Rect(r.x + 8f, r.y + 20f, 220f, 34f), "Wave " + (s.ShownWave + 1) + (s.Endless ? " (endless)" : ""), 26, CrtStyle.Ink, TextAnchor.MiddleLeft, true, calm);
+                for (int i = 0; i < s.Seats.Count && i < 2; i++)  // the squad, a line each (two at most: the third says "+1")
                 {
                     var seat = s.Seats[i];
-                    Ui.Fill(new Rect(sx, r.y + 28f + i * 23f, 4f, 16f), (Defs.Get(seat.Role).Color).ToColor());
-                    CrtUi.Text(new Rect(sx + 12f, r.y + 26f + i * 23f, 100f, 20f), ClipName(seat.Name, 12), 13, CrtStyle.Ink, TextAnchor.MiddleLeft, true, calm);
-                    CrtUi.Text(new Rect(sx + 114f, r.y + 26f + i * 23f, 110f, 20f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 12, CrtStyle.Dim, TextAnchor.MiddleLeft, false, calm);
+                    Ui.Fill(new Rect(r.x + 8f, r.y + 59f + i * 15f, 3f, 11f), (Defs.Get(seat.Role).Color).ToColor());
+                    string more = i == 1 && s.Seats.Count > 2 ? "  +" + (s.Seats.Count - 2) : "";
+                    CrtUi.Text(new Rect(r.x + 16f, r.y + 56f + i * 15f, r.width - 180f, 16f), ClipName(seat.Name, 10) + " · " + Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name + more, 11, CrtStyle.Dim, TextAnchor.MiddleLeft, false, calm);
                 }
-                Ui.Fill(new Rect(r.xMax - 188f, r.y + 12f, 1f, 86f), rule);
-                DrawSaveBadges(s, r.x + 18f, r.y + 100f, 112f, 6f, 4);
-                bool blink = calm || Mathf.FloorToInt(Time.unscaledTime * 1.5f) % 2 == 0;
-                CrtUi.Text(new Rect(r.xMax - 170f, r.y + 6f, 152f, 14f), (blink ? "\u25cf " : "  ") + "READY", 10, CrtStyle.Dim, TextAnchor.MiddleCenter, false, calm);
-                // The latest run's Continue is always lit (it's what most people press); DEL stays quiet until the mouse is on it.
-                if (DkKey(new Rect(r.xMax - 170f, r.y + 24f, 152f, 50f), "CONTINUE", true, calm, icon: PixelArt.Get("ui_play"), size: 20, rawSize: true))
+                if (DkKey(new Rect(r.xMax - 150f, r.y + 12f, 142f, 40f), "CONTINUE", true, calm, icon: PixelArt.Get("ui_play"), size: 15, rawSize: true) && live)
                     toContinue = s;
-                if (DkKey(new Rect(r.xMax - 170f, r.y + 82f, 152f, 28f), delLabel, armed, calm, size: armed ? 12 : 15, danger: true, quiet: true, rawSize: true))
+                if (DkKey(new Rect(r.xMax - 150f, r.y + 58f, 142f, 26f), del, armed, calm, size: armed ? 11 : 13, danger: true, quiet: true, rawSize: true) && live)
                     toDelete = s;
                 return;
             }
-            // A compact row: wave, saved, score, played, players, then Continue and the delete key.
-            float[] colX = { 0f, 38f, 126f, 170f, 218f };
-            float cx = r.x + 14f;
-            CrtUi.Text(new Rect(cx + colX[0], r.y + 4f, 46f, s.Endless ? 30f : r.height - 8f), (s.ShownWave + 1).ToString(), 24, CrtStyle.Ink, TextAnchor.MiddleLeft, true, calm);
-            if (s.Endless)
-                CrtUi.Text(new Rect(cx + colX[0], r.y + 32f, 46f, 14f), "endless", 10, CrtStyle.Dim, TextAnchor.MiddleLeft, false, calm);
-            CrtUi.Text(new Rect(cx + colX[1], r.y + 4f, 86f, r.height - 8f), s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm"), 12, CrtStyle.Ink, TextAnchor.MiddleLeft, false, calm);
-            CrtUi.Text(new Rect(cx + colX[2], r.y + 4f, 46f, r.height - 8f), s.Score.ToString(), 13, CrtStyle.Ink, TextAnchor.MiddleLeft, false, calm);
-            CrtUi.Text(new Rect(cx + colX[3], r.y + 4f, 56f, r.height - 8f), (int)(s.RunTime / 60f) + " min", 12, CrtStyle.Ink, TextAnchor.MiddleLeft, false, calm);
-            int n = Mathf.Min(s.Seats.Count, 3);
-            float top = r.y + (r.height - n * 15f) / 2f;
-            for (int k = 0; k < n; k++)
-            {
-                var seat = s.Seats[k];
-                Ui.Fill(new Rect(cx + colX[4], top + k * 15f + 2f, 3f, 11f), (Defs.Get(seat.Role).Color).ToColor());
-                CrtUi.Text(new Rect(cx + colX[4] + 9f, top + k * 15f - 1f, 80f, 16f), ClipName(seat.Name, 10), 11, CrtStyle.Ink, TextAnchor.MiddleLeft, true, calm);
-                CrtUi.Text(new Rect(cx + colX[4] + 78f, top + k * 15f - 1f, 84f, 16f), Defs.KitName(seat.Kit) + " " + Defs.Get(seat.Role).Name, 11, CrtStyle.Dim, TextAnchor.MiddleLeft, false, calm);
-            }
-            if (DkKey(new Rect(r.xMax - 202f, r.y + 6f, 132f, 36f), "CONTINUE", false, calm, icon: PixelArt.Get("ui_play"), size: 13, rawSize: true))
+            CrtUi.Text(new Rect(r.x + 8f, r.y, 44f, r.height), (s.ShownWave + 1).ToString(), 18, CrtStyle.Ink, TextAnchor.MiddleLeft, true, calm);
+            CrtUi.Text(new Rect(r.x + 44f, r.y, 150f, r.height), s.SavedAt.ToLocalTime().ToString("MMM d, HH:mm") + " · " + (int)(s.RunTime / 60f) + " min", 11, CrtStyle.Dim, TextAnchor.MiddleLeft, false, calm);
+            if (DkKey(new Rect(r.xMax - 164f, r.y + 8f, 112f, 32f), "CONTINUE", false, calm, icon: PixelArt.Get("ui_play"), size: 11, rawSize: true) && live)
                 toContinue = s;
-            if (DkKey(new Rect(r.xMax - 66f, r.y + 6f, 66f, 36f), delLabel, armed, calm, size: armed ? 12 : 15, danger: true, quiet: true, rawSize: true))
+            if (DkKey(new Rect(r.xMax - 52f, r.y + 8f, 44f, 32f), del, armed, calm, size: armed ? 9 : 12, danger: true, quiet: true, rawSize: true) && live)
                 toDelete = s;
-        }
-
-        /// The picker's header: a small CRT screen of its own with the title, and a physical Back key beside it (a slab with a lamp).
-        void DrawPickerHeader(Rect c, bool live)
-        {
-            bool calm = fxReduced;
-            var hs = new Rect(c.x + 30f, c.y + 10f, 488f, 44f);
-            CrtUi.Begin(hs);
-            string title = savedRuns.Count > 0 ? "YOUR RUNS" : "START A RUN";
-            // The title is typed: the old words are erased from the end, then the new ones typed in (when the last run is deleted).
-            bool typing = false;
-            if (menuHdrShown == null || !(fxOn && !fxReduced))
-                menuHdrShown = title;
-            else if (menuHdrShown != title)
-            {
-                typing = true;
-                if (Event.current.type == EventType.Repaint)
-                {
-                    menuHdrT -= Time.unscaledDeltaTime;
-                    while (menuHdrT <= 0f && menuHdrShown != title)
-                    {
-                        menuHdrT += MenuHdrCharTime;
-                        menuHdrShown = title.StartsWith(menuHdrShown) ? title.Substring(0, menuHdrShown.Length + 1) : menuHdrShown.Substring(0, menuHdrShown.Length - 1);
-                    }
-                }
-            }
-            bool cursor = typing || calm == false && Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0;
-            CrtUi.Text(new Rect(hs.x + 16f, hs.y + 4f, 340f, 36f), menuHdrShown + (cursor ? "_" : " "), 24, CrtStyle.Ink, TextAnchor.MiddleLeft, true, calm);
-            CrtUi.End(hs, Time.unscaledTime, calm);
-            var br = new Rect(c.xMax - 30f - 120f, c.y + 10f, 120f, 44f);
-            bool back = MenuVhs.Draw(br, "TRK 02", live, fxReduced, () =>
-                KeyUi.Key(br, "Back", PixelArt.Get("ui_back"), 15, true));  // a keycap with its lamp always lit
-            if (live && back)
-            {
-                Ui.TakeClick();  // (the bay doors' Back sound plays instead, MenuServo.cs)
-                PlayPickerBack();
-            }
         }
 
         static string ClipName(string n, int max) => n == null ? "" : n.Length <= max ? n : n.Substring(0, max - 1) + "…";

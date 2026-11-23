@@ -2,51 +2,52 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The move between "Who's playing?" and the main menu (Docs/Mockups/floppy-slot.html: the drive bay, B): about 5.4 s. Picking a profile plays
-    /// it forward; the menu's eject key (DiskEject.cs) has its own move back. Its clock `profTrT` runs in seconds:
-    ///   0.1 s   your disk lifts and the clamps open; 0.5 s a ring on click
-    ///   0.8 s   WHO'S PLAYING?, the shelf and the other disks fade; yours flies up to the drive under the title (0.9 to 2.0 s)
-    ///   2.0 s   it tips flat from its top edge onto the slit, then slides in (2.5 s); the lip flashes and the latch clicks (2.95 s)
-    ///   2.95 s  the drive reads it (four cells fill, readout) until 3.9 s: READY
-    ///   3.0 s   the menu's CRT screen drops in and the title types onto it (the menu's own intro, MenuIntro.cs, run from a remapped clock: ProfTrToIntro)
-    ///   4.05 s  the pen draws the arc over the title; 4.25 s the box opens; the buttons drop in; the bar slides up
-    /// There are always four boxes (three slots and New profile, ProfilesUi.cs), so every move is the same. Nothing can be
-    /// clicked meanwhile (the menu counts as still in its intro), and any key skips to the end (with the channel flip, SkipStatic.cs). Reduced effects or Visual
-    /// effects off: no move, the screens just change (and the menu's short fade plays).
+    /// The disk boot sequence (Docs/Mockups/disk-boot-sequence.html): from Who's playing? to the main menu, 4.8 s. Picking a profile plays
+    /// it; the menu's eject key has the way back (DiskEject.cs). Its clock `profTrT` (also the menu's machine clock, MachT) runs in seconds:
+    ///   0.00 s  Pick: the middle disk lifts; the rest of the carousel, its keys and its count fade away (0.15 to 0.5 s)
+    ///   0.35 s  Carry: the disk rises toward the drive in the monitor's chin, shrinking to the slit's width, with a small wobble as it lines up
+    ///   1.05 s  Insert: it tips back and slides up in through the slit, the slit's lower lip over it; the slit flashes as it seats (1.72 s)
+    ///   1.80 s  Read: DISK DETECTED, then READING <name>… with the light blinking amber and the cells filling; WHO'S PLAYING? backspaces away
+    ///   2.60 s  Retype: VECTOR COLOSSEUM types on; the drive says <name> READY in green (2.85 s)
+    ///   2.90 s  Drop: the menu's case falls out from under the monitor, lands with a squash, a bounce, a neon flare, the monitor jolting
+    ///           and dust off its feet (3.35 s; MenuMachine.cs)
+    ///   3.75 s  Power on: POWER, DISK, the key lamps one by one, the profile screen switching on (to 4.45 s); the shutter rattles (4.4 s)
+    /// Nothing can be clicked meanwhile (the menu counts as still in its intro), and any key skips to the end (with the channel flip,
+    /// SkipStatic.cs). Reduced effects or Visual effects off: no move, the screens just change (and the menu's short fade plays).
     public partial class ArenaApp
     {
-        const float ProfTrLen = 5.4f, ProfTrSpeed = 1f;
-        const float ProfTrPenAt = 3.0f, ProfTrPenRate = 1f;  // menu intro second 0.35 happens at 3.0 s; each intro second takes 1 s of the clock
+        const float ProfTrLen = MachEnd;
 
         bool profTr;               // the move is playing
-        bool profTrFwd;            // true: picker to menu; false: menu to picker
+        bool profTrFwd;            // true: picker to menu (the eject sets false, with profEj)
         float profTrT, profTrPrev, profTrAge;
-        int profTrSlot;            // the box that becomes (or came from) the point at the origin
+        int profTrSlot;            // the profile whose disk goes in (or comes out): its place in whoList
 
         bool ProfTrFull => fxOn && !fxReduced;
 
-        /// The menu's intro clock for the move's clock: nothing before the pen starts, then the intro's own timings, squeezed.
-        static float ProfTrToIntro(float t) => 0.35f + Mathf.Max(0f, t - ProfTrPenAt) / ProfTrPenRate;
+        /// The menu's intro is part of this move: the menu reads the move's clock (MachT) and the title types from 2.6 s.
+        float MenuAxisK => 1f;
 
-        /// The axis is already full during the move.
-        float MenuAxisK => profTr ? 1f : MenuIntroK(0f, 0.45f);
-
-        /// A profile was picked (ChooseProfile): play the move in, or just show the menu.
+        /// A profile was picked (ChooseProfile): play the boot sequence, or just show the menu.
         void StartProfTrIn(string id)
         {
             whoOpen = false;
             WhoRefresh();
             int slot = whoList.FindIndex(p => p.Id == id);
-            if (!ProfTrFull || slot < 0 || slot >= WhoSlots)
+            if (!ProfTrFull || slot < 0)
                 return;
+            whoManage = false;
             profTr = true;
             profTrFwd = true;
             profTrT = 0f;
             profTrPrev = -0.0001f;
             profTrAge = 0f;
             profTrSlot = slot;
+            whoCarPos = whoCarTarget = slot;  // the picked disk is the one in the middle
             menuIntroDone = true;  // this is the menu's intro now
-            menuIntroT = ProfTrToIntro(0f);
+            menuIntroT = 0f;
+            menuPlayOpen = menuJoinOpen = false;
+            menuPlayK = 0f;
         }
 
         /// Update (from TickMenuIntro): run the clock and its sounds, and hand the menu its place in its intro.
@@ -60,76 +61,44 @@ namespace Arena
             profTrAge += dt;
             if (Input.anyKeyDown && profTrAge > 0.25f)
             {
-                profTrT = profTrFwd ? ProfTrLen : 0f;  // skipped: straight to the end, silently
-                if (!profTrFwd || !MenuIntroBuilt)
-                    StartSkipStatic();  // under the channel flip (SkipStatic.cs), unless the menu is already fully drawn
+                profTrT = ProfTrLen;  // skipped: straight to the end, silently
+                if (!MenuIntroBuilt)
+                    StartSkipStatic();  // under the channel flip (SkipStatic.cs), unless the menu is already powered on
             }
             else
             {
-                profTrT = Mathf.Clamp(profTrT + (profTrFwd ? 1f : -1f) * dt * ProfTrSpeed, 0f, ProfTrLen);
+                profTrT = Mathf.Min(ProfTrLen, profTrT + dt);
                 PlayProfTrCues(profTrPrev, profTrT);
+                PlayMachineCues(profTrPrev, profTrT);
             }
             profTrPrev = profTrT;
-            menuIntroT = Mathf.Min(MenuIntroLen - 0.001f, ProfTrToIntro(profTrT));
-            if (profTrFwd && profTrT >= ProfTrLen)
+            menuIntroT = Mathf.Clamp(profTrT - 2.6f, 0f, MenuIntroLen - 0.001f);
+            if (profTrT >= ProfTrLen)
             {
                 profTr = false;
                 menuIntroT = MenuIntroLen;
             }
-            else if (!profTrFwd && profTrT <= 0f)
-            {
-                profTr = false;
-                menuIntroT = MenuIntroLen;
-                OpenWho();
-            }
         }
 
-        // t: when it plays going forward; d: how long it lasts (going backwards it plays that much later in the clock);
-        // back: what plays going backwards (None: nothing).
-        struct ProfCue
-        {
-            public float t, d, vol;
-            public Sfx fwd, back;
-            public ProfCue(float t, float d, Sfx fwd, Sfx back, float vol) { this.t = t; this.d = d; this.fwd = fwd; this.back = back; this.vol = vol; }
-        }
+        static readonly Sfx[] ProfCueSfx = { Sfx.ProfSelect, Sfx.DiskFly, Sfx.DiskTip, Sfx.DiskSlide, Sfx.DiskClick, Sfx.DiskRead, Sfx.DiskReady };
+        static readonly float[] ProfCueAt = { 0f, 0.35f, 1.05f, 1.3f, 1.75f, 2.0f, 2.85f };
+        static readonly float[] ProfCueVol = { 0.7f, 0.6f, 0.7f, 0.7f, 0.8f, 0.6f, 0.6f };
 
-        static readonly ProfCue[] ProfCues =
-        {
-            new ProfCue(0.00f, 0.15f, Sfx.ProfSelect, Sfx.None, 0.7f),      // the click on your disk
-            new ProfCue(0.55f, 0.30f, Sfx.DiskLift, Sfx.DiskLift, 0.7f),    // the clamps let go
-            new ProfCue(0.90f, 1.10f, Sfx.DiskFly, Sfx.DiskFly, 0.6f),      // it flies up to the drive
-            new ProfCue(2.00f, 0.15f, Sfx.DiskTip, Sfx.DiskTip, 0.7f),      // it tips flat onto the slit
-            new ProfCue(2.50f, 0.45f, Sfx.DiskSlide, Sfx.DiskEject, 0.7f),  // it slides in (backwards: it pops out)
-            new ProfCue(2.95f, 0.10f, Sfx.DiskClick, Sfx.DiskClick, 0.8f),  // the latch
-            new ProfCue(3.00f, 0.90f, Sfx.DiskRead, Sfx.None, 0.6f),        // the drive reads it
-            new ProfCue(3.90f, 0.40f, Sfx.DiskReady, Sfx.None, 0.6f),       // ready
-            new ProfCue(4.05f, 0.60f, Sfx.ProfScratch, Sfx.ProfScratch, 0.5f),  // the pen draws the arc
-            new ProfCue(4.25f, 0.45f, Sfx.ProfSweep, Sfx.ProfSweepBack, 0.7f),  // the box opens
-            new ProfCue(4.48f, 0.05f, Sfx.PauseType, Sfx.PauseType, 0.5f),  // Host, Join and Continue drop in
-            new ProfCue(4.54f, 0.30f, Sfx.PauseSettle, Sfx.PauseClose, 0.5f),  // the box settles
-            new ProfCue(4.66f, 0.05f, Sfx.PauseType, Sfx.PauseType, 0.5f),
-            new ProfCue(4.75f, 0.26f, Sfx.ProfBar, Sfx.ProfBar, 0.8f),      // the bar slides up
-            new ProfCue(4.78f, 0.05f, Sfx.PauseType, Sfx.PauseType, 0.5f),
-            new ProfCue(4.92f, 0.20f, Sfx.ProfChord, Sfx.ProfChord, 0.6f),  // a low chord as the menu settles
-        };
-
-        /// Plays each cue the clock passed between a and b (forward: its start; backwards: its end).
+        /// Plays each cue the clock passed between a and b, and the title's keys as WHO'S PLAYING? is erased (the menu's title then
+        /// types with its own sounds, TickTitleTyping).
         void PlayProfTrCues(float a, float b)
         {
+            if (b <= a || sounds == null)
+                return;
             float now = Time.unscaledTime;
-            if (b > a)
-                TitleFlapCues(WhoTitleText, a, b, 2.4f, 3.2f, false);  // WHO'S PLAYING? flapping away (the menu's title then types with its own sounds)
-            foreach (var c in ProfCues)
-            {
-                if (b > a && a < c.t && c.t <= b)
-                    sounds.Play(c.fwd, c.vol, now);
-                else if (b < a && b <= c.t + c.d && c.t + c.d < a && c.back != Sfx.None)
-                    sounds.Play(c.back, c.vol, now);
-            }
+            TitleFlapCues(WhoTitleText, a, b, 1.95f, 2.45f, false);
+            for (int i = 0; i < ProfCueAt.Length; i++)
+                if (a < ProfCueAt[i] && ProfCueAt[i] <= b)
+                    sounds.Play(ProfCueSfx[i], ProfCueVol[i], now);
         }
 
-        /// The whole screen during the move: the menu at its place in its intro (its title, axis, box and bar), with the
-        /// picker's title and boxes on top.
+        /// The whole screen during the move: the menu at its place in the sequence (the monitor, then the case), with the carousel
+        /// fading and the picked disk on its way into the drive.
         void DrawProfTr()
         {
             if (profEj)
@@ -141,73 +110,76 @@ namespace Arena
             DrawProfTrWho(profTrT);
         }
 
-        /// A box as it sits on the picker (nothing in it can be clicked).
-        void DrawWhoBoxStatic(int i, Rect r, float t)
+        /// The carousel without its middle disk, and its keys and count, drawn only (for the moves).
+        void DrawWhoStill(float a)
         {
-            if (i == WhoSlots)
-                DrawWhoNewCard(r, false);
-            else if (WhoInSlot(i) != null)
-                DrawWhoCard(r, WhoInSlot(i), t, false);
-            else
-                DrawWhoEmptyCard(r);
+            if (a <= 0f)
+                return;
+            int n = CarCount, mid = CarMiddle;
+            var order = new System.Collections.Generic.List<int>();
+            for (int i = 0; i < n; i++)
+                if (i != mid && Mathf.Abs(CarOffset(i)) < 3.2f)
+                    order.Add(i);
+            order.Sort((x, y) => Mathf.Abs(CarOffset(y)).CompareTo(Mathf.Abs(CarOffset(x))));
+            foreach (int i in order)
+            {
+                var r = CarRect(CarOffset(i), out float da);
+                if (da > 0.01f)
+                    WithAlpha(a * da, () => DrawCarDisk(r, i));
+            }
+            WithAlpha(a, () =>
+            {
+                RoundKey(CarLeftKey, "‹", false);
+                RoundKey(CarRightKey, "›", false);
+                DrawCarCount();
+                MachKey(WhoManageKey, "MANAGE PROFILES", 15, false, -1, PixelArt.Get("ui_gear"));
+                MachKey(WhoNewKey, "+  NEW PROFILE", 15, false, -1, null, false, WhoFull ? 0.45f : 1f);
+            });
         }
 
-        /// The picker's side of the move, drawn over the menu: the picker fades out while your disk lifts, flies to the drive, tips in and slides into it.
+        /// Where the picked disk is at clock T going in: its top edge's centre, its size, and how far it has tipped back (0 to 62 degrees).
+        static void DiskPathIn(float T, out float cx, out float top, out float size, out float tilt, out float wob)
+        {
+            float pick = Seg(T, 0f, 0.35f), carry = EaseInOut(Seg(T, 0.35f, 1.05f)), ins = Seg(T, 1.05f, 1.8f);
+            float s = Mathf.Lerp(1f, 0.77f, carry) + 0.03f * Mathf.Sin(Mathf.PI * pick) * (1f - carry);
+            size = CarSize * s;
+            cx = Mathf.Lerp(CarCx, DriveSlitCx, carry);
+            top = Mathf.Lerp(CarCy - CarSize / 2f - 14f * EaseOut(pick), 232f, carry);
+            tilt = 0f;
+            float w = Seg(T, 0.95f, 1.2f);
+            wob = Mathf.Sin(w * Mathf.PI * 2f) * 2f * (1f - w);
+            if (ins > 0f)
+            {
+                top = Mathf.Lerp(232f, DriveY - size * 0.6f, ins * ins * ins);
+                tilt = Mathf.Lerp(0f, 62f, EaseOut(ins));
+            }
+        }
+
+        /// The picker's side of the move, over the menu: the carousel fading, and the picked disk lifting, carried up, and slid into the slit.
         void DrawProfTrWho(float T)
         {
-            float t = Time.unscaledTime;
-            var info = WhoInSlot(profTrSlot);
-            var R = WhoBox(profTrSlot);
-            float hover = EaseOut(Seg(T, 0.1f, 0.5f)), flight = EaseInOut(Seg(T, 0.9f, 2.0f)), fade = 1f - Seg(T, 0.8f, 1.5f);
-            whoLift[profTrSlot] = hover * (1f - flight);  // the clamps open as it lifts
-            DrawWhoChrome(fade, false);  // the picker's rooms (MenuHolo.cs); its title screen stays and retypes (the menu draws it, DrawMenuTitleText)
-            if (fade > 0f)
-                WithAlpha(fade, () =>
-                {
-                    DrawWhoShelf();
-                    for (int i = 0; i <= WhoSlots; i++)
-                        if (i != profTrSlot)
-                            DrawWhoBoxStatic(i, WhoBox(i), t);
-                });
-            if (info == null || T >= 2.95f)
-            {
-                DrawDriveLip(1f, DriveForMenu());
+            DrawWhoStill(1f - Seg(T, 0.15f, 0.5f));
+            var info = WhoAt(profTrSlot);
+            if (info == null || T >= 1.8f)
                 return;
-            }
-            float s = Mathf.Lerp(R.width, DriveDiskSize, flight);
-            float x = Mathf.Lerp(R.x, W / 2f - DriveDiskSize / 2f, flight), y = Mathf.Lerp(R.y - 12f * hover, DriveY + 8f, flight);
-            float sx = 1f, sy = 1f, a = 1f;
-            if (T >= 2.0f)  // it tips flat from its top edge, which sits on the slit
-            {
-                float k = EaseInOut(Seg(T, 2.0f, 2.5f));
-                sy = Mathf.Lerp(1f, 0.06f, k);
-                y = Mathf.Lerp(DriveY + 8f, DriveY - 4f, k);
-            }
-            if (T >= 2.5f)  // then slides in: narrower, and fading into the slit's dark
-            {
-                float k = EaseInOut(Seg(T, 2.5f, 2.95f));
-                sx = Mathf.Lerp(1f, 0.9f, k);
-                y = DriveY - 4f;
-                a = 1f - k;
-            }
-            if (T >= 0.5f && T < 0.9f)  // the ring on the click
-            {
-                float c = Seg(T, 0.5f, 0.9f);
-                Ui.Rim(new Rect(R.x - 4f - 14f * c, R.y - 16f - 14f * c, R.width + 8f + 28f * c, R.height + 8f + 28f * c), WhoColor(info), 0.8f * (1f - c));
-            }
-            float sel = hover * (1f - Seg(T, 1.6f, 2.0f));  // the picked disk keeps its neon border (MenuHolo.cs) until it nears the drive
-            if (sel > 0.01f && BeginUiGl())
-            {
-                UiModelAt(V2.Zero, 1f);
-                NeonRect(new Rect(x - 6f, y - 6f, s + 12f, s + 12f), sel);
-                EndUiGl();
-            }
-            var oldMatrix = GUI.matrix;
-            GUI.matrix = Matrix4x4.TRS(new Vector3(offX + (x + s * (1f - sx) / 2f) * scale, offY + y * scale, 0f), Quaternion.identity,
-                new Vector3(scale * sx * s / 200f, scale * sy * s / 200f, 1f));
-            WithAlpha(a, () => DrawWhoDisk(new Rect(0f, 0f, 200f, 200f), info, info.Id == ProfileStore.ActiveId));
-            GUI.matrix = oldMatrix;
+            DiskPathIn(T, out float cx, out float top, out float size, out float tilt, out float wob);
+            DrawTiltedDisk(info, cx, top, size, tilt, wob);
+            if (T >= 1.05f)  // going in: the chin above the slit hides what's already in
+                DrawMonitorAbove(DriveY - 4f, MenuTitleAt(T), DriveForMenu());
             DrawDriveLip(1f, DriveForMenu());
+        }
+
+        /// A profile's disk with its top edge centred at (cx, top), `size` across, tipped back by `tilt` degrees about its top edge (it
+        /// foreshortens, and its far end widens a little) and swayed sideways by `wob` (the wobble as it lines up with the slit).
+        void DrawTiltedDisk(ProfileInfo info, float cx, float top, float size, float tilt, float wob)
+        {
+            float rad = tilt * Mathf.Deg2Rad;
+            float w = size * (1f + 0.12f * Mathf.Sin(rad)), h = size * Mathf.Max(0.02f, Mathf.Cos(rad));
+            float x0 = cx - w / 2f + wob * 3f;
+            var old = GUI.matrix;
+            GUI.matrix = Matrix4x4.TRS(new Vector3(offX + x0 * scale, offY + top * scale, 0f), Quaternion.identity, new Vector3(scale * w / 200f, scale * h / 200f, 1f));
+            DrawWhoDisk(new Rect(0f, 0f, 200f, 200f), info, info.Id == ProfileStore.ActiveId);
+            GUI.matrix = old;
         }
     }
 }

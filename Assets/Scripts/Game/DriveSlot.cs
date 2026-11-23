@@ -2,126 +2,113 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The disk drive under the title (look B, "Drive bay", of Docs/Mockups/floppy-slot.html): it replaces the glowing x-axis line on the
-    /// picker and the main menu. A housing with a status light, a slit, four read cells and a small readout underneath (DRIVE A: EMPTY while
-    /// you choose; DISK DETECTED, READING <name>, then <name> READY as your disk goes in, ProfileTransition.cs). On the menu it stays, lit in your
-    /// rank colour, with your name. The slit's lower lip is drawn again over the disk (DrawDriveLip) so the disk reads as going in through it.
+    /// The floppy drive in the monitor's chin (Docs/Mockups/disk-boot-sequence.html): a dark housing with the drive's letter, a slit, a
+    /// light and four read cells, and a readout under it. On Who's playing? it reads INSERT: <name> for the disk in the middle of the
+    /// carousel; as a disk goes in: DISK DETECTED, READING <name>… (the light blinking amber, the cells filling), then <name> READY in
+    /// green, which it keeps on the main menu. The slit's lower lip is drawn again over a disk (DrawDriveLip) so it goes in through it.
     public partial class ArenaApp
     {
-        static float DriveY = 206f;                // the slit's centre line (the CRT title's bezel ends at 186; the picker's layout mockups move it)
-        static float DriveCx = W / 2f;             // the drive's centre (the middle; the picker's layout mockups move it)
-        const float DriveDiskSize = 166f;          // a disk's width when it reaches the slot
-        const float DriveW = 330f, DriveH = 32f, DriveSlitW = 190f;
-        static readonly Color DriveAmber = new Color(1f, 0.71f, 0.28f), DriveDim = new Color(0.27f, 0.35f, 0.59f);
+        const float DriveY = 194f;                 // the slit's centre line (in the monitor's chin, PcMonitor.cs)
+        const float DriveCx = W / 2f;              // the housing's centre
+        const float DriveW = 330f, DriveH = 34f, DriveSlitW = 200f;
+        static float DriveX0 => DriveCx - DriveW / 2f;
+        static float DriveSlitX => DriveX0 + 53f;           // the slit's left end (it sits left of centre, the light and cells to its right)
+        static float DriveSlitCx => DriveSlitX + DriveSlitW / 2f;
+        static readonly Color DriveAmber = new Color(1f, 0.71f, 0.278f);
+        static readonly Color DriveLabel = new Color(0.545f, 0.576f, 0.651f), DriveReadyLabel = new Color(0.718f, 0.961f, 0.8f);
+        static readonly Color CellOff = new Color(0.106f, 0.133f, 0.22f), CellDone = new Color(0.173f, 0.478f, 0.29f);
 
         struct DriveState
         {
-            public Color led, glowCol;
-            public float ledA, glow, flash, prog;
+            public Color led;
+            public bool ledOn;
+            public float flash, prog;   // prog: how many of the four cells are lit (0 to 1), amber while reading
             public string text;
-            public bool done;
+            public bool done;           // read: the light and cells green, the label green
         }
 
-        static DriveState DriveEmpty() => new DriveState { led = DriveDim, glowCol = DriveDim, ledA = 0.6f, text = "DRIVE A: EMPTY" };
+        static DriveState DriveEmpty(string text = "DRIVE A: EMPTY") => new DriveState { led = DriveAmber, text = text };
 
-        static DriveState DriveLoaded(string name, Color col) =>
-            new DriveState { led = col, glowCol = col, ledA = 1f, glow = 0.4f, prog = 1f, done = true, text = name.ToUpperInvariant() + "  READY" };
+        static DriveState DriveLoaded(string name) =>
+            new DriveState { led = LampGreen, ledOn = true, prog = 1f, done = true, text = name.ToUpperInvariant() + " READY" };
 
-        /// The drive for the clock T of the profile move (ProfileTransition.cs): empty, a pulsing light as the disk comes, the slide in, the read, ready.
-        static DriveState DriveAt(float T, string name, Color col)
+        /// The drive for the clock T of the disk going in (ProfileTransition.cs).
+        static DriveState DriveAt(float T, string name)
         {
-            var s = DriveEmpty();
-            s.glowCol = col;
-            if (T >= 3.9f)
-                return DriveLoaded(name, col);
-            if (T >= 1.2f && T < 2.5f)
+            var s = DriveEmpty("INSERT: " + name.ToUpperInvariant());
+            if (T >= 2.85f)
+                return DriveLoaded(name);
+            if (T >= 1.8f)
             {
-                s.led = DriveAmber;
-                s.ledA = 0.6f + 0.4f * Mathf.Sin(T * 14f);
-                s.text = "DISK INCOMING";
-            }
-            else if (T >= 2.5f && T < 2.95f)
-            {
-                s.led = DriveAmber;
-                s.ledA = 1f;
                 s.text = "DISK DETECTED";
+                s.ledOn = true;
             }
-            else if (T >= 2.95f)
+            if (T >= 2.0f)
             {
-                s.led = col;
-                s.ledA = Mathf.FloorToInt(T * 10f) % 2 == 1 ? 1f : 0.35f;
-                s.text = "READING " + name.ToUpperInvariant();
+                s.text = "READING " + name.ToUpperInvariant() + "…";
+                s.ledOn = Mathf.FloorToInt(T * 14f) % 2 == 0;
+                s.prog = Seg(T, 2.0f, 2.8f);
             }
-            s.glow = Seg(T, 2.5f, 3.0f);
-            s.flash = T >= 2.9f && T < 3.25f ? 1f - Seg(T, 2.9f, 3.25f) : 0f;
-            s.prog = Seg(T, 2.95f, 3.9f);
+            s.flash = Seg(T, 1.72f, 1.82f) * (1f - Seg(T, 1.82f, 2.05f));
             return s;
         }
 
-        /// What the drive shows when nothing is moving: your profile loaded, or empty if no profile has been chosen (a command-line start).
+        /// What the drive shows when nothing is moving: your profile loaded, or empty if none has been chosen (a command-line start).
         DriveState DriveIdle()
         {
             if (ProfileStore.ActiveId.Length == 0 || Profile.Current.Name.Length == 0)
                 return DriveEmpty();
-            return DriveLoaded(Profile.Current.Name, RankLook.TierColor(Profile.Current.RankNow));
+            return DriveLoaded(Profile.Current.Name);
         }
 
-        /// The drive for the menu: following the move's clock while it plays (also backwards), else idle.
+        /// The drive for the menu: following the moves' clocks while they play, else idle.
         DriveState DriveForMenu()
         {
             if (!profTr)
                 return DriveIdle();
-            var info = WhoInSlot(profTrSlot);
-            if (profEj)
-                return DriveEjectAt(profEjT, info != null ? info.Name : Profile.Current.Name, WhoColor(info));
-            return DriveAt(profTrT, info != null ? info.Name : Profile.Current.Name, WhoColor(info));
+            var info = WhoAt(profTrSlot);
+            string name = info != null ? info.Name : Profile.Current.Name;
+            return profEj ? DriveEjectAt(profEjT, name) : DriveAt(profTrT, name);
         }
 
-
+        /// The housing, the slit, the light, the cells and the readout.
         void DrawDriveSlot(float alpha, DriveState S)
         {
             if (alpha <= 0f)
                 return;
             WithAlpha(alpha, () =>
             {
-                float cx = DriveCx, x0 = cx - DriveW / 2f, y0 = DriveY - DriveH / 2f;
-                var edge = new Color(0.45f, 0.65f, 1f, 0.5f);
-                Ui.Pill(new Rect(x0, y0 + 4f, DriveW, DriveH), new Color(0f, 0f, 0f, 0.35f));
-                Ui.Pill(new Rect(x0, y0, DriveW, DriveH), edge);
-                Ui.Pill(new Rect(x0 + 1f, y0 + 1f, DriveW - 2f, DriveH - 2f), new Color(0.07f, 0.09f, 0.2f));
-                Ui.Fill(new Rect(x0 + 12f, y0 + 2f, DriveW - 24f, 1f), new Color(0.6f, 0.7f, 1f, 0.25f));
-                var slit = new Rect(cx - DriveSlitW / 2f, DriveY - 4f, DriveSlitW, 8f);
-                if (S.glow > 0f)
-                    Ui.Pill(new Rect(slit.x - 3f, slit.y - 3f, slit.width + 6f, slit.height + 6f), S.glowCol.ScaleAlpha(0.3f * S.glow));
-                Ui.Pill(slit, new Color(0.004f, 0.008f, 0.04f));
-                if (S.glow > 0f)
-                    Ui.Pill(slit, S.glowCol.ScaleAlpha(0.55f * S.glow));
+                float x0 = DriveX0, y0 = DriveY - 18f;
+                Ui.RoundBox(new Rect(x0, y0, DriveW, DriveH), new Color(0.165f, 0.176f, 0.208f), 5);
+                Ui.RoundBox(new Rect(x0 + 1f, y0 + 1f, DriveW - 2f, DriveH - 2f), new Color(0.043f, 0.047f, 0.063f), 4);
+                Ui.Fill(new Rect(x0 + 4f, y0 + 1f, DriveW - 8f, 2f), new Color(0f, 0f, 0f, 0.6f));  // its inner shadow at the top
+                Ui.Label(new Rect(x0 + 14f, y0 + 9f, 24f, 16f), "A:", 11, DriveLabel, TextAnchor.MiddleLeft, true);
+                Ui.RoundBox(new Rect(DriveSlitX, DriveY - 4f, DriveSlitW, 8f), Color.black, 3);
                 DrawDriveLipLine(S);
-                // the status light and the drive's letter
-                var lc = new Vector2(cx - 143f, DriveY);
-                Ui.Dot(new Rect(lc.x - 9.5f, lc.y - 9.5f, 19f, 19f), S.led.ScaleAlpha(0.25f * S.ledA));
-                Ui.Dot(new Rect(lc.x - 4.5f, lc.y - 4.5f, 9f, 9f), S.led.ScaleAlpha(S.ledA));
-                Ui.Dot(new Rect(lc.x - 3f, lc.y - 3f, 3f, 3f), new Color(1f, 1f, 1f, 0.55f));
-                Ui.Label(new Rect(cx - 130f, DriveY - 9f, 24f, 18f), "A:", 11, new Color(0.63f, 0.75f, 1f, 0.7f), TextAnchor.MiddleLeft, true);
-                // the read cells fill while the disk is read
+                Led(x0 + 264f, DriveY - 5f, S.done ? LampGreen : S.led, S.ledOn);
                 for (int i = 0; i < 4; i++)
                 {
-                    bool on = S.done || S.prog > (i + 0.5f) / 4f;
-                    Ui.Pill(new Rect(cx + 112f + i * 12f, DriveY - 4f, 8f, 8f), on ? S.glowCol.ScaleAlpha(0.95f) : new Color(0.06f, 0.09f, 0.23f));
+                    bool on = S.done || S.prog * 4f > i;
+                    var r = new Rect(x0 + 277f + i * 11f, DriveY - 5f, 7f, 10f);
+                    if (on && !S.done)
+                        Ui.RadialGlow(new Rect(r.x - 5f, r.y - 4f, 17f, 18f), DriveAmber.WithAlpha(0.5f));
+                    Ui.Fill(r, S.done ? CellDone : on ? DriveAmber : CellOff);
                 }
-                Ui.Label(new Rect(cx - 150f, DriveY + 22f, 300f, 16f), S.text, 11, new Color(0.63f, 0.75f, 1f, S.done ? 0.9f : 0.6f), TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(x0, y0 + 38f, DriveW, 16f), S.text, 10, S.done ? DriveReadyLabel : DriveLabel, TextAnchor.MiddleCenter, true);
             });
         }
 
         void DrawDriveLipLine(DriveState S)
         {
-            float cx = DriveCx;
-            Ui.Fill(new Rect(cx - DriveSlitW / 2f + 2f, DriveY + 4f, DriveSlitW - 4f, 1f), new Color(0.75f, 0.83f, 1f, 0.5f));
+            Ui.Fill(new Rect(DriveSlitX + 2f, DriveY + 3f, DriveSlitW - 4f, 2f), new Color(1f, 1f, 1f, 0.22f));
             if (S.flash > 0f)
-                Ui.Fill(new Rect(cx - DriveSlitW / 2f, DriveY - 3f, DriveSlitW, 2f), new Color(1f, 1f, 1f, S.flash));
+            {
+                Ui.RadialGlow(new Rect(DriveSlitX - 20f, DriveY - 22f, DriveSlitW + 40f, 44f), new Color(0.78f, 0.88f, 1f, 0.8f * S.flash));
+                Ui.RoundBox(new Rect(DriveSlitX, DriveY - 4f, DriveSlitW, 8f), new Color(1f, 1f, 1f, S.flash), 3);
+            }
         }
 
-        /// Drawn after the disk, over it: the slit's lower lip and the flash as the disk seats.
+        /// Drawn after a disk, over it: the slit's lower lip and the flash as the disk seats.
         void DrawDriveLip(float alpha, DriveState S)
         {
             if (alpha > 0f)

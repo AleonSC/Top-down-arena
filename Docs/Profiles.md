@@ -1,9 +1,14 @@
 # Multiple profiles
 
-Status: **built** (protocol unchanged). The picker is a "Who's playing?" screen on every launch (profiles as floppy disks in clamp cradles on a mechanical shelf, names in Permanent Marker (`Resources/Fonts`, Apache 2.0): "Shelf 4" and `whos-playing-mechanical.html`, of
-`Docs/Mockups/whos-playing-shelves.html`, first round `whos-playing-floppy.html`; `ProfilesUi.cs`), plus an eject key on the main menu's disk drive (it replaced a "Switch profile" button above the name card).
-Code: `Core/ProfileStore.cs`, `Profile.Name` (format 3), `Game/ProfilesUi.cs`; tests in the `saves` suite
-(`ProfileStoreTest`); preview `Tools/Preview/shot.sh who who` (`TWO=1 MANAGE=1 EMPTY=1`; the move: `shot.sh whotr whotr` with `PROFTR=<0..2.26>,<slot>[,back]`). At most **3 profiles** and always **four boxes** (three slots, an empty one says "Empty", and New profile, grayed out when all three are used), so the move to and from the menu is the same every time; a
+Status: **built** (protocol unchanged). The picker is a "Who's playing?" screen on every launch: the monitor (title on its glass, the
+floppy drive in its chin) over an endless side-scrolling carousel of big floppy disks, names in Permanent Marker (`Resources/Fonts`,
+Apache 2.0), with Manage profiles and New profile under it (`Docs/Mockups/whos-playing-carousel.html`; `DiskCarousel.cs`, the disks'
+art in `ProfilesUi.cs`). Loading a disk plays the disk boot sequence into the main menu's machine (`Docs/Mockups/disk-boot-sequence.html`;
+`ProfileTransition.cs`, `MenuMachine.cs`); the eject key beside the drive plays it back (`DiskEject.cs`).
+Code: `Core/ProfileStore.cs`, `Profile.Name` (format 3), `Game/ProfilesUi.cs`, `Game/DiskCarousel.cs`; tests in the `saves` suite
+(`ProfileStoreTest`); preview `Tools/Preview/shot.sh who who` (`TWO=1`, `MANY=<n>`, `MANAGE=1`, `NEWDISK=<name>`, `CARPOS=<disks>`,
+`EMPTY=1`); the boot sequence: `shot.sh x whotr` with `PROFTR=<0..4.8>,<profile>`, the eject with `PROFEJ=<0..2.7>,<profile>`; `BG=0` for
+the Holo Floor behind them. At most **50 profiles** (`ProfileStore.MaxProfiles`); New profile is grayed out at 50. A
 command-line start (`--host`, `--join`, `--autostart`) skips the screen. Profiles are listed by name.
 
 ## Decisions (owner)

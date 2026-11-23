@@ -7,6 +7,15 @@
 menu              menu
 menu-play         menu      PLAY=1
 who               who
+who-manage        who       MANAGE=1
+who-new           who       NEWDISK=Rowan
+who-full          who       MANY=50
+boot-insert       whotr     PROFTR=1.45,0
+boot-read         whotr     PROFTR=2.3,0
+boot-land         whotr     PROFTR=3.4,0
+boot-power        whotr     PROFTR=4.2,0
+eject-pop         whotr     PROFEJ=0.9,0
+menu-join         menu      JOINOPEN=1
 profile           profile
 cosmetics         cosmetics
 cosmetics-skin    cosmetics SECTION=7

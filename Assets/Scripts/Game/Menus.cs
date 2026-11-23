@@ -8,244 +8,76 @@ namespace Arena
     /// The main menu, How to play, and the pause menu and audio settings.
     public partial class ArenaApp
     {
-        // The main menu ("Big play", Docs/Mockups/menu-d.html, player card below: Docs/Mockups/menu-card-bottom.html, holo floor look:
-        // Docs/Mockups/menu-holo-floor.html, MenuHolo.cs): the title in neon over the drive bay; in a box (MenuCard, which grows into the lobby's loadout, LobbyEnter.cs) one big Play
-        // button over Join game and Settings, and your player card under the box (DrawMenuPlayerCard, MenuPlayerRect), which opens your
-        // profile (ProfileUi.cs) and wears a "YOUR PROFILE" nudge until it has (DrawProfileHint). Play swaps the box's insides for the saved-runs
-        // picker (DrawPlayPicker, SavesUi.cs): continue your latest run or start a new one. Join opens the address row
-        // under the box. A header CRT screen ("MAIN MENU_") sits over the buttons with a physical Quit key beside it, like the picker's Back (Docs/Mockups/menu-screen-key-pairs.html, look E). The port is in Settings (Gameplay).
-        // The first time the menu shows, it draws itself in (MenuIntro.cs); each piece asks MenuIntroK how far in it is.
-        const float MenuTitleY = 126f, MenuTitleSize = 74f, MenuAxisY = 188f, MenuAxisHalf = 390f;
-        static Rect MenuCard => new Rect(W / 2f - 340f, MenuComputer ? 366f : 268f, 680f, 320f);  // taller than the picker needs (the saved-runs list gets the extra); the computer mockup (MenuComputer.cs) drops it under the case's drive row
-        static Rect MenuPlayerRect => MenuComputer ? new Rect(MenuCard.x, MenuPcRiser.y + 10f, MenuCard.width, 62f) : new Rect(MenuCard.x, MenuCard.yMax + 22f, MenuCard.width, 64f);  // (the computer: on the riser's screen, MenuComputer.cs)  // your player card, under the box (lined up with its sides)
-        static Rect MenuHostRect => new Rect(MenuCard.x + 30f, MenuCard.y + 68f, 620f, 140f);  // the Play button
-        static Rect MenuJoinRect => new Rect(MenuCard.x + 30f, MenuCard.y + 224f, 303f, 64f);
-        static Rect MenuSettingsRect => new Rect(MenuCard.x + 347f, MenuCard.y + 224f, 303f, 64f);
-        static Rect MenuJoinRow => new Rect(W / 2f - 340f, MenuCard.yMax + 12f, 680f, 64f);
-        static Rect MenuHeaderRect => new Rect(MenuCard.x + 30f, MenuCard.y + 10f, 488f, 44f);  // the header screen (same spot as the picker's)
-        static Rect MenuQuitKey => new Rect(MenuCard.xMax - 30f - 120f, MenuCard.y + 10f, 120f, 44f);  // the Quit key beside it
-        bool menuJoinOpen;    // Join opened the address row
-        bool menuPlayOpen;    // Play opened the saved-runs picker in the box (SavesUi.cs)
-        float menuPlayK;      // 0 = the menu's buttons, 1 = the picker; in between the bay doors are moving (MenuServo.cs)
-        const float MenuPlayLen = 1.0f;  // seconds for that move (MenuServo.cs), in either direction
+        // The main menu is the machine (Docs/Mockups/main-menu-machines.html, design B, and disk-boot-sequence.html): the monitor with the
+        // title and the floppy drive in its chin (PcMonitor.cs, DriveSlot.cs; the eject key beside the drive goes back to Who's playing?,
+        // DiskEject.cs), and under it the case (MenuMachine.cs): Play, Join game, Settings and Quit as keycaps, the bay whose shutter rolls up
+        // onto your saved runs (DrawPlayPicker, SavesUi.cs) or the Join address, and your profile on a small screen. Its entrance is the end
+        // of the disk boot sequence (MenuIntro.cs, ProfileTransition.cs).
+        const float MenuTitleY = 96f, MenuTitleSize = 74f;
+        /// The bay's screen behind the shutter (the saved runs, Join): also where New run's CRT grows from and the lobby's panel grows
+        /// out of (LobbyCrt.cs, LobbyEnter.cs).
+        static Rect MenuCard => new Rect(BayRect.x + 10f, BayRect.y + 10f, BayRect.width - 20f, BayRect.height - 20f);
+        bool menuJoinOpen;    // Join game rolled the shutter up onto the host address
+        bool menuPlayOpen;    // Play rolled it up onto the saved runs (SavesUi.cs)
+        float menuPlayK;      // how far the shutter is up: 0 shut, 1 open (MenuMachine.cs)
+        const float MenuPlayLen = 0.9f;  // seconds for the shutter to roll up or down
         static readonly Color ScanColor = new Color(0.44f, 0.89f, 0.77f);
 
         void DrawMenu()
         {
             float t = Time.unscaledTime;
             DrawMenuIntroBackdrop();  // the background fading up as the intro starts (MenuIntro.cs)
-            float box = MenuIntroK(1.65f, 2.0f);
-            if (MenuComputer)
-                DriveY = MenuPcDriveY;
-            if (!MenuComputer && BeginUiGl())  // under everything: the rooms (MenuHolo.cs)
-            {
-                DrawMenuRooms(t, MenuIntroPlaying ? 0f : 1f);
-                EndUiGl();
-            }
-            float axis = EaseOut(MenuAxisK);
-            Ui.Graphite = MenuComputer;  // the computer's hardware is graphite; what's on its screens and keys keeps its colour
-            if (MenuComputer)
-            {
-                DrawMenuPcCase(axis);  // the case the monitor stands on (MenuComputer.cs)
-                WithAlpha(axis, () => DrawPcMonitor(false));
-            }
-            Ui.Graphite = false;
-            DrawMenuTitle(t);
-            Ui.Graphite = MenuComputer;
-            if (!MenuComputer)
-                DrawDriveBay(axis);  // the ledge under the title that houses the drive (MenuHolo.cs)
-            DrawDriveSlot(axis, DriveForMenu());  // the disk drive under the title (DriveSlot.cs)
-            DrawDriveEject(axis, !MenuIntroPlaying);  // its eject key, right of it (DiskEject.cs)
-            DrawEjectLamp(axis);
-            Ui.Graphite = false;
-            if (box > 0f && !MenuComputer)  // (the computer: the keys sit straight on the case's face, no box of their own)
-                TileTransformed(MenuCard.center, Mathf.Lerp(0.3f, 1f, EaseBack(box)), 0f, () => WithAlpha(Mathf.Clamp01(box * 2.5f), () => DkPanel(MenuCard)));
-            if (!MenuComputer && BeginUiGl())
-            {
-                DrawBoxNeon(MenuCard, MenuIntroK(2.0f, 2.3f));  // the box's neon edge (MenuHolo.cs)
-                float snap = MenuIntroK(1.85f, 2.0f), off = 18f * (1f - EaseOut(snap));
-                if (snap > 0f)
-                    HoloCorners(new Rect(MenuCard.x - off, MenuCard.y - off, MenuCard.width + 2f * off, MenuCard.height + 2f * off), snap);  // MenuHolo.cs
-                EndUiGl();
-            }
-            bool live = !MenuIntroPlaying;  // nothing takes a click until it has all landed
-            DrawMenuCardInside(t, live);
+            float T = MachT;
+            bool live = !MenuIntroPlaying && !profTr;  // nothing takes a click until it has all landed
+            DrawMenuMachine(T, live, t);
             DrawMenuSecondary(t, live);
-            float cardK = MenuIntroK(2.2f, 2.55f);
-            if (cardK > 0f)
-                DrawMenuPlayerCard(t, 1f, cardK, live);
             DrawMenuIntroFade();  // the short version of the intro: a fade (MenuIntro.cs)
-            DriveY = 206f;
         }
 
-        /// The title, drawn in ink then filled during the intro.
-        void DrawMenuTitle(float t, float alpha = 1f)
+        /// The machine at boot time T: the dust, the case dropping in and powering on, then the monitor over it (jolting as the case lands).
+        void DrawMenuMachine(float T, bool live, float t, bool title = true)
         {
-            if (profEj)
-                return;  // the eject move draws the title screen itself, at full strength (DiskEject.cs)
-            var r = new Rect(0f, MenuTitleY - MenuTitleSize * 0.6f, W, MenuTitleSize * 1.2f);
-            DrawMenuTitleText(r);
+            float drop = CaseDrop(T, out float squash);
+            DrawLandingDust(T);
+            DrawMachineCase(T, drop, squash, 1f, live, t);
+            MonitorShakeAt(T);
+            DrawMonitor(title ? MenuTitleAt(T) : new MonTitle { text = CrtTitleText, typed = 0, flat = true }, DriveForMenu(), T >= 2.85f, live);  // (the eject key comes up with the disk read)
+            monShakeX = monShakeY = 0f;
         }
 
-        float menuBottomHide;         // 0 to 1: the player card fades out while the Join address row is open (they share the spot)
-
-        /// How far the player card under the box is showing (0 to 1): the menu's intro brings it in, and the Join row's address
-        /// row takes its spot.
-        float MenuBottomShow(float intro)
+        /// The title on the monitor at boot time T: WHO'S PLAYING? erased once the disk is in (from the picker), then VECTOR COLOSSEUM typed.
+        MonTitle MenuTitleAt(float T)
         {
-            menuBottomHide = Mathf.MoveTowards(menuBottomHide, menuJoinOpen ? 1f : 0f, Time.unscaledDeltaTime / 0.25f);
-            return intro * (1f - EaseOut(menuBottomHide));
+            if (T >= MachEnd || !(MenuIntroPlaying && MenuIntroFull) && !profTr)
+                return TitleAll(CrtTitleText);
+            if (profTr && T < 1.95f)
+                return TitleAll(WhoTitleText);
+            if (profTr && T < 2.45f)
+                return new MonTitle { text = WhoTitleText, typed = Mathf.RoundToInt(WhoTitleText.Length * (1f - Seg(T, 1.95f, 2.45f))), flat = true };
+            if (T < 2.6f)
+                return new MonTitle { text = CrtTitleText, typed = 0, flat = true };
+            float typeK = Seg(menuIntroT, CrtTypeAt, CrtTypeAt + CrtTypeLen);
+            int n = menuIntroT >= CrtTypeAt + CrtTypeLen + CrtFlipLen ? -1 : Mathf.FloorToInt(typeK * CrtTitleText.Length);
+            return new MonTitle { text = CrtTitleText, typed = n, flat = false };
         }
 
-        /// The box's insides: your name card, Play, Join game and Settings, or (after Play) the saved-runs picker,
-        /// then the address row Join opens and how joining is going.
-        /// live = false draws them only (Repaint), for the intro and the move into the lobby (LobbyEnter.cs).
+        /// The bay's insides for the moves into the lobby (LobbyEnter.cs, LobbyCrt.cs; drawn only): the saved runs or Join, if open.
         void DrawMenuCardInside(float t, bool live)
         {
             if (!live && Event.current.type != EventType.Repaint)
                 return;
-            float name = MenuIntroK(1.75f, 2.1f), host = MenuIntroK(1.8f, 2.2f), join = MenuIntroK(2.0f, 2.3f), cont = MenuIntroK(2.1f, 2.4f);
-            if (name >= 1f && !MenuComputer)   // the box's corner screws
-                foreach (var b in new[] { new Vector2(MenuCard.x + 9f, MenuCard.y + 9f), new Vector2(MenuCard.xMax - 9f, MenuCard.y + 9f), new Vector2(MenuCard.x + 9f, MenuCard.yMax - 9f), new Vector2(MenuCard.xMax - 9f, MenuCard.yMax - 9f) })
-                    KeyUi.Bolt(b, 7f);
-            if (live && Event.current.type == EventType.Repaint)
-            {
-                float target = menuPlayOpen ? 1f : 0f;
-                menuPlayK = fxOn && !fxReduced ? Mathf.MoveTowards(menuPlayK, target, Time.unscaledDeltaTime / MenuPlayLen) : target;
-            }
-            bool sweeping = menuPlayK != (menuPlayOpen ? 1f : 0f);  // also true on the first frame of a move, so no stray click lands
-            if (sweeping)
-            {
-                // The bay-doors move (MenuServo.cs): no clicks until it lands.
-                if (Event.current.type == EventType.Repaint)
-                {
-                    PlayServoCues(servoPrevK, menuPlayK);
-                    servoPrevK = menuPlayK;
-                }
-                DrawMenuServo(t, menuPlayK);
-            }
-            else if (menuPlayOpen)
-                DrawPlayPicker(t, live);
-            else
-                DrawMenuButtons(t, live, name, host, join, cont);
-            // Join's address row (or, while connecting, how it's going and Cancel), then any message from the last try.
-            var row = MenuJoinRow;
-            if (session.Connecting)
-            {
-                // How it's going, on a CRT screen of its own, with Cancel as a key beside it.
-                DkSub(row);
-                var ss = new Rect(row.x + 14f, row.y + 10f, row.width - 14f - 170f, 44f);
-                CrtUi.Begin(ss);
-                CrtUi.Text(new Rect(ss.x + 14f, ss.y, ss.width - 28f, ss.height), session.Status, 14, CrtStyle.Ink, TextAnchor.MiddleLeft, false, fxReduced);
-                CrtUi.End(ss, Time.unscaledTime, fxReduced);
-                var cr = new Rect(row.xMax - 160f, row.y + 9f, 146f, 46f);   // a keycap, the same as Connect's
-                if (MenuVhs.Draw(cr, "TRK 02", live, fxReduced, () => KeyUi.Key(cr, "Cancel", PixelArt.Get("ui_back"), 16)) && live)
-                    session.Leave("");
-            }
-            else if (menuJoinOpen && join >= 1f && !menuPlayOpen)
-            {
-                // The address on a CRT screen (label above it), and Connect as a key with a lamp beside it.
-                DkSub(row);
-                var ss = new Rect(row.x + 14f, row.y + 10f, row.width - 14f - 170f, 44f);
-                CrtUi.Begin(ss);
-                CrtUi.Text(new Rect(ss.x + 14f, ss.y + 3f, 200f, 12f), "HOST ADDRESS", 9, CrtStyle.Dim, TextAnchor.MiddleLeft, false, true);
-                var oldTint = GUI.contentColor;
-                GUI.contentColor = CrtStyle.Ink;
-                addressText = Ui.BareField(new Rect(ss.x + 10f, ss.y + 15f, ss.width - 20f, 28f), addressText, 64, 19);
-                GUI.contentColor = oldTint;
-                CrtUi.End(ss, Time.unscaledTime, fxReduced);
-                var kr = new Rect(row.xMax - 160f, row.y + 9f, 146f, 46f);   // a keycap like the menu's (its lamp lights under the mouse)
-                if (MenuVhs.Draw(kr, "TRK 01", live, fxReduced, () => KeyUi.Key(kr, "Connect", PixelArt.Get("ui_arrow"), 16)) && live)
-                    JoinGame();
-            }
-            if (session.Status.Length > 0 && !session.Connecting && live)
-                Ui.Label(new Rect(row.x - 40f, (menuJoinOpen ? row.yMax : row.y) + 6f, row.width + 80f, 40f), session.Status, 13, Ui.Warn, TextAnchor.UpperCenter, false, true);
-        }
-
-        /// Your player card under the box (Docs/Mockups/menu-card-bottom.html). It fades out while Join's address row is open, since
-        /// the two share the spot, and rises in with the intro.
-        void DrawMenuPlayerCard(float t, float alpha, float intro, bool live)
-        {
-            float show = MenuBottomShow(intro);
-            float a = alpha * show;
-            if (a <= 0f)
+            if (ShutterOpen <= 0f)
                 return;
-            var r = MenuPlayerRect;
-            r.y += 12f * (1f - show);  // rises into place
-            WithAlpha(a, () =>
-            {
-                Ui.Fill(r, new Color(0.03f, 0.04f, 0.08f));  // a solid back, so the floor behind it doesn't show through
-                DrawNameCard(r, 0f, live && show >= 1f, t);
-                DrawProfileHint(r, t, live && show >= 1f);  // ProfileUi.cs
-            });
-        }
-
-        /// The box's buttons: Play, Join game and Settings (each rising in during the intro).
-        void DrawMenuButtons(float t, bool live, float name, float host, float join, float cont)
-        {
-            if (name > 0f)
-                MenuRise(name, 24f, () =>
-                {
-                    var hs = MenuHeaderRect;
-                    CrtUi.Begin(hs);
-                    bool cursor = !fxReduced && Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0;
-                    CrtUi.Text(new Rect(hs.x + 16f, hs.y + 4f, 340f, 36f), "MAIN MENU" + (cursor ? "_" : " "), 24, CrtStyle.Ink, TextAnchor.MiddleLeft, true, fxReduced);
-                    CrtUi.End(hs, Time.unscaledTime, fxReduced);
-                    var qr = MenuQuitKey;  // the same keycap as the picker's Back (MenuServo.cs swaps the legend between them)
-                    bool quit = MenuVhs.Draw(qr, "TRK 05", live, fxReduced, () => KeyUi.Key(qr, "Quit", PixelArt.Get("ui_power"), 15));
-                    if (live && quit)
-                        QuitWithSound();  // MenuHolo.cs: the CRT-off sound, then quit
-                });
-            if (host > 0f)
-                MenuRise(host, 60f, () =>
-                {
-                    Ui.PulseRing(KeyUi.Well(MenuHostRect), Ui.Primary, t);
-                    if (MenuVhs.Draw(MenuHostRect, "PLAY", live, fxReduced, () => PlayKey(MenuHostRect)) && live)
-                    {
-                        MenuSound(Sfx.MenuPlay);  // MenuSoundBank.cs
-                        if (PacSkin)
-                            OpenPacman();  // a Pac profile's Play is the Pac-Man game (PacmanUi.cs)
-                        else
-                            OpenPlayPicker();
-                    }
-                });
-            if (join > 0f)
-                MenuRise(join, 24f, () =>
-                {
-                    if (MenuVhs.Draw(MenuJoinRect, "TRK 02", live, fxReduced, () => KeyUi.Key(MenuJoinRect, menuJoinOpen ? "Join  ▲" : "Join game", PixelArt.Get("ui_arrow"), 20, menuJoinOpen)) && live)
-                    {
-                        MenuSound(Sfx.MenuKey);
-                        menuJoinOpen = !menuJoinOpen;
-                    }
-                });
-            if (cont > 0f)
-                MenuRise(cont, 24f, () =>
-                {
-                    if (MenuVhs.Draw(MenuSettingsRect, "TRK 04", live, fxReduced, () => KeyUi.Key(MenuSettingsRect, "Settings", PixelArt.Get("ui_gear"), 20)) && live)
-                    {
-                        MenuSound(Sfx.MenuKey);
-                        settingsOpen = true;
-                    }
-                });
+            if (menuJoinOpen)
+                DrawBayJoin(MenuCard, false);
+            else
+                DrawPlayPicker(t, false);
         }
 
         void JoinGame()
         {
             SaveMenuFields();
             session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice, Defs.MakeWild(wildSecond), ultChoice);
-        }
-
-        /// A piece of the menu rising into place as the intro brings it in (k 0 to 1; 1 = in place).
-        void MenuRise(float k, float from, Action draw)
-        {
-            if (k >= 1f)
-            {
-                draw();
-                return;
-            }
-            GUI.BeginGroup(new Rect(0f, from * (1f - EaseBack(k)), W, H));
-            WithAlpha(Mathf.Clamp01(k * 2f), draw);
-            GUI.EndGroup();
         }
 
         /// What's left outside the box: the tooltip (the profile switch is the drive's eject key now, DiskEject.cs). live = false draws it only (Repaint),

@@ -148,7 +148,7 @@ namespace Arena
             label.wordWrap = wrap;
             // Every state gets the same color: the default skin's hover color would otherwise light up
             // the dark shadow copy under titles when the mouse is over them (it looked like doubled text).
-            label.normal.textColor = label.hover.textColor = label.active.textColor = label.focused.textColor = Gray(color);
+            label.normal.textColor = label.hover.textColor = label.active.textColor = label.focused.textColor = color;
             GUI.Label(r, Shown(r, text), label);
         }
 
@@ -193,19 +193,7 @@ namespace Arena
         /// goes through Faded, so it fades too; everything else is tinted by GUI.color, which the HUD sets as well.
         public static float Alpha = 1f;
 
-        public static Color Faded(Color c) => Gray(c).ScaleAlpha(Alpha);
-
-        /// The graphite look (the Who's playing? screen): while set, every blue the primitives and UI GL draw turns to a neutral grey of
-        /// the same lightness (a touch cooler at the top end). Greens, reds, golds and the neon (MenuHolo.cs NeonPath) keep their colour.
-        public static bool Graphite;
-
-        public static Color Gray(Color c)
-        {
-            if (!Graphite || c.b <= c.r + 0.02f || c.b <= c.g)
-                return c;
-            float l = Mathf.Min(1f, (0.3f * c.r + 0.59f * c.g + 0.11f * c.b) * 1.05f);
-            return new Color(l, Mathf.Min(1f, l * 1.01f), Mathf.Min(1f, l * 1.035f), c.a);
-        }
+        public static Color Faded(Color c) => c.ScaleAlpha(Alpha);
 
         public static void Fill(Rect r, Color c)
         {
@@ -311,7 +299,7 @@ namespace Arena
         {
             float f = (t / 1.4f) % 1f, grow = 2f + 6f * f;
             var old = GUI.backgroundColor;
-            GUI.backgroundColor = Gray(c).WithAlpha(0.9f * (1f - f));
+            GUI.backgroundColor = c.WithAlpha(0.9f * (1f - f));
             GUI.Box(new Rect(r.x - grow, r.y - grow, r.width + 2f * grow, r.height + 2f * grow), GUIContent.none, cardRim);
             GUI.backgroundColor = old;
         }
@@ -473,7 +461,7 @@ namespace Arena
         public static void HudRim(Rect r, Color c)
         {
             var old = GUI.backgroundColor;
-            GUI.backgroundColor = Gray(c);
+            GUI.backgroundColor = c;
             GUI.Box(r, GUIContent.none, hudRim);
             GUI.backgroundColor = old;
         }
@@ -507,11 +495,11 @@ namespace Arena
             if (r.width <= 0f || r.height <= 0f)
                 return;
             var old = GUI.backgroundColor;
-            GUI.backgroundColor = Gray(fill);
+            GUI.backgroundColor = fill;
             GUI.Box(r, GUIContent.none, capsule);
             if (rimColor.HasValue)
             {
-                GUI.backgroundColor = Gray(rimColor.Value);
+                GUI.backgroundColor = rimColor.Value;
                 GUI.Box(r, GUIContent.none, capsuleRim);
             }
             GUI.backgroundColor = old;
@@ -528,7 +516,7 @@ namespace Arena
             if (radialTex == null)
                 radialTex = RadialTexture();
             var old = GUI.color;
-            GUI.color = Gray(c).ScaleAlpha(Alpha);
+            GUI.color = c.ScaleAlpha(Alpha);
             GUI.DrawTexture(r, radialTex);
             GUI.color = old;
         }
@@ -559,7 +547,7 @@ namespace Arena
             if (strength <= 0.01f)
                 return;
             var old = GUI.backgroundColor;
-            GUI.backgroundColor = Gray(c).WithAlpha(Mathf.Clamp01(strength) * Alpha);
+            GUI.backgroundColor = c.WithAlpha(Mathf.Clamp01(strength) * Alpha);
             GUI.Box(new Rect(r.x - GlowSpread, r.y - GlowSpread, r.width + GlowSpread * 2f, r.height + GlowSpread * 2f), GUIContent.none, glowStyle);
             GUI.backgroundColor = old;
         }
@@ -605,7 +593,7 @@ namespace Arena
         public static void Rim(Rect r, Color c, float strength)
         {
             var old = GUI.backgroundColor;
-            GUI.backgroundColor = Gray(c).WithAlpha(Mathf.Clamp01(strength));
+            GUI.backgroundColor = c.WithAlpha(Mathf.Clamp01(strength));
             GUI.Box(r, GUIContent.none, cardRim);
             GUI.backgroundColor = old;
         }
@@ -624,7 +612,7 @@ namespace Arena
             if (r.width <= 0f || r.height <= 0f)
                 return;
             var old = GUI.backgroundColor;
-            GUI.backgroundColor = Gray(c);
+            GUI.backgroundColor = c;
             GUI.Box(r, GUIContent.none, pill);
             GUI.backgroundColor = old;
         }

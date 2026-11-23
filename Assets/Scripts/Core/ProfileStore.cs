@@ -20,7 +20,7 @@ namespace Arena
     /// SaveStore.Folder point into it, so the rest of the game doesn't know there are several.
     public static class ProfileStore
     {
-        public const int MaxProfiles = 3, MaxNameLength = 16;
+        public const int MaxProfiles = 50, MaxNameLength = 16;
 
         public static string Root;  // null: profiles are off (tests set a temp folder)
 

@@ -315,34 +315,16 @@ namespace Arena
             InitLobbyCrt();
             float t = Time.unscaledTime, e = Mathf.Max(0f, enterT);
             var full = new Rect(0f, 0f, W, H);
-            var scr = RunsScreenRect(MenuCard);
+            var scr = MenuCard;  // the bay's screen, the shutter up on your runs (MenuMachine.cs)
 
-            // The menu steps aside: title, box and player card fade (the title lifts a little).
+            // The menu steps aside: the machine fades (the title on its monitor with it).
             float away = Seg(e, 0.25f, 0.75f);
             if (away < 1f)
-            {
-                float k = 1f - away;
-                WithAlpha(k, () =>
+                WithAlpha(1f - away, () =>
                 {
-                    DkPanel(MenuCard);
-                    DrawMenuCardInside(t, false);
-                });
-                WithAlpha(k, () =>
-                {
+                    DrawMenuMachine(99f, false, t);
                     DrawMenuSecondary(t, false);
-                    DrawMenuPlayerCard(t, 1f, 1f, false);
-                    float lift = away * away * 30f;
-                    Ui.Glitch(new Rect(0f, MenuTitleY - MenuTitleSize - lift, W, MenuTitleSize * 2f), "VECTOR COLOSSEUM", Mathf.RoundToInt(MenuTitleSize), Color.white, TextAnchor.MiddleCenter, Ui.Accent);
                 });
-                DrawDriveBay(k);
-                DrawDriveSlot(k, DriveIdle());
-                if (BeginUiGl())
-                {
-                    DrawBoxNeon(MenuCard, k);
-                    DrawPlotCorners(MenuCard, 7f, 22f, new Rgba(0.45f, 0.65f, 1f, 0.7f * k));
-                    EndUiGl();
-                }
-            }
 
             // The saved-runs screen flares, then grows to the whole window and turns from green to cyan.
             // The screen fades in over the flare (0.25-0.45 s) instead of cutting in, so the menu card and the flare don't pop out at 0.4 s.
