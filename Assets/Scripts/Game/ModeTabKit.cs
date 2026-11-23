@@ -39,8 +39,8 @@ namespace Arena
         }
 
         /// A list row: a soft key (glowing in `acc` on `top`), or dashed and dim when not `lit`. Number, a "?" when not `known`
-        /// (the portrait goes at x + 30..66), the name and a chip on the right.
-        void ModeRow(Rect c, string num, string name, bool known, bool lit, bool top, bool hover, Color acc, string chip, Color chipCol)
+        /// (the portrait goes at x + 30..66; with `portrait` it shows even then), the name and a chip on the right.
+        void ModeRow(Rect c, string num, string name, bool known, bool lit, bool top, bool hover, Color acc, string chip, Color chipCol, bool portrait = false)
         {
             if (lit || top)
                 CrtKit.SoftBox(c, top ? acc : CrtStyle.Ink, top, hover, false);
@@ -54,7 +54,7 @@ namespace Arena
             Ui.Label(new Rect(c.x + 8f, c.y, 24f, c.height), num, 10, tc.WithAlpha(0.6f), TextAnchor.MiddleLeft);
             float chipW = string.IsNullOrEmpty(chip) ? 0f : LobbyKit.SpacedWidth(chip, 10, 1f) + 18f;
             CrtUi.Text(new Rect(c.x + 70f, c.y, c.width - 70f - Mathf.Max(78f, chipW), c.height), known ? name : "???", 14, tc, TextAnchor.MiddleLeft, true, false);
-            if (!known)
+            if (!known && !portrait)
                 CrtUi.Text(new Rect(c.x + 30f, c.y, 36f, c.height), "?", 26, CrtStyle.Dim.WithAlpha(top ? 0.9f : 0.6f), TextAnchor.MiddleCenter, true, FxCalm);
             if (chipW > 0f)
                 HuntChip(c.xMax - 8f, c.center.y, chip, chipCol);

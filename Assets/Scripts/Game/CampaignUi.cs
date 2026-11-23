@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The lobby's Campaign tab (Normal mode), in the Boss Hunt tab's layout (ModeTabKit.cs): the ten bosses of the 100-wave
-    /// ladder as a list (named once you've reached or beaten them), a scope on the next one to beat (or the hovered row),
+    /// ladder as a list (every model shown, named once you've reached or beaten them), a compact scope on the next one to beat (or the hovered row),
     /// its wave on the ladder and your Campaign records. The numbers come from `Profile`.
     public partial class ArenaApp
     {
@@ -20,7 +20,8 @@ namespace Arena
             var profile = game.Profile ?? new Profile();
             var p = new ModePage { Title = "CAMPAIGN", Acc = CampaignColor,
                 Tagline = "One long run on a growing arena. Build as you go.", ListHead = "THE LADDER",
-                Rules = new[] { "PATHS + SHOPS", "LIVES", "SAVING", "CHALLENGES", "MODIFIERS + DIFFICULTY APPLY" } };
+                Rules = new[] { "PATHS + SHOPS", "LIVES", "SAVING", "CHALLENGES", "MODIFIERS + DIFFICULTY APPLY" },
+                ShowLocked = true, ScopeCompact = true };
             var bosses = new EnemyType[10];
             int beatenN = 0, next = 9;
             for (int i = 9; i >= 0; i--)
