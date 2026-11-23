@@ -1,0 +1,241 @@
+<!-- Status: mockup (approximate: browser drawing). Main menu Settings: the shutter opens onto a digital settings screen whose groups open inside it; published as an artifact. -->
+<title>Bay Settings Screen</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: the main menu machine as a 16:9 stage scaled to the page; under it a short note on how it behaves. Single dark look: it is a game screen. */
+:root{
+  color-scheme:dark;
+  --page:#0c0c10; --panel:#16171c; --line:#2a2c34; --text:#e7e9ef; --muted:#9a9fac; --accent:#8fb6ff;
+  --ink:#66a3ff; --ink-hi:#a9c6ff; --ink-dim:#3d5f9c; --glass:#040a18; --neon:#cfe0ff; --green:#6bff99; --amber:#ffb547; --danger:#ff6b6b;
+  --ui:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; --display:"Space Grotesk","Inter",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--text);font:14px/1.5 var(--ui)}
+.wrap{max-width:1120px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
+h1{margin:0;font:700 22px/1.2 var(--display);text-wrap:balance}
+.lede{margin:0;color:var(--muted);max-width:72ch}
+.frame{position:relative;width:100%;max-width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:8px;background:#140608;border:1px solid var(--line)}
+.stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-width:0}
+.note b{display:block;font:700 12px var(--display);letter-spacing:.05em;text-transform:uppercase}
+.note p{margin:4px 0 0;color:var(--muted);font-size:13px}
+
+/* the scene */
+.sky{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 52%,#6e2230 0%,#3a1018 38%,#120406 75%)}
+.floor{position:absolute;left:-400px;right:-400px;top:372px;height:600px;transform:perspective(260px) rotateX(62deg);transform-origin:50% 0;
+  background:linear-gradient(90deg,rgba(255,90,110,.55) 1px,transparent 1px) 0 0/64px 64px,linear-gradient(0deg,rgba(255,90,110,.55) 1px,transparent 1px) 0 0/64px 64px}
+.horizon{position:absolute;left:0;right:0;top:371px;height:1px;background:rgba(255,190,200,.7)}
+.metal{position:absolute;background:linear-gradient(180deg,#5b5e66,#3a3c42 30%,#1c1d21);border:2px solid #0e0f12;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 10px 18px rgba(0,0,0,.45)}
+.neon{box-shadow:0 0 0 2px var(--neon),0 0 10px 2px rgba(160,195,255,.45),inset 0 1px 0 rgba(255,255,255,.35)}
+.crt{position:absolute;background:var(--glass);border:3px solid #0a0b0e;box-shadow:inset 0 0 0 1px #1a2440,inset 0 0 40px rgba(60,110,220,.18);overflow:hidden}
+.crt::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px);pointer-events:none}
+.title{position:absolute;left:0;right:0;top:57px;text-align:center;color:var(--ink-hi);font:900 78px/1 "Arial Black",Arial,sans-serif;letter-spacing:1px;
+  text-shadow:0 0 14px rgba(110,160,255,.55),3px 0 0 rgba(255,70,90,.4),-3px 0 0 rgba(70,200,255,.4)}
+.chin{position:absolute;color:#9aa0ad;font:700 10px/1 Arial,sans-serif;letter-spacing:1px}
+.vent{position:absolute;background:repeating-linear-gradient(90deg,#0b0c0f 0 5px,transparent 5px 10px)}
+.hvent{position:absolute;background:repeating-linear-gradient(0deg,#0b0c0f 0 4px,transparent 4px 9px)}
+.dot{position:absolute;width:8px;height:8px;border-radius:50%}
+.drive{position:absolute;left:475px;top:176px;width:330px;height:34px;border-radius:5px;background:#0b0c10;border:1px solid #2a2d35;box-shadow:inset 0 2px 4px #000}
+.key{position:absolute;border-radius:7px;background:linear-gradient(180deg,#4d5058,#2c2e34 60%,#212227);border:2px solid #0b0c0f;cursor:pointer;user-select:none;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 6px 0 #16171a,0 9px 12px rgba(0,0,0,.5);color:#e9ecf2;font:800 15px/1 Arial,sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;transition:transform .08s,box-shadow .08s,filter .1s}
+.key:hover{filter:brightness(1.12)}
+.key:active{transform:translateY(5px);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 1px 0 #16171a,0 3px 6px rgba(0,0,0,.5)}
+.key:focus-visible{outline:2px solid var(--neon);outline-offset:3px}
+.lamp{width:9px;height:9px;border-radius:50%;background:#1c2a20;flex:none;transition:background .1s,box-shadow .1s}
+.lamp.on{background:var(--green);box-shadow:0 0 8px var(--green)}
+.tri{width:0;height:0;border-left:14px solid #7dffa8;border-top:9px solid transparent;border-bottom:9px solid transparent}
+
+/* the bay's screen: digital settings */
+#scr{left:434px;top:298px;width:412px;height:356px;border-radius:4px}
+#view{position:absolute;inset:0;transform-origin:50% 50%}
+.hdr{position:absolute;left:16px;right:16px;top:12px;height:32px;display:flex;align-items:center;gap:10px}
+.hdr h2{margin:0;font:800 22px/1 Arial,sans-serif;color:#8fb6ff;letter-spacing:.5px;white-space:nowrap}
+.hdr .cur{display:inline-block;width:12px;height:3px;background:#8fb6ff;margin-left:2px;vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.back{border:1px solid var(--ink);color:#cfe0ff;font:800 11px Arial;letter-spacing:1px;padding:5px 8px;cursor:pointer;background:rgba(102,163,255,.08)}
+.back:hover{background:rgba(102,163,255,.2)}
+.rule{position:absolute;left:12px;right:12px;top:50px;height:1px;background:rgba(102,163,255,.25)}
+.foot{position:absolute;left:16px;right:16px;bottom:9px;color:var(--ink-dim);font:700 10px Arial;letter-spacing:1px;display:flex;justify-content:space-between}
+/* home: four group tiles */
+.tiles{position:absolute;left:12px;right:12px;top:60px;bottom:30px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tile{position:relative;border:1px solid rgba(102,163,255,.45);background:rgba(102,163,255,.05);cursor:pointer;padding:12px 12px 10px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;transition:background .12s,border-color .12s}
+.tile:hover,.tile.sel{background:rgba(102,163,255,.16);border-color:#9cc0ff}
+.tile.sel::before{content:"";position:absolute;left:-1px;top:-1px;bottom:-1px;width:3px;background:#cfe0ff;box-shadow:0 0 8px #9cc0ff}
+.tile .ic{position:absolute;left:12px;top:12px;width:30px;height:30px}
+.tile .nm{font:800 15px Arial;color:#cfe0ff;letter-spacing:.5px}
+.tile .sb{font:700 10px Arial;color:var(--ink-dim);letter-spacing:.5px}
+/* a group's page */
+.page{position:absolute;left:12px;right:12px;top:56px;bottom:28px;overflow-y:auto;padding-right:6px;scrollbar-width:thin;scrollbar-color:var(--ink-dim) transparent}
+.row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid rgba(102,163,255,.14)}
+.row .lb{flex:1;min-width:0}
+.row .lb b{display:block;font:800 12px Arial;color:#cfe0ff}
+.row .lb i{display:block;font:700 9.5px Arial;color:var(--ink-dim);font-style:normal;letter-spacing:.3px}
+.bar{display:flex;align-items:center;gap:4px}
+.bar .pm{width:18px;height:18px;border:1px solid var(--ink-dim);color:#cfe0ff;font:800 12px/16px Arial;text-align:center;cursor:pointer}
+.bar .pm:hover{border-color:#9cc0ff}
+.cells{display:flex;gap:2px;cursor:pointer}
+.cells i{width:6px;height:16px;background:rgba(102,163,255,.14)}
+.cells i.on{background:var(--ink)}
+.cells i.on.hot{background:var(--amber)}
+.val{width:30px;text-align:right;font:800 11px Arial;color:#cfe0ff;font-variant-numeric:tabular-nums}
+.tog{min-width:50px;border:1px solid var(--ink-dim);font:800 10px Arial;letter-spacing:1px;padding:4px 8px;text-align:center;cursor:pointer;color:var(--ink-dim)}
+.tog.on{border-color:#9cc0ff;color:#cfe0ff;background:rgba(102,163,255,.18)}
+.seg{display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end;max-width:210px}
+.seg span{border:1px solid var(--ink-dim);font:800 9.5px Arial;letter-spacing:.5px;padding:4px 6px;cursor:pointer;color:var(--ink-dim)}
+.seg span.on{border-color:#9cc0ff;color:#0a1630;background:#9cc0ff}
+.kb{display:flex;gap:4px}
+.kb span{min-width:26px;border:1px solid var(--ink-dim);font:800 10px Arial;padding:3px 5px;text-align:center;color:#cfe0ff;cursor:pointer}
+.kb span.wait{border-color:var(--amber);color:var(--amber);animation:blink .6s steps(1) infinite}
+.toast{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);font:800 10px Arial;letter-spacing:1px;color:#0a1630;background:#9cc0ff;padding:4px 8px;opacity:0;transition:opacity .2s}
+@media (prefers-reduced-motion: reduce){ .hdr .cur,.kb span.wait{animation:none} }
+</style>
+
+<div class="wrap">
+  <h1>Main menu settings in the bay</h1>
+  <p class="lede">Press <b>SETTINGS</b> on the case: the shutter rolls up onto a digital settings screen in the bay. Pick a group and the screen switches off to a line and back on with that group's settings, all inside the same small screen. <b>‹ BACK</b> (or Esc) returns to the groups, and SETTINGS again (or Esc on the groups) rolls the shutter down. The arrow keys and Enter work too. This is an approximate browser mockup: glows and type will differ in the game.</p>
+
+  <div class="frame" id="frame"><div class="stage" id="stage">
+    <div class="sky"></div><div class="floor"></div><div class="horizon"></div>
+    <!-- monitor -->
+    <div class="metal" style="left:150px;top:18px;width:980px;height:222px;border-radius:14px"></div>
+    <div class="crt neon" style="left:170px;top:32px;width:940px;height:128px;border-radius:6px"></div>
+    <div class="title">VECTOR COLOSSEUM_</div>
+    <div class="chin" style="left:188px;top:186px">ARENA CRT-14</div>
+    <div class="vent" style="left:188px;top:204px;width:220px;height:16px;opacity:.8"></div>
+    <div class="vent" style="left:872px;top:204px;width:200px;height:16px;opacity:.8"></div>
+    <div class="dot" style="left:1086px;top:187px;background:var(--green);box-shadow:0 0 8px var(--green)"></div>
+    <div class="drive"><span class="chin" style="left:14px;top:12px;color:#8b93a6;font-size:11px">A:</span>
+      <div style="position:absolute;left:52px;top:13px;width:200px;height:8px;background:#000;border-radius:3px"></div>
+      <div class="dot" style="left:263px;top:12px;background:var(--green);box-shadow:0 0 8px var(--green)"></div>
+      <div style="position:absolute;left:276px;top:12px;display:flex;gap:4px"><i style="width:7px;height:10px;background:#2c7a4a"></i><i style="width:7px;height:10px;background:#2c7a4a"></i><i style="width:7px;height:10px;background:#2c7a4a"></i><i style="width:7px;height:10px;background:#2c7a4a"></i></div></div>
+    <div class="chin" style="left:475px;top:219px;width:330px;text-align:center;color:#b7f5cc">ANTHONY READY</div>
+    <!-- case -->
+    <div class="metal neon" style="left:150px;top:256px;width:980px;height:440px;border-radius:8px 8px 14px 14px"></div>
+    <div class="key" style="left:184px;top:290px;width:210px;height:70px;font-size:20px" tabindex="-1" title="Settings only in this mockup"><span class="lamp on"></span><span class="tri"></span>PLAY</div>
+    <div class="key" style="left:184px;top:380px;width:210px;height:52px" tabindex="-1" title="Settings only in this mockup"><span class="lamp"></span>JOIN GAME</div>
+    <div class="key" id="kSet" style="left:184px;top:450px;width:210px;height:52px" tabindex="0" role="button" aria-pressed="false"><span class="lamp" id="lSet"></span>SETTINGS</div>
+    <div class="key" style="left:184px;top:622px;width:210px;height:40px;font-size:13px" tabindex="-1">QUIT</div>
+    <div class="hvent" style="left:184px;top:524px;width:210px;height:76px"></div>
+    <!-- bay: screen under the shutter -->
+    <div style="position:absolute;left:424px;top:288px;width:432px;height:376px;border-radius:6px;background:#0a0b0e;overflow:hidden"></div>
+    <div class="crt" id="scr"><div id="view"></div><div class="toast" id="toast">SAVED</div></div>
+    <div style="position:absolute;left:424px;top:288px;width:432px;height:376px;overflow:hidden;pointer-events:none">
+      <div id="shutter" style="position:absolute;inset:0;transition:transform .9s cubic-bezier(.6,0,.25,1);background:repeating-linear-gradient(180deg,#5a5d65 0,#43464d 9px,#2a2c31 16px,#16171a 18px);box-shadow:0 4px 8px rgba(0,0,0,.6)">
+        <div style="position:absolute;left:50%;bottom:16px;width:90px;height:12px;margin-left:-45px;border-radius:6px;background:#121316;box-shadow:inset 0 2px 3px #000"></div></div>
+      <div style="position:absolute;left:0;right:0;top:0;height:10px;background:linear-gradient(#000,transparent)"></div>
+    </div>
+    <!-- right: profile screen and lights -->
+    <div class="crt" style="left:886px;top:290px;width:214px;height:150px;border-radius:5px;padding:22px 16px">
+      <div style="display:flex;gap:12px;align-items:center"><div style="width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#c9d6ff,#5872b8)"></div>
+      <div><div style="color:#eaf0ff;font:800 19px Arial">Anthony</div><div style="color:#7e95c9;font:700 10px Arial;letter-spacing:.5px">CHALLENGER · RANK 14</div></div></div>
+      <div style="height:4px;background:#14203b;border-radius:2px;margin-top:18px"><i style="display:block;height:100%;width:22%;background:#66a3ff;border-radius:2px"></i></div>
+    </div>
+    <div class="hvent" style="left:886px;top:466px;width:214px;height:120px"></div>
+    <div class="dot" style="left:892px;top:632px;background:var(--green);box-shadow:0 0 8px var(--green)"></div><div class="chin" style="left:906px;top:631px">POWER</div>
+    <div class="dot" style="left:972px;top:632px;background:var(--amber);box-shadow:0 0 8px var(--amber)"></div><div class="chin" style="left:986px;top:631px">DISK</div>
+  </div></div>
+
+  <div class="notes">
+    <div class="note"><b>The door</b><p>SETTINGS rolls the same shutter Play and Join use; its lamp stays lit while settings are open.</p></div>
+    <div class="note"><b>Groups</b><p>Four tiles on the screen: Audio, Visual effects, Gameplay, Keybinds. Hover or arrow keys select, click or Enter opens.</p></div>
+    <div class="note"><b>The switch</b><p>Opening a group or going back turns the tube off to a bright line and on again (0.3 s), then the header types itself.</p></div>
+    <div class="note"><b>Controls</b><p>Digital: bar sliders with − and +, ON / OFF keys, segmented choices, and key caps you click then press a key to rebind. Each change flashes SAVED.</p></div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const GROUPS=[
+  {id:"audio", name:"AUDIO", sub:"5 VOLUMES · MUTE", icon:"spk", rows:[
+    {t:"bar",l:"Master",d:"Everything",v:100},{t:"bar",l:"Weapons",d:"Your shots and hits",v:100},{t:"bar",l:"Enemies",d:"Their shots, bosses",v:85},
+    {t:"bar",l:"Effects",d:"Explosions, abilities, the menus",v:90},{t:"bar",l:"Music",d:"Menu, battle and boss tracks",v:70},{t:"tog",l:"Mute",d:"Silence everything",v:false}]},
+  {id:"fx", name:"VISUAL EFFECTS", sub:"GLOW · SHAKE · CRT", icon:"fx", rows:[
+    {t:"tog",l:"Visual effects",d:"Glow, sparks, lighting",v:true},{t:"seg",l:"Screen shake",d:"How hard hits rattle",o:["OFF","LOW","FULL"],v:1},
+    {t:"tog",l:"Damage numbers",d:"Numbers rising off what's hit",v:true},{t:"tog",l:"Ability names",d:"Over whoever casts it",v:true},
+    {t:"tog",l:"Reduced effects",d:"No shake, hit-pause or flashes",v:false},{t:"seg",l:"Arena floor",d:"The floor's pattern",o:["GRID","FLUX","SEISMO","PLATES","CIRCUIT"],v:0},
+    {t:"seg",l:"CRT colour",d:"The menus' phosphor",o:["BLUE","GREEN","AMBER","RED","VIOLET","WHITE"],v:0}]},
+  {id:"game", name:"GAMEPLAY", sub:"AIM · NAMES · NETWORK", icon:"pad", rows:[
+    {t:"tog",l:"Aim line",d:"A line from you to the cursor",v:true},{t:"tog",l:"Enemy names on hover",d:"Name and job under the cursor",v:true},
+    {t:"tog",l:"Auto-ready",d:"Ready up between waves",v:false},{t:"seg",l:"Health bars",d:"Over enemies",o:["HURT","ALWAYS","OFF"],v:0},
+    {t:"num",l:"Port",d:"For hosting and joining",v:"7777"}]},
+  {id:"keys", name:"KEYBINDS", sub:"20 ACTIONS", icon:"kb", rows:[
+    {t:"key",l:"Move",d:"Up, left, down, right",v:["W","A","S","D"]},{t:"key",l:"Fire",d:"Hold to shoot",v:["LMB"]},{t:"key",l:"Parry",d:"A shield toward the cursor",v:["RMB"]},
+    {t:"key",l:"Dodge",d:"Or double tap a move key",v:["SPACE"]},{t:"key",l:"Role ability",d:"",v:["Q"]},{t:"key",l:"Weapon secondary",d:"",v:["L-ALT"]},
+    {t:"key",l:"Ultimate",d:"Half charged at the start",v:["R"]},{t:"key",l:"2nd–4th abilities",d:"From upgrade cards",v:["2","3","4"]},
+    {t:"key",l:"Interact",d:"Chests, doors, shops",v:["F"]},{t:"key",l:"Ping / emote",d:"Tap / hold for the wheel",v:["G"]},{t:"key",l:"Ready up",d:"Between waves",v:["Y"]},
+    {t:"key",l:"Map",d:"Mini, full, off",v:["M"]},{t:"key",l:"Mute",d:"Unbound until you set it",v:["—"]}]},
+];
+const ICON={
+  spk:'<svg viewBox="0 0 30 30" fill="none" stroke="#9cc0ff" stroke-width="2"><path d="M5 12h5l6-5v16l-6-5H5z" fill="rgba(156,192,255,.2)"/><path d="M20 10q4 5 0 10M23 7q7 8 0 16"/></svg>',
+  fx:'<svg viewBox="0 0 30 30" fill="none" stroke="#9cc0ff" stroke-width="2"><path d="M15 3l2.8 8.2L26 14l-8.2 2.8L15 25l-2.8-8.2L4 14l8.2-2.8z" fill="rgba(156,192,255,.2)"/></svg>',
+  pad:'<svg viewBox="0 0 30 30" fill="none" stroke="#9cc0ff" stroke-width="2"><circle cx="15" cy="15" r="10"/><circle cx="15" cy="15" r="3" fill="#9cc0ff"/><path d="M15 2v6M15 22v6M2 15h6M22 15h6"/></svg>',
+  kb:'<svg viewBox="0 0 30 30" fill="none" stroke="#9cc0ff" stroke-width="2"><rect x="3" y="8" width="24" height="14" rx="2" fill="rgba(156,192,255,.2)"/><path d="M7 12h2M11 12h2M15 12h2M19 12h2M9 17h12"/></svg>'
+};
+let open=false, page=null, sel=0, busy=false, waitKey=null;
+const reduce=(()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}})();
+
+function typed(el,text){ el.textContent=''; let i=0; const step=()=>{ el.textContent=text.slice(0,++i); if(i<text.length) setTimeout(step,reduce?0:22); }; step(); }
+function toast(){ const t=$('toast'); t.style.opacity=1; clearTimeout(toast.h); toast.h=setTimeout(()=>t.style.opacity=0,700); }
+
+function renderHome(){
+  const v=$('view');
+  v.innerHTML='<div class="hdr"><h2><span id="ht"></span><span class="cur"></span></h2></div><div class="rule"></div><div class="tiles" id="tiles"></div><div class="foot"><span>PICK A GROUP</span><span>ESC CLOSES</span></div>';
+  GROUPS.forEach((g,i)=>{ const d=document.createElement('div'); d.className='tile'+(i===sel?' sel':''); d.tabIndex=0;
+    d.innerHTML='<div class="ic">'+ICON[g.icon]+'</div><div class="nm">'+g.name+'</div><div class="sb">'+g.sub+'</div>';
+    d.onmouseenter=()=>{ sel=i; markSel(); }; d.onclick=()=>go(i); $('tiles').appendChild(d); });
+  typed($('ht'),'SETTINGS');
+}
+function markSel(){ document.querySelectorAll('.tile').forEach((t,i)=>t.classList.toggle('sel',i===sel)); }
+function renderPage(gi){
+  const g=GROUPS[gi], v=$('view');
+  v.innerHTML='<div class="hdr"><span class="back" id="back">‹ BACK</span><h2><span id="ht"></span><span class="cur"></span></h2></div><div class="rule"></div><div class="page" id="pg"></div><div class="foot"><span>'+g.name+'</span><span>ESC: BACK</span></div>';
+  $('back').onclick=()=>go(null);
+  g.rows.forEach(r=>{ const row=document.createElement('div'); row.className='row';
+    row.innerHTML='<div class="lb"><b>'+r.l+'</b>'+(r.d?'<i>'+r.d+'</i>':'')+'</div>'; const c=document.createElement('div'); row.appendChild(c); control(c,r); $('pg').appendChild(row); });
+  typed($('ht'),g.name);
+}
+function control(c,r){
+  if(r.t==='bar'){ c.className='bar';
+    const draw=()=>{ c.innerHTML='<span class="pm">−</span><span class="cells">'+Array.from({length:20},(_,k)=>'<i class="'+(k<r.v/5?'on':'')+(k>=16&&k<r.v/5?' hot':'')+'"></i>').join('')+'</span><span class="pm">+</span><span class="val">'+r.v+'</span>';
+      const [m,cells,p]=c.children; m.onclick=()=>{r.v=Math.max(0,r.v-5);draw();toast();}; p.onclick=()=>{r.v=Math.min(100,r.v+5);draw();toast();};
+      cells.onclick=e=>{ const b=cells.getBoundingClientRect(); r.v=Math.round(Math.max(0,Math.min(1,(e.clientX-b.left)/b.width))*20)*5; draw(); toast(); }; };
+    draw(); }
+  else if(r.t==='tog'){ c.className='tog'+(r.v?' on':''); c.textContent=r.v?'ON':'OFF'; c.onclick=()=>{ r.v=!r.v; control(c,r); toast(); }; }
+  else if(r.t==='seg'){ c.className='seg'; c.innerHTML=r.o.map((o,k)=>'<span class="'+(k===r.v?'on':'')+'">'+o+'</span>').join(''); [...c.children].forEach((s,k)=>s.onclick=()=>{ r.v=k; control(c,r); toast(); }); }
+  else if(r.t==='num'){ c.className='kb'; c.innerHTML='<span style="min-width:60px">'+r.v+'</span>'; }
+  else if(r.t==='key'){ c.className='kb'; c.innerHTML=r.v.map(k=>'<span>'+k+'</span>').join('');
+    [...c.children].forEach((s,k)=>s.onclick=()=>{ if(waitKey) waitKey.el.classList.remove('wait'); s.classList.add('wait'); s.textContent='…'; waitKey={el:s,r,k}; }); }
+}
+/* the CRT switch: collapse to a bright line, swap, open again */
+function go(gi){
+  if(busy) return; busy=true;
+  const v=$('view'), dur=reduce?0:140;
+  v.style.transition='transform '+dur+'ms ease-in, filter '+dur+'ms'; v.style.transform='scaleY(.01)'; v.style.filter='brightness(3)';
+  setTimeout(()=>{ page=gi; if(gi===null) renderHome(); else renderPage(gi);
+    v.style.transition='transform '+(reduce?0:180)+'ms ease-out, filter 180ms'; v.style.transform='scaleY(1)'; v.style.filter='none';
+    setTimeout(()=>busy=false,reduce?0:190); },dur+20);
+}
+function toggleOpen(){
+  open=!open; $('lSet').classList.toggle('on',open); $('kSet').setAttribute('aria-pressed',open);
+  $('shutter').style.transform=open?'translateY(-100%)':'translateY(0)';
+  if(open){ page=null; sel=0; renderHome(); }
+}
+$('kSet').onclick=toggleOpen;
+$('kSet').onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggleOpen(); } };
+addEventListener('keydown',e=>{
+  if(waitKey){ e.preventDefault(); let k=e.key.length===1?e.key.toUpperCase():e.key.replace('Arrow','').toUpperCase(); if(k===' ') k='SPACE';
+    if(e.key!=='Escape'){ waitKey.r.v[waitKey.k]=k; } waitKey.el.classList.remove('wait'); waitKey.el.textContent=waitKey.r.v[waitKey.k]; waitKey=null; toast(); return; }
+  if(!open) return;
+  if(e.key==='Escape'){ e.preventDefault(); if(page!==null) go(null); else toggleOpen(); return; }
+  if(page===null){
+    const mv={ArrowRight:1,ArrowLeft:-1,ArrowDown:2,ArrowUp:-2}[e.key];
+    if(mv!==undefined){ e.preventDefault(); sel=(sel+mv+4)%4; markSel(); }
+    if(e.key==='Enter'){ e.preventDefault(); go(sel); }
+  }
+});
+function fit(){ $('stage').style.transform='scale('+($('frame').clientWidth/1280)+')'; }
+addEventListener('resize',fit); fit();
+// open on the groups at rest so the first view shows what it does
+setTimeout(()=>{ if(!open) toggleOpen(); }, reduce?0:500);
+</script>

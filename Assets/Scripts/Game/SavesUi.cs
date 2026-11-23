@@ -49,7 +49,7 @@ namespace Arena
         {
             savedRuns = SaveStore.List();
             deleteArmed = null;
-            menuJoinOpen = false;
+            menuJoinOpen = menuSetOpen = false;
             menuListScroll = menuListShown = 0f;
             menuListDrag = false;
             menuPlayOpen = true;
@@ -61,6 +61,7 @@ namespace Arena
             deleteArmed = null;
             menuPlayOpen = false;
             menuJoinOpen = false;
+            menuSetOpen = false;
         }
 
         /// Starts a fresh run: what Play used to do.
@@ -116,11 +117,7 @@ namespace Arena
                 var type = Event.current.type;
                 if (live && maxScroll > 0f)
                 {
-                    if (inside && type == EventType.ScrollWheel)
-                    {
-                        menuListScroll += Event.current.delta.y * 24f;
-                        Event.current.Use();
-                    }
+                    menuListScroll += WheelOver(list, live) * 24f;  // MachineLook.cs
                     if (type == EventType.MouseDown && grab.Contains(mouse))
                         menuListDrag = true;
                     if (menuListDrag && (type == EventType.MouseDown || type == EventType.MouseDrag))

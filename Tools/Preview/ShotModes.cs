@@ -529,6 +529,8 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("MENUINTRO") != null) { set("menuIntroDone", true); set("menuIntroT", float.Parse(Environment.GetEnvironmentVariable("MENUINTRO"), System.Globalization.CultureInfo.InvariantCulture)); }
       // BG=<n>: the menu background behind the menu, Who's playing? and the boot sequence (0: the Holo Floor, the game's own).
       if ((mode == "menu" || mode == "who" || mode == "whotr") && Environment.GetEnvironmentVariable("BG") != null) { set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG"))); set("menuBgOverride", true); set("bgProfile", Profile.Current); }
+      // MENUSET=<-1..3>: Settings on the bay's screen (BaySettings.cs): -1 the tiles, 0 Audio, 1 Visual effects, 2 Gameplay, 3 Keybinds; SETSCROLL=<px>.
+      if (mode == "menu" && Environment.GetEnvironmentVariable("MENUSET") != null) { int sg = int.Parse(Environment.GetEnvironmentVariable("MENUSET")); set("menuSetOpen", true); set("menuSetGroup", sg); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); set("menuSetShown", sg); set("menuSetShownAt", -100f); set("menuPlayK", 1f); if (Environment.GetEnvironmentVariable("SETSCROLL") != null) set("menuSetScroll", float.Parse(Environment.GetEnvironmentVariable("SETSCROLL"))); }
       if (Environment.GetEnvironmentVariable("JOINOPEN") != null) { set("menuJoinOpen", true); set("menuPlayK", 1f); }
       // MENUT=<s>: the menu's clock (Time.unscaledTime), e.g. MENUT=3 for the rooms drawn round the title and box (MenuHolo.cs).
       if (Environment.GetEnvironmentVariable("MENUT") != null) Time.unscaledTime = float.Parse(Environment.GetEnvironmentVariable("MENUT"), System.Globalization.CultureInfo.InvariantCulture);
@@ -539,6 +541,15 @@ static partial class Shot {
         var pool = typeof(ArenaApp).GetField("roomPool", f2).GetValue(app) as System.Collections.IList; var add = typeof(ArenaApp).GetMethod("AddRoomSpot", f2);
         foreach (var setArr in new[] { sets })
           foreach (var row in (System.Array)setArr) foreach (var m in (System.Array)row) add.Invoke(app, new object[] { m });
+      }
+      // WHEEL=<x>,<y>,<dy>: a mouse-wheel event there first (one draw on it), then the shot: to check scrolling.
+      if (Environment.GetEnvironmentVariable("WHEEL") != null) {
+        var wv = Environment.GetEnvironmentVariable("WHEEL").Split(',');
+        var keepPos = Event.current.mousePosition;
+        Event.current.type = EventType.ScrollWheel; Event.current.mousePosition = new Vector2(float.Parse(wv[0]), float.Parse(wv[1])); Event.current.delta = new Vector2(0f, float.Parse(wv[2]));
+        typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "who" ? "DrawWho" : "DrawProfTr", f2).Invoke(app, null);
+        Console.Error.WriteLine("after wheel: menuSetScroll=" + typeof(ArenaApp).GetField("menuSetScroll", f2).GetValue(app) + " menuListScroll=" + typeof(ArenaApp).GetField("menuListScroll", f2).GetValue(app) + " whoCarTarget=" + typeof(ArenaApp).GetField("whoCarTarget", f2).GetValue(app));
+        Event.current.type = EventType.Repaint; Event.current.mousePosition = keepPos;
       }
       typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "records" || mode == "cosmetics" || mode == "profile" ? "DrawProfile" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : mode == "pacman" ? "DrawPacman" : "DrawProfTr", f2).Invoke(app, null);
       GL.ToUi = false;

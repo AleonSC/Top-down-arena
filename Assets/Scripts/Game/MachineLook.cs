@@ -36,18 +36,24 @@ namespace Arena
             Ui.Fill(new Rect(r.x + radius, r.y + 2f, r.width - 2f * radius, 1f), new Color(1f, 1f, 1f, 0.35f));
         }
 
-        /// A neon outline round r (a 2 px bright line with a soft halo), in IMGUI so it clips with groups. k: its strength (more on a hit).
-        static void NeonBox(Rect r, float k, float flare = 0f)
+        /// A neon tube round r, following its rounded corners (radius: r's): a soft halo fading out from it, the bright tube, and a hot
+        /// white core along the tube. k: its strength; flare: extra glow (the case landing). In IMGUI, so it clips with groups.
+        static void NeonBox(Rect r, float k, float flare = 0f, int radius = 10)
         {
             if (k <= 0f)
                 return;
-            float spread = 10f + 26f * flare, haloA = (0.45f + 0.45f * flare) * k;
-            for (int i = 4; i >= 1; i--)
+            int rings = 7;
+            float spread = 12f + 22f * flare;
+            for (int i = rings; i >= 1; i--)  // the halo: wide, faint rings stepping outward
             {
-                float g = spread * i / 4f;
-                EdgeRing(new Rect(r.x - g, r.y - g, r.width + 2f * g, r.height + 2f * g), 2f, MachHalo.WithAlpha(haloA * 0.16f * (5 - i) / 4f));
+                float g = 2f + spread * i / rings, f = 1f - (float)i / (rings + 1);
+                var hr = new Rect(r.x - g, r.y - g, r.width + 2f * g, r.height + 2f * g);
+                Ui.RoundRim(hr, MachHalo.WithAlpha(k * (0.11f + 0.14f * flare) * f * f * 2f), radius + Mathf.RoundToInt(g), 4);
             }
-            EdgeRing(new Rect(r.x - 2f, r.y - 2f, r.width + 4f, r.height + 4f), 2f, MachNeon.WithAlpha(k));
+            var tube = new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f);
+            Ui.RoundRim(new Rect(tube.x - 1f, tube.y - 1f, tube.width + 2f, tube.height + 2f), MachHalo.WithAlpha(0.45f * k), radius + 4, 4);
+            Ui.RoundRim(tube, MachNeon.WithAlpha(0.95f * k), radius + 3, 2);
+            Ui.RoundRim(new Rect(tube.x + 0.5f, tube.y + 0.5f, tube.width - 1f, tube.height - 1f), new Color(1f, 1f, 1f, 0.55f * k), radius + 3, 1);
         }
 
         /// A rectangular ring of width w just inside r.
@@ -154,10 +160,32 @@ namespace Arena
             var face = new Rect(cap.x + 2f, cap.y + 2f, cap.width - 4f, cap.height - 4f);
             Ui.Dot(face, hover ? new Color(0.2f, 0.21f, 0.235f) : new Color(0.165f, 0.173f, 0.192f));
             Ui.Dot(new Rect(face.x + face.width * 0.08f, face.y + 1f, face.width * 0.84f, face.height * 0.8f), hover ? new Color(0.27f, 0.28f, 0.31f) : new Color(0.235f, 0.245f, 0.27f));
-            Ui.RadialGlow(new Rect(face.x + face.width * 0.15f, face.y - face.height * 0.05f, face.width * 0.7f, face.height * 0.6f), new Color(0.45f, 0.47f, 0.52f, 0.6f));
-            Ui.Fill(new Rect(cap.center.x - cap.width * 0.28f, cap.y + 3f, cap.width * 0.56f, 1f), new Color(1f, 1f, 1f, 0.35f));
+            Ui.RadialGlow(new Rect(face.x + face.width * 0.2f, face.y + face.height * 0.06f, face.width * 0.6f, face.height * 0.5f), new Color(0.45f, 0.47f, 0.52f, 0.55f));  // the dome's light, inside its edge
             Ui.Label(new Rect(cap.x, cap.y - 2f, cap.width, cap.height), glyph, 26, new Color(0.81f, 0.878f, 1f), TextAnchor.MiddleCenter, true);
             return live && Ui.HitArea(r);
+        }
+
+        static int wheelEvtFrame = -1, wheelReadFrame = -1;
+
+        /// The mouse wheel over r (live: it may be used), in IMGUI's wheel units (about 3 a notch; positive: down, toward the end).
+        /// Taken from a wheel event when one comes, else read once a frame on Repaint from the input, as the camera zoom does: IMGUI's
+        /// wheel events don't reach these lists in every setup. The machine's lists (the carousel, the runs, the bay's settings) use it.
+        static float WheelOver(Rect r, bool live)
+        {
+            var e = Event.current;
+            if (!live || !r.Contains(e.mousePosition))
+                return 0f;
+            if (e.type == EventType.ScrollWheel)
+            {
+                wheelEvtFrame = Time.frameCount;
+                float d = e.delta.y;
+                e.Use();
+                return d;
+            }
+            if (e.type != EventType.Repaint || wheelEvtFrame == Time.frameCount || wheelReadFrame == Time.frameCount)
+                return 0f;
+            wheelReadFrame = Time.frameCount;
+            return -Input.mouseScrollDelta.y * 3f;
         }
 
         /// A small label in the hardware's lettering (bold).

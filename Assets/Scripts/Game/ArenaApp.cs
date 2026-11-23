@@ -570,6 +570,10 @@ namespace Arena
                     else
                         CloseWindow(() => profileOpen = false);  // ProfileUi.cs
                 }
+                else if (menuSetOpen && session.Screen == AppScreen.Menu && MenuSettingsEsc())
+                {
+                    // the bay's settings: back to the tiles, or the shutter down (BaySettings.cs)
+                }
                 else if ((menuPlayOpen || menuJoinOpen) && session.Screen == AppScreen.Menu && GUIUtility.keyboardControl == 0)
                     PlayPickerBack();  // the case's bay: the shutter rolls back down (SavesUi.cs, MenuMachine.cs)
             }
