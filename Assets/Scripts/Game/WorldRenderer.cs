@@ -453,10 +453,7 @@ namespace Arena
                 }
             }
             if (p.Role == Role.Healer)
-            {
-                Circle(p.Disp, p.AuraRange, new Rgba(0.3f, 1f, 0.5f, 0.03f), 64);
-                Arc(p.Disp, p.AuraRange, 2f, new Rgba(0.3f, 1f, 0.5f, 0.18f), 64);
-            }
+                DrawHealerAura(p, t);  // HealerAuraLook.cs
             if (fxOn)
                 DrawBulwark(p, t);  // eight armour plates (BarrierLook.cs)
             else if (p.BarrierT > 0f)

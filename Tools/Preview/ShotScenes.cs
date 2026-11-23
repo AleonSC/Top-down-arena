@@ -524,6 +524,19 @@ static partial class Shot {
       }
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    if (Environment.GetEnvironmentVariable("HEALAURA") != null) {
+      // The Healer's aura (HealerAuraLook.cs): HEALAURA=<style 0-3>, a Healer Soldier in the middle, one ally inside the aura and one outside. Mode hud, 3 players.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear();
+      ArenaApp.AuraStyle = int.Parse(Environment.GetEnvironmentVariable("HEALAURA"));
+      me.Role = Role.Healer; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 0); me.MaxHp = me.Def.Hp; me.Hp = me.MaxHp;
+      foreach (var sl in me.Slots) sl.Id = AbilityId.None;
+      foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.AimAt = me.Pos + V2.FromAngle(me.Aim) * 200f;
+      int n = 0;
+      foreach (var q in gm.Players.Values) if (q != me) { var r = n == 0 ? Role.Tank : Role.Dps; q.Role = r; q.Kit = Kit.Soldier; q.Def = Defs.Get(r); q.Weapon = Defs.Weapon(r, Kit.Soldier, 0); q.MaxHp = q.Hp = q.Def.Hp; q.Pos = q.Disp = me.Pos + (n++ == 0 ? new V2(-95f, 70f) : new V2(230f, 40f)); }
+    }
     if (Environment.GetEnvironmentVariable("MOMENTUM") != null) {
       // Momentum (MomentumLook.cs): MOMENTUM=<stacks 0-5>, a DPS Soldier standing in the middle with that many stacks.
       var gm = host.Game; gm.Bot = false;
