@@ -262,6 +262,7 @@ namespace Arena
             Ui.RoundBox(r, CrtUi.T(new Color(0.016f, 0.039f, 0.094f)), 5);
             Ui.RadialGlow(new Rect(r.x + 10f, r.y + 6f, r.width - 20f, r.height - 12f), CrtUi.T(new Color(0.235f, 0.43f, 0.86f)).WithAlpha(0.18f));
             EdgeRing(new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f), 1f, CrtUi.T(new Color(0.102f, 0.141f, 0.251f)));
+            DrawHoloGlass(new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f), Time.unscaledTime);  // the Tab screen's hologram glass (TabHolo.cs)
             float crt = Seg(T, 4.0f, 4.3f), shown = Seg(T, 4.25f, 4.45f) * power;
             if (crt > 0f && crt < 1f)  // the tube coming on: a line across, then it opens top and bottom
             {
