@@ -821,6 +821,45 @@ static partial class Shot {
         gm.Effects.Add(new Effect { Kind = FxKind.JuggShard, Pos = hit, Pos2 = at, Color = new Rgba(1f, 0.82f, 0.45f), Radius = me.Id, Dur = Game.JuggShardFx, T = 0.03f + 0.045f * i });
       }
     }
+    if (Environment.GetEnvironmentVariable("COLOSSUS") != null) {
+      // A Tank Elementalist's Stone Colossus (StoneColossusLook.cs): COLOSSUS=<seconds since the cast> (the rise runs to 1 s; use 0.5 or 4),
+      // COLWIND=<the slam, 0-1> (0.3: fists up, 0.7: down), COLEND=1: the crumble (rubble and boulders COLEND s in); with enemies round
+      // it, a slam's cracks ahead and footfalls behind. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Elementalist; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Slots[Upgrades.UltSlot].Id = AbilityId.StoneColossus;
+      V2 from = new V2(620f, 470f);
+      me.Pos = me.Disp = from; me.Aim = -0.25f; me.AimAt = from + new V2(300f, -75f); me.Hp = me.MaxHp * 0.9f;
+      me.BarrierT = 0f; me.AegisT = 0f; me.OverdriveT = 0f; me.ShieldHp = 0f;
+      float ct = float.Parse(Environment.GetEnvironmentVariable("COLOSSUS"));
+      string end = Environment.GetEnvironmentVariable("COLEND");
+      var earth = Game.ColEarth;
+      if (end == null) {
+        me.ColAge = ct; me.ColT = Math.Max(0.1f, Game.ColRise + Game.ColTime - ct); me.UltT = me.ColT;
+        me.ColWind = float.Parse(Environment.GetEnvironmentVariable("COLWIND") ?? "0");
+      }
+      var rnd = new System.Random(4);
+      for (int i = 0; i < 9; i++) {
+        float ang = -1.4f + i * 0.42f + (float)rnd.NextDouble() * 0.2f;
+        V2 at = from + V2.FromAngle(ang) * (150f + (float)rnd.NextDouble() * 170f);
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i == 4 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.SpawnT = 0f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
+      }
+      if (end != null) {
+        float et = float.Parse(end);
+        gm.Effects.Add(new Effect { Kind = FxKind.TitanSlam, Pos = from, Pos2 = new V2(Game.TitanEarth + 2, 0f), Color = earth, Radius = 50f, Dur = Game.TitanRubbleTime, T = et });
+        gm.Effects.Add(new Effect { Kind = FxKind.TitanSlam, Pos = from, Pos2 = new V2(Game.ColFxBoulders, 0.3f), Color = earth, Radius = Game.ColRoll, Dur = Game.ColRollTime + 0.35f, T = et });
+      } else if (ct < Game.ColRise) {
+        gm.Effects.Add(new Effect { Kind = FxKind.TitanSlam, Pos = from, Pos2 = new V2(Game.TitanEarth + 1, 0f), Color = earth, Radius = Game.ColRiseRadius, Dur = Game.TitanCrackTime, T = ct });
+      } else {
+        V2 slam = from + V2.FromAngle(me.Aim) * Game.ColSlamAhead;
+        if (me.ColWind == 0f)
+          gm.Effects.Add(new Effect { Kind = FxKind.TitanSlam, Pos = slam, Pos2 = new V2(Game.TitanEarth, 0f), Color = earth, Radius = Game.ColSlamRadius, Dur = Game.TitanCrackTime, T = 0.25f });
+        for (int i = 0; i < 4; i++)
+          gm.Effects.Add(new Effect { Kind = FxKind.TitanSlam, Pos = from + new V2(-60f - 42f * i, 18f * (i % 2 == 0 ? -1f : 1f) + 10f * i), Pos2 = new V2(Game.ColFxStomp, 0f), Color = earth, Radius = Game.ColStompRadius * 1.3f, Dur = 2.2f, T = 0.12f + 0.42f * i });
+      }
+    }
     if (Environment.GetEnvironmentVariable("TITHE") != null) {
       // A tank Hemomancer's Vein Tithe (VeinTitheLook.cs): TITHE=<seconds since the cast> (the arteries grow to 1.2 s, then beat once a second; use 0.6 or 4.3),
       // with nine enemies held around. TITHESNAP=<seconds since it ended> shows the arteries letting go instead. Use with mode hud.

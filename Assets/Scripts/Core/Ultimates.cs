@@ -174,6 +174,10 @@ namespace Arena
                     CastLightningRod(p, cap);
                     break;
 
+                case AbilityId.StoneColossus:  // Tank: Elementalist, the third ultimate (StoneColossus.cs)
+                    CastColossus(p, cap);
+                    break;
+
                 case AbilityId.DragonsDogma:  // Tank: Ninja, the second ultimate (DragonsDogma.cs)
                     CastDogma(p, cap);
                     break;
