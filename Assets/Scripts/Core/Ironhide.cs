@@ -2,27 +2,54 @@ using System;
 
 namespace Arena
 {
-    /// The Tank role's passive, Ironhide: a shield of IronhideMax that takes IronhideShare of each hit (the rest still reaches
-    /// health, so wounds still build; owner Nov 24) after ability shields, before a shrine's health past max, and refills at IronhideRegen a second once you've gone IronhideDelay seconds
-    /// without taking damage. Going down empties it; it starts full. Healer has the aura and DPS Momentum; a Wildcard
-    /// has none. Kept as damage taken off the shield (Player.IronLost) so a new player starts full with no set-up.
+    /// The Tank role's passive, Ironhide: a shield that takes IronhideShare of each hit (the rest still reaches health, so
+    /// wounds still build; owner Nov 24) after ability shields, before a shrine's health past max, and refills at
+    /// IronhideRegen a second once you've gone IronhideDelay seconds without taking damage. Going down empties it; it
+    /// starts full. Healer has the aura and DPS Momentum; a Wildcard has none. Kept as damage taken off the shield
+    /// (Player.IronLost) so a new player starts full with no set-up.
+    /// Cards (Tank only): Iron Plates (+IronPlatesBonus), Quick Refit (the wait IronRefitCut shorter, the refill
+    /// IronRefitRegen faster) and Shared Plating (your whole shield halved, so every plate counts half; every other player
+    /// gets a fixed IronShareGift shield that works like Ironhide at the base share, wait and refill; it never stacks).
+    /// The host works out each player's cap (Player.IronCap, in the snapshot) every tick.
     public partial class Game
     {
         public const float IronhideMax = 25f, IronhideShare = 0.5f, IronhideRegen = 25f, IronhideDelay = 3f;
+        public const float IronPlatesBonus = 15f, IronRefitCut = 0.5f, IronRefitRegen = 0.25f, IronShareGift = 25f, IronShareKeep = 0.5f;
         /// Tools only: SimTest turns Ironhide off so the many tests that read a Tank's health loss stay exact
         /// (the `ironhide` test turns it back on). Never set in the game.
         public static bool IronhideOff;
 
-        /// The shield a player has now: 0 for anyone but a Tank.
-        public static float Ironhide(Player p) => p.Role == Role.Tank && !IronhideOff ? Math.Max(0f, IronhideMax - p.IronLost) : 0f;
+        /// The shield a player has now: 0 for anyone without one (a Tank, or an ally of a Tank with Shared Plating).
+        public static float Ironhide(Player p) => IronhideOff ? 0f : Math.Max(0f, p.IronCap - p.IronLost);
+
+        /// A Tank's own Ironhide: the base plus Iron Plates, halved by Shared Plating.
+        public static float OwnIronCap(Player p) => p.Role != Role.Tank ? 0f
+            : (IronhideMax + p.Stats.IronBonus) * (p.Stats.SharedPlating ? IronShareKeep : 1f);
+
+        /// The most a player's shield holds: their own Ironhide plus the Shared Plating gift from another Tank (once however
+        /// many give it).
+        float IronCapOf(Player p)
+        {
+            if (IronhideOff)
+                return 0f;
+            float cap = OwnIronCap(p);
+            foreach (var q in Players.Values)
+                if (q != p && q.Role == Role.Tank && q.Stats.SharedPlating)
+                    return cap + IronShareGift;
+            return cap;
+        }
+
+        /// The wait and refill rate: a Tank's own Quick Refit cards; anyone else has the base ones.
+        static float IronDelayOf(Player p) => Math.Max(0f, IronhideDelay - (p.Role == Role.Tank ? p.Stats.IronDelayCut : 0f));
+        static float IronRegenOf(Player p) => IronhideRegen * (p.Role == Role.Tank ? p.Stats.IronRegenMult : 1f);
 
         /// Damage (Combat.cs): any damage that reaches the shield restarts the wait; the shield takes IronhideShare of the hit
         /// (all it has left at most) and the rest goes on to health.
         float IronhideSoak(Player p, float amount)
         {
-            if (p.Role != Role.Tank || amount <= 0f || IronhideOff)
+            if (p.IronCap <= 0f || amount <= 0f || IronhideOff)
                 return amount;
-            p.IronWait = IronhideDelay;
+            p.IronWait = IronDelayOf(p);
             float soak = Math.Min(Ironhide(p), amount * IronhideShare);
             p.IronLost += soak;
             return amount - soak;
@@ -30,18 +57,24 @@ namespace Arena
 
         void TickIronhide(Player p, float dt)
         {
-            if (p.Role != Role.Tank)
+            p.IronCap = IronCapOf(p);
+            if (p.IronCap <= 0f)
+            {
+                p.IronLost = p.IronWait = 0f;
                 return;
+            }
+            if (p.IronLost > p.IronCap)
+                p.IronLost = p.IronCap;  // (the cap shrank: Shared Plating)
             if (p.Downed)
             {
-                p.IronLost = IronhideMax;
-                p.IronWait = IronhideDelay;
+                p.IronLost = p.IronCap;
+                p.IronWait = IronDelayOf(p);
                 return;
             }
             if (p.IronWait > 0f)
                 p.IronWait = Math.Max(0f, p.IronWait - dt);
             else if (p.IronLost > 0f)
-                p.IronLost = Math.Max(0f, p.IronLost - IronhideRegen * dt);
+                p.IronLost = Math.Max(0f, p.IronLost - IronRegenOf(p) * dt);
         }
     }
 }
