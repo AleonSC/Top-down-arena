@@ -180,6 +180,36 @@ namespace Arena
                     Slow(e, 0.5f, 1f - touched.ExtraSlow);
                 }
             }
+            if (!PvpOn)
+                return;
+            foreach (var q in Players.Values)  // PvP: another player's wall keeps you off it and bleeds you too (Pvp.cs)
+            {
+                if (q.Downed || q.WarpT > 0f)
+                    continue;
+                var s = StandOf(q);
+                Zone touched = null;
+                V2 push = V2.Zero;
+                foreach (var z in wallNodes)
+                {
+                    if (z.Owner == q.Id)
+                        continue;
+                    float reach = z.Radius + s.Radius;
+                    V2 c = ClosestOn(WallFrom(z), z.Pos, s.Pos), off = s.Pos - c;
+                    float d = off.Length;
+                    if (d >= reach + 2f)
+                        continue;
+                    touched = touched ?? z;
+                    if (d < reach)
+                        push += (d > 0.01f ? off / d : (z.Pos - WallFrom(z)).Orthogonal().Normalized()) * (reach + 0.5f - d);
+                }
+                PvpWallPush(q, push);
+                if (touched == null || !tick)
+                    continue;
+                bool mastered = touched.ExtraSlow > 0f;
+                HurtEnemy(s, WallContactDps * WallContactTick * touched.DmgMult * (mastered ? 2f : 1f), touched.Owner);
+                if (mastered)
+                    Slow(s, 0.5f, 1f - touched.ExtraSlow);
+            }
         }
 
         /// Host, from the enemy-bullet loop (Combat.cs): an enemy shot reaching a blood wall stops there, red aimed shots too.

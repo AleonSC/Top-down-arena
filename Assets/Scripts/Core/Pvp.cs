@@ -58,6 +58,22 @@ namespace Arena
             return s;
         }
 
+        readonly Dictionary<int, float> wallPushAt = new Dictionary<int, float>();
+        public const float PvpWallPushGap = 0.12f;  // a wall's push-out goes to a player's game at most this often
+
+        /// Host, PvP: another player's wall (Blood Wall, Ossuary Wall) pushes q out by `push`. Players move on their own game, so
+        /// it's a knockback (KnockPlayer), sent no more often than PvpWallPushGap.
+        void PvpWallPush(Player q, V2 push)
+        {
+            if (push.Length < 0.5f)
+                return;
+            float last;
+            if (wallPushAt.TryGetValue(q.Id, out last) && hostClock - last < PvpWallPushGap)
+                return;
+            wallPushAt[q.Id] = hostClock;
+            KnockPlayer(q, push, push.Length + 4f);
+        }
+
         /// Host: an attack by player `attacker` landed on player q (through their stand-in).
         /// `tick`: damage over time (a burn, a poison, ink), which a hit's grace doesn't stop and which leaves no grace behind.
         void PvpHurt(Player q, float dmg, int attacker, bool tick = false)
