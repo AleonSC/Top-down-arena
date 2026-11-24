@@ -28,6 +28,9 @@ namespace Arena
         public int Dodges;      // your own game: dodges made, counted up (the floor's burst ripple watches it; FloorGridLook.cs)
         public V2 DodgeFrom;    // your own game: where the last dodge started
         public const float KickMinPush = 0.5f, KickFacing = 0.35f;  // a push-out this many px, this square against the dash (dot), is a wall hit
+        public const float KickReach = 70f;  // a Dodge ending this close short of a wall stretches on to it and kicks
+        public const float KickDist = 150f, KickTime = 0.13f;  // the kickoff: a fresh dash this far, this fast (the Dodge is 95 px in 0.11 s)
+        bool kickReached;       // your own game: this Dodge already stretched on to a wall (once a dodge)
         bool kickDash;          // your own game: the dash running now is a Dodge that can still kick off a wall
         V2 kickDir;             // the Dodge's DashDir (another dash taking over changes it)
         float kickFreeT;        // your own game: seconds left to use the free dodge a wall kick gave back
@@ -71,6 +74,7 @@ namespace Arena
             bool free = kickFreeT > 0f;  // the dodge a wall kick gave back: it can't kick again
             kickFreeT = 0f;
             kickDash = !free;
+            kickReached = false;
             kickDir = dir;
             Dodges++;
             DodgeFrom = me.Pos;
@@ -78,7 +82,10 @@ namespace Arena
             SprintT = 0f;
             me.InvulnT = Math.Max(me.InvulnT, DodgeInvuln);
             if (IsHost)
+            {
                 me.GhostT = me.Stats.GhostTime;  // Ghost Step (the host resolves damage; a client's comes in OnDodge)
+                DrillDodged(me.Id);  // the Dodge drill (DrillGame.cs)
+            }
             AddFx(FxKind.Ring, me.Pos, new Rgba(0.75f, 0.85f, 1f), 22f, 0.25f);
             Sounds.Add(Sfx.DodgeSwish);  // your own screen only
             if (IsHost)
@@ -103,6 +110,8 @@ namespace Arena
             if (d > -KickFacing)
                 return;  // glancing along the wall: slide on
             DashDir = (DashDir - n * (2f * d)).Normalized();
+            DashT = KickTime;  // kick off harder than the dodge came in
+            dashSpeed = KickDist / KickTime;
             kickDash = false;
             dodgeCd = 0f;
             kickFreeT = DodgeCd;
@@ -112,6 +121,31 @@ namespace Arena
             DodgeFrom = me.Pos;
             AddFx(FxKind.Ring, WallKickAt, new Rgba(1f, 0.85f, 0.45f), 26f, 0.25f);
             Sounds.Add(Sfx.DodgeSwish);
+            DrillNoteKick();  // the Wall Kick drill (DrillGame.cs)
+        }
+
+        /// Your own game, each dash tick before it moves: a kick-ready Dodge about to end with a wall within KickReach
+        /// straight ahead runs on until it reaches it (then WallKick bounces it off).
+        void KickReachOn(Player me, float dt)
+        {
+            if (!kickDash || kickReached || DashT > dt || DashDir.X != kickDir.X || DashDir.Y != kickDir.Y)
+                return;
+            float r = me.Def.HitR + PropPad, step = 6f;
+            for (float s = step; s <= KickReach + step * 0.5f; s += step)
+            {
+                V2 p = me.Pos + DashDir * (dashSpeed * DashT + s);
+                V2 o = p;
+                if (Props.Count > 0 || LayoutOn)
+                    o = PushOutOfProps(o, r);
+                if (Walled)
+                    o = KeepInArena(o, me.Def.BodyR);
+                V2 push = o - p;
+                if (push.Length < KickMinPush || DashDir.Dot(push.Normalized()) > -KickFacing)
+                    continue;
+                kickReached = true;
+                DashT += (s + step) / dashSpeed;  // a little past it, so the push-out registers the hit
+                return;
+            }
         }
 
         /// Host: a client dodged. They are invulnerable from now on for a moment.
@@ -132,6 +166,7 @@ namespace Arena
             hostDodgeAt[peer] = hostClock;
             p.InvulnT = Math.Max(p.InvulnT, DodgeInvuln);
             p.GhostT = p.Stats.GhostTime;  // Ghost Step
+            DrillDodged(p.Id);  // the Dodge drill (DrillGame.cs)
         }
     }
 }

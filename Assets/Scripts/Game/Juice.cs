@@ -37,6 +37,7 @@ namespace Arena
             fxNumbers = PlayerPrefs.GetInt("fx_numbers", 1) == 1;
             fxReduced = PlayerPrefs.GetInt("fx_reduced", 0) == 1;
             fxCallouts = PlayerPrefs.GetInt("fx_callouts", 1) == 1;  // AbilityLooks.cs
+            lightsOn = PlayerPrefs.GetInt("lights_on", 1) == 1;  // LightingLook.cs
             floorBend = PlayerPrefs.GetInt("floor_bend", 1) == 1;  // FloorGridLook.cs
             floorStyle = Mathf.Clamp(PlayerPrefs.GetInt("floor_style", 0), 0, FloorStyleNames.Length - 1);  // FloorStylesLook.cs
             CrtUi.Theme = PlayerPrefs.GetInt("crt_theme", 0);
@@ -57,6 +58,7 @@ namespace Arena
             PlayerPrefs.SetInt("fx_numbers", fxNumbers ? 1 : 0);
             PlayerPrefs.SetInt("fx_reduced", fxReduced ? 1 : 0);
             PlayerPrefs.SetInt("fx_callouts", fxCallouts ? 1 : 0);
+            PlayerPrefs.SetInt("lights_on", lightsOn ? 1 : 0);
             PlayerPrefs.SetInt("floor_bend", floorBend ? 1 : 0);
             PlayerPrefs.SetInt("floor_style", floorStyle);
             PlayerPrefs.SetInt("crt_theme", CrtUi.Theme);
@@ -1141,6 +1143,7 @@ namespace Arena
         /// The additive pass: halos that add light. Called between two GL batches with the additive material set.
         void DrawGlowPass()
         {
+            DrawLightHaze();  // the dynamic lights' haze over the bodies (LightingLook.cs)
             foreach (var b in game.Bullets.Values)
                 ShotGlow(b);  // ShotLooks.cs
             DrawFumaGlow();  // the Fuma Shuriken's trails and halos (FumaLook.cs)

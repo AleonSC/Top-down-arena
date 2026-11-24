@@ -341,6 +341,9 @@ namespace Arena
             var w = p.Weapon;  // its Speed, Life and Damage (Defs)
             switch (w.Id)
             {
+                case WeaponId.TrainingPistol:  // Training's recruit (Training.cs): one plain round
+                    SpawnBullet(Defs.DpsShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                    break;
                 case WeaponId.Scattergun:
                 {
                     // +2 pellets and a 15% tighter cone per extra projectile.

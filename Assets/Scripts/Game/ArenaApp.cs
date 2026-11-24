@@ -364,6 +364,14 @@ namespace Arena
                 Keybinds.ChatOpen = true;  // typing in a dock field (the stat filter, a value): the keyboard is the field's, no moving or casting
             else if (!chatOpen)
                 Keybinds.ChatOpen = false;
+            // Right click while the Gadget key is held cancels the throw (GadgetLook.cs); that click doesn't also parry or fire.
+            if (CancelGadgetThrow())
+            {
+                if (Keybinds.Down(KeyAction.Parry))
+                    parryOnMenu = true;
+                if (Keybinds.Down(KeyAction.Fire))
+                    fireOnMenu = true;
+            }
             // Fire and Parry (a key or a mouse button, Keybinds) pressed while a menu was up stay off until let go.
             if ((overlay || emoteBarOpen || pingWheelOpen || gadgetWheelOpen) && Keybinds.Down(KeyAction.Fire))
                 fireOnMenu = true;

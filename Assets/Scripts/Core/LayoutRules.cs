@@ -23,6 +23,8 @@ namespace Arena
         {
             get
             {
+                if (DrillOn && Training.Drills[Drill].Key == "wallkick")
+                    return Training.KickLayout(Width, Height);  // the Wall Kick drill's panels (DrillGame.cs)
                 if (RoomsOn)
                     return CurrentWorld.With(Layout);  // the floor plan in the hub, the rooms' walls round it (Rooms.cs)
                 if (Layout == LayoutId.Open || InRoom || !ModeRules.Extras || ShowcaseMode)

@@ -447,6 +447,8 @@ namespace Arena
             for (int i = 1; i < ids.Length; i++)
                 ids[i] = AbilityId.None;
             ids[Upgrades.UltSlot] = Upgrades.Ultimate(p.Role, p.UltKit, p.UltPick);  // the lobby's Ultimate row pick (0: the default one)
+            if (p.Recruit)
+                ids[0] = ids[Upgrades.UltSlot] = AbilityId.None;  // a Training recruit has no abilities (DrillGame.cs)
             // 2nd–4th abilities go on the keys their owner chose; any others take the first free key.
             var granted = new List<AbilityId>();
             if (p.WildcardAbility != AbilityId.None)
@@ -493,7 +495,7 @@ namespace Arena
                     slot.Id = ids[i];
                     slot.Charges = max;
                     slot.Timer = 0f;
-                    if (i == Upgrades.UltSlot)
+                    if (i == Upgrades.UltSlot && ids[i] != AbilityId.None)  // (a Training recruit has none)
                     {
                         // The ultimate starts half charged.
                         slot.Charges = 0;
@@ -1017,6 +1019,7 @@ namespace Arena
             UpdateInkView(dt);     // Chalk.cs: the chalk's tip easing, a client's ink ageing
             UpdateWardenView(dt);  // Warden.cs
             UpdateHoldingCellView(dt);  // HoldingCell.cs
+            UpdateDrillView(dt);   // DrillGame.cs: a client's drill clocks and walls, and its own finish
             UpdateSingView(dt);    // Singularity.cs
             UpdateHeraldView(dt);  // Herald.cs
             UpdateEclipseView(dt); // Eclipse.cs
@@ -1217,6 +1220,7 @@ namespace Arena
                 DashT = 0f;
             else if (DashT > 0f)
             {
+                KickReachOn(me, dt);  // a Dodge ending just short of a wall reaches on to it (Dodge.cs)
                 DashT -= dt;
                 me.Pos += DashDir * dashSpeed * dt;
                 iceVel = DashDir * me.Speed * Paths.IceTopSpeed;  // on ice you slide out of a dash

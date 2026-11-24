@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
@@ -59,6 +60,15 @@ static partial class Program
                 "START DRILL starts the drill on every machine, a runner each, on the classic arena with no enemies");
             var me = g.Players[host.MyId];
             var mine = g.DrillRunners[host.MyId];
+            bool recruits = true;
+            foreach (var game in new[] { g, c })
+                foreach (var q in game.Players.Values)
+                    recruits &= q.Recruit && q.Weapon.Id == WeaponId.TrainingPistol && q.Role == Role.Dps && q.Slots.All(sl => sl.Id == AbilityId.None) && q.Perks.Length == 0;
+            int shotsBefore = g.Bullets.Count;
+            for (int f = 0; f < 20; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = me.Pos + new V2(300f, 0f) }); g.Update(dt); }
+            bool fired = g.Bullets.Values.Any(b => b.Owner == host.MyId);
+            Check(recruits && fired && Defs.WeaponOf(WeaponId.TrainingPistol) == Training.Pistol && !Defs.Weapons.Contains(Training.Pistol),
+                "a drill makes everyone a plain recruit on every machine (no abilities, ultimate or perks) with the Training Pistol, which fires and is in no lobby list");
             var hurt = typeof(Game).GetMethod("HurtEnemy", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             bool othersBounce = true, stood = true;
             int steps = 0;
@@ -91,6 +101,155 @@ static partial class Program
             Run(new[] { host, client }, dt, 0.5f);
             Check(g.DrillOn && !g.DrillRunners[host.MyId].Done && g.DrillRunners[host.MyId].Step == 0 && hostProfile.DrillBestTime("move") > 0f,
                 "Retry starts the drill over and keeps the best time");
+            // Dodge: the first wall is taken standing still (a hit, it comes again), then six dodged as they reach you.
+            host.StartDrill(1);
+            Run(new[] { host, client }, dt, 0.5f);
+            mine = g.DrillRunners[host.MyId];
+            me = g.Players[host.MyId];
+            var dodged = typeof(Game).GetMethod("DrillDodged", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            bool sawWallOnClient = false;
+            Run(new[] { host, client }, dt, 12f, () => mine.Hits > 0, () =>
+            {
+                me.Pos = new V2(800f, 450f);
+                sawWallOnClient |= c.DrillRunners.TryGetValue(host.MyId, out var cw) && !float.IsNaN(cw.Wall);
+            });
+            Check(g.DrillOn && g.Drill == 1 && mine.Hits == 1 && mine.Step == 0 && sawWallOnClient,
+                "Dodge: a wall that reaches you without a dodge is a hit and doesn't count; the friend's game shows the wall");
+            Run(new[] { host, client }, dt, 40f, () => mine.Done, () =>
+            {
+                me.Pos = new V2(800f, 450f);
+                if (!float.IsNaN(mine.Wall) && Math.Abs(mine.Wall - me.Pos.X) < 30f && mine.SinceDodge > 1f)
+                    dodged.Invoke(g, new object[] { host.MyId });
+            });
+            Run(new[] { host, client }, dt, 0.3f);
+            Check(mine.Done && mine.Step == Training.DodgeSteps && mine.Hits == 1 && c.DrillRunners[host.MyId].Done && c.DrillRunners[host.MyId].Hits == 1
+                && hostProfile.DrillBestTime("dodge") > 0f,
+                "Dodge: dodging as each wall reaches you takes you through all six; the finish and the hit count reach the friend, and the best time is kept");
+            // Wall Kick: the friend kicks off the three panels (their own game sees each kick and tells the host), then reaches the flag.
+            host.StartDrill(2);
+            Run(new[] { host, client }, dt, 0.5f);
+            var friend = g.DrillRunners[client.MyId];
+            var cliMe = c.Players[client.MyId];
+            Check(g.Drill == 2 && g.LayoutOn && g.ActiveLayout.Solids.Length == Training.KickWalls && c.LayoutOn,
+                "Wall Kick: the three panels stand in the arena on every machine");
+            Func<int, PlayerInput> idle = f => new PlayerInput { AimAt = new V2(800f, 450f) };
+            Action<float, Func<int, PlayerInput>> play = (secs, ci) =>
+            {
+                for (int f = 0; f < secs / dt; f++)
+                {
+                    host.Poll(); g.FixedStep(dt, idle(f)); g.Update(dt);
+                    client.Poll(); c.FixedStep(dt, ci(f)); c.Update(dt);
+                }
+            };
+            int kicksBefore = c.WallKicks;
+            // A kick off the wrong panel (the third, while the first is lit) doesn't count.
+            var p3 = Training.KickPanel(2, Game.Width, Game.Height);
+            cliMe.Pos = p3.Pos - new V2(p3.HW + 50f, 0f);
+            play(Game.DodgeCd, idle);
+            play(0.3f, f => new PlayerInput { Dodge = f == 0, Move = f == 0 ? new V2(1f, 0f) : V2.Zero, AimAt = new V2(800f, 450f) });
+            play(0.2f, idle);
+            bool wrongIgnored = c.WallKicks > kicksBefore && friend.Step == 0;
+            var stepsAfter = new List<int>();
+            for (int i = 0; i < Training.KickWalls; i++)
+            {
+                var pn = Training.KickPanel(i, Game.Width, Game.Height);
+                bool tall = pn.HH > pn.HW;
+                V2 into = tall ? new V2(1f, 0f) : new V2(0f, 1f);
+                cliMe.Pos = pn.Pos - (tall ? new V2(pn.HW + 50f, 0f) : new V2(0f, pn.HH + 50f));
+                play(Game.DodgeCd, idle);
+                play(0.3f, f => new PlayerInput { Dodge = f == 0, Move = f == 0 ? into : V2.Zero, AimAt = new V2(800f, 450f) });
+                play(0.2f, idle);
+                stepsAfter.Add(friend.Step);
+            }
+            Check(wrongIgnored && stepsAfter.Count == 3 && stepsAfter[0] == 1 && stepsAfter[1] == 2 && stepsAfter[2] == 3,
+                "Wall Kick: each kick off the lit panel is a step, sent from the friend's own game; a kick off another panel isn't");
+            cliMe.Pos = Training.KickFlag(Game.Width, Game.Height);
+            play(0.5f, idle);
+            Check(friend.Done && c.DrillRunners[client.MyId].Done && client.Game.ProfileOverride.DrillBestTime("wallkick") > 0f && hostProfile.DrillBestTime("wallkick") == 0f,
+                "Wall Kick: reaching the flag finishes it; the friend's game keeps the friend's best time");
+            // Shoot: twelve targets one at a time; the first three stand still, the rest slide along their lanes, faster each time.
+            host.StartDrill(3);
+            Run(new[] { host, client }, dt, 0.5f);
+            mine = g.DrillRunners[host.MyId];
+            bool stillFirst = true, slideLater = true, friendBounces = true, oneAtATime = true;
+            float lastSpeed = 0f;
+            for (int i = 0; i < Training.ShootSteps; i++)
+            {
+                Run(new[] { host, client }, dt, 2f, () => mine.TargetId != 0 && g.Enemies.ContainsKey(mine.TargetId));
+                if (mine.TargetId == 0 || !g.Enemies.TryGetValue(mine.TargetId, out var tgt))
+                    break;
+                var at0 = tgt.Pos;
+                Run(new[] { host, client }, dt, 0.6f);
+                float moved = (tgt.Pos - at0).Length, speed = Training.ShootSpeedAt(i);
+                if (i < Training.ShootStill) stillFirst &= moved < 1f;
+                else { slideLater &= moved > 20f && speed > lastSpeed; lastSpeed = speed; }
+                int mineUp = 0;
+                foreach (var e in g.Enemies.Values) if (g.DrillTargetOf(e, out int o) && o == host.MyId) mineUp++;
+                oneAtATime &= mineUp == 1;
+                float hp0 = tgt.Hp;
+                hurt.Invoke(g, new object[] { tgt, 9999f, client.MyId });
+                friendBounces &= tgt.Hp == hp0;
+                hurt.Invoke(g, new object[] { tgt, 9999f, host.MyId });
+                Run(new[] { host, client }, dt, 0.1f);
+            }
+            Run(new[] { host, client }, dt, 0.3f);
+            Check(mine.Done && mine.Step == Training.ShootSteps && stillFirst && slideLater && friendBounces && oneAtATime && c.DrillRunners[host.MyId].Done,
+                "Shoot: twelve targets one at a time, the first three still and the rest sliding faster each time; only your hits count");
+            // Parry: shots home in from changing sides; the shield up and facing blocks, anything else is a hit.
+            host.StartDrill(4);
+            Run(new[] { host, client }, dt, 0.3f);
+            mine = g.DrillRunners[host.MyId];
+            me = g.Players[host.MyId];
+            me.Pos = new V2(800f, 450f);
+            g.HoldParry = false;
+            Run(new[] { host, client }, dt, 5f, () => mine.Hits > 0, () => { me.Pos = new V2(800f, 450f); });
+            bool downHit = mine.Hits == 1 && mine.Step == 0;
+            Run(new[] { host, client }, dt, 5f, () => mine.Hits > 1, () =>
+            {
+                me.Pos = new V2(800f, 450f); g.HoldParry = true;
+                if (mine.ShotUp) aimOverride = me.Pos * 2f - mine.Shot;  // the shield turned away from it
+            });
+            bool awayHit = mine.Hits == 2 && mine.Step == 0;
+            var sides = new HashSet<int>();
+            Run(new[] { host, client }, dt, 40f, () => mine.Done, () =>
+            {
+                me.Pos = new V2(800f, 450f); g.HoldParry = true;
+                if (mine.ShotUp)
+                {
+                    aimOverride = mine.Shot;
+                    sides.Add((int)Math.Round((mine.Shot - me.Pos).Angle / (Math.PI / 4)));
+                }
+            });
+            g.HoldParry = false;
+            aimOverride = null;
+            Run(new[] { host, client }, dt, 0.3f);
+            Check(downHit && awayHit && mine.Done && mine.Step == Training.ParrySteps && mine.Hits == 2 && sides.Count >= 4 && c.DrillRunners[host.MyId].Done
+                && c.DrillRunners[host.MyId].Hits == 2,
+                "Parry: a shot meeting a lowered shield, or one facing away, is a hit; facing each shot blocks all ten, from many sides");
+            // Read the Tells: each wind-up is aimed where you stand; staying put is a hit, stepping out of it slips it.
+            host.StartDrill(5);
+            Run(new[] { host, client }, dt, 0.3f);
+            mine = g.DrillRunners[host.MyId];
+            me = g.Players[host.MyId];
+            Run(new[] { host, client }, dt, 5f, () => mine.Hits > 0, () => me.Pos = new V2(800f, 450f));
+            bool stoodHit = mine.Hits == 1 && mine.Step == 0;
+            var kinds = new HashSet<byte>();
+            Run(new[] { host, client }, dt, 40f, () => mine.Done, () =>
+            {
+                if (!mine.TellUp)
+                {
+                    me.Pos = new V2(800f, 450f);
+                    return;
+                }
+                kinds.Add(mine.TellKind);
+                V2 tellDir = mine.TellKind == Training.TellCircle ? new V2(1f, 0f) : (mine.TellAt - mine.TellFrom).Normalized();
+                me.Pos = mine.TellAt + new V2(-tellDir.Y, tellDir.X) * (mine.TellKind == Training.TellCircle ? Training.TellCircleR + 30f : Training.TellLaneHalf + 30f);
+            });
+            Run(new[] { host, client }, dt, 0.3f);
+            Check(stoodHit && mine.Done && mine.Step == Training.TellSteps && mine.Hits == 1 && kinds.Count == 3 && c.DrillRunners[host.MyId].Done
+                && Training.TellCatches(Training.TellLine, new V2(0f, 0f), new V2(100f, 0f), new V2(900f, 10f)) && !Training.TellCatches(Training.TellLine, new V2(0f, 0f), new V2(100f, 0f), new V2(50f, 40f))
+                && Training.TellCatches(Training.TellLane, new V2(0f, 0f), new V2(100f, 0f), new V2(300f, 40f)) && !Training.TellCatches(Training.TellLane, new V2(0f, 0f), new V2(100f, 0f), new V2(500f, 0f)),
+                "Read the Tells: standing in a wind-up is a hit; stepping out of each slips all eight (lines, lanes and circles)");
             host.ReturnToLobby();
             WaitForLobby(host, client);
             Check(!g.DrillOn && !c.DrillOn && host.Screen == AppScreen.Lobby && client.Screen == AppScreen.Lobby && host.TrainingMode,

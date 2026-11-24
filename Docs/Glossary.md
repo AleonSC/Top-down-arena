@@ -81,6 +81,7 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 | **run** | one game, start to end, in any mode; never "match" | `MatchState`, `Game.State` |
 | **Campaign run**, **Quick Play run**, **Boss Hunt run**, **Survival run** | a run in that mode | `GameMode` |
 | **Training**, **drill** | the lobby mode of short drills, one mechanic each, started from its page; a drill's best time earns a medal (gold, silver, bronze) | `GameMode.Training`, `Training.cs`, `TrainingUi.cs` |
+| **recruit**, **Training Pistol** | everyone in a drill: a plain character with no class or role look, no abilities, ultimate or perks, and the Training Pistol (a weapon in no lobby list) | `Player.Recruit`, `Game.MakeRecruit`, `RecruitLook.cs`, `WeaponId.TrainingPistol`, `Training.Pistol` |
 | **Practice** | the lobby's shared room in the loadout window: the real match held between waves, PvP on, enemy spawners (never "Hangout" in text; the code still says Hangout) | `GameMode.Hangout`, `Game.Practicing`, `HangoutGame.cs`, `HangoutUi.cs` |
 
 ## Places
