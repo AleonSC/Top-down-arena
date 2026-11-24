@@ -605,6 +605,8 @@ namespace Arena
                 DrawQuarryBody(e, pos, r, col, t);  // QuarryLook.cs: the Colossus's faction
             else if (CourtKin.Is(e.Type))
                 DrawCourtBody(e, pos, r, col, t);   // CourtLook.cs: the Duelist's faction
+            else if (e.Type == EnemyType.Duelist || e.Type == EnemyType.Decoy)
+                DrawDuelistBody(e, pos, r, t);  // DuelistBodyLook.cs: the Maestro
             else if (LarderKin.Is(e.Type))
                 DrawLarderBody(e, pos, r, col, t);  // LarderLook.cs: the Devourer's faction
             else if (Game.IsSquall(e.Type))
@@ -625,6 +627,10 @@ namespace Arena
                 DrawColossusBody(e, pos, r, t);  // ColossusBodyLook.cs: the Quarry Golem, posed for each move
             else if (Game.IsNonShooter(e.Type))
                 DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
+            else if (Game.IsTwin(e.Type))
+                DrawTwinBody(e, pos, r, col, t);  // ReaperBodyLook.cs: a Hooded Reaper
+            else if (e.Type == EnemyType.DualReaper)
+                DrawDualBody(e, pos, r, col, t);  // ReaperBodyLook.cs
             else
                 Polygon(pos, r, e.Def.Sides, EnemyRotation(e, t), col);
             if (e.Frozen && !LeapCaged(e))  // (a Leap Slam's stun draws its own cage: LeapSlamLook.cs)

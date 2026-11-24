@@ -875,6 +875,7 @@ static partial class Shot {
       typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
       cg.AnimT += 0.3f;
     }
+    ReaperLookScene(me);  // MOCKUP: REAPERLOOK= (ShotReaperLook.cs)
     if (Environment.GetEnvironmentVariable("ZOOM") != null) {  // ZOOM=<1-2>: the scroll-wheel zoom, centred on you and held inside the arena (CameraZoom.cs)
       float z = float.Parse(Environment.GetEnvironmentVariable("ZOOM"), System.Globalization.CultureInfo.InvariantCulture);
       int crot = Environment.GetEnvironmentVariable("CAMROT") != null ? int.Parse(Environment.GetEnvironmentVariable("CAMROT")) : 0;  // CAMROT=<quarter turns clockwise> (CameraRotate.cs); CAMROTANG=<deg>: a mid-swing angle instead
