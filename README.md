@@ -1039,8 +1039,7 @@ where the bosses come back around, tougher each time.
 ## Loadout preview
 
 The lobby's loadout screen shows your loadout in a small live arena (top left): your character uses the chosen weapon
-on three target dummies, so you can see how it attacks. A **zoom meter** along the top of the window (it fades in when the mouse is over the preview; the mouse wheel works too) zooms the view from 50% to 200%. Hover an ability button (or pick one) and it casts
-that ability every few seconds. It's the real game running privately on your computer (nothing is sent to
+on three target dummies, so you can see how it attacks. A **zoom meter** along the top of the window (it fades in when the mouse is over the preview; the mouse wheel works too) zooms the view from 50% to 200%. **MAIN FIRE | ALT FIRE**, two keys floating at the bottom middle (shown with the meter on hover), pick what the weapon shows: just its main fire (the default) or its Alt pressed on a loop (with the trigger still going, as each Alt needs). Click an ability or the ultimate and both go off: the preview casts only that, every few seconds, without firing; either key brings the weapon back. It's the real game running privately on your computer (nothing is sent to
 the other players), so it always matches how weapons and abilities really behave.
 
 ## Saved loadouts
