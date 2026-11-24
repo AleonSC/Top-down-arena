@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Arena
 {
     /// The Game Mode screen's page for Quick Play, Campaign, Boss Hunt and Survival, drawn from one model (`ModePage`, built by
-    /// each mode's file) in the loadout's look: a slim header (ring, name, tagline), the list under its heading on
-    /// the left, the scope and a dossier box in the middle, and a sidebar on the right: YOUR RECORDS (label and value rows) and
+    /// each mode's file) in the loadout's look: a slim one-line header (ring, name, tagline), the list under its heading on
+    /// the left, a compact scope with the dossier box under it in the middle, and a sidebar on the right: YOUR RECORDS (label and value rows) and
     /// RULES (lit: what the mode adds; dim: what it takes away), with the mode's note at its foot.
     /// Preview: `LOBBYTAB=8 shot.sh x lobby` (10 Campaign with CAMPAIGN=n, SURVLOBBY=2 Survival, 4 Boss Hunt with HUNT=1).
     public partial class ArenaApp
@@ -41,7 +41,6 @@ namespace Arena
             public Action<int> OnPick;           // a click on a known row (Boss Hunt's pick)
             public string[] Rules;
             public bool ShowLocked;   // locked rows still show their model (name hidden) and can be hovered (Campaign)
-            public bool ScopeCompact; // a smaller, narrower scope with the dossier under it, centred in the column (Campaign)
         }
 
         void DrawModePage(Rect r, float t, ModePage p)
@@ -58,17 +57,18 @@ namespace Arena
             float x2 = x + listW + gap, w2 = w - listW - sideW - 2f * gap, y2 = top;
             LobbyKit.Heading(x2, y2, w2, f.ScopeL, f.ScopeR, fxReduced, 14);
             y2 += 36f;
-            var scope = new Rect(x2, y2, w2, bottom - y2 - dosH - 10f);
-            var dos = new Rect(x2, bottom - dosH, w2, dosH);
-            if (p.ScopeCompact)
-            {
-                float cw = Mathf.Min(w2, 460f), ch = Mathf.Min(scope.height, cw * 0.58f);
-                float cy = y2 + Mathf.Max(0f, (bottom - y2 - ch - 10f - dosH) * 0.5f);
-                scope = new Rect(x2 + (w2 - cw) * 0.5f, cy, cw, ch);
-                dos = new Rect(scope.x, scope.yMax + 10f, cw, dosH);
-            }
+            // A compact scope with the dossier under it, centred in the column (the same size on every mode).
+            float cw = Mathf.Min(w2, 460f), ch = Mathf.Min(bottom - y2 - dosH - 10f, cw * 0.58f);
+            float cy = y2 + Mathf.Max(0f, (bottom - y2 - ch - 10f - dosH) * 0.5f);
+            var scope = new Rect(x2 + (w2 - cw) * 0.5f, cy, cw, ch);
+            var dos = new Rect(scope.x, scope.yMax + 10f, cw, dosH);
             ModeScopeArea(scope, p, f);
             ModeDossier(dos, p, f, p.Rows[shown].Chip, p.Rows[shown].ChipCol);
+
+            // Vertical separators between the three columns, in the gaps.
+            var sepCol = p.Acc.WithAlpha(0.22f);
+            Ui.Fill(new Rect(x + listW + gap * 0.5f, top, 1f, bottom - top), sepCol);
+            Ui.Fill(new Rect(x2 + w2 + gap * 0.5f, top, 1f, bottom - top), sepCol);
 
             // Right: the sidebar, records as label and value rows, then the rules, the note at the foot.
             float sx = x2 + w2 + gap, sy = top;
@@ -98,19 +98,23 @@ namespace Arena
             ModeModels(rows, scope, t, p, f, shown);
         }
 
-        /// The slim header: the ring, the name and the tagline under it.
+        /// The slim header: a small ring, then the name with the tagline beside it on one line, over the accent rule.
         static float ModeHeadBand(Rect r, ModePage p)
         {
-            float x = r.x + 20f, y = r.y + 14f, tx = x;
+            float x = r.x + 20f, y = r.y + 12f, tx = x;
             if (p.Pct >= 0f)
             {
-                ModeRing(new Vector2(x + 26f, y + 26f), 24f, p.Pct, p.Acc, p.Ring);
-                tx = x + 66f;
+                ModeRing(new Vector2(x + 18f, y + 16f), 17f, p.Pct, p.Acc, p.Ring, 10);
+                tx = x + 46f;
             }
-            LobbyKit.Spaced(new Rect(tx, y - 2f, 400f, 28f), p.Title, 22, p.Acc, TextAnchor.MiddleLeft, 5f);
-            Ui.Label(new Rect(tx, y + 30f, r.xMax - 20f - tx, 18f), p.Tagline, 12, CrtStyle.Desc, TextAnchor.MiddleLeft);
-            Ui.Fill(new Rect(r.x + 20f, y + 60f, r.width - 40f, 1f), p.Acc.WithAlpha(0.3f));
-            return y + 70f;
+            const int titleSz = 18;
+            const float titleSp = 4f;
+            float tw = LobbyKit.SpacedWidth(p.Title, titleSz, titleSp);
+            LobbyKit.Spaced(new Rect(tx, y + 4f, tw + 12f, 24f), p.Title, titleSz, p.Acc, TextAnchor.MiddleLeft, titleSp);
+            float gx = tx + tw + 22f;
+            Ui.Label(new Rect(gx, y + 6f, r.xMax - 20f - gx, 22f), p.Tagline, 12, CrtStyle.Desc, TextAnchor.MiddleLeft);
+            Ui.Fill(new Rect(r.x + 20f, y + 38f, r.width - 40f, 1f), p.Acc.WithAlpha(0.3f));
+            return y + 46f;
         }
 
         /// The list column under its heading; rows shrink to fit. Returns the row shown (hovered, else the page's default).
