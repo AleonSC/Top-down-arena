@@ -165,7 +165,8 @@ namespace Arena
         }
 
         /// Give `a` the key `k` in `slot` (0 = main, 1 = secondary). A key another action (or the other slot) already has swaps
-        /// over to this slot's old key, so none is ever doubled. Returns the action that was swapped, or -1.
+        /// over to this slot's old key, so none is ever doubled; with no old key, the other action loses it (its second key moves
+        /// up, else it has no key). Returns the action that was swapped, or -1.
         public static int Set(KeyAction a, KeyCode k, int slot = 0)
         {
             if (!Allowed(k, a))
@@ -181,7 +182,7 @@ namespace Arena
                 {
                     if (arr[i] != k || (i == (int)a && s == slot))
                         continue;
-                    if (old == KeyCode.None ? s == 0 : !Allowed(old, (KeyAction)i))  // it would be left with no main key, or a mouse button it can't use
+                    if (old != KeyCode.None && !Allowed(old, (KeyAction)i))  // it would get a mouse button it can't use
                     {
                         Notice = KeyName(k) + " is " + Titles[i] + "'s main key: give that another key first";
                         NoticeAt = Time.unscaledTime;
@@ -189,6 +190,11 @@ namespace Arena
                     }
                     arr[i] = old;
                     mine[(int)a] = k;
+                    if (old == KeyCode.None && s == 0)  // (an unbound action took its main key: the second moves up)
+                    {
+                        keys[i] = keys2[i];
+                        keys2[i] = KeyCode.None;
+                    }
                     Changed();
                     return i == (int)a ? -1 : i;
                 }
@@ -401,7 +407,9 @@ namespace Arena
         {
             Notice = null;
             int other = Set(a, k, slot);  // (a refused swap leaves its own message)
-            if (other >= 0)
+            if (other >= 0 && keys[other] == KeyCode.None)
+                Notice = Titles[other] + " has no key now";
+            else if (other >= 0)
                 Notice = Titles[other] + " now uses " + KeyName(keys[other]) + (keys2[other] != KeyCode.None ? " / " + KeyName(keys2[other]) : "");
             NoticeAt = Time.unscaledTime;
         }
