@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 490: A Literal Tank's sounds `Sfx.LitTankEngine`, `LitTankCannon`, `LitTankFall`, `LitTankLand`, `LitTankWarn`, `LitTankHatch` added at the end (only `LitTankFall` is sent, with the cast's ring; LitTankSoundBank.cs)
 - 489: new `AbilityId.LiteralTank` (at the end) and bullet kind `TankShell` (79); a player's snapshot gains `TankT`, `TankArmor`, `TankMax` after the Juggernaut Suit's (LiteralTank.cs)
 - 488: new `WeaponId.WaterGun`, `GaleGun` (the Flamethrower's variants, at the end) and bullet kinds `WaterJet` (77), `GaleShot` (78) (ElementGuns.cs)
 - 487: an enemy's snapshot gains `slowed` (bool) after `charged`: Slowed and Chilled are separate (Chill.cs); the Chilled status bit is ice only

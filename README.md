@@ -425,7 +425,10 @@ heavies and bosses take 25 and heavies are shoved 90 px, at most every 0.5 s eac
 and the Dodge are locked while you're inside. The last 3 s the hull blinks red. It ends when the time runs out, the
 armour is gone, you go down or the wave is over: you hop out and the empty tank **blows up** (90 within 150 px), leaving
 a charred wreck for a moment. Bots drive it out with an enemy within 480 px. Mastered: 550 armour, and the shells blast
-30% wider. Design: [`Docs/Mockups/a-literal-tank.html`](Docs/Mockups/a-literal-tank.html).
+30% wider. Design: [`Docs/Mockups/a-literal-tank.html`](Docs/Mockups/a-literal-tank.html). Sounds (LitTankSoundBank.cs): a falling whistle as it drops, a crunching
+thud and a clank of steel as it lands, a diesel engine with clattering treads that idles low and revs up as you drive,
+a deep rolling boom for each shell, a double beep every half second in your own tank's last 3 s, and a hatch clunk as
+you hop out before the wreck blows.
 
 **Attack Helicopter** (DPS Soldier, picked instead of Artillery Assault, 70 s): a gold radio ring goes out from you and
 an olive gunship drops in from off-screen over 0.9 s (high and big, its shadow tightening), then for **10 s** it circles
