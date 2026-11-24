@@ -232,9 +232,11 @@ namespace Arena
                     continue;
                 float dmg = p.Weapon.Damage * p.Stats.DmgMult;
                 FangHurt(p, e, dmg * KnuckleThrowMult, e.Pos - r.Dir * 10f);  // (TwinBlades.cs: the hit through the on-hit pipeline)
+                Charge(e, p.Id);  // Charged.cs
                 if (into != null)
                 {
                     FangHurt(p, into, dmg * KnuckleThrowHitMult, e.Pos);
+                    Charge(into, p.Id);
                     if (!Heavy(into))
                         KnockEnemy(into, r.Dir * KnuckleThrowKnock);
                     if (!into.Def.IsBoss)

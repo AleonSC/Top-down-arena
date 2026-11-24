@@ -944,7 +944,7 @@ namespace Arena
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
             int bleedStacks = 0, stars = 0, traits = 0, bubble = 0, cells = 0;
-            bool winding = false, penned = false, dormant = false, wet = false, hit = false, venom = false;
+            bool winding = false, penned = false, dormant = false, wet = false, hit = false, venom = false, charged = false;
             int bleedHits = 0, wetTenths = 0;
             if (!s.Reading)
             {
@@ -961,6 +961,8 @@ namespace Arena
                 e.WetPeak = wet ? Math.Max(e.WetPeak, e.WetLeft) : 0f;
                 venom = e.VenomT > 0f;
                 e.Venomed = venom;
+                charged = e.ChargedT > 0f;
+                e.Charged = charged;
                 e.BubbleFrac = e.BubbleHp > 0f && e.BubbleMax > 0f ? Math.Min(1f, e.BubbleHp / e.BubbleMax) : 0f;
                 bubble = (int)Math.Ceiling(e.BubbleFrac * 255f);
                 if (e.BubbleHp > 0f)
@@ -1011,6 +1013,7 @@ namespace Arena
             s.Bool(ref wet);        // soaked by a Tsunami (Tsunami.cs)
             s.Byte(ref wetTenths);  // ...and its tenths of a second left, for the effect bar (Game/EffectBar.cs)
             s.Bool(ref venom);      // Poison Dart's venom (PoisonDart.cs)
+            s.Bool(ref charged);    // charged by lightning (Charged.cs)
             s.Bool(ref hit);        // just hit: the white flash (not every drop in health, or a burning enemy would stay white)
             int challengeBy = !s.Reading && e.ChallengeT > 0f ? e.ChallengeBy : 0;
             s.Byte(ref challengeBy);  // a Gauntlet's Challenge: who threw it (0: none) and how long it has left (Gauntlet.cs)
@@ -1074,6 +1077,7 @@ namespace Arena
                 e.WetLeft = wetTenths / 10f;
                 e.WetPeak = wet ? Math.Max(e.WetPeak, e.WetLeft) : 0f;
                 e.Venomed = venom;
+                e.Charged = charged;
                 e.ChallengeBy = challengeBy;
                 e.ChallengeT = challengeT;
             }
