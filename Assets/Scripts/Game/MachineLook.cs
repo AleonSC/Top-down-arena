@@ -171,11 +171,11 @@ namespace Arena
         {
             bool held = MachHeld(r, live);
             bool hover = live && GUI.enabled && r.Contains(Event.current.mousePosition);
-            Ui.Dot(new Rect(r.x - 1f, r.y - 1f, r.width + 2f, r.height + 2f), new Color(1f, 1f, 1f, 0.06f));  // the case's edge round the hole
-            Ui.Dot(r, new Color(0.043f, 0.047f, 0.059f));
-            var face = new Rect(r.x + 2f, r.y + 2f + (held ? 1f : 0f), r.width - 4f, r.height - 4f);
-            Ui.Dot(face, held ? new Color(0.098f, 0.102f, 0.118f) : new Color(0.125f, 0.13f, 0.145f));
-            float s = Mathf.Round(r.width * 0.5f);
+            Ui.Dot(new Rect(r.x, r.y + 1f, r.width, r.height), new Color(0f, 0f, 0f, 0.5f));  // its shadow on the plate
+            Ui.Dot(r, new Color(0.15f, 0.155f, 0.172f));  // the rim, a touch lighter than the face
+            var face = new Rect(r.x + 1f, r.y + 1f + (held ? 1f : 0f), r.width - 2f, r.height - 2f);
+            Ui.Dot(face, held ? new Color(0.09f, 0.094f, 0.11f) : new Color(0.118f, 0.122f, 0.137f));
+            float s = 12f;  // the 12 px icons at 1:1, crisp
             Ui.Icon(new Rect(face.center.x - s / 2f, face.center.y - s / 2f, s, s), icon, hover ? KeyInk.WithAlpha(0.85f) : ChinInk.WithAlpha(0.8f));
             return live && Ui.HitArea(r);
         }

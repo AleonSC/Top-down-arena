@@ -1990,8 +1990,8 @@ their sides in 0.22 s. With Reduced effects they slide in and out with no trails
   beside it (it goes back to Who's playing?). Under the monitor, the **case**, in a neon outline: **Play**, **Join game** and **Wiki** (not
   built yet) as graphite keycaps down its left over a grille (each with a lamp: Play's is lit, Join game's lights while it is open; they
   press down when clicked), a **bay** in the middle behind a ribbed metal roller shutter, and on the right **your profile** on a small
-  screen (a face, your name, rank title and number, the XP to the next rank; click it to open your **Profile**), then a row of small flat
-  round keys and lights under it (a cog for **Settings**, the POWER and DISK lights, a power button to **Quit**) and a grille level with
+  screen (a face, your name, rank title and number, the XP to the next rank; click it to open your **Profile**), then a recessed control
+  strip under it (a small flat cog key for **Settings**, the POWER and DISK lights over their labels, a power key to **Quit**) and a grille level with
   the left one. Until you have opened your profile once (and for at most your first five launches on that profile), a small
   purple **YOUR PROFILE** tag beside the screen bounces toward it; clicking the tag opens the profile too. **Play** rolls the shutter up
   onto your saved runs (see Saved runs); **Join game** rolls it up onto the host's address and **Connect** (and how joining is going,

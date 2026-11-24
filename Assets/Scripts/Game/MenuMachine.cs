@@ -16,8 +16,10 @@ namespace Arena
         const float CaseClipTop = 238f;   // the case shows only below the monitor's bottom edge, so it falls out from under it
         static readonly Rect PlayKeyRect = new Rect(184f, 290f, 210f, 70f), JoinKeyRect = new Rect(184f, 380f, 210f, 52f);
         static readonly Rect WikiKeyRect = new Rect(184f, 450f, 210f, 52f);
-        // Under the profile screen: Settings (a cog), the POWER / DISK lights, Quit (a power button); then the grille, level with the left one.
-        static readonly Rect SettingsKeyRect = new Rect(888f, 460f, 32f, 32f), QuitKeyRect = new Rect(1066f, 460f, 32f, 32f);
+        // Under the profile screen, a recessed control strip: Settings (a cog), the POWER / DISK lights, Quit (a power button); then the
+        // grille, level with the left one.
+        static readonly Rect StripRect = new Rect(886f, 456f, 214f, 40f);
+        static readonly Rect SettingsKeyRect = new Rect(892f, 462f, 28f, 28f), QuitKeyRect = new Rect(1066f, 462f, 28f, 28f);
         static readonly Rect BayRect = new Rect(424f, 288f, 432f, 376f);
         static readonly Rect ProfScreenRect = new Rect(886f, 290f, 214f, 150f);
         const float MachEnd = 4.8f;       // the boot sequence's length; past it the menu is settled
@@ -73,10 +75,7 @@ namespace Arena
             DrawProfScreen(T, power, live, t);
             HVent(new Rect(886f, 524f, 214f, 138f));
             bool pw = T >= 3.75f && power > 0.5f, dk = T >= 3.85f && power > 0.5f;
-            Led(942f, 476f, LampGreen, pw);
-            ChinText(new Rect(956f, 471f, 50f, 16f), "POWER", 10, ChinInk);
-            Led(1010f, 476f, LampAmber, dk);
-            ChinText(new Rect(1024f, 471f, 40f, 16f), "DISK", 10, ChinInk);
+            DrawStrip(pw, dk);
             DrawRoundKeys(T, power, live);
             GUI.matrix = oldM;
             GUI.EndGroup();
@@ -120,7 +119,30 @@ namespace Arena
                 MenuSound(Sfx.MenuKey);  // the wiki (planned): look up anything in the game
         }
 
-        /// Settings (a cog) and Quit (a power button) either side of the POWER / DISK lights: small, flat and unlit.
+        /// The control strip under the profile screen: a dark recessed plate with a divider in from each end, and between them the POWER
+        /// and DISK lights, each over its small label (the keys are drawn over it by DrawRoundKeys).
+        static void DrawStrip(bool pw, bool dk)
+        {
+            var r = StripRect;
+            Ui.RoundBox(new Rect(r.x, r.y + 1f, r.width, r.height), new Color(1f, 1f, 1f, 0.07f), 9);  // the lit lip under the recess
+            Ui.RoundBox(r, new Color(0.035f, 0.038f, 0.047f), 9);
+            Ui.RoundBox(new Rect(r.x + 1f, r.y + 2f, r.width - 2f, r.height - 3f), new Color(0.071f, 0.075f, 0.09f), 8);
+            foreach (float x in new[] { 928f, 1057f })
+            {
+                Ui.Fill(new Rect(x, r.y + 9f, 1f, r.height - 18f), new Color(0f, 0f, 0f, 0.55f));
+                Ui.Fill(new Rect(x + 1f, r.y + 9f, 1f, r.height - 18f), new Color(1f, 1f, 1f, 0.06f));
+            }
+            StripLight(966f, "POWER", LampGreen, pw);
+            StripLight(1020f, "DISK", LampAmber, dk);
+        }
+
+        static void StripLight(float cx, string label, Color c, bool on)
+        {
+            Led(cx - 3.5f, StripRect.y + 9f, c, on, 7f);
+            Ui.Label(new Rect(cx - 30f, StripRect.y + 20f, 60f, 12f), label, 8, ChinInk.WithAlpha(0.85f), TextAnchor.MiddleCenter, true);
+        }
+
+        /// Settings (a cog) and Quit (a power button) at the control strip's ends: small, flat and unlit.
         void DrawRoundKeys(float T, float power, bool live)
         {
             if (FlatRoundKey(SettingsKeyRect, PixelArt.Get("ui_gear"), live))
