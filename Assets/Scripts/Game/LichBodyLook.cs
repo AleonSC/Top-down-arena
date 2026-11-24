@@ -385,5 +385,118 @@ namespace Arena
             Circle(sk + new V2(-1.9f, 0.4f) * K, 1.3f * K, LSocket.WithAlpha(a), 6);
             Circle(sk + new V2(1.9f, 0.4f) * K, 1.3f * K, LSocket.WithAlpha(a), 6);
         }
+
+        /// A bone prison: a ring of cracked earth, then curved rib bones rising out of it round the player, joined by a
+        /// faint soul line once they're up, their tips glowing hotter until they fire inward; after that they go grey. The
+        /// gap is framed by two taller bones topped with skulls, a gold chevron between them pointing the way out.
+        void DrawBonePrison(BonePrison q, float t)
+        {
+            float k = MathX.Clamp01(q.T / Game.PrisonRise), up = q.T >= Game.PrisonRise ? 1f : 0f;
+            float spent = up > 0f ? MathX.Clamp01((q.T - Game.PrisonRise) / 0.4f) : 0f;
+            float R = Game.PrisonR;
+            Arc(q.Center, R, 9f, new Rgba(0f, 0f, 0f, 0.3f), 48);  // the cracked earth
+            Arc(q.Center, R, 1.5f, BoneCol.WithAlpha(0.12f + 0.2f * k), 48);
+            var tips = new V2[Game.PrisonSpikes];
+            for (int i = 0; i < Game.PrisonSpikes; i++)
+            {
+                float ang = Game.PrisonSpikeAngle(q, i);
+                bool post = i == 0 || i == Game.PrisonSpikes - 1;
+                V2 dir = V2.FromAngle(ang), side = dir.Orthogonal(), at = q.Center + dir * R;
+                // a clod of earth heaved up at its foot
+                Circle(at + dir * 3f, 6f + 2f * k, LSoil.WithAlpha(0.85f), 8);
+                Circle(at + dir * 2f - side * 3f, 3f, LSoilHi.WithAlpha(0.85f), 6);
+                // the bone: rising inward, curving to one side like a rib, tapering to a point
+                float h = (post ? 34f : 26f) * k * (1f - 0.15f * spent), bend = (i % 2 == 0 ? 1f : -1f) * 5f * k;
+                V2 mid = at - dir * (h * 0.55f) + side * (bend * 0.6f), tip = at - dir * h + side * bend;
+                tips[i] = tip;
+                Rgba b = BoneCol.Mix(new Rgba(0.45f, 0.45f, 0.42f), 0.55f * spent).WithAlpha(1f - 0.45f * spent);
+                if (k > 0.05f)
+                {
+                    SetColor(b);
+                    Quad(at + side * 5f, at - side * 5f, mid - side * 3.5f, mid + side * 3.5f);
+                    Tri(mid + side * 3.5f, mid - side * 3.5f, tip);
+                    Circle(at, 5.5f, b, 10);  // the knuckle at its root
+                    Line(at - side * 5f, mid - side * 3.5f, 1.4f, new Rgba(0.55f, 0.53f, 0.47f, b.A));  // its shaded edge
+                    Line(mid - side * 3.5f, tip, 1.2f, new Rgba(0.55f, 0.53f, 0.47f, b.A));
+                }
+                if (post && k > 0.5f)  // a skull on each gatepost
+                {
+                    Circle(tip, 5f, b, 12);
+                    Circle(tip + side * 1.8f - dir * 0.6f, 1.2f, LSocket, 6);
+                    Circle(tip - side * 1.8f - dir * 0.6f, 1.2f, LSocket, 6);
+                }
+                else if (k > 0.2f)  // its tip charging, a flash as it fires
+                {
+                    float charge = up > 0f ? (1f - spent) : k * k;
+                    GlowDisc(tip, 7f + 6f * charge, SpiritCol, 0.25f + 0.6f * charge);
+                }
+            }
+            // the soul line joining the bones (not across the gap)
+            if (k > 0.6f)
+                for (int i = 0; i + 1 < Game.PrisonSpikes; i++)
+                    Line(tips[i], tips[i + 1], 1.4f, SpiritCol.WithAlpha((k - 0.6f) * 1.2f * (1f - spent)));
+            // the way out: a gold chevron in the gap, pointing out
+            V2 g = V2.FromAngle(q.Gap), gs = g.Orthogonal(), gc = q.Center + g * R;
+            float gp = 0.55f + 0.45f * Mathf.Sin(t * 10f);
+            Rgba gold = new Rgba(1f, 0.8f, 0.35f, gp);
+            GlowDisc(gc, 16f, new Rgba(1f, 0.8f, 0.35f), 0.35f * gp);
+            Line(gc - g * 5f + gs * 7f, gc + g * 4f, 3f, gold);
+            Line(gc - g * 5f - gs * 7f, gc + g * 4f, 3f, gold);
+        }
+
+        V2[] spiritLast = new V2[12];  // each spirit's last position, for which way it's going
+
+        /// A wailing spirit: a pale ghost head, mouth open in a wail, trailing three wisps behind it. Circling it drifts
+        /// round the Lich; diving it stretches out, its eyes burn and its trail streams long.
+        void DrawWailingSpirit(LichSpirit sp, int i, V2 lich, float t)
+        {
+            V2 vel;
+            if (sp.Diving && i < spiritLast.Length && (sp.Pos - spiritLast[i]).Length > 0.5f && (sp.Pos - spiritLast[i]).Length < 80f)
+                vel = (sp.Pos - spiritLast[i]).Normalized();
+            else
+            {
+                V2 rad = sp.Pos - lich;
+                vel = rad.Length > 1f ? rad.Normalized().Orthogonal() : new V2(1f, 0f);
+            }
+            if (i < spiritLast.Length)
+                spiritLast[i] = sp.Pos;
+            float R = Game.SpiritR, dive = sp.Diving ? 1f : 0f;
+            V2 back = vel * -1f, side = vel.Orthogonal();
+            GlowDisc(sp.Pos, R * (3f + 1.5f * dive), SpiritCol, 0.35f + 0.3f * dive);
+            // the wisps trailing behind: smooth ribbons thinning and fading to nothing
+            for (int w = -1; w <= 1; w++)
+            {
+                const int Segs = 7;
+                float len = R * (0.75f + 0.8f * dive) * (w == 0 ? 1.2f : 0.95f), w0 = R * (w == 0 ? 0.8f : 0.5f);
+                V2 prev = sp.Pos + side * (w * R * 0.45f);
+                V2 pside = side;
+                for (int s = 1; s <= Segs; s++)
+                {
+                    float u0 = (s - 1f) / Segs, u1 = (float)s / Segs;
+                    V2 next = sp.Pos + back * (len * s) + side * (w * R * (0.45f + 0.25f * u1) + Mathf.Sin(t * 8f - s * 0.8f + w * 2f + i) * 1.4f * s);
+                    V2 nside = (next - prev).Length > 0.01f ? (next - prev).Normalized().Orthogonal() : pside;
+                    float wa = w0 * (1f - u0), wb = w0 * (1f - u1);
+                    Rgba ca = new Rgba(0.75f, 0.94f, 1f, 0.6f * (1f - u0)), cb = new Rgba(0.75f, 0.94f, 1f, 0.6f * (1f - u1));
+                    VTri(prev + pside * wa, ca, prev - pside * wa, ca, next + nside * wb, cb);
+                    VTri(prev - pside * wa, ca, next - nside * wb, cb, next + nside * wb, cb);
+                    prev = next;
+                    pside = nside;
+                }
+            }
+            // the head, stretched along its dive
+            Ellipse(sp.Pos, R * (1f + 0.35f * dive), R, Mathf.Atan2(vel.Y, vel.X), new Rgba(0.78f, 0.95f, 1f), 16);
+            // its face, always upright: hollow eyes and a wailing mouth
+            V2 c = sp.Pos;
+            Rgba hole = new Rgba(0.05f, 0.16f, 0.2f);
+            Ellipse(c + new V2(-3.4f, -2.4f), 1.9f, 2.6f, 0f, hole, 8);
+            Ellipse(c + new V2(3.4f, -2.4f), 1.9f, 2.6f, 0f, hole, 8);
+            float wail = 1f + 0.25f * Mathf.Sin(t * 14f + i);
+            Ellipse(c + new V2(0f, 3.6f), 2.2f, 3.2f * wail, 0f, hole, 10);
+            if (dive > 0f)
+            {
+                Circle(c + new V2(-3.4f, -2.4f), 1f, SpiritCol.Mix(Rgba.White, 0.5f), 6);
+                Circle(c + new V2(3.4f, -2.4f), 1f, SpiritCol.Mix(Rgba.White, 0.5f), 6);
+            }
+        }
     }
 }
