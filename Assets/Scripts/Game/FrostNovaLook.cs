@@ -16,6 +16,14 @@ namespace Arena
 
         bool IsFrostNova(Effect fx) => fx.Kind == FxKind.Ring && Mathf.Abs(fx.Radius - 220f) < 1f && Mathf.Abs(fx.Dur - Game.FrostNovaFxTime) < 0.01f;
 
+        /// Every Frost Nova's ground, cracks and rim, drawn with the floor so enemies, players and shots stay on top.
+        void DrawFrostNovaGround()
+        {
+            foreach (var fx in game.Effects)
+                if (IsFrostNova(fx))
+                    DrawFrostNova(fx);
+        }
+
         void DrawFrostNova(Effect fx)
         {
             float age = fx.T, R = fx.Radius;

@@ -227,8 +227,7 @@ namespace Arena
             }
             if (IsFrostNova(fx))
             {
-                DrawFrostNova(fx);  // FrostNovaLook.cs
-                return;
+                return;  // drawn on the floor, under everything: DrawFrostNovaGround (FrostNovaLook.cs)
             }
             if (IsGlacialTomb(fx))
             {
