@@ -621,6 +621,8 @@ namespace Arena
                 DrawGuardBody(e, pos, r, col, t);  // WardenLook.cs: the corrections officer and its nightstick swing
             else if (e.Type == EnemyType.Warden)
                 DrawWardenBody(e, pos, r, col, spawning, t);  // WardenBodyLook.cs: the Chief Warden, posed for each move
+            else if (e.Type == EnemyType.Lich && LichLook > 0)
+                DrawLichBody(e, pos, r, col, t);  // LichBodyLook.cs (mockup directions)
             else if (Game.IsNonShooter(e.Type))
                 DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
             else
