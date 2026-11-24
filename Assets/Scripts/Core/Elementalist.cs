@@ -20,7 +20,7 @@ namespace Arena
         internal static readonly WeaponDef[] ElementalistWeapons =
         {
             // Tank
-            new WeaponDef { Id = WeaponId.Flamethrower, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 0, Speed = 480f, Life = 0.4f, Damage = 3f, Grow = 0.25f, BotRange = 160f, ExtraDesc = "+1 flame a burst and 25% more reach", Name = "Flamethrower", FireInterval = 0.06f,
+            new WeaponDef { Id = WeaponId.Flamethrower, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 0, Speed = 480f, Life = 0.4f, Damage = 3f, Grow = 0.25f, BotRange = 160f, ExtraDesc = "+1 flame a burst and 25% more reach", Name = "Flamethrower", KeyLabel = "Flame-\nthrower", FireInterval = 0.06f,
                 Desc = "Primary Fire: A short stream of fire that burns everything it hits.",
                 Sound = Sfx.SpellFire },
             new WeaponDef { Id = WeaponId.FrostLance, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 1, Damage = 18f, Reach = 178f, BotRange = 160f, ExtraDesc = "20% more damage and 10% more reach", Name = "Frost Lance", FireInterval = 0.4f,
@@ -59,6 +59,13 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Stonespear, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 3, Speed = 900f, Life = 0.6f, Damage = 24f, BotRange = 420f, ExtraDesc = "+1 spear a side, and each click throws one more", Name = "Stonespear", FireInterval = 0.18f,
                 Desc = "Primary Fire: Slam the ground, then throw the earth spears that rise from it, one per click.\n\nAlternative Fire: Hurl every spear at once.",
                 Sound = Sfx.None, BarrageDesc = "each throw also flings a fanned copy of the spear (60% damage) that uses none up" },
+            // The Flamethrower's variants (Variants.cs; ElementGuns.cs)
+            new WeaponDef { Id = WeaponId.WaterGun, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 4, Speed = 640f, Life = 0.55f, Damage = 5f, Grow = 0.25f, BotRange = 300f, ExtraDesc = "+1 jet a burst and 25% more reach", Name = "Water Gun", Variant = true, FireInterval = 0.07f,
+                Desc = "Primary Fire: A long spray of water that splashes the enemy it hits and those near it: wet enemies are slowed.",
+                Sound = Sfx.SpellFrost },
+            new WeaponDef { Id = WeaponId.GaleGun, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 5, Speed = 560f, Life = 0.4f, Damage = 2.5f, Grow = 0.25f, BotRange = 180f, ExtraDesc = "+1 gust a burst and 25% more reach", Name = "Gale Gun", Variant = true, FireInterval = 0.06f,
+                Desc = "Primary Fire: A blast of cutting wind that passes through enemies: it slices them (they bleed) and slows them.",
+                Sound = Sfx.GaleHum },
             // The Fireball's variants (Variants.cs; ElementBalls.cs)
             new WeaponDef { Id = WeaponId.Waterball, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 4, Speed = 430f, Life = 1.4f, Damage = 28f, BotRange = 390f, ExtraDesc = "+1 waterball, fanned out", Name = "Waterball", Variant = true, FireInterval = 0.5f,
                 Desc = "Primary Fire: A big, slow water ball that soaks everything it rolls through: wet enemies are slowed.",

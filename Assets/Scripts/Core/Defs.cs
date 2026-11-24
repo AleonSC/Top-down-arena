@@ -161,6 +161,8 @@ namespace Arena
         OrbitShards, GlyphStylus, DancingBlades,
         // the Healer Elementalist's fourth (StaticShock.cs): a held cone of static, the Arc Cannon on Alt
         StaticShock,
+        // the Flamethrower's variants (ElementGuns.cs): the Water Gun splashes wet, the Gale Gun slices and slows
+        WaterGun, GaleGun,
     }
 
     public class WeaponDef
@@ -169,6 +171,7 @@ namespace Arena
         public Kit Kit;            // whose weapon it is: FireVolley sends it to that class's Fire (Classes.cs) unless it has its own case
         public Role Role;          // with Kit and Choice, its place in the lobby (Defs.Weapons is gathered from each class's list)
         public int Choice;         // 0-2: first, second or third weapon of its role and class
+        public string KeyLabel;    // the lobby key's text when the name is one word too long for it (a line break where it splits); null: the name
         public string Name, Desc;
         public Sfx Sound = Sfx.Throw;  // the sound of its shots (summoner staffs, darts and rocks just throw)
         public string AreaDesc;    // set on weapons whose damage lands in an area (Game.AreaWeapon): what Homing Rounds grow instead of bending shots
@@ -785,6 +788,8 @@ namespace Arena
             SpectralBlade = 74, // a spectral blade: Runic Array's volleys and the shots a Grand Sigil sends back (Arcanist.cs, Game/ArcanistLook.cs)
             FocusArrow = 75,   // a Mender's Bow Focus arrow: gold, wrapped in wind, shoves what it passes (BowFocus.cs, Game/BowFocusLook.cs)
             ScatterArrow = 76, // one of the Mender's Bow's Scatter arrows: small and teal (BowFocus.cs, Game/BowFocusLook.cs)
+            WaterJet = 77,     // a Water Gun jet: stops on the first enemy and splashes it and those near it wet (ElementGuns.cs, Game/ElementGunLook.cs)
+            GaleShot = 78,     // a Gale Gun gust: passes through, slicing (bleed) and slowing (ElementGuns.cs, Game/ElementGunLook.cs)
             EarthballShot = 72; // the Earthball: stops on the first enemy, stuns it and breaks into rubble (ElementBalls.cs, Game/ElementBallLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark || kind == BottleShot;
@@ -865,6 +870,8 @@ namespace Arena
             Row(table, MedkitShot, radius: 11f, color: new Rgba(0.95f, 0.97f, 1f));
             Row(table, FireballShot, radius: 15f, color: new Rgba(1f, 0.5f, 0.15f));
             Row(table, WaterballShot, radius: 15f, color: new Rgba(0.3f, 0.65f, 1f));
+            Row(table, WaterJet, radius: 5f, color: new Rgba(0.31f, 0.82f, 0.91f));
+            Row(table, GaleShot, radius: 8f, color: new Rgba(0.85f, 0.97f, 1f));
             Row(table, EarthballShot, radius: 16f, color: new Rgba(0.82f, 0.6f, 0.36f));
             Row(table, GlyphShot, radius: 6f, color: new Rgba(1f, 0.85f, 0.45f));     // the Arcanist's rune bolt (Arcanist.cs)
             Row(table, SpectralBlade, radius: 5f, color: new Rgba(0.78f, 0.62f, 1f));  // Runic Array's and the Grand Sigil's spectral blades  // (R over 0.8: its rubble isn't read as a crate's, PropsLook.IsCrateDebris)

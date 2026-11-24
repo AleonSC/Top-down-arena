@@ -12,10 +12,11 @@ namespace Arena
         public const bool WeaponVariantsUnlocked = true;
 
         /// The weapon that is tier `tier` (0 or 1) of `id`'s Variants window, or null: the Twin Rifle's are the Auto and Out of Ammo,
-        /// the Fireball's the Waterball and the Earthball.
+        /// the Fireball's the Waterball and the Earthball, the Flamethrower's the Water Gun and the Gale Gun.
         public static WeaponId? VariantOf(WeaponId id, int tier = 0) =>
             id == WeaponId.TwinRifle ? (tier == 0 ? WeaponId.TwinRifleAuto : tier == 1 ? WeaponId.OutOfAmmo : (WeaponId?)null)
             : id == WeaponId.Fireball ? (tier == 0 ? WeaponId.Waterball : tier == 1 ? WeaponId.Earthball : (WeaponId?)null)
+            : id == WeaponId.Flamethrower ? (tier == 0 ? WeaponId.WaterGun : tier == 1 ? WeaponId.GaleGun : (WeaponId?)null)
             : null;
 
         /// Is `variant` any of `id`'s variant weapons?
@@ -27,6 +28,8 @@ namespace Arena
             ? "Both rifles aim and fire on their own at the nearest enemy on their side. Alt locks both onto one enemy until it dies."
             : variant == WeaponId.OutOfAmmo ? "The rifles swat the nearest bullet each. A knife chain on close enemies, ending in a rifle clap. Alt: a spin."
             : variant == WeaponId.Waterball ? "A ball of water that rolls through enemies and soaks them: wet enemies are slowed, and lightning arcs to them."
+            : variant == WeaponId.WaterGun ? "A long spray of water: the enemy it hits and those near it are soaked wet (slowed, and lightning arcs to them)."
+            : variant == WeaponId.GaleGun ? "An air blower: cutting wind that passes through enemies, slicing them (they bleed) and slowing them."
             : variant == WeaponId.Earthball ? "A heavy ball of rock: it stops on the first enemy, stuns it and breaks into rubble that hurts everything round it." : "";
         static readonly int[] Costs = { 10, 20 };
 

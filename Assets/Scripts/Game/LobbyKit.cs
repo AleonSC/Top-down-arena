@@ -108,8 +108,9 @@ namespace Arena
             }
             float avail = r.width - 2f * pad - (ic > 0f ? ic + gap : 0f);
             // Shrink a little first; if it still isn't one line, wrap onto a second line (a key tall enough) before shrinking further.
+            // A label with a line break in it (WeaponDef.KeyLabel: "FLAME-\nTHROWER") always takes two lines.
             int fs = FitSize(text, size, Mathf.Max(minSize, size - 4), avail);
-            bool wrap = ic == 0f && Ui.TextWidth(text, fs, true) > avail && Ui.TextHeight(text, fs, avail, true) <= r.height - 2f;
+            bool wrap = ic == 0f && (text.IndexOf('\n') > 0 || Ui.TextWidth(text, fs, true) > avail) && Ui.TextHeight(text, fs, avail, true) <= r.height - 2f;
             if (!wrap)
                 fs = FitSize(text, size, minSize, avail);
             if (wrap)

@@ -202,6 +202,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `BloodShell.cs`: the Hemomancer tank's held Blood Shell bubble (blocks bullets and enemies, costs health per hit, heals allies inside, bursts at 1/3 health; `BloodShellLook.cs` draws it)
 - `Elementalist.cs`: the Elementalist's class definition (weapons, cards, abilities)
 - `ElementBalls.cs`, `Game/ElementBallLook.cs`: the Fireball's variants (`Variants.VariantOf`, picks 4 and 5): the Waterball (`Defs.WaterballShot`, rolls through, wet `WaterballWet`) and the Earthball (`Defs.EarthballShot`, stops on the first enemy, `Stun` by weight, rubble `Bullet.Splash`); `ElementBallHit` from `OnBulletHit`; the look draws both balls, their particles and the held balls; test `run.sh 1 1 elementballs`
+- `ElementGuns.cs`, `Game/ElementGunLook.cs`: the Flamethrower's variants: the Water Gun (`Defs.WaterJet`: a jet that splashes wet round the enemy it hits) and the Gale Gun (`Defs.GaleShot`: gusts that pass through, slicing (bleed), slowing and blowing wind); `ElementGunHit`
 - `Soldier.cs`: the Soldier's class definition (weapons, cards, abilities, and the abilities only very rare cards give)
 - `Summoner.cs`: the Summoner's class definition (weapons, cards, abilities)
 - `Minions.cs`, `KitWeapons.cs`: the Summoner's class definition, both classes' ability casts (`KitAbility`), minions, zones, their weapons

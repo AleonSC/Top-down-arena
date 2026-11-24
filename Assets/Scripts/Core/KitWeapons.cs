@@ -86,6 +86,12 @@ namespace Arena
                     }
                     break;
                 }
+                case WeaponId.WaterGun:  // the Flamethrower's variants (ElementGuns.cs)
+                    FireWaterGun(p, aim, muzzle, dmg, extra);
+                    break;
+                case WeaponId.GaleGun:
+                    FireGaleGun(p, aim, muzzle, dmg, extra);
+                    break;
                 case WeaponId.FrostLance:
                     break;  // its chain goes from TickFrostLance, never from FireVolley (FrostLance.cs)
                 case WeaponId.StormHammer:  // most of its damage is the smash; the electrified enemy's arcs are a little extra

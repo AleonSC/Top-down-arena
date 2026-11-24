@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 487: new `WeaponId.WaterGun`, `GaleGun` (the Flamethrower's variants, at the end) and bullet kinds `WaterJet` (77), `GaleShot` (78) (ElementGuns.cs)
 - 486: an enemy's snapshot gains `slowed` (bool) after `charged`: Slowed and Chilled are separate (Chill.cs); the Chilled status bit is ice only
 - 485: new `ZoneKind.Steam` (a steam cloud from the fire + water combo, Steam.cs) at the end of ZoneKind
 - 484: `GameMode.Training` (5) can be the lobby's mode byte in `Msg.Lobby` (`None` moves to 6); `Msg.Start` gains the Training drill (sbyte, -1: none) after the Hangout flag; the game snapshot gains the drill runners after the Holding Cells (a byte count, then per runner: player id int, step byte, time float, done bool, target id int)
