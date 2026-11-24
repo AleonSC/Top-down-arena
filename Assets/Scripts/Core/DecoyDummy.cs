@@ -90,13 +90,12 @@ namespace Arena
             float reach = z.Blast > 0f ? z.Blast : DecoyBlast;
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Def.IsBoss || e.Pos.FartherThan(z.Pos, reach + e.Radius))
+                if (!InReach(e, z.Pos, reach) || e.Def.IsBoss)
                     continue;
                 Stun(e, DecoyStun);
                 if (!Heavy(e))
                 {
-                    V2 away = (e.Pos - z.Pos).Normalized();
-                    KnockEnemy(e, (away.IsZero ? V2.FromAngle(z.Aim) : away) * DecoyShove);  // slides (Knock.cs)
+                    ShoveFrom(e, z.Pos, DecoyShove, V2.FromAngle(z.Aim));  // slides (Knock.cs)
                 }
             }
             BroadcastFx(FxKind.DecoyPop, z.Pos, z.Pos + V2.FromAngle(z.Aim), Kits.Get(ZoneKind.DecoyDummy).Color, reach, 1.1f, Sfx.None);  // (its pop plays on each screen)

@@ -96,7 +96,7 @@ namespace Arena
                 return;
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.FartherThan(m.Pos, e.Radius + ScytheBlade))
+                if (!InReach(e, m.Pos, ScytheBlade))
                     continue;
                 long key = ((long)m.Id << 32) | (uint)e.Id;
                 float last;

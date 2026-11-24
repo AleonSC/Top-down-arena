@@ -54,14 +54,13 @@ namespace Arena
             AddZone(ZoneKind.Flood, p, p.Pos, radius, time + FloodDrain);
             foreach (var e in Enemies.Values)  // the stamp: a splash that throws back what's touching you
             {
-                if (!Targetable(e) || e.Pos.FartherThan(p.Pos, FloodSurgeReach + e.Radius))
+                if (!InReach(e, p.Pos, FloodSurgeReach))
                     continue;
                 HurtEnemy(e, FloodSurgeDamage * s.DmgMult * pw, p.Id);
                 castHits++;
                 if (Heavy(e))
                     continue;
-                V2 away = (e.Pos - p.Pos).Normalized();
-                KnockEnemy(e, (away.IsZero ? RandDir() : away) * FloodSurgePush);  // slides (Knock.cs)
+                ShoveFrom(e, p.Pos, FloodSurgePush);  // slides (Knock.cs)
             }
             BroadcastFx(FxKind.Ring, p.Pos, Kits.Get(ZoneKind.Flood).Color, FloodSurgeReach, 0.4f, Sfx.None);  // (its sounds play from the pool: FloodLook.cs UpdateFloodSound)
         }

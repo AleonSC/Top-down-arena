@@ -238,7 +238,7 @@ namespace Arena
             int cut = 0;
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.FartherThan(r.Pos, e.Radius + WheelHitR) || r.Hit.ContainsKey(e.Id))
+                if (!InReach(e, r.Pos, WheelHitR) || r.Hit.ContainsKey(e.Id))
                     continue;
                 r.Hit[e.Id] = r.T;  // once a leg
                 FangHurt(p, e, dmg, r.Pos);

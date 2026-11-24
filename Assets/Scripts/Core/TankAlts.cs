@@ -110,7 +110,7 @@ namespace Arena
             Players.TryGetValue(z.Owner, out owner);
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.FartherThan(z.Pos, z.Radius + e.Radius))
+                if (!InReach(e, z.Pos, z.Radius))
                     continue;
                 BroadcastFx(FxKind.Bolt, z.Pos, e.Pos, ShockColor, 0f, 0.25f, Sfx.None);
                 HurtEnemy(e, ScatShockDamage * z.DmgMult, z.Owner);
@@ -225,7 +225,7 @@ namespace Arena
                 }
                 foreach (var e in Enemies.Values)  // tear gas
                 {
-                    if (!Targetable(e) || e.Pos.FartherThan(z.Pos, z.Radius + e.Radius))
+                    if (!InReach(e, z.Pos, z.Radius))
                         continue;
                     e.Suppress = Math.Max(e.Suppress, e.Def.IsBoss ? SuppressMax * 0.5f : SuppressMax);
                     Slow(e, 0.3f, 1f - TearGasSlow);

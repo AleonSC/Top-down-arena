@@ -90,8 +90,7 @@ namespace Arena
                 return 1f;
             if (!Heavy(e))
             {
-                V2 away = (e.Pos - p.Pos).Normalized();
-                KnockEnemy(e, (away.IsZero ? b.Vel.Normalized() : away) * ScatterShove * p.Stats.ScatterShoveMult);  // slides (Knock.cs)
+                ShoveFrom(e, p.Pos, ScatterShove * p.Stats.ScatterShoveMult, b.Vel.Normalized());  // slides (Knock.cs)
             }
             return ScatterPointBlank;
         }

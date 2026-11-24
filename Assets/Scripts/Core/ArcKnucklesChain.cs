@@ -102,7 +102,7 @@ namespace Arena
                 case 3:  // Grab & Throw: the Flurry's target, if it's still there, close and not a boss
                 {
                     Enemy e;
-                    if (!Enemies.TryGetValue(p.KnuckleTarget, out e) || !Targetable(e) || e.Def.IsBoss || e.Pos.FartherThan(p.Pos, GrabRange + e.Radius))
+                    if (!Enemies.TryGetValue(p.KnuckleTarget, out e) || !InReach(e, p.Pos, GrabRange) || e.Def.IsBoss)
                     {
                         EndKnuckleChain(p);
                         return false;  // (the press throws a punch instead)

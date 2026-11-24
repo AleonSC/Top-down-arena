@@ -139,7 +139,7 @@ namespace Arena
             float dmg = CastBurstPerEmber * n * p.Stats.DmgMult;
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.FartherThan(r.To, e.Radius + CastBurstR))
+                if (!InReach(e, r.To, CastBurstR))
                     continue;
                 V2 dir = e.Pos - r.To;
                 HurtEnemy(e, dmg, p.Id);

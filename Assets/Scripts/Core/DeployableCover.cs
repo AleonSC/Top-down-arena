@@ -157,7 +157,7 @@ namespace Arena
                     continue;
                 foreach (var e in Enemies.Values)
                 {
-                    if (!Targetable(e) || e.Pos.FartherThan(z.Pos, CoverHalf + CoverArm + e.Radius))
+                    if (!InReach(e, z.Pos, CoverHalf + CoverArm))
                         continue;
                     V2 l = CoverLocal(z, e.Pos);
                     bool moved = false;

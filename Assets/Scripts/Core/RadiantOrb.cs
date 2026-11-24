@@ -46,7 +46,7 @@ namespace Arena
             bool hit = false, touched = false;
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.FartherThan(p.RadiantPos, r + e.Radius))
+                if (!InReach(e, p.RadiantPos, r))
                     continue;
                 hit = touched = true;
                 HurtEnemy(e, dmg, p.Id);

@@ -226,7 +226,7 @@ namespace Arena
                 if (pt.Kind != PatchKind.Acid || !pt.Active)
                     continue;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))
+                    if (Hittable(p) && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))
                         DamageOverTime(p, Zombies.AcidDps * 0.25f, "Spitter acid");
             }
         }

@@ -265,7 +265,7 @@ namespace Arena
             float blast = BreachRadius * (cap ? 2f : 1f);
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.FartherThan(hit, blast + e.Radius))
+                if (!InReach(e, hit, blast))
                     continue;
                 HurtEnemy(e, BreachHitDmg * dmgMult * p.Stats.DmgMult * castPower, p.Id);
                 if (!Heavy(e))

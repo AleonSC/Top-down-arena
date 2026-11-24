@@ -139,7 +139,7 @@ namespace Arena
             int foes = 0;
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.FartherThan(m.Pos, R + e.Radius))
+                if (!InReach(e, m.Pos, R))
                     continue;
                 foes++;
                 Slow(e, 0.25f, e.Def.IsBoss ? 1f - (1f - WyvGaleBossSlow) * boost : 1f - (1f - WyvGaleSlow) * boost);
@@ -192,7 +192,7 @@ namespace Arena
             bool any = false;
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.FartherThan(m.Pos, R + e.Radius))
+                if (!InReach(e, m.Pos, R))
                     continue;
                 any = true;
                 WeaponHurt(e, dmg, p.Id);

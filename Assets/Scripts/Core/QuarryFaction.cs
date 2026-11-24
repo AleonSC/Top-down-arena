@@ -101,7 +101,7 @@ namespace Arena
                 return true;
             V2 a = k.From, b = k.From + V2.FromAngle(k.Ang) * k.Len;
             foreach (var p in Players.Values)
-                if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceToSegment(a, b) < CrackHalfW + p.Def.HitR)
+                if (Hittable(p) && p.Pos.DistanceToSegment(a, b) < CrackHalfW + p.Def.HitR)
                     Damage(p, CrackDamage, Defs.Get(e.Type).Name + " (crack)");
             BroadcastFx(FxKind.Bolt, a, b, HurlerColor, 0f, 0.3f, Sfx.BossCrack);  // it erupts
             return false;
@@ -203,7 +203,7 @@ namespace Arena
                 if (pt.Kind != PatchKind.Rubble || !pt.Active || !rubbleLanded.Add(pt.Id))
                     continue;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(pt.Pos, HurlerLandR + p.Def.HitR))
+                    if (Hittable(p) && p.Pos.CloserThan(pt.Pos, HurlerLandR + p.Def.HitR))
                         Damage(p, HurlerDamage, "Rock Hurler (boulder)");
                 for (int k = 0; k < HurlerShards; k++)
                 {
@@ -240,7 +240,7 @@ namespace Arena
                 if (TheColossus() == null)
                     foreach (var p in Players.Values)
                     {
-                        if (p.Downed || p.InvulnT > 0f)
+                        if (!Hittable(p))
                             continue;
                         foreach (var pt in Patches.Values)
                             if (pt.Kind == PatchKind.Lava && pt.Active && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))

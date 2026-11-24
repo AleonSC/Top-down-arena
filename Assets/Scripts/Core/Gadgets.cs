@@ -457,7 +457,7 @@ namespace Arena
             float dmg = EmpDmg * GadgetPower(p);
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.FartherThan(p.Pos, EmpRadius + e.Radius))
+                if (!InReach(e, p.Pos, EmpRadius))
                     continue;
                 Stun(e, e.Def.IsBoss || e.Def.Mini ? EmpBossStun : EmpStun);
                 HurtEnemy(e, dmg, p.Id);
@@ -553,7 +553,7 @@ namespace Arena
                 }
                 foreach (var e in Enemies.Values)
                 {
-                    if (!Targetable(e) || e.Pos.FartherThan(z.Pos, z.Radius + e.Radius))
+                    if (!InReach(e, z.Pos, z.Radius))
                         continue;
                     HurtEnemy(e, GadgetGasDps * z.DmgMult * dt, z.Owner);
                     Slow(e, 0.3f, 1f - GadgetGasSlow);

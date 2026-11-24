@@ -237,7 +237,7 @@ namespace Arena
                 bool any = false;
                 foreach (var e in Enemies.Values)
                 {
-                    if (!Targetable(e) || e.Pos.FartherThan(p.Pos, R + e.Radius))
+                    if (!InReach(e, p.Pos, R))
                         continue;
                     any = true;
                     WeaponHurt(e, dmg, p.Id);

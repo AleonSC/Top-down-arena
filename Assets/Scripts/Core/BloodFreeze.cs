@@ -64,7 +64,7 @@ namespace Arena
                     float r = FreezeWaveR(w.Age);
                     foreach (var e in Enemies.Values)
                     {
-                        if (!Targetable(e) || w.Hit.Contains(e.Id) || e.Pos.FartherThan(w.Pos, r + e.Radius))
+                        if (!InReach(e, w.Pos, r) || w.Hit.Contains(e.Id))
                             continue;
                         w.Hit.Add(e.Id);
                         float hold = FreezeHold(e.Def.IsBoss, w.Bonus);

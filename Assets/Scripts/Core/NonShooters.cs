@@ -81,7 +81,7 @@ namespace Arena
         {
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.InvulnT > 0f || p.Pos.FartherThan(e.Pos, radius + p.Def.HitR))
+                if (!Hittable(p) || p.Pos.FartherThan(e.Pos, radius + p.Def.HitR))
                     continue;
                 if ((p.ParryActive || p.BbBrace) && ParryContact(p, e, playerDamage))
                     continue;  // a raised guard facing the blast takes it

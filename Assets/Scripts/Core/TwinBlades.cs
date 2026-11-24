@@ -189,7 +189,7 @@ namespace Arena
             int cut = 0;
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.FartherThan(r.Pos, e.Radius + FangHitR))
+                if (!InReach(e, r.Pos, FangHitR))
                     continue;
                 float next;
                 if (r.Hit.TryGetValue(e.Id, out next) && r.T < next)

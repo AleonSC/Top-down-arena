@@ -83,7 +83,7 @@ namespace Arena
                         // The cut: everyone in the cone, once.
                         foreach (var p in Players.Values)
                         {
-                            if (p.Downed || p.InvulnT > 0f || !SwordCovers(e, p.Pos, p.Def.HitR))
+                            if (!Hittable(p) || !SwordCovers(e, p.Pos, p.Def.HitR))
                                 continue;
                             if ((p.ParryActive || p.BbBrace) && ParryStrike(p, e, SwordDamageOf(e.Type)))
                                 continue;  // a raised guard takes it

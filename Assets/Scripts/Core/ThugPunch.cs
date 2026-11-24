@@ -45,7 +45,7 @@ namespace Arena
                 e.LarderStage = LarderActing;
                 e.LarderT = PunchFlash;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && InCone(e.Pos, e.Facing, PunchHalf, PunchReach, p.Pos, p.Def.HitR))
+                    if (Hittable(p) && p.SwallowT <= 0f && InCone(e.Pos, e.Facing, PunchHalf, PunchReach, p.Pos, p.Def.HitR))
                         Damage(p, PunchDamage, "Thug");
                 BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 22f), new Rgba(1f, 0.85f, 0.6f), 20f, 0.16f, Sfx.SwingHeavy);
                 return;

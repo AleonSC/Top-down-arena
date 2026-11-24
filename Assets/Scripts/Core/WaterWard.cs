@@ -97,7 +97,7 @@ namespace Arena
                     V2 d = WwDrop(p, i);
                     foreach (var e in Enemies.Values)
                     {
-                        if (!Targetable(e) || d.FartherThan(e.Pos, e.Radius + WwDropR))
+                        if (!InReach(e, d, WwDropR))
                             continue;
                         WwSplash(p, d);
                         WwRemove(p, i);

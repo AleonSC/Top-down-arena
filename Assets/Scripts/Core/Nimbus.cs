@@ -65,7 +65,7 @@ namespace Arena
                 BroadcastFx(FxKind.NimbusStrike, at, at, NimbusBoltColor, radius, NimbusStrikeFxTime, Sfx.SpellZap);
                 foreach (var e in Enemies.Values)
                 {
-                    if (!Targetable(e) || e.Pos.FartherThan(at, radius + e.Radius))
+                    if (!InReach(e, at, radius))
                         continue;
                     anyHit = true;
                     HurtEnemy(e, dmg, p.Id);

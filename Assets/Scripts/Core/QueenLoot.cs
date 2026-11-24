@@ -256,7 +256,7 @@ namespace Arena
                     continue;
                 foreach (var e in Enemies.Values)
                 {
-                    if (!Targetable(e) || e.Pos.FartherThan(dv.Pos, RoyalDiveRadius + e.Radius))
+                    if (!InReach(e, dv.Pos, RoyalDiveRadius))
                         continue;
                     HurtEnemy(e, RoyalDiveDamage * p.Stats.DmgMult * dv.Power, p.Id);
                     if (!e.Def.IsBoss && !Heavy(e))

@@ -177,7 +177,7 @@ namespace Arena
             float bestD = float.MaxValue;
             foreach (var e in Enemies.Values)
             {
-                if (!Targetable(e) || e.Pos.FartherThan(from, KnuckleLockRange * reachMult + e.Radius))
+                if (!InReach(e, from, KnuckleLockRange * reachMult))
                     continue;
                 float d = e.Pos.DistanceTo(cursor);
                 if (d < bestD)

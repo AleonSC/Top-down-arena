@@ -221,7 +221,7 @@ namespace Arena
                 float dmg = th.Dmg * p.Stats.DmgMult;
                 foreach (var e in Enemies.Values)
                 {
-                    if (!Targetable(e) || e.Pos.FartherThan(at, e.Radius + BbThrowHitR) || !hit.Add(e.Id))
+                    if (!InReach(e, at, BbThrowHitR) || !hit.Add(e.Id))
                         continue;
                     V2 dir = e.Pos - at;
                     dir = dir.IsZero ? V2.FromAngle(th.Aim) : dir.Normalized();
