@@ -19,7 +19,7 @@ the Eclipse took 1.8 million damage in 149 s, and nothing threatened you. Three 
 
 1. **Diminishing returns**, not hard per-card limits.
 2. **Both arenas** (Classic and Rooms). The Rooms arena's 1.3x enemy damage stays Rooms-only.
-3. **Wounds**: 20% of each hit can't be healed back. Owner Nov 20: they carry across waves, capped at 30% of max (`WoundCap`), and clear when a boss falls, at a health shrine, with the Medic's heal or at a Rest.
+3. **Wounds**: 20% of each hit can't be healed back. Owner Nov 20: they carry across waves, capped at 70% of max (owner Nov 24; was 30%) (`WoundCap`), and clear when a boss falls, at a health shrine, with the Medic's heal or at a Rest.
 4. **Parry stays as it is** (a timing skill; its cards are already capped).
 
 ## How it works
