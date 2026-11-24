@@ -26,6 +26,21 @@ static partial class Program
         Check(!VowguardMotion.Valid(VowguardMotion.Pack(Enumerable.Repeat(VgMove.EdgeCut, 11).ToArray(), S)), "and so is a chain of 11");
         Check(VowguardMotion.Valid(VowguardMotion.Pack(Enumerable.Repeat(VgMove.EdgeCut, 10).ToArray(), S)), "10 is fine");
         Check(VowguardMotion.SamePack(VowguardMotion.FromLine("Nonsense;Junk"), VowguardMotion.DefaultPack), "a broken line loads as the default chains");
+        // the drawn motion (Radiant): same ends as the host's poses, a hold on each hit, still done on time
+        foreach (var mv in VowguardMotion.Moves)
+        {
+            VgPose hostA = VowguardMotion.PoseAt(mv, 0f), drawnA = VowguardMotion.ShownPoseAt(mv, 0f), hostB = VowguardMotion.PoseAt(mv, 1f), drawnB = VowguardMotion.ShownPoseAt(mv, 1f);
+            bool same = Math.Abs(hostA.Sword - drawnA.Sword) < 0.01f && Math.Abs(hostB.Sword - drawnB.Sword) < 0.01f && Math.Abs(hostB.ShieldD - drawnB.ShieldD) < 0.01f;
+            bool stop;
+            bool onTime = Math.Abs(VowguardMotion.ShownT(mv, mv.Dur, out stop) - mv.Dur) < 0.001f && VowguardMotion.ShownT(mv, 0f, out stop) == 0f;
+            if (!same || !onTime)
+                Check(false, mv.Name + "'s drawn motion starts and ends with the host's");
+        }
+        var cut = VowguardMotion.Of(VgMove.EdgeCut);
+        bool held;
+        float hitAt = cut.Hits[0].T * cut.Dur, shownMid = VowguardMotion.ShownT(cut, hitAt + 0.03f, out held);
+        Check(held && Math.Abs(shownMid - hitAt) < 0.001f, "Edge Cut's drawing holds on its hit (" + shownMid.ToString("0.000") + " s shown at " + (hitAt + 0.03f).ToString("0.000") + ")");
+        Check(VowguardMotion.ShownPoseAt(cut, 0.12f).Sword > VowguardMotion.PoseAt(cut, 0.12f).Sword, "and pulls the sword back before the cut");
         foreach (var preset in VowguardMotion.Presets)
             Check(VowguardMotion.Valid(VowguardMotion.Pack(preset[0], preset[1])), "every preset is a valid pair");
 

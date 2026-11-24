@@ -1174,6 +1174,7 @@ namespace Arena
             DrawWarhornGlow();  // Warhorn Volley's horn, burning arrowheads and fires (WarhornVolleyLook.cs)
             DrawDragonsDogmaGlow();  // Dragon's Dogma's light (DragonsDogmaLook.cs)
             DrawRodGlow();    // Lightning Rod's charge and bolts (LightningRodLook.cs)
+            DrawVgGlow();     // the Vowguard's blade, gem and shield core (VowguardLook.cs)
             DrawLightGlow();  // the Lightbringer's Sundial, Sunrise crescents, Spear, ward plates and marks (LightbringerFxLook.cs)
             foreach (var e in game.Enemies.Values)
                 if (e.Def.IsBoss && !game.IsSpawning(e))
