@@ -1,0 +1,305 @@
+<title>A Literal Tank</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: playable stage first (canvas + look picker + controls), then the beats and the numbers.
+   Colour: olive hull, shell-orange for rounds and blasts, steel for armour. Type: Barlow Condensed display, Barlow body, Plex Mono numbers. */
+:root{
+  --bg:#ebeae4; --fg:#1d1f1a; --muted:#5f6157; --panel:#f7f6f1; --line:#d3d2c8;
+  --acc:#a4520f; --chip:#e1e0d8; --chip-on:#1d1f1a; --chip-on-fg:#f4f3ee; --arena:#121413;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111210; --fg:#e9e8e1; --muted:#a09f93; --panel:#1a1b18; --line:#30312b;
+  --acc:#ff9a3c; --chip:#24251f; --chip-on:#e9e8e1; --chip-on-fg:#111210; --arena:#0c0d0c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111210; --fg:#e9e8e1; --muted:#a09f93; --panel:#1a1b18; --line:#30312b;
+  --acc:#ff9a3c; --chip:#24251f; --chip-on:#e9e8e1; --chip-on-fg:#111210; --arena:#0c0d0c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:32px}
+h1{font:700 clamp(36px,6.5vw,60px)/1 var(--display);text-transform:uppercase;margin:0 0 8px;text-wrap:balance}
+h1 span{color:var(--acc)}
+header p{margin:0;max-width:66ch;color:var(--muted)}
+.tag{font:500 12px var(--mono);color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;cursor:crosshair;touch-action:none}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:7px 14px;font:600 14px var(--body);cursor:pointer;background:var(--chip);color:var(--fg)}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--fg);outline-offset:-3px}
+button{font:600 14px var(--body);padding:7px 14px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)} button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.hint{font:500 13px var(--mono);color:var(--muted)}
+h2{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px;color:var(--acc)}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+@media (max-width:720px){.cols{grid-template-columns:1fr}}
+ol.beats{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:8px}
+ol.beats b{font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td{padding:6px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:last-child{text-align:right;font:500 14px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:12px}
+.note{font-size:14px;color:var(--muted);margin:10px 0 0}
+</style>
+
+<main>
+<header>
+  <div class="tag">Tank Soldier · Ultimate · mockup</div>
+  <h1>A Literal <span>Tank</span></h1>
+  <p>You climb into an actual tank for 15 seconds. The hull follows your movement, the turret follows your cursor, and the main gun fires big explosive shells. When time runs out you pop out of the hatch and the empty tank blows up behind you.</p>
+</header>
+
+<section>
+  <div class="frame"><canvas id="cv" width="1280" height="720" aria-label="Playable tank mockup"></canvas></div>
+  <div class="controls">
+    <span class="seg" role="radiogroup" aria-label="Tank look">
+      <input type="radio" name="look" id="lk-olive" value="olive" checked><label for="lk-olive">Olive steel</label>
+      <input type="radio" name="look" id="lk-toy" value="toy"><label for="lk-toy">Toy tank</label>
+      <input type="radio" name="look" id="lk-desert" value="desert"><label for="lk-desert">Desert</label>
+    </span>
+    <button id="again">Deploy again</button>
+    <span class="hint">WASD drive · mouse aim · click or Space fire. Idle = demo.</span>
+  </div>
+  <p class="note">Approximate browser mockup: the game draws with Ui.cs shapes, so glow and soft shadows will look simpler in Unity.</p>
+</section>
+
+<section class="cols">
+  <div>
+    <h2>Beats</h2>
+    <ol class="beats">
+      <li><b>Drop-in (0.6 s).</b> A crate shadow grows under you, the tank lands with a dust ring and a 120 px shove. You're inside.</li>
+      <li><b>Drive (15 s).</b> Hull turns toward your move direction (no strafing), turret tracks the cursor freely. A tread trail is left on the floor.</li>
+      <li><b>Main gun.</b> Heavy shell with recoil kick, muzzle flash and a short screen shake. Explodes on hit or at the cursor's range.</li>
+      <li><b>Crush.</b> Small enemies you drive into are run over; heavies and bosses are shoved instead.</li>
+      <li><b>Bail out.</b> Last 3 s the hull blinks and beeps. You pop out of the hatch, the empty tank explodes 0.5 s later.</li>
+    </ol>
+  </div>
+  <div>
+    <h2>Proposed numbers</h2>
+    <table>
+      <tr><td>Cooldown</td><td>80 s</td></tr>
+      <tr><td>Duration</td><td>15 s</td></tr>
+      <tr><td>Hull armour (absorbs all damage; tank breaks early at 0)</td><td>400</td></tr>
+      <tr><td>Move speed</td><td>75%</td></tr>
+      <tr><td>Shell: fire rate</td><td>1 / 0.9 s</td></tr>
+      <tr><td>Shell: direct hit / blast</td><td>70 / 45</td></tr>
+      <tr><td>Shell: blast radius</td><td>95 px</td></tr>
+      <tr><td>Shell speed · max range</td><td>900 · 620 px</td></tr>
+      <tr><td>Crush (small enemies)</td><td>kill</td></tr>
+      <tr><td>Crush (heavies, bosses)</td><td>25 + 90 px shove</td></tr>
+      <tr><td>Wreck explosion on exit</td><td>90 · 150 px</td></tr>
+      <tr><td>Your own weapon and abilities</td><td>locked</td></tr>
+    </table>
+  </div>
+</section>
+</main>
+
+<script>
+(()=>{
+const cv=document.getElementById('cv'),g=cv.getContext('2d');
+const W=1280,H=720,DUR=15;
+const LOOKS={
+  olive:{hull:'#5b6b34',dark:'#3d4822',lite:'#7d8f4a',tread:'#2a2d24',turret:'#677a3b',barrel:'#47532a',mark:'#e8e3c8'},
+  toy:{hull:'#58a845',dark:'#3b7a2e',lite:'#86cf6c',tread:'#3a3a3a',turret:'#66bb52',barrel:'#3f8a33',mark:'#f4e04d'},
+  desert:{hull:'#b99a62',dark:'#8a7046',lite:'#d9bd86',tread:'#4a4036',turret:'#c4a56c',barrel:'#8f764c',mark:'#6b2b1a'}
+};
+let look=LOOKS.olive;
+document.querySelectorAll('input[name=look]').forEach(r=>r.addEventListener('change',()=>{look=LOOKS[r.value]}));
+
+let S;
+function reset(){
+  S={t:0,phase:'drop',x:W/2,y:H/2+40,hull:-Math.PI/2,tur:-Math.PI/2,armour:400,cd:0,recoil:0,shake:0,
+     shells:[],booms:[],tracks:[],enemies:[],bullets:[],parts:[],spawn:0,kills:0,exitT:0,px:0,py:0,beep:0};
+  for(let i=0;i<9;i++)spawnEnemy();
+}
+function spawnEnemy(){
+  const side=Math.random()*4|0, heavy=Math.random()<.18;
+  let x=side==0?-20:side==1?W+20:Math.random()*W, y=side==2?-20:side==3?H+20:Math.random()*H;
+  S.enemies.push({x,y,r:heavy?24:13,hp:heavy?220:40,max:heavy?220:40,heavy,fire:1+Math.random()*2,hit:0});
+}
+reset();
+document.getElementById('again').onclick=reset;
+
+// input
+const keys={};let mouse={x:W/2,y:200,down:false},lastInput=-99,now=0;
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright',' '].includes(k)){keys[k]=true;lastInput=now;if(document.activeElement===document.body||document.activeElement===cv)e.preventDefault();}});
+addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
+function mpos(e){const r=cv.getBoundingClientRect();mouse.x=(e.clientX-r.left)*W/r.width;mouse.y=(e.clientY-r.top)*H/r.height;lastInput=now}
+cv.addEventListener('pointermove',mpos);
+cv.addEventListener('pointerdown',e=>{mpos(e);mouse.down=true;cv.focus?.()});
+addEventListener('pointerup',()=>mouse.down=false);
+cv.tabIndex=0;
+
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ang=(a)=>Math.atan2(Math.sin(a),Math.cos(a));
+const turnTo=(a,b,m)=>{const d=ang(b-a);return a+Math.max(-m,Math.min(m,d))};
+
+function boom(x,y,r,dmg,big){
+  S.booms.push({x,y,r,t:0,life:big?.7:.45});
+  S.shake=Math.max(S.shake,big?14:7);
+  for(let i=0;i<(big?40:18);i++){const a=Math.random()*6.28,s=80+Math.random()*(big?380:240);
+    S.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:0,life:.4+Math.random()*.5,c:Math.random()<.5?'#ffb347':'#ff6a2b',sz:2+Math.random()*4});}
+  for(const e of S.enemies){const d=Math.hypot(e.x-x,e.y-y);if(d<r+e.r){e.hp-=dmg;e.hit=.15;const k=(r-d)/r*(e.heavy?20:60);e.x+=(e.x-x)/(d||1)*k;e.y+=(e.y-y)/(d||1)*k}}
+  S.bullets=S.bullets.filter(b=>Math.hypot(b.x-x,b.y-y)>r);
+}
+
+function update(dt){
+  now+=dt;S.t+=dt;
+  const demo=now-lastInput>2.5;
+  S.shake*=Math.pow(.02,dt);S.recoil=Math.max(0,S.recoil-dt*5);S.cd-=dt;
+  if(S.phase==='drop'){ if(S.t>.6){S.phase='tank';S.t=0;boom(S.x,S.y,120,0,false);S.shake=12} }
+  else if(S.phase==='tank'){
+    // move
+    let mx=0,my=0;
+    if(demo){const a=now*.45;const tx=W/2+Math.cos(a)*360,ty=H/2+Math.sin(a*1.3)*200;mx=tx-S.x;my=ty-S.y;const l=Math.hypot(mx,my);if(l<30){mx=my=0}else{mx/=l;my/=l}}
+    else{mx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);my=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)}
+    const moving=mx||my;
+    if(moving){
+      const want=Math.atan2(my,mx);
+      // tanks can reverse: pick the closer of forward/back
+      let fwd=1,d=ang(want-S.hull);if(Math.abs(d)>Math.PI*0.6){fwd=-1;d=ang(want+Math.PI-S.hull)}
+      S.hull=turnTo(S.hull,S.hull+d,3.2*dt);
+      const align=Math.max(0,Math.cos(d)),sp=190*align*fwd;
+      S.x=Math.max(50,Math.min(W-50,S.x+Math.cos(S.hull)*sp*dt));S.y=Math.max(50,Math.min(H-50,S.y+Math.sin(S.hull)*sp*dt));
+      if(Math.random()<dt*22)S.tracks.push({x:S.x,y:S.y,a:S.hull,t:0});
+    }
+    // aim
+    let ax=mouse.x,ay=mouse.y;
+    if(demo){let best=null,bd=1e9;for(const e of S.enemies){const d=Math.hypot(e.x-S.x,e.y-S.y);if(d<bd){bd=d;best=e}}if(best){ax=best.x;ay=best.y}}
+    S.tur=turnTo(S.tur,Math.atan2(ay-S.y,ax-S.x),5*dt);
+    const fire=demo?(Math.abs(ang(Math.atan2(ay-S.y,ax-S.x)-S.tur))<.1):(mouse.down||keys[' ']);
+    if(fire&&S.cd<=0){
+      S.cd=.9;S.recoil=1;S.shake=Math.max(S.shake,6);
+      const bx=S.x+Math.cos(S.tur)*62,by=S.y+Math.sin(S.tur)*62;
+      const range=Math.min(620,Math.max(80,Math.hypot(ax-S.x,ay-S.y)));
+      S.shells.push({x:bx,y:by,a:S.tur,left:range-62});
+      S.booms.push({x:bx,y:by,r:26,t:0,life:.12,flash:1});
+      S.x-=Math.cos(S.tur)*6;S.y-=Math.sin(S.tur)*6;
+    }
+    // crush
+    for(const e of S.enemies){const d=Math.hypot(e.x-S.x,e.y-S.y);if(d<e.r+40){
+      if(e.heavy){e.hp-=25*dt*4;const k=90*dt*3;e.x+=(e.x-S.x)/d*k;e.y+=(e.y-S.y)/d*k}else{e.hp=0;e.crushed=1}}}
+    S.beep=S.t>DUR-3?S.beep+dt:0;
+    if(S.t>=DUR||S.armour<=0){S.phase='exit';S.exitT=0;S.px=S.x;S.py=S.y}
+  } else if(S.phase==='exit'){
+    S.exitT+=dt;
+    if(S.exitT<.5){S.py=S.y-Math.sin(S.exitT/.5*Math.PI)*50-S.exitT*60}
+    if(S.exitT>=.5&&!S.blown){S.blown=1;boom(S.x,S.y,150,90,true)}
+    if(S.exitT>4)reset();
+  }
+  // shells
+  for(const s of S.shells){const st=900*dt;s.x+=Math.cos(s.a)*st;s.y+=Math.sin(s.a)*st;s.left-=st;
+    if(Math.random()<.8)S.parts.push({x:s.x,y:s.y,vx:0,vy:0,t:0,life:.35,c:'rgba(200,200,190,.5)',sz:5,smoke:1});
+    for(const e of S.enemies)if(Math.hypot(e.x-s.x,e.y-s.y)<e.r+8){e.hp-=70;s.left=0}
+    if(s.left<=0){s.dead=1;boom(s.x,s.y,95,45,false)}}
+  S.shells=S.shells.filter(s=>!s.dead);
+  // enemies
+  for(const e of S.enemies){
+    const tx=S.phase==='exit'?S.px:S.x,ty=S.phase==='exit'?S.py:S.y;
+    const d=Math.hypot(tx-e.x,ty-e.y)||1,sp=e.heavy?40:70;
+    if(d>150){e.x+=(tx-e.x)/d*sp*dt;e.y+=(ty-e.y)/d*sp*dt}
+    e.hit=Math.max(0,e.hit-dt);e.fire-=dt;
+    if(e.fire<=0&&S.phase!=='drop'){e.fire=1.6+Math.random()*1.4;const a=Math.atan2(ty-e.y,tx-e.x);S.bullets.push({x:e.x,y:e.y,vx:Math.cos(a)*260,vy:Math.sin(a)*260})}
+  }
+  for(const e of S.enemies)if(e.hp<=0&&!e.dead){e.dead=1;S.kills++;
+    for(let i=0;i<10;i++){const a=Math.random()*6.28,s=60+Math.random()*160;S.parts.push({x:e.x,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:0,life:.5,c:e.crushed?'#9a2f2f':'#d9534f',sz:3})}}
+  S.enemies=S.enemies.filter(e=>!e.dead);
+  S.spawn-=dt;if(S.spawn<=0&&S.enemies.length<12){S.spawn=.7;spawnEnemy()}
+  for(const b of S.bullets){b.x+=b.vx*dt;b.y+=b.vy*dt;
+    if(S.phase==='tank'&&Math.hypot(b.x-S.x,b.y-S.y)<42){b.dead=1;S.armour-=6;S.ping=.1}
+    if(b.x<-20||b.x>W+20||b.y<-20||b.y>H+20)b.dead=1}
+  S.bullets=S.bullets.filter(b=>!b.dead);S.ping=Math.max(0,(S.ping||0)-dt);
+  for(const p of S.parts){p.t+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.92;p.vy*=.92}
+  S.parts=S.parts.filter(p=>p.t<p.life);
+  for(const b of S.booms)b.t+=dt;S.booms=S.booms.filter(b=>b.t<b.life);
+  for(const t of S.tracks)t.t+=dt;S.tracks=S.tracks.filter(t=>t.t<4);
+}
+
+function rr(x,y,w,h,r){g.beginPath();g.roundRect(x,y,w,h,r)}
+function drawTank(x,y,hull,tur,alpha,blink){
+  const L=look;g.save();g.globalAlpha=alpha;g.translate(x,y);
+  // shadow
+  g.save();g.rotate(hull);g.fillStyle='rgba(0,0,0,.35)';rr(-50,-36,104,76,10);g.fill();g.restore();
+  g.save();g.rotate(hull);
+  // treads
+  g.fillStyle=L.tread;rr(-52,-40,104,20,6);g.fill();rr(-52,20,104,20,6);g.fill();
+  g.fillStyle='rgba(255,255,255,.12)';const off=(S.x+S.y)*.6%12;
+  for(let i=-52+off;i<50;i+=12){g.fillRect(i,-40,4,20);g.fillRect(i,20,4,20)}
+  // hull
+  g.fillStyle=blink?'#d24b3a':L.hull;rr(-46,-26,92,52,8);g.fill();
+  g.fillStyle=L.dark;rr(-46,14,92,12,[0,0,8,8]);g.fill();
+  g.fillStyle=L.lite;rr(-46,-26,92,10,[8,8,0,0]);g.fill();
+  g.fillStyle=L.dark;g.fillRect(34,-20,6,40); // front plate
+  g.restore();
+  // turret
+  g.save();g.rotate(tur);
+  const rec=S.recoil*10;
+  g.fillStyle=L.barrel;rr(14-rec,-6,52,12,3);g.fill();
+  g.fillStyle=L.dark;rr(58-rec,-8,12,16,3);g.fill(); // muzzle brake
+  g.fillStyle=L.turret;g.beginPath();g.arc(0,0,24,0,6.28);g.fill();
+  g.fillStyle=L.lite;g.beginPath();g.arc(-4,-4,15,0,6.28);g.fill();
+  g.fillStyle=L.dark;g.beginPath();g.arc(-6,6,7,0,6.28);g.fill(); // hatch
+  g.fillStyle=L.mark;g.beginPath();g.arc(8,-2,4,0,6.28);g.fill();
+  g.restore();g.restore();
+}
+
+function draw(){
+  const sh=reduced?0:S.shake;
+  g.save();g.setTransform(1,0,0,1,0,0);g.fillStyle='#16191a';g.fillRect(0,0,W,H);
+  g.translate((Math.random()-.5)*sh,(Math.random()-.5)*sh);
+  // floor grid
+  g.strokeStyle='rgba(120,140,130,.08)';g.lineWidth=1;
+  for(let x=0;x<W;x+=48){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke()}
+  for(let y=0;y<H;y+=48){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke()}
+  // tread marks
+  for(const t of S.tracks){g.save();g.translate(t.x,t.y);g.rotate(t.a);g.fillStyle=`rgba(0,0,0,${.35*(1-t.t/4)})`;g.fillRect(-3,-36,6,12);g.fillRect(-3,24,6,12);g.restore()}
+  // scorch under booms
+  // enemies
+  for(const e of S.enemies){g.fillStyle=e.hit>0?'#fff':(e.heavy?'#8c3b5e':'#c0504d');g.beginPath();g.arc(e.x,e.y,e.r,0,6.28);g.fill();
+    if(e.heavy){g.fillStyle='rgba(0,0,0,.5)';g.fillRect(e.x-24,e.y-34,48,5);g.fillStyle='#e5c34a';g.fillRect(e.x-24,e.y-34,48*Math.max(0,e.hp/e.max),5)}}
+  // bullets
+  g.fillStyle='#ff5a7a';for(const b of S.bullets){g.beginPath();g.arc(b.x,b.y,5,0,6.28);g.fill()}
+  // parts (smoke under)
+  for(const p of S.parts){const k=1-p.t/p.life;g.globalAlpha=k;g.fillStyle=p.c;g.beginPath();g.arc(p.x,p.y,p.sz*(p.smoke?1+p.t*6:k+.3),0,6.28);g.fill()}
+  g.globalAlpha=1;
+  // tank / drop / exit
+  if(S.phase==='drop'){const k=S.t/.6;g.fillStyle=`rgba(0,0,0,${.15+.35*k})`;g.beginPath();g.ellipse(S.x,S.y,60*k,44*k,0,0,6.28);g.fill();
+    drawTank(S.x,S.y-(1-k)*(1-k)*400,S.hull,S.tur,1,false);drawPlayer(S.x,S.y+0,1-k)}
+  else if(S.phase==='tank'){const blink=S.t>DUR-3&&(S.beep*6|0)%2==0;drawTank(S.x,S.y,S.hull,S.tur,1,blink||S.ping>0)}
+  else{ if(!S.blown)drawTank(S.x,S.y,S.hull,S.tur,1,(S.exitT*12|0)%2==0);
+        else{g.fillStyle='rgba(20,20,20,.9)';g.save();g.translate(S.x,S.y);g.rotate(S.hull);rr(-46,-26,92,52,8);g.fill();g.restore()}
+        drawPlayer(S.px+S.exitT*0,S.py,1)}
+  // shells
+  for(const s of S.shells){g.save();g.translate(s.x,s.y);g.rotate(s.a);g.fillStyle='#ffd27a';rr(-10,-5,20,10,5);g.fill();g.fillStyle='#ff8a2b';g.fillRect(-14,-3,6,6);g.restore()}
+  // booms
+  for(const b of S.booms){const k=b.t/b.life;
+    if(b.flash){g.fillStyle=`rgba(255,230,160,${1-k})`;g.beginPath();g.arc(b.x,b.y,b.r,0,6.28);g.fill();continue}
+    g.fillStyle=`rgba(255,170,70,${.55*(1-k)})`;g.beginPath();g.arc(b.x,b.y,b.r*(.4+.6*Math.min(1,k*3)),0,6.28);g.fill();
+    g.strokeStyle=`rgba(255,240,200,${1-k})`;g.lineWidth=4*(1-k)+1;g.beginPath();g.arc(b.x,b.y,b.r*(.5+k*.7),0,6.28);g.stroke()}
+  // aim reticle
+  if(S.phase==='tank'){const r=Math.min(620,Math.hypot(mouse.x-S.x,mouse.y-S.y));const ex=S.x+Math.cos(S.tur)*r,ey=S.y+Math.sin(S.tur)*r;
+    g.strokeStyle='rgba(255,154,60,.7)';g.lineWidth=2;g.setLineDash([6,8]);g.beginPath();g.moveTo(S.x+Math.cos(S.tur)*72,S.y+Math.sin(S.tur)*72);g.lineTo(ex,ey);g.stroke();g.setLineDash([]);
+    g.beginPath();g.arc(ex,ey,95*(S.cd>0?.5:1),0,6.28);g.strokeStyle='rgba(255,154,60,.35)';g.stroke()}
+  g.restore();
+  // HUD
+  if(S.phase!=='drop'){
+    const left=S.phase==='tank'?Math.max(0,DUR-S.t):0;
+    g.fillStyle='rgba(0,0,0,.55)';rr(W/2-210,H-62,420,44,8);g.fill();
+    g.fillStyle='#e9e8e1';g.font='700 22px "Barlow Condensed",sans-serif';g.textAlign='left';g.fillText('A LITERAL TANK',W/2-196,H-32);
+    g.textAlign='right';g.font='500 18px "IBM Plex Mono",monospace';g.fillStyle=left<3?'#ff6a4a':'#ffb347';g.fillText(left.toFixed(1)+' s',W/2+196,H-32);
+    g.fillStyle='rgba(255,255,255,.15)';g.fillRect(W/2-60,H-46,140,8);g.fillStyle='#ffb347';g.fillRect(W/2-60,H-46,140*left/DUR,8);
+    g.fillStyle='rgba(255,255,255,.15)';g.fillRect(W/2-60,H-34,140,6);g.fillStyle='#9fb6c8';g.fillRect(W/2-60,H-34,140*Math.max(0,S.armour)/400,6);
+    g.textAlign='left';g.font='500 16px "IBM Plex Mono",monospace';g.fillStyle='#a09f93';g.fillText('KILLS '+S.kills,20,32);
+    if(now-lastInput>2.5){g.textAlign='right';g.fillText('DEMO · move the mouse or press WASD to drive',W-20,32)}
+  }
+}
+function drawPlayer(x,y,a){g.globalAlpha=a;g.fillStyle='#e8d7b0';g.beginPath();g.arc(x,y,14,0,6.28);g.fill();g.fillStyle='#4f6b2e';g.beginPath();g.arc(x,y-3,11,Math.PI,0);g.fill();g.globalAlpha=1}
+
+let last=performance.now();
+function frame(t){const dt=Math.max(0,Math.min(.05,(t-last)/1000));last=t;update(dt);draw();requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+})();
+</script>
