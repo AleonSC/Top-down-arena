@@ -45,6 +45,7 @@ namespace Arena
             }
             foreach (var s in c.Slabs)
                 DrawSlab(s);
+            DrawColossusPlatesFlying(boss, c, t, false);  // shadows of its plates coming off (ColossusBodyLook.cs)
             foreach (var p in c.Pillars)
             {
                 Circle(p.Pos + new V2(0f, 6f), Game.PillarR + 4f, new Rgba(0f, 0f, 0f, 0.4f), 20);
@@ -62,6 +63,7 @@ namespace Arena
             var c = ColossusOf(game, out boss);
             if (c == null)
                 return;
+            DrawColossusPlatesFlying(boss, c, t, true);  // its plates flying off to become cover (ColossusBodyLook.cs)
             foreach (var d in c.Drops)
             {
                 float k = Mathf.Clamp01(d.T / d.Dur);

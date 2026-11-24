@@ -104,7 +104,7 @@ namespace Arena
                 }
                 for (int sd = -1; sd <= 1; sd += 2)
                     ColArm(c, e, L, fx, fy, s, sd, t, ang, st, wk, glow, lean, charging, bracing, dazed, roaring, ring, thrown);
-                ColTorso(L, fx, fy, s, t, ang, st, glow, lean);
+                ColTorso(L, fx, fy, s, t, ang, st, glow, lean, ColCrumbleT(c), c != null ? ColPlateFor(e.Disp, e.Facing, s) : null);
                 // the head, sunk between the shoulders; bowed when kneeling, lolling when dazed
                 V2 head = L((kneel ? 22f : 36f) + lean, dazed ? Mathf.Sin(t * 4f) * 7f : 0f);
                 Circle(head + fx * 3f * s, 17f * s, new Rgba(0f, 0f, 0f, 0.3f), 14);
@@ -188,20 +188,115 @@ namespace Arena
                     Circle(fp + (fx * 15f + fy * ((k - 1) * 9f)) * fs * s, 4f * s, TitanDark.WithAlpha(0.7f), 6);
         }
 
+        /// One of the four plates on its body (0-1 the pauldrons, 2-3 the back plates): centre, size and angle.
+        static void ColPlateSpot(int i, V2 pos, float ang, float s, float lean, out V2 at, out float w, out float h, out float pa)
+        {
+            V2.Axes(ang, out V2 fx, out V2 fy);
+            float b = -6f + lean, x = i < 2 ? b - 2f : b - 16f, y = i < 2 ? (i == 0 ? -42f : 42f) : (i == 2 ? -13f : 13f);
+            at = pos + (fx * x + fy * y) * s;
+            w = (i < 2 ? 30f : 26f) * s;
+            h = (i < 2 ? 22f : 24f) * s;
+            pa = ang + (i == 0 ? 0.15f : i == 1 ? -0.15f : 0f);
+        }
+
+        /// Seconds into its change to Crumbling (the plates come off), or -1.
+        static float ColCrumbleT(ColossusState c) => c != null && c.TransT > 0f && c.TransTo == ColStage.Crumbling ? Game.ColTransTime - c.TransT : -1f;
+
+        /// When the plate bound for slab j leaves its body (seconds into the change); every plate lands as the change ends, with its slab.
+        static float ColPlateLaunch(int j) => 0.75f + j * 0.14f;
+
+        /// Which slab spot (Game.SlabSpots) each body plate flies to: the one most in its direction, no two the same.
+        static int[] ColPlateFor(V2 pos, float ang, float s)
+        {
+            var slab = new int[4];
+            bool[] used = new bool[4];
+            for (int i = 0; i < 4; i++)
+            {
+                ColPlateSpot(i, pos, ang, s, 0f, out V2 at, out float w, out float h, out float pa);
+                float da = (at - pos).Angle, best = 99f;
+                for (int j = 0; j < 4; j++)
+                {
+                    float d = Mathf.Abs(MathX.Fmod((Game.SlabSpots[j] - pos).Angle - da + MathX.Pi, MathX.Tau) - MathX.Pi);
+                    if (!used[j] && d < best) { best = d; slab[i] = j; }
+                }
+                used[slab[i]] = true;
+            }
+            return slab;
+        }
+
+        /// The plates in flight from its body to where the slabs land: their shadows on the floor (air false), then the
+        /// plates themselves, spinning on a high arc and growing to the slab's size (air true).
+        void DrawColossusPlatesFlying(Enemy e, ColossusState c, float t, bool air)
+        {
+            float crumble = ColCrumbleT(c);
+            if (crumble < 0f)
+                return;
+            float s = e.Radius / ColUnit;
+            var slabOf = ColPlateFor(e.Disp, e.Facing, s);
+            for (int i = 0; i < 4; i++)
+            {
+                int j = slabOf[i];
+                float launch = ColPlateLaunch(j), k = (crumble - launch) / (Game.ColTransTime - launch);
+                if (k < 0f || k > 1f)
+                    continue;
+                ColPlateSpot(i, e.Disp, e.Facing, s, 0f, out V2 from, out float w0, out float h0, out float pa);
+                bool upright = j >= 2;
+                float w1 = upright ? Game.SlabH : Game.SlabW, h1 = upright ? Game.SlabW : Game.SlabH;
+                V2 ground = V2.Lerp(from, Game.SlabSpots[j], k);
+                float up = Mathf.Sin(k * MathX.Pi), w = Mathf.Lerp(w0, w1, k), h = Mathf.Lerp(h0, h1, k);
+                if (!air)
+                {
+                    SetColor(new Rgba(0f, 0f, 0f, 0.15f + 0.3f * k));
+                    V2 hw = new V2(w * 0.5f * (1f - 0.3f * up), 0f), hh = new V2(0f, h * 0.5f * (1f - 0.3f * up));
+                    Quad(ground - hw - hh, ground + hw - hh, ground + hw + hh, ground - hw + hh);
+                    if (k > 0.75f)  // about to land: a ring where it will hit
+                        Arc(Game.SlabSpots[j], Mathf.Max(w1, h1) * 0.6f, 2.5f, PlateEdge.WithAlpha((k - 0.75f) * 3f), 24);
+                    continue;
+                }
+                V2 at = ground - new V2(0f, up * 120f);
+                float spin = (j % 2 == 0 ? 1f : -1f) * MathX.Tau;
+                for (int q = 1; q <= 3; q++)  // grit falling off behind it
+                {
+                    float kq = Mathf.Max(0f, k - q * 0.05f);
+                    V2 back = V2.Lerp(from, Game.SlabSpots[j], kq) - new V2(0f, Mathf.Sin(kq * MathX.Pi) * 120f);
+                    Circle(back, (5f - q) * 1.4f, SandDark.WithAlpha(0.5f - q * 0.12f), 6);
+                }
+                ColPlate(at, w * (1f + 0.2f * up), h * (1f + 0.2f * up), Mathf.Lerp(pa, spin, k));
+            }
+        }
+
         /// Its torso and shoulders: plates on (Awakening), then bare sockets and fractures, then lava seams and a core.
-        void ColTorso(System.Func<float, float, V2> L, V2 fx, V2 fy, float s, float t, float ang, ColStage st, float glow, float lean)
+        void ColTorso(System.Func<float, float, V2> L, V2 fx, V2 fy, float s, float t, float ang, ColStage st, float glow, float lean, float crumble, int[] slabOf)
         {
             bool kneel = st == ColStage.LastStand, molten = st >= ColStage.MoltenCore;
             float b = -6f + lean;
             TitanStone(L(b, 0f), 40f * s, 31f, 9, 0f, 1f);
             TitanStone(L(b, -40f), 22f * s, 32f, 7, glow * 0.5f, 1f);
             TitanStone(L(b, 40f), 22f * s, 33f, 7, glow * 0.5f, 1f);
-            if (st == ColStage.Awakening)  // two pauldrons and a pair of back plates
+            if (st == ColStage.Awakening)  // two pauldrons and a pair of back plates; rattling loose, then gone, as it changes to Crumbling
             {
-                ColPlate(L(b - 2f, -42f), 30f * s, 22f * s, ang + 0.15f);
-                ColPlate(L(b - 2f, 42f), 30f * s, 22f * s, ang - 0.15f);
-                ColPlate(L(b - 16f, -13f), 26f * s, 24f * s, ang);
-                ColPlate(L(b - 16f, 13f), 26f * s, 24f * s, ang);
+                for (int i = 0; i < 4; i++)
+                {
+                    ColPlateSpot(i, L(0f, 0f), ang, s, lean, out V2 at, out float w, out float h, out float pa);
+                    if (crumble < 0f)
+                    {
+                        ColPlate(at, w, h, pa);
+                        continue;
+                    }
+                    float launch = ColPlateLaunch(slabOf[i]), since = crumble - launch;
+                    if (since >= 0f)
+                    {
+                        Circle(at, 7f * s, TitanDark.WithAlpha(0.85f), 8);  // its socket, and the dust it tore out
+                        if (since < 0.35f)
+                            Circle(at, (10f + since * 60f) * s, TitanDust.Mix(SandLite, 0.4f).WithAlpha(0.5f * (1f - since / 0.35f)), 12);
+                        continue;
+                    }
+                    float shake = Mathf.Clamp01((crumble - 0.2f) / (launch - 0.2f));
+                    V2 jig = new V2(Mathf.Sin(t * 61f + i * 2f), Mathf.Cos(t * 57f + i * 3f)) * (2.5f * shake * s);
+                    ColPlate(at + jig, w, h, pa + Mathf.Sin(t * 40f + i) * 0.12f * shake);
+                    if (shake > 0.3f)  // light breaking through round its edges
+                        Arc(at, Mathf.Max(w, h) * 0.62f, 2f * s, SandLite.WithAlpha(0.6f * shake), 12);
+                }
                 return;
             }
             for (int k = 0; k < 4; k++)  // the bare sockets where the plates were
