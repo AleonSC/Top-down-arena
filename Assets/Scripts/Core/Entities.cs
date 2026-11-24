@@ -693,6 +693,9 @@ namespace Arena
         public bool Burning, Chilled, Frozen, Bleeding;  // replicated, for drawing (Chilled = slowed but not frozen)
         public float WetT, WetArcCd;        // Tsunami: wet (slowed, and lightning arcs to it), and the pause before it can be arced again (host)
         public bool Wet;                    // replicated, for the drips (Game/TsunamiLook.cs)
+        public float ChargedT, ChargePulseT;  // host: charged by lightning, and until a wet, charged one's next arc (Charged.cs)
+        public int ChargedBy;
+        public bool Charged;                // replicated, for the bolt icon and the arcs on its body
         public float WetLeft, WetPeak;      // wet seconds left (replicated, in tenths) and the most seen since it began: the effect bar's fill (Game/EffectBar.cs)
         public byte FrostChill;             // Frost Lance: chill on it, 0-2 (3 freezes; replicated for the pips; FrostLance.cs)
         public float FrostChillT;           // host: until the chill wears off

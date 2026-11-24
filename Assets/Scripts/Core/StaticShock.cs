@@ -133,6 +133,7 @@ namespace Arena
                 staticSeen[e.Id] = staticClock;
                 float rate = full * (StaticLow + (1f - StaticLow) * Math.Min(1f, t / StaticRamp));
                 WeaponHurt(e, rate * StaticTick, p.Id);
+                Charge(e, p.Id);  // Charged.cs
             }
             bool turret = ShockRoomTurrets(hand, p.Aim, StaticRangeOf(p), full, gap);
             foreach (var q in Players.Values)
@@ -291,6 +292,7 @@ namespace Arena
                     {
                         b.HitE.Add(e.Id);
                         WeaponHurt(e, b.Pass, b.Owner);
+                        Charge(e, b.Owner);  // Charged.cs
                     }
                 if (ExpandingOn || devTraps.Count > 0)
                 {
@@ -319,6 +321,7 @@ namespace Arena
                     {
                         any = true;
                         WeaponHurt(e, b.Burst, b.Owner);
+                        Charge(e, b.Owner);  // Charged.cs
                         if (e.Hp > 0f && !Heavy(e))
                             Stun(e, CannonStun);
                     }

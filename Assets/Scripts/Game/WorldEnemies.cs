@@ -893,6 +893,8 @@ namespace Arena
             }
             if (e.Venomed)
                 col = DrawVenomed(e, pos, r, col, t);  // Poison Dart (PoisonDartLook.cs)
+            if (e.Charged)
+                col = DrawCharged(e, pos, r, col, t);  // Charged.cs
             if (e.Marked && fxOn)  // Mark for Death: the reticle lock and skull (SoldierLooks.cs)
             {
                 col = col.Mix(new Rgba(1f, 0.42f, 0.35f), 0.2f);
@@ -1068,6 +1070,47 @@ namespace Arena
         static readonly Rgba FireColor = new Rgba(1f, 0.42f, 0.1f);
         static readonly Rgba SlowColor = new Rgba(0.45f, 0.7f, 1f);
         static readonly Rgba MarkColor = new Rgba(1f, 0.25f, 0.25f);
+        static readonly Rgba ChargeColor = new Rgba(1f, 0.9f, 0.35f);  // Charged: electric yellow
+        static readonly Rgba ShortColor = new Rgba(0.75f, 0.92f, 1f);  // wet and charged: shorting out, blue-white
+
+        /// The status row's bolt: a filled zigzag (two slanted halves) with a white core line.
+        void DrawBoltIcon(V2 c, float size, Rgba col)
+        {
+            V2 a = c + new V2(size * 0.35f, -size * 0.85f), b = c + new V2(-size * 0.3f, size * 0.1f), m = c + new V2(size * 0.3f, -size * 0.1f), d = c + new V2(-size * 0.35f, size * 0.85f);
+            Line(a, b, 3f, col);
+            Line(b, m, 3f, col);
+            Line(m, d, 3f, col);
+            Line(a, b, 1f, Rgba.White);
+            Line(m, d, 1f, Rgba.White);
+        }
+
+        /// Charged (Charged.cs): small jagged arcs crawl over the body, jumping to new spots several times a second, and a
+        /// faint yellow tint. Wet too, it's shorting out: more arcs, longer, blue-white, and a flicker on the body.
+        Rgba DrawCharged(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            bool shorting = e.Wet;
+            var arc = shorting ? ShortColor : ChargeColor;
+            int n = shorting ? 5 : 3;
+            float hop = Mathf.Floor(t * 9f);  // the arcs jump about nine times a second
+            for (int k = 0; k < n; k++)
+            {
+                float seed = hop * 1.7f + k * 3.1f + e.Id * 0.73f;
+                float a0 = MathX.Fmod(Mathf.Sin(seed) * 43758.5f, MathX.Tau);
+                float len = (shorting ? 1.2f : 0.8f) + 0.3f * Mathf.Sin(seed * 2.3f);
+                V2 prev = pos + V2.FromAngle(a0) * r * 1.05f;
+                for (int j = 1; j <= 3; j++)  // three jagged steps round the rim, kinking out and in
+                {
+                    float a = a0 + len * j / 3f;
+                    float out_ = j % 2 == 1 ? 1.4f + 0.15f * Mathf.Sin(seed + j) : 1.05f;
+                    V2 q = pos + V2.FromAngle(a) * r * out_;
+                    Line(prev, q, 2.2f, arc.WithAlpha(0.35f));
+                    Line(prev, q, 1.2f, Rgba.White.Mix(arc, 0.4f));
+                    prev = q;
+                }
+            }
+            float flick = shorting ? 0.2f + 0.15f * Mathf.Abs(Mathf.Sin(t * 31f + e.Id)) : 0.12f;
+            return col.Mix(arc, flick);
+        }
         static readonly Rgba BleedColor = new Rgba(0.8f, 0.05f, 0.12f);
 
         /// The Wolf Whistle's prey: three claw marks circling it, pointing in.
@@ -1100,11 +1143,11 @@ namespace Arena
         }
 
         /// A row of small icons over an enemy, one per status: snowflake = frozen, blue chevrons =
-        /// slowed, blue drop over a wave = wet (Tsunami; its effect bar drains under it), flame = burning, blood drop = bleeding, green bubbles = poisoned, a green drop with a dart through it = Poison Dart's venom, amber pause = suppressed (shoots slower), red crosshair = marked (takes extra damage).
+        /// slowed, blue drop over a wave = wet (Tsunami; its effect bar drains under it), flame = burning, blood drop = bleeding, green bubbles = poisoned, a green drop with a dart through it = Poison Dart's venom, yellow zigzag bolt = charged, amber pause = suppressed (shoots slower), red crosshair = marked (takes extra damage).
         void DrawStatusIcons(Enemy e, V2 center, float t)
         {
             bool iced = e.Frozen && !LeapCaged(e);
-            int n = (iced ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Wet ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0) + (e.Suppressed ? 1 : 0) + (e.Poisoned ? 1 : 0) + (e.Venomed ? 1 : 0);
+            int n = (iced ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Wet ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0) + (e.Suppressed ? 1 : 0) + (e.Poisoned ? 1 : 0) + (e.Venomed ? 1 : 0) + (e.Charged ? 1 : 0);
             if (n == 0)
                 return;
             const float size = 8f, step = 21f;
@@ -1188,6 +1231,13 @@ namespace Arena
                 V2 c = new V2(x, center.Y);
                 Circle(c, size + 3f, bg, 12);
                 DrawVenomIcon(c, size);
+                x += step;
+            }
+            if (e.Charged)  // charged by lightning: a zigzag bolt
+            {
+                V2 c = new V2(x, center.Y);
+                Circle(c, size + 3f, bg, 12);
+                DrawBoltIcon(c, size, ChargeColor);
                 x += step;
             }
             if (e.Suppressed)  // the Riot Repeater's suppression: a pause sign, its shooting slowed

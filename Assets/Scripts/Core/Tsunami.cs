@@ -80,15 +80,16 @@ namespace Arena
             Slow(e, 0.2f, 1f - (Heavy(e) ? WetSlowHeavy : WetSlow));
         }
 
-        /// A lightning hit on struck (at where it landed): a bolt jumps from there to every other wet enemy on the map.
+        /// A lightning hit on struck (at where it landed): it's charged, and a bolt jumps from there to every other wet or charged enemy on the map.
         /// dmg is the hit's own damage; each arc does WetArcShare of it. Called by every lightning source (see the class comment).
         void WetArcs(V2 at, Enemy struck, float dmg, int owner)
         {
             if (dmg <= 0f)
                 return;
+            Charge(struck, owner);  // Charged.cs: what lightning hits is charged
             List<Enemy> targets = null;
             foreach (var e in AllFoes(by: owner))  // (with PvP on, a wet player too: Pvp.cs)
-                if (e != struck && e.WetT > 0f && e.WetArcCd <= 0f)
+                if (e != struck && (e.WetT > 0f || e.ChargedT > 0f) && e.WetArcCd <= 0f)  // a charged enemy conducts too (Charged.cs)
                     (targets ?? (targets = new List<Enemy>())).Add(e);
             if (targets == null)
                 return;

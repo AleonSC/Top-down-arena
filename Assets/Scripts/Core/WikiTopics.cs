@@ -43,6 +43,7 @@ namespace Arena
             new Topic("Chilled", "Slowed by frost but not frozen. Frost Lance chill builds up to two; a third freezes it."),
             new Topic("Frozen", "Encased in ice (Glacial Tomb, a third Frost Lance chill): can't move or shoot."),
             new Topic("Wet", "Soaked by Tsunami: slowed, and lightning arcs to it."),
+            new Topic("Charged", "Hit by lightning (Arc Lightning, Storm Hammer, Static Shock, the Nimbus...): for 4 s lightning arcs to it like a wet enemy. Wet and charged, it shorts out: constant damage, and every 2.5 s an arc to the three enemies nearest it."),
             new Topic("Stunned", "Held in place, with stars over its head: can't move or shoot until it wears off. On you: a Taser Guard's Fork Bolt stops you moving for a moment."),
             new Topic("Dazed", "Dazed by a close-in hit: can't attack for a moment, then can't be dazed again for a while."),
             new Topic("Caged", "Caged by a third Bone Guard dart: can't move or shoot."),
