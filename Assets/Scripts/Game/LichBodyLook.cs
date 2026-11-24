@@ -11,7 +11,7 @@ namespace Arena
     public partial class ArenaApp
     {
         static readonly Rgba LRobe = new Rgba(0.07f, 0.1f, 0.09f), LRobeHi = new Rgba(0.13f, 0.19f, 0.16f), LSocket = new Rgba(0.02f, 0.03f, 0.03f),
-            LWood = new Rgba(0.22f, 0.17f, 0.12f);
+            LWood = new Rgba(0.22f, 0.17f, 0.12f), LGoldEmber = new Rgba(1f, 0.72f, 0.35f);
 
         struct LichFrame
         {
@@ -44,10 +44,82 @@ namespace Arena
             f.S = f.F.Orthogonal();
             Rgba glow = LichStageCol(e).WithAlpha(a), bone = BoneCol.Mix(Rgba.White, hit).WithAlpha(a);
             Ellipse(pos + new V2(0f, r * 0.35f), r * 1.05f, r * 0.55f, 0f, new Rgba(0f, 0f, 0f, 0.3f * a), 24);  // hovering shadow
-            if (stage == (int)LichStage.LastStand)
+            // into the Final Rite (it starts at once, no phase change): the cloak sheds over ShedLen
+            if (stage == (int)LichStage.LastStand && lichSeenStage == (int)LichStage.Undeath && lichSeenId == e.Id)
+                lichShedAt = t;
+            lichSeenStage = stage;
+            lichSeenId = e.Id;
+            float shed = lichShedForce >= 0f ? lichShedForce : (t - lichShedAt) / ShedLen;
+            if (stage == (int)LichStage.LastStand && shed >= 0f && shed < 1f)
+                DrawLichShed(f, shed, glow, bone, hit, a, t);
+            else if (stage == (int)LichStage.LastStand)
                 DrawLichWraith(f, stage, glow, bone, hit, a, t);
             else
                 DrawLichSorcerer(f, stage, glow, bone, hit, a, t);
+        }
+
+        int lichSeenStage = -1, lichSeenId = -1;  // the Lich's phase last frame, to catch the Final Rite starting
+        float lichShedAt = -99f;                  // when its cloak started shedding (draw time)
+        internal float lichShedForce = -1f;       // >= 0: draw the shedding that far through (preview: LICHSHED)
+        const float ShedLen = 1.3f;
+
+        /// Entering the Final Rite (k 0-1 through ShedLen). Until Split the Sorcerer strains: it shakes harder and harder,
+        /// rose light splits its cloak in cracks and its runes blaze. Then the cloak bursts: its shards, the pauldrons and the
+        /// staff fly off, spinning and burning out, a flash ring goes out, and the Wraith is left in the middle.
+        const float LichSplit = 0.25f;
+        void DrawLichShed(LichFrame f, float k, Rgba glow0, Rgba bone, float hit, float a, float t)
+        {
+            float K = f.K;
+            Rgba rose = new Rgba(1f, 0.42f, 0.6f).WithAlpha(a), glow = glow0.Mix(rose, MathX.Clamp01(k / LichSplit)).WithAlpha(a);
+            const int N = 22;
+            if (k < LichSplit)
+            {
+                float u = k / LichSplit;
+                f.O = f.O + new V2(Mathf.Sin(t * 61f), Mathf.Cos(t * 53f)) * (u * u * 2.6f * K);  // straining
+                DrawLichSorcerer(f, 3, glow, bone, hit, a, t);
+                GlowDisc(f.O, (40f + 30f * u) * K, rose, 0.25f * u * a);
+                for (int i = 0; i < 7; i++)  // cracks of light splitting the cloak from the middle out
+                {
+                    float ang = MathX.Tau * i / 7f + 0.4f, len = (34f + 8f * Mathf.Max(0f, -Mathf.Cos(ang))) * Mathf.Min(1f, u * 1.4f);
+                    V2 mid = f.P(Mathf.Cos(ang + 0.25f) * len * 0.5f, Mathf.Sin(ang + 0.25f) * len * 0.5f), end = f.P(Mathf.Cos(ang) * len, Mathf.Sin(ang) * len);
+                    Line(f.O, mid, 4.5f * K, rose.WithAlpha(0.35f * u * a));
+                    Line(mid, end, 4.5f * K, rose.WithAlpha(0.35f * u * a));
+                    Line(f.O, mid, 1.6f * K, Rgba.White.Mix(rose, 0.3f).WithAlpha(u * a));
+                    Line(mid, end, 1.6f * K, Rgba.White.Mix(rose, 0.3f).WithAlpha(u * a));
+                }
+                return;
+            }
+            float v = (k - LichSplit) / (1f - LichSplit), fly = 1f - (1f - v) * (1f - v) * (1f - v), fade = 1f - v;  // ease out
+            // the Wraith steps out of it
+            DrawLichWraith(f, 3, rose, bone, hit, a * Mathf.Min(1f, 0.35f + v * 1.5f), t);
+            // the flash ring
+            Arc(f.O, (40f + 130f * fly) * K, (6f * fade + 1f) * K, Rgba.White.Mix(rose, 0.3f).WithAlpha(fade * fade * a), 40);
+            // the cloak's shards flying off, spinning, their edges burning
+            Rgba robe = LRobe.WithAlpha(a * fade);
+            for (int i = 0; i < N; i++)
+            {
+                float a0 = MathX.Tau * i / N, a1 = MathX.Tau * (i + 1) / N, am = (a0 + a1) * 0.5f;
+                float back0 = Mathf.Max(0f, -Mathf.Cos(a0)), back1 = Mathf.Max(0f, -Mathf.Cos(a1));
+                float r0 = 30f + 14f * back0 + (i % 2 == 0 ? 6f : -2f), r1 = 30f + 14f * back1;
+                float spin = (i % 3 - 1) * 2.2f * fly, push = (40f + 18f * ((i * 7) % 5)) * fly;
+                V2 dir = f.F * Mathf.Cos(am) + f.S * Mathf.Sin(am), c = f.O + dir * ((14f + push) * K);
+                V2 p0 = f.P(Mathf.Cos(a0) * r0, Mathf.Sin(a0) * r0) - f.O, p1 = f.P(Mathf.Cos(a1) * r1, Mathf.Sin(a1) * r1) - f.O;
+                V2 q0 = c + (p0 - dir * (14f * K)).Rotated(spin) * 0.55f, q1 = c + (p1 - dir * (14f * K)).Rotated(spin) * 0.55f, q2 = c + (dir * (-12f * K)).Rotated(spin);
+                SetColor(robe);
+                Tri(q0, q1, q2);
+                Line(q0, q1, 1.8f * K, rose.Mix(LGoldEmber, 0.5f).WithAlpha(fade * a));
+                if (i % 3 == 0)
+                    GlowDisc(c, 6f * K, LGoldEmber, fade * 0.6f * a);
+            }
+            // the pauldrons and the staff thrown clear
+            for (int sd = -1; sd <= 1; sd += 2)
+            {
+                V2 sh = f.P(0f, sd * (17f + 60f * fly));
+                Circle(sh, 8.5f * K * (1f - 0.4f * v), bone.WithAlpha(fade * a), 14);
+            }
+            V2 sm = f.P(10f + 20f * fly, 23f + 45f * fly), sd2 = (f.F * 28f * K).Rotated(1.8f * fly);
+            Line(sm - sd2, sm + sd2, 3.6f * K, LWood.WithAlpha(fade * a));
+            GlowDisc(sm + sd2, 14f * K * fade, rose, fade * 0.8f * a);
         }
 
         /// Glowing eyes: a soft bloom, a hot core.

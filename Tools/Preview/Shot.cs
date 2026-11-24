@@ -286,6 +286,8 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("GOLD") != null) me.Gold = int.Parse(Environment.GetEnvironmentVariable("GOLD"));  // the Bazaar's gold on the HUD
     set = (n, v) => typeof(ArenaApp).GetField(n, f2).SetValue(app, v);
+    // LICHSHED=<0-1>: the Lich that far through shedding its cloak as the Final Rite starts (LichBodyLook.cs; use with LICH=0.05).
+    if (Environment.GetEnvironmentVariable("LICHSHED") != null) set("lichShedForce", float.Parse(Environment.GetEnvironmentVariable("LICHSHED")));
     if (Environment.GetEnvironmentVariable("RANDOM") == null) set("juiceRng", new System.Random(1));  // (Juice.cs rolls its own)
     set("session", host); set("game", host.Game); set("scale", 1f); set("drawScale", 1280f / Game.Width);
     if (Environment.GetEnvironmentVariable("FXOFF") != null) set("fxOn", false);
