@@ -69,6 +69,15 @@ static partial class Program
         Check(Wiki.PhaseIn("SUNDERED", EnemyType.ReaperOfDawn)?.Name == "Sundered", "either Reaper finds the Reapers' phases");
         foreach (var b in new[] { EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity, EnemyType.Colossus, EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse })
             Check(WikiPhases.All.Count(p => p.Boss == b) >= 3, "the " + Defs.Get(b).Name + " has its phases in the wiki");
+        // Boss attacks (WikiAttacks.cs): each under its boss and phase, found from a boss bar's text.
+        foreach (var at in WikiAttacks.All)
+            if (at.Phase != null && !WikiPhases.All.Any(p => p.Boss == at.Boss && p.Name == at.Phase))
+                Check(false, "the attack " + at.Name + " names a phase its boss has (" + at.Phase + ")");
+        var inhale = Wiki.Find("Inhale", WikiKind.Attack);
+        Check(inhale != null && inhale.Links.Any(l => l.Kind == WikiKind.Phase && l.Name == "Gorging") && inhale.Links.Any(l => l.Kind == WikiKind.Boss),
+            "an attack links to its phase and boss (Inhale: Gorging, the Devourer)");
+        Check(Wiki.PhaseIn("INHALE", EnemyType.Devourer) == inhale && Wiki.PhaseIn("SEARCHLIGHT IN 3 S", EnemyType.Warden)?.Name == "Searchlight", "a boss bar's attack name finds the attack");
+        Check(Wiki.Find("Gorging", WikiKind.Phase).MentionedBy.Contains(inhale), "a phase lists its attacks");
         Check(Wiki.Find("Swallowed", WikiKind.Status) != null && Wiki.References(Wiki.Find("Swallowed", WikiKind.Status)).Any(r => r.Name == "The Devourer"), "a player status links to what causes it (Swallowed: the Devourer)");
         Check(WikiTopics.PlayerStatuses.All(t => t.From.All(f => Wiki.Find(f) != null)), "every player status's cause is an entry");
         var seal = Wiki.Find("Warden's Seal", WikiKind.Relic);

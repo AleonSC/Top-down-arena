@@ -2004,7 +2004,8 @@ their sides in 0.22 s. With Reduced effects they slide in and out with no trails
   **WIKI**: a search box (type straight away) over every class, role, weapon, ability, Ultimate, upgrade card, perk, enemy, boss,
   minion, gadget, relic, buildable, run modifier, path, game mode, difficulty preset, challenge room, arena layout, mechanic
   (Dodge, Parry, Wound, Elite, Mastery, Vectors...), status effect (Burning, Frozen, Bleeding... and on players Swallowed, Grabbed,
-  Taunting), boss phase (Count, Gale, Penumbra... and the shared Last stand) and prop or chest in the game, names first, then anything whose text matches (classes and roles in
+  Taunting), boss phase (Count, Gale, Penumbra... and the shared Last stand), boss attack (Searchlight, Inhale, Conductor...; each lists its
+  boss and phase, and a phase lists its attacks) and prop or chest in the game, names first, then anything whose text matches (classes and roles in
   gold, cards and perks in green, enemies and bosses in red, gadgets, relics and buildables in amber, modes, paths and the like in
   cyan, minions in steel). Click a row (or Enter for the first) to open its page: what it is, its text, and its **references**: what it belongs to
   (a weapon's class and role, a card's weapons, a boss's faction...), what its text names (NAMED HERE) and what names it (MENTIONS IT),
@@ -2013,7 +2014,7 @@ their sides in 0.22 s. With Reduced effects they slide in and out with no trails
   row in the pause and lobby menus. Solo, it pauses the run while open; in co-op it doesn't, and only you see it; Esc or a click
   outside closes it. **Hold the Wiki key** for the eyedropper: the text under the pointer gets a gold outline and, in a run, the enemy
   minion, player, shot (a player's opens their weapon), crate, barrel or chest under it counts too, and the tag lists an
-  enemy's or player's status effects (a right click opens the first); a phase name on a boss bar opens that boss's phase; a tag by the pointer names what a click opens (POINT AT SOMETHING when nothing), and a click opens
+  enemy's or player's status effects (a right click opens the first); a phase or attack name on a boss bar opens that boss's; a tag by the pointer names what a click opens (POINT AT SOMETHING when nothing), and a click opens
   its page (an enemy, a boss, a class, an ability on your HUD, a card's name...). **New run** boots the lobby like a CRT out of the bay's screen: a
   link log types itself, squeezes into a bright line, and the line opens top and bottom like an old TV warming up to show the whole
   lobby. Its entrance is the end of the **disk boot sequence** (see Profiles): the case falls out from under the monitor, lands with a

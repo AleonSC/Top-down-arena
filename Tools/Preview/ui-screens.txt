@@ -89,3 +89,4 @@ wiki-pick-enemy   hud       WIKIPICK=450,333
 wiki-pick-crate   hud       WIKIPICK=240,135
 wiki-status       menu      WIKI= WIKIPAGE=Burning
 wiki-phase        menu      WIKI= WIKIPAGE=Gale
+wiki-attacks      menu      WIKI= WIKIPAGE=Gorging

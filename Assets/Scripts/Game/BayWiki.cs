@@ -226,7 +226,8 @@ namespace Arena
                 case WikiKind.Perk: return LampGreen;
                 case WikiKind.Enemy:
                 case WikiKind.Boss:
-                case WikiKind.Phase: return CrtStyle.Danger;
+                case WikiKind.Phase:
+                case WikiKind.Attack: return CrtStyle.Danger;
                 case WikiKind.Gadget:
                 case WikiKind.Relic:
                 case WikiKind.Buildable: return LampAmber;

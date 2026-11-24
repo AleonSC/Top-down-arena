@@ -135,7 +135,7 @@ namespace Arena
         WikiEntry WikiUnderPointer()
         {
             wikiPickStatuses.Clear();
-            if (session.Screen == AppScreen.Game && Ui.Hovered != null)  // a boss bar's phase name: that boss's phase (WikiPhases.cs)
+            if (session.Screen == AppScreen.Game && Ui.Hovered != null)  // a boss bar's phase or attack name: that boss's (WikiPhases.cs, WikiAttacks.cs)
                 foreach (var b in game.Enemies.Values)
                     if (b.Hp > 0f && Defs.Get(b.Type).IsBoss)
                     {

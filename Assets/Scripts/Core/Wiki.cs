@@ -6,7 +6,7 @@ using System.Text;
 namespace Arena
 {
     /// What a wiki entry is (its tag in the list). New kinds go at the end.
-    public enum WikiKind : byte { Class, Role, Weapon, Ability, Ultimate, Card, Perk, Enemy, Boss, Minion, Gadget, Relic, Buildable, Modifier, Path, Mode, Difficulty, Challenge, Layout, Mechanic, Status, Prop, Phase }
+    public enum WikiKind : byte { Class, Role, Weapon, Ability, Ultimate, Card, Perk, Enemy, Boss, Minion, Gadget, Relic, Buildable, Modifier, Path, Mode, Difficulty, Challenge, Layout, Mechanic, Status, Prop, Phase, Attack }
 
     /// One thing in the game the wiki can show: its name, a line on what it is, its text and the entries it links to.
     public class WikiEntry
@@ -37,8 +37,8 @@ namespace Arena
         static List<KeyValuePair<EnemyType, WikiEntry>> phaseEntry;
         static WikiEntry lastStand;
 
-        /// The boss phase a piece of text names for this boss ("GALE", "STAGE 2 / 5 · PENUMBRA", "LAST STAND"), or null: the boss bars'
-        /// phase names, for the eyedropper (a phase's name alone is often another entry's too: Last Stand, Frenzy).
+        /// The boss phase or attack a piece of text names for this boss ("GALE", "STAGE 2 / 5 · PENUMBRA", "LAST STAND", "INHALE"), or
+        /// null: for the eyedropper on the boss bars (a phase's or attack's name alone is often another entry's too: Last Stand, Frenzy).
         public static WikiEntry PhaseIn(string text, EnemyType boss)
         {
             Build();
@@ -130,7 +130,7 @@ namespace Arena
 
         public static string KindName(WikiKind k) =>
             k == WikiKind.Card ? "Upgrade card" : k == WikiKind.Mode ? "Game mode" : k == WikiKind.Difficulty ? "Difficulty preset"
-            : k == WikiKind.Status ? "Status effect" : k == WikiKind.Prop ? "Prop" : k == WikiKind.Phase ? "Boss phase" : k == WikiKind.Challenge ? "Challenge room" : k == WikiKind.Layout ? "Arena layout" : k == WikiKind.Modifier ? "Run modifier" : k.ToString();
+            : k == WikiKind.Status ? "Status effect" : k == WikiKind.Prop ? "Prop" : k == WikiKind.Phase ? "Boss phase" : k == WikiKind.Attack ? "Boss attack" : k == WikiKind.Challenge ? "Challenge room" : k == WikiKind.Layout ? "Arena layout" : k == WikiKind.Modifier ? "Run modifier" : k.ToString();
 
         /// The entry with this name (any case), or null. Kind narrows it when two share a name.
         public static WikiEntry Find(string name, WikiKind? kind = null)
@@ -363,6 +363,15 @@ namespace Arena
                 var e = Add(ph.Name, WikiKind.Phase, (boss != null ? boss.Name : "Boss") + " · phase, " + ph.When, ph.Text);
                 Link(e, boss);
                 phaseEntry.Add(new KeyValuePair<EnemyType, WikiEntry>(ph.Boss, e));
+            }
+            foreach (var at in WikiAttacks.All)
+            {
+                enemyOf.TryGetValue(at.Boss, out var boss);
+                var ph = at.Phase == null ? null : phaseEntry.Find(kv => kv.Key == at.Boss && kv.Value.Name == at.Phase).Value;
+                var e = Add(at.Name, WikiKind.Attack, (boss != null ? boss.Name : "Boss") + " · " + (ph != null ? ph.Name + " attack" : "attack"), at.Text);
+                Link(e, ph);
+                Link(e, boss);
+                phaseEntry.Add(new KeyValuePair<EnemyType, WikiEntry>(at.Boss, e));  // (PhaseIn finds attacks too)
             }
             lastStand = Add(WikiPhases.LastStandName, WikiKind.Phase, "Boss phase, below 10%", WikiPhases.LastStandText);
             foreach (var b in WikiPhases.LastStandBosses)
