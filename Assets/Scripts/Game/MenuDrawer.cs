@@ -8,7 +8,7 @@ namespace Arena
     /// the pause menu, the lobby's Esc menu, Settings, How to play and the Records pages. A tall cabinet on the left holds a
     /// header screen and one screen of digital keys (the pause menu's choices, or Settings' four sections); what a key opens
     /// is a CRT window to its right, which slides out of the cabinet the first time and only retypes after that. The pause
-    /// menu leaves the frozen arena in view, with a "this run" screen over it when no window is out.
+    /// menu leaves the frozen arena in view.
     public partial class ArenaApp
     {
         // The floating cabinet: 24 px in from the left, top and bottom; CabW x CabH is the inside of its 1 px outline.
@@ -47,21 +47,6 @@ namespace Arena
                 CrtKit.Forget("cab.");
             }
             return 1f;
-        }
-
-        /// The pause menu's players, in the run card: compact cards stacked up from its bottom (the Tab screen has more).
-        void DrawPartyStack(Rect card)
-        {
-            var players = new List<Player>(game.Players.Values);
-            const float h = 46f, gap = 6f;
-            float x = card.x + 20f, w = card.width - 40f, y = card.yMax - 16f - h;
-            foreach (var p in players)  // the first at the bottom, each next one above it
-            {
-                PartyCompact(new Rect(x, y, w, h), p);
-                y -= h + gap;
-            }
-            Ui.Label(new Rect(x + 2f, y + h - 16f, 200f, 14f), "PLAYERS", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
-            Ui.Fill(new Rect(x, y + h - 26f, w, 1f), new Color(1f, 1f, 1f, 0.08f));
         }
 
         /// A one-line player card: class icon, name, class and weapon, level, and a thin health bar along the bottom.
@@ -296,7 +281,6 @@ namespace Arena
             CabFoot(null, "HOLD TAB RUN STATS & BUILD   H HIDE HUD");
             EndDrawer();
             DrawTip(true);
-            DrawRunScreen(t);
         }
 
         /// The small square key in the pause box's header, lined up with the right edge of the rows: three statistic bars, "Current run
@@ -322,28 +306,6 @@ namespace Arena
                 TipStart(new Rect(CabX + 1f + DrawerSlide + r.x, CabY + 1f + r.y, r.width, r.height), "Current run stats", CrtStyle.Gold);
             if (Ui.HitArea(r))
                 runStatsOpen = true;
-        }
-
-        /// The run's screen on the right, fading as a window comes out over it.
-        void DrawRunScreen(float t)
-        {
-            float a = 1f - CabWinSlideK(false);
-            if (!FxCalm && !docking)
-                a *= Mathf.Clamp01((CabAge - RunCardAt) / 0.45f);  // fades in after the cabinet's opening (no pop)
-            if (a <= 0.01f)
-                return;
-            float dx = docking ? DockPanelX : 0f;  // docking: in from the right with the cabinet, out to the right as the menu closes (WindowAnim.cs)
-            if (docking)
-                DockTrails(DrawerPanel, DockPanelIn, CrtStyle.Gold);
-            if (a < 0.99f || dx != 0f)
-                PushShift(dx, 0f, a);
-            float oldGl = glAlpha;
-            glAlpha = a;  // the boss model fades with it
-            cabGlass = true;
-            DrawRunCard(DrawerPanel, t);  // in the window's place, right of the box
-            cabGlass = false;
-            glAlpha = oldGl;
-            PopShift();
         }
 
         static readonly Color LobbyConfirmColor = new Color(1f, 0.6f, 0.45f);
@@ -412,7 +374,6 @@ namespace Arena
             }
             EndDrawerScreen();
             EndDrawer();
-            DrawRunScreen(t);
         }
 
         void ConfirmQuit(int choice)
@@ -454,176 +415,6 @@ namespace Arena
                 return;
             }
             pauseSettings = pauseHowTo = false;
-        }
-
-        /// The run's card over the arena: the wave, time and score, the path, modifiers and difficulty, the next boss
-        /// (moving) and this stretch's challenge room.
-        const float RunCardAt = 1.3f;  // seconds into the pause cabinet's opening when the run's screen starts to fade in
-
-        void DrawRunCard(Rect at, float t, bool gl = true)
-        {
-            // The chips: the path, the modifiers, the difficulty.
-            var chips = new List<KeyValuePair<string, Color>>();
-            if (game.CurrentPath != PathId.None)
-            {
-                var pd = Paths.Get(game.CurrentPath);
-                int left = game.PathWavesLeft;
-                chips.Add(new KeyValuePair<string, Color>(pd.Name.ToUpperInvariant() + (left > 0 ? "  ·  " + left + (left == 1 ? " WAVE LEFT" : " WAVES LEFT") : ""), pd.Accent.ToColor()));
-            }
-            foreach (var m in Modifiers.All)
-                if (game.Has(m.Mod))
-                    chips.Add(new KeyValuePair<string, Color>(m.Name.ToUpperInvariant(), m.Lean == ModLean.Easier ? Ui.Good : new Color(1f, 0.6f, 0.6f)));
-            chips.Add(new KeyValuePair<string, Color>(game.Diff.Name.ToUpperInvariant(), new Color(0.79f, 0.83f, 0.92f)));
-            var r = at;
-            float powerAge = docking ? 1f : CabAge - RunCardAt;  // the box fades in after the cabinet's opening (DrawRunScreen; docking: it slides in at once)
-            if (!FxCalm && powerAge < 0f)
-                return;
-            CrtKit.LoadoutBox(r);
-            if (cabGlass)
-                DrawHoloGlass(new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f), WinNow);
-            runSecA = Ui.Alpha;
-            runSecC = GUI.color;
-            float x0 = r.x + 20f;
-            float px = RunSecIn(4);  // docking: each part slides in from the right in turn (RunSecIn), the players last
-            DrawPartyStack(new Rect(r.x + px, r.y, r.width, r.height));  // the players, stacked up from its bottom
-            float x = x0 + RunSecIn(0), y = r.y + 16f;
-            Ui.Label(new Rect(x, y, 200f, 14f), "THIS RUN", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
-            y += 18f;
-            string wave = "WAVE " + Mathf.Max(1, game.ShownWave);
-            DkTitle(new Rect(x, y, 260f, 48f), wave, 38, CrtStyle.Gold, TextAnchor.MiddleLeft);
-            float ww = Ui.TextWidth(wave, 38, true) + 16f;
-            int secs = Mathf.RoundToInt(game.RunTime);
-            Ui.Label(new Rect(x + ww, y + 6f, 140f, 18f), secs / 60 + ":" + (secs % 60).ToString("00"), 13, Ui.Text);
-            Ui.Label(new Rect(x + ww, y + 24f, 160f, 18f), "Score " + game.Score.ToString("N0"), 13, Ui.Text);
-            y += 56f;
-            // Chips: the path, the modifiers, the difficulty.
-            float cx = x, maxX = r.xMax - 20f;
-            foreach (var c in chips)
-            {
-                float w = Ui.TextWidth(c.Key, 11, true) + 18f;
-                if (cx + w > maxX && cx > x)
-                {
-                    cx = x;
-                    y += 26f;
-                }
-                cx += Chip(cx, y, c.Key, c.Value) + 6f;
-            }
-            y += 34f;
-            Ui.Fill(new Rect(x, y, r.width - 40f, 1f), new Color(1f, 1f, 1f, 0.08f));
-            y += 14f;
-            x = x0 + RunSecIn(1);
-            float bossK = runSecK;
-            // The next boss, moving in its tile.
-            int next = game.NextBossWave(game.Wave, game.State == MatchState.Fighting);
-            var boss = game.BossAt(Mathf.Min(Game.MaxWave, Mathf.Max(5, next)));
-            var tile = new Rect(x, y, 64f, 64f);
-            IconTile(tile, null, CrtStyle.Gold, 0f);
-            bool fighting = game.BossNow && game.State == MatchState.Fighting;
-            Ui.Label(new Rect(x + 78f, y + 4f, 300f, 14f), (fighting ? "BOSS · NOW" : "NEXT BOSS · AFTER WAVE " + (game.Hunt != null ? next : game.ShownEnd(next))), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            DkTitle(new Rect(x + 78f, y + 18f, 300f, 28f), Defs.ListName(boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : boss), 20, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
-            if (!fighting)
-            {
-                int to = game.Hunt != null ? next - game.Wave - 1 : game.ShownEnd(next) - game.ShownWave;  // (a run: the regular waves left before the boss)
-                Ui.Label(new Rect(x + 78f, y + 46f, 320f, 16f), to <= 0 ? "Next up" : to + (to == 1 ? " wave" : " waves") + " before it", 12, Ui.Muted);
-            }
-            var bossAt = new V2(tile.center.x, tile.center.y);
-            y += 78f;
-            if (game.Hunt == null && !game.Quick)
-                y = DrawRunCardGate(x0 + RunSecIn(2), y);
-            DrawRunCardStats(r, x0 + RunSecIn(3), y + 6f);
-            RunSecEnd();
-            if (gl && bossK > 0.01f && BeginUiGl())
-            {
-                float oldGl = glAlpha;
-                glAlpha = oldGl * bossK;  // (the boss fades in with its part)
-                UiClip(tile);
-                DrawEnemyPreview(boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : boss, bossAt, 52f, t, true);
-                EndUiGl();
-                glAlpha = oldGl;
-            }
-        }
-
-        // The run card's parts docking in (the pause menu, WindowAnim.cs): 0 the wave, 1 the next boss, 2 the Data Gate, 3 your run's
-        // stats, 4 the players. Each slides in 30 px from the right and fades in, 0.04 s apart from 0.22 s; the stats count up (0.26-0.5 s).
-        float runSecA = 1f, runSecK = 1f;
-        Color runSecC = Color.white;
-
-        /// Start drawing part `i`: sets its fade and returns how far right it still is.
-        float RunSecIn(int i)
-        {
-            runSecK = Dock ? EaseOut(Seg(WinT, 0.22f + i * 0.04f, 0.38f + i * 0.04f)) : 1f;
-            Ui.Alpha = runSecA * runSecK;
-            GUI.color = runSecC.WithAlpha(runSecC.a * runSecK);
-            return 30f * (1f - runSecK);
-        }
-
-        void RunSecEnd()
-        {
-            Ui.Alpha = runSecA;
-            GUI.color = runSecC;
-        }
-
-        /// How far the stats have counted up (0..1).
-        float RunCountK => Dock ? EaseOut(Seg(WinT, 0.26f, 0.5f)) : 1f;
-
-        /// The run card's YOUR RUN row: four tiles (damage, kills, accuracy, downs), when there's room above the players.
-        void DrawRunCardStats(Rect card, float x, float y)
-        {
-            Player me;
-            if (!game.Players.TryGetValue(game.MyId, out me))
-                return;
-            const float tileH = 58f;
-            float stackTop = card.yMax - 16f - game.Players.Count * 52f - 30f;  // (DrawPartyStack's "PLAYERS" line)
-            if (y + 22f + tileH > stackTop)
-                return;
-            Ui.Fill(new Rect(x, y, card.width - 40f, 1f), new Color(1f, 1f, 1f, 0.08f));
-            y += 12f;
-            Ui.Label(new Rect(x, y, 200f, 14f), "YOUR RUN", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
-            y += 22f;
-            var s = me.Run;
-            float c = RunCountK;  // docking: they count up from 0
-            string[] vals = { ShortNumber(s.DamageDealt * c), Mathf.RoundToInt(s.Kills * c).ToString("N0"), s.ShotsFired > 0 ? Mathf.RoundToInt(s.Accuracy * 100f * c) + "%" : "—", Mathf.RoundToInt(s.Downs * c).ToString() };
-            string[] names = { "DAMAGE", "KILLS", "ACCURACY", "DOWNED" };
-            const float gap = 8f;
-            float w = (card.width - 40f - gap * 3f) / 4f;
-            for (int i = 0; i < 4; i++)
-            {
-                var b = new Rect(x + i * (w + gap), y, w, tileH);
-                Ui.Fill(b, new Color(1f, 1f, 1f, 0.03f));
-                CrtKit.Frame(b, 1f, new Color(1f, 1f, 1f, 0.1f));
-                DkTitle(new Rect(b.x, b.y + 6f, b.width, 28f), vals[i], 22, i == 3 && s.Downs > 0 ? new Color(1f, 0.6f, 0.6f) : CrtStyle.Gold, TextAnchor.MiddleCenter);
-                Ui.Label(new Rect(b.x, b.yMax - 20f, b.width, 14f), names[i], 10, Ui.Muted, TextAnchor.MiddleCenter, true);
-            }
-        }
-
-        /// The run card's Data Gate line (a Campaign or Survival run: Quick Play and Boss Hunts have none). Returns the y under it.
-        float DrawRunCardGate(float x, float y)
-        {
-            // This stretch's challenge room.
-            var room = new Rect(x, y, 64f, 64f);
-            var rc = lastRoomKind != ChallengeKind.None && (lastRoomWave - 1) / 5 == (Mathf.Max(1, game.Wave) - 1) / 5 ? lastRoomKind : ChallengeKind.None;
-            IconTile(room, PixelArt.Get(RoomIcon(rc)), rc != ChallengeKind.None ? Challenges.Accent(rc).ToColor() : new Color(0.7f, 0.6f, 1f), 36f);
-            Ui.Label(new Rect(x + 78f, y + 4f, 320f, 14f), "DATA GATE · THIS STRETCH", 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            int block = (Mathf.Max(1, game.Wave) - 1) / 5;
-            string nextPortal = game.LongLegs ? "Next Data Gate after one of waves " + game.ShownStart(block * 5 + 6) + "-" + game.ShownEnd(block * 5 + 8)
-                : "Next Data Gate after wave " + (block * 5 + 6) + ", " + (block * 5 + 7) + " or " + (block * 5 + 8);
-            if (rc != ChallengeKind.None)
-            {
-                DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(rc) + (lastRoomWon ? "  ✓" : "  ✗"), 19, lastRoomWon ? Challenges.Accent(rc).ToColor() : new Color(1f, 0.5f, 0.5f), TextAnchor.MiddleLeft);
-                Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), (lastRoomWon ? "Won" : "Lost") + "  ·  " + nextPortal, 12, Ui.Muted);
-            }
-            else if (game.ChallengePhase == RoomPhase.Portal || game.InRoom)
-            {
-                DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), Challenges.Name(game.ChallengeNow), 19, Challenges.Accent(game.ChallengeNow).ToColor(), TextAnchor.MiddleLeft);
-                Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), game.InRoom ? "You're in it now" : "Its Data Gate is open", 12, Ui.Muted);
-            }
-            else
-            {
-                int k = game.Hunt != null || game.Quick ? 0 : Mathf.Max(1, game.Wave) % 5;  // (no Data Gates in a Boss Hunt)
-                DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), "Not yet", 19, new Color(0.75f, 0.68f, 1f), TextAnchor.MiddleLeft);
-                Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), k >= 1 && k <= 3 ? "A Data Gate opens after one of the next few waves" : nextPortal, 12, Ui.Muted);
-            }
-            return y + 78f;
         }
 
         static string RoomIcon(ChallengeKind k) =>

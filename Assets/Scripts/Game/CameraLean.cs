@@ -62,7 +62,7 @@ namespace Arena
                 float speed = Mathf.Clamp01(vel.Length / 300f);
                 V2 move = vel.Length > 1f ? vel.Normalized() : V2.Zero;
                 V2 want = aim * (reach * 0.65f) + move * (speed * 0.35f);
-                target = new V2(Mathf.Clamp(want.X * LeanMaxX * LeanStrength, -LeanMaxX, LeanMaxX), Mathf.Clamp(want.Y * LeanMaxY * LeanStrength, -LeanMaxY, LeanMaxY));
+                target = LeanTurn(new V2(Mathf.Clamp(want.X * LeanMaxX * LeanStrength, -LeanMaxX, LeanMaxX), Mathf.Clamp(want.Y * LeanMaxY * LeanStrength, -LeanMaxY, LeanMaxY)));  // (turned with the camera, CameraRotate.cs)
             }
             leanLast = me.Disp;
             leanHasLast = true;

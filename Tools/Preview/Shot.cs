@@ -874,12 +874,16 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("ZOOM") != null) {  // ZOOM=<1-2>: the scroll-wheel zoom, centred on you and held inside the arena (CameraZoom.cs)
       float z = float.Parse(Environment.GetEnvironmentVariable("ZOOM"), System.Globalization.CultureInfo.InvariantCulture);
-      float hx = Game.Width / (2f * z), hy = Game.Height / (2f * z);
+      int crot = Environment.GetEnvironmentVariable("CAMROT") != null ? int.Parse(Environment.GetEnvironmentVariable("CAMROT")) : 0;  // CAMROT=<quarter turns clockwise> (CameraRotate.cs); CAMROTANG=<deg>: a mid-swing angle instead
+      float cang = Environment.GetEnvironmentVariable("CAMROTANG") != null ? float.Parse(Environment.GetEnvironmentVariable("CAMROTANG"), System.Globalization.CultureInfo.InvariantCulture) * 0.017453292f : crot * 1.5707964f;
+      typeof(ArenaApp).GetField("camRot", f2).SetValue(app, crot); typeof(ArenaApp).GetField("camAng", f2).SetValue(app, cang);
+      float ac = Math.Abs((float)Math.Cos(cang)), asn = Math.Abs((float)Math.Sin(cang));
+      float hx = (ac * Game.Width + asn * Game.Height) / (2f * z), hy = (asn * Game.Width + ac * Game.Height) / (2f * z);
       typeof(ArenaApp).GetField("camZoom", f2).SetValue(app, z);
       V2 focus = me.Disp;
       string camAt = Environment.GetEnvironmentVariable("CAMAT");  // CAMAT=x,y: centre the zoom there instead of on you
       if (camAt != null) { var cp = camAt.Split(','); focus = new V2(float.Parse(cp[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(cp[1], System.Globalization.CultureInfo.InvariantCulture)); }
-      typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, new V2(Math.Max(hx, Math.Min(Game.Width - hx, focus.X)), Math.Max(hy, Math.Min(Game.Height - hy, focus.Y))));
+      typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, new V2(hx * 2 >= Game.Width ? Game.Width / 2f : Math.Max(hx, Math.Min(Game.Width - hx, focus.X)), hy * 2 >= Game.Height ? Game.Height / 2f : Math.Max(hy, Math.Min(Game.Height - hy, focus.Y))));
     }
     if (Environment.GetEnvironmentVariable("EXPANDMAP") != null || Environment.GetEnvironmentVariable("SURVIVAL") != null) {  // the rooms' following camera (CameraZoom.cs), at the ZOOM if any
       float z = (float)typeof(ArenaApp).GetField("camZoom", f2).GetValue(app);

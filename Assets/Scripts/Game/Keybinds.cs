@@ -12,7 +12,7 @@ namespace Arena
     public enum KeyAction
     {
         MoveUp, MoveDown, MoveLeft, MoveRight, Dodge, Ability1, Ultimate, Ability2, Ability3, Ability4, Fire, Parry, WeaponAction,
-        Interact, DiscardItem, Gadget, PushWall, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp, OpenDoors, Map, GadgetWheel, Wiki,
+        Interact, DiscardItem, Gadget, PushWall, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp, OpenDoors, Map, GadgetWheel, Wiki, RotateLeft, RotateRight,
     }
 
     public static class Keybinds
@@ -23,12 +23,12 @@ namespace Arena
         {
             KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.LeftControl, KeyCode.Alpha1, KeyCode.Q, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4,
             KeyCode.Mouse0, KeyCode.Mouse1, KeyCode.LeftAlt,
-            KeyCode.F, KeyCode.B, KeyCode.X, KeyCode.None, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.None, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z, KeyCode.M, KeyCode.C, KeyCode.I,
+            KeyCode.F, KeyCode.B, KeyCode.X, KeyCode.None, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.None, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z, KeyCode.M, KeyCode.C, KeyCode.I, KeyCode.LeftBracket, KeyCode.RightBracket,
         };
         static readonly string[] Titles =
         {
             "Move up", "Move down", "Move left", "Move right", "Dodge", "1st ability", "Ultimate", "2nd ability", "3rd ability",
-            "4th ability", "Fire", "Parry", "Alternative fire", "Interact", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave", "Open a door", "Map", "Gadget wheel", "Wiki",
+            "4th ability", "Fire", "Parry", "Alternative fire", "Interact", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave", "Open a door", "Map", "Gadget wheel", "Wiki", "Rotate camera left", "Rotate camera right",
         };
         static readonly string[] Lines =
         {
@@ -41,6 +41,8 @@ namespace Arena
             "Cycles the minimap, the full map and no map",
             "Hold to open the gadget wheel: let go on a gadget to swap it into your hand, in the middle to cancel",
             "Tap: look anything up. Hold and click something on screen (an enemy, a card, a name) to open its page",
+            "Turn the view a quarter turn anticlockwise, to see above or below you",
+            "Turn the view a quarter turn clockwise, to see above or below you",
         };
         /// The groups on the Keybinds page: heading and the actions in each, in page order (every action in exactly one, except PushWall
         /// (retired with wall push, Nov 18; no key, its C went to the Gadget wheel) and OpenDoors (door picker removed): both kept so saved keys keep their slots).
@@ -51,7 +53,7 @@ namespace Arena
             new[] { KeyAction.Ability1, KeyAction.Ultimate, KeyAction.Ability2, KeyAction.Ability3, KeyAction.Ability4 },
             new[] { KeyAction.Fire, KeyAction.Parry, KeyAction.WeaponAction },
             new[] { KeyAction.Interact, KeyAction.DiscardItem, KeyAction.Gadget, KeyAction.GadgetWheel, KeyAction.Reroll },
-            new[] { KeyAction.AimLine, KeyAction.ToggleHud, KeyAction.Map, KeyAction.Mute, KeyAction.Emote, KeyAction.Ping, KeyAction.ReadyUp, KeyAction.Wiki },
+            new[] { KeyAction.AimLine, KeyAction.ToggleHud, KeyAction.Map, KeyAction.Mute, KeyAction.Emote, KeyAction.Ping, KeyAction.ReadyUp, KeyAction.Wiki, KeyAction.RotateLeft, KeyAction.RotateRight },
         };
 
         static readonly KeyCode[] keys = (KeyCode[])Defaults.Clone();
