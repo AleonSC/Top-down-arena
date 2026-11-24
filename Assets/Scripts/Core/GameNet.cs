@@ -836,6 +836,8 @@ namespace Arena
             s.Float(ref p.BbRam);
             s.Byte(ref p.BbBashes);
             s.Vec(ref p.BbBashTo);
+            s.Bool(ref p.HbSet);  // the Halberd's set pike (Halberd.cs)
+            s.Float(ref p.HbPikeA);
             s.Short(ref p.SsMask);  // the Stonespear (Stonespear.cs)
             s.Byte(ref p.SsSide);
             s.Int(ref p.SsLock);

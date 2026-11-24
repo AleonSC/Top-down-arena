@@ -1818,7 +1818,7 @@ static partial class Shot {
     }
     // SWING=<seconds>: your melee weapon's attack that far in (with KNIGHT=, NINJA= or BLOOD=; MeleeLooks.cs draws it
     // with Visual effects on). Built like the game's own effects: Slash with the weapon's half arc (negative: a
-    // thrust), the Halberd's whole swing (SWING = seconds after the click, HALBERDUP=1 for the return sweep), Jab boxes for the Lance and the Warhammer.
+    // thrust), a Halberd step (SWING = seconds after the click, HALBERDSTEP=1..4, PIKE=1 the pike set), Jab boxes for the Lance and the Warhammer.
     // PERFECTPARRY=<s since the catch>: your shield up and a perfect parry's flash, with its needle flying back (ParryLook.cs).
     if (Environment.GetEnvironmentVariable("PERFECTPARRY") != null) {
       float pt = float.Parse(Environment.GetEnvironmentVariable("PERFECTPARRY"), System.Globalization.CultureInfo.InvariantCulture);
@@ -1954,7 +1954,26 @@ static partial class Shot {
           break;
         }
         case WeaponId.Kusarigama: gm.Effects.Add(new Effect { Kind = FxKind.Slash, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.MeleeReach(me, Game.KusariCutReach), Color = col, Radius = Game.KusariCutArc * MathX.Pi / 360f, T = st, Dur = 0.16f }); break;  // the sickle cut
-        case WeaponId.Halberd: { bool hup = Environment.GetEnvironmentVariable("HALBERDUP") == "1"; fx(FxKind.Slash, to, 0.7f + 18f * MathX.Pi / 360f, 0f, HalberdMotion.Total(hup)); break; }  // one effect from the click (HalberdMotion.cs); HALBERDUP=1: with the return sweep
+        case WeaponId.Halberd:  // HALBERDSTEP=1..4 Sweep, Return Sweep, Overhead Chop, Reaping Wheel (SWING = seconds after the click); PIKE=1: Set the Pike, turned to the nearest enemy (POKE=<s since a poke>, its jab)
+        {
+          int hs = int.Parse(Environment.GetEnvironmentVariable("HALBERDSTEP") ?? "1");
+          bool pike = Environment.GetEnvironmentVariable("PIKE") == "1";
+          int j = 0;
+          foreach (var en in gm.Enemies.Values) {
+            if (en.Def.IsBoss) continue;
+            float a = pike ? me.Aim + 0.5f + j * 0.7f : hs == 3 ? me.Aim + (j - 1) * 0.06f : me.Aim + (j - 1) * 0.55f + (hs == 4 && j == 2 ? 2.4f : 0f);
+            float dd = pike ? 205f + 60f * j : hs == 3 ? 95f + 65f * j : 140f + 20f * (j % 2);
+            en.Pos = en.Disp = me.Pos + V2.FromAngle(a) * dd;
+            if (++j >= 3) break;
+          }
+          if (pike) {
+            me.HbSet = true; me.HbPikeA = me.Aim + 0.5f;
+            string pk = Environment.GetEnvironmentVariable("POKE");
+            if (pk != null) gm.Effects.Add(new Effect { Kind = FxKind.HalberdPoke, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.HbPikeA) * Game.PikeReach(me, 0), Color = Game.HbGlow, Radius = me.Id, T = float.Parse(pk, System.Globalization.CultureInfo.InvariantCulture), Dur = Game.PikeFxTime });
+          }
+          else fx(FxKind.HalberdStep, to, me.Id * 10 + hs, 0f, HalberdMotion.StepTotal(hs));
+          break;
+        }
         case WeaponId.BearTotem:  // two claw swipes (left hand across, right hand back), a Bear beside you and the three enemies bleeding (BLEEDHITS=<stacks>, default 3)
         {
           foreach (int sd in new[] { 1, -1 })

@@ -80,6 +80,8 @@ namespace Arena
             d[(int)FxKind.FrostBurst] = (fx, f, t) => DrawFrostBurstFx(fx);  // FrostLanceLook.cs
             d[(int)FxKind.FrostBreak] = (fx, f, t) => DrawFrostBreakFx(fx);  // FrostLanceLook.cs
             d[(int)FxKind.AbsoluteZero] = (fx, f, t) => DrawAbsoluteZeroFx(fx);  // FrostLanceLook.cs
+            d[(int)FxKind.HalberdStep] = (fx, f, t) => DrawHalberdStepFx(fx, false);  // HalberdLook.cs
+            d[(int)FxKind.HalberdPoke] = (fx, f, t) => DrawHalberdPokeFx(fx, false);  // HalberdLook.cs
             d[(int)FxKind.BulwarkStep] = (fx, f, t) => DrawBulwarkStepFx(fx);  // BulwarkBarrierLook.cs
             d[(int)FxKind.BulwarkBash] = (fx, f, t) => DrawBulwarkBashFx(fx, t);  // BulwarkBarrierLook.cs
             d[(int)FxKind.BulwarkBlock] = (fx, f, t) => DrawBulwarkBlockFx(fx);  // BulwarkBarrierLook.cs
@@ -544,12 +546,6 @@ namespace Arena
                 Line(fx.Pos, fx.Pos2, 8f * (1f - f), fx.Color.WithAlpha(0.35f * (1f - f)));
                 Line(fx.Pos, fx.Pos2, 2.5f, Rgba.White.WithAlpha(0.9f * (1f - f)));
                 return;
-            }
-            if (IsHalberdFx(fx))  // effects off: the old arc, as the sweep starts (the effect now spans the whole swing)
-            {
-                f = (fx.T - HalberdMotion.Start1) / 0.3f;
-                if (f < 0f || f >= 1f)
-                    return;
             }
             float sweep = 2f * half * Mathf.Min(1f, f * 3f);
             float from = half >= MathX.Pi - 0.01f ? aim + t * 6f : aim - half;

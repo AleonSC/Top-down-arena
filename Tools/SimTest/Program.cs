@@ -329,7 +329,7 @@ static partial class Program
         Test("quarterstaff", "the Quarterstaff", () => { QuarterstaffTest(Dt); QuarterstaffStacksTest(Dt); }),
         Test("greatsword", "the Greatsword's ten-step chain and Moonwheel", () => GreatswordTest(Dt)),
         Test("knuckles", "the Arc Knuckles: the Knight DPS's fourth weapon, its chain, parry cancel and Counter Hammer", () => ArcKnucklesTest(Dt)),
-        Test("tankknight", "the Warhammer's charged slam and the Halberd's sweep", () => TankKnightTest(Dt)),
+        Test("tankknight", "the Warhammer's charged slam, the Halberd's Reaper's Wheel and Set the Pike", () => TankKnightTest(Dt)),
         Test("revolver", "the Revolver", () => RevolverReloadTest(Dt)),
         Test("bow", "the Mender's Bow", () => BowTest(Dt)),
         Test("bear", "the Bear Totem", () => BearTotemTest(Dt)),

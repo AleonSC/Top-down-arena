@@ -275,6 +275,7 @@ class JuiceCheck {
         for (int i = 0; i < 30; i++) {
           tick(); frame(); frames++;
           foreach (var fx in g.Effects) if (fx.Kind == FxKind.Slash) { all.Add(fx); if (!seenMap.Contains(fx)) missed++; }
+            else if (fx.Kind == FxKind.HalberdStep) all.Add(fx);  // (the Halberd's steps draw themselves: HalberdLook.cs)
         }
         slashes = all.Count;
         return new[] { frames, missed, slashes };
@@ -303,7 +304,7 @@ class JuiceCheck {
       Console.WriteLine("  melee: Halberd {0} effect(s), {1} frames missed; Greatsword {2} effect(s), {3} missed", halberd[2], halberd[1], sword[2], sword[1]);
       Check(halberd[1] == 0 && sword[1] == 0 && halberd[2] >= 1 && sword[2] >= 1,
         "real melee swings (the Greatsword, the Halberd) draw the weapon + energy look on every frame");
-      Check(halberd[2] == 1, "a Halberd sweep is one effect (its six steps share it)");
+      Check(halberd[2] == 1, "a Halberd step is one effect (its sweep's six hits share it)");
     }
 
     // Chain Light in style A (ChainLightLooks.cs): a real cast's cone (and any bolts from it) is the radiance, drawn in

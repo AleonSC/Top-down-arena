@@ -490,34 +490,85 @@ static partial class Program
         Check(a.Hp < a.MaxHp && b.Hp < b.MaxHp && c.Hp < c.MaxHp, "the Halberd sweeps across, reaching enemies on both sides of the aim");
         Check(b.MaxHp - b.Hp < dmg * 1.5f, "each enemy is hit once a sweep, however many steps pass over it");
         Check(far.Hp == far.MaxHp, "enemies outside the sweep are safe");
-        // The swing is one motion from the click (HalberdMotion.cs): a pull back, then six steps that land as the edge reaches them.
+        // Reaper's Wheel (Halberd.cs): Sweep, Return Sweep, Overhead Chop, Reaping Wheel, then over; each step timed from its motion.
         {
-            float prev = 0f; bool inOrder = true, smooth = true;
-            for (int pass = 1; pass <= 2; pass++)
-                for (int i = 0; i < Game.HalberdSteps; i++)
-                {
-                    float t = HalberdMotion.StepTime(pass, i, Game.HalberdSteps);
-                    if (t <= prev) inOrder = false;
-                    prev = t;
-                }
-            float first = HalberdMotion.StepTime(1, 0, Game.HalberdSteps), last = HalberdMotion.StepTime(1, Game.HalberdSteps - 1, Game.HalberdSteps);
-            float ret = HalberdMotion.StepTime(2, 0, Game.HalberdSteps);
-            for (bool up = false; ; up = true)
+            Func<int, bool> smoothStep = st =>
             {
-                var pp = HalberdMotion.At(0f, up);
-                for (float t = 0.002f; t < HalberdMotion.Total(up) + 0.05f; t += 0.002f)
+                var pp = HalberdMotion.StepAt(st, 0f);
+                for (float t = 0.002f; t < HalberdMotion.StepTotal(st) + 0.05f; t += 0.002f)
                 {
-                    var q = HalberdMotion.At(t, up);
-                    if (Math.Abs(q.A - pp.A) > 0.2f || Math.Abs(q.K - pp.K) > 0.1f || Math.Abs(Math.Cos(q.Roll) - Math.Cos(pp.Roll)) > 0.4) smooth = false;
+                    var q = HalberdMotion.StepAt(st, t);
+                    float da = Math.Abs(MathX.WrapPi(q.A - pp.A));
+                    if (da > (st == 4 ? 0.4f : 0.2f) || Math.Abs(q.K - pp.K) > (st == 3 ? 0.25f : 0.1f) || Math.Abs(Math.Cos(q.Roll) - Math.Cos(pp.Roll)) > 0.4) return false;
                     pp = q;
                 }
-                if (up) break;
+                return true;
+            };
+            bool smooth = smoothStep(1) && smoothStep(2) && smoothStep(3) && smoothStep(4);
+            float first = HalberdMotion.StepCross(1, -HalberdMotion.Sweep), last = HalberdMotion.StepCross(1, HalberdMotion.Sweep);
+            float ret0 = HalberdMotion.StepCross(2, HalberdMotion.Sweep), ret1 = HalberdMotion.StepCross(2, -HalberdMotion.Sweep);
+            float w0 = HalberdMotion.StepCross(4, HalberdMotion.WindA + 0.01f), w1 = HalberdMotion.StepCross(4, HalberdMotion.WindA - 0.01f);
+            Console.WriteLine("  halberd motion: sweep {0:0.000}-{1:0.000} s, return {2:0.000}-{3:0.000} s, chop lands {4:0.000} s, wheel {5:0.000}-{6:0.000} s; totals {7:0.00} {8:0.00} {9:0.00} {10:0.00}",
+                first, last, ret0, ret1, HalberdMotion.ChopHit, w0, w1, HalberdMotion.StepTotal(1), HalberdMotion.StepTotal(2), HalberdMotion.StepTotal(3), HalberdMotion.StepTotal(4));
+            Check(first > 0.03f && first < 0.2f && last > first && last < 0.3f && ret0 > 0f && ret1 > ret0 && ret1 < 0.4f, "the sweeps land in order soon after the click (the return sweep after the head turns over)");
+            Check(w0 < w1 && w1 - w0 > 0.3f && w1 < HalberdMotion.StepTotal(4), "the Reaping Wheel's edge goes all the way round, in order");
+            Check(smooth, "every step's pose moves smoothly the whole way (no jump in the pole, its reach or the head's roll)");
+            Check(HalberdMotion.StepTotal(1) < 0.6f, "a lone sweep is back at the ready before the next swing (0.6 s)");
+        }
+        {
+            g.Enemies.Clear(); g.Bullets.Clear(); me.Combo = 0; me.ComboT = 0f; me.FireCd = 0f;
+            var line = Dummy(new V2(500f + 215f, 450f));  // on the aim, past the sweeps' reach: only the chop's long box gets it
+            var back = Dummy(new V2(500f - 120f, 450f));  // behind you: only the wheel
+            var steps = new List<int>();
+            float lineStun = 0f, backX0 = back.Pos.X;
+            float[] lineHp = new float[5], backHp = new float[5];
+            for (int k = 0; k < 4; k++)
+            {
+                for (int f = 0; f < 36; f++)
+                {
+                    me.Pos = from; queue.Clear();
+                    foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = new V2(800f, 450f), Fire = f == 0 } : new PlayerInput()); }
+                    lineStun = Math.Max(lineStun, line.StunT);
+                }
+                steps.Add(me.Combo & 7);
+                lineHp[k + 1] = line.MaxHp - line.Hp; backHp[k + 1] = back.MaxHp - back.Hp;
             }
-            Console.WriteLine("  halberd motion: first step at {0:0.000} s, last {1:0.000} s, the return sweep starts {2:0.000} s, total {3:0.00} / {4:0.00} s", first, last, ret, HalberdMotion.Total(false), HalberdMotion.Total(true));
-            Check(inOrder && first > 0.1f && first < 0.2f && last > first && last < 0.3f, "the Halberd's steps land in order after a short wind-up (first within 0.2 s of the click, the sweep done by 0.3 s)");
-            Check(ret > last + 0.05f && ret < 0.5f, "the return sweep follows after the head turns over");
-            Check(smooth, "the Halberd's pose moves smoothly the whole way (no jump in the pole, its reach or the head's roll)");
-            Check(HalberdMotion.Total(false) < 0.6f, "a lone sweep is back at the ready before the next swing (0.6 s)");
+            Console.WriteLine("  reaper's wheel: steps {0}; line dummy took {1:0}/{2:0}/{3:0}/{4:0} (stun {5:0.00} s), behind {6:0}/{7:0}/{8:0}/{9:0}, shoved {10:0} px",
+                string.Join(",", steps), lineHp[1], lineHp[2], lineHp[3], lineHp[4], lineStun, backHp[1], backHp[2], backHp[3], backHp[4], backX0 - back.Pos.X);
+            Check(string.Join(",", steps) == "1,2,3,4", "presses run the chain: Sweep, Return Sweep, Overhead Chop, Reaping Wheel");
+            Check(lineHp[2] == 0f && lineHp[3] > 0f && lineStun > 0.3f, "the Overhead Chop reaches past the sweeps along the aim and stuns what it lands on");
+            Check(backHp[3] == 0f && backHp[4] > 0f && back.Pos.X < backX0 - 20f, "the Reaping Wheel goes all the way round, hitting and shoving what's behind you");
+            Attack(1, new V2(800f, 450f));
+            Check((me.Combo & 7) == 1, "after the Wheel the chain starts over at the Sweep");
+            for (int f = 0; f < 150; f++) { me.Pos = from; foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, new PlayerInput()); } }
+            Attack(1, new V2(800f, 450f));
+            Check((me.Combo & 7) == 1, "a pause past the chain window starts it over at the Sweep");
+        }
+        // Set the Pike (Alt, held): slow, no swings, the pike turns on its own to the nearest enemy and pokes it away.
+        {
+            g.Enemies.Clear(); g.Bullets.Clear(); me.Combo = 0; me.ComboT = 0f; me.FireCd = 0f;
+            float walk = me.Speed;
+            float ang = -2.0f;
+            var foe = Dummy(from + V2.FromAngle(ang) * 190f);
+            int pokes0 = me.HbPokes, combo0 = me.Combo;
+            float d0 = foe.Pos.DistanceTo(from), set = 0f, pikeA = 0f;
+            bool clientSet = false;
+            for (int f = 0; f < 90; f++)
+            {
+                me.Pos = from; queue.Clear();
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = new V2(800f, 450f), Fire = true, WeaponAction = true } : new PlayerInput()); }
+                if (f == 30) { set = me.Speed; pikeA = me.HbPikeA; clientSet = s[1].Game.Players[1].HbSet; }
+            }
+            float took = foe.MaxHp - foe.Hp, d1 = foe.Pos.DistanceTo(from);
+            Console.WriteLine("  set the pike: speed {0:0} -> {1:0}; pike at {2:0.00} rad (enemy at {3:0.00}, aim 0); {4} poke(s), {5:0} dmg, pushed {6:0} -> {7:0} px; other screen set {8}",
+                walk, set, pikeA, ang, me.HbPokes - pokes0, took, d0, d1, clientSet);
+            Check(me.HbSet && Math.Abs(set / walk - Game.PikeSlow) < 0.02f, "setting the pike slows you to 35%");
+            Check(Math.Abs(MathX.WrapPi(pikeA - ang)) < 0.2f, "the set pike turns to the nearest enemy on its own, whatever your aim");
+            Check(me.HbPokes > pokes0 && took > 0f && d1 > d0 + 60f, "the pike pokes the enemy and shoves it away from you");
+            Check(me.Combo == combo0, "Fire doesn't swing while the pike is set");
+            Check(clientSet, "the other screen sees the pike set");
+            for (int f = 0; f < 5; f++) { me.Pos = from; foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(800f, 450f) }); } }
+            Check(!me.HbSet, "letting go of the key lifts the pike");
         }
         s[0].Leave(""); s[1].Leave("");
     }
