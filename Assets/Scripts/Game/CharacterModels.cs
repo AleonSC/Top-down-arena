@@ -117,6 +117,11 @@ namespace Arena
                 DrawPacChomper(p, r, t, col);  // PacmanLook.cs
                 return;
             }
+            if (p.Recruit)
+            {
+                DrawRecruitModel(p, r, t, col);  // a Training recruit (RecruitLook.cs)
+                return;
+            }
             if (p.Kit == Kit.Engineer && (engineerMock == null || engineerMock.Model < 0))
             {
                 DrawEngineerPlayer(p, r, t, col);  // EngineerModel.cs

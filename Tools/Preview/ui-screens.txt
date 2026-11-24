@@ -43,6 +43,11 @@ lobby-quick       lobby     LOBBYTAB=8
 lobby-training    lobby     TRAINING=2
 drill             hud       1 1 2 DRILL=3,11.8
 drill-done        hud       1 1 2 DRILL=5,13.4,done
+drill-dodge       hud       1 1 2 DRILLID=1 DRILL=2,8.4,,1
+drill-wallkick    hud       1 1 2 DRILLID=2 DRILL=1,4.6
+drill-shoot       hud       1 1 2 DRILLID=3 DRILL=6,12.5
+drill-parry       hud       1 1 2 DRILLID=4 DRILL=4,9.8
+drill-tells       hud       1 1 2 DRILLID=5 DRILL=1,4.4
 lobby-perks       lobby     LOBBYTAB=5 PERKS=1
 lobby-menu        lobby     LOBBYMENU=1
 # The lobby's entrances and exits, mid-way (they cut the lobby into pieces by LobbyLayout.cs's bands)

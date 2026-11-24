@@ -72,10 +72,15 @@ namespace Arena
                 if (e.Ready)
                     ready++;
             var go = new Rect(W - PartyX - 280f, LobbyHeadY - 4f, 280f, 48f);
-            LobbyGlowBox(go);
-            if (DkKey(go, "TO THE LOBBY  >", true, calm, size: 18, minSize: 13, accent: acc,
-                    sub: "PARTY " + session.Lobby.Count + "/" + Session.MaxPlayers + "  ·  " + ready + " READY"))
-                LeaveModeScreen();
+            if (session.TrainingMode)
+                DrawTrainingStartKey(go);  // Training starts a drill here instead (TrainingUi.cs)
+            else
+            {
+                LobbyGlowBox(go);
+                if (DkKey(go, "TO THE LOBBY  >", true, calm, size: 18, minSize: 13, accent: acc,
+                        sub: "PARTY " + session.Lobby.Count + "/" + Session.MaxPlayers + "  ·  " + ready + " READY"))
+                    LeaveModeScreen();
+            }
 
             // The mode's page.
             var page = new Rect(PartyX, ModePageTop, W - 2f * PartyX, ModePageBottom - ModePageTop);

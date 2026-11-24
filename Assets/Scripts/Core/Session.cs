@@ -78,6 +78,7 @@ namespace Arena
         HangoutSpawner,   // client -> host: a press on a Hangout spawner (byte index, sbyte 0 on/off, +1/-1 its enemy; HangoutSpawners.cs)
         HangoutSpawners,  // host -> all: every Hangout spawner (count byte; each: enemy index byte, on bool)
         PracticePlayer,   // host -> all: one player's loadout changed in the lobby while Practice is up: their Start record (Game.WriteStartPlayer); their character is swapped in place (HangoutGame.cs)
+        DrillKick,    // client -> host: your own game saw you wall-kick (Dodge.cs WallKick), for the Wall Kick drill (DrillGame.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -142,7 +143,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 484;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 485;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -632,6 +633,9 @@ namespace Arena
                     break;
                 case Msg.Dodge:
                     Game.OnDodge(peer, r);
+                    break;
+                case Msg.DrillKick:
+                    Game.DrillKicked(peer);  // DrillGame.cs
                     break;
                 case Msg.ExpandApply:
                     Game.OnExpandApply(peer, r);
