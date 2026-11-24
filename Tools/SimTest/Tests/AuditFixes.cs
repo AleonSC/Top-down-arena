@@ -68,7 +68,7 @@ static partial class Program
         {
             var ms = new System.IO.MemoryStream();
             var bw = new System.IO.BinaryWriter(ms);
-            bw.Write(pos); bw.Write(aim); bw.Write(new V2(500f, 500f)); bw.Write(false); bw.Write(false); bw.Write(0f); bw.Write(0f); bw.Write((byte)0); bw.Write(false);  // ..., sprint, bot (Msg.Input)
+            bw.Write(pos); bw.Write(aim); bw.Write(new V2(500f, 500f)); bw.Write(false); bw.Write(false); bw.Write(0f); bw.Write(0f); bw.Write(false); bw.Write((byte)0); bw.Write(false);  // ..., draw, release, focus, sprint, bot (Msg.Input: the same order as GameNet.cs OnInput)
             ms.Position = 0;
             return new System.IO.BinaryReader(ms);
         };
