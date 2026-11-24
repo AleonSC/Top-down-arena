@@ -623,8 +623,8 @@ namespace Arena
                 DrawWardenBody(e, pos, r, col, spawning, t);  // WardenBodyLook.cs: the Chief Warden, posed for each move
             else if (Game.IsNonShooter(e.Type))
                 DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
-            else if (e.Type == EnemyType.Eclipse && EclipseMock > 0)
-                DrawEclipseMock(e, pos, r, t);  // a preview-only rework concept (Tools/Preview/ShotEclipseLooks.cs)
+            else if (e.Type == EnemyType.Eclipse)
+                DrawEclipseBody(e, pos, r, col, t);  // EclipseLook.cs: the sun, the moon crossing it a step each phase
             else
                 Polygon(pos, r, e.Def.Sides, EnemyRotation(e, t), col);
             if (e.Frozen && !LeapCaged(e))  // (a Leap Slam's stun draws its own cage: LeapSlamLook.cs)
@@ -1043,10 +1043,6 @@ namespace Arena
                     break;
                 case EnemyType.Morsel:
                     DrawMorsel(e, pos, r, t);  // DevourerLook.cs
-                    break;
-                case EnemyType.Eclipse:
-                    if (EclipseMock == 0)
-                        Circle(pos, r * 0.8f, new Rgba(0.02f, 0.02f, 0.04f, 1f), 32);
                     break;
                 case EnemyType.Phylactery:
                     Polygon(pos, r * 0.5f, 4, -t * 2f, Rgba.White.WithAlpha(0.8f));

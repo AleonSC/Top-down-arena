@@ -166,11 +166,10 @@ static partial class Shot {
       }
       if (Environment.GetEnvironmentVariable("PARRY") != null && f == (int)(seconds * 60) - 50) { host.Game.HoldParry = true; host.Game.Bot = false; }
       if (Environment.GetEnvironmentVariable("PARRY") != null && f > (int)(seconds * 60) - 60) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Warden) { host.Game.Players[1].Pos = e.Pos + new V2(-60f, 180f); host.Game.Players[1].Aim = (e.Pos - host.Game.Players[1].Pos).Angle; }
-      // ECLIPSEMOCK=<0-3>: the Eclipse alone in the middle from the first frame (everything else cleared each frame), for its
-      // look (1-3: the rework concepts in ShotEclipseLooks.cs, 0: today's); with ECLIPSE=<health> ECLIPSETURN=<turn> below. ECLIPSEPOS=x,y pins it there.
-      if (Environment.GetEnvironmentVariable("ECLIPSEMOCK") != null)
+      // ECLIPSESOLO=1: the Eclipse alone in the middle from the first frame (everything else cleared each frame), for its
+      // look; with ECLIPSE=<health> ECLIPSETURN=<turn> below. ECLIPSEPOS=x,y pins it there.
+      if (Environment.GetEnvironmentVariable("ECLIPSESOLO") != null)
       {
-        ArenaApp.EclipseMock = int.Parse(Environment.GetEnvironmentVariable("ECLIPSEMOCK"));
         var eg = host.Game;
         bool has = false;
         foreach (var id in new System.Collections.Generic.List<int>(eg.Enemies.Keys)) { if (eg.Enemies[id].Type == EnemyType.Eclipse) has = true; else eg.Enemies.Remove(id); }

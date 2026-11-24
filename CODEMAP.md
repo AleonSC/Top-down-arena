@@ -428,9 +428,9 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `QueenBodyLook.cs` (Game): the Hive Queen's body, the Brood Mother (`Docs/Mockups/hive-queen-rework.html` option B): head, tiara and stubby wings dragging a see-through egg sac of eggs; faces her nearest player or her nectar spray (`QueenFacing`); her phase on the sac (wax lattice in the Honeycomb, red and boiling with torn wings and embers in the Frenzy, cracked, half-empty and leaking honey in the Last Stand); the egg swell before her Eggs turn and the laying squeeze (`Game.QueenSwell`, from her replicated turn step); the royal dive pose (wings spread, legs and sac tucked, facing her landing), the landing squash (`QueenSquash`) and its cracks, honey and dust on the floor (`DrawDiveLanding`); her eggs arcing from the sac's tip (`DrawEggFlights`, `queenTip`); previews `QUEENSTAGE=<0-3>`, `QUEENHOLD=swell,<0-1>|lay,<s>|dive,<s>` with `FLANKERS=1 ZOOM=2.6 CAMAT=800,215 shot.sh x hud 3 1 1`
 - Boss visuals: `WardenLook.cs`, `QueenLook.cs`, `ReaperLook.cs`, `SingularityLook.cs`, `ColossusLook.cs`,
   `DuelistLook.cs`, `LichLook.cs`, `HeraldLook.cs`, `DevourerLook.cs`, `EclipseLook.cs`, `StageShiftLook.cs`,
-  `QueenLootLook.cs`, `ReaperLootLook.cs`; the Eclipse's body rework concepts (1 Totality, 2 Orrery, 3 Black Sun) are
-  preview-only: `Tools/Preview/ShotEclipseLooks.cs` through the `DrawEclipseMock` hook, `ECLIPSEMOCK=<0-3> ECLIPSE=<hp> ECLIPSETURN=<turn>
-  ECLIPSEPOS=800,450 ZOOM=2 CAMAT=800,520 shot.sh x hud 3 14 1`
+  `QueenLootLook.cs`, `ReaperLootLook.cs`; the Eclipse's body (`DrawEclipseBody`, look 1 Totality: the moon crosses the sun a step
+  each phase) and streamers (`DrawEclipseCorona`); preview `ECLIPSESOLO=1 ECLIPSE=<hp> ECLIPSETURN=<turn> ECLIPSEPOS=800,450
+  ZOOM=2 CAMAT=800,520 shot.sh x hud 3 14 1`
 - `PixelArt.cs`, `ModIcons.cs`: pixel icons as text grids (`ModIcons.cs`: the Modifiers tab's)
 - `Game/BatLook.cs`: a Bat Swarm bat, look B (Belfry burst) of `Docs/Mockups/bat-swarm-rework.html`: flapping wings, a dive streak, feathers as it fades
 - `Game/HealerKitLooks.cs`: the Healer's Soul Lantern (iron cage, teal flame, ribbon to its linked player) and Deployable Medkit (case, healing orbs) looks
