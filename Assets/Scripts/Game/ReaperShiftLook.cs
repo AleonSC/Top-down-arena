@@ -99,7 +99,24 @@ namespace Arena
                 Line(c - axis * w, c + axis * w, 12f, lc.WithAlpha(0.3f * alpha));
                 Line(c - axis * w, c + axis * w, 5f, lc.Mix(Rgba.White, 0.3f).WithAlpha(alpha));
             }
-            Circle(at, 40f + 120f * fly, Rgba.White.WithAlpha(0.1f * alpha), 32);
+            // The snap: a hot white flash where it broke, a ring of Dusk's pink and Dawn's blue racing out, sparks.
+            float fl = Mathf.Clamp01(b / 0.35f), ring = Ease(Mathf.Clamp01(b / 0.6f));
+            if (fl < 1f)
+            {
+                Circle(at, 70f + 80f * fl, DualGold.WithAlpha(0.35f * (1f - fl)), 32);
+                Circle(at, 30f + 60f * fl, new Rgba(1f, 0.97f, 0.9f, 0.9f * (1f - fl)), 24);
+            }
+            if (ring < 1f)
+            {
+                float rr = 40f + 300f * ring, w = 10f * (1f - ring) + 2f;
+                Arc(at, rr, w, DuskCol.Mix(Rgba.White, 0.3f).WithAlpha(1f - ring), 32, MathX.Pi / 2f, MathX.Pi);
+                Arc(at, rr, w, DawnCol.Mix(Rgba.White, 0.3f).WithAlpha(1f - ring), 32, -MathX.Pi / 2f, MathX.Pi);
+                for (int k = 0; k < 12; k++)  // sparks flying out with it
+                {
+                    V2 dir = V2.FromAngle(k * 0.52f + 0.2f);
+                    Line(at + dir * rr * 0.7f, at + dir * (rr * 0.7f + 26f), 3f, new Rgba(1f, 0.95f, 0.8f, 1f - ring));
+                }
+            }
         }
 
         /// Under a Reaper changing phase: afterimages as the twins spiral in or fly apart, light pouring in.

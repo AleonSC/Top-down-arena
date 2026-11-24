@@ -6,7 +6,7 @@ namespace Arena
     /// the white hole's flash and push, and the shards of its Split.
     public partial class ArenaApp
     {
-        static readonly Rgba DiskCol = new Rgba(0.85f, 0.35f, 1f), RimCol = new Rgba(0.5f, 0.84f, 1f), HorizonGlow = new Rgba(1f, 0.47f, 0.86f);
+        static readonly Rgba RimCol = new Rgba(0.5f, 0.84f, 1f), HorizonGlow = new Rgba(1f, 0.47f, 0.86f);
         static readonly Rgba SingHot = new Rgba(1f, 0.93f, 0.78f), SingGold = new Rgba(1f, 0.72f, 0.35f), SingRed = new Rgba(1f, 0.3f, 0.38f);
 
         /// The core: a black shadow with a white photon ring, and a tilted accretion band crossing in front of it (its far
@@ -78,7 +78,9 @@ namespace Arena
             }
         }
 
-        /// The accretion disk: two rings of orbs round the core, turning opposite ways (drawn with the hazards).
+        /// The accretion disk: two rings of orbs round the core, turning opposite ways (drawn with the hazards). Each orb is
+        /// a gold ember in the core's Accretion heat, a fading trail of light behind it along its ring, a hot rim and the
+        /// dark core every boss orb has; each ring's track glows faintly gold.
         void DrawSingularityDisk(Enemy sing)
         {
             if (!Game.DiskUp(sing))
@@ -86,16 +88,21 @@ namespace Arena
             for (int ring = 0; ring < 2; ring++)
             {
                 int n = ring == 0 ? Game.DiskInnerN : Game.DiskOuterN;
-                Arc(sing.Disp, ring == 0 ? Game.DiskInnerR : Game.DiskOuterR, 1.5f, DiskCol.WithAlpha(0.15f), 64);  // its track
+                float rad = ring == 0 ? Game.DiskInnerR : Game.DiskOuterR, dir = Mathf.Sign(ring == 0 ? Game.DiskInnerSpin : Game.DiskOuterSpin);
+                Arc(sing.Disp, rad, 6f, SingGold.WithAlpha(0.06f), 64);  // its track
+                Arc(sing.Disp, rad, 1.2f, SingGold.WithAlpha(0.18f), 64);
                 for (int i = 0; i < n; i++)
                 {
                     V2 at;
                     if (!Game.DiskOrb(sing.Sing, sing.Disp, ring, i, out at))
                         continue;
-                    float r = Game.DiskOrbR;
-                    Circle(at, r * 1.7f, DiskCol.WithAlpha(0.22f), 14);
-                    Circle(at, r, DiskCol, 14);
-                    Circle(at, r * 0.45f, new Rgba(0.08f, 0f, 0.08f, 0.8f), 10);  // a boss orb's dark core
+                    float r = Game.DiskOrbR, a = (at - sing.Disp).Angle;
+                    for (int k = 4; k >= 1; k--)  // the trail, behind it along the ring
+                        Circle(sing.Disp + V2.FromAngle(a - dir * k * (r * 0.55f) / rad) * rad, r * (1f - 0.17f * k), SingGold.WithAlpha(0.4f - 0.08f * k), 10);
+                    GlowDisc(at, r * 2.6f, SingGold, 0.35f);
+                    Circle(at, r, SingGold, 14);
+                    Arc(at, r * 0.72f, r * 0.32f, SingHot, 14);  // the hot rim
+                    Circle(at, r * 0.4f, new Rgba(0.12f, 0.04f, 0f, 0.9f), 10);  // a boss orb's dark core
                 }
             }
         }
