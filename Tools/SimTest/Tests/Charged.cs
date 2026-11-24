@@ -38,13 +38,15 @@ static partial class Program
         step(0.3f);
         Check(client.Game.Enemies.ContainsKey(first.Id) && client.Game.Enemies[first.Id].Charged && !client.Game.Enemies[bystander.Id].Charged, "the other screen sees who is charged");
 
-        // Charged conducts like wet: another hit anywhere arcs to it for 40%.
+        // Charged alone doesn't conduct; wet does, charged or not.
         step(0.5f);
-        float f0 = first.Hp, s0 = second.Hp, b0 = bystander.Hp;
+        wet.ChargedT = Game.ChargedTime; wet.ChargedBy = me.Id; wet.ChargePulseT = 99f;  // (no shorting arc in the way)
+        float f0 = first.Hp, s0 = second.Hp, b0 = bystander.Hp, w0 = wet.Hp;
         zap(second);
-        float hit = s0 - second.Hp, arc = f0 - first.Hp;
-        Console.WriteLine("  hit on second {0:0.0}: charged first takes {1:0.0}, dry bystander {2:0.0}", hit, arc, b0 - bystander.Hp);
-        Check(hit > 5f && Math.Abs(arc - hit * Game.WetArcShare) < 0.5f, "lightning anywhere arcs to a charged enemy for 40% of the hit");
+        float hit = s0 - second.Hp, arc = f0 - first.Hp, wetArc = w0 - wet.Hp;
+        Console.WriteLine("  hit on second {0:0.0}: charged first takes {1:0.0}, wet and charged {2:0.0}, dry bystander {3:0.0}", hit, arc, wetArc, b0 - bystander.Hp);
+        Check(hit > 5f && arc == 0f, "a charged but dry enemy takes no arc from lightning elsewhere");
+        Check(Math.Abs(wetArc - hit * Game.WetArcShare) < 1f, "a wet, charged enemy still takes the 40% arc from lightning elsewhere");
         Check(bystander.Hp == b0, "a dry, uncharged enemy takes no arc");
 
         // Wet and charged: it shorts out.

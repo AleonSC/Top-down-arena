@@ -5,8 +5,8 @@ namespace Arena
 {
     /// Charged (the electricity status; enemies only): any lightning hit (every WetArcs caller: Arc Lightning, Chain Light,
     /// Storm Hammer pulses, Lightning Rod, the Nimbus) and Static Shock's circuit and Arc Cannon leave what they hit charged for
-    /// ChargedTime s (refreshed, never stacked). A charged enemy is a conductor, like a wet one: any lightning hit anywhere arcs
-    /// to it for 40% of that hit (Tsunami.cs WetArcs; the arcs don't charge). Wet AND charged, it shorts out: it takes
+    /// ChargedTime s (refreshed, never stacked). Charged alone does nothing: only wet enemies conduct other lightning hits
+    /// (Tsunami.cs WetArcs; a wet, charged one still does, and those arcs don't charge). Wet AND charged, it shorts out: it takes
     /// ChargeDps a second (+ChargeDpsWave a wave) and every ChargeArcEvery s an arc jumps from it to the ChargeArcTargets
     /// nearest enemies within ChargeArcRange for ChargeArcDmg (+ChargeArcDmgWave a wave). Credited to whoever charged it.
     /// Enemy.Charged is replicated for the icon and the arcs on its body (Game/WorldEnemies.cs).

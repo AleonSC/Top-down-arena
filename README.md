@@ -641,9 +641,9 @@ Rarer cards show up a bit more often as you level. All the numbers live in
   (drops fall off it), **red crosshair** = marked (takes extra damage), **yellow zigzag bolt** = charged (small arcs
   crawl over it).
 - **Charged (lightning):** any lightning hit (Arc Lightning, Chain Light, Storm Hammer pulses, Lightning Rod, the Nimbus,
-  Static Shock's circuit and the Arc Cannon) charges what it hits for 4 s (refreshed, never stacked; enemies only). A
-  charged enemy conducts like a wet one: every lightning hit anywhere on the map arcs to it for 40% of that hit (the arcs
-  don't charge it). **Wet and charged** it shorts out (its arcs turn blue-white and flicker): it takes 6 damage a second
+  Static Shock's circuit and the Arc Cannon) charges what it hits for 4 s (refreshed, never stacked; enemies only).
+  Charged alone doesn't conduct: only wet enemies take arcs from other lightning hits (a wet, charged one still does; the
+  arcs don't charge it). **Wet and charged** it shorts out (its arcs turn blue-white and flicker): it takes 6 damage a second
   (+0.3 a wave), and every 2.5 s an arc jumps from it to the 3 nearest enemies within 220 px for 25 (+1.25 a wave),
   credited to whoever charged it.
 - **Cauterize (Bleed + Burn):** fire landing on a bleeding enemy (the Flamethrower, the Fireball, Incendiary Rounds)
