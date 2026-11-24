@@ -417,8 +417,8 @@ static partial class Shot {
       }
     }
     if (Environment.GetEnvironmentVariable("TURNKEY") != null) {
-      // TURNKEY=1: the Turnkey (Turnkey.cs, TurnkeyLook.cs) running, planting and building; a working Cell Door mid-swing and a
-      // jammed one; Floor Mines arming, armed and beeping; Shackle Traps open and snapped; a Mop Slick. NINJA=0 ZOOM=2.2.
+      // TURNKEY=1: the Turnkey (Turnkey.cs, TurnkeyLook.cs) running, planting and building (its Cell Doors in the wall: TKDOORS=1,
+      // ShotCellDoor.cs); Floor Mines arming, armed and beeping; Shackle Traps open and snapped; a Mop Slick. NINJA=0 ZOOM=2.2.
       var gm = host.Game; gm.Bot = false; gm.Enemies.Clear(); gm.Bullets.Clear(); gm.Patches.Clear();
       me.Pos = me.Disp = new V2(1010f, 690f); me.InvulnT = 1f; me.Aim = -MathX.Pi / 2f;
       foreach (var pl in gm.Players.Values) if (pl != me) pl.Pos = pl.Disp = new V2(300f, 200f);
@@ -428,8 +428,6 @@ static partial class Shot {
       var k1 = put(EnemyType.Turnkey, new V2(910f, 600f)); k1.Phase = 1;
       var k2 = put(EnemyType.Turnkey, new V2(1010f, 600f)); k2.Phase = 2; k2.PhaseT = Game.TurnkeyPlant * 0.4f;
       var k3 = put(EnemyType.Turnkey, new V2(1110f, 600f)); k3.Phase = 3; k3.PhaseT = Game.TurnkeyBuild * 0.3f;
-      var d1 = put(EnemyType.CellDoor, new V2(880f, 700f)); d1.Phase = 1; d1.PhaseT = Game.DoorSwing * 0.5f; d1.Hp = d1.MaxHp * 0.7f;
-      var d2 = put(EnemyType.CellDoor, new V2(1140f, 700f)); d2.Phase = 2;
       float[] mineAge = { 0.4f, 3f, 3f };
       for (int i = 0; i < 3; i++) { var m = put(EnemyType.FloorMine, new V2(850f + i * 34f, 650f)); m.T2 = mineAge[i]; m.Phase = (byte)(i == 0 ? 0 : i == 1 ? 1 : 2); m.PhaseT = 0.2f; }
       for (int i = 0; i < 2; i++) { var sn = put(EnemyType.ShackleTrap, new V2(1140f + i * 40f, 650f)); sn.T2 = 3f; sn.Phase = (byte)(i == 0 ? 1 : 2); sn.PhaseT = 0.4f; }

@@ -92,10 +92,10 @@ namespace Arena
             DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon, over the arena's contents (DragonsDogmaLook.cs)
             DrawEngineerMock(t);  // Tools/Preview only: the Engineer mockup (EngineerLook.cs)
             GlowPass();        // the additive glow
+            DrawCellDoorsOver(t);  // the Turnkey's Cell Doors, cut into the walls (CellDoorLook.cs)
             DrawEnemyShots(t);  // enemy bullets on top of every effect, spark and glow, so a busy fight never hides what you must dodge
             DrawEndingWorld();  // a run ending: the victory's rays and sparks (RunEnding.cs)
             DrawArenaRules(t);  // Narrow Pass's walls and Fogbound's mist (PathsUi.cs)
-            DrawTurnkeyMockDoors(t);  // Tools/Preview only: the Turnkey rework's wall doors (TurnkeyMockLook.cs)
             bool zoomed = camZoomOn;
             camZoomOn = false;  // the screen overlays below fill the screen, unzoomed (CameraZoom.cs)
             DrawMood(AW, AH);  // tint, red corners when hurt or low
