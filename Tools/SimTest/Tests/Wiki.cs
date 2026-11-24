@@ -37,6 +37,14 @@ static partial class Program
         Check(mention != null && mention.Mentions.All(m => m.MentionedBy.Contains(mention) && mention.Text.Contains(m.Name)),
             "a mention goes both ways and is named in the text" + (mention != null ? " (" + mention + " names " + mention.Mentions[0].Name + ")" : ""));
         Check(all.All(e => !Wiki.References(e).Contains(e)), "nothing references itself");
+        // The eyedropper's lookups (BayWiki.cs, WikiPick.cs).
+        Check(Wiki.FindIn("Revolver") == revolver && Wiki.FindIn("  REVOLVER ") == revolver, "on-screen text that is a name finds it");
+        Check(Wiki.FindIn("Equipped: Revolver (Soldier)") == revolver, "a name inside longer text finds it");
+        Check(Wiki.FindIn("Revolvers") == null || Wiki.FindIn("Revolvers") != revolver, "only whole words count");
+        Check(Wiki.FindIn("WAVE 12") == null && Wiki.FindIn("") == null, "text naming nothing finds nothing");
+        Check(Wiki.Of(EnemyType.Warden) != null && Wiki.Of(EnemyType.Warden).Kind == WikiKind.Boss, "an enemy on the field finds its entry (the Warden)");
+        Check(Wiki.Of(EnemyType.Decoy) == Wiki.Find("The Duelist", WikiKind.Boss), "a boss's decoy finds its boss");
+        Check(Wiki.Of(Kit.Knight) == Wiki.Find("Knight", WikiKind.Class), "a player finds their class");
         int linked = all.Count(e => Wiki.References(e).Count > 0);
         Console.WriteLine("  " + linked + " of " + all.Count + " entries have references");
         var lone = all.Where(e => e.Kind != WikiKind.Role && e.Kind <= WikiKind.Ultimate || e.Kind == WikiKind.Perk || e.Kind == WikiKind.Boss).Where(e => Wiki.References(e).Count == 0).ToList();

@@ -1030,7 +1030,19 @@ static partial class Shot {
     var vtxBy = new System.Collections.Generic.Dictionary<string, int>();  // VTXTRACE=1: the frame's top vertex sources, printed (GL.Trace in Stubs.cs)
     if (Environment.GetEnvironmentVariable("VTXTRACE") != null) GL.Trace = () => { var st = new System.Diagnostics.StackTrace(2, false); string key = ""; for (int fi = 0; fi < Math.Min(5, st.FrameCount); fi++) key += st.GetFrame(fi).GetMethod().Name + " < "; int c0; vtxBy.TryGetValue(key, out c0); vtxBy[key] = c0 + 1; };
     if (GL.Trace != null) { int keep = GL.Tris.Count; Event.current = new Event { mousePosition = new Vector2 { x = -100, y = -100 } }; typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null); GL.Tris.RemoveRange(keep, GL.Tris.Count - keep); GL.Trace = null; }  // (one world frame traced; the shot itself drawn as usual below)
+    // WIKISCREEN=<query>[,<page>]: the wiki as a screen over any mode (WikiPick.cs). WIKIPICK=x,y: the Wiki key held with the pointer
+    // there (the eyedropper): a first pass finds the text under it, as the game's frame before does, then is dropped.
+    var wikiPickEnv = Environment.GetEnvironmentVariable("WIKIPICK");
+    if (Environment.GetEnvironmentVariable("WIKISCREEN") != null) { var wq = Environment.GetEnvironmentVariable("WIKISCREEN").Split(','); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); typeof(ArenaApp).GetMethod("OpenWiki", f2).Invoke(app, new object[] { wq.Length > 1 ? Wiki.Find(wq[1]) : null }); set("wikiQuery", wq[0]); set("wikiOpenedAt", -100f); }
+    if (wikiPickEnv != null) { var wp = wikiPickEnv.Split(','); set("wikiPicking", true); Event.current.mousePosition = new Vector2(float.Parse(wp[0]), float.Parse(wp[1]));
+      int tris0 = GL.Tris.Count, log0 = GUI.Log.Count; Event.current.type = EventType.Repaint;
+      typeof(ArenaApp).GetMethod("TextEditBeginGui", f2).Invoke(app, null); DrawMode(); typeof(ArenaApp).GetMethod("TextEditEndGui", f2).Invoke(app, null);
+      GL.Tris.RemoveRange(tris0, GL.Tris.Count - tris0); GUI.Log.RemoveRange(log0, GUI.Log.Count - log0);
+      typeof(ArenaApp).GetMethod("TextEditBeginGui", f2).Invoke(app, null); Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("WikiPickBeginGui", f2).Invoke(app, null); }
     DrawMode();
+    if (wikiPickEnv != null) typeof(ArenaApp).GetMethod("TextEditEndGui", f2).Invoke(app, null);
+    if (Environment.GetEnvironmentVariable("WIKISCREEN") != null) { Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("DrawScreens", f2).Invoke(app, null); }
+    if (wikiPickEnv != null) { Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("DrawWikiPickTag", f2).Invoke(app, null); }
     if (vtxBy.Count > 0) { Console.WriteLine("vertices {0}", System.Linq.Enumerable.Sum(vtxBy.Values)); foreach (var kv in System.Linq.Enumerable.Take(System.Linq.Enumerable.OrderByDescending(vtxBy, k => k.Value), 14)) Console.WriteLine("  {0,7} {1}", kv.Value, kv.Key); }
     Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("DrawCabEdges", f2).Invoke(app, null);  // the cabinet menus' soft edges, as ArenaApp.OnGUI draws them (CrtWindows.cs)
     using (var w = new BinaryWriter(File.Create(args[0] + ".tris"))) foreach (var v in GL.Tris) w.Write(v);

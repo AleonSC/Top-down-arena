@@ -226,6 +226,7 @@ namespace Arena
             new MenuRow("LOBBY", "Close this menu", "ui_play", Ui.Primary, CloseLobbyMenu) { Key = "Esc" },
             new MenuRow("SETTINGS", "Audio, visual effects, aim line", "ui_gear", new Color(0.6f, 0.66f, 0.82f), () => { pauseSettings = true; CloseCabWindow(); }),
             new MenuRow("HOW TO PLAY", "Controls and tips", "ui_help", HowToColor, () => { pauseHowTo = true; OpenCabWindow(2); }),  // a window beside the list
+            new MenuRow("WIKI", "Look anything up", "ui_book", CrtStyle.Gold, () => OpenWiki()),  // WikiPick.cs
             new MenuRow("QUIT GAME", "Close the game", "ui_power", new Color(1f, 0.45f, 0.5f), Application.Quit) { Danger = true },
         };
 
@@ -240,6 +241,7 @@ namespace Arena
             new MenuRow("RESUME", "Back into wave " + Mathf.Max(1, game.ShownWave), "ui_play", Ui.Primary, ResumeGame) { Key = "Esc" },
             new MenuRow("SETTINGS", "Audio, visual effects, aim line", "ui_gear", new Color(0.6f, 0.66f, 0.82f), () => { pauseSettings = true; CloseCabWindow(); }),
             new MenuRow("HOW TO PLAY", "Controls and tips", "ui_help", HowToColor, () => { pauseHowTo = true; OpenCabWindow(2); }),
+            new MenuRow("WIKI", "Look anything up", "ui_book", CrtStyle.Gold, () => OpenWiki()),  // WikiPick.cs
             new MenuRow("QUIT", CanQuitToLobby ? "Back to the lobby, or out to the desktop" : "Out to the desktop", "ui_power", new Color(1f, 0.6f, 0.45f), () =>
             {
                 pauseConfirmLobby = true;  // asks first (DrawLobbyConfirm)

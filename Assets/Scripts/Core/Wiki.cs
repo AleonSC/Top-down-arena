@@ -30,6 +30,52 @@ namespace Arena
     {
         static List<WikiEntry> all;
         static Dictionary<string, WikiEntry> byName;
+        static Dictionary<EnemyType, WikiEntry> enemyEntry;
+        static Dictionary<Kit, WikiEntry> kitEntry;
+
+        /// The entry for an enemy or boss on the field (a boss's decoy shows its boss), or null.
+        public static WikiEntry Of(EnemyType t)
+        {
+            Build();
+            if (enemyEntry.TryGetValue(t, out var e))
+                return e;
+            var d = (int)t < Defs.Enemies.Length ? Defs.Get(t) : null;
+            return d != null ? Find(d.Name) : null;
+        }
+
+        /// The entry for a class.
+        public static WikiEntry Of(Kit k) { Build(); return kitEntry.TryGetValue(k, out var e) ? e : null; }
+
+        /// The entry a piece of on-screen text is about (the eyedropper): its whole text as a name, else the longest entry name in it
+        /// as a whole word ("Revolver: Hot Lead" → Hot Lead), else null.
+        public static WikiEntry FindIn(string text)
+        {
+            Build();
+            if (string.IsNullOrWhiteSpace(text))
+                return null;
+            string t = text.Trim();
+            var e = Find(t);
+            if (e != null)
+                return e;
+            WikiEntry best = null;
+            foreach (var n in byName.Values)
+            {
+                if (n.Name.Length < 4 || best != null && n.Name.Length <= best.Name.Length)
+                    continue;
+                int at = t.IndexOf(n.Name, StringComparison.OrdinalIgnoreCase);
+                while (at >= 0)
+                {
+                    int end = at + n.Name.Length;
+                    if ((at == 0 || !char.IsLetterOrDigit(t[at - 1])) && (end >= t.Length || !char.IsLetterOrDigit(t[end])))
+                    {
+                        best = n;
+                        break;
+                    }
+                    at = t.IndexOf(n.Name, end, StringComparison.OrdinalIgnoreCase);
+                }
+            }
+            return best;
+        }
 
         public static List<WikiEntry> All { get { Build(); return all; } }
 
@@ -175,6 +221,8 @@ namespace Arena
                     Link(e, be);
             }
 
+            enemyEntry = enemyOf;
+            kitEntry = kitOf;
             byName = new Dictionary<string, WikiEntry>();
             foreach (var e in all)
             {

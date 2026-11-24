@@ -1,0 +1,197 @@
+using UnityEngine;
+
+namespace Arena
+{
+    /// The wiki everywhere (Docs/Wiki.md steps 3 and 4). The Wiki key (I by default, KeyAction.Wiki): a tap opens the wiki, on the main
+    /// menu's bay (BayWiki.cs) or anywhere else as a modal screen over the game (solo, the run pauses while it's open; in co-op it
+    /// doesn't, and it's only on your screen); the pause and lobby menus have a WIKI row too. Held, it's the eyedropper: on-screen text
+    /// under the pointer is outlined in gold (Ui.PickText, the same picking as the dev text editor), and in a run the enemy or player
+    /// under it counts too; a tag by the pointer names what a click opens, and a click opens its page. Nothing here is sent: no
+    /// protocol change.
+    public partial class ArenaApp
+    {
+        UiScreen screenWiki;
+        bool wikiPaused;           // the wiki paused a solo run (it resumes when it closes)
+        bool wikiKeyDown;          // the Wiki key went down while nothing was typing
+        float wikiKeyAt;           // when
+        bool wikiPicked;           // a click picked something while it was held (so letting go doesn't open the list too)
+        bool wikiPicking;          // the eyedropper is on (the key held)
+        WikiEntry wikiPickTarget;  // what a click would open (drawn in the tag)
+        const float WikiTapLen = 0.3f;  // held shorter than this with no pick: a tap
+
+        void InitWikiScreen()
+        {
+            if (screenWiki != null)
+                return;
+            screenWiki = new UiScreen("wiki", DrawWikiScreen)
+            {
+                OnEsc = () =>
+                {
+                    if (wikiPage == null)
+                        return false;
+                    WikiGoBack();
+                    return true;
+                },
+                OnClose = () =>
+                {
+                    if (wikiPaused && game.Paused && !pauseMenuOpen)
+                        game.RequestPause(false);
+                    wikiPaused = false;
+                    GUIUtility.keyboardControl = 0;
+                },
+            };
+        }
+
+        /// The main menu's machine is what's on screen (not the profile, settings drawer, Who's playing? or a transition).
+        bool MenuMachineShown => session.Screen == AppScreen.Menu && !pacOpen && !profTr && !whoOpen && !settingsOpen && !profileOpen;
+
+        /// Opens the wiki (on the bay on the main menu, else the screen), at a page if one is given.
+        void OpenWiki(WikiEntry at = null)
+        {
+            InitWikiScreen();
+            if (MenuMachineShown)
+            {
+                if (!menuWikiOpen)
+                    ToggleMenuWiki();
+            }
+            else if (!screenWiki.IsOpen)
+            {
+                OpenScreen(screenWiki);
+                wikiOpenedAt = Time.unscaledTime;
+                GUIUtility.keyboardControl = 0;
+                if (session.Screen == AppScreen.Game && game.Players.Count == 1 && !LabRunning && !game.Paused
+                    && (game.State == MatchState.Fighting || game.State == MatchState.Intermission))
+                {
+                    game.RequestPause(true);
+                    wikiPaused = true;
+                }
+            }
+            if (at != null)
+            {
+                wikiPage = null;
+                wikiBack.Clear();
+                WikiOpen(at);
+            }
+            MenuSound(Sfx.MenuKey);
+        }
+
+        bool WikiOpenNow => menuWikiOpen && MenuMachineShown || screenWiki != null && screenWiki.IsOpen;
+
+        /// The Wiki key, each frame before the pointer and blocking (Update): tap to open or close, hold for the eyedropper.
+        void UpdateWikiKey()
+        {
+            InitWikiScreen();
+            bool free = GUIUtility.keyboardControl == 0 && !textEditMode && !chatOpen;
+            if (Keybinds.Down(KeyAction.Wiki) && free && (!ModalScreenOpen || screenWiki.IsOpen))
+            {
+                wikiKeyDown = true;
+                wikiKeyAt = Time.unscaledTime;
+                wikiPicked = false;
+            }
+            bool held = wikiKeyDown && Keybinds.Held(KeyAction.Wiki);
+            wikiPicking = held && !WikiOpenNow && !ModalScreenOpen;
+            if (wikiKeyDown && !held)
+            {
+                wikiKeyDown = false;
+                if (!wikiPicked && Time.unscaledTime - wikiKeyAt < WikiTapLen)
+                {
+                    if (screenWiki.IsOpen)
+                        CloseScreen(screenWiki);
+                    else if (menuWikiOpen && MenuMachineShown)
+                        ToggleMenuWiki();
+                    else
+                        OpenWiki();
+                }
+            }
+            if (!wikiPicking)
+                wikiPickTarget = null;
+        }
+
+        /// Start of OnGUI, while the eyedropper is on: a left click opens what's under the pointer (and goes no further).
+        void WikiPickBeginGui()
+        {
+            var ev = Event.current;
+            if (ev.type == EventType.Repaint)
+                wikiPickTarget = wikiPicking ? WikiUnderPointer() : null;
+            if (!wikiPicking || ev.type != EventType.MouseDown || ev.button != 0)
+                return;
+            var at = WikiUnderPointer();
+            ev.Use();  // a click while picking never reaches the buttons under it
+            if (at == null)
+                return;
+            wikiPicked = true;
+            OpenWiki(at);
+        }
+
+        /// What the pointer is on: outlined text naming an entry first, then (in a run) the enemy or player under it.
+        WikiEntry WikiUnderPointer()
+        {
+            var e = Wiki.FindIn(Ui.Hovered);
+            if (e != null || session.Screen != AppScreen.Game)
+                return e;
+            var m = MouseArena();
+            float best = float.MaxValue;
+            foreach (var en in game.Enemies.Values)
+            {
+                if (en.Hp <= 0f)
+                    continue;
+                float d = en.Pos.DistanceTo(m), r = Defs.Get(en.Type).Radius + 8f;
+                if (d < r && d < best)
+                {
+                    best = d;
+                    e = Wiki.Of(en.Type) ?? e;
+                }
+            }
+            foreach (var p in game.Players.Values)
+            {
+                float d = p.Pos.DistanceTo(m);
+                if (d < 22f && d < best)
+                {
+                    best = d;
+                    e = Wiki.Of(p.Kit) ?? e;
+                }
+            }
+            return e;
+        }
+
+        /// The eyedropper's tag by the pointer: WIKI and what a click opens, or a hint.
+        void DrawWikiPickTag()
+        {
+            if (!wikiPicking)
+                return;
+            bool old = Ui.MenuFont;
+            Ui.MenuFont = true;
+            var mp = Event.current.mousePosition;
+            var t = wikiPickTarget;
+            string name = t != null ? t.Name : "POINT AT SOMETHING";
+            string kind = t != null ? Wiki.KindName(t.Kind).ToUpperInvariant() + " · CLICK" : "TEXT, AN ENEMY, A PLAYER";
+            float w = Mathf.Max(Ui.TextWidth(name, 13, true), Ui.TextWidth(kind, 9)) + 58f;
+            var r = new Rect(Mathf.Min(mp.x + 18f, W - w - 6f), Mathf.Min(mp.y + 16f, H - 46f), w, 40f);
+            Ui.Fill(r, new Color(0.02f, 0.035f, 0.08f, 0.94f));
+            EdgeRing(r, 1f, (t != null ? CrtStyle.Gold : CrtStyle.Ink).WithAlpha(0.8f));
+            Ui.Icon(new Rect(r.x + 9f, r.y + 10f, 20f, 20f), PixelArt.Get("ui_book"), t != null ? CrtStyle.Gold : CrtStyle.Dim);
+            Ui.Label(new Rect(r.x + 38f, r.y + 4f, r.width - 42f, 18f), name, 13, t != null ? CrtStyle.Ink : CrtStyle.Dim, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 38f, r.y + 21f, r.width - 42f, 14f), kind, 9, t != null ? KindInk(t.Kind) : CrtStyle.Dim, TextAnchor.MiddleLeft, false);
+            Ui.MenuFont = old;
+        }
+
+        /// The wiki as a screen over the game, the lobby or a menu: the room dimmed, a CRT panel with the wiki's screen; a click
+        /// outside it closes it.
+        void DrawWikiScreen()
+        {
+            bool old = Ui.MenuFont;
+            Ui.MenuFont = true;
+            Ui.Fill(new Rect(0f, 0f, W, H), new Color(0.01f, 0.01f, 0.03f, 0.78f));
+            var box = new Rect(W / 2f - 300f, H / 2f - 262f, 600f, 524f);
+            DkPanel(box);
+            DrawBayWiki(new Rect(box.x + 16f, box.y + 16f, box.width - 32f, box.height - 32f), true);
+            var ev = Event.current;
+            if (ev.type == EventType.MouseDown && !box.Contains(ev.mousePosition))
+            {
+                ev.Use();
+                CloseScreen(screenWiki);
+            }
+            Ui.MenuFont = old;
+        }
+    }
+}

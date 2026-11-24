@@ -1576,6 +1576,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 | Interact: take your chest item (standing on it; B discards it), open a mystery door, shut a gate, open a room shop again | F |
 | Gadget: tap to switch on / off, hold and let go to throw it where you aim | X |
 | Gadget wheel: hold to open, let go on a gadget to swap it into your hand | C |
+| Wiki: tap to look anything up (pauses a solo run; in co-op only on your screen); hold and click anything on screen (text, an enemy, a player) to open its page | I |
 | 2nd, 3rd and 4th abilities | 2, 3 and 4 (changeable; once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |
@@ -2004,7 +2005,12 @@ their sides in 0.22 s. With Reduced effects they slide in and out with no trails
   in the game, names first, then anything whose text matches (classes and roles in gold, cards and perks in green, enemies and bosses
   in red). Click a row (or Enter for the first) to open its page: what it is, its text, and its **references**: what it belongs to
   (a weapon's class and role, a card's weapons, a boss's faction...), what its text names (NAMED HERE) and what names it (MENTIONS IT),
-  each one a link. **‹ BACK** or Esc steps back through the pages, then rolls the shutter down. New content joins the wiki on its own. **New run** boots the lobby like a CRT out of the bay's screen: a
+  each one a link. **‹ BACK** or Esc steps back through the pages, then rolls the shutter down. New content joins the wiki on its own.
+  The same wiki opens anywhere else as a panel over the screen: the **Wiki key** (I; Settings → Keybinds → Toggles) or the **WIKI**
+  row in the pause and lobby menus. Solo, it pauses the run while open; in co-op it doesn't, and only you see it; Esc or a click
+  outside closes it. **Hold the Wiki key** for the eyedropper: the text under the pointer gets a gold outline and, in a run, the enemy
+  or player under it counts too; a tag by the pointer names what a click opens (POINT AT SOMETHING when nothing), and a click opens
+  its page (an enemy, a boss, a class, an ability on your HUD, a card's name...). **New run** boots the lobby like a CRT out of the bay's screen: a
   link log types itself, squeezes into a bright line, and the line opens top and bottom like an old TV warming up to show the whole
   lobby. Its entrance is the end of the **disk boot sequence** (see Profiles): the case falls out from under the monitor, lands with a
   squash, a small bounce, a flare of its neon, the monitor jolting and dust puffing off its feet, then powers on (POWER, DISK, the key

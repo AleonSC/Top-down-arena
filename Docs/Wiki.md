@@ -1,6 +1,7 @@
 # In-game wiki
 
-Status: step 1 built (Nov 24 2026): the registry, references and the main menu's WIKI screen. Steps 2-4 are proposals.
+Status: steps 1, 3 and 4 built (Nov 24 2026): the registry and references, the WIKI screen on the main menu and everywhere else
+(Wiki key, pause and lobby rows), and the eyedropper. Step 2 is a proposal.
 
 ## What it is
 
@@ -29,10 +30,15 @@ content joins with no extra work.
 - To link things the text doesn't name, use the data fields (`UpgradeDef.Weapons`, `Boss`, `RequiresAbility`, a faction's members).
 - A new kind of thing (statuses, props, game modes...): add a `WikiKind` at the end and a loop in `Wiki.Build`.
 
-## Next steps (proposed)
+## Steps
 
 2. **More kinds**: status effects, mechanics (Glossary terms: wound, mastery, expertise...), props, challenge rooms, game modes.
-3. **A wiki key in runs and the lobby**: the same screen as an overlay (pauses solo, not in co-op; local only, no protocol change),
-   and a WIKI row in the pause and lobby menus.
-4. **Eyedropper**: hold the wiki key and click: in the world, match the click against enemies, players, minions and shots in the
-   game state; in the UI, have `DevKit` widgets record (rect, entry name) each frame, then card names, the Tab screen and the shop.
+3. **Built: the Wiki key everywhere** (`Game/WikiPick.cs`): `KeyAction.Wiki` (I). A tap opens the wiki on the main menu's bay, or
+   anywhere else as a modal screen (`screenWiki`: dimmed room, a CRT panel with the same screen; Esc or a click outside closes it).
+   Solo runs pause while it's open (`wikiPaused`, resumed on close); co-op doesn't pause and nothing is sent (no protocol change).
+   The pause and lobby menus have a WIKI row.
+4. **Built: the eyedropper**: hold the Wiki key. Text uses the dev text editor's picking (`Ui.PickText`: every label goes through
+   `Ui.Shown`, the smallest one under the pointer is outlined in gold); `Wiki.FindIn` turns it into an entry (the whole text as a name,
+   else the longest entry name in it). In a run, the enemy (`Wiki.Of(EnemyType)`, a decoy shows its boss) or player (their class)
+   under the pointer counts too. A tag by the pointer names what a click opens; the click is used up, so it never presses a button
+   or fires. Later: minions, shots, chests and props (they need entries first).

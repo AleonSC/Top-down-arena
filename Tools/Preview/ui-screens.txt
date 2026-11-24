@@ -82,3 +82,6 @@ pickheld hud PICKHELD=1
 menu-wiki         menu      WIKI=
 menu-wiki-search  menu      WIKI=rev
 menu-wiki-page    menu      WIKI= WIKIPAGE=Revolver
+wiki-run          hud       WIKISCREEN=rev
+wiki-lobby        lobby     WIKISCREEN=,Revolver
+wiki-pick         hud       WIKIPICK=596,682
