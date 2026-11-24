@@ -573,7 +573,7 @@ you already have says what this copy is worth ("You have 4 · this copy 50% stre
 real change. Cards with a stack limit (the squares) keep full strength.
 
 **Wounds.** 20% of every hit you take is a **wound**: it can't be healed back (heals, regeneration, orbs, lifesteal,
-revives). Wounds **carry across waves** but never take more than **30% of your max health**. They clear when a **boss falls**, at a **health shrine**, with the **Medic's heal** (now buyable when only wounded) or at a Boss Hunt **Rest**. Saves keep them. Health bars show it as a striped red end with a light tick where healing stops (it flashes white when the wound grows), and your HUD names it (WOUND -52). A Healer's overheal shield only takes what goes past full health. Health orbs skip you once only your wound is left. Both arenas.
+revives). Wounds **carry across waves** but never take more than **70% of your max health**. They clear when a **boss falls**, at a **health shrine**, with the **Medic's heal** (now buyable when only wounded) or at a Boss Hunt **Rest**. Saves keep them. Health bars show it as a striped red end with a light tick where healing stops (it flashes white when the wound grows), and your HUD names it (WOUND -52). A Healer's overheal shield only takes what goes past full health. Health orbs skip you once only your wound is left. Both arenas.
 
 | Rarity | Color | What you get |
 |---|---|---|
