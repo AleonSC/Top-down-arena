@@ -288,6 +288,8 @@ static partial class Shot {
     set("session", host); set("game", host.Game); set("scale", 1f); set("drawScale", 1280f / Game.Width);
     if (Environment.GetEnvironmentVariable("FXOFF") != null) set("fxOn", false);
     if (Environment.GetEnvironmentVariable("LIGHTS") == "0") set("lightsOn", false);  // LIGHTS=0: Dynamic lighting off (LightingLook.cs)
+    if (Environment.GetEnvironmentVariable("LIGHTSOFT") != null) set("lightsSoft", Environment.GetEnvironmentVariable("LIGHTSOFT") == "1");  // LIGHTSOFT=0|1: hard or soft shadow edges
+    if (Environment.GetEnvironmentVariable("FLOORDIM") != null) set("floorDim", int.Parse(Environment.GetEnvironmentVariable("FLOORDIM")));  // FLOORDIM=0-2: the floor dim under the lights
     if (Environment.GetEnvironmentVariable("UTIME") != null) Time.unscaledTime = float.Parse(Environment.GetEnvironmentVariable("UTIME"), System.Globalization.CultureInfo.InvariantCulture);  // UTIME=7.3: the UI clock (animated looks: frames, name effects)  // FXOFF=1: Visual effects off (the plain looks)
     ArenaScenes();
     WolfPoses();  // WOLFPACK=lineup: each wolf's stride and bite (ShotWolfPack.cs)
