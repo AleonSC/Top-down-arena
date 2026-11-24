@@ -203,7 +203,9 @@ namespace Arena
         static float ColCrumbleT(ColossusState c) => c != null && c.TransT > 0f && c.TransTo == ColStage.Crumbling ? Game.ColTransTime - c.TransT : -1f;
 
         /// When the plate bound for slab j leaves its body (seconds into the change); every plate lands as the change ends, with its slab.
-        static float ColPlateLaunch(int j) => 0.75f + j * 0.14f;
+        /// The lower two (j 2-3) go first; the upper two go last and fast, so they reach the stage banner's band as it fades out.
+        static float ColPlateLaunch(int j) => j >= 2 ? 0.75f + (j - 2) * 0.14f : 1.15f + j * 0.12f;
+        const float ColPlateArc = 40f;  // how high a flying plate rises (a low, heavy arc that stays clear of the banner)
 
         /// Which slab spot (Game.SlabSpots) each body plate flies to: the one most in its direction, no two the same.
         static int[] ColPlateFor(V2 pos, float ang, float s)
@@ -253,12 +255,12 @@ namespace Arena
                         Arc(Game.SlabSpots[j], Mathf.Max(w1, h1) * 0.6f, 2.5f, PlateEdge.WithAlpha((k - 0.75f) * 3f), 24);
                     continue;
                 }
-                V2 at = ground - new V2(0f, up * 120f);
+                V2 at = ground - new V2(0f, up * ColPlateArc);
                 float spin = (j % 2 == 0 ? 1f : -1f) * MathX.Tau;
                 for (int q = 1; q <= 3; q++)  // grit falling off behind it
                 {
                     float kq = Mathf.Max(0f, k - q * 0.05f);
-                    V2 back = V2.Lerp(from, Game.SlabSpots[j], kq) - new V2(0f, Mathf.Sin(kq * MathX.Pi) * 120f);
+                    V2 back = V2.Lerp(from, Game.SlabSpots[j], kq) - new V2(0f, Mathf.Sin(kq * MathX.Pi) * ColPlateArc);
                     Circle(back, (5f - q) * 1.4f, SandDark.WithAlpha(0.5f - q * 0.12f), 6);
                 }
                 ColPlate(at, w * (1f + 0.2f * up), h * (1f + 0.2f * up), Mathf.Lerp(pa, spin, k));
