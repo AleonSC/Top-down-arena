@@ -59,6 +59,26 @@ static partial class Program
 
         step(Game.SteamTime + 0.5f);
         Check(clouds() == 0, "the cloud ends after 3 s");
+
+        // Meltwater: a freeze ending leaves it wet; frozen, fire only burns, and it steams as it thaws.
+        var iced = pin(EnemyType.Grunt, new V2(400f, 500f));
+        iced.FrozenT = 1f;
+        step(0.5f);
+        Check(iced.WetT == 0f, "a frozen enemy isn't wet yet");
+        step(0.7f);
+        Console.WriteLine("  melt: wet {0:0.0} s after the freeze", iced.WetT);
+        Check(iced.WetT > Game.MeltWetTime - 0.5f, "when the freeze ends it's wet for 6 s");
+        var stunned = pin(EnemyType.Grunt, new V2(1300f, 200f));
+        typeof(Game).GetMethod("Stun", flags).Invoke(g, new object[] { stunned, 0.5f });
+        step(0.8f);
+        Check(stunned.WetT == 0f, "a stun ending leaves nothing (it isn't ice)");
+        var hot = pin(EnemyType.Grunt, new V2(600f, 200f));
+        hot.FrozenT = 1f; hot.BurnT = 3f; hot.BurnDps = 5f; hot.BurnBy = me.Id; hot.WetT = 5f;
+        float h0 = hot.Hp;
+        step(0.5f);
+        Check(clouds() == 0 && hot.Hp < h0 && hot.BurnT > 0f, "frozen, fire just burns: no steam while the ice holds");
+        step(0.7f);
+        Check(clouds() == 1 && hot.BurnT == 0f && hot.WetT == 0f, "still burning when the ice melts, it turns to steam");
         host.Leave(""); client.Leave("");
     }
 }

@@ -660,6 +660,9 @@ Rarer cards show up a bit more often as you level. All the numbers live in
   their weapons are jammed (no attacking, like the Grenade Launcher's smoke; bosses and mini-bosses only take the scald),
   credited to whoever lit the fire. Steam near an existing cloud refreshes it instead of stacking, and an enemy can't steam
   again for 1 s. White wisps keep rising through it over a faint warm glow.
+- **Meltwater (Ice → Water):** when a freeze ends (Glacial Tomb, a Frost Lance freeze, Blood Freeze, a shatter...; not a
+  stun), the melted ice leaves the enemy **wet** for 6 s. While it's frozen, fire just burns as usual; if it's still
+  burning when the ice melts, the water and fire turn to steam.
 - **Cauterize (Bleed + Burn):** fire landing on a bleeding enemy (the Flamethrower, the Fireball, Incendiary Rounds)
   sears the wound shut: all the bleed it had left lands at once, times 1.25, and the bleed ends. Whoever made it bleed
   is credited the bleed's share, whoever brought the fire the extra quarter, so fire never wastes an ally's bleed. A
