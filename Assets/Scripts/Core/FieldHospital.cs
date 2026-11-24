@@ -8,7 +8,7 @@ namespace Arena
     /// as a green hologram door (`HospSpots`), and a click on one opens a single lattice cell behind it, a real room of the
     /// Expanding map (`RoomKind.Hospital`). A `ZoneKind.FieldHospital` zone over it runs the rest (host, `TickHospital`):
     /// a health shrine in the middle (each player once: full health and 25% past max), healing orbs that come back over
-    /// time, and a laser gate that keeps enemies and their shots out. After a minute (or 3 s after the wave is cleared)
+    /// time, and a laser gate that keeps enemies and their shots out. A minute after it opens (mid-wave or between waves alike)
     /// a countdown runs, everyone inside is put out at its door and the room is taken off the map (`EndHospital`).
     /// Outside a Grid run there are no door spots: the hospital is a tent at the cursor, a ring of the same gate.
     public partial class Game
@@ -245,8 +245,11 @@ namespace Arena
         /// Host, each tick from TickZones: orbs, shrine, the gate, and the countdown.
         void TickHospital(Zone z, float dt)
         {
-            if (State == MatchState.Intermission && z.T > HospEject)
-                z.T = HospEject;  // the wave is over: the countdown starts (the room never outlasts the break's first seconds)
+            if (HospIsRoom(z) && Expansion.HospitalAt(Expanded, z.Pos) < 0)
+            {
+                z.T = 0f;  // its room is gone (a map reset took the map back to the hub): it ends with it
+                return;
+            }
             // Orbs: up to the cap, one back every few seconds.
             int have = 0;
             foreach (var o in Orbs.Values)

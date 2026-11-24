@@ -7,8 +7,8 @@ using Arena;
 // The Field Hospital (FieldHospital.cs): the Healer Soldier's key 1 on the lobby's Ultimate row; in a Grid run its pick lists the door
 // spots in reach, free ones only where a one-cell room fits (not behind a mystery door, not over a map node); the cast opens that cell as a
 // RoomKind.Hospital room on every game, with a shrine (full health and 25% past max, once each), 6 healing orbs that come back and stay
-// inside, and a gate that puts enemies out and burns their shots; nothing is built off it and it isn't counted as a room; the wave ending
-// starts its 3 s countdown; at the end everyone inside is put out at its door and the room comes off the map with every other room's parent
+// inside, and a gate that puts enemies out and burns their shots; nothing is built off it and it isn't counted as a room; it keeps its
+// minute through the end of the wave; a map reset takes it with the map; at the end everyone inside is put out at its door and the room comes off the map with every other room's parent
 // kept right; outside a Grid run it is a tent at the cursor.
 static partial class Program
 {
@@ -146,9 +146,10 @@ static partial class Program
         }
 
         // The end: a wave cleared starts the countdown; at 0 everyone inside is put out and the room goes, parents kept right.
+        float t0 = z.T;
         g.State = MatchState.Intermission;
         g.FixedStep(dt, new PlayerInput { AimAt = inside });
-        Check(z.T <= Game.HospEject + 0.01f, "the wave ending starts its 3 s countdown");
+        Check(z.T > Game.HospEject && z.T > t0 - 0.1f, "the wave ending doesn't cut it short: it keeps its minute");
         var before = g.Expanded.Where((r, i) => i != hi).ToList();
         z.T = 0.01f;
         me.Pos = inside;
@@ -162,6 +163,17 @@ static partial class Program
         Check(parentsOk, "every other room keeps its place and its parent");
         Run(s, dt, 0.5f, () => !cg.Expanded.Any(r => r.Kind == RoomKind.Hospital), noPicks);
         Check(!cg.Expanded.Any(r => r.Kind == RoomKind.Hospital), "the other screen loses the room too");
+
+        // A map reset (the map back to the hub) takes it with the map.
+        ready();
+        me.Pos = stand;
+        g.State = MatchState.Fighting;
+        hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, top.Door, false });
+        var rz = g.Zones.Values.FirstOrDefault(q => q.Kind == ZoneKind.FieldHospital);
+        Check(rz != null && g.Expanded.Any(r => r.Kind == RoomKind.Hospital), "it opens again");
+        g.Expanded.RemoveAll(r => r.Kind == RoomKind.Hospital);
+        step(0.1f, stand, outside);
+        Check(rz != null && !g.Zones.ContainsKey(rz.Id) && g.Orbs.Values.All(o => o.Hosp != rz.Id), "its room gone (a map reset): it ends at once, orbs and all");
 
         // --- Outside a Grid run: a tent at the cursor --------------------------------------------------------------------
         g.Diff.Set(DiffKnob.ArenaExpanding, 0f);
