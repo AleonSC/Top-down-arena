@@ -7,7 +7,7 @@ using Arena;
 // front, a 4% a second drain, ending on a second press, at 15% health, on going down, at 10 s and between waves; an ended pool dries up
 // and does nothing), the pool growing out, the slow (normal, Heavy, boss), the bleed starting in the pool and stopping outside it, the 25% heal
 // with no extra 3%, the 20% guard inside, Blood Price, mastery, the bot's rules for starting and stopping it,
-// and the pick reaching the run (both screens, saves, a continued run's seat, the Practice Range, a class with one ultimate).
+// and the pick reaching the run (both screens, saves, a continued run's seat, a class with one ultimate).
 static partial class Program
 {
     static void BloodbathTest(float dt)
@@ -262,7 +262,7 @@ static partial class Program
         BloodbathLobbyTest(dt);
     }
 
-    // The lobby's ultimate pick (LobbyEntry.Ult): reaches the host and the others, is clamped, works in saves, a continued run and the Practice Range.
+    // The lobby's ultimate pick (LobbyEntry.Ult): reaches the host and the others, is clamped, works in saves and a continued run.
     static void BloodbathLobbyTest(float dt)
     {
         int port = nextPort++;
@@ -292,14 +292,6 @@ static partial class Program
         client.RequestUlt(1);
         settle(1);
 
-        // The Practice Range plays with it too.
-        host.Mode = GameMode.Practice;
-        host.AutoStart = 2;
-        host.StartMatch();
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); System.Threading.Thread.Sleep(2); }
-        Check(host.Game.Practice != null && host.Game.Players[cid].Slots[Upgrades.UltSlot].Id == AbilityId.Bloodbath
-            && client.Game.Players[cid].Slots[Upgrades.UltSlot].Id == AbilityId.Bloodbath && host.Game.Players[1].Slots[Upgrades.UltSlot].Id == Upgrades.Ultimate(Role.Healer, Kit.Knight),
-            "in the Practice Range each player has the ultimate they picked");
         host.Leave(""); client.Leave("");
 
         // A save keeps it, and a continued run's seat brings it back.

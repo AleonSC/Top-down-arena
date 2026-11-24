@@ -160,14 +160,11 @@ namespace Arena
 
         static string MiniSecs(float t) => t.ToString(t < 10f ? "0.0" : "0");
 
-        /// The wave as "WAVE 06 / 50" (or the hunt's or practice's own count).
+        /// The wave as "WAVE 06 / 50" (or the hunt's own count).
         string MiniWave()
         {
             if (game.HangoutOn)
                 return "HANGOUT";  // (no waves: HangoutGame.cs)
-            var practice = game.Practice;
-            if (practice != null)
-                return "PRACTICE " + Math.Max(1, game.PracticeIndex + 1).ToString("00") + " / " + practice.Waves.Count;
             if (game.Hunt != null)
                 return "HUNT WAVE " + game.HuntWave.ToString("00") + " / " + game.HuntLength;
             return "WAVE " + game.ShownWave.ToString("00") + (game.Endless ? "" : " / " + game.ShownLastWave);

@@ -136,7 +136,7 @@ namespace Arena
                 if (tl == null || tl.Samples.Count < 2)
                 {
                     Ui.Pill(new Rect(x, cy, w, ch * 2f + 8f), new Color(1f, 1f, 1f, 0.03f));
-                    Ui.Label(new Rect(x + 24f, cy + 20f, w - 48f, 60f), "No graph data for this run. Graphs are kept for runs played from now on; Boss Hunts and Practice don't have any. The Trends tab still covers every run.", 13, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                    Ui.Label(new Rect(x + 24f, cy + 20f, w - 48f, 60f), "No graph data for this run. Graphs are kept for runs played from now on; Boss Hunts don't have any. The Trends tab still covers every run.", 13, Ui.Muted, TextAnchor.UpperLeft, false, true);
                 }
                 else
                 {

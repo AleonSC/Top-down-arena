@@ -145,9 +145,6 @@ namespace Arena
                 return;
             switch (type)
             {
-                case Msg.PracticeWave:
-                    PracticeIndex = r.ReadInt32();
-                    break;
                 case Msg.PathOffer:
                     ReadPathOffer(r);
                     break;

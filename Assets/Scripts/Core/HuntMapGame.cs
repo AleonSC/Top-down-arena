@@ -126,7 +126,7 @@ namespace Arena
         /// Host, each tick of the break: make the map, open the vote, close it when everyone has locked in or the time is up.
         void TickHuntMap(float dt)
         {
-            if (!IsHost || !HuntMapOn || Hunt == null || Practice != null)
+            if (!IsHost || !HuntMapOn || Hunt == null)
                 return;
             if (HuntRoute == null)
             {

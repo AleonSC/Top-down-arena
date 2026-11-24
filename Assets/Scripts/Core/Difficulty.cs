@@ -8,7 +8,7 @@ namespace Arena
 {
     /// How hard a run is: a preset (Easy / Normal / Hard / Nightmare) or Custom, where the host sets every knob
     /// with a slider or by typing a number (the lobby's Difficulty tab, DifficultyUi.cs). The host picks; it's sent
-    /// in the lobby message, kept in run saves and written in session recordings. Practice Range runs use it too.
+    /// in the lobby message, kept in run saves and written in session recordings.
     public enum DifficultyLevel : byte { Easy, Normal, Hard, Nightmare, Custom }
 
     public enum DiffKnob

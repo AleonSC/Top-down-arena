@@ -42,9 +42,8 @@ static partial class Program
                 "saves that call the classes Mage and BloodMage (before the rename) load as the Elementalist and Hemomancer");
             // Code ids renamed to match the game's names (OldNames.cs, Docs/Glossary.md): old names still load.
             Check(OldNames.Enemy("Boss") == "Warden" && OldNames.Enemy("TwinA:20") == "ReaperOfDusk:20" && OldNames.Enemy("Grunt") == "Grunt"
-                && OldNames.Ability("BloodBoil") == "ArterialSpray" && OldNames.Ability("Grenade") == "Airstrike" && OldNames.Ability("Meteor") == "Meteor"
-                && WaveSet.FindEnemy("Boss") == EnemyType.Warden && WaveSet.FindEnemy("SingShard") == EnemyType.SingularityShard,
-                "old code names (Boss, TwinA, BloodBoil, ...) map to the renamed ids, for profiles, run saves and wave files");
+                && OldNames.Ability("BloodBoil") == "ArterialSpray" && OldNames.Ability("Grenade") == "Airstrike" && OldNames.Ability("Meteor") == "Meteor",
+                "old code names (Boss, TwinA, BloodBoil, ...) map to the renamed ids, for profiles and run saves");
             Check(RunSave.Parse("not a save") == null && RunSave.Parse("") == null, "a file that isn't a save isn't read as one");
             Check(OldNames.Upgrade("Nova") == "Starburst" && OldNames.Upgrade("Lifeline") == "Red Thread" && OldNames.Upgrade("Stormcaller") == "Forked Thunder"
                 && OldNames.Upgrade("Extra Use: Q") == "Extra Use: 2nd Ability" && OldNames.Upgrade("Barrage") == "Barrage" && OldNames.Ability("Nova") == "Starburst"

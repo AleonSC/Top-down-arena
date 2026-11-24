@@ -8,7 +8,7 @@ namespace Arena
     ///   Saving: the host writes the run to its save slot as each wave starts (everyone's picks made, the path
     ///     chosen, the shop closed), and when the run stops between waves. The Expanding arena's map, kits, vectors and shop
     ///     shelves go in too (ExpansionGame.cs SaveExpansion / ResumeExpansion). A run that ends (won or lost) loses
-    ///     its save. Practice Range runs and the lobby preview are never saved.
+    ///     its save. The lobby preview is never saved.
     ///   Resuming: the host's lobby loads a save (Session.Resume); each player takes a seat; the run starts at
     ///     the next wave and ApplyResume gives every seat back its upgrades, levels, mastery and gold.
     ///   Profile: the host tells everyone when a boss falls and when the run ends (Msg.Record); each game adds it
@@ -43,7 +43,7 @@ namespace Arena
 
         bool Saveable => IsHost && ModeRules.Saves && !ShowcaseMode && !Unrecorded && RunId != null;
 
-        /// Counts towards records at all (a real run, not practice, the lobby preview or the Boss Lab).
+        /// Counts towards records at all (a real run, not the lobby preview or the Boss Lab).
         bool RecordsRuns => ModeRules.Records && !ShowcaseMode && !Unrecorded;
 
         /// A dev tool was used (god mode, stat edits, wave jumps...): recorded, and the run no longer counts.

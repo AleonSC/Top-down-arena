@@ -54,7 +54,7 @@ namespace Arena
             foreach (var e in game.Enemies.Values)
             {
                 V2 at = ToUi(e.Disp);
-                Ui.Label(new Rect(at.X - 70f, at.Y - e.Radius * UiWorldScale - 20f, 140f, 14f), PracticePlan.NameOf(e.Type), 10, CrtStyle.Danger, TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(at.X - 70f, at.Y - e.Radius * UiWorldScale - 20f, 140f, 14f), Defs.ListName(e.Type), 10, CrtStyle.Danger, TextAnchor.MiddleCenter, true);
             }
             var me = game.Me;
             if (me != null)

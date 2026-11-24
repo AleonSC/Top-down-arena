@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a boss wave holds and where its bosses stand (Docs/WaveRefactor.md step 4): one table instead of a switch in
-    /// `BuildWave` and a copy in the Practice Range. A boss wave is the boss (and its partner), then an escort that grows with
+    /// `BuildWave`. A boss wave is the boss (and its partner), then an escort that grows with
     /// the wave number: `n / EscortEvery` of Escort, or alternating Escort and EscortAlt. Bosses that fight alone (or bring
     /// their own swarm) have no escort. Which boss comes when is `BossSchedule`.
     public static class BossWaves
@@ -40,7 +40,7 @@ namespace Arena
             return Alone(boss);  // Duelist, Lich, Devourer and the Eclipse fight alone (or bring their own help)
         }
 
-        /// The boss and its partner: what a Practice Range wave adds for one boss.
+        /// The boss and its partner.
         public static List<EnemyType> Own(EnemyType boss)
         {
             var r = Get(boss);

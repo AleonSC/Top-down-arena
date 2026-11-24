@@ -208,7 +208,6 @@ namespace Arena
         void ReadStart(BinaryReader r)
         {
             Stop();
-            PracticeIndex = -1;
             ResetPaths();
             ResetHuntMap();  // HuntMapGame.cs
             ResetExpansion();  // ExpansionGame.cs
@@ -371,7 +370,6 @@ namespace Arena
             HeroDummies.Clear();
             PossessId = -1;
             ClearRisers();
-            designQueue.Clear();
             pendingSpawns.Clear();
             pendingRemoved.Clear();
             lastDowned.Clear();

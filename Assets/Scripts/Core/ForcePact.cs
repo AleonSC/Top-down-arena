@@ -15,7 +15,7 @@ namespace Arena
         const float ThrallLeash = 240f, ThrallRangedLeash = 320f, ThrallHpPerHp = 2.5f, ThrallDmgMult = 0.75f;
 
         /// Can the pact take this enemy? Regular enemies only: no bosses, boss adds or mini-bosses (their Picker group is Hidden,
-        /// Late or Boss), no practice dummies.
+        /// Late or Boss), no dummies.
         static bool CanPact(Enemy e) => Targetable(e) && !e.Def.IsBoss && !e.Def.Mini
             && (e.Def.Picker == PickerGroup.Melee || e.Def.Picker == PickerGroup.Ranged);
 

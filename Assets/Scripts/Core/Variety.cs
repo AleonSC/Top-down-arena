@@ -150,7 +150,7 @@ namespace Arena
 
         void SpawnSquad(SquadDef s) => SpawnSquadAt(s, null);
 
-        /// at: where it comes in (a designed wave's spawn point, WaveDesign.cs); null: a random spot on an edge.
+        /// at: where it comes in (a set spawn point); null: a random spot on an edge.
         void SpawnSquadAt(SquadDef s, V2? at)
         {
             int id = nextSquadId++, n = s.Members.Length;

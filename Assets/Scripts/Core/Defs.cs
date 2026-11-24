@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 namespace Arena
 {
     /// Wildcard (Nov 2026, Docs/Wildcard.md) is a fourth role that borrows DPS gear from any class: it is unlocked by winning a run
@@ -194,7 +195,7 @@ namespace Arena
         public float BotRange = 330f;  // how far away bots like to fight with it
     }
 
-    /// Where the Practice Range's picker lists an enemy: by group, then in EnemyType order.
+    /// Where the dev tools' enemy list puts an enemy: by group, then in EnemyType order.
     public enum PickerGroup : byte { Hidden, Melee, Ranged, Late, Boss }
 
     public class EnemyDef
@@ -209,13 +210,23 @@ namespace Arena
         public bool Late;      // its AI is in LateGame.cs (LateMove, LateSpecial, LateFire)
         public bool Heavy;     // too heavy to slow down, shove around or knock back (bosses always are)
         public bool Mini;      // a challenge room's mini-boss: a boss bar, but none of a boss's rules (Challenges.cs)
-        public PickerGroup Picker;  // where the Practice Range's picker lists it (Hidden: only comes with its boss)
-        public string Blurb;   // one line on what it does (the Practice Range shows it on hover)
+        public PickerGroup Picker;  // where the dev tools' enemy list puts it (Hidden: only comes with its boss)
+        public string Blurb;   // one line on what it does
     }
 
     /// Stats for roles, enemies and bullets. Tweak numbers here to rebalance.
     public static partial class Defs
     {
+        static EnemyType[] pickable;
+
+        /// Every enemy the dev tools can spawn, in list order: each EnemyDef's Picker group, then EnemyType order. (Boss summons
+        /// like Gravity Wells and Hive Bombers are Hidden: they come with their boss.)
+        public static EnemyType[] Pickable => pickable ?? (pickable = ((EnemyType[])Enum.GetValues(typeof(EnemyType)))
+            .Where(t => Get(t).Picker != PickerGroup.Hidden).OrderBy(t => Get(t).Picker).ThenBy(t => (int)t).ToArray());
+
+        /// An enemy's name in lists (the Reapers come as a pair).
+        public static string ListName(EnemyType t) => t == EnemyType.ReaperOfDusk ? "Twin Reapers" : Get(t).Name;
+
         public static readonly RoleDef[] Roles =
         {
             new RoleDef
