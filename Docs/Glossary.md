@@ -79,7 +79,7 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 | Term | Means | Code |
 |---|---|---|
 | **run** | one game, start to end, in any mode; never "match" | `MatchState`, `Game.State` |
-| **Campaign run**, **Quick Play run**, **Boss Hunt run**, **Survival run**, **Practice run** | a run in that mode | `GameMode` |
+| **Campaign run**, **Quick Play run**, **Boss Hunt run**, **Survival run** | a run in that mode | `GameMode` |
 
 ## Places
 

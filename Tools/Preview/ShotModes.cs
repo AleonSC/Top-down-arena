@@ -1,6 +1,6 @@
 using System; using System.IO; using System.Reflection; using System.Threading; using Arena; using UnityEngine;
 // Shot.cs screens: DrawMode draws the screen named by the mode argument (hud, gameover, dev, pause, guide, bg,
-// lobby, kitgrid, practicehud, labsetup, labpanel, tab, shop, picker, ...).
+// lobby, kitgrid, labsetup, labpanel, tab, shop, picker, ...).
 static partial class Shot {
   static void DrawMode() {
     if (mode == "hud") {
@@ -43,7 +43,7 @@ static partial class Shot {
       // The end of a run (VICTORY=1 or mode victory: a win): sample numbers for each player.
       var gg = host.Game; gg.State = mode == "victory" ? MatchState.Victory : MatchState.GameOver; gg.RunStatsReady = true; gg.RunTime = 286f; gg.Score = 546;
       // RETRY=1: a life left: the Respawn / Game over choice instead of the results (Checkpoints.cs, LivesUi.cs).
-      if (Environment.GetEnvironmentVariable("RETRY") != null) { gg.RetryReady = true; gg.RetryWave = 11; gg.LivesUsed = 0; gg.Practice = null; gg.Hunt = null; gg.Quick = false; gg.Unrecorded = false; }
+      if (Environment.GetEnvironmentVariable("RETRY") != null) { gg.RetryReady = true; gg.RetryWave = 11; gg.LivesUsed = 0; gg.Hunt = null; gg.Quick = false; gg.Unrecorded = false; }
       int k = 0;
       foreach (var pl in gg.Players.Values)
       {
@@ -182,7 +182,7 @@ static partial class Shot {
       }
       typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 7.3f });
     }
-    else if (mode == "lobby" || mode == "lobbypr")
+    else if (mode == "lobby")
     {
       GL.Tris.Clear();
       set("drawScale", 1f);
@@ -307,17 +307,6 @@ static partial class Shot {
         if (Environment.GetEnvironmentVariable("HUNTMAP") != null) host.HuntMapMode = true; }  // HUNTMAP=1: the Boss Hunt tab with the hunt map switch on
       if (Environment.GetEnvironmentVariable("CLIENT") != null) host.MyId = 2;
       if (Environment.GetEnvironmentVariable("LOBBYSETTINGS") != null) { set("settingsOpen", true); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); }
-      if (mode == "lobbypr") {
-        System.Collections.Generic.List<string> pr;
-        host.Mode = GameMode.Practice;
-        host.Plan = PracticePlan.Parse("loop: no\nwave 3: Grunt x4, Sniper x2, Swarmer x6\nwave 6: Spinner x2, Lunger x1, Shielder x2, Brute x1\nwave 10: The Warden x1, Grunt x3\nwave 15: Twin Reapers x1\nwave 20: The Singularity x1", out pr);
-        host.OthersCanEdit = Environment.GetEnvironmentVariable("EDIT") != null;
-        host.PlanEditor = "Aleon"; host.PlanEditorSel = 1;
-        set("practiceSel", 1);
-        if (Environment.GetEnvironmentVariable("GRIDSCROLL") != null) set("practiceGridScroll", int.Parse(Environment.GetEnvironmentVariable("GRIDSCROLL")));  // GRIDSCROLL=n: the enemy grid scrolled n lines
-        // PRSORT=0-2: the enemy grid sorted by faction, job or A-Z (PracticeSortUi.cs)
-        if (Environment.GetEnvironmentVariable("PRSORT") != null) set("practiceSort", int.Parse(Environment.GetEnvironmentVariable("PRSORT")));
-      }
       // FAVS=1: the Saved loadouts drawer open with four favourites (FavoritesUi.cs); FAVS=name: naming a fifth; FAVS=sure: deleting the second; FAVS=rename: renaming the second; FAVS=key: closed, the gold Saved star showing.
       var favs = Environment.GetEnvironmentVariable("FAVS");
       if (favs != null) {
@@ -630,14 +619,6 @@ static partial class Shot {
       for (int i = 0; i < 3; i++)
         Ui.Label(new Rect(63f + i * 427f, 640f, 300f, 24f), names[sheet][i], 18, Color.white, TextAnchor.MiddleCenter, true);
       GL.ToUi = false;
-    }
-    else if (mode == "practicehud")
-    {
-      System.Collections.Generic.List<string> pr;
-      host.Game.Practice = PracticePlan.Parse("wave 3: Grunt x4\nwave 6: Swarmer x8\nwave 10: The Warden x1", out pr);
-      host.Game.PracticeIndex = 1;
-      if (Environment.GetEnvironmentVariable("PDT") != null) typeof(ArenaApp).GetField("pdBorn", f2).SetValue(app, Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("PDT"), System.Globalization.CultureInfo.InvariantCulture));  // PDT=<s>: the practice DOWNED window that long since it opened (with DOWNED=down:1; PracticeDownedUi.cs)
-      typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
     }
     else if (mode == "labsetup")
     {

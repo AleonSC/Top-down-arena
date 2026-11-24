@@ -31,9 +31,8 @@ settings-audio    settings  SECTION=0
 settings-fx       settings  SECTION=1
 settings-gameplay settings  SECTION=2
 settings-keys     settings  SECTION=3
-# Lobby; LOBBYTAB: 0 loadout, 2 modifiers, 3 difficulty, 5 perks; the Game Mode screen: 1 practice, 4 boss hunt, 8 quick play (practice and boss hunt need their mode: lobbypr, HUNT=1)
+# Lobby; LOBBYTAB: 0 loadout, 2 modifiers, 3 difficulty, 5 perks; the Game Mode screen: 4 boss hunt, 8 quick play (boss hunt needs its mode: HUNT=1)
 lobby             lobby
-lobby-practice    lobbypr   LOBBYTAB=1
 lobby-mods        lobby     LOBBYTAB=2
 lobby-diff        lobby     LOBBYTAB=3
 lobby-hunt        lobby     HUNT=1 LOBBYTAB=4

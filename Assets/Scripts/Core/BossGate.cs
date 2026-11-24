@@ -18,7 +18,7 @@ namespace Arena
         public V2 GatePos;
         public float GateFill; // 0-1: the fight starts at 1
 
-        /// The break before a boss, after a wave's results (not the run's opening, a dev jump or the Practice Range).
+        /// The break before a boss, after a wave's results (not the run's opening, or a dev jump).
         bool GateWanted => GatesOn && State == MatchState.Intermission && BossStartsNext && ModeRules.Extras && !DevArena && !ShowcaseMode
             && WaveReport != null && WaveReport.Wave == Wave;
 

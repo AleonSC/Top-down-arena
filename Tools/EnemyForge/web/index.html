@@ -219,7 +219,7 @@ function renderTabs(){const cnt={Attacks:spec.attacks.length,Traits:Object.value
   $("tabs").innerHTML=TABS.map(t=>`<div class="tab ${t===tab?"sel":""}" data-tab="${t}">${t}${cnt[t]!=null?`<b>${cnt[t]}</b>`:""}</div>`).join("")}
 function renderEditor(){renderTabs();const E=$("editor");let h="";
   if(tab==="Basics"){
-    h+=`<h2>Who it is</h2>`+txt("name","Name","e.g. Ember Wasp")+txt("blurb","One line","what it does, as the Practice Range says it")+
+    h+=`<h2>Who it is</h2>`+txt("name","Name","e.g. Ember Wasp")+txt("blurb","One line","what it does, in one line")+
       chips("role","Role",ROLES)+sel("faction","Faction",FACTIONS)+
       sel("playsLike","Plays like",[["","(nothing: all new)"]].concat(META.enemies.filter(e=>e.group!=="Hidden"||e.boss).map(e=>[e.key,e.name])))+
       `<div class="f"><label></label><div class="hint" style="grid-column:2">The closest real enemy, so Claude can build on its code.</div></div>`+

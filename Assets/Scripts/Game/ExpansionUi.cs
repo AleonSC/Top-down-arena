@@ -646,7 +646,7 @@ namespace Arena
                 // Close (back to the arena, the wave box folds into its strip) and Done · ready up (closes and readies you).
                 // Readying needs the break (not mid-wave, not before a boss: the gate decides, nor with Auto-ready on).
                 var meR = game.Me;
-                bool canReady = meR != null && game.State == MatchState.Intermission && !game.GateUp && !meR.AutoReady && game.Practice == null;
+                bool canReady = meR != null && game.State == MatchState.Intermission && !game.GateUp && !meR.AutoReady;
                 if (canReady && DkKey(new Rect(bx, panel.yMax - 50f, bw, 42f), meR.Ready ? "DONE  ·  READY  ✓" : "DONE  ·  READY UP", true, calm, size: 18, rawSize: true))
                 {
                     expDrawing = expDragging = false;

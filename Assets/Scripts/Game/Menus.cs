@@ -343,7 +343,7 @@ namespace Arena
                     Circle(c + new V2(8f + k * 5f, 0f), 3.5f, new Rgba(0.36f, 0.6f, 1f), 12);
                     break;
                 }
-                default:  // practice range: a target
+                default:  // a target
                     Arc(c, 11f, 2f, new Rgba(1f, 0.45f, 0.4f), 20);
                     Arc(c, 6f, 2f, new Rgba(1f, 0.45f, 0.4f), 16);
                     Circle(c, 2f, Rgba.White, 8);

@@ -5,12 +5,11 @@ namespace Arena
     /// Spawning (Docs/WaveRefactor.md step 3): how a built wave's queue (`spawnQueue` singles, `squadQueue` squads) comes
     /// into the arena. One place hands out the next entry (`SpawnNextEntry`), one place counts what is still to come
     /// (`PendingEnemies`), and the pacing, when each entry comes, is one of three (`SpawnPacing`).
-    /// A designed wave's groups (WaveDesign.cs `TickDesign`) have their own queue and timers and run beside this.
     enum SpawnPacing
     {
         Hold,      // Rooms arena, room by room: every room is full (or every nest is down), wait
         Timed,     // a timed wave: the arrival curve over a window, direct or through portals (TimedWaves.cs, SpawnPortals.cs)
-        Interval,  // one entry every so often (waves that aren't timed: designed, practice, Zombie Infection, bosses)
+        Interval,  // one entry every so often (waves that aren't timed: Zombie Infection, bosses)
     }
 
     public partial class Game
@@ -71,8 +70,7 @@ namespace Arena
             singlesSinceSquad++;
         }
 
-        /// Everything the wave still has to throw at the party: queued singles and squad members, living foes, risers (Zombies.cs),
-        /// a designed wave's groups still to come and the enemies still inside open portals.
-        int PendingEnemies() => QueuedUnits() + Foes() + risers.Count + DesignPending + PortalCargoCount();
+        /// Everything the wave still has to throw at the party: queued singles and squad members, living foes, risers (Zombies.cs) and the enemies still inside open portals.
+        int PendingEnemies() => QueuedUnits() + Foes() + risers.Count + PortalCargoCount();
     }
 }

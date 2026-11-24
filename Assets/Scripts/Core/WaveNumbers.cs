@@ -25,7 +25,7 @@ namespace Arena
             return count;
         }
 
-        /// The legacy spawner's gap between singles (waves that aren't timed: designed, practice, Zombie Infection).
+        /// The legacy spawner's gap between singles (waves that aren't timed: Zombie Infection).
         public static float SpawnInterval(int wave) => Math.Max(0.3f, (wave <= 1 ? 0.7f : 1.1f) - wave * 0.05f);
     }
 

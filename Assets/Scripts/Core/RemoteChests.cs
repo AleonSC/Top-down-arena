@@ -24,8 +24,8 @@ namespace Arena
         /// What collecting a chest remotely costs now: 15 + 2 per wave.
         public int ChestCollectFee => ChestCollectBase + ChestCollectPerWave * Math.Max(1, ShownWave);
 
-        /// The break, when the Chests tab can collect (not the Practice Range).
-        public bool CanCollectChests => State == MatchState.Intermission && Practice == null;
+        /// The break, when the Chests tab can collect.
+        public bool CanCollectChests => State == MatchState.Intermission;
 
         /// Every unopened chest on the map. Fills `into` (cleared first).
         public List<ChestSpot> UncollectedChests(List<ChestSpot> into)

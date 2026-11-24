@@ -57,7 +57,7 @@ namespace Arena
         /// Host, at each wave's start: the walled world is up for this wave (synced in the snapshot with the layout).
         public bool RoomsUp;
 
-        /// The walled world is what you're playing in right now (not in a Data Gate's challenge, the Practice Range or
+        /// The walled world is what you're playing in right now (not in a Data Gate's challenge or
         /// the Showcase).
         public bool RoomsOn => RoomsUp && !InRoom && ModeRules.Extras && !ShowcaseMode;
 
@@ -74,7 +74,7 @@ namespace Arena
 
         /// Host, at the start of each wave (with PickLayout): regular waves get the rooms, boss waves the hub alone
         /// (bosses are tuned for 1600x900). Not with Tiny Arena or on Narrow Pass, which wall the hub in themselves,
-        /// and not in a Boss Hunt, the Practice Range or the Showcase.
+        /// and not in a Boss Hunt or the Showcase.
         void PickRooms()
         {
             bool was = RoomsUp;

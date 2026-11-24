@@ -263,7 +263,7 @@ namespace Arena
                 game.DevJumpToWave(devWave);
             int bossWave = game.Bosses.NextBossWaveFrom(devWave);
             var boss = game.BossAt(bossWave);
-            Ui.Label(col.Next(18f), "Next boss (after wave " + bossWave + "): " + PracticePlan.NameOf(boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : boss),
+            Ui.Label(col.Next(18f), "Next boss (after wave " + bossWave + "): " + Defs.ListName(boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : boss),
                 12, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
             if (DkKey(col.Next(30f), "GO TO THE BOSS AFTER WAVE " + bossWave, Ui.Neutral, false, 12))
                 game.DevJumpToWave(Mathf.Min(bossWave, max), true);
@@ -389,11 +389,8 @@ namespace Arena
                 PlayerPrefs.Save();
                 ApplyRecording();
             }
-            var f = DkStack.Cells(col.Next(30f), 2, 6f);
-            if (DkKey(f[0], "SESSIONS FOLDER", Ui.Neutral, false, 10))
+            if (DkKey(col.Next(30f), "SESSIONS FOLDER", Ui.Neutral, false, 10))
                 OpenFolder(SessionsFolder);
-            if (DkKey(f[1], "PRACTICE FOLDER", Ui.Neutral, false, 10))
-                OpenFolder(PracticeFolder);
         }
 
         // --- Stat editor and the big sheets ------------------------------------------------------------------------
@@ -434,7 +431,7 @@ namespace Arena
             var list = new List<EnemyType>();
             if (bosses)
             {
-                foreach (var t in PracticePlan.Choices)
+                foreach (var t in Defs.Pickable)
                     if (Defs.Get(t).IsBoss)
                         list.Add(t);
                 return list;
@@ -443,7 +440,7 @@ namespace Arena
                 foreach (var m in f.Members)
                     if (!list.Contains(m.Type))
                         list.Add(m.Type);
-            foreach (var t in PracticePlan.Choices)
+            foreach (var t in Defs.Pickable)
                 if (!Defs.Get(t).IsBoss && !list.Contains(t))
                     list.Add(t);
             return list;
@@ -600,7 +597,7 @@ namespace Arena
             var list = new List<EnemyType>();
             string f = devEnemyFilter.Trim();
             foreach (var t in all)
-                if (f.Length == 0 || PracticePlan.NameOf(t).IndexOf(f, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (f.Length == 0 || Defs.ListName(t).IndexOf(f, StringComparison.OrdinalIgnoreCase) >= 0)
                     list.Add(t);
             if (game.DevArena)
             {
@@ -636,7 +633,7 @@ namespace Arena
                 Color tint = boss ? CrtStyle.Danger : Approaches.Of(list[i]) != null ? CrtStyle.Gold : CrtStyle.Ink;
                 Ui.Fill(cell, tint.WithAlpha(hover ? 0.16f : 0.05f));
                 CrtKit.Frame(cell, 1f, tint.WithAlpha(hover ? 0.8f : 0.25f));
-                Ui.Label(new Rect(cell.x, cell.yMax - 15f, cell.width, 13f), PracticePlan.NameOf(list[i]), 9, canSpawn ? CrtStyle.Body : CrtStyle.Desc, TextAnchor.MiddleCenter);
+                Ui.Label(new Rect(cell.x, cell.yMax - 15f, cell.width, 13f), Defs.ListName(list[i]), 9, canSpawn ? CrtStyle.Body : CrtStyle.Desc, TextAnchor.MiddleCenter);
                 cells.Add(new KeyValuePair<EnemyType, Rect>(list[i], cell));
                 bool hitCell = canSpawn && Ui.HitArea(cell);
                 if (hitCell && game.DevArena && devPlayAs)
@@ -652,13 +649,13 @@ namespace Arena
                         devEnemyNote = "Bosses can't have a spawner.";
                     else
                         devEnemyNote = game.DevPlaceSpawner(game.MyId, list[i], Game.DevSpawnerEvery[devSpawnerEvery], Game.DevSpawnerCaps[devSpawnerCap], devEnemyElite) > 0
-                            ? "Placed a spawner of " + PracticeEnemyName(list[i]) + " in front of you: one every " + Game.DevSpawnerEvery[devSpawnerEvery] + " s while a wave is on, up to " + Game.DevSpawnerCaps[devSpawnerCap] + " alive."
+                            ? "Placed a spawner of " + Defs.ListName(list[i]) + " in front of you: one every " + Game.DevSpawnerEvery[devSpawnerEvery] + " s while a wave is on, up to " + Game.DevSpawnerCaps[devSpawnerCap] + " alive."
                             : game.DevSpawners.Count >= Game.DevSpawnerMax ? "That's the most spawners at once (" + Game.DevSpawnerMax + "): clear some first." : "Couldn't place it.";
                 }
                 else if (hitCell)
                 {
                     int n = game.DevSpawnEnemy(game.MyId, list[i], boss ? 1 : devEnemyCount, devEnemyElite && !boss);
-                    devEnemyNote = n > 0 ? "Spawned " + (n > 1 ? n + " " : "") + PracticeEnemyName(list[i]) + " in front of you." : "Couldn't spawn it.";
+                    devEnemyNote = n > 0 ? "Spawned " + (n > 1 ? n + " " : "") + Defs.ListName(list[i]) + " in front of you." : "Couldn't spawn it.";
                 }
             }
             if (BeginUiGl())
@@ -676,6 +673,5 @@ namespace Arena
             Ui.Label(new Rect(r.x, r.yMax - 20f, r.width - 120f, 18f), devEnemyNote.Length > 0 && canSpawn ? devEnemyNote : idle, 11, devEnemyNote.Length > 0 && canSpawn ? CrtStyle.Gold : CrtStyle.Desc);
         }
 
-        static string PracticeEnemyName(EnemyType t) => PracticePlan.NameOf(t);
     }
 }

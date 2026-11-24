@@ -97,7 +97,6 @@ namespace Arena
             DrawMiniHud(me);  // corner text / on the player (HudModes.cs)
             DrawMyLedger();  // Blood Debt's ledger card beside you, over the enemy tags (BloodDebtLook.cs)
             DrawDownedBand(me);  // the DOWNED and REVIVED scan band (DownedLooks.cs)
-            DrawPracticeDowned(me);  // the Practice Range's DOWNED window with Respawn (PracticeDownedUi.cs)
             if (me != null && !me.Downed)
                 DrawEmoteBar(HudEmoteBarAt.X, HudEmoteBarAt.Y);  // hold the Emote key: the bar above the ability bar (EmoteBar.cs)
             DrawPingWheel();  // hold the Ping key: the wheel at the cursor (PingLooks.cs)
@@ -169,11 +168,8 @@ namespace Arena
                     foreach (var p in game.Players.Values)
                         if (p.PendingPicks + p.PendingLegendary + p.PendingMods + p.PendingCards + p.PendingMilestones + p.PrizePicks > 0 && p.Id != game.MyId)
                             choosing.Add(p.Name);
-                    var pr = game.Practice;
-                    int pNext = pr == null ? 0 : (game.PracticeIndex + 1) % Math.Max(1, pr.Waves.Count);
                     string sub = choosing.Count > 0 ? "Waiting for " + string.Join(" and ", choosing.ToArray()) + " to choose an upgrade…"
                         : game.AnyonePicking() ? ""
-                        : pr != null ? "Practice wave " + (pNext + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer)
                         : ApproachLine(game.NextTrackWave) + "Wave " + (game.ShownWave + 1) + " starts in " + Mathf.CeilToInt(game.StateTimer);  // ApproachUi.cs
                     if (game.SurvivalOn && game.SurvStarted)
                     {
@@ -190,12 +186,8 @@ namespace Arena
                             DrawNewEnemyChips(WcY + WcH + 6f, FxCalm ? 1f : Mathf.Clamp01((Time.unscaledTime - wcBorn - 0.2f) / 0.3f));  // what the next wave brings that you haven't met (NewEnemyChips.cs)
                         break;
                     }
-                    if (pr != null)
-                        DrawBanner(game.PracticeIndex < 0 ? "PRACTICE RANGE" : "PRACTICE WAVE " + (game.PracticeIndex + 1) + " CLEARED", sub, Ui.Accent);
-                    else
-                        DrawBanner(game.Wave == 0 ? "GET READY" : game.BossNow ? "BOSS CLEARED" : "WAVE " + game.ShownWave + " CLEARED", sub, game.BossNow ? CrtStyle.Gold : Ui.Accent);
-                    if (pr == null)
-                        DrawNewEnemyChips(BandRect.yMax + 14f, Mathf.Clamp01((Time.unscaledTime - bandShownAt) / 0.4f));
+                    DrawBanner(game.Wave == 0 ? "GET READY" : game.BossNow ? "BOSS CLEARED" : "WAVE " + game.ShownWave + " CLEARED", sub, game.BossNow ? CrtStyle.Gold : Ui.Accent);
+                    DrawNewEnemyChips(BandRect.yMax + 14f, Mathf.Clamp01((Time.unscaledTime - bandShownAt) / 0.4f));
                     break;
                 case MatchState.Victory:
                 case MatchState.GameOver:
@@ -442,16 +434,15 @@ namespace Arena
                 DrawSurvivalPlate(r);  // SurvivalUi.cs
                 return;
             }
-            var practice = game.Practice;
-            bool bossWave = practice != null ? BossUp() : game.BossNow;
+            bool bossWave = game.BossNow;
             Color ink = bossWave ? CrtStyle.Gold : CrtStyle.Ink, dim = bossWave ? new Color(CrtStyle.Gold.r * 0.7f, CrtStyle.Gold.g * 0.7f, CrtStyle.Gold.b * 0.5f) : CrtStyle.Dim;
-            string head = practice != null ? "PRACTICE  ·  LV " + game.Wave : game.Hunt != null ? (bossWave ? "HUNT  ·  BOSS" : "HUNT  ·  WAVE") : bossWave ? "BOSS FIGHT" : "WAVE";
+            string head = game.Hunt != null ? (bossWave ? "HUNT  ·  BOSS" : "HUNT  ·  WAVE") : bossWave ? "BOSS FIGHT" : "WAVE";
             HudCrt(new Rect(r.x + 14f, r.y + 5f, 150f, 16f), head, 17, dim);
-            string num = practice != null ? Math.Max(1, game.PracticeIndex + 1).ToString() : game.Hunt != null ? game.HuntWave.ToString() : game.ShownWave.ToString();
+            string num = game.Hunt != null ? game.HuntWave.ToString() : game.ShownWave.ToString();
             HudCrt(new Rect(r.x + 12f, r.y + 14f, 120f, 46f), num, 54, ink);
             float nw = CrtUi.TitleWidth(num, 54);
-            string of = practice != null ? (practice.Loop ? "/ " + practice.Waves.Count + "  LOOP" : "/ " + practice.Waves.Count) : game.Endless ? "ENDLESS" : game.Hunt != null ? "/ " + game.HuntLength : "/ " + game.ShownLastWave;
-            HudCrt(new Rect(r.x + 18f + nw, r.y + 28f, 100f, 24f), of, 22, game.Endless || practice != null && practice.Loop ? CrtStyle.Gold : dim);
+            string of = game.Endless ? "ENDLESS" : game.Hunt != null ? "/ " + game.HuntLength : "/ " + game.ShownLastWave;
+            HudCrt(new Rect(r.x + 18f + nw, r.y + 28f, 100f, 24f), of, 22, game.Endless ? CrtStyle.Gold : dim);
             HudCrt(new Rect(r.xMax - 110f, r.y + 5f, 100f, 16f), "LEFT", 17, dim, TextAnchor.MiddleRight);
             HudCrt(new Rect(r.xMax - 110f, r.y + 16f, 100f, 30f), game.Remaining.ToString(), 32, ink, TextAnchor.MiddleRight);
             HudCrt(new Rect(r.xMax - 130f, r.y + 44f, 120f, 14f), "SCORE " + game.Score.ToString("N0"), 17, CrtStyle.Gold, TextAnchor.MiddleRight);
@@ -550,8 +541,8 @@ namespace Arena
             bool boss = accent.r > accent.b;  // (gold, for a boss wave)
             int n = Mathf.Max(0, Mathf.CeilToInt(tm));
             string left = "SYS> ARENA LINK OK\nSYS> SQUAD ALIVE";
-            string right = (game.Wave == 0 && game.Practice == null ? "T-MINUS " + n.ToString("00") + "\n" : "") + "WAVE " + (game.Wave + 1).ToString("00") + (boss ? " / BOSS" : "");
-            DrawScanBand(title, sub, left, right, game.Practice != null ? -1f : 1f - tm / bandMax, boss ? CrtStyle.Gold : CrtStyle.Ink, (now - bandShownAt) / 0.25f, false);
+            string right = (game.Wave == 0 ? "T-MINUS " + n.ToString("00") + "\n" : "") + "WAVE " + (game.Wave + 1).ToString("00") + (boss ? " / BOSS" : "");
+            DrawScanBand(title, sub, left, right, 1f - tm / bandMax, boss ? CrtStyle.Gold : CrtStyle.Ink, (now - bandShownAt) / 0.25f, false);
         }
 
         /// The corner's TAB / H hint shows through this many waves, and until the Tab screen has been opened this many times.

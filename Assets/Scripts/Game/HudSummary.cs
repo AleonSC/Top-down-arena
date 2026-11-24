@@ -49,9 +49,8 @@ namespace Arena
             // middle and gliding up, then the totals, the tubes and the keys.
             RoundBackdrop(ResultsDark * EndBg);  // (RoundWindows.cs)
             Color theme = won ? CrtStyle.Gold : new Color(1f, 0.36f, 0.38f);
-            string title = game.Practice != null ? (won ? "PRACTICE COMPLETE" : "PRACTICE OVER") : game.Hunt != null ? (won ? "HUNT COMPLETE!" : "HUNT FAILED") : won && game.Quick ? "QUICK PLAY CLEAR!" : won ? "VICTORY!" : "GAME OVER";
-            string sub = game.Practice != null ? (won ? "YOU CLEARED ALL " + game.Practice.Waves.Count + " PRACTICE WAVES" : "YOU MADE IT TO PRACTICE WAVE " + Math.Max(1, game.PracticeIndex + 1) + " OF " + game.Practice.Waves.Count)
-                : game.Hunt != null ? (won ? "YOU HUNTED DOWN " + BossName(game.Hunt.Boss).ToUpperInvariant() : "YOU MADE IT TO HUNT WAVE " + Math.Max(1, game.HuntWave) + " OF " + game.HuntLength)
+            string title = game.Hunt != null ? (won ? "HUNT COMPLETE!" : "HUNT FAILED") : won && game.Quick ? "QUICK PLAY CLEAR!" : won ? "VICTORY!" : "GAME OVER";
+            string sub = game.Hunt != null ? (won ? "YOU HUNTED DOWN " + BossName(game.Hunt.Boss).ToUpperInvariant() : "YOU MADE IT TO HUNT WAVE " + Math.Max(1, game.HuntWave) + " OF " + game.HuntLength)
                 : won && game.Quick ? "YOU BEAT " + QuickPlay.Length + " WAVES AND " + BossName(game.BossAt(game.Wave)).ToUpperInvariant()
                 : won ? "YOU BEAT ALL " + game.ShownLastWave + " WAVES AND THE ECLIPSE" : "YOU MADE IT TO WAVE " + game.ShownWave;
             if (game.SurvivalOn)
@@ -59,7 +58,7 @@ namespace Arena
                 title = "YOU FELL";
                 sub = "YOU SURVIVED " + Game.SurvClock(game.SurvTime) + "  ·  PHASE " + (game.SurvPhase + 1);
             }
-            else if (!won && game.Practice == null && game.BossNow)
+            else if (!won && game.BossNow)
                 sub += "  ·  " + Defs.Get(game.BossAt(game.Wave)).Name.ToUpperInvariant();
             if (won && game.Deathless)
                 sub += "  ·  DEATHLESS";  // won without using a life (Checkpoints.cs)
@@ -73,7 +72,7 @@ namespace Arena
                 {
                     float ts = EndTitleScale, lift = EndLift, ty = Mathf.Lerp(H / 2f - 33f, 36f, lift);
                     float tx0 = Mathf.Lerp(0f, titleBox.x, lift), tw0 = Mathf.Lerp(W, titleBox.width, lift);
-                    int baseSize = game.Practice != null ? 50 : 60;
+                    const int baseSize = 60;
                     var shake = EndTitleShake();
                     var tr = new Rect(shake.x + tx0 - tw0 * (ts - 1f) / 2f, ty + shake.y - 33f * (ts - 1f), tw0 * ts, 66f * ts);
                     RoundPart(titleIn, Vector2.zero, () =>
@@ -147,7 +146,7 @@ namespace Arena
                         if (tl == null)
                         {
                             if (ci == 0)
-                                LobbyKit.Spaced(new Rect(cr.x, cr.center.y - 14f, cr.width, 28f), game.Practice != null ? "PRACTICE RUNS AREN'T GRAPHED" : "NO GRAPH WAS KEPT FOR THIS RUN", 13, CrtStyle.Dim, TextAnchor.MiddleCenter, 2f);
+                                LobbyKit.Spaced(new Rect(cr.x, cr.center.y - 14f, cr.width, 28f), "NO GRAPH WAS KEPT FOR THIS RUN", 13, CrtStyle.Dim, TextAnchor.MiddleCenter, 2f);
                             return;
                         }
                         if (chartsIn < 1f)
@@ -229,7 +228,7 @@ namespace Arena
         /// This run's curve for the results charts: the newest Recent runs entry (the run just paid out, so only once LastGain is set).
         RunTimeline SummaryTimeline()
         {
-            if (game.LastGain == null || game.Practice != null || Profile.Current.Recent.Count == 0)
+            if (game.LastGain == null || Profile.Current.Recent.Count == 0)
                 return null;
             var log = Profile.Current.Recent[0];
             if ((game.Hunt != null) != (log.Result >= 2))

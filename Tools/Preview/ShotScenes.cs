@@ -479,7 +479,7 @@ static partial class Shot {
       var sg = host.Game;
       sg.SurvivalOn = true; sg.SurvStarted = true;
       sg.SurvTime = float.Parse(sp[0], System.Globalization.CultureInfo.InvariantCulture); sg.Wave = Survival.WaveAt(sg.SurvTime);
-      sg.Hunt = null; sg.Quick = false; sg.Practice = null;
+      sg.Hunt = null; sg.Quick = false;
       // The big room (SurvivalWorld.cs): up, with its props; SURVPOS=x,y puts you somewhere in it (default: the start).
       sg.RoomsUp = true; sg.Layout = LayoutId.Open; sg.LayoutAge = 99f; sg.PropsOn = true;
       var spos = Environment.GetEnvironmentVariable("SURVPOS") != null ? Array.ConvertAll(Environment.GetEnvironmentVariable("SURVPOS").Split(','), float.Parse) : new[] { 1300f, 700f };

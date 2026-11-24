@@ -46,7 +46,7 @@ static partial class Program
             var solo = new Session();
             var sp = solo.Game.ProfileOverride = new Profile();
             solo.Host(port, "Host", Role.Tank);
-            bool openedQuick = solo.QuickMode && !solo.HuntMode && !solo.PracticeMode;
+            bool openedQuick = solo.QuickMode && !solo.HuntMode && !solo.SurvivalMode;
             solo.SetMode(GameMode.Campaign);
             solo.Leave("");
             solo.Host(port, "Host", Role.Tank);
@@ -59,8 +59,8 @@ static partial class Program
             for (var m = GameMode.Quick; m < GameMode.None; m++)
                 rows &= ModeDef.For(m).Mode == m && ModeDef.FromKey(ModeDef.For(m).Key) == m;
             Check(rows && ModeDef.FromKey("") == GameMode.Quick && ModeDef.For(GameMode.Campaign).Saves && !ModeDef.For(GameMode.Quick).Saves
-                && !ModeDef.For(GameMode.Hunt).Lives && !ModeDef.For(GameMode.Practice).RunEvents
-                && !ModeDef.For(GameMode.Survival).Lives && !ModeDef.For(GameMode.Survival).Legs && !ModeDef.For(GameMode.Practice).Extras
+                && !ModeDef.For(GameMode.Hunt).Lives && !ModeDef.For(GameMode.Hangout).RunEvents
+                && !ModeDef.For(GameMode.Survival).Lives && !ModeDef.For(GameMode.Survival).Legs && !ModeDef.For(GameMode.Hangout).Extras
                 && ModeDef.For(GameMode.Quick).BossBuildup && ModeDef.For(GameMode.Hunt).Waves == WaveRules.Hunt && ModeDef.For(GameMode.Campaign).Paths,
                 "every game mode has a row in the mode table, its profile key names it back, and only the Campaign is saved");
             var rs = new Session();

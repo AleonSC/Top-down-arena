@@ -24,7 +24,7 @@ namespace Arena
     ///     draws it for HeadlinerPick of its singles, so a wave has an identity.
     ///   Retiring: a type's weight fades over the 10 waves after it has been around 10 waves (to 15%), and a type in its
     ///     first 4 waves comes more often, so the wave-1 Grunt gives way to what came after it.
-    /// Waves before RecipeFrom, boss waves, paths with their own mix, Zombie Infection and designed waves are as before.
+    /// Waves before RecipeFrom, boss waves, paths with their own mix and Zombie Infection are as before.
     public partial class Game
     {
         public const int RecipeFrom = 13;
