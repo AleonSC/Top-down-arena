@@ -58,7 +58,7 @@ namespace Arena
         {
             if (Hunt != null && (!huntCheckpoint || HuntRoute == null))
                 return false;  // a Boss Hunt saves only at its step-10 checkpoint (HuntMapGame.cs)
-            if (!Saveable || State != MatchState.Intermission || DuelBetweenWaves || AnyonePicking() || PathOffer != null || ShopOpen || Players.Count == 0)
+            if (!Saveable || State != MatchState.Intermission || DuelBetweenWaves || HospitalUp || AnyonePicking() || PathOffer != null || ShopOpen || Players.Count == 0)
                 return false;
             var save = new RunSave
             {

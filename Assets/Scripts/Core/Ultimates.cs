@@ -83,6 +83,13 @@ namespace Arena
             },
             new AbilityDef
             {
+                Id = AbilityId.FieldHospital, Kit = Kit.Soldier, Role = Role.Healer, Choice = AbilityDef.Ult, UltKey = 1,
+                Name = "Field Hospital", Cooldown = 150f, Desc = "Open a hospital cell behind a door: a shrine, healing orbs and a laser gate for a minute.",
+                Capstone = "8 orbs, one back every 3 s.",
+                Bot = b => b.Danger || b.AllyHurt && b.Me.Hp < b.Me.MaxHp * 0.6f,
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.Sanctum, Kit = Kit.Elementalist, Role = Role.Healer, Choice = AbilityDef.Ult,
                 Name = "Sanctum", Cooldown = 80f, Desc = "A dome of light that blocks bullets, keeps allies up and heals them.",
                 Capstone = "The dome is half again as wide (300 px).",
@@ -190,6 +197,10 @@ namespace Arena
                         BroadcastFx(FxKind.Lifeline, p.Pos, new V2(q.Id, p.Id), new Rgba(0.35f, 1f, 0.55f), q.Pos.DistanceTo(p.Pos), LifelineFxTime, Sfx.None);
                     }
                     Sounds.Add(Sfx.Ability);
+                    break;
+
+                case AbilityId.FieldHospital:  // Healer: Soldier, the second ultimate (FieldHospital.cs)
+                    CastHospital(p, target, cap);
                     break;
 
                 case AbilityId.Sanctum:  // Healer: Elementalist

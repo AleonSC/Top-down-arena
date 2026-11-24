@@ -1191,6 +1191,7 @@ namespace Arena
             if (me.Weapon.Id == WeaponId.ArcKnuckles && (me.KnuckleChain == 2 || me.KnuckleChain == 4) && DashT <= 0f)
                 move = V2.Zero;  // the Arc Knuckles' Flurry and Grab & Throw: rooted while they run (ArcKnucklesChain.cs)
             bool oathClick = LocalOathPick(me, aimAt, input.Fire && !Bot, ref firing);  // Guardian's Oath: Fire picks the ally instead of shooting (GuardiansOath.cs)
+            bool hospClick = LocalHospPick(me, aimAt, input.Fire && !Bot, ref firing);  // Field Hospital: Fire picks the door instead of shooting (FieldHospital.cs)
             float bowRelease = LocalBow(me, firing, dt);
             if (me.Downed)
                 DashT = 0f;
@@ -1289,6 +1290,21 @@ namespace Arena
                     }
                     pressed = oathClick;  // the click on an ally is the cast
                 }
+                else if (HospPickSlot == slot)
+                {
+                    if (pressed)
+                    {
+                        HospPickSlot = -1;  // the key again: never mind
+                        continue;
+                    }
+                    pressed = hospClick;  // the click on a lit door is the cast
+                }
+                else if (pressed && !Bot && me.Slots[slot].Id == AbilityId.FieldHospital && !me.Downed && HospOnGrid)
+                {
+                    if (me.Slots[slot].Charges > 0 && AnyHospSpot(me))
+                        HospPickSlot = slot;  // now click a lit door (no free door in reach: nothing happens, nothing spent)
+                    continue;
+                }
                 else if (pressed && !Bot && me.Slots[slot].Id == AbilityId.GuardiansOath && !me.Downed)
                 {
                     if (me.Slots[slot].Charges > 0 && OathTarget(me, aimAt, OathRangeFor(me)) != null)
@@ -1336,6 +1352,13 @@ namespace Arena
                         target = LocalOathCharge(me, aimAt, Bot ? OathTarget(me, aimAt, OathRangeFor(me)) : OathPickTarget(me, aimAt));  // GuardiansOath.cs: charge to the ally you clicked
                         OathPickSlot = -1;
                         break;
+                    case AbilityId.FieldHospital:
+                    {
+                        var spot = Bot || HospPickSlot < 0 ? (HospSpot?)null : HospPickTarget(me, aimAt);
+                        target = spot.HasValue ? spot.Value.Door : Bot ? HospBotTarget(me) : aimAt;  // FieldHospital.cs: the door you clicked (outside a Grid run: the tent goes at the cursor)
+                        HospPickSlot = -1;
+                        break;
+                    }
                     case AbilityId.RoyalDive:
                     {
                         // The Hive Queen's dive: carried to the cursor (up to 380 px); the host lands the crash there.

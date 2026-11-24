@@ -82,6 +82,7 @@ namespace Arena
             DrawRoomsMinimap();  // the Rooms arena's minimap, top right (RoomsLook.cs)
             DrawGateHint();      // by a shutter gate: the key to shut it (GateLook.cs)
             DrawMysteryHint();   // mystery doors' price tags and keys (MysteryDoorLook.cs)
+            DrawHospitalHint();  // the Field Hospital's pick hint, time left and eject countdown (FieldHospitalLook.cs)
             DrawZoomHint();      // the open Rooms map: "scroll to zoom out" (CameraZoom.cs)
             DrawGateToast(me);   // the boss gate just opened (BossGateLook.cs)
             DrawDevSpawnerTags();  // DevSpawnerLook.cs

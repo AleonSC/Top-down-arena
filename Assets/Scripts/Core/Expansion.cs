@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// What a room of the Expanding arena does (Docs/ExpandingArena.md). rule rooms carry a path's ground and hazards.
-    public enum RoomKind : byte { Combat, Shop, Floor, BlackMarket, Gatekeeper, Opening, Link, Gate, Builder, Arms, Medic }  // (Medic: the Medic, heals and revive tokens, Medic.cs; Builder: a Builder Shop card's room, BuilderShop.cs; Arms: the Arms Dealer, Docs/ArmsDealer.md; Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md; Opening, Link and Gate: only in a round's proposals, a stretch of wall to open, a portal pair or a shutter gate on a door)
+    public enum RoomKind : byte { Combat, Shop, Floor, BlackMarket, Gatekeeper, Opening, Link, Gate, Builder, Arms, Medic, Hospital }  // (Hospital: a Field Hospital's cell, there for a minute, FieldHospital.cs; Medic: the Medic, heals and revive tokens, Medic.cs; Builder: a Builder Shop card's room, BuilderShop.cs; Arms: the Arms Dealer, Docs/ArmsDealer.md; Vendor and Gatekeeper: the floating rooms, Docs/FloatingRooms.md; Opening, Link and Gate: only in a round's proposals, a stretch of wall to open, a portal pair or a shutter gate on a door)
 
     /// A stretch of interior wall the team opened (the Expanding arena): a vertical wall at x = At from y = From to Till, or a horizontal one at y = At.
     public struct WallCut : IEquatable<WallCut>
@@ -216,7 +216,7 @@ namespace Arena
         {
             int n = 0;
             foreach (var r in rooms)
-                if (!r.Floating && r.Piece == 0 && !IsGridCore(r))  // (a drawn outline is one room, however many boxes; a Grid run's core is free)
+                if (!r.Floating && r.Piece == 0 && !IsGridCore(r) && !IsHospital(r))  // (a drawn outline is one room, however many boxes; a Grid run's core is free; a Field Hospital isn't built)
                     n++;
             return n;
         }
@@ -741,7 +741,7 @@ namespace Arena
                     if (Overlaps(q[0], q[1], q[0] + q[2], q[1] + q[3], bx0, by0, bx1, by1)) { why = "Overlaps a room"; return null; }
                     int run = SharedRun(q[0], q[1], q[0] + q[2], q[1] + q[3], bx0, by0, bx1, by1);
                     shared += run;
-                    if (run >= MinDoorRun && linked[a] && run > best) { best = run; root = p; rootParent = a; }
+                    if (run >= MinDoorRun && linked[a] && run > best && !(a > 0 && IsHospital(built[a - 1]))) { best = run; root = p; rootParent = a; }  // (never off a Field Hospital: it comes off the map)
                 }
                 for (int o = 0; o < pieces.Count; o++)
                     if (o != p)
@@ -866,8 +866,8 @@ namespace Arena
 
         static void AddCover(List<Solid> to, ExpansionRoom r, List<V2> doors, Dictionary<long, CellLayouts.CellPlan> plans = null)
         {
-            if (r.Floating)
-                return;  // (the floating rooms stay clear)
+            if (r.Floating || IsHospital(r))
+                return;  // (the floating rooms and a Field Hospital's cell stay clear)
             if (r.Surprise == 1 + (int)SurpriseShape.Stash)
             {
                 AddStashCover(to, r, doors);
@@ -1107,7 +1107,7 @@ namespace Arena
                     outline[group[a]] = true;
                 areas[a] = new RoomArea
                 {
-                    Name = a == 0 ? "Hub" : rooms[a - 1].Floating ? (kind == RoomKind.Shop ? "Shop" : kind == RoomKind.BlackMarket ? "Black Market" : FactionMinis.Name((EnemyType)rooms[a - 1].Mini)) : rooms[a - 1].Shape + (kind == RoomKind.Shop ? " (shop)" : kind == RoomKind.BlackMarket ? " (Black Market)" : kind == RoomKind.Arms ? " (Arms Dealer)" : kind == RoomKind.Medic ? " (Medic)" : kind == RoomKind.Builder ? " (builder shop)" : kind == RoomKind.Floor ? " (" + rooms[a - 1].Floor + ")" : ""),
+                    Name = a == 0 ? "Hub" : rooms[a - 1].Floating ? (kind == RoomKind.Shop ? "Shop" : kind == RoomKind.BlackMarket ? "Black Market" : FactionMinis.Name((EnemyType)rooms[a - 1].Mini)) : rooms[a - 1].Shape + (kind == RoomKind.Shop ? " (shop)" : kind == RoomKind.BlackMarket ? " (Black Market)" : kind == RoomKind.Arms ? " (Arms Dealer)" : kind == RoomKind.Medic ? " (Medic)" : kind == RoomKind.Hospital ? " (Field Hospital)" : kind == RoomKind.Builder ? " (builder shop)" : kind == RoomKind.Floor ? " (" + rooms[a - 1].Floor + ")" : ""),
                     Min = new V2(x0, y0), Max = new V2(x1, y1), Hub = a == 0,
                     Kind = kind, Floor = a == 0 ? PathId.None : rooms[a - 1].Floor, Owner = a == 0 ? 0 : rooms[a - 1].Owner, Floating = a > 0 && rooms[a - 1].Floating, Surprise = a == 0 ? (byte)0 : rooms[a - 1].Surprise,
                 };
@@ -1214,7 +1214,7 @@ namespace Arena
                 AddCover(cover, cr, doorSpots, gridRun ? plans : null);
                 if (gridRun && RelicGauntlet.Is(cr))
                     RelicGauntlet.AddPits(pits, cr);  // (the Relic Gauntlet's voids)
-                else if (gridRun && !cr.Floating && CellLayouts.OnLattice(cr))
+                else if (gridRun && !cr.Floating && !IsHospital(cr) && CellLayouts.OnLattice(cr))
                     CellLayouts.AddPits(pits, cr, plans);  // a pit variant's voids (CellVariants.cs)
             }
             if (gridRun && core != CoreLayoutId.None)
