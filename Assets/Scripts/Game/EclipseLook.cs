@@ -142,20 +142,25 @@ namespace Arena
             }
         }
 
-        /// Over the floor, under the enemies: the moon.
+        /// Over the floor, under the enemies: the moon, in the body's Totality look: the same near-black disc, lit
+        /// only along the limb that faces the sun (a white-hot crescent edge with a gold fringe), a faint silver rim
+        /// and halo so it reads against the dark floor, and a ring of shadow while the sun swells for a flash.
         void DrawEclipseMoon(float t)
         {
             var e = FindEclipse(game);
             if (e == null || e.Eclipse.MoonD <= 0f || e.Eclipse.TransT > 0f)
                 return;
             V2 m = Game.MoonPos(e, e.Disp);
-            float r = Game.MoonRadius;
-            Circle(m, r + 10f, MoonSilver.WithAlpha(0.12f), 32);
-            Circle(m, r, new Rgba(0.16f, 0.18f, 0.22f), 32);
-            Circle(m + new V2(-12f, -8f), 8f, new Rgba(0.23f, 0.25f, 0.3f), 12);
-            Circle(m + new V2(14f, 10f), 6f, new Rgba(0.23f, 0.25f, 0.3f), 12);
-            Circle(m + new V2(4f, -18f), 4f, new Rgba(0.23f, 0.25f, 0.3f), 10);
-            Arc(m, r, 3f, MoonSilver, 32);
+            float r = Game.MoonRadius, sunA = (e.Disp - m).Angle, swell = EclipseSwell(e);
+            GlowDisc(m, r * 2.2f, MoonSilver, 0.22f);
+            Circle(m, r + 8f, MoonSilver.WithAlpha(0.1f), 32);
+            Circle(m, r, new Rgba(0.03f, 0.03f, 0.05f), 32);
+            Arc(m, r, 1.5f, MoonSilver.WithAlpha(0.35f), 32);
+            float lit = 1.9f + 0.6f * swell;  // the lit limb widens as the sun swells
+            Arc(m, r + 3f, 8f, SunGold.WithAlpha(0.55f), 24, sunA - lit / 2f, lit);
+            Arc(m, r, 4f, SunWhite, 24, sunA - lit * 0.4f, lit * 0.8f);
+            if (swell > 0f)
+                Arc(m, r + 12f, 2f, MoonSilver.WithAlpha(0.3f + 0.4f * swell), 32);
         }
 
         static readonly Rgba TotalityRed = new Rgba(1f, 0.3f, 0.26f);
