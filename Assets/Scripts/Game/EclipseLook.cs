@@ -4,8 +4,8 @@ namespace Arena
 {
     /// How the Eclipse's fight looks (Eclipse.cs): the moon and its shadow, solar flares, closing rings of shadow,
     /// sunspots and the Umbra's dark, the echoes of earlier bosses, Last Light's burning edge, Totality's nova shell,
-    /// crescent blades, and the sun itself swelling before a flash. Built from the mockup in
-    /// Docs/Mockups/eclipse-5-phase.html.
+    /// crescent blades, and the body: a bright sun the moon crosses a step each phase (look 1 Totality), swelling before
+    /// a flash. The fight was built from the mockup in Docs/Mockups/eclipse-5-stage.html.
     public partial class ArenaApp
     {
         static readonly Rgba SunGold = new Rgba(1f, 0.82f, 0.4f);
@@ -142,36 +142,95 @@ namespace Arena
             }
         }
 
-        /// Over the floor, under the enemies: the moon.
+        /// Over the floor, under the enemies: the moon, in the body's Totality look: the same near-black disc, lit
+        /// only along the limb that faces the sun (a white-hot crescent edge with a gold fringe), a faint silver rim
+        /// and halo so it reads against the dark floor, and a ring of shadow while the sun swells for a flash.
         void DrawEclipseMoon(float t)
         {
             var e = FindEclipse(game);
             if (e == null || e.Eclipse.MoonD <= 0f || e.Eclipse.TransT > 0f)
                 return;
             V2 m = Game.MoonPos(e, e.Disp);
-            float r = Game.MoonRadius;
-            Circle(m, r + 10f, MoonSilver.WithAlpha(0.12f), 32);
-            Circle(m, r, new Rgba(0.16f, 0.18f, 0.22f), 32);
-            Circle(m + new V2(-12f, -8f), 8f, new Rgba(0.23f, 0.25f, 0.3f), 12);
-            Circle(m + new V2(14f, 10f), 6f, new Rgba(0.23f, 0.25f, 0.3f), 12);
-            Circle(m + new V2(4f, -18f), 4f, new Rgba(0.23f, 0.25f, 0.3f), 10);
-            Arc(m, r, 3f, MoonSilver, 32);
+            float r = Game.MoonRadius, sunA = (e.Disp - m).Angle, swell = EclipseSwell(e);
+            GlowDisc(m, r * 2.2f, MoonSilver, 0.22f);
+            Circle(m, r + 8f, MoonSilver.WithAlpha(0.1f), 32);
+            Circle(m, r, new Rgba(0.03f, 0.03f, 0.05f), 32);
+            Arc(m, r, 1.5f, MoonSilver.WithAlpha(0.35f), 32);
+            float lit = 1.9f + 0.6f * swell;  // the lit limb widens as the sun swells
+            Arc(m, r + 3f, 8f, SunGold.WithAlpha(0.55f), 24, sunA - lit / 2f, lit);
+            Arc(m, r, 4f, SunWhite, 24, sunA - lit * 0.4f, lit * 0.8f);
+            if (swell > 0f)
+                Arc(m, r + 12f, 2f, MoonSilver.WithAlpha(0.3f + 0.4f * swell), 32);
         }
 
-        /// Under the Eclipse's body: its glow (swelling before a flash) and a corona that grows wilder each phase.
-        void DrawEclipseCorona(Enemy e, V2 pos, float r, Rgba col, float t)
+        static readonly Rgba TotalityRed = new Rgba(1f, 0.3f, 0.26f);
+        static readonly V2 EclipseCoverDir = V2.FromAngle(-2.3f);  // the side the moon comes in from (up and left)
+
+        static int EclipseStageOf(Enemy e) => e.Eclipse == null ? e.Phase : (int)e.Eclipse.Stage;
+
+        /// 0 to 1 through the 3 s before a flash: the sun swells, its streamers stretch.
+        static float EclipseSwell(Enemy e)
         {
             var s = e.Eclipse;
-            int stage = s == null ? e.Phase : (int)s.Stage;
-            float swell = s != null && s.FlashT > 0f && s.FlashLen > 0f ? 1f - s.FlashT / s.FlashLen : 0f;
-            Circle(pos, r + 34f + stage * 6f + swell * 70f, SunGold.WithAlpha(0.07f + 0.12f * swell), 40);
-            Circle(pos, r + 14f + swell * 26f, SunWhite.WithAlpha(0.08f + 0.22f * swell), 32);
-            int rays = 12 + stage * 2;
-            var rayCol = stage >= 5 ? new Rgba(1f, 0.3f, 0.3f) : stage == 2 ? UmbraViolet : col;
-            for (int k = 0; k < rays; k++)
+            return s != null && s.FlashT > 0f && s.FlashLen > 0f ? 1f - s.FlashT / s.FlashLen : 0f;
+        }
+
+        static float CoronaHash(int k) => Mathf.Abs(Mathf.Sin(k * 12.9898f + 4.1414f) * 43758.547f) % 1f;
+
+        /// Under the Eclipse's body (look 1 Totality, the rework renders in Tools/Preview): a soft glow and
+        /// the corona's streamers, long uneven petals of light turning slowly; violet in the Umbra, crimson at
+        /// Totality, longer each phase and stretching as the sun swells for a flash.
+        void DrawEclipseCorona(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            int stage = EclipseStageOf(e);
+            float swell = EclipseSwell(e);
+            GlowDisc(pos, r * (3.2f + swell * 1.5f), stage >= 5 ? TotalityRed : SunGold, 0.35f + 0.4f * swell);
+            var tint = stage == 2 ? UmbraViolet : stage >= 5 ? TotalityRed : SunWhite;
+            const int n = 10;
+            for (int pass = 0; pass < 2; pass++)
             {
-                float a = MathX.Tau * k / rays + t * (0.3f + 0.3f * stage);
-                Line(pos + V2.FromAngle(a) * (r + 2f), pos + V2.FromAngle(a) * (r + 14f + 6f * stage + 4f * Mathf.Sin(t * 6f + k) + swell * 40f), 3f, rayCol.WithAlpha(0.8f));
+                SetColor(tint.WithAlpha(pass == 0 ? 0.14f : 0.3f));
+                float w = r * (pass == 0 ? 0.42f : 0.2f), reach = pass == 0 ? 1f : 0.75f;
+                for (int k = 0; k < n; k++)
+                {
+                    float a = MathX.Tau * k / n + t * 0.06f + CoronaHash(k) * 0.5f;
+                    float len = r * (0.7f + 1.3f * CoronaHash(k + 7)) * (1f + 0.12f * Mathf.Sin(t * 1.4f + k * 2.1f)) * (1f + 0.6f * swell) * (0.8f + 0.12f * stage);
+                    V2 d = V2.FromAngle(a), side = d.Orthogonal();
+                    Tri(pos + d * (r * 0.8f) + side * w, pos + d * (r * 0.8f) - side * w, pos + d * (r + len * reach));
+                }
+            }
+        }
+
+        /// The Eclipse's body: a bright sun with red prominences looping off its rim, and the moon's disc crossing it a
+        /// step further each phase (the phase clock), covering it exactly at Totality. From the Umbra on, the thin
+        /// burning ring left round the moon shows, with the diamond flare on the far edge. `col` is the body colour
+        /// (white on a hit flash), used for the rim.
+        void DrawEclipseBody(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            var s = e.Eclipse;
+            int stage = EclipseStageOf(e);
+            float swell = EclipseSwell(e), cover = Mathf.Clamp01(stage / 5f);
+            Circle(pos, r + 4f, col.WithAlpha(0.5f), 40);
+            Circle(pos, r, stage >= 5 ? new Rgba(1f, 0.55f, 0.45f) : SunGold, 40);
+            Circle(pos, r * 0.86f, SunWhite, 40);
+            for (int k = 0; k < 3 + stage; k++)
+            {
+                float a = MathX.Tau * CoronaHash(k + 30) + t * 0.1f;
+                float lr = 6f + 6f * CoronaHash(k + 40) + 2f * Mathf.Sin(t * 3f + k);
+                Arc(pos + V2.FromAngle(a) * (r + 2f), lr, 3.5f, new Rgba(1f, 0.3f, 0.25f, 0.9f), 10, a - MathX.Pi / 2f, MathX.Pi);
+            }
+            V2 m = pos + EclipseCoverDir * (r * 2.05f * (1f - cover) * (1f - cover * 0.15f));
+            Circle(m, r * 0.99f, new Rgba(0.03f, 0.03f, 0.05f), 40);
+            Arc(m, r * 0.99f, 1.5f, MoonSilver.WithAlpha(0.25f), 40);
+            if (cover > 0.5f)
+            {
+                Arc(pos, r, 3f, (stage >= 5 ? TotalityRed : SunWhite).WithAlpha(0.5f + 0.5f * cover), 48);
+                V2 bead = pos - EclipseCoverDir * r;
+                float bl = (stage >= 5 ? 26f : 18f) * (1f + 0.25f * Mathf.Sin(t * 7f)) + swell * 30f;
+                GlowDisc(bead, 34f, SunWhite, 0.8f);
+                Line(bead - new V2(bl, 0f), bead + new V2(bl, 0f), 2.5f, SunWhite);
+                Line(bead - new V2(0f, bl), bead + new V2(0f, bl), 2.5f, SunWhite);
+                Circle(bead, 6f, Rgba.White, 12);
             }
             if (s != null && s.TransT > 0f)
                 Arc(pos, r + 18f, 4f, Rgba.White.WithAlpha(0.5f + 0.4f * Mathf.Sin(t * 16f)), 40);

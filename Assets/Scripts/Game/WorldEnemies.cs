@@ -629,6 +629,8 @@ namespace Arena
                 DrawPhylactery(e, pos, r, col, t);  // LichBodyLook.cs: a soul jar
             else if (Game.IsNonShooter(e.Type))
                 DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
+            else if (e.Type == EnemyType.Eclipse)
+                DrawEclipseBody(e, pos, r, col, t);  // EclipseLook.cs: the sun, the moon crossing it a step each phase
             else if (Game.IsTwin(e.Type))
                 DrawTwinBody(e, pos, r, col, t);  // ReaperBodyLook.cs: a Hooded Reaper
             else if (e.Type == EnemyType.DualReaper)
@@ -1051,9 +1053,6 @@ namespace Arena
                     break;
                 case EnemyType.Morsel:
                     DrawMorsel(e, pos, r, t);  // DevourerLook.cs
-                    break;
-                case EnemyType.Eclipse:
-                    Circle(pos, r * 0.8f, new Rgba(0.02f, 0.02f, 0.04f, 1f), 32);
                     break;
                 case EnemyType.BallLightning:
                     DrawBallLightning(e, pos, r, t);  // HeraldLook.cs
