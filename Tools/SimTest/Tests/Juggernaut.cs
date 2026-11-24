@@ -29,7 +29,7 @@ static partial class Program
         Check(Upgrades.Ultimate(Role.Tank, Kit.Soldier) == AbilityId.Fortress && Upgrades.Ultimate(Role.Tank, Kit.Soldier, 0) == AbilityId.Fortress
             && Upgrades.Ultimate(Role.Tank, Kit.Soldier, 1) == AbilityId.JuggernautSuit && Upgrades.Ultimate(Role.Tank, Kit.Soldier, 2) == AbilityId.Fortress,
             "Fortress stays the default; key 1 is the Juggernaut Suit; an empty key falls back to the default");
-        Check(Upgrades.ClampUlt(Role.Tank, Kit.Soldier, 1) == 1 && Upgrades.ClampUlt(Role.Tank, Kit.Soldier, 2) == 0 && Upgrades.ClampUlt(Role.Healer, Kit.Soldier, 1) == 0
+        Check(Upgrades.ClampUlt(Role.Tank, Kit.Soldier, 1) == 1 && Upgrades.ClampUlt(Role.Tank, Kit.Soldier, 2) == 0 && Upgrades.ClampUlt(Role.Healer, Kit.Knight, 1) == 0
             && Upgrades.ClampUlt(Role.Wildcard, Kit.Soldier, 2) == 0 && Upgrades.Ultimate(Role.Wildcard, Kit.Soldier, 2) == Upgrades.Ultimate(Role.Wildcard, Kit.Soldier),
             "picks are clamped to the keys the role and class has (a Wildcard's to its class's DPS keys)");
         int alts = 0;
@@ -38,7 +38,7 @@ static partial class Program
                 for (int u = 1; u < Upgrades.UltKeys; u++)
                     if (Upgrades.AltUltimate((Role)r, (Kit)k, u) != AbilityId.None && !((Role)r == Role.Tank && (Kit)k == Kit.Summoner) && !((Role)r == Role.Dps && (Kit)k == Kit.Soldier) && !((Role)r == Role.Tank && (Kit)k == Kit.Ninja) && !((Role)r == Role.Dps && (Kit)k == Kit.Knight))
                         alts++;  // (the Tank Summoner's Bone Phalanx is checked in Phalanx.cs, the DPS Soldier's Attack Helicopter in Helicopter.cs, the Tank Ninja's Dragon's Dogma in Dogma.cs, the DPS Knight's Warhorn Volley in WarhornVolley.cs)
-        Check(alts == 3 && Upgrades.AltUltimate(Role.Tank, Kit.Elementalist, 1) == AbilityId.LightningRod && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath, "only the Tank Soldier, Tank Elementalist (Lightning Rod) and Tank Hemomancer (Bloodbath) have a key 1; every other role and class keeps its three locked slots");
+        Check(alts == 4 && Upgrades.AltUltimate(Role.Tank, Kit.Elementalist, 1) == AbilityId.LightningRod && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath && Upgrades.AltUltimate(Role.Healer, Kit.Soldier, 1) == AbilityId.FieldHospital, "only the Tank Soldier, Tank Elementalist (Lightning Rod), Tank Hemomancer (Bloodbath) and Healer Soldier (Field Hospital) have a key 1; every other role and class keeps its three locked slots");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 9 }, port, false, "Tank", Role.Tank, 0, 0, Kit.Soldier);  // (AutoStart: StartMatch below needs no Ready)
