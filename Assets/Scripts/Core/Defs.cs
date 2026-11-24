@@ -783,6 +783,8 @@ namespace Arena
             WaterballShot = 71, // the Waterball: rolls on through enemies and soaks them (ElementBalls.cs, Game/ElementBallLook.cs)
             GlyphShot = 73,    // a Glyph Stylus rune bolt: goes through enemies and heals the allies it passes (Arcanist.cs, Game/ArcanistLook.cs)
             SpectralBlade = 74, // a spectral blade: Runic Array's volleys and the shots a Grand Sigil sends back (Arcanist.cs, Game/ArcanistLook.cs)
+            FocusArrow = 75,   // a Mender's Bow Focus arrow: gold, wrapped in wind, shoves what it passes (BowFocus.cs, Game/BowFocusLook.cs)
+            ScatterArrow = 76, // one of the Mender's Bow's Scatter arrows: small and teal (BowFocus.cs, Game/BowFocusLook.cs)
             EarthballShot = 72; // the Earthball: stops on the first enemy, stuns it and breaks into rubble (ElementBalls.cs, Game/ElementBallLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark || kind == BottleShot;
@@ -833,6 +835,8 @@ namespace Arena
             Row(table, MinionShot, radius: 3.5f, color: new Rgba(0.85f, 1f, 0.95f));
             Row(table, KnightWave, radius: 11f, color: new Rgba(0.85f, 0.92f, 1f));
             Row(table, ArrowShot, radius: 4.5f, color: new Rgba(0.5f, 1f, 0.65f));
+            Row(table, FocusArrow, radius: 6f, color: new Rgba(1f, 0.82f, 0.3f));
+            Row(table, ScatterArrow, radius: 3.5f, color: new Rgba(0.5f, 0.9f, 0.85f));
             Row(table, StarShot, radius: 5.5f, color: new Rgba(0.8f, 0.85f, 0.95f));
             Row(table, NeedleShot, radius: 3f, color: new Rgba(0.55f, 1f, 0.75f));
             Row(table, KunaiShot, radius: 4f, color: new Rgba(0.8f, 0.85f, 0.95f));

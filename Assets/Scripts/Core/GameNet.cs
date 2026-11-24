@@ -18,6 +18,7 @@ namespace Arena
             bool firing = r.ReadBoolean();
             bool parry = r.ReadBoolean();
             float draw = r.ReadSingle(), release = r.ReadSingle();
+            bool focus = r.ReadBoolean();
             byte sprint = r.ReadByte();
             bool bot = r.ReadBoolean();
             Player p;
@@ -27,7 +28,10 @@ namespace Arena
                 return;  // a broken or tampered message: NaN or infinity would spread through the host's game and every snapshot
             p.DrawT = draw;
             if (release > 0f && ChargeWeapon(p.Weapon.Id))
+            {
                 p.BowRelease = Math.Min(10f, release);  // the shooter timed it; one release per message
+                p.BowFocus = focus;                     // and saw the Focus bar (BowFocus.cs)
+            }
             if (!p.Downed)
                 p.Pos = KeepInArena(pos, 0f);
             p.Aim = aim;

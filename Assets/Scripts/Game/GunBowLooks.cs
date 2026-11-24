@@ -6,14 +6,14 @@ namespace Arena
     /// The Healer's Revolver and Mender's Bow with Visual effects on (Docs/Mockups/revolver-bow-animations.html, look A for both).
     /// Revolver, "Smoke & brass": the gun kicks back on every shot and its cylinder clicks round, a flash cone and drifting
     /// smoke leave the muzzle, a brass casing flips out; a heavy round is a bigger, orange flash with a few sparks.
-    /// Bow, "Flex & snap": the limbs bend as you draw, a glint shows on the arrowhead near full draw, a gold ring pops at
-    /// full draw, and on release the string snaps and rings out (with a ring of light, gold for a perfect shot), and the
+    /// Bow, "Flex & snap": a gold ring pops at full draw, and on release the string snaps and rings out (with a ring of
+    /// light, gold for a Focus shot), and the
     /// arrow flies with a longer streak. Drawing only: rounds, damage and timing are in Core/Weapons.cs. With the effects
     /// off, nothing here runs and the models draw exactly as before.
     public partial class ArenaApp
     {
         class GunSeen { public float T = -99f; public bool Heavy; public int Shots; }
-        class BowSeen { public float Prev, SnapT = -99f; public bool Perfect; }
+        class BowSeen { public float Prev, SnapT = -99f; public bool Perfect, Focus; }  // (Focus: the last arrow was a Focus arrow, BowFocusLook.cs)
 
         const byte PMuzzle = 8, PCasing = 9, PSnap = 10;  // particle kinds (Juice.cs draws them through DrawGunPart)
         const float GunKickRate = 22f, GunClick = 0.1f, BowSnapHide = 0.3f, BowSnapRing = 0.4f, BowRingLife = 0.2f;
@@ -27,6 +27,7 @@ namespace Arena
         {
             gunSeen.Clear();
             bowSeen.Clear();
+            ClearBowFocusLook();  // BowFocusLook.cs
         }
 
         // --- Revolver ---------------------------------------------------------------------------------------------------
@@ -71,7 +72,8 @@ namespace Arena
 
         // --- Mender's Bow -----------------------------------------------------------------------------------------------
 
-        /// Each frame: notice a release (the draw ending) so the string can snap and a ring can fly off.
+        /// Each frame: notice a release (the draw ending) so the string can snap, a ring can fly off and a fresh arrow can be
+        /// swung onto the string (the held bow itself: BowFocusLook.cs DrawBowFlex).
         void UpdateBowLooks()
         {
             foreach (var p in game.Players.Values)
@@ -84,8 +86,8 @@ namespace Arena
                 if (s.Prev > 0f && p.DrawT <= 0f && !p.Downed)
                 {
                     float c = game.BowCharge(p, s.Prev);
-                    bool perfect = game.BowPerfect(p, s.Prev);
-                    s.SnapT = juiceClock; s.Perfect = perfect;
+                    bool perfect = p.Id == game.MyId && game.BowLastFocus;  // your own Focus shot (others' show when their arrow arrives: BowFocusLook.cs)
+                    s.SnapT = juiceClock; s.Perfect = perfect; s.Focus = perfect;
                     V2 at = p.Disp + V2.FromAngle(p.Aim) * (p.Def.BodyR + 14f);
                     var col = perfect ? BowGold : new Rgba(0.7f, 1f, 0.8f);
                     float reach = 26f + 30f * c;
@@ -95,40 +97,6 @@ namespace Arena
                 }
                 s.Prev = p.DrawT;
             }
-        }
-
-        /// The held bow with the effects on: limbs that flex with the draw, the string, the arrow (gone just after a shot)
-        /// and a glint on its head near full draw.
-        void DrawBowFlex(Player p)
-        {
-            bool drawing = p.DrawT > 0f;
-            float c = drawing ? game.BowCharge(p, p.DrawT) : 0f;
-            float k = drawing ? 0.15f + 0.85f * c : 0.1f;
-            BowSeen s;
-            float since = bowSeen.TryGetValue(p.Id, out s) ? juiceClock - s.SnapT : 99f;
-            float wobble = since > 0f && since < 0.5f ? (float)System.Math.Sin(since * 70f) * 4f * (float)System.Math.Exp(-since * 9f) : 0f;
-            float tipX = 9.9f - 5f * c, tipY = 13.9f - 1.8f * c, ctrlX = 2f * (18f - 2f * c) - tipX;
-            var wood = Hx(0x7a5a3a);
-            float px = tipX, py = -tipY;
-            for (int i = 1; i <= 10; i++)  // the limbs: one curve from tip to tip, bulging forward
-            {
-                float u = i / 10f, a = (1f - u) * (1f - u), b = 2f * u * (1f - u), d = u * u;
-                float x = a * tipX + b * ctrlX + d * tipX, y = a * -tipY + d * tipY;
-                MLine(px, py, x, y, 2.6f, wood);
-                px = x; py = y;
-            }
-            float nock = 4f - 10f * k;
-            MLine(tipX, -tipY, nock + wobble, 0f, 0.8f, Hx(0xeaeaea)); MLine(nock + wobble, 0f, tipX, tipY, 0.8f, Hx(0xeaeaea));
-            if (since > BowSnapHide)  // the arrow is away for a moment after the shot
-            {
-                MLine(nock, 0f, 26f, 0f, 1.4f, Hx(0xcfe9d6)); MPoly(Hx(0x59ff8c), 26f, 0f, 26f, -2f, 31f, 0f, 26f, 2f); MCirc(nock, 0f, 1.6f, Hx(0x59ff8c), 8);
-                if (c > 0.7f)
-                {
-                    float g = (c - 0.7f) / 0.3f;
-                    MStar(31f, 0f, 3f + 5f * g, 0.9f + 0.6f * g, 4, 0f, new Rgba(1f, 1f, 1f, 0.4f + 0.6f * g));
-                }
-            }
-            MCirc(18f, 0f, 2f, Hx(0x59ff8c), 8);
         }
 
         /// The ring that pops out of the bow at the moment a draw reaches full (called while drawing).

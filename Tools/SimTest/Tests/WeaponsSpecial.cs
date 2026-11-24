@@ -178,15 +178,37 @@ static partial class Program
         Draw(0);
         var tap = Draw(2);
         var half = Draw(30);       // 0.5 s
-        var perfect = Draw(57);    // 0.95 s: just past full draw
-        var full = Draw(120);      // 2 s: held well past it
+        // The Focus bar: let go with the marker in the gold zone for a Focus shot, anywhere else for a plain full one.
+        var cg = client.Game;
+        Func<bool, List<Bullet>> Timed = inZone =>
+        {
+            bool let = false;
+            return Play(f =>
+            {
+                if (!let && cg.BowFocusBar(cme, cme.DrawT) && cme.DrawT > cg.BowFull(cme) + 0.25f
+                    && (inZone ? cg.BowInZone(cme, cme.DrawT) : Math.Abs(Game.BowMarker(cme.DrawT - cg.BowFull(cme)) - (cg.BowZone + Game.BowFocusZone / 2f)) > 0.3f))
+                    let = true;
+                return !let && f < 200;
+            }, 240, V2.Zero);
+        };
+        bool barSeen = false;
+        var focus = Timed(true);
+        var full = Timed(false);
+        var watch = Play(f => { barSeen |= cg.BowFocusBar(cme, cme.DrawT); return f < 120; }, 160, V2.Zero);  // held 2 s: no auto-fire meanwhile
         Func<List<Bullet>, string> D = bs => bs.Count == 0 ? "none" : string.Join("/", bs.ConvertAll(b => b.Dmg.ToString("0.#") + " p" + b.Pierce + " heal " + (b.HealAlly * b.Dmg / 9f).ToString("0.#")));
-        Console.WriteLine("  bow: tap {0}; 0.5 s {1}; 0.95 s {2}; 2 s {3}", D(tap), D(half), D(perfect), D(full));
+        Console.WriteLine("  bow: tap {0}; 0.5 s {1}; focus {2}; missed {3}; held 2 s {4}", D(tap), D(half), D(focus), D(full), D(watch));
         Check(tap.Count == 1 && Math.Abs(tap[0].Dmg - 8f) < 0.01f && tap[0].Pierce == 0, "a quick tap looses a weak arrow (8 damage)");
         Check(half.Count == 1 && half[0].Dmg > 15f && half[0].Dmg < 30f, "a half draw hits for something in between");
-        Check(perfect.Count == 1 && Math.Abs(perfect[0].Dmg - 50f) < 0.01f && perfect[0].Pierce == 2 && Math.Abs(perfect[0].HealAlly * perfect[0].Dmg / 9f - 25f) < 0.1f,
-            "letting go right at full draw is a perfect shot: 50 damage, pierces 2, heals an ally 25");
-        Check(full.Count == 1 && Math.Abs(full[0].Dmg - 40f) < 0.01f && full[0].Pierce == 2 && full[0].Vel.Length > 900f, "holding past full draw keeps it at full (40 damage, fast, pierces 2), with no auto-fire");
+        Check(focus.Count == 1 && focus[0].Kind == Defs.FocusArrow && Math.Abs(focus[0].Dmg - Game.BowFocusDmg) < 0.01f && focus[0].Pierce >= 99
+            && Math.Abs(focus[0].HealAlly * focus[0].Dmg / 9f - Game.BowFocusHeal) < 0.1f && focus[0].Vel.Length > 1100f,
+            "let go in the Focus bar's zone: a Focus arrow (90 damage, through everything, heals an ally 30, fast)");
+        Check(full.Count == 1 && full[0].Kind == Defs.ArrowShot && Math.Abs(full[0].Dmg - 40f) < 0.01f && full[0].Pierce == 2 && full[0].Vel.Length > 900f,
+            "let go outside the zone: a plain full shot (40 damage, fast, pierces 2)");
+        Check(barSeen && watch.Count == 1, "holding at full draw keeps the bar up and never fires by itself");
+        Check(Game.BowMarker(0f) == 0f && Math.Abs(Game.BowMarker(Game.BowFocusPeriod / 2f) - 1f) < 1e-4f && Math.Abs(Game.BowMarker(Game.BowFocusPeriod * 0.75f) - 0.5f) < 1e-4f,
+            "the marker sweeps bottom to top and back every 0.8 s");
+        float z0 = cg.BowZone; Draw(60); float z1 = cg.BowZone; Draw(60); float z2 = cg.BowZone;
+        Check(z0 != z1 || z1 != z2, "the gold zone moves to a new height each draw");
         Check(sawDrawOnHost, "the host sees the joining player's draw (for the draw ring)");
 
         // Drawing slows you to 85%.
@@ -209,6 +231,67 @@ static partial class Program
         var multiFull = Draw(80);
         Console.WriteLine("  bow +2: tap {0} arrow(s); full draw {1} arrows ({2})", multiTap.Count, multiFull.Count, D(multiFull));
         Check(multiTap.Count == 1 && multiFull.Count == 3 && Math.Abs(multiFull[1].Dmg - 20f) < 0.01f, "with +2 extra projectiles a full draw looses 3 arrows (the extras at half damage); taps stay single");
+
+        // A Focus arrow's wind shoves what's near its path (heavies half as far, bosses not at all).
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var g = host.Game;
+        var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
+        V2 home = cme.Pos;
+        Func<EnemyType, V2, Enemy> Dummy = (type, at) =>
+        {
+            var d = (Enemy)spawn.Invoke(g, new object[] { type, at, 0f, 0, false });
+            d.MaxHp = d.Hp = 1e6f; d.Speed = 0f; d.FireT = 99f; d.SpawnT = 0f;
+            return d;
+        };
+        Action<int, bool> Step = (frames, alt) =>
+        {
+            for (int f = 0; f < frames; f++)
+            {
+                queue.Clear();
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == client ? new PlayerInput { AimAt = home + new V2(400f, 0f), WeaponAction = alt && f < 3 } : new PlayerInput()); }
+                Thread.Sleep(1);
+            }
+        };
+        hp.Stats.DmgMult = 1f;
+        g.Enemies.Clear(); g.Bullets.Clear();
+        Step(10, false);
+        home = hp.Pos;
+        var onLine = Dummy(EnemyType.Grunt, home + new V2(200f, 0f));
+        var near = Dummy(EnemyType.Grunt, home + new V2(300f, 40f));
+        var far = Dummy(EnemyType.Grunt, home + new V2(300f, 120f));
+        var heavyType = ((EnemyType[])Enum.GetValues(typeof(EnemyType))).First(t => Defs.Get(t) != null && Defs.Get(t).Heavy && !Defs.Get(t).IsBoss && !Defs.Get(t).Mini && Defs.Get(t).Speed > 0f);
+        var heavy = Dummy(heavyType, home + new V2(400f, -40f));
+        V2[] was = { onLine.Pos, near.Pos, far.Pos, heavy.Pos };
+        typeof(Game).GetMethod("FocusArrow", flags).Invoke(g, new object[] { hp, home + new V2(hp.Def.BodyR, 0f), 0f, 1f });
+        Step(45, false);
+        float[] moved = { onLine.Pos.DistanceTo(was[0]), near.Pos.DistanceTo(was[1]), far.Pos.DistanceTo(was[2]), heavy.Pos.DistanceTo(was[3]) };
+        Console.WriteLine("  focus wind: on the line {0:0} px (hit {1:0}), 40 px off {2:0} px, 120 px off {3:0} px, heavy {4:0} px", moved[0], onLine.MaxHp - onLine.Hp, moved[1], moved[2], moved[3]);
+        Check(onLine.Hp < onLine.MaxHp && near.Hp == near.MaxHp, "the Focus arrow hits what's on its line, its wind reaches wider");
+        Check(moved[0] > 50f && moved[1] > 50f && far.Pos.DistanceTo(was[2]) < 1f && near.Pos.Y > was[1].Y && near.Pos.X > was[1].X,
+            "its wind shoves enemies near its path on and away to their side, not ones farther off");
+        Check(moved[3] > 20f && moved[3] < moved[1] * 0.7f, "a heavy is shoved about half as far");
+
+        // Scatter: the client's Alt looses five arrows in a fan, each stopping in the first enemy; then it cools down.
+        g.Enemies.Clear(); g.Bullets.Clear();
+        Step(10, false);
+        var front = Dummy(EnemyType.Grunt, home + new V2(150f, 0f));
+        var behindIt = Dummy(EnemyType.Grunt, home + new V2(260f, 0f));
+        var seenIds = new HashSet<int>();
+        Func<int> NewScatter = () => { int n = 0; foreach (var b in g.Bullets.Values) if (b.Kind == Defs.ScatterArrow && b.Owner == hp.Id && seenIds.Add(b.Id)) n++; return n; };
+        int volley = 0;
+        for (int f = 0; f < 20; f++) { Step(1, f < 3); volley += NewScatter(); }
+        Step(30, false);
+        Console.WriteLine("  scatter: {0} arrows; front took {1:0}, the one behind it {2:0}", volley, front.MaxHp - front.Hp, behindIt.MaxHp - behindIt.Hp);
+        Check(volley == Game.ScatterArrows, "Alt looses a Scatter of five arrows");
+        Check(Math.Abs(front.MaxHp - front.Hp - Game.ScatterDmg) < 0.5f && behindIt.Hp == behindIt.MaxHp, "the middle arrow stops in the first enemy it meets (12 damage)");
+        int again = 0;
+        for (int f = 0; f < 20; f++) { Step(1, f < 3); again += NewScatter(); }
+        Check(again == 0 && cg.ScatterCooldown > 0f, "pressed again too soon: nothing, and the cooldown shows");
+        Step((int)(Game.ScatterCd / dt), false);
+        int third = 0;
+        for (int f = 0; f < 20; f++) { Step(1, f < 3); third += NewScatter(); }
+        Check(third == Game.ScatterArrows, "after 3 s it looses again");
         host.Leave(""); client.Leave("");
     }
 

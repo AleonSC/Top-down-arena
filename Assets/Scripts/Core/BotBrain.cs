@@ -357,7 +357,9 @@ namespace Arena
             }
             if (!aimSettled)
                 firing = false;
-            if (ChargeWeapon(me.Weapon.Id) && bowDraw >= BowFull(me))
+            if (me.Weapon.Id == WeaponId.MendersBow && BowFocusBar(me, bowDraw))
+                firing = !BowInZone(me, bowDraw) && bowDraw < BowFull(me) + BowFocusPeriod;  // the Mender's Bow: let go in the Focus bar's zone (one sweep at most: BowFocus.cs)
+            else if (ChargeWeapon(me.Weapon.Id) && bowDraw >= BowFull(me))
                 firing = false;
             else if (me.Weapon.Id == WeaponId.GoreMortar && bowDraw >= BowMinDraw
                 && ClotDistance(BowCharge(me, bowDraw)) * me.Stats.ShotSpeedMult >= aimAt.DistanceTo(me.Pos))
