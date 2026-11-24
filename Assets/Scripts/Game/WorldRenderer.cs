@@ -81,6 +81,7 @@ namespace Arena
             DrawMapFold();  // the Campaign's map reset: the old rooms fold into the hub (MapResetLook.cs)
 
             DrawJuiceFloor();  // scorch marks and shot trails (Juice.cs)
+            DrawFrostNovaGround();  // Frost Nova's cracks and frosted ground, under everything (FrostNovaLook.cs)
             DrawHeroDummies(t);  // the Dev Arena's stand-in heroes (DevArenaUi.cs)
             DrawArenaContents(t, true);
             DrawJuiceParts();  // shards, rings and sparks
