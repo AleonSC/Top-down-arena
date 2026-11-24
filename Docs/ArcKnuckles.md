@@ -1,5 +1,7 @@
 # Arc Knuckles: the Knight DPS's fourth weapon (design)
 
+Rework status: **planned** (Nov 2026): two stances, see [Stance rework](#stance-rework-planned) at the end; not built yet.
+
 Status: **built** (Nov 2026, protocol 272): all four steps, then the lock-on and hit feel. The weapon's damage went from 12 to 22 in step 4 (about 88 a second, with the other DPS Knight weapons); every number below is the step-1 design at 12, scaled by 22/12 in the game.
 (https://claude.ai/artifact/Rqn2WEDWUQL1RTJaxvPf8Y), version 5. The **Arc Coil** look, the **Full combo**, **Parry cancel**
 and **Perfect parry** scenarios, and the **Rocket Dash**, **Dash → Flurry** and **Full dash chain** Alt scenarios are the
@@ -79,3 +81,39 @@ Magnet Yank) were not picked.
 - **Hit feel**, as the Twin Blades have: each punch that connects sends `FxKind.KnuckleHit` with its contact sound; every screen throws
   sparks and a ring, and the puncher's own holds the picture and shakes, sized to the punch (`Juice.KnuckleHitFeel`). The press
   sounds are whooshes now; the knock is the contact's.
+
+## Stance rework (planned)
+Mockup: `Docs/Mockups/arc-knuckles-stances.html` (https://claude.ai/artifact/Tc7nHgT8fu9QPumT3k8ntp), playable, with demos.
+Damage is a multiple of the weapon's 22.
+
+**Decisions (owner):**
+- Two stances, swapped on the **weapon-action key** (the Rocket Dash moves into the Rocket stance). Swapping resets both combos.
+- **Brawl** (stance 1, the skill one): the steer direction is the movement keys at the press; with none held, a punch carries on along
+  you → target and a dash goes toward the cursor. A punch needs an enemy in reach under the cursor; a **whiff keeps your step**.
+  1.6 s idle returns to move 1.
+- **Rocket** (stance 2): today's chain on Fire with **no timing windows**; each press is the next move. **4 s idle** returns to the
+  Rocket Dash. Parry cancels and resets.
+- **Wall slam** kept: an enemy knocked into a wall fast (over 300 px/s) takes ×0.5 and a 0.6 s stun.
+- Parry cancels the move and resets the stance to move 1 in both stances; a perfect parry arms the Counter Hammer as today.
+
+| # | Brawl move | What it does | Numbers |
+|---|---|---|---|
+| 1 | Drive Punch | Step in, punch the clicked enemy the steer way; everything near it goes too | ×1.0, 60 px blast, 190 px knockback, reach 150 px |
+| 2 | Slip Dash | Dash the steer way, untouchable | 130 px in 0.15 s |
+| 3 | Drive Punch | Second steered punch | ×1.15, 60 px, 190 px |
+| 4 | Slip Dash | Second steered dash | 130 px |
+| 5 | Pin Punch | Stuns the group in place | ×1.6, 85 px, 1.8 s stun, knockback cleared |
+| 6 | Barrage | 10 jabs; the stun can't run out while it lasts | 10 × ×0.35, 75 px, 0.8 s, rooted |
+| 7 | Quake Punch | Hold to charge, release on the ground: radial harm and push | ×1.4 → ×3.0, 90 → 180 px, 0–1.2 s charge |
+
+| # | Rocket move | Numbers |
+|---|---|---|
+| 1 | Rocket Dash (lock-on, up to 300 px) | ×1.1 |
+| 2 | Flurry (rooted) | 8 × ×0.27 + ×0.9 straight |
+| 3 | Grab & Throw (not bosses) | ×0.9 to it, ×1.2 to what it hits |
+| 4 | Rocket Punch (210 px line) | ×1.3 each |
+
+**Build steps:** 1. stance state on the player (`Player.KnuckleStance`), the swap on the weapon-action key, HUD pips per stance;
+2. Rocket stance: move the chain to Fire, drop the windows, 4 s idle; 3. Brawl moves 1–4 (steer input from the move keys, the
+group knockback, wall slam); 4. moves 5–7 (Pin stun, Barrage hold, Quake charge); 5. look, sounds, `knuckles` suite, README,
+protocol bump, balance pass.
