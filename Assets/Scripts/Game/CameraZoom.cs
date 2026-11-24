@@ -32,7 +32,7 @@ namespace Arena
         const float ZoomHintTime = 14f;
 
         /// Any zoom at all this frame, or the rooms' following camera (false keeps every transform exactly as before).
-        bool CamZoomed => camZoom > 1.0001f || camFollow || camCell || camRot != 0;  // (camCell: locked in a Holding Cell, HoldingCellLook.cs)
+        bool CamZoomed => camZoom > 1.0001f || camFollow || camCell || camAng != 0f;  // (camCell: locked in a Holding Cell, HoldingCellLook.cs)
 
         /// Arena units -> HUD canvas units for sizes around world things (rings, label offsets), with the zoom.
         float UiWorldScale => CamZoomed ? WorldToUi * camZoom : WorldToUi;
@@ -51,7 +51,7 @@ namespace Arena
         /// Once a frame (from UpdateCameraLean): read the wheel, ease the zoom and the focus.
         void UpdateCameraZoom(float dt)
         {
-            UpdateCameraRotate();  // CameraRotate.cs
+            UpdateCameraRotate(dt);  // CameraRotate.cs
             var me = game.Me;
             if (!(session.Screen == AppScreen.Game && game.Running) || me == null)
             {
@@ -130,9 +130,8 @@ namespace Arena
                 camFocus = new V2(AW / 2f, AH / 2f);
                 return;
             }
-            bool turned = (camRot & 1) == 1;  // a quarter turn swaps which arena axis the screen's width covers (CameraRotate.cs)
-            float hx = (turned ? AH : AW) / (2f * camZoom), hy = (turned ? AW : AH) / (2f * camZoom);
-            camFocus = new V2(HoldInside(camFocusRaw.X, hx, AW), HoldInside(camFocusRaw.Y, hy, AH));
+            V2 half = ViewHalf();  // (the turned screen's reach, CameraRotate.cs)
+            camFocus = new V2(HoldInside(camFocusRaw.X, half.X, AW), HoldInside(camFocusRaw.Y, half.Y, AH));
         }
 
         /// DrawHud: the open Rooms map starts zoomed in; this asks you to zoom out, low in the middle, until you do (or a while).
