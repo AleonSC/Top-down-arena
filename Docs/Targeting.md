@@ -31,7 +31,7 @@ struct enumerables: no allocation, they nest, and `HurtEnemy` inside one is safe
    other player as a stand-in `Enemy` (never in `Game.Enemies`, `Enemy.Stand` set). `HurtEnemy` sends a stand-in's hit to its
    player through `Damage`, at `PvpDamage` (35%), never to the attacker, never through a dodge's i-frames or a respawn beam. Melee
    swings (`LandSwing`) and player bullets (`PlayerShotHits`) use the same queries. Status effects land on the stand-in and do
-   nothing yet. Left out: Blood Wall and Ossuary Wall (several owners per loop) and enemies' death blasts credited to a player.
+   nothing yet. Enemies' death blasts credited to a player stay out.
 4. **Summons, lock-ons and beams** (done): `NearestEnemy` and `NearestInLeash` take the owner (`by`), so summons, turrets and
    homing go for other players too; weapons that keep a target's id look it up with `TryFoe` / `FoeExists` (a stand-in's id is
    `StandBase - player id`, clear of the 0 and -1 that mean "none"); target-choosing loops use `AllFoes(by:)`; copied lists use
@@ -44,6 +44,9 @@ struct enumerables: no allocation, they nest, and `HurtEnemy` inside one is safe
    a push is a knockback (`KnockPlayer`, half the distance), and burns, bleeds and poison tick as damage over time from whoever set
    them (never your own on yourself). A melee daze does nothing to a player (it would be a stun-lock). Marks and other enemy-only
    states (seeded, wet, charged...) still do nothing on a player.
+6. **Walls** (done): another player's Blood Wall and Ossuary Wall keep you off them (a knockback, `PvpWallPush`, at most every
+   0.12 s) and hurt you as they hurt enemies (the Blood Wall's bleed and its mastered slow, the Ossuary Wall's darts). Your own
+   walls never push you; the Blood Wall still drains its caster as before.
 
 ## Behaviour notes
 
