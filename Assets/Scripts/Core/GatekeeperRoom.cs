@@ -60,7 +60,7 @@ namespace Arena
 
         /// Is there fighting now: a wave, or a mini-boss duel between waves (every game: read off the duel's foe, set each tick).
         /// Enemies attack, and minions and the kit's fight-only parts work, only while this is true.
-        public bool Battle => State == MatchState.Fighting || DuelBetweenWaves;
+        public bool Battle => State == MatchState.Fighting || DuelBetweenWaves || HangoutOn;  // (the Hangout is always a fight: spawners, turrets, summons; HangoutGame.cs)
 
         /// A mini-boss duel is on between waves (every game: a live duel foe stands in an open mini-boss room).
         public bool DuelBetweenWaves { get; private set; }

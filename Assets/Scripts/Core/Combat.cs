@@ -14,6 +14,8 @@ namespace Arena
             lastTaken = 0f;  // (Lightning Rod's grey number reads what got through; LightningRod.cs)
             if (p.DevGod)
                 return;
+            if (HangoutOn && p.WarpT > 0f)
+                return;  // mid respawn beam in the Hangout (HangoutGame.cs)
             if (p.SwallowT > 0f && !stomach)
                 return;  // inside the Devourer: nothing out here can reach you (Devourer.cs)
             if (InDome(p.Pos, -2f))
@@ -98,6 +100,11 @@ namespace Arena
         {
             if (p.Hp > 0f || p.Downed)
                 return;
+            if (HangoutOn)
+            {
+                HangoutRespawn(p);  // nobody goes down in the Hangout: beamed back in, full (HangoutGame.cs)
+                return;
+            }
             if (UseBackup(p))  // the Backup relic (Relics.cs)
                 return;
             p.Hp = 0f;

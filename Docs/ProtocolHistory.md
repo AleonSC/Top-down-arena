@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 475: the Hangout's spawners: `Msg.HangoutSpawner` (client -> host press) and `Msg.HangoutSpawners` (host -> all, every pad's enemy and switch)
 - 474: Mender's Bow Focus and Scatter: `Msg.Input` gains a bool after the bow release (the release was a Focus shot); new bullet kinds `FocusArrow` (75) and `ScatterArrow` (76); `Msg.WeaponDash` kind 57 (Scatter)
 - 473: the Practice Range and Training removed: `GameMode` loses `Practice` (Survival is now 3, Hangout 4); `Msg.Practice`, `PracticeEdit`, `PracticeWave` and `Respawn` retired (no longer sent or read)
 - 472: room turrets sit in walls: a map turret's place (its key in `Msg.TrapHit` and the wrecks in `Msg.ExpandState`) moved onto the wall beside its slot; floor slots no longer roll turrets

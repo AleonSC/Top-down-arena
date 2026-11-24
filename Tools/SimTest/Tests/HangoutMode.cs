@@ -7,6 +7,7 @@ using Arena;
 // agrees, no wave starts, the dummies stand and come back, firing works with the real loadout, nobody levels up or dies, and Back to lobby works.
 static partial class Program
 {
+
     static void HangoutModeTest(float dt)
     {
         int port = nextPort++;
@@ -62,7 +63,64 @@ static partial class Program
         // Held for good between waves.
         Run(both, dt, 70f);
         Check(host.Game.State == MatchState.Intermission && client.Game.State == MatchState.Intermission && host.Game.Wave == 1 && host.Game.StateTimer > 30f, "no wave ever starts: the state is held");
-        Check(host.Game.Players.Values.All(p => p.Hp >= p.MaxHp - 0.01f && !p.Downed) && host.Game.Players.Values.All(p => p.DevGod), "everyone is up at full health");
+        Check(host.Game.Players.Values.All(p => p.Hp >= p.MaxHp - 0.01f && !p.Downed) && host.Game.Players.Values.All(p => !p.DevGod), "everyone is up at full health, and nobody is in god mode");
+
+        // At 0 health nobody goes down: a beam takes them up and sets them down, full, somewhere else.
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var hurt = typeof(Game).GetMethod("Damage", flags);
+        var hc = host.Game.Players[client.Game.MyId];
+        V2 fellAt = hc.Pos;
+        hc.InvulnT = 0f;
+        hurt.Invoke(host.Game, new object[] { hc, hc.MaxHp * 5f, "test" });
+        Check(!hc.Downed && hc.Hp >= hc.MaxHp - 0.01f && hc.WarpT > 0f, "at 0 health in the Hangout: no going down, back to full, the beam starts");
+        Run(both, dt, Game.BeamTotal + 0.3f);
+        Check(!hc.Downed && hc.WarpT <= 0f && client.Game.Me.Pos.FartherThan(fellAt, 40f) && client.Game.Me.Pos.DistanceTo(hc.Pos) < 30f, "...and it sets them down somewhere else in the room, on both screens");
+        Check(host.Game.State == MatchState.Intermission && host.Game.Running, "nothing ends the Hangout");
+
+        // The spawners: twelve round the edges, all off. The client turns one on: its enemies come in and fight.
+        Check(host.Game.Spawners.Length == Game.SpawnerCount && host.Game.Spawners.All(sp => !sp.On) && Game.SpawnerChoices.Length > 40 && !Game.SpawnerChoices.Any(t => Defs.Get(t).IsBoss), "twelve spawners, all off; every regular enemy can be picked, no bosses");
+        Check(host.Game.Spawners.All(sp => sp.Pos.X < 100f || sp.Pos.Y < 200f || sp.Pos.X > Game.Width - 100f || sp.Pos.Y > Game.Height - 200f), "...standing round the edges");
+        var pad = host.Game.Spawners[0];
+        client.Game.UseSpawner(0, 1);  // (from away from it: the host ignores the press)
+        Run(both, dt, 0.3f);
+        Check(pad.Pick == Array.IndexOf(Game.SpawnerChoices, EnemyType.Grunt) || pad.Pick == 0, "a press from across the room does nothing");
+        client.Game.Me.Pos = client.Game.Me.Disp = pad.Pos;
+        Run(both, dt, 0.3f);
+        Check(client.Game.SpawnerNear(client.Game.Me.Pos) == 0, "standing on it, the client is by it");
+        int pick0 = pad.Pick;
+        client.Game.UseSpawner(0, 1);
+        Run(both, dt, 0.3f);
+        Check(pad.Pick == (pick0 + 1) % Game.SpawnerChoices.Length && client.Game.Spawners[0].Pick == pad.Pick, "the discard key / wheel steps its enemy, on both screens");
+        client.Game.UseSpawner(0, -1);
+        Run(both, dt, 0.3f);
+        Check(pad.Pick == pick0, "...and back");
+        client.Game.UseSpawner(0, 0);
+        Run(both, dt, 0.3f);
+        Check(pad.On && client.Game.Spawners[0].On, "Interact turns it on, on both screens");
+        int before = host.Game.Enemies.Count;
+        Run(both, dt, Game.SpawnerEvery * 2f + 1f);
+        Check(host.Game.Enemies.Count > before && host.Game.Enemies.Values.Count(en => en.Type == pad.Type) >= 2, "it trickles its enemy in (" + (host.Game.Enemies.Count - before) + ")");
+        Run(both, dt, Game.SpawnerEvery * (Game.SpawnerMax + 3));
+        Check(host.Game.Enemies.Values.Count(en => en.Type == pad.Type && !host.Game.Spawners.Skip(1).Any(sp => sp.Alive.Contains(en.Id))) <= Game.SpawnerMax + 3, "...up to its cap (dummies aside)");
+        // Its enemies fight: someone standing among them gets hurt (and beamed out at 0, never downed).
+        var hm = host.Game.Me;
+        float hurtBefore = hm.Run.DamageTaken;
+        for (int i = 0; i < 600 && hm.Run.DamageTaken <= hurtBefore; i++)
+        {
+            var foe = host.Game.Enemies.Values.FirstOrDefault(en => pad.Alive.Contains(en.Id));
+            if (foe != null && hm.WarpT <= 0f)
+                hm.Pos = hm.Disp = foe.Pos + new V2(0f, foe.Radius + 20f);
+            host.Game.FixedStep(dt, new PlayerInput { AimAt = hm.Pos + new V2(0f, 200f) });
+            host.Game.Update(dt);
+            Step(client, dt);
+        }
+        Check(hm.Run.DamageTaken > hurtBefore && !hm.Downed, "its enemies attack (the dummies never do)");
+        var made = pad.Alive.ToList();
+        client.Game.Me.Pos = client.Game.Me.Disp = pad.Pos;
+        Run(both, dt, 0.2f);
+        client.Game.UseSpawner(0, 0);
+        Run(both, dt, 0.3f);
+        Check(made.Count > 0 && !pad.On && !client.Game.Spawners[0].On && pad.Alive.Count == 0 && made.All(id => !host.Game.Enemies.ContainsKey(id) && !client.Game.Enemies.ContainsKey(id)), "turning it off takes its enemies away, on both screens");
 
         // No cooldowns: a spent ability or ultimate is back on the next tick, on the host and on a client.
         foreach (var g in new[] { host.Game, client.Game })

@@ -85,6 +85,7 @@ namespace Arena
             DrawZoomHint();      // the open Rooms map: "scroll to zoom out" (CameraZoom.cs)
             DrawGateToast(me);   // the boss gate just opened (BossGateLook.cs)
             DrawDevSpawnerTags();  // DevSpawnerLook.cs
+            DrawHangoutSpawnerTags();  // the Hangout spawner you stand on: its enemy and the keys (HangoutSpawnerLook.cs)
             DrawEnemyTags();  // an enemy type's name and job for its first few sightings (EnemyTagLook.cs)
             DrawHoverName();  // the name of the enemy under the cursor, if Settings has it on (EnemyTagLook.cs)
 
