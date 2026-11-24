@@ -32,7 +32,7 @@ namespace Arena
         const float ZoomHintTime = 14f;
 
         /// Any zoom at all this frame, or the rooms' following camera (false keeps every transform exactly as before).
-        bool CamZoomed => camZoom > 1.0001f || camFollow || camCell;  // (camCell: locked in a Holding Cell, HoldingCellLook.cs)
+        bool CamZoomed => camZoom > 1.0001f || camFollow || camCell || camAng != 0f;  // (camCell: locked in a Holding Cell, HoldingCellLook.cs)
 
         /// Arena units -> HUD canvas units for sizes around world things (rings, label offsets), with the zoom.
         float UiWorldScale => CamZoomed ? WorldToUi * camZoom : WorldToUi;
@@ -51,6 +51,7 @@ namespace Arena
         /// Once a frame (from UpdateCameraLean): read the wheel, ease the zoom and the focus.
         void UpdateCameraZoom(float dt)
         {
+            UpdateCameraRotate(dt);  // CameraRotate.cs
             var me = game.Me;
             if (!(session.Screen == AppScreen.Game && game.Running) || me == null)
             {
@@ -129,8 +130,8 @@ namespace Arena
                 camFocus = new V2(AW / 2f, AH / 2f);
                 return;
             }
-            float hx = AW / (2f * camZoom), hy = AH / (2f * camZoom);
-            camFocus = new V2(Mathf.Clamp(camFocusRaw.X, hx, AW - hx), Mathf.Clamp(camFocusRaw.Y, hy, AH - hy));
+            V2 half = ViewHalf();  // (the turned screen's reach, CameraRotate.cs)
+            camFocus = new V2(HoldInside(camFocusRaw.X, half.X, AW), HoldInside(camFocusRaw.Y, half.Y, AH));
         }
 
         /// DrawHud: the open Rooms map starts zoomed in; this asks you to zoom out, low in the middle, until you do (or a while).
@@ -149,9 +150,9 @@ namespace Arena
         }
 
         /// An arena point through the zoom (arena units on the unzoomed screen). Only while CamZoomed.
-        V2 ZoomPoint(V2 p) => (p - camFocus) * camZoom + new V2(AW / 2f, AH / 2f);
+        V2 ZoomPoint(V2 p) => RotateView((p - camFocus) * camZoom) + new V2(AW / 2f, AH / 2f);
 
         /// A point on the unzoomed screen (arena units) back to the arena. Only while CamZoomed.
-        V2 UnzoomPoint(V2 s) => (s - new V2(AW / 2f, AH / 2f)) * (1f / camZoom) + camFocus;
+        V2 UnzoomPoint(V2 s) => UnrotateView(s - new V2(AW / 2f, AH / 2f)) * (1f / camZoom) + camFocus;
     }
 }
