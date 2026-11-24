@@ -84,7 +84,6 @@ namespace Arena
             whoError = "";
             whoArmed = null;
             profTr = true;
-            profTrFwd = false;
             profEj = true;
             profEjT = 0f;
             profEjPrev = -0.0001f;

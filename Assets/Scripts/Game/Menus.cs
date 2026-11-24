@@ -21,7 +21,6 @@ namespace Arena
         bool menuPlayOpen;    // Play rolled it up onto the saved runs (SavesUi.cs)
         float menuPlayK;      // how far the shutter is up: 0 shut, 1 open (MenuMachine.cs)
         const float MenuPlayLen = 0.9f;  // seconds for the shutter to roll up or down
-        static readonly Color ScanColor = new Color(0.44f, 0.89f, 0.77f);
 
         void DrawMenu()
         {
