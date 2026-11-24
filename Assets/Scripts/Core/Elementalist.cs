@@ -127,6 +127,8 @@ namespace Arena
                 Apply = s => { s.SsSideBonus += 1; s.SsSlamMult += 0.2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.WindClash }, MaxStacks = 2, Name = "Gale Force", Desc = "Wind Clash's waves reach 20% farther, and shove 30% harder",
                 Apply = s => { s.WcReachMult += 0.2f; s.WcShoveMult += 0.3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.StoneColossus, MaxStacks = 2, Name = "Bedrock", Desc = "Stone Colossus lasts 3 s longer, and its slams reach 25% wider",
+                Apply = s => { s.ColBonusTime += Game.ColBedrockTime; s.ColSlamWide += Game.ColBedrockWide; } },
         };
 
         /// The Elementalist's 1st abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)

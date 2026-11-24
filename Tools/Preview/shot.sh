@@ -98,6 +98,7 @@
 # UNDERTOW=<meter>,<s held> (the Repulsion Cannon's Undertow meter, and its pull held that long on a pack of grunts; mode hud).
 # TWINNADES=<loaded>,<next tube 0/1>,<charge> (the Twin Rifle's grenade tubes and pips; with CAST=Airstrike CASTT=<s> for the Airstrike).
 # JUGG=<s since cast> JUGGARMOR=<0-1> (the Tank Soldier's Juggernaut Suit: plates, armour bar, flak tracers; mode hud).
+# COLOSSUS=<s since cast> COLWIND=<0-1> COLEND=<s> (the Tank Elementalist's Stone Colossus: rising, standing, slamming, crumbling; mode hud; StoneColossusLook.cs).
 # BLOODBATH=<s since the cast> (the Tank Hemomancer's Bloodbath pool, wading enemies and heal numbers; BATHMASTERED=1 for 220 px; mode hud, 2 players).
 # BLOODWALL=<s> BWCLOCK=<s> (the tank Hemomancer laying a Blood Wall, ShotBloodWall.cs; mode hud, 2 players).
 # CAST="Poison Dart" DARTKILL=<s> (its target dies that long after the cast, so the poison spreads; CASTT after it shows the globs).

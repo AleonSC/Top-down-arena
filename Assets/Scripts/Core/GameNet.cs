@@ -574,6 +574,9 @@ namespace Arena
             s.Float(ref p.JuggT);  // the Juggernaut Suit (Juggernaut.cs)
             s.Float(ref p.JuggArmor);
             s.Float(ref p.JuggMax);
+            s.Float(ref p.ColT);  // Stone Colossus (StoneColossus.cs)
+            s.Float(ref p.ColAge);
+            s.Float(ref p.ColWind);
             s.Float(ref p.TitheClock);  // Vein Tithe (VeinTithe.cs)
             int tithed = Math.Min(255, p.Tithed.Count);
             s.Byte(ref tithed);

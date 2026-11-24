@@ -1529,6 +1529,7 @@ namespace Arena
             TickVolleys(dt);    // WarhornVolley.cs: the arrows' front crossing the field
             TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
+            TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders
             TickGaleWalls(dt);  // GaleWall.cs: lenses run down and unleash
             TickWaterWards(dt);    // WaterWard.cs: the drops circle, land, spread and splash
             TickHarvest(dt);    // CrimsonHarvest.cs: blood torn out, the ball held and thrown
@@ -1744,6 +1745,8 @@ namespace Arena
                 {
                     // sitting in a Deployable Turret: it fires (TickDeployTurret), not your weapon
                 }
+                else if (ColOn(p))
+                    ColossusTrigger(p);  // the golem: Fire slams, the weapon is put away (StoneColossus.cs)
                 else if (p.StunShots > 0)
                     TickStunGun(p);  // the Stun Gun is out instead of your weapon (Stun.cs)
                 else if (p.Weapon.Id == WeaponId.Revolver)

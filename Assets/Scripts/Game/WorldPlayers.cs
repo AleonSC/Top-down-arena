@@ -58,7 +58,10 @@ namespace Arena
                 V2 emoteOff;
                 float emoteSpin;
                 int emoteId = preview ? emoteBodyFor : p.Id;  // (a menu preview only moves when the lobby says whose it is)
-                if (rebuild >= 0f && !preview)
+                bool golem = rebuild < 0f && ColossusStanding(p);  // Stone Colossus: the golem stands in for the model (StoneColossusLook.cs)
+                if (golem)
+                    DrawColossus(p, t, col.A);
+                else if (rebuild >= 0f && !preview)
                     DrawRebuild(p, modelR, t, col.A, rebuild);  // standing back up: flecks, a scan line, a shockwave
                 else if (emoteId >= 0 && EmoteBody(emoteId, out emoteOff, out emoteSpin))  // an emote moves the model only (EmoteLooks.cs)
                 {
@@ -74,10 +77,12 @@ namespace Arena
                     DrawPlayerModel(p, modelR, t, col);
                 // The class's overlays on top: ability feedback, buffs and the like (ClassLooks.cs)
                 var look = p.Recruit ? null : LookOf(p.Kit).Body;  // (a Training recruit has no class look)
-                if (look != null && rebuild < 0f)
+                if (look != null && rebuild < 0f && !golem)
                     look(this, p, modelR, t, col);
                 if (rebuild < 0f)
                 {
+                    if (!golem)
+                        DrawColossus(p, t, col.A);  // the rise: rocks gathering onto you (StoneColossusLook.cs)
                     DrawJuggernaut(p, modelR, t, col.A);  // the Juggernaut Suit's plates (JuggernautLook.cs)
                     DrawDebtRing(p, modelR, t, col.A);  // Blood Debt and Arterial Spray: any class can have them (Wildcard)
                     DrawSpray(p, modelR, t, col.A);
