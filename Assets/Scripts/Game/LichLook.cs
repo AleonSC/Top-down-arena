@@ -6,8 +6,8 @@ namespace Arena
     /// sweep, bone prisons, wailing spirits, dead hands, and the spectre fading between graves.
     public partial class ArenaApp
     {
-        static readonly Rgba SoulCol = new Rgba(0.43f, 1f, 0.69f), SpiritCol = new Rgba(0.37f, 0.85f, 1f), GraveStone = new Rgba(0.29f, 0.32f, 0.3f),
-            GraveEdge = new Rgba(0.54f, 0.58f, 0.55f), BoneCol = new Rgba(0.91f, 0.89f, 0.8f), SpectreCol = new Rgba(0.7f, 0.55f, 1f);
+        static readonly Rgba SoulCol = new Rgba(0.43f, 1f, 0.69f), SpiritCol = new Rgba(0.37f, 0.85f, 1f),
+            BoneCol = new Rgba(0.91f, 0.89f, 0.8f), SpectreCol = new Rgba(0.7f, 0.55f, 1f);
         float sweepAngle;  // the soul sweep, smoothed between snapshots
 
         /// Drawn with the hazards, under the enemies: graves, beams, the sweep, prisons and spirits.
@@ -20,8 +20,14 @@ namespace Arena
             if (lich == null)
                 return;
             var s = lich.Lich;
+            var gc = LichStageCol(lich);
             for (int i = 0; i < Game.GraveCount; i++)
-                DrawGrave(game.GravePos(i), t);
+            {
+                V2 g = game.GravePos(i);
+                // how stirred it is: the spectre's grave in Undeath, every grave in the Final Rite
+                float heat = s.Stage == LichStage.LastStand ? 0.75f : s.Stage == LichStage.Undeath && lich.Disp.CloserThan(g, 170f) ? 1f : 0.3f;
+                DrawGrave(g, gc, heat, t, i);  // LichBodyLook.cs
+            }
             // Phase 2: soul beams between the phylacteries, in the order they were raised.
             if (s.Stage == LichStage.Harvest && s.TransT <= 0f)
             {
@@ -81,22 +87,6 @@ namespace Arena
             // Where the spectre is about to appear.
             if (s.FadeT > 0f)
                 Arc(s.BlinkTo, 40f, 3f, SpectreCol.WithAlpha(0.5f + 0.5f * Mathf.Sin(t * 25f)), 32);
-        }
-
-        /// A headstone with a cross, its shadow below.
-        void DrawGrave(V2 g, float t)
-        {
-            SetColor(new Rgba(0f, 0f, 0f, 0.35f));
-            Quad(g + new V2(-22f, 22f), g + new V2(22f, 22f), g + new V2(22f, 32f), g + new V2(-22f, 32f));
-            SetColor(GraveStone);
-            Quad(g + new V2(-18f, -10f), g + new V2(18f, -10f), g + new V2(18f, 24f), g + new V2(-18f, 24f));
-            Circle(g + new V2(0f, -10f), 18f, GraveStone, 20);
-            Line(g + new V2(-18f, 24f), g + new V2(-18f, -10f), 2f, GraveEdge);
-            Line(g + new V2(18f, 24f), g + new V2(18f, -10f), 2f, GraveEdge);
-            Arc(g + new V2(0f, -10f), 18f, 2f, GraveEdge, 20, MathX.Pi, MathX.Pi);
-            var cross = new Rgba(0.08f, 0.1f, 0.09f, 0.9f);
-            Line(g + new V2(0f, -18f), g + new V2(0f, 6f), 2.5f, cross);
-            Line(g + new V2(-7f, -9f), g + new V2(7f, -9f), 2.5f, cross);
         }
 
         /// Under the Lich: the phase change, its guard (a tether to each phylactery and a shell), the open window, and

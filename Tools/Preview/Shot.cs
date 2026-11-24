@@ -110,7 +110,6 @@ static partial class Shot {
     UnityEngine.Screen.width = 1280; UnityEngine.Screen.height = 720;
     if (Environment.GetEnvironmentVariable("CRTTHEME") != null) CrtUi.Theme = int.Parse(Environment.GetEnvironmentVariable("CRTTHEME"));  // CRT colour (CrtUi.ThemeNames)
     host = new Session { AutoStart = players, StartWave = wave }; host.Game.Bot = true;
-    if (Environment.GetEnvironmentVariable("LICHLOOK") != null) ArenaApp.LichLook = int.Parse(Environment.GetEnvironmentVariable("LICHLOOK"));  // the Lich body mockups (LichBodyLook.cs)
     PerfRunSetup();  // PERFRUN=: Quick Play on the Expanding arena (ShotPerf.cs)
     melee = Environment.GetEnvironmentVariable("KNIGHT") ?? Environment.GetEnvironmentVariable("NINJA") ?? Environment.GetEnvironmentVariable("BLOOD");
     meleeKit = Environment.GetEnvironmentVariable("NINJA") != null ? Kit.Ninja : Environment.GetEnvironmentVariable("BLOOD") != null ? Kit.Hemomancer : Kit.Knight;

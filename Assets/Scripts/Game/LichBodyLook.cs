@@ -2,17 +2,16 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Lich body rework mockups (three directions, picked with LichLook; 0 keeps the old heptagon). Each faces its nearest
-    /// player and takes its phase colour: The Crypt soul green, Soul Harvest spirit cyan, Undeath spectre violet (and see-
-    /// through), the Final Rite rose. A: the Hooded Sorcerer (ragged cloak, skull in a hood, bone pauldrons, soul staff).
-    /// B: the Crowned Skull (a huge floating cranium, a bone crown, two floating hands, a turning heptagram under it).
-    /// C: the Wraith (a see-through shroud trailing tatters, an open ribcage with its soul gem, long clawed arms).
+    /// The Lich's body (Docs/Mockups: the "Lich Rework Directions" renders, A then C). It faces its nearest player and takes
+    /// its phase colour: The Crypt soul green, Soul Harvest spirit cyan, Undeath spectre violet (and see-through), the Final
+    /// Rite rose. Phases 1-3: the Hooded Sorcerer (ragged cloak, skull in a hood, bone pauldrons, soul staff; a cloak rune
+    /// and a soul mote more each phase). The Final Rite: the cloak is gone and the Wraith is left (a see-through shroud
+    /// trailing tatters, an open ribcage round its beating soul gem, long clawed arms, soul embers streaming off).
+    /// Also here: the graves (DrawGrave) and the phylacteries' soul jars (DrawPhylactery).
     public partial class ArenaApp
     {
-        internal static int LichLook;  // 0 old, 1 A, 2 B, 3 C (preview: LICHLOOK=1..3)
-
         static readonly Rgba LRobe = new Rgba(0.07f, 0.1f, 0.09f), LRobeHi = new Rgba(0.13f, 0.19f, 0.16f), LSocket = new Rgba(0.02f, 0.03f, 0.03f),
-            LGold = new Rgba(0.95f, 0.78f, 0.35f), LWood = new Rgba(0.22f, 0.17f, 0.12f);
+            LWood = new Rgba(0.22f, 0.17f, 0.12f);
 
         struct LichFrame
         {
@@ -45,12 +44,10 @@ namespace Arena
             f.S = f.F.Orthogonal();
             Rgba glow = LichStageCol(e).WithAlpha(a), bone = BoneCol.Mix(Rgba.White, hit).WithAlpha(a);
             Ellipse(pos + new V2(0f, r * 0.35f), r * 1.05f, r * 0.55f, 0f, new Rgba(0f, 0f, 0f, 0.3f * a), 24);  // hovering shadow
-            if (LichLook == 1)
-                DrawLichSorcerer(f, stage, glow, bone, hit, a, t);
-            else if (LichLook == 2)
-                DrawLichSkull(f, stage, glow, bone, hit, a, t);
-            else
+            if (stage == (int)LichStage.LastStand)
                 DrawLichWraith(f, stage, glow, bone, hit, a, t);
+            else
+                DrawLichSorcerer(f, stage, glow, bone, hit, a, t);
         }
 
         /// Glowing eyes: a soft bloom, a hot core.
@@ -131,7 +128,7 @@ namespace Arena
             {
                 V2 d = (f.F * -Mathf.Cos(k * 0.38f) + f.S * Mathf.Sin(k * 0.38f)).Normalized();
                 V2 b = hd + d * (13f * K);
-                SetColor(stage >= 3 ? LGold.WithAlpha(a) : bone);
+                SetColor(bone);
                 Tri(b + d.Orthogonal() * (2.2f * K), b - d.Orthogonal() * (2.2f * K), b + d * ((6f + (k == 0 ? 3f : 0f)) * K));
             }
             // soul motes circling it
@@ -142,82 +139,6 @@ namespace Arena
                 GlowDisc(m, 7f * K, glow, 0.6f * a);
                 Circle(m, 1.8f * K, Rgba.White.WithAlpha(0.9f * a), 8);
             }
-        }
-
-        // ---- B: the Crowned Skull ----
-        void DrawLichSkull(LichFrame f, int stage, Rgba glow, Rgba bone, float hit, float a, float t)
-        {
-            float K = f.K, spin = t * 0.5f;
-            // the heptagram turning under it
-            GlowDisc(f.O, 62f * K, glow, 0.14f * a);
-            Arc(f.O, 50f * K, 1.6f * K, glow.WithAlpha(0.55f * a), 56);
-            Arc(f.O, 44f * K, 1f * K, glow.WithAlpha(0.3f * a), 56);
-            var pt = new V2[7];
-            for (int i = 0; i < 7; i++)
-                pt[i] = f.O + V2.FromAngle(spin + MathX.Tau * i / 7f) * (47f * K);
-            for (int i = 0; i < 7; i++)
-                Line(pt[i], pt[(i + 3) % 7], 1.4f * K, glow.WithAlpha(0.45f * a));
-            for (int i = 0; i < 7; i++)
-            {
-                Circle(pt[i], 3f * K, LSocket.WithAlpha(a), 10);
-                Arc(pt[i], 3f * K, 1.2f * K, glow.WithAlpha(0.9f * a), 10);
-            }
-            // the floating hands, fingers spread, a soul spark between them
-            for (int sd = -1; sd <= 1; sd += 2)
-            {
-                float bob = Mathf.Sin(t * 3f + sd) * 2f;
-                V2 h = f.P(12f + bob, sd * 37f);
-                Ellipse(h, 5f * K, 4f * K, Mathf.Atan2(f.F.Y, f.F.X), bone, 12);
-                for (int k = 0; k < 4; k++)
-                {
-                    V2 d = (f.F * 1f + f.S * (-sd * 0.15f + (k - 1.5f) * 0.28f)).Normalized();
-                    V2 j = h + d * (5f * K), tip = j + (d + f.S * (-sd * 0.35f)).Normalized() * (5f * K);
-                    Line(h, j, 1.6f * K, bone);
-                    Line(j, tip, 1.3f * K, bone);
-                }
-                GlowDisc(f.P(24f + bob, sd * 32f), 10f * K, glow, (0.45f + 0.3f * Mathf.Sin(t * 11f + sd)) * a);
-            }
-            // the cranium: seen from above, the face at its front edge
-            V2 c = f.P(-3f, 0f);
-            float ang = Mathf.Atan2(f.F.Y, f.F.X);
-            Rgba dome = bone.Mix(new Rgba(0.45f, 0.43f, 0.37f), 0.45f), domeHi = bone.Mix(new Rgba(0.45f, 0.43f, 0.37f), 0.2f);
-            Ellipse(c, 27f * K, 24f * K, ang, dome, 32);
-            Ellipse(f.P(-7f, -4f), 17f * K, 14f * K, ang, domeHi, 28);  // the lit side of the dome
-            Line(f.P(-29f, 0f), f.P(12f, 0f), 1.2f * K, new Rgba(0.35f, 0.33f, 0.29f, a));  // the suture down the middle
-            // cracks glowing through, more each phase
-            for (int k = 0; k < stage * 2; k++)
-            {
-                float y0 = (k % 2 == 0 ? -1f : 1f) * (6f + 4f * k);
-                V2 p0 = f.P(-20f + 3f * k, y0 * 0.6f), p1 = f.P(-12f + 2f * k, y0), p2 = f.P(-4f, y0 * 1.3f);
-                Line(p0, p1, 2.6f * K, glow.WithAlpha(0.35f * a));
-                Line(p1, p2, 2.6f * K, glow.WithAlpha(0.35f * a));
-                Line(p0, p1, 1f * K, Rgba.White.Mix(glow, 0.4f).WithAlpha(a));
-                Line(p1, p2, 1f * K, Rgba.White.Mix(glow, 0.4f).WithAlpha(a));
-            }
-            // brow, sockets, nose and jaw at the front
-            SetColor(bone.Mix(new Rgba(0.6f, 0.58f, 0.5f), 0.3f));
-            Quad(f.P(14f, -15f), f.P(24f, -11f), f.P(24f, 11f), f.P(14f, 15f));
-            Ellipse(f.P(25f, 0f), 5f * K, 11f * K, ang, bone.Mix(new Rgba(0.6f, 0.58f, 0.5f), 0.3f), 16);  // the jaw jutting out
-            for (int k = -2; k <= 2; k++)
-                Line(f.P(28f, k * 3.2f), f.P(31f, k * 3.2f), 1.6f * K, bone);
-            Ellipse(f.P(18f, -7f), 4.4f * K, 4.6f * K, ang, LSocket.WithAlpha(a), 12);
-            Ellipse(f.P(18f, 7f), 4.4f * K, 4.6f * K, ang, LSocket.WithAlpha(a), 12);
-            SetColor(LSocket.WithAlpha(a));
-            Tri(f.P(21f, -1.6f), f.P(21f, 1.6f), f.P(25f, 0f));
-            LichEyes(f.P(19f, -7f), f.P(19f, 7f), 1.6f * K, glow, a, t);
-            // the crown: a gold band round the dome with bone-and-gold spikes, a soul gem at the front
-            Arc(c, 21f * K, 2f * K, LGold.Mix(LRobe, 0.25f).WithAlpha(a), 32);
-            for (int k = 0; k < 9; k++)
-            {
-                float g = ang + MathX.Pi + (k - 4f) * 0.4f;
-                V2 d = V2.FromAngle(g), b = c + d * (20f * K);
-                SetColor((k % 2 == 0 ? LGold : bone).WithAlpha(a));
-                Tri(b + d.Orthogonal() * (2.6f * K), b - d.Orthogonal() * (2.6f * K), b + d * ((k == 4 ? 15f : 9f) * K));
-            }
-            V2 gem = f.P(14f, 0f);
-            GlowDisc(gem, 9f * K, glow, 0.5f * a);
-            SetColor(Rgba.White.Mix(glow, 0.5f).WithAlpha(a));
-            Quad(gem + f.F * (3.2f * K), gem + f.S * (2.4f * K), gem - f.F * (3.2f * K), gem - f.S * (2.4f * K));
         }
 
         // ---- C: the Wraith ----
@@ -292,6 +213,105 @@ namespace Arena
                 V2 m = f.P(-10f - ph * 50f, Mathf.Sin(k * 2.3f) * 22f + Mathf.Sin(t * 3f + k) * 4f);
                 GlowDisc(m, 6f * K, glow, 0.7f * (1f - ph) * a);
             }
+        }
+
+        static readonly Rgba LStone = new Rgba(0.25f, 0.28f, 0.27f), LStoneHi = new Rgba(0.4f, 0.44f, 0.42f), LSoil = new Rgba(0.1f, 0.09f, 0.08f),
+            LSoilHi = new Rgba(0.2f, 0.17f, 0.14f), LBronze = new Rgba(0.55f, 0.42f, 0.25f);
+
+        /// A grave: a weathered headstone (a chipped corner, a crack, a carved soul rune) over a heaped plot of earth whose
+        /// cracks glow in the phase colour, souls drifting up out of it. heat 0-1: how stirred it is.
+        void DrawGrave(V2 g, Rgba glow, float heat, float t, int i)
+        {
+            float pulse = 0.75f + 0.25f * Mathf.Sin(t * 3f + i * 1.7f);
+            GlowDisc(g + new V2(0f, 40f), 46f, glow, (0.08f + 0.22f * heat) * pulse);
+            // the plot: heaped earth in front of the stone
+            Ellipse(g + new V2(0f, 44f), 24f, 20f, 0f, new Rgba(0f, 0f, 0f, 0.35f), 20);
+            Ellipse(g + new V2(0f, 41f), 21f, 18f, 0f, LSoil, 20);
+            Ellipse(g + new V2(-3f, 37f), 15f, 11f, 0f, LSoilHi, 16);
+            for (int k = 0; k < 4; k++)  // clods
+                Circle(g + new V2(-14f + k * 9f, 46f + (k % 2) * 6f), 2.4f, LSoilHi.Mix(LSoil, 0.4f), 6);
+            Rgba crack = glow.WithAlpha((0.35f + 0.6f * heat) * pulse);
+            Line(g + new V2(-10f, 33f), g + new V2(-2f, 41f), 1.6f, crack);
+            Line(g + new V2(-2f, 41f), g + new V2(9f, 38f), 1.6f, crack);
+            Line(g + new V2(-2f, 41f), g + new V2(1f, 52f), 1.6f, crack);
+            // souls drifting up out of the earth
+            for (int k = 0; k < 2; k++)
+            {
+                float ph = MathX.Fmod(t * 0.35f + k * 0.5f + i * 0.23f, 1f);
+                V2 m = g + new V2(-6f + 12f * k + Mathf.Sin(t * 2f + k * 3f + i) * 4f, 40f - ph * 70f);
+                GlowDisc(m, 7f + 4f * heat, glow, (1f - ph) * (0.25f + 0.5f * heat));
+            }
+            // the headstone and its shadow
+            SetColor(new Rgba(0f, 0f, 0f, 0.35f));
+            Quad(g + new V2(-20f, 22f), g + new V2(20f, 22f), g + new V2(22f, 28f), g + new V2(-22f, 28f));
+            SetColor(LStone);
+            Quad(g + new V2(-17f, -8f), g + new V2(17f, -8f), g + new V2(18f, 24f), g + new V2(-18f, 24f));
+            Arc(g + new V2(0f, -8f), 8.5f, 17f, LStone, 20, MathX.Pi, MathX.Pi);  // the rounded top
+            SetColor(LStoneHi.WithAlpha(0.5f));
+            Quad(g + new V2(-17f, -8f), g + new V2(-12f, -8f), g + new V2(-13f, 24f), g + new V2(-18f, 24f));  // the lit edge
+            SetColor(LSoil);
+            Tri(g + new V2(17.5f, -6f), g + new V2(9f, -21f), g + new V2(17.5f, -18f));  // a chipped corner
+            Arc(g + new V2(0f, -8f), 17f, 1.6f, LStoneHi, 20, MathX.Pi, MathX.Pi * 0.72f);
+            Line(g + new V2(-17f, 24f), g + new V2(-17f, -8f), 1.6f, LStoneHi);
+            Line(g + new V2(-19f, 24f), g + new V2(19f, 24f), 2f, new Rgba(0.17f, 0.19f, 0.18f));
+            // moss at the foot
+            for (int k = 0; k < 5; k++)
+                Circle(g + new V2(-14f + k * 6.5f, 22f - (k % 2) * 2f), 3f, new Rgba(0.2f, 0.32f, 0.2f, 0.85f), 6);
+            // the carved rune: a ring and a cross, glowing as it stirs
+            Rgba rune = LSocket.Mix(glow, 0.15f + 0.85f * heat * pulse);
+            Arc(g + new V2(0f, -2f), 6.5f, 1.8f, rune, 16);
+            Line(g + new V2(0f, -13f), g + new V2(0f, 14f), 2f, rune);
+            Line(g + new V2(-6f, -2f), g + new V2(6f, -2f), 2f, rune);
+            if (heat > 0.5f)
+                GlowDisc(g + new V2(0f, -2f), 18f, glow, 0.5f * heat * pulse);
+            Line(g + new V2(-9f, 8f), g + new V2(-4f, 14f), 1.2f, new Rgba(0.12f, 0.13f, 0.12f));
+            Line(g + new V2(-4f, 14f), g + new V2(-7f, 21f), 1.2f, new Rgba(0.12f, 0.13f, 0.12f));
+        }
+
+        /// A phylactery: a glass soul jar in bronze bands, a soul swirling inside and a little skull for a stopper. Its glass
+        /// cracks (glowing) as it loses health.
+        void DrawPhylactery(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            float a = col.A, hit = (e.Flash > 0f || JuiceFlash(e)) ? HitFlashMix(e) : 0f, hp = e.MaxHp > 0f ? e.Hp / e.MaxHp : 1f;
+            float K = r / 18f;
+            Rgba glow = SoulCol, bone = BoneCol.Mix(Rgba.White, hit).WithAlpha(a), bronze = LBronze.Mix(Rgba.White, hit).WithAlpha(a);
+            V2 c = pos + new V2(0f, 3f * K);
+            Ellipse(pos + new V2(0f, 18f * K), 13f * K, 4f * K, 0f, new Rgba(0f, 0f, 0f, 0.35f * a), 16);
+            // the soul inside
+            Circle(c, 13f * K, new Rgba(0.04f, 0.1f, 0.08f, 0.9f * a), 22);
+            GlowDisc(c, 15f * K, glow, (0.6f + 0.2f * Mathf.Sin(t * 5f + e.Id)) * a);
+            for (int k = 0; k < 3; k++)
+            {
+                V2 m = c + V2.FromAngle(t * 2.6f + MathX.Tau * k / 3f) * (6f * K);
+                Circle(m, 2.2f * K, Rgba.White.Mix(glow, 0.4f).WithAlpha(0.9f * a), 8);
+            }
+            // the glass: a pale rim, a highlight
+            Circle(c, 13f * K, glow.Mix(Rgba.White, 0.5f + 0.5f * hit).WithAlpha(0.16f * a), 22);
+            Arc(c, 13f * K, 1.6f * K, glow.Mix(Rgba.White, 0.4f).WithAlpha(0.75f * a), 22);
+            Arc(c, 9.5f * K, 1.6f * K, Rgba.White.WithAlpha(0.45f * a), 10, MathX.Pi * 1.1f, MathX.Pi * 0.45f);
+            // cracks as it breaks
+            Rgba ck = Rgba.White.Mix(glow, 0.3f).WithAlpha(a);
+            if (hp < 0.67f)
+            {
+                Line(c + new V2(-11f, -4f) * K, c + new V2(-3f, 1f) * K, 1.3f * K, ck);
+                Line(c + new V2(-3f, 1f) * K, c + new V2(-5f, 9f) * K, 1.3f * K, ck);
+            }
+            if (hp < 0.34f)
+            {
+                Line(c + new V2(10f, -6f) * K, c + new V2(4f, -1f) * K, 1.3f * K, ck);
+                Line(c + new V2(4f, -1f) * K, c + new V2(8f, 7f) * K, 1.3f * K, ck);
+                Line(c + new V2(4f, -1f) * K, c + new V2(-1f, -8f) * K, 1.3f * K, ck);
+            }
+            // bronze bands and the neck
+            Arc(c, 13.5f * K, 2.2f * K, bronze, 12, MathX.Pi * 0.15f, MathX.Pi * 0.7f);
+            SetColor(bronze);
+            Quad(c + new V2(-6f, -12f) * K, c + new V2(6f, -12f) * K, c + new V2(5f, -16f) * K, c + new V2(-5f, -16f) * K);
+            // the skull stopper
+            V2 sk = c + new V2(0f, -20f) * K;
+            Circle(sk, 5f * K, bone, 12);
+            Quad(sk + new V2(-3f, 2f) * K, sk + new V2(3f, 2f) * K, sk + new V2(2.4f, 6f) * K, sk + new V2(-2.4f, 6f) * K);
+            Circle(sk + new V2(-1.9f, 0.4f) * K, 1.3f * K, LSocket.WithAlpha(a), 6);
+            Circle(sk + new V2(1.9f, 0.4f) * K, 1.3f * K, LSocket.WithAlpha(a), 6);
         }
     }
 }

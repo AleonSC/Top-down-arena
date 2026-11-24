@@ -621,8 +621,10 @@ namespace Arena
                 DrawGuardBody(e, pos, r, col, t);  // WardenLook.cs: the corrections officer and its nightstick swing
             else if (e.Type == EnemyType.Warden)
                 DrawWardenBody(e, pos, r, col, spawning, t);  // WardenBodyLook.cs: the Chief Warden, posed for each move
-            else if (e.Type == EnemyType.Lich && LichLook > 0)
-                DrawLichBody(e, pos, r, col, t);  // LichBodyLook.cs (mockup directions)
+            else if (e.Type == EnemyType.Lich)
+                DrawLichBody(e, pos, r, col, t);  // LichBodyLook.cs: the Hooded Sorcerer, the Wraith in the Final Rite
+            else if (e.Type == EnemyType.Phylactery)
+                DrawPhylactery(e, pos, r, col, t);  // LichBodyLook.cs: a soul jar
             else if (Game.IsNonShooter(e.Type))
                 DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
             else
@@ -1046,9 +1048,6 @@ namespace Arena
                     break;
                 case EnemyType.Eclipse:
                     Circle(pos, r * 0.8f, new Rgba(0.02f, 0.02f, 0.04f, 1f), 32);
-                    break;
-                case EnemyType.Phylactery:
-                    Polygon(pos, r * 0.5f, 4, -t * 2f, Rgba.White.WithAlpha(0.8f));
                     break;
                 case EnemyType.BallLightning:
                     DrawBallLightning(e, pos, r, t);  // HeraldLook.cs
