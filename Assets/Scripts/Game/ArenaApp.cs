@@ -517,6 +517,10 @@ namespace Arena
             else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.Me != null && game.MysteryNear(game.Me.Pos) >= 0
                      && (Keybinds.Down(KeyAction.Interact) || Keybinds.Down(KeyAction.DiscardItem)))
                 game.UseMysteryDoor(Keybinds.Down(KeyAction.DiscardItem));
+            // On a Hangout spawner: F turns it on or off, B changes its enemy (the mouse wheel too: CameraZoom.cs; HangoutSpawners.cs).
+            else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.Me != null && game.SpawnerNear(game.Me.Pos) >= 0
+                     && (Keybinds.Down(KeyAction.Interact) || Keybinds.Down(KeyAction.DiscardItem)))
+                game.UseSpawner(game.SpawnerNear(game.Me.Pos), Keybinds.Down(KeyAction.Interact) ? 0 : 1);
             // By a shutter gate (the Expanding arena): F shuts it (Gates.cs).
             else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.Me != null && game.GateNear(game.Me.Pos) >= 0
                      && Keybinds.Down(KeyAction.Interact))

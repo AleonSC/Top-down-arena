@@ -827,6 +827,28 @@ static partial class Program
                     if (inside && !outside) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (inside hit " + inside + ", outside hit " + outside + ")");
                     continue;
                 }
+                if (w.Id == WeaponId.StaticShock)
+                {
+                    // No shots: a cone of crackle out of your hand (StaticShock.cs). Held on an enemy just inside the aim line's end it
+                    // shocks it; one just past the end isn't touched.
+                    Func<float, bool> Shocks = edge =>
+                    {
+                        g.Enemies.Clear();
+                        var dummy = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", flags).Invoke(g, new object[] { EnemyType.Grunt, new V2(120f, 450f), 0f, 0, false });
+                        dummy.Hp = dummy.MaxHp = 1e5f; dummy.SpawnT = 0f;
+                        V2 at = new V2(120f + edge + dummy.Radius, 450f);
+                        for (int f = 0; f < 40; f++)
+                        {
+                            dummy.Pos = at; dummy.FrozenT = 1f; me.Pos = new V2(120f, 450f); me.Aim = 0f;
+                            host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = new V2(1500f, 450f) });
+                        }
+                        for (int f = 0; f < 5; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) }); }
+                        return dummy.Hp < dummy.MaxHp;
+                    };
+                    bool inside = Shocks(range - 4f), outside = Shocks(range + 4f);
+                    if (inside && !outside) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (inside hit " + inside + ", outside hit " + outside + ")");
+                    continue;
+                }
                 if (w.Id == WeaponId.Kusarigama)
                 {
                     // The weight is state, not an effect: the aim line shows how far it is thrown (Game.KusariReachOf).
