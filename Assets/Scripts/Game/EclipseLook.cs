@@ -14,6 +14,10 @@ namespace Arena
         static readonly Rgba MoonSilver = new Rgba(0.79f, 0.82f, 0.89f);
         static readonly Rgba UmbraViolet = new Rgba(0.61f, 0.48f, 1f);
 
+        /// A preview-only rework concept for the body (0: the game's own look); set by Tools/Preview.
+        internal static int EclipseMock;
+        partial void DrawEclipseMock(Enemy e, V2 pos, float r, float t);
+
         static Enemy FindEclipse(Game g)
         {
             foreach (var e in g.Enemies.Values)
@@ -161,6 +165,8 @@ namespace Arena
         /// Under the Eclipse's body: its glow (swelling before a flash) and a corona that grows wilder each phase.
         void DrawEclipseCorona(Enemy e, V2 pos, float r, Rgba col, float t)
         {
+            if (EclipseMock > 0)
+                return;
             var s = e.Eclipse;
             int stage = s == null ? e.Phase : (int)s.Stage;
             float swell = s != null && s.FlashT > 0f && s.FlashLen > 0f ? 1f - s.FlashT / s.FlashLen : 0f;

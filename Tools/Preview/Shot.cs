@@ -166,6 +166,26 @@ static partial class Shot {
       }
       if (Environment.GetEnvironmentVariable("PARRY") != null && f == (int)(seconds * 60) - 50) { host.Game.HoldParry = true; host.Game.Bot = false; }
       if (Environment.GetEnvironmentVariable("PARRY") != null && f > (int)(seconds * 60) - 60) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Warden) { host.Game.Players[1].Pos = e.Pos + new V2(-60f, 180f); host.Game.Players[1].Aim = (e.Pos - host.Game.Players[1].Pos).Angle; }
+      // ECLIPSEMOCK=<0-3>: the Eclipse alone in the middle from the first frame (everything else cleared each frame), for its
+      // look (1-3: the rework concepts in ShotEclipseLooks.cs, 0: today's); with ECLIPSE=<health> ECLIPSETURN=<turn> below. ECLIPSEPOS=x,y pins it there.
+      if (Environment.GetEnvironmentVariable("ECLIPSEMOCK") != null)
+      {
+        ArenaApp.EclipseMock = int.Parse(Environment.GetEnvironmentVariable("ECLIPSEMOCK"));
+        var eg = host.Game;
+        bool has = false;
+        foreach (var id in new System.Collections.Generic.List<int>(eg.Enemies.Keys)) { if (eg.Enemies[id].Type == EnemyType.Eclipse) has = true; else eg.Enemies.Remove(id); }
+        if (!has)
+        {
+          var esp = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+          var ee = (Enemy)esp.Invoke(eg, new object[] { EnemyType.Eclipse, new V2(Game.Width / 2f, Game.Height / 2f), 0f, 0, false });
+          ee.SpawnT = 0f; ee.Spawning = false; ee.Disp = ee.Pos;
+        }
+        eg.Bot = false;  // you stand below it, not shooting
+        foreach (var pl in eg.Players.Values) { pl.Pos = pl.Disp = new V2(Game.Width / 2f + 60f, Game.Height / 2f + 230f); pl.Aim = -MathX.Pi / 2f; }
+        foreach (var bid in new System.Collections.Generic.List<int>(eg.Bullets.Keys)) if (eg.Bullets[bid].Owner != 0 || Environment.GetEnvironmentVariable("ECLIPSECLEAR") != null) eg.Bullets.Remove(bid);  // ECLIPSECLEAR=1: its shots too
+        var epin = Environment.GetEnvironmentVariable("ECLIPSEPOS");
+        if (epin != null) foreach (var e in eg.Enemies.Values) { var xy = epin.Split(','); e.Pos = e.Disp = new V2(float.Parse(xy[0]), float.Parse(xy[1])); }
+      }
       // SING=<health fraction>: hold the Singularity there (so the shot lands in that phase); SINGTURN=<turn> skips its
       // turns until that one (Pull, Collapse, Lasers, Cage, Slingshot, TwinLasers, Hawking, WhiteHole, Split, Last).
       if (Environment.GetEnvironmentVariable("SING") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Singularity)
