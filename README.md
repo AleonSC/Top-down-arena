@@ -1659,7 +1659,8 @@ map, HUD and mute toggles (mute starts with no key). For Fire and Parry, a "Left
 any other action, since they click everything else. Click a key, press the new one (a middle or side mouse button works too), and it
 changes at once; **Esc** cancels. A key already used by another action swaps with it, so nothing ends up on two. Every action also has a **second key**
 (the "+ ADD" slot beside it): either key does the action; right click a key to clear it. The red **×** at the end of a row takes every key off
-that action, so it can't be pressed at all (e.g. no Reroll key) until you give it one again; hints that name its key show "—". The
+that action, so it can't be pressed at all (e.g. no Reroll key) until you give it one again (taking another action's key is fine: that one
+keeps its second key, or is left with none); hints that name its key show "—". The
 arrow keys always move too. The ↺ beside a changed key puts it back; **Reset all** puts every key back. Saved on this computer. The menu keys
 (Esc, Tab, Enter, F1-F7) can't be changed, and menus are always clicked with the mouse. The number keys can be bound:
 while the upgrade picker is open, the numbers of its cards pick a card instead, and while the emote bar is open, the
