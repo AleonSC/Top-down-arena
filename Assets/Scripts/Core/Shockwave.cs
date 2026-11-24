@@ -66,7 +66,7 @@ namespace Arena
         {
             float r = Math.Max(24f, ShockwaveR(w.Age, w.Range));
             EraseEnemyBullets(w.Pos, r);
-            var snap7 = SnapEnemies();
+            var snap7 = SnapFoes(w.Owner);
             foreach (var e in snap7)
             {
                 if (!Targetable(e) || w.Hit.Contains(e.Id))

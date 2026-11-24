@@ -54,7 +54,7 @@ namespace Arena
             m.Cd -= dt;
             if (!m.Sent && m.Cd <= 0f && !owner.Downed)
             {
-                var prey = NearestEnemy(owner.Pos, ScytheSweepReach);
+                var prey = NearestEnemy(owner.Pos, ScytheSweepReach, by: owner.Id);
                 if (prey != null)
                 {
                     m.Sent = true;
@@ -67,7 +67,7 @@ namespace Arena
             {
                 m.SentT += dt;
                 Enemy prey;
-                bool alive = Enemies.TryGetValue(m.GoalEnemy, out prey) && Targetable(prey);
+                bool alive = TryFoe(m.GoalEnemy, out prey) && Targetable(prey);
                 V2 goal = !m.Returning && alive ? prey.Pos : slot;
                 V2 to = goal - m.Pos;
                 m.Aim = to.Angle;
@@ -94,10 +94,8 @@ namespace Arena
             }
             if (owner.Downed)
                 return;
-            foreach (var e in Enemies.Values)
+            foreach (var e in FoesInCircle(m.Pos, ScytheBlade, by: owner.Id))
             {
-                if (!Targetable(e) || e.Pos.FartherThan(m.Pos, e.Radius + ScytheBlade))
-                    continue;
                 long key = ((long)m.Id << 32) | (uint)e.Id;
                 float last;
                 if (scytheCuts.TryGetValue(key, out last) && scytheClock - last < ScytheEvery)
@@ -229,8 +227,8 @@ namespace Arena
             HashSet<int> cut;
             if (!throwHits.TryGetValue(m.Id, out cut))
                 throwHits[m.Id] = cut = new HashSet<int>();
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && !cut.Contains(e.Id) && e.Pos.CloserThan(m.Pos, e.Radius + ThrowReach))
+            foreach (var e in AllFoes(by: owner.Id))
+                if (!cut.Contains(e.Id) && e.Pos.CloserThan(m.Pos, e.Radius + ThrowReach))
                 {
                     cut.Add(e.Id);
                     HurtEnemy(e, m.Def.Damage * owner.Stats.DmgMult * m.Power, owner.Id);

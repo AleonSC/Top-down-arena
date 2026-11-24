@@ -391,10 +391,8 @@ namespace Arena
             // Who's in the arc (the Rapier only takes the nearest few).
             var hits = swingHits;
             hits.Clear();
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))  // (with PvP on, the other players too: Pvp.cs)
             {
-                if (!Targetable(e))
-                    continue;
                 float d = e.Pos.DistanceTo(origin);
                 if (circle)
                 {
@@ -1018,10 +1016,8 @@ namespace Arena
                 Player p;
                 if (!Players.TryGetValue(sl.Owner, out p) || p.Downed)
                     continue;  // (downed mid-leap: no landing)
-                foreach (var e in Enemies.Values)
+                foreach (var e in FoesInCircle(sl.Pos, sl.Radius, by: p.Id))
                 {
-                    if (e.SpawnT > 0f || e.Pos.FartherThan(sl.Pos, sl.Radius + e.Radius))
-                        continue;
                     HurtEnemy(e, SlamDamage * p.Stats.DmgMult * sl.Power, p.Id);
                     if (!e.Def.IsBoss)
                     {

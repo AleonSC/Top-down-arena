@@ -108,10 +108,8 @@ namespace Arena
         {
             Player owner;
             Players.TryGetValue(z.Owner, out owner);
-            foreach (var e in Enemies.Values)
+            foreach (var e in FoesInCircle(z.Pos, z.Radius, by: z.Owner))
             {
-                if (!Targetable(e) || e.Pos.FartherThan(z.Pos, z.Radius + e.Radius))
-                    continue;
                 BroadcastFx(FxKind.Bolt, z.Pos, e.Pos, ShockColor, 0f, 0.25f, Sfx.None);
                 HurtEnemy(e, ScatShockDamage * z.DmgMult, z.Owner);
                 if (e.Hp > 0f)

@@ -142,7 +142,7 @@ namespace Arena
                     float aim = p.Aim + (v == 0 ? 0f : (v % 2 == 1 ? 1f : -1f) * 0.14f * ((v + 1) / 2));
                     V2 dir = V2.FromAngle(aim), side = dir.Orthogonal(), from = p.Disp + dir * p.Def.BodyR;
                     float wide = Game.AreaMult(p);  // Homing Rounds widen it
-                    V2 end = game.BeamEnd(from, aim, range, p.Stats.Pierce, null, true, Game.VeinBeamHalfWidth * wide);
+                    V2 end = game.BeamEnd(from, aim, range, p.Stats.Pierce, null, true, p.Id, Game.VeinBeamHalfWidth * wide);
                     float len = from.DistanceTo(end);
                     bool hit = len < range - 1f;
                     float pulse = 0.5f + 0.5f * Mathf.Sin(t * 18f + p.Id);

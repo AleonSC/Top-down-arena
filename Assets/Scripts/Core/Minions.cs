@@ -39,10 +39,8 @@ namespace Arena
                 case AbilityId.FrostNova:
                 {
                     float reach = 220f * s.NovaRangeMult;  // Permafrost: farther, and a longer freeze
-                    foreach (var e in Enemies.Values)
+                    foreach (var e in FoesInCircle(p.Pos, reach, by: p.Id))
                     {
-                        if (e.SpawnT > 0f || e.Pos.FartherThan(p.Pos, reach + e.Radius))
-                            continue;
                         HurtEnemy(e, 40f * dmg, p.Id);
                         Slow(e, 3f + s.NovaFreezeBonus, 0.1f);  // nearly frozen
                     }
@@ -230,13 +228,12 @@ namespace Arena
         void ExplodeMinionHits(Minion m, float dmg, float radius)
         {
             bool shot = m.Sent && m.Kind == MinionKind.Imp;  // an Imp Caller imp is the weapon's shot: weapon mods ride its blast
-            foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Pos.CloserThan(m.Pos, radius + e.Radius))
-                {
-                    HurtEnemy(e, dmg, m.Owner);
-                    if (shot)
-                        ModHit(e, m.Owner, dmg, Defs.FireShot, default(V2));
-                }
+            foreach (var e in FoesInCircle(m.Pos, radius, by: m.Owner))
+            {
+                HurtEnemy(e, dmg, m.Owner);
+                if (shot)
+                    ModHit(e, m.Owner, dmg, Defs.FireShot, default(V2));
+            }
             BroadcastFx(FxKind.Boom, m.Pos, m.Def.Color, radius, 0.35f, Sfx.Explode);
             Minions.Remove(m.Id);
         }
@@ -459,7 +456,7 @@ namespace Arena
                             m.Aim = (m.Pos - before).Angle;
                             break;
                         }
-                        target = (m.Kind == MinionKind.Wolf ? Prey(owner) : null) ?? NearestEnemy(m.Pos, MinionChaseRange);  // wolves hunt the Wolf Whistle's prey
+                        target = (m.Kind == MinionKind.Wolf ? Prey(owner) : null) ?? NearestEnemy(m.Pos, MinionChaseRange, by: owner.Id);  // wolves hunt the Wolf Whistle's prey
                         V2 goal = target != null ? target.Pos : owner.Pos + V2.FromAngle(m.Id) * 50f;
                         V2 to = goal - m.Pos;
                         float stop = target != null ? target.Radius + d.Radius * m.Scale : 10f;
@@ -505,7 +502,7 @@ namespace Arena
                 {
                     case MinionAttack.Shoot:
                     {
-                        var e = NearestEnemy(m.Pos, d.Range);
+                        var e = NearestEnemy(m.Pos, d.Range, by: owner.Id);
                         if (e == null)
                             break;
                         float shotAim = (e.Pos - m.Pos).Angle;
@@ -534,7 +531,7 @@ namespace Arena
                             }
                             break;
                         }
-                        var e = target ?? NearestEnemy(m.Pos, d.Radius * m.Scale + 40f);
+                        var e = target ?? NearestEnemy(m.Pos, d.Radius * m.Scale + 40f, by: owner.Id);
                         if (e != null && m.Cd <= 0f && e.Pos.CloserThan(m.Pos, e.Radius + d.Radius * m.Scale + 6f))
                         {
                             m.Cd = d.Interval;
@@ -559,8 +556,8 @@ namespace Arena
                             int extraBear = m.Kind == MinionKind.Bear && owner.Weapon.Id == WeaponId.BearTotem ? ExtraShots(owner) : 0;
                             if (extraBear > 0)
                             {
-                                foreach (var o in Enemies.Values)
-                                    if (o != e && o.SpawnT <= 0f && o.Pos.CloserThan(e.Pos, 55f + o.Radius))
+                                foreach (var o in FoesInCircle(e.Pos, 55f, by: m.Owner))
+                                    if (o != e)
                                         HurtEnemy(o, dmg * Math.Min(1f, 0.4f * extraBear), m.Owner);
                                 BroadcastFx(FxKind.Ring, e.Pos, d.Color, 55f, 0.25f, Sfx.None);
                             }
@@ -574,12 +571,11 @@ namespace Arena
                     case MinionAttack.Slam:
                         if (m.Kind == MinionKind.Treant)
                             TickTreantSeeds(m, owner, rate, dt);  // KitWeapons.cs
-                        if (m.Cd <= 0f && NearestEnemy(m.Pos, reach) != null)
+                        if (m.Cd <= 0f && NearestEnemy(m.Pos, reach, by: owner.Id) != null)
                         {
                             m.Cd = d.Interval;
-                            foreach (var e in Enemies.Values)
-                                if (e.SpawnT <= 0f && e.Pos.CloserThan(m.Pos, reach + e.Radius))
-                                    HurtEnemy(e, dmg, m.Owner);
+                            foreach (var e in FoesInCircle(m.Pos, reach, by: m.Owner))
+                                HurtEnemy(e, dmg, m.Owner);
                             BroadcastFx(FxKind.Ring, m.Pos, d.Color, reach, 0.3f, Sfx.None);
                         }
                         break;
@@ -807,9 +803,8 @@ namespace Arena
                     WardEnds(z);  // Ninja.cs
                 if (z.Def.BlastDamage > 0f)  // the meteor lands
                 {
-                    foreach (var e in Enemies.Values)
-                        if (e.SpawnT <= 0f && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius))
-                            HurtEnemy(e, z.Def.BlastDamage * z.DmgMult, z.Owner);
+                    foreach (var e in FoesInCircle(z.Pos, z.Radius, by: z.Owner))
+                        HurtEnemy(e, z.Def.BlastDamage * z.DmgMult, z.Owner);
                     if (z.Kind == ZoneKind.Meteor)
                         BroadcastFx(FxKind.Meteor, z.Pos, z.Def.Color, z.Radius, 2.8f, Sfx.BigExplode);  // flash, ring, sparks and a scorch mark (ElementalistLooks.cs)
                     else

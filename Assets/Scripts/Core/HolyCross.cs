@@ -87,9 +87,9 @@ namespace Arena
                     castHits++;
                     BroadcastFx(FxKind.Ring, q.Pos, new Rgba(0.31f, 0.82f, 0.91f), 46f, 0.5f, Sfx.None);
                 }
-                foreach (var e in Enemies.Values)
+                foreach (var e in AllFoes(by: c.Owner))
                 {
-                    if (!Targetable(e) || c.HitEnemies.Contains(e.Id) || !InHolyCross(e.Pos, e.Radius, centre, c.Dir, arm, half))
+                    if (c.HitEnemies.Contains(e.Id) || !InHolyCross(e.Pos, e.Radius, centre, c.Dir, arm, half))
                         continue;
                     c.HitEnemies.Add(e.Id);
                     bool heavy = Heavy(e);

@@ -148,7 +148,7 @@ namespace Arena
         /// Every enemy the spear swept through from a to b (its tip's path and its body), each once a pass.
         void EsPierce(Player p, int i, V2 a, V2 b)
         {
-            var snap = SnapEnemies();
+            var snap = SnapFoes(p.Id);
             V2 ab = b - a;
             float len2 = Math.Max(1f, ab.LengthSq);
             foreach (var e in snap)
@@ -186,7 +186,7 @@ namespace Arena
                 if (!EsOut(p.EsSt[i]))
                     continue;
                 V2 at = p.EsPos[i];
-                var snap = SnapEnemies();
+                var snap = SnapFoes(p.Id);
                 foreach (var e in snap)
                 {
                     if (!Targetable(e))

@@ -183,10 +183,8 @@ namespace Arena
                 return;
             V2 dir = d / len, side = dir.Orthogonal();
             float dmg = (LanceBase + LanceDmgPip * pips) * p.Stats.DmgMult;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
             {
-                if (!Targetable(e))
-                    continue;
                 V2 rel = e.Pos - a;
                 float along = Dot(rel, dir), across = Math.Abs(Dot(rel, side));
                 if (along < 0f || along > len || across > SunlanceHalfWidth + e.Radius)

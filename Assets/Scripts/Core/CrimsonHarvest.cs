@@ -112,7 +112,7 @@ namespace Arena
                     {
                         t.Ticks++;
                         Enemy e;
-                        if (Enemies.TryGetValue(t.Enemy, out e) && e.Hp > 0f)
+                        if (TryFoe(t.Enemy, out e) && e.Hp > 0f)
                             HurtEnemy(e, HarvestRipDmg / HarvestTicks * p.Stats.DmgMult, p.Id);
                         p.HarvestBlood += t.Weight * give / HarvestTicks;  // an enemy that died mid-rip still gives its blood
                     }
@@ -136,10 +136,8 @@ namespace Arena
         void LandHarvest(HarvestShot h)
         {
             float R = HarvestRadius(h.Blood), D = HarvestDamage(h.Blood) * h.Mult;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: h.Owner))
             {
-                if (!Targetable(e))
-                    continue;
                 float d = e.Pos.DistanceTo(h.To);
                 if (d > R + e.Radius)
                     continue;

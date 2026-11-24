@@ -68,9 +68,9 @@ namespace Arena
             var s = p.Stats;
             float reach = SprayReachOf(p), dmg = SprayDps * SprayTickTime * s.SprayMult * s.DmgMult * p.SprayPower;
             V2 from = p.Pos, dir = V2.FromAngle(p.Aim);
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
             {
-                if (!Targetable(e) || !InSpray(from, p.Aim, reach, e.Pos, e.Radius))
+                if (!InSpray(from, p.Aim, reach, e.Pos, e.Radius))
                     continue;
                 HurtEnemy(e, dmg, p.Id);
                 ApplyBleed(e, SprayBleed * p.SprayPower, p.Id);

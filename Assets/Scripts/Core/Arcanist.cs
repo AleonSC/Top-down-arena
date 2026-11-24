@@ -154,7 +154,7 @@ namespace Arena
             if (pick == null)
                 return;
             V2 at = ClampToArena(p.Pos + (p.AimAt - p.Pos).LimitLength(reach * PierceReach(p)), 10f);  // Piercing Rounds send it farther
-            var e = kind == MinionKind.ArcBlade ? NearestEnemy(at, BladePick) : null;
+            var e = kind == MinionKind.ArcBlade ? NearestEnemy(at, BladePick, by: p.Id) : null;
             pick.Goal = at;
             pick.GoalEnemy = e != null ? e.Id : 0;
             pick.Sent = true;
@@ -252,7 +252,7 @@ namespace Arena
                 return;
             }
             Enemy prey = null;
-            if (blade && m.GoalEnemy != 0 && (!Enemies.TryGetValue(m.GoalEnemy, out prey) || !Targetable(prey)))
+            if (blade && m.GoalEnemy != 0 && (!TryFoe(m.GoalEnemy, out prey) || !Targetable(prey)))
             {
                 prey = null;
                 m.GoalEnemy = 0;
@@ -302,8 +302,8 @@ namespace Arena
             if (owner.Downed)
                 return;
             V2 dir = V2.FromAngle(m.Aim);
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && !hits.Contains(e.Id) && e.Pos.CloserThan(m.Pos, e.Radius + reach))
+            foreach (var e in AllFoes(by: owner.Id))
+                if (!hits.Contains(e.Id) && e.Pos.CloserThan(m.Pos, e.Radius + reach))
                 {
                     hits.Add(e.Id);
                     WeaponHurt(e, dmg, owner.Id);
@@ -319,13 +319,12 @@ namespace Arena
             if (owner.Downed)
                 return;
             bool any = false;
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.CloserThan(m.Pos, e.Radius + BladeSlashR))
-                {
-                    WeaponHurt(e, dmg, owner.Id);
-                    ModHit(e, owner.Id, dmg, Defs.ArcaneShot, (e.Pos - m.Pos).Normalized());
-                    any = true;
-                }
+            foreach (var e in FoesInCircle(m.Pos, BladeSlashR, by: owner.Id))
+            {
+                WeaponHurt(e, dmg, owner.Id);
+                ModHit(e, owner.Id, dmg, Defs.ArcaneShot, (e.Pos - m.Pos).Normalized());
+                any = true;
+            }
             if (any)
                 owner.Run.ShotsHit++;
             float a = m.Aim;
@@ -443,7 +442,7 @@ namespace Arena
         void CastGrasp(Player p, V2 target)
         {
             Enemy pick = null;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
                 if (Targetable(e) && !e.Def.IsBoss && e.Pos.CloserThan(target, GraspPick + e.Radius) && e.Pos.CloserThan(p.Pos, GraspRange + e.Radius)
                     && (pick == null || e.MaxHp > pick.MaxHp))
                     pick = e;
@@ -483,7 +482,7 @@ namespace Arena
                 Player p;
                 Enemy e;
                 bool ownerOk = Players.TryGetValue(r.Owner, out p);
-                if (!ownerOk || !Enemies.TryGetValue(r.Target, out e) || e.Hp <= 0f || (!r.Flying && p.Downed))
+                if (!ownerOk || !TryFoe(r.Target, out e) || e.Hp <= 0f || (!r.Flying && p.Downed))
                 {
                     if (ownerOk && !r.Flying)
                         p.KgHeld = 0;
@@ -514,7 +513,7 @@ namespace Arena
                 r.Flown += step;
                 bool wall = KnuckleCarry(e, e.Pos + r.Dir * step);
                 Enemy into = null;
-                foreach (var o in Enemies.Values)
+                foreach (var o in AllFoes(by: p.Id))
                     if (o != e && Targetable(o) && o.Pos.WithinReach(e.Pos, o.Radius + e.Radius))
                     {
                         into = o;
@@ -547,7 +546,7 @@ namespace Arena
         void CastGrandSigil(Player p)
         {
             var z = AddZone(ZoneKind.GrandSigil, p, p.Pos, SigilRadius, castMastered ? 12f : SigilTime);
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
                 if (Targetable(e) && !e.Def.IsBoss && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius))
                     Hold(e, SigilBind);  // bound
             BroadcastFx(FxKind.Ring, p.Pos, z.Def.Color, SigilRadius, 0.6f, Sfx.Shockwave);
@@ -696,7 +695,7 @@ namespace Arena
                     case ZoneKind.GrandSigil:
                     {
                         Player owner = PlayerOrNull(z.Owner);
-                        foreach (var e in Enemies.Values)
+                        foreach (var e in AllFoes(by: z.Owner))
                             if (Targetable(e) && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius))
                             {
                                 Slow(e, 0.25f, e.Def.IsBoss ? SigilBossSlow : SigilSlow);
@@ -709,7 +708,7 @@ namespace Arena
                         TickSanctumRunes(z);
                         break;
                     case ZoneKind.ArcCrush:
-                        foreach (var e in Enemies.Values)
+                        foreach (var e in AllFoes(by: z.Owner))
                             if (Targetable(e) && !e.Def.IsBoss && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius))
                             {
                                 Stun(e, 0.15f);
@@ -732,7 +731,7 @@ namespace Arena
                     continue;
                 V2 at = SanctumRune(z, k);
                 Enemy touch = null;
-                foreach (var e in Enemies.Values)
+                foreach (var e in AllFoes(by: z.Owner))
                     if (Targetable(e) && e.Pos.CloserThan(at, e.Radius + SanctumRuneR))
                     {
                         touch = e;
@@ -741,16 +740,15 @@ namespace Arena
                 if (touch == null)
                     continue;
                 left &= ~(1 << k);
-                foreach (var e in Enemies.Values)
-                    if (Targetable(e) && e.Pos.CloserThan(at, e.Radius + SanctumBurst))
+                foreach (var e in FoesInCircle(at, SanctumBurst, by: z.Owner))
+                {
+                    HurtEnemy(e, SanctumBurstDmg * z.DmgMult, z.Owner);
+                    if (!Heavy(e))
                     {
-                        HurtEnemy(e, SanctumBurstDmg * z.DmgMult, z.Owner);
-                        if (!Heavy(e))
-                        {
-                            V2 away = e.Pos - at;
-                            KnockEnemy(e, (away.Length > 1f ? away.Normalized() : (at - z.Pos).Normalized()) * 60f);
-                        }
+                        V2 away = e.Pos - at;
+                        KnockEnemy(e, (away.Length > 1f ? away.Normalized() : (at - z.Pos).Normalized()) * 60f);
                     }
+                }
                 BroadcastFx(FxKind.Boom, at, z.Def.Color, SanctumBurst, 0.35f, Sfx.SpellHoly);
             }
             z.Aim = left;
@@ -760,7 +758,7 @@ namespace Arena
         void CrushSlam(Zone z)
         {
             int caught = 0;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: z.Owner))
                 if (Targetable(e) && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius))
                     caught++;
             if (caught == 0)
@@ -769,13 +767,12 @@ namespace Arena
                 return;
             }
             float dmg = (CrushDmg + CrushPer * Math.Min(CrushPerMax, caught - 1)) * z.DmgMult;
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius))
-                {
-                    HurtEnemy(e, dmg, z.Owner);
-                    if (!e.Def.IsBoss)
-                        Stun(e, CrushStun);
-                }
+            foreach (var e in FoesInCircle(z.Pos, z.Radius, by: z.Owner))
+            {
+                HurtEnemy(e, dmg, z.Owner);
+                if (!e.Def.IsBoss)
+                    Stun(e, CrushStun);
+            }
             BroadcastFx(FxKind.Boom, z.Pos, z.Def.Color, z.Radius * 0.6f, 0.4f, Sfx.BigExplode);
         }
 

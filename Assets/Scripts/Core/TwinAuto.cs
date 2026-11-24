@@ -54,7 +54,7 @@ namespace Arena
             V2 left = V2.FromAngle(p.Aim).Orthogonal();
             Enemy best = null;
             float bestD = float.MaxValue;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
             {
                 if (!Targetable(e))
                     continue;
@@ -77,7 +77,7 @@ namespace Arena
             p.TwinAutoCd = Math.Max(0f, p.TwinAutoCd - dt);
             float range = AutoRange(p);
             Enemy locked = null;
-            if (p.TwinLock != 0 && (!Enemies.TryGetValue(p.TwinLock, out locked) || !Targetable(locked)))
+            if (p.TwinLock != 0 && (!TryFoe(p.TwinLock, out locked) || !Targetable(locked)))
             {
                 p.TwinLock = 0;  // it died (or left): both guns go back to picking their own
                 locked = null;
@@ -151,7 +151,7 @@ namespace Arena
             float reach = AutoRange(p) + 120f;
             Enemy best = null;
             float bestD = AutoPickRadius;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
             {
                 if (!Targetable(e) || e.Pos.DistanceTo(p.Pos) - e.Radius > reach)
                     continue;

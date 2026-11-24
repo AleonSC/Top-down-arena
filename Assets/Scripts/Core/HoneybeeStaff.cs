@@ -84,9 +84,9 @@ namespace Arena
             }
             m.Wind = 1f;
             Enemy e;
-            if (m.GoalEnemy == 0 || !Enemies.TryGetValue(m.GoalEnemy, out e) || !Targetable(e))
+            if (m.GoalEnemy == 0 || !TryFoe(m.GoalEnemy, out e) || !Targetable(e))
             {
-                e = NearestEnemy(m.Pos, BeeSeekRange(owner));
+                e = NearestEnemy(m.Pos, BeeSeekRange(owner), by: owner.Id);
                 m.GoalEnemy = e != null ? e.Id : 0;
             }
             if (e == null)
