@@ -201,7 +201,7 @@ namespace Arena
                 if (me.Wound > 0.5f)  // how much of your health no heal brings back, on the title row
                     MiniText(new Rect(hr.x, hr.y, hr.width, 16f), "WOUND -" + Mathf.CeilToInt(me.Wound), 16, red, a, TextAnchor.MiddleRight);
                 float extraX = mx + CrtUi.TitleWidth(max, 24) + 8f;
-                if (me.Role == Role.Tank)  // the Tank's Ironhide (Ironhide.cs): steel after the max, dim while the refill waits
+                if (me.IronCap > 0f)  // Ironhide (Ironhide.cs: a Tank's, or Shared Plating's gift): steel after the max, dim while the refill waits
                 {
                     string iron = "+" + Mathf.CeilToInt(Game.Ironhide(me));
                     MiniText(new Rect(extraX, hr.y + 30f, 90f, 26f), iron, 24, me.IronWait > 0f ? dim : CrtStyle.Steel, a);
