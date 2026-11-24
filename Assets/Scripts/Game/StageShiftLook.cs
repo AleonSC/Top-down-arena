@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The 2 s phase changes of the Warden and the Hive Queen: on the floor, sirens (Warden) or wax cells
+    /// The phase changes of the Warden (5 s, Game.WardenTransTime) and the Hive Queen (2 s): on the floor, sirens (Warden) or wax cells
     /// spiralling in (Queen) and a pulsing tint; on the boss, energy streaming in, rings closing round it and
     /// shockwaves going out, then a flash as the new phase starts; on the HUD, a banner naming the new phase.
     public partial class ArenaApp
@@ -52,7 +52,7 @@ namespace Arena
                     {
                         s = new StageShift
                         {
-                            Boss = e, Progress = Mathf.Clamp01(1f - e.Warden.TransT / 2f), Number = 0, Armor = true,
+                            Boss = e, Progress = Mathf.Clamp01(1f - e.Warden.TransT / Game.WardenTransTime), Number = 0, Armor = true,
                             Name = "ARMOR UP", Line = "Break his armor to reach what's left of him",
                             Color = new Rgba(0.55f, 0.72f, 0.95f), Second = new Rgba(0.85f, 0.9f, 1f),
                         };
@@ -60,7 +60,7 @@ namespace Arena
                     }
                     s = new StageShift
                     {
-                        Boss = e, Progress = Mathf.Clamp01(1f - e.Warden.TransT / 2f), Number = (int)to + 1, Warden = true,
+                        Boss = e, Progress = Mathf.Clamp01(1f - e.Warden.TransT / Game.WardenTransTime), Number = (int)to + 1, Warden = true,
                         Name = to == WardenStage.Lockdown ? "LOCKDOWN" : "RIOT",
                         Line = to == WardenStage.Lockdown ? "The bars come down" : "The prisoners are loose",
                         Color = to == WardenStage.Lockdown ? new Rgba(0.35f, 0.65f, 1f) : new Rgba(1f, 0.5f, 0.2f),
@@ -250,6 +250,13 @@ namespace Arena
             if (!CurrentShift(game, out s) || s.Boss != e)
                 return;
             float p = s.Progress;
+            if (s.Warden || s.Armor)  // the Warden's 5 s change: the power-up plays in its last 1.5 s
+                p = Mathf.Clamp01((p * Game.WardenTransTime - (Game.WardenTransTime - 1.5f)) / 1.5f);
+            if (p <= 0f)
+            {
+                Circle(pos, r + 10f + 3f * Mathf.Sin(t * 4f), s.Second.WithAlpha(0.1f), 32);  // a soft glow while he does his piece
+                return;
+            }
             // Streaks of light pulled in from all round.
             for (int k = 0; k < 28; k++)
             {
@@ -285,8 +292,11 @@ namespace Arena
             StageShift s;
             if (!CurrentShift(game, out s))
                 return;
-            float p = s.Progress, tIn = Mathf.Clamp01(p / 0.15f), tOut = Mathf.Clamp01((1f - p) / 0.12f), a = Ease(tIn) * tOut;
-            float y = H * 0.27f, h = 110f * Ease(tIn);
+            float p = s.Progress;
+            if (s.Warden || s.Armor)  // the Warden's 5 s change: the banner takes its first 1.5 s, leaving the floor clear to regroup
+                p = Mathf.Clamp01(p * Game.WardenTransTime / 1.5f);
+            float tIn = Mathf.Clamp01(p / 0.15f), tOut = Mathf.Clamp01((1f - p) / 0.12f), a = Ease(tIn) * tOut;
+            float y = s.Warden || s.Armor ? 104f : H * 0.27f, h = 110f * Ease(tIn);  // the Warden's sits high, under his bar, so you can watch him
             var band = s.Color.ToColor();
             Ui.Fill(new Rect(0f, y + 55f - h / 2f, W, h), new Color(0.03f, 0.03f, 0.06f, 0.72f * a));
             Ui.Fill(new Rect(0f, y + 55f - h / 2f, W * Ease(tIn), 3f), band.WithAlpha(0.9f * a));
