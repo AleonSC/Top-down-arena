@@ -429,6 +429,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - Boss visuals: `WardenLook.cs`, `QueenLook.cs`, `ReaperLook.cs`, `SingularityLook.cs`, `ColossusLook.cs`,
   `DuelistLook.cs`, `LichLook.cs`, `HeraldLook.cs`, `DevourerLook.cs`, `EclipseLook.cs`, `StageShiftLook.cs`,
   `QueenLootLook.cs`, `ReaperLootLook.cs`
+- `Game/ColossusBodyLook.cs`: MOCKUP of three Colossus bodies (`ColLook` 1 Quarry Golem, 2 Monolith, 3 Mountain; 0 = today's hexagon), drawn per phase; preview `COLSHEET=1 COLLOOK=<0-3> ZOOM=1.8 CAMAT=800,450 Tools/Preview/shot.sh x hud 3 1 1` (`Tools/Preview/ShotColossusLook.cs`)
 - `PixelArt.cs`, `ModIcons.cs`: pixel icons as text grids (`ModIcons.cs`: the Modifiers tab's)
 - `Game/BatLook.cs`: a Bat Swarm bat, look B (Belfry burst) of `Docs/Mockups/bat-swarm-rework.html`: flapping wings, a dive streak, feathers as it fades
 - `Game/HealerKitLooks.cs`: the Healer's Soul Lantern (iron cage, teal flame, ribbon to its linked player) and Deployable Medkit (case, healing orbs) looks
