@@ -20,16 +20,12 @@ namespace Arena
         float showcaseZoomA;       // the zoom meter's fade (0 hidden .. 1 shown)
         bool showcaseZoomDrag;
         float showcaseZoom = 1f;   // the preview's zoom meter (0.5 out .. 2 in), set by the slider under it or the mouse wheel over it
-        bool showcasePlay;         // the preview's PLAY key: you control the character in the window (Showcase.Control)
-        Vector2 showcaseMouse;     // the mouse over the window, as the last draw saw it
-        bool showcaseMouseOver;
-        V2 showcaseCamFocus;       // where the last draw looked, and how big (the mouse's place in the preview's world)
-        float showcaseCamZoom = 1f;
-        Rect showcaseCamView;
         bool showcaseIdle;         // the preview's IDLE key: the character stands still
         bool showcaseAlt;          // the preview's ALT FIRE key (off: MAIN FIRE): the weapon's Alt on a loop
         bool showcaseDemo, showcaseHasAlt;  // (this frame's preview: casting an ability or ultimate; the weapon has an Alt to show)
         bool showcaseMute;         // the preview's MUTE key (next to the zoom slider)
+        float showcaseHue = -1f;   // the preview light's hue (0..1; -1: the role's colour), from the wheel key's panel (kept in PlayerPrefs)
+        bool showcaseHueLoaded, showcaseHueOpen, showcaseHueDrag;  // (read from PlayerPrefs; the hue panel open; its strip being dragged)
         float showcaseSeen;        // when the hero card last drew it (it's stopped once nobody looks)
 
         /// The lobby's content used to sit 14 px higher than its layout numbers said. The softer layout (Docs/Mockups/crt-lobby-softer.html) runs 28..684
@@ -627,7 +623,7 @@ namespace Arena
             DrawShowcase(me, view, roleColor);
             DrawPreviewRunner(view, roleColor, t);
             DrawLoadoutSeparator(view.x, r.x + 334f + 454f, r.y + SeparatorY, roleColor, t);  // across the loadout, over the bottom boxes (LobbyFx.cs)  // the neon dot running round the frame (LobbyFx.cs)
-            DrawShowcaseZoom(view);  // (outside DrawShowcase: that returns early on every event but Repaint, and the slider needs the mouse events)
+            DrawShowcaseZoom(view, roleColor);  // (outside DrawShowcase: that returns early on every event but Repaint, and the slider needs the mouse events)
             if (!self)
             {
                 // The bot's name: type to rename it (up to 16 letters).
@@ -1535,7 +1531,7 @@ namespace Arena
         }
 
         /// The zoom meter along the preview's lower edge (a slider, "-" and "+" steps, and the mouse wheel over the window).
-        void DrawShowcaseZoom(Rect view)
+        void DrawShowcaseZoom(Rect view, Color roleColor)
         {
             if (uiGlBlocked || hangoutAnim > 0f)
                 return;
@@ -1556,9 +1552,9 @@ namespace Arena
             var bar = new Rect(view.x, view.y, view.width, 18f);  // flush with the top of the window
             var muteKey = new Rect(bar.xMax - 50f, bar.y + 1f, 46f, bar.height - 2f);
             var idleKey = new Rect(muteKey.x - 50f, muteKey.y, 46f, muteKey.height);
-            var playKey = new Rect(idleKey.x - 50f, muteKey.y, 46f, muteKey.height);
-            var track = new Rect(bar.x + 70f, bar.y, bar.width - 78f - 150f, bar.height);
-            if (e.type == EventType.MouseDown && track.Contains(e.mousePosition))
+            var hueKey = new Rect(idleKey.x - 24f, muteKey.y, 20f, muteKey.height);  // the colour wheel: the preview light's hue
+            var track = new Rect(bar.x + 70f, bar.y, bar.width - 78f - 128f, bar.height);
+            if (e.type == EventType.MouseDown && track.Contains(e.mousePosition) && !(showcaseHueOpen && new Rect(bar.xMax - 190f, bar.yMax + 4f, 186f, 30f).Contains(e.mousePosition)))
                 showcaseZoomDrag = true;
             float oa = Ui.Alpha;
             Ui.Alpha = oa * showcaseZoomA;
@@ -1573,26 +1569,31 @@ namespace Arena
                 showcaseZoom = (float)System.Math.Exp(lo + (hi - lo) * nt);
             if (showcaseZoomA > 0.3f && DkKey(muteKey, showcaseMute ? "MUTED" : "MUTE", showcaseMute ? CrtStyle.Gold : Ui.Neutral, false, 10))
                 showcaseMute = !showcaseMute;
-            if (showcaseZoomA > 0.3f && DkKey(playKey, "PLAY", showcasePlay ? CrtStyle.Gold : Ui.Neutral, false, 10))
-                showcasePlay = !showcasePlay;  // WASD, the mouse, fire and your abilities work in the window while the mouse is over it
+            if (showcaseZoomA > 0.3f)
+            {
+                if (DkKey(hueKey, "", Ui.Neutral, showcaseHueOpen, 10))
+                    showcaseHueOpen = !showcaseHueOpen;
+                DrawHueWheel(hueKey, ShowcaseGlow(roleColor));
+                if (showcaseHueOpen)
+                    DrawHuePanel(new Rect(bar.xMax - 190f, bar.yMax + 4f, 186f, 30f), roleColor);
+            }
+            else if (!showcaseHueDrag)
+                showcaseHueOpen = false;  // (shut once the mouse leaves the window)
             if (showcaseZoomA > 0.3f && DkKey(idleKey, "IDLE", showcaseIdle ? CrtStyle.Gold : Ui.Neutral, false, 10))
                 showcaseIdle = !showcaseIdle;
             // MAIN FIRE | ALT FIRE, side by side, floating at the bottom middle: what the weapon shows. Lit: the one showing (neither
             // while an ability or ultimate is cast); a click goes back to the weapon's page and shows that one.
-            if (!showcasePlay)
-            {
-                const float Kw = 78f, Kh = 20f, Gap = 6f, Lift = 10f;
-                var mainKey = new Rect(view.center.x - Gap / 2f - Kw, view.yMax - Lift - Kh, Kw, Kh);
-                var altKey = new Rect(view.center.x + Gap / 2f, mainKey.y, Kw, Kh);
-                bool live = showcaseZoomA > 0.3f;
-                if (live && DkKey(mainKey, "MAIN FIRE", CrtStyle.Gold, !showcaseDemo && !showcaseAlt, 10))
-                    PickShowcaseFire(false);
-                bool en = GUI.enabled;
-                GUI.enabled = en && showcaseHasAlt;  // (locked for a weapon with no Alt)
-                if (live && DkKey(altKey, "ALT FIRE", CrtStyle.Gold, !showcaseDemo && showcaseAlt && showcaseHasAlt, 10))
-                    PickShowcaseFire(true);
-                GUI.enabled = en;
-            }
+            const float Kw = 78f, Kh = 20f, Gap = 6f, Lift = 10f;
+            var mainKey = new Rect(view.center.x - Gap / 2f - Kw, view.yMax - Lift - Kh, Kw, Kh);
+            var altKey = new Rect(view.center.x + Gap / 2f, mainKey.y, Kw, Kh);
+            bool live = showcaseZoomA > 0.3f;
+            if (live && DkKey(mainKey, "MAIN FIRE", CrtStyle.Gold, !showcaseDemo && !showcaseAlt, 10))
+                PickShowcaseFire(false);
+            bool en = GUI.enabled;
+            GUI.enabled = en && showcaseHasAlt;  // (locked for a weapon with no Alt)
+            if (live && DkKey(altKey, "ALT FIRE", CrtStyle.Gold, !showcaseDemo && showcaseAlt && showcaseHasAlt, 10))
+                PickShowcaseFire(true);
+            GUI.enabled = en;
             GUI.color = oc;
             Ui.Alpha = oa;
         }
@@ -1617,37 +1618,20 @@ namespace Arena
                 showcase = new Showcase();
             showcaseDemo = demo;
             showcaseHasAlt = ShowcaseAlt.Has(Defs.Weapon(me.Role, me.Kit, me.Weapon).Id);
-            showcase.SetControl(showcasePlay);
             showcase.AltFire = showcaseAlt && !demo;
-            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.FirstAbility(me.Role, me.Kit, shown), demo && !showcasePlay, ult, me.Ult);
+            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.FirstAbility(me.Role, me.Kit, shown), demo, ult, me.Ult);
             showcaseSeen = Time.unscaledTime;
-            showcaseMouse = Event.current.mousePosition;
-            showcaseMouseOver = view.Contains(showcaseMouse) && GUI.enabled;
             if (!BeginUiGl())
                 return;
             var rc = new Rgba(roleColor.r, roleColor.g, roleColor.b);
             var sg = showcase.Game;
             float zoom = Mathf.Min(1.1f, view.height / (showcase.Extent + 190f)) * showcaseZoom;
             V2 focus = Showcase.Home + new V2(0f, -showcase.Extent / 2f);
-            if (showcasePlay && sg.Me != null)
-            {
-                zoom = Mathf.Min(1.1f, view.height / 460f) * showcaseZoom;  // PLAY: the view follows you
-                focus = sg.Me.Disp;
-            }
             V2 centre = new V2(view.center.x, view.center.y);
-            showcaseCamFocus = focus;
-            showcaseCamZoom = zoom;
-            showcaseCamView = view;
             UiModelAt(centre - focus * zoom, zoom);
             UiClip(view);
-            // The floor: the arena's dark grid, scaled with the view.
-            float hw = view.width / 2f / zoom + 64f, hh = view.height / 2f / zoom + 64f;
-            FillRect(focus.X - hw, focus.Y - hh, hw * 2f, hh * 2f, new Rgba(0.05f, 0.06f, 0.09f, 0.9f));
-            var grid = new Rgba(1f, 1f, 1f, 0.04f);
-            for (float gx = (float)Math.Floor((focus.X - hw) / 64f) * 64f; gx <= focus.X + hw; gx += 64f)
-                Line(new V2(gx, focus.Y - hh), new V2(gx, focus.Y + hh), 1f / zoom, grid);
-            for (float gy = (float)Math.Floor((focus.Y - hh) / 64f) * 64f; gy <= focus.Y + hh; gy += 64f)
-                Line(new V2(focus.X - hw, gy), new V2(focus.X + hw, gy), 1f / zoom, grid);
+            var glow = ShowcaseGlow(roleColor);
+            DrawShowcaseFloor(focus, view, zoom, new Rgba(glow.r, glow.g, glow.b));
             Circle(Showcase.Home, 46f, rc.WithAlpha(0.08f), 32);  // where you stand
             var real = game;
             game = sg;  // the drawing code reads `game`
@@ -1721,28 +1705,76 @@ namespace Arena
             }
         }
 
-        /// PLAY: your keys and mouse as the preview's input, only while the mouse is over the window (so typing in the lobby never plays it).
-        PlayerInput ShowcasePlayInput()
+        /// The preview window's floor: dark, no grid, a soft pool of light round where you stand in `glow`
+        /// (the role's colour, or the hue picked with the wheel key: ShowcaseGlow).
+        void DrawShowcaseFloor(V2 focus, Rect view, float zoom, Rgba glow)
         {
-            var me = showcase.Me;
-            V2 aim = me != null ? me.Pos + V2.FromAngle(me.Aim) * 100f : Showcase.Home;
-            if (showcaseMouseOver && showcaseCamZoom > 0f)
-                aim = showcaseCamFocus + new V2(showcaseMouse.x - showcaseCamView.center.x, showcaseMouse.y - showcaseCamView.center.y) / showcaseCamZoom;
-            if (!showcaseMouseOver)
-                return new PlayerInput { AimAt = aim };
-            return new PlayerInput
+            float hw = view.width / 2f / zoom + 64f, hh = view.height / 2f / zoom + 64f;
+            FillRect(focus.X - hw, focus.Y - hh, hw * 2f, hh * 2f, new Rgba(0.025f, 0.03f, 0.05f, 0.95f));
+            FanGradient(Showcase.Home, 300f, glow.WithAlpha(0.24f), glow.WithAlpha(0f), 48);
+            FanGradient(Showcase.Home, 130f, new Rgba(1f, 1f, 1f, 0.05f), new Rgba(1f, 1f, 1f, 0f), 32);
+        }
+
+        /// The preview's light: the role's colour until a hue is picked (showcaseHue >= 0, kept in PlayerPrefs).
+        Color ShowcaseGlow(Color roleColor)
+        {
+            if (!showcaseHueLoaded)
             {
-                Move = new V2(Axis(KeyAction.MoveRight) - Axis(KeyAction.MoveLeft), Axis(KeyAction.MoveDown) - Axis(KeyAction.MoveUp)).Normalized(),
-                AimAt = aim,
-                Fire = Keybinds.Held(KeyAction.Fire),
-                Ability = Keybinds.Held(KeyAction.Ability1),
-                AbilityQ = Keybinds.Held(KeyAction.Ability2),
-                AbilityE = Keybinds.Held(KeyAction.Ability3),
-                AbilityShift = Keybinds.Held(KeyAction.Ability4),
-                Ultimate = Keybinds.Held(KeyAction.Ultimate),
-                Parry = Keybinds.Held(KeyAction.Parry),
-                WeaponAction = Keybinds.Held(KeyAction.WeaponAction),
-            };
+                showcaseHue = PlayerPrefs.GetFloat("showcase_hue", -1f);
+                showcaseHueLoaded = true;
+            }
+            return showcaseHue < 0f ? roleColor : Color.HSVToRGB(showcaseHue, 0.7f, 1f);
+        }
+
+        void SetShowcaseHue(float h)
+        {
+            showcaseHue = h;
+            PlayerPrefs.SetFloat("showcase_hue", h);
+        }
+
+        /// The wheel key's face: twelve hue dots round a ring, the picked colour in the middle.
+        void DrawHueWheel(Rect r, Color now)
+        {
+            var c = r.center;
+            const float R = 5.5f, D = 2.6f;
+            for (int i = 0; i < 12; i++)
+            {
+                float a = i / 12f * Mathf.PI * 2f;
+                var at = c + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * R;
+                Ui.Fill(new Rect(at.x - D / 2f, at.y - D / 2f, D, D), Color.HSVToRGB(i / 12f, 0.75f, 1f));
+            }
+            Ui.Fill(new Rect(c.x - 2f, c.y - 2f, 4f, 4f), now);
+        }
+
+        /// The hue panel under the preview's top bar: a rainbow strip to drag along and a ROLE key (back to the role's colour).
+        void DrawHuePanel(Rect panel, Color roleColor)
+        {
+            var e = Event.current;
+            Ui.Fill(panel, new Color(0f, 0f, 0f, 0.75f));
+            Ui.RectEdge(panel, 1f, CrtStyle.Ink.WithAlpha(0.45f));
+            var strip = new Rect(panel.x + 8f, panel.y + 8f, panel.width - 66f, panel.height - 16f);
+            const int Segs = 36;
+            for (int i = 0; i < Segs; i++)
+                Ui.Fill(new Rect(strip.x + strip.width * i / Segs, strip.y + 3f, strip.width / Segs + 0.5f, strip.height - 6f), Color.HSVToRGB((i + 0.5f) / Segs, 0.7f, 1f));
+            if (e.type == EventType.MouseDown && e.button == 0 && strip.Contains(e.mousePosition))
+                showcaseHueDrag = true;
+            if (e.type == EventType.MouseUp)
+                showcaseHueDrag = false;
+            if (showcaseHueDrag && (e.type == EventType.MouseDown || e.type == EventType.MouseDrag))
+            {
+                SetShowcaseHue(Mathf.Clamp01((e.mousePosition.x - strip.x) / strip.width));
+                e.Use();
+            }
+            if (showcaseHue >= 0f)  // the thumb: a white frame round the picked colour
+            {
+                float tx = strip.x + strip.width * showcaseHue;
+                var th = new Rect(tx - 3f, strip.y, 6f, strip.height);
+                Ui.Fill(th, Color.HSVToRGB(showcaseHue, 0.7f, 1f));
+                Ui.RectEdge(th, 1.5f, Color.white);
+            }
+            var roleKey = new Rect(panel.xMax - 52f, panel.y + 6f, 44f, panel.height - 12f);
+            if (DkKey(roleKey, "ROLE", roleColor, showcaseHue < 0f, 10))
+                SetShowcaseHue(-1f);
         }
 
         /// The loadout preview runs only while the hero card is on screen.
@@ -1760,7 +1792,6 @@ namespace Arena
                 return;
             }
             showcase.Idle = showcaseIdle;
-            showcase.Play = showcasePlay ? ShowcasePlayInput() : default(PlayerInput);
             showcase.Step(dt);
             // Its sounds play muffled, as if heard through the preview window's glass (nothing else is drawn alongside it)
             foreach (var sfx in showcase.Game.Sounds)
@@ -1777,7 +1808,6 @@ namespace Arena
                 return;
             if (showcase == null)
                 showcase = new Showcase();
-            showcase.SetControl(showcasePlay);
             showcase.AltFire = showcaseAlt;
             showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.FirstAbility(me.Role, me.Kit, ShownAbility(me)), false, false, me.Ult);
             showcaseSeen = Time.unscaledTime;
