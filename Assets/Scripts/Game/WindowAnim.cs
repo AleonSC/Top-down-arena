@@ -8,7 +8,7 @@ namespace Arena
     ///   0.3 s); then its screens power on and type (CrtWindows.cs).
     ///   Closing: the cabinet and its window slide back out (0.3 s); the window really closes when that's done.
     ///   The pause menu and the lobby's Esc menu DOCK instead (`docking`, Docs/Mockups/pause-dock.html): the cabinet comes in from the left
-    ///   and the run card (or the window out) from the right, each with two fading frame trails, a small flash and a scan line as they land;
+    ///   and the run card (or the window out) from the right, each with two fading frame trails;
     ///   the keys slide in one by one. They leave the same ways, faster (DockOutLen). Reduced effects: a plain slide, no trails.
     /// GL drawn inside a moving window (a boss preview, the effects preview) moves with it through `uiShift`.
     public partial class ArenaApp
@@ -113,17 +113,6 @@ namespace Arena
                 float a = 0.4f / (i + 1) * (1f - Seg(age, 0.26f, 0.34f));
                 CrtKit.Frame(new Rect(r.x + xAt(age - (i + 1) * 0.035f), r.y, r.width, r.height), 2f, c.WithAlpha(a));
             }
-        }
-
-        /// A docked box landing (drawn over it): a scan line down it (no full-box flash).
-        void DockLand(Rect r, float at)
-        {
-            float age = WinT;
-            if (!Dock || winCloseK > 0f || age < at || age > at + 0.2f)
-                return;
-            float p = Seg(age, at, at + 0.18f);
-            if (p > 0f && p < 1f)
-                Ui.Fill(new Rect(r.x, r.y + p * (r.height - 3f), r.width, 3f), new Color(0.56f, 0.71f, 1f, 0.8f));
         }
 
         /// A key in a docking cabinet: how far it has come in (0..1); it slides in from the left after the box (0.18 s on, 0.03 s apart).

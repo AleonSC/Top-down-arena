@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The Game Mode screen's page for Quick Play, Campaign, Boss Hunt and Survival, drawn from one model (`ModePage`, built by
-    /// each mode's file) in the loadout's look: a slim one-line header (ring, name, tagline), the list under its heading on
+    /// each mode's file) in the loadout's look: the Tab screen's hologram glass (TabHolo.cs) in the mode's accent, a slim one-line header (ring, name, tagline), the list under its heading on
     /// the left, a compact scope with the dossier box under it in the middle, and a sidebar on the right: YOUR RECORDS (label and value rows) and
     /// RULES (lit: what the mode adds; dim: what it takes away), with the mode's note at its foot.
     /// Preview: `LOBBYTAB=8 shot.sh x lobby` (10 Campaign with CAMPAIGN=n, SURVLOBBY=2 Survival, 4 Boss Hunt with HUNT=1).
@@ -46,6 +46,7 @@ namespace Arena
         void DrawModePage(Rect r, float t, ModePage p)
         {
             LobbyKit.Panel(r);
+            DrawHoloGlass(new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f), Time.unscaledTime, p.Acc);  // the Tab screen's hologram glass
             float top = ModeHeadBand(r, p) + 6f;
             float x = r.x + 20f, w = r.width - 40f, bottom = r.yMax - 18f;
             const float listW = 270f, gap = 22f;
@@ -66,9 +67,8 @@ namespace Arena
             ModeDossier(dos, p, f, p.Rows[shown].Chip, p.Rows[shown].ChipCol);
 
             // Vertical separators between the three columns, in the gaps.
-            var sepCol = p.Acc.WithAlpha(0.22f);
-            Ui.Fill(new Rect(x + listW + gap * 0.5f, top, 1f, bottom - top), sepCol);
-            Ui.Fill(new Rect(x2 + w2 + gap * 0.5f, top, 1f, bottom - top), sepCol);
+            ModeSeparator(x + listW + gap * 0.5f, top, bottom, t, p.Acc, 0f);
+            ModeSeparator(x2 + w2 + gap * 0.5f, top, bottom, t, p.Acc, 0.5f);
 
             // Right: the sidebar, records as label and value rows, then the rules, the note at the foot.
             float sx = x2 + w2 + gap, sy = top;
@@ -96,6 +96,41 @@ namespace Arena
             if (!string.IsNullOrEmpty(p.Note))
                 Ui.Label(new Rect(sx, Mathf.Max(sy + 10f, bottom - 40f), sideW, 40f), p.Note, 11, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);
             ModeModels(rows, scope, t, p, f, shown);
+        }
+
+        /// A column separator: a 3 px rail with a bright core in a soft halo, a scale of ticks down both sides, bracket caps
+        /// and a light running down it (phase 0..1 staggers the two).
+        void ModeSeparator(float cx, float y0, float y1, float t, Color acc, float phase)
+        {
+            float h = y1 - y0;
+            Ui.Fill(new Rect(cx - 5f, y0, 11f, h), acc.WithAlpha(0.04f));
+            Ui.Fill(new Rect(cx - 3f, y0, 7f, h), acc.WithAlpha(0.06f));
+            Ui.Fill(new Rect(cx - 1f, y0, 3f, h), acc.WithAlpha(0.32f));
+            Ui.Fill(new Rect(cx, y0, 1f, h), Color.Lerp(acc, Color.white, 0.35f).WithAlpha(0.55f));
+            int n = 0;
+            for (float ty = y0 + 12f; ty < y1 - 10f; ty += 12f, n++)
+            {
+                float len = n % 4 == 3 ? 6f : 3f;
+                var tc = acc.WithAlpha(n % 4 == 3 ? 0.45f : 0.25f);
+                Ui.Fill(new Rect(cx - 2f - len, ty, len, 1f), tc);
+                Ui.Fill(new Rect(cx + 3f, ty, len, 1f), tc);
+            }
+            foreach (float cy in new[] { y0, y1 - 2f })  // bracket caps
+            {
+                Ui.Fill(new Rect(cx - 6f, cy, 13f, 2f), acc.WithAlpha(0.8f));
+                Ui.Fill(new Rect(cx - 2f, cy + (cy == y0 ? 2f : -3f), 5f, 3f), acc.WithAlpha(0.55f));
+            }
+            Ui.Fill(new Rect(cx - 3f, y0 + h * 0.5f - 3f, 7f, 7f), acc.WithAlpha(0.35f));  // a node at the middle
+            Ui.Fill(new Rect(cx - 1f, y0 + h * 0.5f - 1f, 3f, 3f), Color.Lerp(acc, Color.white, 0.6f));
+            // The running light: a 46 px comet, every 3.5 s.
+            float py = y0 + Mathf.Repeat((fxReduced ? 0.3f : t / 3.5f) + phase, 1f) * (h + 46f) - 46f;
+            for (int i = 0; i < 8; i++)
+            {
+                float sy = py + i * 46f / 8f, k = (i + 1) / 8f;
+                float c0 = Mathf.Max(sy, y0 + 3f), c1 = Mathf.Min(sy + 46f / 8f, y1 - 3f);
+                if (c1 > c0)
+                    Ui.Fill(new Rect(cx - 1f, c0, 3f, c1 - c0), Color.Lerp(acc, Color.white, 0.5f).WithAlpha(0.8f * k * k));
+            }
         }
 
         /// The slim header: a small ring, then the name with the tagline beside it on one line, over the accent rule.
