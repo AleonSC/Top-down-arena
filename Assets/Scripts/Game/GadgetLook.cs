@@ -66,6 +66,17 @@ namespace Arena
             gadgetWheelOpen = false;
         }
 
+        /// Right click while the Gadget key is held (aiming a throw, or the wheel it opened): nothing is thrown or used, and the key
+        /// waits to be let go before it counts again. True on the cancelling frame.
+        bool CancelGadgetThrow()
+        {
+            if (gadgetHold < 0f || !Input.GetMouseButtonDown(1))
+                return false;
+            gadgetHold = -1f;
+            gadgetWheelOpen = false;
+            return true;
+        }
+
         /// The Gadget wheel key: held, the wheel is open; let go on a slice to swap that gadget into your hand (the middle cancels). True
         /// while it has the input (the Gadget key waits).
         bool TickGadgetWheelKey(Player me)
