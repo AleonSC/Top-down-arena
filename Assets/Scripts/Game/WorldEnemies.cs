@@ -773,7 +773,7 @@ namespace Arena
                 case EnemyType.ReaperOfDusk:
                 case EnemyType.ReaperOfDawn:
                     DrawTwinShell(e, pos, r, t);
-                    DrawStageShiftBoss(e, pos, r, t);  // changing phase (StageShiftLook.cs)
+                    DrawReaperShiftOn(e, pos, r, t);  // fusing or splitting (ReaperShiftLook.cs)
                     break;
                 case EnemyType.DualReaper:
                     DrawDualUnderlay(e, pos, r, t);  // ReaperLook.cs
