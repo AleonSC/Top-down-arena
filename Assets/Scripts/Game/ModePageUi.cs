@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The Game Mode screen's page for Quick Play, Campaign, Boss Hunt and Survival, drawn from one model (`ModePage`, built by
-    /// each mode's file) in the loadout's look: a hologram panel (ModeHolo), a slim one-line header (ring, name, tagline), the list under its heading on
+    /// each mode's file) in the loadout's look: the Tab screen's hologram glass (TabHolo.cs) in the mode's accent, a slim one-line header (ring, name, tagline), the list under its heading on
     /// the left, a compact scope with the dossier box under it in the middle, and a sidebar on the right: YOUR RECORDS (label and value rows) and
     /// RULES (lit: what the mode adds; dim: what it takes away), with the mode's note at its foot.
     /// Preview: `LOBBYTAB=8 shot.sh x lobby` (10 Campaign with CAMPAIGN=n, SURVLOBBY=2 Survival, 4 Boss Hunt with HUNT=1).
@@ -46,7 +46,7 @@ namespace Arena
         void DrawModePage(Rect r, float t, ModePage p)
         {
             LobbyKit.Panel(r);
-            ModeHolo(r, t, p.Acc);
+            DrawHoloGlass(new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f), Time.unscaledTime, p.Acc);  // the Tab screen's hologram glass
             float top = ModeHeadBand(r, p) + 6f;
             float x = r.x + 20f, w = r.width - 40f, bottom = r.yMax - 18f;
             const float listW = 270f, gap = 22f;
@@ -96,36 +96,6 @@ namespace Arena
             if (!string.IsNullOrEmpty(p.Note))
                 Ui.Label(new Rect(sx, Mathf.Max(sy + 10f, bottom - 40f), sideW, 40f), p.Note, 11, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);
             ModeModels(rows, scope, t, p, f, shown);
-        }
-
-        /// The hologram over the panel's wash: an accent tint brighter at the top, a faint projection grid, interlace
-        /// lines, a soft band rolling down the panel, and split cyan / magenta edges like a beam out of register.
-        void ModeHolo(Rect r, float t, Color acc)
-        {
-            var b = new Rect(r.x + 2f, r.y + 2f, r.width - 4f, r.height - 4f);
-            Ui.Fill(b, acc.WithAlpha(0.025f));
-            for (int i = 0; i < 6; i++)  // the projector's glow, falling off from the top
-                Ui.Fill(new Rect(b.x, b.y + i * 14f, b.width, 14f), acc.WithAlpha(0.06f * (1f - i / 6f)));
-            const float cell = 36f;
-            for (float gx = b.x + cell; gx < b.xMax - 1f; gx += cell)
-                Ui.Fill(new Rect(gx, b.y, 1f, b.height), acc.WithAlpha(0.065f));
-            for (float gy = b.y + cell; gy < b.yMax - 1f; gy += cell)
-                Ui.Fill(new Rect(b.x, gy, b.width, 1f), acc.WithAlpha(0.065f));
-            for (float ly = b.y + 1f; ly < b.yMax; ly += 4f)  // interlace
-                Ui.Fill(new Rect(b.x, ly, b.width, 1f), acc.WithAlpha(0.04f));
-            // The rolling band: 90 px of brighter lines, every 7 s (held still with reduced effects).
-            float band = 90f, span = b.height + band;
-            float by = b.y - band + (fxReduced ? span * 0.35f : Mathf.Repeat(t / 7f, 1f) * span);
-            for (int i = 0; i < 9; i++)
-            {
-                float y0 = by + i * band / 9f, k = 1f - Mathf.Abs(i - 4f) / 5f;
-                float c0 = Mathf.Max(y0, b.y), c1 = Mathf.Min(y0 + band / 9f, b.yMax);
-                if (c1 > c0)
-                    Ui.Fill(new Rect(b.x, c0, b.width, c1 - c0), acc.WithAlpha(0.08f * k));
-            }
-            // Out of register: cyan a hair to the left, magenta a hair to the right.
-            Ui.Fill(new Rect(b.x + 1f, b.y + 8f, 1f, b.height - 16f), new Color(0.3f, 1f, 1f, 0.16f));
-            Ui.Fill(new Rect(b.xMax - 2f, b.y + 8f, 1f, b.height - 16f), new Color(1f, 0.35f, 0.9f, 0.14f));
         }
 
         /// A column separator: a 3 px rail with a bright core in a soft halo, a scale of ticks down both sides, bracket caps
