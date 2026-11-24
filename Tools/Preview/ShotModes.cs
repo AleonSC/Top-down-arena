@@ -441,11 +441,11 @@ static partial class Shot {
         var pt = (Environment.GetEnvironmentVariable("PROFTR") ?? "0,0").Split(',');
         float ptT = float.Parse(pt[0], System.Globalization.CultureInfo.InvariantCulture);
         int slot = pt.Length > 1 ? int.Parse(pt[1]) : 0;
-        set("profTr", true); set("profTrT", ptT); set("profTrSlot", slot); set("profTrFwd", true);
+        set("profTr", true); set("profTrT", ptT); set("profTrSlot", slot);
         set("whoCarPos", (float)slot); set("whoCarTarget", (float)slot);
         set("menuIntroDone", true); set("menuIntroT", Mathf.Clamp(ptT - 2.6f, 0f, 2.199f));
         // PROFEJ=<0..2.7>,<profile index>: the eject's way back instead (DiskEject.cs).
-        if (Environment.GetEnvironmentVariable("PROFEJ") != null) { var pe = Environment.GetEnvironmentVariable("PROFEJ").Split(','); int es = pe.Length > 1 ? int.Parse(pe[1]) : 0; set("profEj", true); set("profEjT", float.Parse(pe[0], System.Globalization.CultureInfo.InvariantCulture)); set("profTrSlot", es); set("whoCarPos", (float)es); set("whoCarTarget", (float)es); set("profTrFwd", false); set("menuIntroT", 2.199f); }
+        if (Environment.GetEnvironmentVariable("PROFEJ") != null) { var pe = Environment.GetEnvironmentVariable("PROFEJ").Split(','); int es = pe.Length > 1 ? int.Parse(pe[1]) : 0; set("profEj", true); set("profEjT", float.Parse(pe[0], System.Globalization.CultureInfo.InvariantCulture)); set("profTrSlot", es); set("whoCarPos", (float)es); set("whoCarTarget", (float)es); set("menuIntroT", 2.199f); }
         typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null);
       }
       // pacman: the Pac-Man game's screen (PacmanUi.cs). PACKEYS=l1.7,u0.6: steer left for 1.7 s, then up for 0.6 s (letters l r u d), after READY; PACPAUSE=1: the pause screen.

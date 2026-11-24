@@ -1746,9 +1746,9 @@ again, go back to the lobby, or keep going after a victory.
 
 ## Lobby Hangout
 
-The lobby's **Hangout** key (right end of the tab row), or **PLAY** on the loadout preview window's top bar, lets you **play inside the preview window**: WASD, mouse aim, fire, your abilities, ultimate and Alt, with your real loadout on the three target dummies (hold the mouse over the window; the ultimate refills every 8 s; press again to go back to the demo). Solo, like the preview.
+**PLAY** on the loadout preview window's top bar lets you **play inside the preview window**: WASD, mouse aim, fire, your abilities, ultimate and Alt, with your real loadout on the three target dummies (hold the mouse over the window; no cooldowns: every ability and the ultimate are back as soon as they are used; press again to go back to the demo). Solo, like the preview.
 
-(Built but not opened by any key yet: a hidden game mode for the whole party at once) (any player can press it; nobody has to be ready): the **real match, held between waves for good**. You have your whole loadout exactly as in a run (weapon, Alt, abilities, ultimate, class perks), because it is the same game. No wave ever starts, there is no countdown, no levelling, nothing is saved, recorded or unlocked, and everyone is in god mode. Three **target dummies** stand ahead of the party (they never shoot back, and come back a second after they fall). Leave with the pause menu's **Back to lobby**. PvP between players is not in yet. Design: [`Docs/Hangout.md`](Docs/Hangout.md).
+The lobby's **Hangout** key (right end of the tab row) opens the **Hangout** for the whole party at once, so everyone sees each other (any player can press it; nobody has to be ready): the **real match, held between waves for good**. You have your whole loadout exactly as in a run (weapon, Alt, abilities, ultimate, class perks), because it is the same game, but with no cooldowns. No wave ever starts, there is no countdown, no levelling, nothing is saved, recorded or unlocked, and everyone is in god mode. Three **target dummies** stand ahead of the party (they never shoot back, and come back a second after they fall). Leave with the pause menu's **Back to lobby**. PvP between players is not in yet. Design: [`Docs/Hangout.md`](Docs/Hangout.md).
 
 ### The old lobby room (no longer reachable)
 

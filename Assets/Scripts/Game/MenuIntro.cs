@@ -108,11 +108,10 @@ namespace Arena
 
         static readonly Color CrtGreen = new Color(0.62f, 0.78f, 1f), CrtGlow = new Color(0.25f, 0.5f, 1f);  // (blue now; the names are from when it was green)
         const float CrtTypeAt = 0f, CrtTypeLen = 0.7f;  // intro seconds: the title types on the monitor (boot 2.6 to 3.3 s)
-        static float crtDy, crtFlash;  // while the screen is falling in: how far it is from home, and the flash as it lands
         static int crtTyped = -1;      // letters typed so far; -1 = all of them
         static string crtFull = CrtTitleText;  // the line on the screen (WHO'S PLAYING? while the moves to and from the picker retype it)
         static bool crtFlat;           // its letters are shown flat (no flip-in): a line being erased or retyped by DrawTitleRetype
-        static Rect CrtBox => new Rect(W / 2f - 470f, 32f + crtDy, 940f, 128f);  // the monitor's glass (PcMonitor.cs)
+        static Rect CrtBox => new Rect(W / 2f - 470f, 32f, 940f, 128f);  // the monitor's glass (PcMonitor.cs)
 
         /// The monitor's glass (Docs/Mockups/disk-boot-sequence.html): a near-black blue screen in a thin dark border, a faint blue
         /// rim inside it and a soft glow towards the middle.
@@ -137,8 +136,6 @@ namespace Arena
                 Ui.Fill(new Rect(0f, y, box.width, 2f), new Color(0f, 0f, 0f, 0.28f));
             Ui.Fill(new Rect(24f, 5f, box.width * 0.35f, 2f), new Color(1f, 1f, 1f, 0.07f));  // glare
             GUI.EndGroup();
-            if (crtFlash > 0f)
-                Ui.Fill(new Rect(box.x + 7f, box.y + 7f, box.width - 14f, box.height - 14f), new Color(0.6f, 0.75f, 1f, 0.35f * crtFlash));
             if (crtTyped >= 0)
             {
                 // Typing: the cursor sits after the last letter typed (blinking), the way a terminal does.
@@ -148,13 +145,13 @@ namespace Arena
                 string under = crtTyped < full.Length && full[crtTyped] != ' ' ? full[crtTyped].ToString() : "M";
                 float cw = Ui.TextWidth(under, (int)MenuTitleSize, true);
                 if ((int)(t * 8f) % 2 == 0)
-                    Ui.Fill(new Rect(cx, MenuTitleY + 14f + crtDy, cw, 8f), CrtGreen.WithAlpha(0.9f));
+                    Ui.Fill(new Rect(cx, MenuTitleY + 14f, cw, 8f), CrtGreen.WithAlpha(0.9f));
             }
             else if ((int)(t * 1.2f) % 2 == 0)
             {
                 // Typed out: the cursor waits just after the last letter, on the line it was typed on.
                 float fw = Ui.TextWidth(text, (int)MenuTitleSize, true);
-                Ui.Fill(new Rect(W / 2f + fw / 2f + 10f, MenuTitleY + 15f + crtDy, 30f, 7f), CrtGreen.WithAlpha(0.85f));
+                Ui.Fill(new Rect(W / 2f + fw / 2f + 10f, MenuTitleY + 15f, 30f, 7f), CrtGreen.WithAlpha(0.85f));
             }
         }
 
@@ -164,7 +161,6 @@ namespace Arena
             float t = Time.unscaledTime;
             float flick = (t % 3f) > 2.9f ? 0.7f : (t % 7f) > 6.95f ? 0.85f : 1f;
             var c = CrtGreen.WithAlpha(flick);
-            r.y += crtDy;
             if (crtTyped < 0)
             {
                 Ui.Glitch(r, crtFull, (int)MenuTitleSize, c, TextAnchor.MiddleCenter, CrtGlow);

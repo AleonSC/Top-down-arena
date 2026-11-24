@@ -19,7 +19,6 @@ namespace Arena
         const float ProfTrLen = MachEnd;
 
         bool profTr;               // the move is playing
-        bool profTrFwd;            // true: picker to menu (the eject sets false, with profEj)
         float profTrT, profTrPrev, profTrAge;
         int profTrSlot;            // the profile whose disk goes in (or comes out): its place in whoList
 
@@ -38,7 +37,6 @@ namespace Arena
                 return;
             whoManage = false;
             profTr = true;
-            profTrFwd = true;
             profTrT = 0f;
             profTrPrev = -0.0001f;
             profTrAge = 0f;

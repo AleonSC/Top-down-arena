@@ -512,6 +512,12 @@ namespace Arena
                 var s = p.Slots[i];
                 if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.ArterialSpray && p.SprayOn || s.Id == AbilityId.BloodWall && p.BloodWallOn || s.Id == AbilityId.LastStand && p.StandOn || s.Id == AbilityId.CaughtSteel && p.SteelT > 0f)
                     continue;  // (the Stun Gun's cooldown waits until its shots are spent)
+                if (HangoutOn || ShowcasePlay)
+                {
+                    s.Charges = s.MaxCharges;  // the Hangout (PLAY in the preview, or HangoutGame.cs): no cooldowns, every ability and the ultimate are back at once
+                    s.Timer = 0f;
+                    continue;
+                }
                 s.Timer -= OverclockOn(p) ? dt * OverclockMult : dt;  // (an Overclock Chip: Gadgets.cs)
                 if (s.Timer <= 0f)
                 {
