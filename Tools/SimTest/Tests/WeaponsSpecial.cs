@@ -207,8 +207,8 @@ static partial class Program
         Check(barSeen && watch.Count == 1, "holding at full draw keeps the bar up and never fires by itself");
         Check(Game.BowMarker(0f) == 0f && Math.Abs(Game.BowMarker(Game.BowFocusPeriod / 2f) - 1f) < 1e-4f && Math.Abs(Game.BowMarker(Game.BowFocusPeriod * 0.75f) - 0.5f) < 1e-4f,
             "the marker sweeps bottom to top and back every 1.3 s");
-        float z0 = cg.BowZone; Draw(60); float z1 = cg.BowZone; Draw(60); float z2 = cg.BowZone;
-        Check(z0 != z1 || z1 != z2, "the gold zone moves to a new height each draw");
+        Check(Math.Abs(cg.BowZone - (1f - Game.BowFocusZone)) < 1e-4f && !cg.BowInZone(cme, cg.BowFull(cme) + 0.01f) && cg.BowInZone(cme, cg.BowFull(cme) + Game.BowFocusPeriod / 2f),
+            "the gold zone is always the far end of the meter: not as the marker sets out, yes at the turn");
         Check(sawDrawOnHost, "the host sees the joining player's draw (for the draw ring)");
 
         // Drawing slows you to 85%.

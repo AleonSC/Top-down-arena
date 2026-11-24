@@ -8,7 +8,8 @@ using UnityEngine;
 // the real game and Juice.cs: you, a Healer Soldier with the bow, at (520, 450) aiming right at a loose line of grunts.
 //   rest     standing with an arrow on the string (s ignored)
 //   draw     drawing: s seconds into the draw (the camera easing out and back, ChargeCameraFx.cs)
-//   bar      drawing: s seconds after the draw is full (the Focus bar up, the bow glowing)
+//   draw     drawing: s seconds into the draw (the aim line closing)
+//   bar      drawing: s seconds after the draw is full (the aim line turned Focus meter, the bow glowing)
 //   focus    let go in the gold zone: s seconds after (the Focus arrow, its wind, FOCUS!, the bar bursting)
 //   miss     let go outside the zone: s seconds after (a plain full arrow, the bar shaking away)
 //   swing    a tap: s seconds after it (0 to 0.25: the fresh arrow swung from the quiver to the string)
@@ -55,7 +56,8 @@ static partial class Shot {
     Time.unscaledDeltaTime = 1f / 60f;
     for (int f = 0; f < 20; f++) frame();  // the juice sees everyone first
     int end = (int)Math.Round(after * 60f);
-    if (phase == "bar" || phase == "focus" || phase == "miss") {
+    if (phase == "draw") { fire = true; for (int f = 0; f < end; f++) frame(); }
+    else if (phase == "bar" || phase == "focus" || phase == "miss") {
       fire = true;
       while (me.DrawT < gm.BowFull(me)) frame();
       if (phase == "bar") { for (int f = 0; f < end; f++) frame(); }

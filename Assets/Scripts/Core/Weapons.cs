@@ -235,10 +235,7 @@ namespace Arena
             else if (firing)
             {
                 if (bowDraw < 0f && bowCd <= 0f)
-                {
                     bowDraw = 0f;
-                    NewBowZone();  // the Focus bar's gold zone moves each draw (BowFocus.cs)
-                }
                 if (bowDraw >= 0f)
                     bowDraw += dt;
             }
