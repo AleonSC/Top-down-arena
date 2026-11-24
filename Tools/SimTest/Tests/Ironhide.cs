@@ -1,7 +1,7 @@
 using System;
 using Arena;
 
-// The Tank role passive Ironhide (a 75 shield before health, refilling at 25/s after 3 s without damage; empty when
+// The Tank role passive Ironhide (a 25 shield that takes half of each hit, the rest reaching health, refilling at 25/s after 3 s without damage; empty when
 // downed; Tanks only; in the snapshot) and the Healer aura's falloff (17 HP/s next to the Healer down to 5 at the rim).
 static partial class Program
 {
@@ -28,13 +28,13 @@ static partial class Program
         };
 
         var tank = Make(Role.Tank); var g = tank.Game; var p = g.Players[1];
-        Check(p.MaxHp <= 150f + 0.01f && Defs.Get(Role.Tank).Hp == 150f, "a Tank has 150 health");
+        Check(p.MaxHp <= 170f + 0.01f && Defs.Get(Role.Tank).Hp == 170f, "a Tank has 170 health");
         Check(Math.Abs(Game.Ironhide(p) - Game.IronhideMax) < 0.01f, "Ironhide starts full (" + Game.IronhideMax + ")");
 
         float hp0 = p.Hp;
         damage.Invoke(g, new object[] { p, 10f, "test" });
         float took = Game.IronhideMax - Game.Ironhide(p);
-        Check(took > 0f && Math.Abs(p.Hp - hp0) < 0.01f, "a small hit comes off the shield, not health");
+        Check(Math.Abs(took - 10f * Game.IronhideShare) < 0.01f && Math.Abs(hp0 - p.Hp - 10f * (1f - Game.IronhideShare)) < 0.01f, "a hit is split between the shield and health");
         Check(Math.Abs(p.IronWait - Game.IronhideDelay) < 0.01f, "a hit starts the " + Game.IronhideDelay + " s wait");
 
         for (int f = 0; f < (int)((Game.IronhideDelay - 0.3f) / dt); f++) tick.Invoke(g, new object[] { p, dt });
@@ -46,23 +46,29 @@ static partial class Program
         damage.Invoke(g, new object[] { p, 1000f, "test" });
         Check(Game.Ironhide(p) <= 0.01f, "a big hit breaks it");
 
+        p.Downed = false; p.Hp = p.MaxHp; p.Wound = 0f; p.InvulnT = 0f;
+        p.IronLost = Game.IronhideMax - 4f;  // 4 left: a 20 hit takes the 4, the other 16 reaches health
+        damage.Invoke(g, new object[] { p, 20f, "test" });
+        Check(Game.Ironhide(p) <= 0.01f && Math.Abs(p.MaxHp - p.Hp - 16f) < 0.01f, "a nearly empty shield takes only what it has left");
+        Check(p.Wound > 0f, "the share that reaches health still wounds");
+
         p.Downed = false; p.Hp = p.MaxHp;  // (the big hit put them down)
-        p.IronLost = 30f; p.IronWait = 0f;
+        p.IronLost = 20f; p.IronWait = 0f;
         for (int f = 0; f < (int)(0.5f / dt); f++) tick.Invoke(g, new object[] { p, dt });
-        Check(Math.Abs(p.IronLost - (30f - Game.IronhideRegen * 0.5f)) < 0.6f, "it refills at " + Game.IronhideRegen + " a second");
+        Check(Math.Abs(p.IronLost - (20f - Game.IronhideRegen * 0.5f)) < 0.6f, "it refills at " + Game.IronhideRegen + " a second");
 
         p.IronLost = 0f; p.Downed = true; tick.Invoke(g, new object[] { p, dt }); p.Downed = false;
         Check(Game.Ironhide(p) <= 0.01f && p.IronWait > 0f, "going down empties it");
 
         // Round-trip over the snapshot (a client draws the plates and the HUD).
-        p.IronLost = 42f; p.IronWait = 1.5f;
+        p.IronLost = 12f; p.IronWait = 1.5f;
         var sync = typeof(Game).GetMethod("SyncSnapshot", flags);
         var ms = new System.IO.MemoryStream();
         sync.Invoke(g, new object[] { new NetSync(new System.IO.BinaryWriter(ms)) });
         p.IronLost = 0f; p.IronWait = 0f;
         ms.Position = 0;
         sync.Invoke(g, new object[] { new NetSync(new System.IO.BinaryReader(ms)) });
-        Check(Math.Abs(p.IronLost - 42f) < 0.001f && Math.Abs(p.IronWait - 1.5f) < 0.001f, "the shield travels in the snapshot");
+        Check(Math.Abs(p.IronLost - 12f) < 0.001f && Math.Abs(p.IronWait - 1.5f) < 0.001f, "the shield travels in the snapshot");
 
         var dps = Make(Role.Dps); var dg = dps.Game; var dp = dg.Players[1];
         float dhp = dp.Hp;
