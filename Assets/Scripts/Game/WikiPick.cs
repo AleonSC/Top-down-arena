@@ -118,7 +118,7 @@ namespace Arena
             if (!wikiPicking || ev.type != EventType.MouseDown || ev.button > 1)
                 return;
             var at = WikiUnderPointer();
-            if (ev.button == 1)  // a right click: the first status effect on the enemy under the pointer
+            if (ev.button == 1)  // a right click: the first status effect on the enemy or player under the pointer
                 at = wikiPickStatuses.Count > 0 ? wikiPickStatuses[0] : null;
             ev.Use();  // a click while picking never reaches the buttons under it
             if (at == null)
@@ -135,12 +135,21 @@ namespace Arena
         WikiEntry WikiUnderPointer()
         {
             wikiPickStatuses.Clear();
+            if (session.Screen == AppScreen.Game && Ui.Hovered != null)  // a boss bar's phase or attack name: that boss's (WikiPhases.cs, WikiAttacks.cs)
+                foreach (var b in game.Enemies.Values)
+                    if (b.Hp > 0f && Defs.Get(b.Type).IsBoss)
+                    {
+                        var ph = Wiki.PhaseIn(Ui.Hovered, b.Type);
+                        if (ph != null)
+                            return ph;
+                    }
             var e = Wiki.FindIn(Ui.Hovered);
             if (e != null || session.Screen != AppScreen.Game)
                 return e;
             var m = MouseArena();
             float best = float.MaxValue;
             Enemy picked = null;
+            Player pickedPlayer = null;
             foreach (var en in game.Enemies.Values)
             {
                 if (en.Hp <= 0f)
@@ -151,6 +160,7 @@ namespace Arena
                     best = d;
                     e = Wiki.Of(en.Type);
                     picked = en;
+                    pickedPlayer = null;
                 }
             }
             foreach (var mn in game.Minions.Values)
@@ -162,6 +172,7 @@ namespace Arena
                     best = d;
                     e = Wiki.Of(mn.Kind);
                     picked = null;
+                    pickedPlayer = null;
                 }
             }
             foreach (var p in game.Players.Values)
@@ -172,6 +183,7 @@ namespace Arena
                     best = d;
                     e = Wiki.Of(p.Kit);
                     picked = null;
+                    pickedPlayer = p;
                 }
             }
             foreach (var b in game.Bullets.Values)
@@ -185,6 +197,7 @@ namespace Arena
                     best = d;
                     e = by;
                     picked = null;
+                    pickedPlayer = null;
                 }
             }
             if (e == null)
@@ -198,6 +211,8 @@ namespace Arena
                 }
             if (picked != null)
                 WikiStatusesOn(picked, wikiPickStatuses);
+            else if (pickedPlayer != null)
+                WikiStatusesOn(pickedPlayer, wikiPickStatuses);
             return e;
         }
 
@@ -207,6 +222,18 @@ namespace Arena
             if (b.Owner != 0)
                 return game.Players.TryGetValue(b.Owner, out var p) && p.Weapon != null ? Wiki.Find(p.Weapon.Name, WikiKind.Weapon) : null;
             return b.Shooter != 0 && game.Enemies.TryGetValue(b.Shooter, out var en) ? Wiki.Of(en.Type) : null;
+        }
+
+        /// What's on a player (their replicated timers): stunned, swallowed, taunting, downed, wounded.
+        static void WikiStatusesOn(Player p, List<WikiEntry> into)
+        {
+            WikiStatusIf(p.StunT > 0f, "Stunned", into);
+            WikiStatusIf(p.SwallowT > 0f, "Swallowed", into);
+            WikiStatusIf(p.TauntT > 0f, "Taunting", into);
+            if (p.Downed && Wiki.Find("Downed", WikiKind.Mechanic) != null)
+                into.Add(Wiki.Find("Downed", WikiKind.Mechanic));
+            if (p.Wound > 0f && Wiki.Find("Wound", WikiKind.Mechanic) != null)
+                into.Add(Wiki.Find("Wound", WikiKind.Mechanic));
         }
 
         static void WikiStatusIf(bool on, string name, List<WikiEntry> into)
@@ -244,7 +271,7 @@ namespace Arena
             var t = wikiPickTarget;
             string name = t != null ? t.Name : "POINT AT SOMETHING";
             string kind = t != null ? Wiki.KindName(t.Kind).ToUpperInvariant() + " · CLICK" : "TEXT, AN ENEMY, A SHOT, A CRATE...";
-            string fx = null;  // the enemy's status effects, the first one a right click away
+            string fx = null;  // the status effects on the enemy or player, the first one a right click away
             if (t != null && wikiPickStatuses.Count > 0)
             {
                 var sb = new StringBuilder();

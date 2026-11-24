@@ -6,7 +6,7 @@ using System.Text;
 namespace Arena
 {
     /// What a wiki entry is (its tag in the list). New kinds go at the end.
-    public enum WikiKind : byte { Class, Role, Weapon, Ability, Ultimate, Card, Perk, Enemy, Boss, Minion, Gadget, Relic, Buildable, Modifier, Path, Mode, Difficulty, Challenge, Layout, Mechanic, Status, Prop }
+    public enum WikiKind : byte { Class, Role, Weapon, Ability, Ultimate, Card, Perk, Enemy, Boss, Minion, Gadget, Relic, Buildable, Modifier, Path, Mode, Difficulty, Challenge, Layout, Mechanic, Status, Prop, Phase, Attack }
 
     /// One thing in the game the wiki can show: its name, a line on what it is, its text and the entries it links to.
     public class WikiEntry
@@ -34,6 +34,39 @@ namespace Arena
         static Dictionary<Kit, WikiEntry> kitEntry;
         static Dictionary<MinionKind, WikiEntry> minionEntry;
         static Dictionary<int, WikiEntry> thingEntry;
+        static List<KeyValuePair<EnemyType, WikiEntry>> phaseEntry;
+        static WikiEntry lastStand;
+
+        /// The boss phase or attack a piece of text names for this boss ("GALE", "STAGE 2 / 5 · PENUMBRA", "LAST STAND", "INHALE"), or
+        /// null: for the eyedropper on the boss bars (a phase's or attack's name alone is often another entry's too: Last Stand, Frenzy).
+        public static WikiEntry PhaseIn(string text, EnemyType boss)
+        {
+            Build();
+            if (string.IsNullOrWhiteSpace(text))
+                return null;
+            if (boss == EnemyType.ReaperOfDawn || boss == EnemyType.DualReaper)
+                boss = EnemyType.ReaperOfDusk;  // the Reapers' phases are listed under Dusk
+            WikiEntry best = null;
+            foreach (var kv in phaseEntry)
+                if (kv.Key == boss && WholeWordIn(text, kv.Value.Name) && (best == null || kv.Value.Name.Length > best.Name.Length))
+                    best = kv.Value;
+            if (best == null && Array.IndexOf(WikiPhases.LastStandBosses, boss) >= 0 && WholeWordIn(text, WikiPhases.LastStandName))
+                best = lastStand;
+            return best;
+        }
+
+        static bool WholeWordIn(string text, string name)
+        {
+            int at = text.IndexOf(name, StringComparison.OrdinalIgnoreCase);
+            while (at >= 0)
+            {
+                int end = at + name.Length;
+                if ((at == 0 || !char.IsLetterOrDigit(text[at - 1])) && (end >= text.Length || !char.IsLetterOrDigit(text[end])))
+                    return true;
+                at = text.IndexOf(name, end, StringComparison.OrdinalIgnoreCase);
+            }
+            return false;
+        }
 
         /// The entry for a prop or chest on the field, or null.
         public static WikiEntry Of(PropKind k, ChestKind chest)
@@ -97,7 +130,7 @@ namespace Arena
 
         public static string KindName(WikiKind k) =>
             k == WikiKind.Card ? "Upgrade card" : k == WikiKind.Mode ? "Game mode" : k == WikiKind.Difficulty ? "Difficulty preset"
-            : k == WikiKind.Status ? "Status effect" : k == WikiKind.Prop ? "Prop" : k == WikiKind.Challenge ? "Challenge room" : k == WikiKind.Layout ? "Arena layout" : k == WikiKind.Modifier ? "Run modifier" : k.ToString();
+            : k == WikiKind.Status ? "Status effect" : k == WikiKind.Prop ? "Prop" : k == WikiKind.Phase ? "Boss phase" : k == WikiKind.Attack ? "Boss attack" : k == WikiKind.Challenge ? "Challenge room" : k == WikiKind.Layout ? "Arena layout" : k == WikiKind.Modifier ? "Run modifier" : k.ToString();
 
         /// The entry with this name (any case), or null. Kind narrows it when two share a name.
         public static WikiEntry Find(string name, WikiKind? kind = null)
@@ -317,6 +350,33 @@ namespace Arena
                 Add(t.Name, WikiKind.Mechanic, "Mechanic", t.Text);
             foreach (var t in WikiTopics.Statuses)
                 Add(t.Name, WikiKind.Status, "Status effect", t.Text);
+            foreach (var t in WikiTopics.PlayerStatuses)
+            {
+                var e = Add(t.Name, WikiKind.Status, "Status effect on players", t.Text);
+                foreach (var f in t.From ?? new string[0])
+                    Link(e, all.Find(x => x.Name == f && x != e));
+            }
+            phaseEntry = new List<KeyValuePair<EnemyType, WikiEntry>>();
+            foreach (var ph in WikiPhases.All)
+            {
+                enemyOf.TryGetValue(ph.Boss, out var boss);
+                var e = Add(ph.Name, WikiKind.Phase, (boss != null ? boss.Name : "Boss") + " · phase, " + ph.When, ph.Text);
+                Link(e, boss);
+                phaseEntry.Add(new KeyValuePair<EnemyType, WikiEntry>(ph.Boss, e));
+            }
+            foreach (var at in WikiAttacks.All)
+            {
+                enemyOf.TryGetValue(at.Boss, out var boss);
+                var ph = at.Phase == null ? null : phaseEntry.Find(kv => kv.Key == at.Boss && kv.Value.Name == at.Phase).Value;
+                var e = Add(at.Name, WikiKind.Attack, (boss != null ? boss.Name : "Boss") + " · " + (ph != null ? ph.Name + " attack" : "attack"), at.Text);
+                Link(e, ph);
+                Link(e, boss);
+                phaseEntry.Add(new KeyValuePair<EnemyType, WikiEntry>(at.Boss, e));  // (PhaseIn finds attacks too)
+            }
+            lastStand = Add(WikiPhases.LastStandName, WikiKind.Phase, "Boss phase, below 10%", WikiPhases.LastStandText);
+            foreach (var b in WikiPhases.LastStandBosses)
+                if (enemyOf.TryGetValue(b, out var boss))
+                    Link(lastStand, boss);
             thingEntry = new Dictionary<int, WikiEntry>();
             foreach (var t in WikiTopics.Things)
                 thingEntry[t.Chest ? 100 + t.Kind : t.Kind] = Add(t.Name, WikiKind.Prop, t.Chest ? "Chest" : "Prop", t.Text);

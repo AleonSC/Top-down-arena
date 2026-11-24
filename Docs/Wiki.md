@@ -39,7 +39,11 @@ content joins with no extra work.
    also picks minions.
    Then: **status effects** (`WikiTopics.Statuses`: Slowed, Burning, Bleeding, Chilled, Frozen, Wet, Stunned, Dazed, Caged, Marked,
    Poisoned, Venom, Suppressed; mentioned in any case, so they link to what causes them) and **props and chests**
-   (`WikiTopics.Things`, by PropKind and ChestKind; `Wiki.Of(PropKind, ChestKind)`). About 675 entries.
+   (`WikiTopics.Things`, by PropKind and ChestKind; `Wiki.Of(PropKind, ChestKind)`).
+   Then: **player status effects** (`WikiTopics.PlayerStatuses`: Swallowed, Grabbed, Taunting, linked to their causes; Slowed,
+   Bleeding and Stunned say what they do on you) and **boss phases** (`Core/WikiPhases.cs`: every boss's phases with their health
+   range, linked to the boss, plus one shared Last stand). Then **boss attacks** (`Core/WikiAttacks.cs`: about 80, the Lich's from its turns in `Lich.cs`, each linked to its
+   phase and boss; an attack that is an enemy already, like Ball Lightning or Hive Egg, stays an enemy). About 785 entries.
 3. **Built: the Wiki key everywhere** (`Game/WikiPick.cs`): `KeyAction.Wiki` (I). A tap opens the wiki on the main menu's bay, or
    anywhere else as a modal screen (`screenWiki`: dimmed room, a CRT panel with the same screen; Esc or a click outside closes it).
    Solo runs pause while it's open (`wikiPaused`, resumed on close); co-op doesn't pause and nothing is sent (no protocol change).
@@ -50,4 +54,6 @@ content joins with no extra work.
    under the pointer counts too. A tag by the pointer names what a click opens; the click is used up, so it never presses a button
    or fires. In a run it also picks minions, shots (a player's opens their weapon; an enemy's its shooter, on the host) and props
    and chests (the pointer inside the box), and the tag lists the status effects on the enemy under it (its replicated flags:
-   `WikiStatusesOn`); a right click opens the first.
+   `WikiStatusesOn`), or on the player under it (stunned, swallowed, taunting, downed, wounded); a right click opens the first.
+   A phase or attack name on a boss bar opens that boss's phase or attack (`Wiki.PhaseIn`: "LAST STAND" under the Warden is the boss phase, not the
+   Knight's Ultimate).

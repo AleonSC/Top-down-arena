@@ -7,7 +7,8 @@ namespace Arena
         public struct Topic
         {
             public string Name, Text;
-            public Topic(string name, string text) { Name = name; Text = text; }
+            public string[] From;  // entries it comes from, linked whatever the text says (a player status's causes)
+            public Topic(string name, string text, params string[] from) { Name = name; Text = text; From = from; }
         }
 
         public static readonly Topic[] All =
@@ -36,19 +37,27 @@ namespace Arena
         /// Status effects on enemies (Enemy's timers in Entities.cs; the replicated flags are what the eyedropper's tag lists).
         public static readonly Topic[] Statuses =
         {
-            new Topic("Slowed", "Moves slower for a while. Only the strongest slow counts; the next-strongest takes over when it ends. Heavy enemies and bosses are too heavy to slow down."),
+            new Topic("Slowed", "Moves slower for a while. Only the strongest slow counts; the next-strongest takes over when it ends. Heavy enemies and bosses are too heavy to slow down. On you: honey puddles and some attacks slow you too."),
             new Topic("Burning", "On fire (the Flamethrower, Incendiary Rounds, burning ground): takes damage every second until it burns out."),
-            new Topic("Bleeding", "The shared bleed (claws, Sanguine Orb, Blood Bolts, Vein Rush, Arterial Spray): damage over time. Bleed stacks go up to five from any source; a Blood Bolt that fills them bursts it."),
+            new Topic("Bleeding", "The shared bleed (claws, Sanguine Orb, Blood Bolts, Vein Rush, Arterial Spray): damage over time. Bleed stacks go up to five from any source; a Blood Bolt that fills them bursts it. On you: a Rioter's bottle cut bleeds you for a while."),
             new Topic("Chilled", "Slowed by frost but not frozen. Frost Lance chill builds up to two; a third freezes it."),
             new Topic("Frozen", "Encased in ice (Glacial Tomb, a third Frost Lance chill): can't move or shoot."),
             new Topic("Wet", "Soaked by Tsunami: slowed, and lightning arcs to it."),
-            new Topic("Stunned", "Held in place, with stars over its head: can't move or shoot until it wears off."),
+            new Topic("Stunned", "Held in place, with stars over its head: can't move or shoot until it wears off. On you: a Taser Guard's Fork Bolt stops you moving for a moment."),
             new Topic("Dazed", "Dazed by a close-in hit: can't attack for a moment, then can't be dazed again for a while."),
             new Topic("Caged", "Caged by a third Bone Guard dart: can't move or shoot."),
             new Topic("Marked", "Mark for Death: takes extra damage while the mark lasts."),
             new Topic("Poisoned", "Medicine Darts' poison: damage over time that stacks."),
             new Topic("Venom", "Poison Dart's venom: damage over time that spreads to enemies nearby when it dies."),
             new Topic("Suppressed", "The Riot Repeater's suppression: it shoots slower while it lasts."),
+        };
+
+        /// Status effects only players get (shown on a player under the eyedropper; Player's timers in Entities.cs).
+        public static readonly Topic[] PlayerStatuses =
+        {
+            new Topic("Swallowed", "Inside the Devourer (its Inhale): hidden for 3 s, taking 10 damage a second; allies' hits on it do double, and 300 of them spit you out early.", "The Devourer"),
+            new Topic("Grabbed", "A Crawler holds you: 25 damage to it frees you.", "Crawler"),
+            new Topic("Taunting", "Roar: enemies target you while it lasts.", "Roar"),
         };
 
         /// Things standing in the arena (Props.cs): props by PropKind, chests by ChestKind (Kind is the PropKind or, for a chest, the
