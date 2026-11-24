@@ -503,6 +503,25 @@ static partial class Shot {
       host.Game.Tutorial.ShowAt(int.Parse(tp[0]), tp.Length > 1 ? int.Parse(tp[1]) : 0);
       if (tp.Length > 2 && tp[2] == "open") { host.Game.State = MatchState.Intermission; host.Game.ExpandOpen = true; }  // a build round open (the BUILD A ROOM lesson)
     }
+    if (Environment.GetEnvironmentVariable("DRILL") != null) {
+      // A Training drill (DrillGame.cs, DrillUi.cs): DRILL=<beacons done>,<seconds>[,done] (Move and Aim; you a little short of the lit beacon).
+      var dp = Environment.GetEnvironmentVariable("DRILL").Split(',');
+      var gm = host.Game;
+      gm.Enemies.Clear(); gm.Bullets.Clear(); gm.Hunt = null; gm.Quick = false; gm.Wave = 1;
+      gm.Drill = 0; gm.DrillRunners.Clear();
+      foreach (var q in gm.Players.Values) gm.DrillRunners[q.Id] = new DrillRunner { PlayerId = q.Id, Step = 1, Time = 9f };
+      var mine = gm.DrillRunners[me.Id];
+      mine.Step = int.Parse(dp[0]); mine.Time = float.Parse(dp[1], System.Globalization.CultureInfo.InvariantCulture); mine.Flash = 9f;
+      if (dp.Length > 2 && dp[2] == "done") { mine.Step = Training.MoveSteps; mine.Done = true; if (gm.Profile != null) gm.Profile.DrillDone("move", mine.Time); }
+      var at = Training.MoveBeacon(Math.Min(mine.Step, Training.MoveSteps - 1), Game.Width, Game.Height);
+      me.Pos = me.Disp = at + new V2(-170f, 60f); me.Aim = 0f; me.AimAt = at;
+      int k2 = 0; foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = new V2(300f + 140f * k2++, 820f); }
+      if (!mine.Done && Training.MoveShootStep(mine.Step)) {
+        var e = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { EnemyType.Grunt, at, 0f, 0, false });
+        e.Disp = e.Pos; mine.TargetId = e.Id;
+      }
+      gm.State = MatchState.Fighting;
+    }
     if (Environment.GetEnvironmentVariable("RIOT") != null) {
       // Riot Gear (RiotGearLook.cs): RIOT=ready | wait,<seconds left> | block,<seconds after the block>. You and your friend have it; an enemy shot comes in from the right.
       var gm = host.Game; gm.Bot = false;

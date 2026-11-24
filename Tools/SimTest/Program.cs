@@ -515,6 +515,7 @@ static partial class Program
         Test("pings", "pings: tap/wheel marks, host pause and cap, Focus following an enemy, lapsing", () => PingTest(Dt)),
         Test("foequery", "the shared attack queries (FoeQuery.cs): circle, strip, cone and every foe match the plain loops", () => FoeQueryTest()),
         Test("pvp", "PvP in the Hangout (Pvp.cs): attacks hurt other players at PvpDamage, never yourself; every weapon and ability works on a player", () => PvpTest(Dt)),
+        Test("training", "Training (Training.cs): the drills, their medals and best times, the lobby mode that never starts a run from START", () => TrainingTest(Dt)),
         Test("hangoutmode", "the Hangout mode (HangoutGame.cs): opened by a client, held between waves, dummies, real weapon, no XP, back to lobby", () => HangoutModeTest(Dt)),
         Test("hangout", "the lobby's Hangout room: everyone's character, moves over the network, the walls", () => HangoutTest(Dt)),
         Test("zombies", "Zombie Infection: melee hordes, the cap, the dead rising", () => ZombieTest(Dt)),
@@ -582,7 +583,7 @@ static partial class Program
         "snapshot", "turnkey", "holdingcell", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "railgun", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "vowguard", "embolus", "bloodbrawler", "arclock", "twinauto", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
-        "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "hangoutmode", "foequery", "pvp", "three", "wrap", "ready", "wavekinds", "landmarks",
+        "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "hangoutmode", "training", "foequery", "pvp", "three", "wrap", "ready", "wavekinds", "landmarks",
         "arcanist", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };
 

@@ -80,6 +80,7 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 |---|---|---|
 | **run** | one game, start to end, in any mode; never "match" | `MatchState`, `Game.State` |
 | **Campaign run**, **Quick Play run**, **Boss Hunt run**, **Survival run** | a run in that mode | `GameMode` |
+| **Training**, **drill** | the lobby mode of short drills, one mechanic each, started from its page; a drill's best time earns a medal (gold, silver, bronze) | `GameMode.Training`, `Training.cs`, `TrainingUi.cs` |
 | **Practice** | the lobby's shared room in the loadout window: the real match held between waves, PvP on, enemy spawners (never "Hangout" in text; the code still says Hangout) | `GameMode.Hangout`, `Game.Practicing`, `HangoutGame.cs`, `HangoutUi.cs` |
 
 ## Places
