@@ -11,8 +11,9 @@ namespace Arena
     /// with a short breather (Rest) between them.
     public enum WardenTurn : byte { Rest, Rings, Spiral, Fan, Light, Cross, Rioters, Charge, LastStand, Gas }  // Gas: the Lockdown's tear gas barrage
 
-    /// The searchlight: off, hunting a player, locked on, or dark while its shackle ring closes.
-    public enum WardenLight : byte { Off, Follow, Lock, Ring }
+    /// The searchlight: off, hunting a player, locked on, or dark while its net flies and the one it caught is
+    /// taken to a Holding Cell (HoldingCell.cs).
+    public enum WardenLight : byte { Off, Follow, Lock, Net }
 
     /// A gate in the Lockdown: two rows of push bullets sweeping across the arena with two door gaps.
     /// You can't get through it: it shoves you back out the side you came from (each player's own game moves
@@ -54,7 +55,9 @@ namespace Arena
         public float RiotShield, RiotShieldMax;  // replicated: the riot shield's strength this riot turn (0 = broken: it's exposed)
         public float RioterDealt;        // host: what rioters have taken off it this riot turn (capped at RioterCap)
         public float GateSide = -1f;     // which edge this cross turn's gates all come from (+1 the top, -1 the bottom; flipped as each starts, so the first is the top)
-        public readonly List<int> Shackle = new List<int>();   // the bullets of the closing ring
+        public int NetId;                // replicated: the player its net is on (0: none)...
+        public float NetT;               // ...seconds since it was thrown...
+        public V2 NetFrom;               // ...and where from
     }
 
     public partial class Game
@@ -88,13 +91,13 @@ namespace Arena
         public const float FanWarnTime = 0.35f;
         const float FanEvery = 0.8f;
         // The searchlight (Count): follows its target at 150 px/s (slower than every class), the Warden fires a stun
-        // shot every 0.75 s; standing in the bright middle for 0.25 s gets you caught: 0.6 s lock-on, then a shackle
-        // ring of 28 big orbs 420 px out closes in at 110 px/s, with a 4-orb gap facing away from the Warden.
+        // shot every 0.75 s; standing in the bright middle for 0.25 s gets you caught: 0.6 s lock-on, then the Warden
+        // throws a net at whoever is in the light: it flies NetFlight, wraps them (held, can't be hurt) and at NetMoveAt
+        // they're in a Holding Cell (HoldingCell.cs). The light is dark until then.
         public const float LightRadius = 105f;
         const float LightSpeed = 150f, LightCatch = 0.25f, LightLock = 0.6f, StunEvery = 0.75f, StunShotSpeed = 280f;
         public const float StunTime = 1f;
-        const int ShackleOrbs = 28, ShackleGap = 4;
-        const float ShackleRadius = 420f, ShackleSpeed = 110f;
+        public const float NetFlight = 0.45f, NetMoveAt = 1.5f;
         // The gates (Lockdown): three per cross turn, 4 s apart, alternating top and bottom.
         public const int GateRows = 2;
         public const float GateRowGap = 16f, GateBulletR = 7f, GateSpeed = 180f, GateDoor = 90f, GateWarn = 0.8f;
@@ -353,8 +356,8 @@ namespace Arena
             RiotersReachWarden(e);
             GuardsBeatRioters(dt);
 
-            bool waitForRing = w.Turn == WardenTurn.Light && (w.LightMode == WardenLight.Lock || w.LightMode == WardenLight.Ring);
-            if (w.Stage != WardenStage.LastStand && w.TurnT >= w.TurnLen && !waitForRing)
+            bool waitForNet = w.Turn == WardenTurn.Light && (w.LightMode == WardenLight.Lock || w.LightMode == WardenLight.Net);
+            if (w.Stage != WardenStage.LastStand && w.TurnT >= w.TurnLen && !waitForNet)
                 NextWardenTurn(e, w, target);
         }
 
@@ -410,7 +413,7 @@ namespace Arena
             w.LightMode = WardenLight.Off;
             w.ExposedT = w.StunT = w.FanWarn = 0f;
             w.Gates.Clear();
-            w.Shackle.Clear();
+            w.NetId = 0;  // a net in the air drops (HoldNetted lets them go)
             ClearRioters();
             ClearWardenShields(e);  // WardenFaction.cs
             HostClearEnemyBullets();  // (and the gas)
@@ -667,10 +670,10 @@ namespace Arena
                 {
                     if (target != null && !target.Downed)
                         w.Light += (target.Pos - w.Light).LimitLength(LightSpeed * dt);
-                    // Anyone standing in its bright middle gets caught.
+                    // Anyone standing in its bright middle gets caught (not someone already in a Holding Cell).
                     bool inside = false;
                     foreach (var p in Players.Values)
-                        if (!p.Downed && p.Pos.CloserThan(w.Light, LightRadius * 0.6f))
+                        if (!p.Downed && !InCellZone(p.Pos) && p.Pos.CloserThan(w.Light, LightRadius * 0.6f))
                             inside = true;
                     w.Caught = inside ? w.Caught + dt : Math.Max(0f, w.Caught - dt * 1.5f);
                     if (w.Caught >= LightCatch)
@@ -688,58 +691,57 @@ namespace Arena
                         w.Light += (target.Pos - w.Light).LimitLength(LightSpeed * dt);
                     if (w.LightT >= LightLock)
                     {
-                        SpawnShackle(e, w, w.Light);
-                        w.LightMode = WardenLight.Ring;
+                        Player caught = null;  // whoever is nearest the middle of the light
+                        foreach (var p in Players.Values)
+                            if (!p.Downed && !InCellZone(p.Pos) && p.Pos.CloserThan(w.Light, LightRadius * 1.2f)
+                                && (caught == null || p.Pos.DistanceSq(w.Light) < caught.Pos.DistanceSq(w.Light)))
+                                caught = p;
                         w.LightT = 0f;
+                        if (caught == null)
+                        {
+                            w.LightMode = WardenLight.Follow;  // they slipped out of it
+                            break;
+                        }
+                        w.LightMode = WardenLight.Net;
+                        w.NetId = caught.Id;
+                        w.NetT = 0f;
+                        w.NetFrom = e.Pos;
+                        caught.InvulnT = Math.Max(caught.InvulnT, NetMoveAt + 0.2f);  // wrapped up: nothing else lands on them
+                        BroadcastSound(Sfx.Throw);
+                        DoLog("the Warden throws its net at player " + caught.Id);
                     }
                     break;
-                case WardenLight.Ring:
-                    // Dark, and no stun shots, until the ring has closed.
-                    for (int i = w.Shackle.Count - 1; i >= 0; i--)  // (a loop, not RemoveAll: no closure every tick)
-                        if (!Bullets.ContainsKey(w.Shackle[i]))
-                            w.Shackle.RemoveAt(i);
-                    if (w.Shackle.Count == 0)
+                case WardenLight.Net:
+                {
+                    // Dark while the net flies and wraps them; then they're taken to a Holding Cell (HoldingCell.cs).
+                    Player p;
+                    float was = w.NetT;
+                    w.NetT += dt;
+                    if (!Players.TryGetValue(w.NetId, out p) || p.Downed)
+                        w.NetId = 0;
+                    else
+                    {
+                        if (was < NetFlight && w.NetT >= NetFlight)
+                            BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.82f, 0.74f, 0.55f), 46f, 0.3f, Sfx.BossCage);  // it wraps round them
+                        if (w.NetT >= NetMoveAt)
+                        {
+                            JailPlayer(p, p.Pos);
+                            w.NetId = 0;
+                        }
+                    }
+                    if (w.NetId == 0)
                     {
                         w.LightMode = WardenLight.Follow;
                         w.LightT = 0f;
+                        w.Light = TowerLightStart;
                     }
                     break;
+                }
             }
         }
 
-        /// A ring of big orbs round where someone was caught, closing in, with a gap facing as far from the
-        /// Warden as it can while still opening into the arena.
-        void SpawnShackle(Enemy e, WardenState w, V2 at)
-        {
-            float toWarden = (e.Pos - at).Angle, away = toWarden + MathX.Pi, best = -9f;
-            for (int k = 0; k < 24; k++)
-            {
-                float a = MathX.Tau * k / 24f;
-                V2 g = at + V2.FromAngle(a) * 240f;
-                if (g.X < 70f || g.X > Width - 70f || g.Y < 70f || g.Y > Height - 70f)
-                    continue;
-                float score = -(float)Math.Cos(a - toWarden);
-                if (score > best)
-                {
-                    best = score;
-                    away = a;
-                }
-            }
-            w.Shackle.Clear();
-            float life = (ShackleRadius - 18f) / ShackleSpeed;
-            for (int i = 0; i < ShackleOrbs; i++)
-            {
-                float a = away + MathX.Tau * i / ShackleOrbs;
-                float off = Math.Abs(MathX.WrapPi(a - away));
-                if (off < MathX.Tau * (ShackleGap / 2f + 0.1f) / ShackleOrbs)
-                    continue;  // the gap
-                V2 d = V2.FromAngle(a);
-                var b = SpawnBullet(Defs.BigShot, at + d * ShackleRadius, -d * ShackleSpeed, 0f, life, Defs.BulletDamage(Defs.BigShot), 0, true);
-                b.Source = e.Type;
-                w.Shackle.Add(b.Id);
-            }
-            BroadcastFx(FxKind.Ring, at, new Rgba(0.85f, 0.35f, 1f), ShackleRadius, 0.5f, Sfx.BossCage);
-        }
+        /// Where the light comes back on after a net: just out from the tower.
+        static readonly V2 TowerLightStart = new V2(160f, 140f);
 
         // --- The gates and the gas ------------------------------------------------------------------
 
@@ -838,6 +840,8 @@ namespace Arena
         /// says so for any point along it (the lock counts as a target LockW/2 wide). Each gate takes one hit per strike.
         void GateLockStrike(Func<V2, bool> reaches)
         {
+            if (HoldingCells.Count > 0)
+                CellLockStrike(reaches);  // a Holding Cell's padlock too (HoldingCell.cs)
             var e = TheWarden();
             if (e == null || e.Warden == null || e.Warden.Gates.Count == 0)
                 return;
@@ -1093,7 +1097,7 @@ namespace Arena
         V2 GuardMove(Enemy e, V2 tpos)
         {
             V2 goal = tpos;
-            if (TheWarden() == null)
+            if (TheWarden() == null || InCellZone(e.Pos))  // (in a Holding Cell: straight for its prisoner)
                 return RouteTo(e, goal);  // a boss approach (Approaches.cs): no riot to put down, just you
             float best = float.MaxValue;
             foreach (var r in Enemies.Values)
@@ -1113,7 +1117,7 @@ namespace Arena
         {
             var ids = new List<int>();
             foreach (var e in Enemies.Values)
-                if (e.Type == EnemyType.Guard)
+                if (e.Type == EnemyType.Guard && !InCellZone(e.Pos))  // (a Holding Cell's guards stay: HoldingCell.cs)
                     ids.Add(e.Id);
             foreach (int id in ids)
                 Enemies.Remove(id);
@@ -1193,6 +1197,9 @@ namespace Arena
             s.Float(ref w.StunT);
             s.Float(ref w.FanAim);
             s.Float(ref w.FanWarn);
+            s.Int(ref w.NetId);
+            s.Float(ref w.NetT);
+            s.Vec(ref w.NetFrom);
             int n = w.Gates.Count;
             s.Byte(ref n);
             if (s.Reading)
@@ -1231,6 +1238,8 @@ namespace Arena
                 w.ExposedT = Math.Max(0f, w.ExposedT - dt);
                 w.StunT = Math.Max(0f, w.StunT - dt);
                 w.FanWarn = Math.Max(0f, w.FanWarn - dt);
+                if (w.NetId != 0)
+                    w.NetT += dt;
             }
             w.LightDisp = V2.Lerp(w.LightDisp, w.Light, 1f - (float)Math.Exp(-14.0 * dt));
         }

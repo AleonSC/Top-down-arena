@@ -91,6 +91,7 @@ namespace Arena
             if (!consumed && !Consume(p, slot, true))
                 return;
             p.Run.AbilitiesUsed++;
+            CellSkillUsed(p);  // in a Holding Cell: a second off its clock (HoldingCell.cs)
             var id0 = p.Slots[slot].Id;
             Recorder?.AbilityUsed(p, id0);
             bool hadTargets = Battle && AnyTarget();

@@ -14,7 +14,7 @@ namespace Arena
         Player FirstAlive()
         {
             foreach (var p in Players.Values)
-                if (!p.Downed)
+                if (!p.Downed && !Jailed(p))  // (not someone locked in a Holding Cell: HoldingCell.cs)
                     return p;
             return null;
         }
@@ -24,7 +24,7 @@ namespace Arena
         {
             var list = new List<Player>();
             foreach (var p in Players.Values)
-                if (!p.Downed)
+                if (!p.Downed && !Jailed(p))
                     list.Add(p);
             return list;
         }
@@ -33,8 +33,9 @@ namespace Arena
         Player NearestPlayer(V2 from)
         {
             Player best = null;
+            bool fromCell = HoldingCells.Count > 0 && InCellZone(from);  // (in a Holding Cell only its prisoner counts; outside, nobody locked in one)
             foreach (var p in Players.Values)
-                if (!p.Downed && (best == null || p.Pos.DistanceSq(from) < best.Pos.DistanceSq(from)))
+                if (!p.Downed && (HoldingCells.Count == 0 || InCellZone(p.Pos) == fromCell) && (best == null || p.Pos.DistanceSq(from) < best.Pos.DistanceSq(from)))
                     best = p;
             return best;
         }
@@ -51,7 +52,7 @@ namespace Arena
         {
             Player target;
             Players.TryGetValue(e.TargetId, out target);
-            return target == null || target.Downed ? FirstAlive() : target;
+            return target == null || target.Downed || Jailed(target) ? FirstAlive() : target;
         }
 
         /// Host: the nearest Targetable enemy to `at` within `range` (null: none). `by`: the player it's for (a summon's owner): with PvP

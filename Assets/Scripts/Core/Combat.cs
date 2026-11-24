@@ -280,8 +280,11 @@ namespace Arena
             lo -= margin;
             hi += margin;
             bool domesUp = AnyDome();  // Fortress's dome (Dome.cs)
+            bool held = ArenaHeld, cells = HoldingCells.Count > 0;  // the fight paused while everyone's in a Holding Cell (HoldingCell.cs)
             foreach (var b in Bullets.Values)
             {
+                if (held && !InCellZone(b.Pos))
+                    continue;  // shots in the arena hold still
                 if (b.AngVel != 0f && b.Kind != Defs.FumaStar)  // a Fuma Shuriken's AngVel only says which way it loops (Ninja.cs)
                     b.Vel = b.Vel.Rotated(b.AngVel * dt);
                 if (b.Homing > 0f)
@@ -303,7 +306,10 @@ namespace Arena
                     scratchIds.Add(b.Id);  // an enemy shot touching a dome is gone
                     continue;
                 }
-                if (b.Life <= 0f || b.Pos.X < lo.X || b.Pos.Y < lo.Y || b.Pos.X > hi.X || b.Pos.Y > hi.Y)
+                bool gone = b.Pos.X < lo.X || b.Pos.Y < lo.Y || b.Pos.X > hi.X || b.Pos.Y > hi.Y;
+                if (cells && gone && CellSlotAt(b.Pos, 0f) >= 0)
+                    gone = false;  // inside a Holding Cell's bars
+                if (b.Life <= 0f || gone)
                 {
                     scratchIds.Add(b.Id);
                     if (Walled && b.Life > 0f)
@@ -533,9 +539,9 @@ namespace Arena
         /// A player's shot: Warden gate locks, healing an ally, or the first enemy it touches.
         void PlayerShotHits(Bullet b)
         {
-            if (GateLockHit(b))
+            if (GateLockHit(b) || CellLockHit(b))
             {
-                scratchIds.Add(b.Id);  // a Warden gate's gold lock takes it (Warden.cs)
+                scratchIds.Add(b.Id);  // a Warden gate's gold lock, or a Holding Cell's padlock, takes it (Warden.cs, HoldingCell.cs)
                 return;
             }
             if (b.Medicine ? DoseAlly(b) : (b.HealAlly > 0f || b.WardAlly > 0f) && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; DoseAlly: Ninja.cs; CoatAlly: Hemomancer.cs

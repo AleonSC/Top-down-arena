@@ -308,6 +308,8 @@ static partial class Program
         var w = Find(s[0], EnemyType.Warden);
         var me = g.Players[1]; var friend = g.Players[2];
         Action Clear = () => { foreach (var e in g.Enemies.Values) if (e.Type == EnemyType.Grunt) e.Hp = 0f; };
+        // A light turn can net someone (Holding Cells, suite holdingcell); the checks here move players about, so let them out first.
+        Action Unjail = () => { foreach (var c in g.HoldingCells) c.Left = 0f; Run(s, dt, 3f, () => g.HoldingCells.Count == 0 && w.Warden.NetId == 0, Clear); };
         Check(w != null && Math.Abs(w.Pos.X - Game.Width / 2f) < 5f && Math.Abs(w.Pos.Y - Game.Height / 2f) < 5f, "the Warden appears in the middle of the arena");
 
         // Count: its turns in order, holding still for the spiral.
@@ -327,13 +329,14 @@ static partial class Program
         Check(!spiralMoved, "the Warden holds still while it spirals");
         Check(cg.Enemies.ContainsKey(w.Id) && cg.Enemies[w.Id].Warden != null && cg.Enemies[w.Id].Warden.Stage == WardenStage.Count, "clients see the Warden's phase");
 
-        // The searchlight: a Taser Guard's Fork Bolt stops you, the light catches you, a shackle ring drops round you.
+        // The searchlight: a Taser Guard's Fork Bolt stops you, the light catches you, the Warden's net takes you to a Holding Cell.
         while (w.Warden.Turn == WardenTurn.Light) { Clear(); Step(s[0], dt); Step(s[1], dt); }  // (the first light turn may already be under way)
+        Unjail();
         while (w.Warden.Turn != WardenTurn.Light) { Clear(); me.Pos = new V2(60f, 60f); Step(s[0], dt); Step(s[1], dt); }
         friend.Pos = new V2(1400f, 800f);
-        bool stunned = false, clientStunned = false, caught = false;
+        bool stunned = false, clientStunned = false, caught = false, netted = false;
         int guardsUp = 0;
-        Run(s, dt, 8f, () => caught && w.Warden.LightMode == WardenLight.Ring, () =>
+        Run(s, dt, 8f, () => g.CellOf(friend) != null, () =>
         {
             Clear();
             w.TargetId = 2; w.RetargetT = 99f;  // the light hunts the friend (the host is in god mode)
@@ -344,14 +347,18 @@ static partial class Program
             guardsUp = Math.Max(guardsUp, g.Enemies.Values.Count(o => o.Type == EnemyType.TaserGuard && o.ParentId == w.Id));
             if (cg.Players[t.Id].StunT > 0f && t.Id == 2) { clientStunned = true; }
             caught |= w.Warden.LightMode == WardenLight.Lock;
+            netted |= w.Warden.LightMode == WardenLight.Net && w.Warden.NetId == 2;
         });
-        int ring = w.Warden.Shackle.Count;
-        Console.WriteLine("  warden searchlight: stunned {0}, caught {1}, ring orbs {2}, target {3}", stunned, caught, ring, w.TargetId);
+        var cellF = g.CellOf(friend);
+        Console.WriteLine("  warden searchlight: stunned {0}, caught {1}, netted {2}, in a cell {3}, target {4}", stunned, caught, netted, cellF != null, w.TargetId);
         Check(guardsUp == Game.WardenTaserLight, "the searchlight turn sends two Taser Guards (the Warden fires no stun shots himself)");
-        Check(stunned && caught && ring >= 20, "a Taser Guard's Fork Bolt stops you, the searchlight catches you, and a shackle ring closes in");
+        Check(stunned && caught && netted && cellF != null && Game.InCellZone(friend.Pos), "a Taser Guard's Fork Bolt stops you, the searchlight catches you, and the Warden's net takes you to a Holding Cell");
         Check(clientStunned, "the stun reaches the stunned player's own game");
+        if (cellF != null) cellF.Left = 0f;  // (let them out: the cell itself is suite holdingcell)
+        Run(s, dt, 3f, () => g.HoldingCells.Count == 0, Clear);
         Run(s, dt, 20f, () => w.Warden.Turn != WardenTurn.Light, Clear);
-        Check(w.Warden.Turn != WardenTurn.Light, "the searchlight turn ends once the ring has closed");
+        Unjail();
+        Check(w.Warden.Turn != WardenTurn.Light && !Game.InCellZone(friend.Pos), "the searchlight turn ends, and the netted player is back in the fight");
 
         // A perfect parry sends a stun shot straight back at the Warden: it's frozen for 1.5 s.
         {

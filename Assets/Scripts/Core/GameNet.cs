@@ -380,6 +380,7 @@ namespace Arena
             s.Float(ref ShopT);
             SyncRoom(s);  // a challenge room's portal and room (Challenges.cs)
             SyncBossGate(s);  // the boss gate (BossGate.cs)
+            SyncHoldingCells(s);  // the Warden's Holding Cells (HoldingCell.cs)
 
             int count = Players.Count;
             s.Byte(ref count);

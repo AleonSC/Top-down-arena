@@ -113,3 +113,4 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 | Term | Means | Code |
 |---|---|---|
 | **phase** | one part of a boss fight; a **phase change** moves to the next (never "stage") | the boss's `Stage`, `StageShift` (`Enemy.Phase` is per-enemy state, not a boss phase) |
+| **Holding Cell** | the room off the arena the Warden's **net** locks a player in (one grid cell; three side by side); its **padlock** is out in the arena where they were netted | `HoldingCell`, `HoldingCell.cs`, `WardenState.NetId` |

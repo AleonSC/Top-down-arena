@@ -214,6 +214,7 @@ namespace Arena
                     DrawBigShot(b, t);
             DrawPathPatches(t);  // a hazard path's fire and pools (PathsUi.cs)
             DrawWardenYard(t);   // the Warden's searchlight, gates and doors (WardenLook.cs)
+            DrawHoldingCells(t);  // the Warden's Holding Cells and their padlocks (HoldingCellLook.cs)
             DrawPlayerSearchlights(t);
             DrawQueenFloor(t);   // the Hive Queen's wax cells, dive shadow and spray (QueenLook.cs)
             DrawReaperFloor(t);  // the Reapers' holes, lasers and reap marks (ReaperLook.cs)
@@ -347,6 +348,7 @@ namespace Arena
                 DrawRodSparks(p, t);  // Lightning Rod's arcs on the body (LightningRodLook.cs)
                 DrawHeldStunGun(p, t);
             }
+            DrawWardenNet(t);  // the Warden's net, thrown and wrapped round someone, over the bodies (HoldingCellLook.cs)
             DrawFlankArrows(t);  // a flank spawn portal behind you (SpawnPortalLook.cs)
             foreach (var b in game.Bullets.Values)
                 if (b.Kind >= Defs.SmallShot && !(enemyShotsLater && Defs.IsEnemyShot(b.Kind)))
