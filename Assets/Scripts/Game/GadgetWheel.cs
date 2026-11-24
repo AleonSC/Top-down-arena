@@ -6,7 +6,7 @@ namespace Arena
     /// The gadget bag's front end (Core/Gadgets.cs): hold the Gadget key with gadgets in the bag and a wheel opens at the cursor, one slice
     /// for the gadget in hand and one for each in the bag. Move to a slice and let go to swap it into your hand; let go in the middle
     /// to throw what's in hand where the cursor was. With a Gadget wheel key bound, holding that key opens it instead (its middle cancels)
-    /// and holding the Gadget key always throws. A small chip beside the keys shows the gadget in hand and the bag. With an empty
+    /// and holding the Gadget key always throws. A small chip beside the keys shows the gadget in hand and an icon for each bag slot. With an empty
     /// bag the key works as it always did (tap: on / off, hold: throw).
     public partial class ArenaApp
     {
@@ -150,12 +150,17 @@ namespace Arena
             Ui.Alpha = oldAlpha;
         }
 
-        /// The chip beside the keys: the gadget in hand (glyph, name, use left) and a pip for each gadget in the bag.
+        const float BagTile = 22f, BagGap = 3f;  // the chip's bag row: one small tile per bag slot
+
+        /// The chip beside the keys: the gadget in hand (glyph, name, use left), then a row of small tiles, one per bag slot, each
+        /// with its gadget's glyph and its uses or seconds left, so the bag reads at a glance without opening the wheel.
         void DrawGadgetChip(Player me)
         {
             if (me == null || me.Downed || (me.Gadget == GadgetId.None && BagCount(me) == 0))
                 return;
-            var r = new Rect(W / 2f - 90f, HudChestHint.y - 30f, 180f, 26f);  // (just over the chest hint, centred)
+            int slots = me.BagKind.Length;
+            float row = slots * (BagTile + BagGap) + 4f, w = 150f + row;
+            var r = new Rect(W / 2f - w / 2f, HudChestHint.y - 30f, w, 26f);  // (just over the chest hint, centred)
             Ui.Fill(r, new Color(0.03f, 0.04f, 0.07f, 0.85f));
             Color tone = me.Gadget == GadgetId.None ? new Color(0.57f, 0.63f, 0.68f) : GadgetInk(me.Gadget);
             Ui.Fill(new Rect(r.x, r.y, 2f, r.height), tone);
@@ -164,15 +169,30 @@ namespace Arena
             string key = Keybinds.NameOrNull(KeyAction.GadgetWheel) ?? Keybinds.NameOrNull(KeyAction.Gadget) ?? "";
             string text = me.Gadget == GadgetId.None ? "HOLD " + key + " TO EQUIP" : me.Gadget == GadgetId.Lodestone && me.GadgetOn ? "CASTING " + Mathf.CeilToInt(me.GadgetLeft) + "s" + UsesTag(me.Gadget, me.GadgetUses)
                 : ChipName(me.Gadget) + (me.GadgetOn ? " ON" : "") + UsesTag(me.Gadget, me.GadgetUses);
-            Ui.Label(new Rect(r.x + 30f, r.y, r.width - 62f, r.height), text, 10, Color.white, TextAnchor.MiddleLeft, true);
-            for (int i = 0; i < me.BagKind.Length; i++)  // a pip per bag slot, lit in the gadget's ink
+            Ui.Label(new Rect(r.x + 30f, r.y, 150f - 34f, r.height), text, 10, Color.white, TextAnchor.MiddleLeft, true);
+            float x0 = r.xMax - row;
+            Ui.Fill(new Rect(x0 - 1f, r.y + 4f, 1f, r.height - 8f), new Color(1f, 1f, 1f, 0.12f));  // the divider before the bag
+            for (int i = 0; i < slots; i++)
+                DrawBagTile(me, i, new Rect(x0 + 3f + i * (BagTile + BagGap), r.center.y - BagTile / 2f, BagTile, BagTile));
+        }
+
+        /// One bag slot on the chip: an empty outline, or the gadget's glyph in its ink with its uses (x2) or seconds (18) in the corner.
+        void DrawBagTile(Player me, int i, Rect t)
+        {
+            GadgetId g = me.BagKind[i];
+            if (g == GadgetId.None)
             {
-                var pip = new Rect(r.xMax - 8f - (me.BagKind.Length - i) * 8f, r.center.y - 3f, 6f, 6f);
-                if (me.BagKind[i] == GadgetId.None)
-                    Ui.Fill(pip, new Color(1f, 1f, 1f, 0.12f));
-                else
-                    Ui.Fill(pip, GadgetInk(me.BagKind[i]));
+                Ui.Fill(t, new Color(1f, 1f, 1f, 0.03f));
+                Ui.RectEdge(t, 1f, new Color(1f, 1f, 1f, 0.1f));
+                return;
             }
+            Color ink = GadgetInk(g);
+            Ui.Fill(t, ink.WithAlpha(0.14f));
+            Ui.Fill(new Rect(t.x, t.yMax - 2f, t.width, 2f), ink.WithAlpha(0.8f));
+            DrawGadgetGlyph(g, new Vector2(t.center.x - 2f, t.center.y - 3f), 7f, ink);
+            string tag = Game.GadgetTimed(g) ? Mathf.CeilToInt(me.BagLeft[i]).ToString() : Game.GadgetUses(g) > 1 ? "x" + me.BagUses[i] : "";
+            if (tag != "")
+                Ui.Label(new Rect(t.x, t.yMax - 10f, t.width - 1f, 9f), tag, 7, Color.white, TextAnchor.MiddleRight, true);
         }
     }
 }
