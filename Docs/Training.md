@@ -8,7 +8,8 @@ Status: **steps 0-6 built: the mode, its page and all six basic drills, played a
 - Training is a lobby mode on the Game Mode carousel (after Survival), with its own page, not the shared mode page.
 - The page: compact drill cards in a row under each group's heading, then a big scope (a schematic of the drill) and the
   brief (goal, medal times, your best, keys, START DRILL).
-- A drill starts from **START DRILL** on the page (the host), not the lobby's START, which stays locked in Training.
+- A drill starts from **START DRILL** (the host), not the lobby's START, which stays locked in Training. START DRILL takes the
+  Game Mode screen's top right in place of TO THE LOBBY, since the lobby has no use in Training.
 - The basics only for now: **Movement** (Move and Aim, Dodge, Wall Kick) and **Combat** (Shoot, Parry, Read the Tells).
 - Drills are built one at a time.
 - In a party, everyone runs the drill at once in the same arena, each with their own beacons, clock and medal.

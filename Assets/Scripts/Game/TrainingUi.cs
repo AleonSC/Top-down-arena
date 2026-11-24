@@ -5,7 +5,8 @@ namespace Arena
 {
     /// The Game Mode screen's **Training** page (Core/Training.cs, Docs/Training.md): the drills as compact cards under their
     /// group's heading (number, name, keys, medal), then a big scope with a schematic of the drill shown and its brief: goal,
-    /// medal times, your best, its keys and START DRILL. Hovering a card shows it; a click picks it. A drill not built yet
+    /// medal times, your best and its keys. START DRILL sits where the other modes' TO THE LOBBY is (DrawTrainingStartKey).
+    /// Hovering a card shows it; a click picks it. A drill not built yet
     /// shows SOON and can't start. Preview: `TRAINING=1 shot.sh x lobby` (2: drill 1 built, with a gold).
     public partial class ArenaApp
     {
@@ -166,13 +167,22 @@ namespace Arena
             Ui.Label(new Rect(x + 170f, y, 50f, 20f), "KEYS", 11, CrtStyle.Dim, TextAnchor.MiddleLeft, true);
             KeyRow(x + 214f, y + 1f, d.Keys, 18f, CrtStyle.Ink);
 
-            var go = new Rect(b.xMax - 218f, b.yMax - 56f, 200f, 42f);
+            Ui.Label(new Rect(x, b.yMax - 40f, w, 24f), "In a party, everyone runs the drill in their own lane.", 11, CrtStyle.Ink.WithAlpha(0.55f), TextAnchor.MiddleLeft, false, true);
+        }
+
+        /// START DRILL, in the Game Mode screen's top right where TO THE LOBBY is for the other modes (Training has no use for
+        /// the lobby): the picked drill for the whole party (the host), with its number and name under it.
+        void DrawTrainingStartKey(Rect go)
+        {
+            if (trainPick < 0 || trainPick >= Training.Drills.Length)
+                trainPick = DefaultDrill();
+            var d = Training.Drills[trainPick];
             bool can = d.Built && session.IsHost;
             LobbyGlowBox(go);
-            string sub = !d.Built ? "COMING SOON" : !session.IsHost ? "THE HOST STARTS IT" : "R TO RETRY";
-            if (DkKey(go, "START DRILL  >", can, fxReduced, size: 16, minSize: 12, accent: TrainColor, sub: sub, locked: !can) && can)
-                session.StartDrill(i);  // DrillGame.cs
-            Ui.Label(new Rect(x, b.yMax - 50f, w - 230f, 30f), "In a party, everyone runs the drill in their own lane.", 11, CrtStyle.Ink.WithAlpha(0.55f), TextAnchor.MiddleLeft, false, true);
+            string sub = !d.Built ? "COMING SOON" : !session.IsHost ? "THE HOST STARTS IT"
+                : "DRILL " + (trainPick + 1).ToString("00") + "  ·  " + d.Name.ToUpperInvariant();
+            if (DkKey(go, "START DRILL  >", can, fxReduced, size: 18, minSize: 13, accent: TrainColor, sub: sub, locked: !can) && can)
+                session.StartDrill(trainPick);  // DrillGame.cs
         }
 
         /// Keycaps in a row from (x, y), `h` tall.
