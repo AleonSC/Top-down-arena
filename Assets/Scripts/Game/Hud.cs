@@ -23,6 +23,7 @@ namespace Arena
             DrawVeinRushPops();  // Vein Rush's "+2%" and "-10%", and your cuts' flash (VeinRushLook.cs)
             DrawBathPops();  // Bloodbath's "+n" heals off the Hemomancer (BloodbathLook.cs)
             DrawKnightDpsPops();  // READY, RESET, Caught Steel's pips (KnightDpsLook.cs)
+            DrawKnuckleWheelLabel();  // the Arc Knuckles' click wheel: the next move's name (ArcKnucklesWheel.cs)
             DrawRodPops();  // Lightning Rod's grey numbers off the tank (LightningRodLook.cs)
             DrawMatchEmotes();      // their emotes, above that (EmoteBar.cs)
             DrawMatchPings();       // the party's pings (PingLooks.cs)

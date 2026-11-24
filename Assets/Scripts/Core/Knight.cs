@@ -56,7 +56,8 @@ namespace Arena
         public byte LanceKind;        // a Lance step (1-4; Lance.cs): its hits are cued and spark, and what it shoves can Impact; Hook & Haul takes back one still winding up
         public float LanceAcross;     // the Lance's Wide Sweep: the way its swing bats what it hits (LanceKnockDir)
         public byte Bulwark;          // a Bulwark Barrier hit (1-3 the chain, 4 the Shield Bash; BulwarkBarrier.cs): the parry takes back a chain step still winding up
-        public byte Knuckle;          // an Arc Knuckles punch (1-6; ArcKnuckles.cs): the parry takes back one still winding up
+        public byte Knuckle;          // an Arc Knuckles hit (its KnuckleHitCue kind; ArcKnuckles.cs): the parry takes back one still winding up
+        public V2 KnuckleKnock;       // a Drive Punch: what it hits is sent this far this way (ArcKnucklesBrawl.cs)
         public int OnlyEnemy;         // != 0: hits only this enemy (the Arc Knuckles' locked-on Rocket Dash)
         public bool Nun;              // a Nunchaku hit (Nunchaku.cs): a stick landing sounds Sfx.NunHit
         public byte Vg;               // a Vowguard hit (Vowguard.cs): 1 a Valor link (lights Faith), 2 any other; the parry and the switch take back one still winding up
@@ -516,7 +517,10 @@ namespace Arena
                 dmg *= NinjaHitMult(p.Id, Defs.KnightSlash, e);  // Vanish's ambush (Ninja.cs)
                 HurtEnemy(e, dmg, p.Id);
                 if (s.Knuckle > 0)
+                {
                     Charge(e, p.Id);  // an Arc Knuckles punch or Rocket Dash charges what it hits (Charged.cs)
+                    KnuckleHitExtra(p, s, e);  // a Drive Punch's steered shove, the Pin Punch's stop, the Barrage's held stun (ArcKnucklesBrawl.cs)
+                }
                 Daze(e);  // a melee hit: it can't hit back for a split second (Daze.cs)
                 float knock = MeleeKnockOf(s);  // the standard melee shove unless the move has its own (MeleeHit.cs)
                 ModHit(e, p.Id, dmg, Defs.KnightSlash, dir, s.Slow);
@@ -723,8 +727,8 @@ namespace Arena
                 Desc = "Primary Fire: A ten-step sword combo that drags in, stuns, leaps and ends in a golden lance.\n\nAlternative Fire: Throw the sword spinning to your cursor and back." },
             new WeaponDef { Id = WeaponId.Rapier, Kit = Kit.Knight, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 130f, Melee = true, ExtraDesc = "Skewers 1 more enemy behind the first", Name = "Rapier", FireInterval = 0.48f,  // the first thrust; Tempo makes them quicker (Rapier.cs)
                 Desc = "Primary Fire: Fast thrusts at the nearest enemy that skewer bullets and build Tempo.\n\nAlternative Fire: Spend Tempo on a Flourish: a whipping blade that throws crescent waves." },
-            new WeaponDef { Id = WeaponId.ArcKnuckles, Kit = Kit.Knight, Role = Role.Dps, Choice = 3, Damage = 22f, Reach = 80f, Melee = true, ExtraDesc = "+1 aftershock: the Twin Hammer slams again 0.2 s later, 40 px further out (60% damage)", Name = "Arc Knuckles", FireInterval = 0.24f,
-                Desc = "Primary Fire: A five-punch combo that ends in a stunning ground slam.\n\nAlternative Fire: Rocket Dash, then chain extra moves." },
+            new WeaponDef { Id = WeaponId.ArcKnuckles, Kit = Kit.Knight, Role = Role.Dps, Choice = 3, Damage = 22f, Reach = 80f, Melee = true, ExtraDesc = "+1 aftershock: the Quake Punch and the Counter Hammer slam again 0.2 s later, 40 px wider (60% damage)", Name = "Arc Knuckles", FireInterval = 0.24f,
+                Desc = "Primary Fire: Brawl stance: a Pull Punch opens a click wheel; click its sides to send punches and dashes that way, then pin, barrage and quake.\n\nAlternative Fire: Swap to the Rocket stance: Rocket Dash, Flurry, Grab & Throw, Rocket Punch, one click each." },
         };
 
         /// The Knight's own upgrade cards: Rare upgrades of its 1st abilities (RequiresAbility), and cards for its weapons
@@ -771,7 +775,7 @@ namespace Arena
                 Apply = s => { s.WheelRangeMult += 0.25f; s.WheelDmgMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Rapier }, MaxStacks = 2, Name = "Duelist's Edge", Desc = "Each thrust skewers 1 more bullet, and Tempo holds 0.5 s longer",
                 Apply = s => { s.SkewerBonus += 1; s.TempoHoldBonus += 0.5f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ArcKnuckles }, MaxStacks = 2, Name = "Live Wire", Desc = "The Rocket Dash reaches 25% farther, and the Twin Hammer stuns 0.3 s longer",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.ArcKnuckles }, MaxStacks = 2, Name = "Live Wire", Desc = "The Rocket Dash and Pull Punch reach 25% farther, and the Pin Punch and Counter Hammer stun 0.3 s longer",
                 Apply = s => { s.KnuckleDashMult += 0.25f; s.KnuckleStunBonus += 0.3f; } },
         };
 

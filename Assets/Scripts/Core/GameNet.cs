@@ -21,6 +21,7 @@ namespace Arena
             bool focus = r.ReadBoolean();
             byte sprint = r.ReadByte();
             bool bot = r.ReadBoolean();
+            byte steer = r.ReadByte();
             Player p;
             if (!Players.TryGetValue(peer, out p))
                 return;
@@ -38,6 +39,7 @@ namespace Arena
             p.AimAt = aimAt;
             p.IsBot = bot;
             p.Firing = firing;
+            p.KnuckleSteer = steer;
             p.Parrying = parry;
             p.Sprint = p.Downed ? (byte)0 : sprint;  // only a look: the owner's game moves it
         }
@@ -716,7 +718,11 @@ namespace Arena
             s.Byte(ref p.KnuckleDashes);
             s.Byte(ref p.KnuckleChain);
             s.Vec(ref p.KnuckleDashTo);   // where the Rocket Dash ends, and what it locked onto (the chain turns to it)
-            s.Int(ref p.KnuckleTarget);  // the dash chain's stage: your own game roots you and shows the Fire prompt  // Rocket Dashes started: your own game dashes when it changes  // the Arc Knuckles' Counter Hammer is armed (ArcKnuckles.cs)
+            s.Int(ref p.KnuckleTarget);
+            s.Byte(ref p.KnuckleStance);  // the Arc Knuckles' stance, the Brawl move next, the Barrage's root and the Quake Punch's charge (ArcKnucklesBrawl.cs)
+            s.Byte(ref p.KnuckleMove);
+            s.Bool(ref p.KnuckleRooted);
+            s.Byte(ref p.KnuckleCharge);  // the dash chain's stage: your own game roots you and shows the Fire prompt  // Rocket Dashes started: your own game dashes when it changes  // the Arc Knuckles' Counter Hammer is armed (ArcKnuckles.cs)
             s.Byte(ref p.KatanaStance);  // the Katana's stance, where each combo waits, the last step and the moving steps (Katana.cs)
             s.Byte(ref p.KatanaHay);
             s.Byte(ref p.KatanaSen);

@@ -280,8 +280,8 @@ namespace Arena
             var e = v.ShootAt;
             switch (me.Weapon.Id)
             {
-                case WeaponId.ArcKnuckles:  // Rocket Dash to close the gap
-                    return !late && !me.Parrying && e != null && v.ShootD > 80f && v.ShootD < 260f && Tap(KnuckleDashCd <= 0f, 0.5f);
+                case WeaponId.ArcKnuckles:  // Alt swaps stance: between combos it takes turns, Rocket to dash in on a target a way off, Brawl again once the chain is done
+                    return !late && !me.Parrying && e != null && Tap(me.KnuckleStance == 0 ? me.KnuckleMove == 0 && v.ShootD > 90f : me.KnuckleChain == 0, 5f);
                 case WeaponId.TwinRifleAuto:  // lock on the target (and let go of a lock that's lost)
                 {
                     bool lost = me.TwinLock != 0 && !Enemies.ContainsKey(me.TwinLock);

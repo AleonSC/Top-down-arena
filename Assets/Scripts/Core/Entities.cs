@@ -258,9 +258,15 @@ namespace Arena
         public int Light;                             // Lightbringer: its light gauge, hits landed toward a Radiant Noon or a Sunlance (replicated; Lightbringer.cs)
         public int Combo;                             // Twin Blades and Censer: the chain step last thrown, 1 to 5 (0: the next is the first), in the low 3 bits, and a count of steps thrown above them (replicated; your own game steps you forward when the count changes); ComboT: until the chain starts over (host)
         public float ComboT;
-        public byte KnuckleDashes;                    // Arc Knuckles: Rocket Dashes started (replicated; your own game dashes when it changes)
-        public V2 KnuckleDashTo;                      //   where the last one ends (replicated: the host's lock-on picked it)
-        public float KnuckleDashCd;                   //   until the next one (host)
+        public byte KnuckleDashes;                    // Arc Knuckles: dashes and lunges started (the Rocket Dash, the Brawl stance's Pull Punch, Slip Dashes and the step in to a punch; replicated: your own game moves you when it changes)
+        public V2 KnuckleDashTo;                      //   where the last one ends (replicated: the host picked it)
+        public byte KnuckleStance;                    // Arc Knuckles: 0 Brawl, 1 Rocket (replicated; the weapon-action key swaps; ArcKnucklesBrawl.cs)
+        public byte KnuckleMove;                      //   Brawl: the next move, 0 the Pull Punch to 7 the Quake Punch (replicated: the pips, and your own game's click wheel shows from 1)
+        public byte KnuckleSteer;                     //   the click wheel's direction with this input (0 none, else an angle; sent in Msg.Input; host)
+        public bool KnuckleRooted;                    //   the Barrage holds you still (replicated: your own game roots you)
+        public byte KnuckleCharge;                    //   the Quake Punch's charge, 0-255 (replicated: the ring on you fills)
+        public float KnuckleChargeT, KnuckleRootT, KnuckleIdleT, KnuckleBufT;  //   host: the charge held, the root left, since the last Brawl move, a click waiting for the move in progress
+        public bool KnuckleCharging, KnuckleFireWas;  //   host: Fire held through the Quake Punch's charge; Fire down last tick (a click is its edge)
         public byte KnuckleChain;                     // Arc Knuckles: the dash chain's stage (replicated; ArcKnucklesChain.cs): 0 none, odd a Fire window open, 2 Flurry, 4 Grab & Throw, 6 Rocket Punch
         public float KnuckleChainT;                   //   seconds in that stage (host)
         public int KnuckleTarget;                     //   the enemy the dash locked onto, which the chain's moves turn to (replicated: your own screen marks it)
@@ -651,6 +657,7 @@ namespace Arena
         public int Id;
         public V2 KnockLeft;    // host only: a push still to travel, and how fast (Knock.cs)
         public float KnockSpeed, KnockFxAt = -10f;
+        public int KnuckleSlamBy;  // host only: a Drive Punch's owner id + 1 while it slides (0: none); a wall stops it hard: Wall Slam (ArcKnucklesBrawl.cs)
         public int ImpactBy;    // host only: a Lance shove's owner id + 1 while it slides (0: none); fast enough, it hits what it meets (Lance.cs)
         public int ImpactLast = -1;  // host only: the enemy it last hit that way (each pair once)
         public V2 RoomAt;       // host only: its last spot inside a room of the map (KeepEnemiesInRooms, EnemyAI.cs)
@@ -959,6 +966,7 @@ namespace Arena
         public bool Parry;     // held: raise the parry shield toward the cursor
         public bool Dodge;         // pressed: dodge (Ctrl or a double tap of a movement key; Dodge.cs); this machine only
         public bool DodgeHeld;     // held: the key that started the dodge is still down (keep holding to sprint; Dodge.cs); this machine only
+        public byte Steer;         // the Arc Knuckles' click wheel: the way the cursor points from its centre (0 none, else an angle code; ArcKnucklesBrawl.cs); sent in Msg.Input
         public bool WeaponAction;  // held: your weapon's secondary (Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl); this machine only
     }
 }

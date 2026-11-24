@@ -1,6 +1,6 @@
 # Arc Knuckles: the Knight DPS's fourth weapon (design)
 
-Rework status: **planned** (Nov 2026): two stances, see [Stance rework](#stance-rework-planned) at the end; not built yet.
+Rework status: **built** (Nov 2026, protocol 492): two stances, Brawl steered by the click wheel; see [Stance rework](#stance-rework-built) at the end. The five-punch combo and the Alt Rocket Dash below are the old design, replaced.
 
 Status: **built** (Nov 2026, protocol 272): all four steps, then the lock-on and hit feel. The weapon's damage went from 12 to 22 in step 4 (about 88 a second, with the other DPS Knight weapons); every number below is the step-1 design at 12, scaled by 22/12 in the game.
 (https://claude.ai/artifact/Rqn2WEDWUQL1RTJaxvPf8Y), version 5. The **Arc Coil** look, the **Full combo**, **Parry cancel**
@@ -82,7 +82,7 @@ Magnet Yank) were not picked.
   sparks and a ring, and the puncher's own holds the picture and shakes, sized to the punch (`Juice.KnuckleHitFeel`). The press
   sounds are whooshes now; the knock is the contact's.
 
-## Stance rework (planned)
+## Stance rework (built)
 Mockup: `Docs/Mockups/arc-knuckles-stances.html` (https://claude.ai/artifact/Tc7nHgT8fu9QPumT3k8ntp), playable, with demos.
 Damage is a multiple of the weapon's 22.
 
@@ -113,13 +113,21 @@ Damage is a multiple of the weapon's 22.
 | 3 | Grab & Throw (not bosses) | ×0.9 to it, ×1.2 to what it hits |
 | 4 | Rocket Punch (210 px line) | ×1.3 each |
 
-**Option under test: wheel steering** (same mockup, "Brawl steering" switch). Movement keys only move; the mouse steers. A new move 1,
-**Pull Punch** (click an enemy up to 230 px away: pulls you in, ×0.8, 0.5 s stun), opens a four-way wheel where the cursor was. Each
-later click steers by its side of the wheel (by angle, anywhere on screen; the centre is "no direction"); clicks buffer 0.3 s, so
-right-right is punch right then dash after them. 8 moves; punches take the enemy nearest you. The wheel either stays put or moves
-with you (both in the mockup). Not decided yet.
+**Wheel steering (owner's pick, built):** movement keys only move; the mouse steers. Brawl starts with a **Pull Punch** (click an
+enemy up to 230 px away and within 70 px of the cursor: pulls you in, ×0.8, a 0.5 s stun on everything within 50 px). A landed one
+opens a four-way wheel **fixed on the screen** where you clicked; each later click steers by its side of the wheel (the centre is no
+direction), so right, right is punch right, then dash after them. Clicks during a move wait 0.3 s for it; held Fire repeats. Brawl is
+8 moves (Pull, Drive, Slip, Drive, Slip, Pin, Barrage, Quake); the punches take the enemy nearest you and step you in to it.
 
-**Build steps:** 1. stance state on the player (`Player.KnuckleStance`), the swap on the weapon-action key, HUD pips per stance;
+**As built:** the old five-punch combo is gone (the Counter Hammer stays, for a perfect parry, in both stances). The Barrage is the
+Flurry's timing: eight jabs ×0.35 and a straight ×0.7, rooted 0.95 s. A full Quake Punch can be held 0.6 s, then it lets go on its
+own (bots hold Fire). The Rocket Dash has no cooldown; one that hits nothing blocks the next click for 0.6 s. Extra projectiles
+are aftershocks of the Quake Punch (40 px wider) and the Counter Hammer. Live Wire: the Pull Punch and Rocket Dash reach 25%
+farther, the Pin Punch and Counter Hammer stun 0.3 s longer. Bots swap stance between combos (`BotWeaponAlt.cs`).
+The wire: `Msg.Input` carries the wheel's steer as an angle byte; the snapshot carries the stance, the Brawl move, the root and the
+charge.
+
+**Build steps (all built):** 1. stance state on the player (`Player.KnuckleStance`), the swap on the weapon-action key, HUD pips per stance;
 2. Rocket stance: move the chain to Fire, drop the windows, 4 s idle; 3. Brawl moves 1–4 (steer input from the move keys, the
 group knockback, wall slam); 4. moves 5–7 (Pin stun, Barrage hold, Quake charge); 5. look, sounds, `knuckles` suite, README,
 protocol bump, balance pass.
