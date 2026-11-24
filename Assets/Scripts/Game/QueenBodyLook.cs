@@ -43,6 +43,7 @@ namespace Arena
             int stage = q == null ? 0 : (int)q.Stage;
             bool frz = stage >= (int)QueenStage.Frenzy, last = stage == (int)QueenStage.LastStand;
             float air = q != null ? Game.QueenAir(q) : 0f, swell = Game.QueenSwell(q);
+            float squash = QueenSquash(q);
             bool laying = swell > 0f && q != null && q.TransT <= 0f && q.Turn == QueenTurn.Eggs;  // squeezing her eggs out
             float a = col0.A, hit = (e.Flash > 0f || JuiceFlash(e)) ? HitFlashMix(e) : 0f;
             hiveCrowd = game.Enemies.Count > HiveCrowd;
@@ -56,9 +57,10 @@ namespace Arena
             const float tr = 10f, hr = 7f;
             // the sac: pulsing, swelling before she lays (throbbing faster as it fills), tucked in and narrowed in a dive
             float pulse = 1f + (0.045f + 0.035f * swell) * Mathf.Sin(t * (stage == (int)QueenStage.Frenzy ? 7f : 2.6f + 9f * swell * swell));
-            float rx = 34f * pulse * (1f + 0.22f * swell) * (1f - 0.2f * air), ry = (last ? 18f : 25f) * pulse * (1f + 0.3f * swell) * (1f - 0.22f * air);
+            // (landing from a dive: squashed flat and wide, wobbling back)
+            float rx = 34f * pulse * (1f + 0.22f * swell) * (1f - 0.2f * air) * (1f - 0.2f * squash), ry = (last ? 18f : 25f) * pulse * (1f + 0.3f * swell) * (1f - 0.22f * air) * (1f + 0.32f * squash);
             float ax = -(tr * 0.55f + rx - 2f);
-            float fl = Mathf.Sin(t * (air > 0f ? 80f : 52f)), legIn = 1f - 0.65f * air;
+            float fl = Mathf.Sin(t * (air > 0f ? 80f : 52f)), legIn = 1f - 0.65f * air + 0.45f * Mathf.Max(0f, squash);  // (splayed as she lands)
 
             // legs
             for (int sd = -1; sd <= 1; sd += 2)
@@ -119,6 +121,7 @@ namespace Arena
                     Circle(f.P(ax - rx + 4f - p * 26f - i * 2f, 4f + Mathf.Sin(i * 2.1f) * 5f + p * 4f), (2.4f - 1.4f * p) * K, QHoney.WithAlpha(a * (1f - p)), 8);
                 }
             }
+            queenTip = f.P(ax - rx - 8f, 0f);
             // the ovipositor (flaring as she lays, with a spurt of honey behind)
             if (laying)
             {
@@ -201,6 +204,70 @@ namespace Arena
         }
 
         static V2 QW(HiveFrame f, float x0, float y0, float cs, float sn, float x, float y) => f.P(x0 + x * cs - y * sn, y0 + x * sn + y * cs);
+
+        V2 queenTip;  // where her ovipositor is this frame (her eggs fly from it)
+
+        /// The landing from a royal dive, 1 at the hit wobbling down to 0 over 0.45 s (negative on the rebound).
+        static float QueenSquash(QueenState q)
+        {
+            if (q == null || q.TransT > 0f || q.Turn != QueenTurn.Dive || q.DiveT < Game.DiveLand)
+                return 0f;
+            float k = (q.DiveT - Game.DiveLand) / 0.45f;
+            return k >= 1f ? 0f : (1f - k) * (1f - k) * Mathf.Cos(k * MathX.Pi * 3f);
+        }
+
+        /// Her eggs, as she lays them: each arcs from her ovipositor to where it lands, with a fading trail.
+        void DrawEggFlights(Enemy queen, float t)
+        {
+            var q = queen.Queen;
+            if (q.TransT > 0f || q.Turn != QueenTurn.Eggs || q.TurnT >= Game.EggFlight)
+                return;
+            float p = q.TurnT / Game.EggFlight;
+            foreach (var egg in game.Enemies.Values)
+            {
+                if (egg.Type != EnemyType.HiveEgg)
+                    continue;
+                for (int k = 3; k >= 0; k--)
+                {
+                    float u = Mathf.Max(0f, p - k * 0.06f), h = 90f * Mathf.Sin(MathX.Pi * u);
+                    V2 at = V2.Lerp(queenTip, egg.Disp, u) + new V2(0f, -h);
+                    if (k > 0)
+                        Circle(at, 6f - k * 1.3f, QHoney.WithAlpha(0.45f - k * 0.12f), 8);
+                    else
+                    {
+                        Circle(at, 12f, HiveWax.WithAlpha(0.25f), 12);
+                        Circle(at, 8.5f, HiveWax, 12);
+                        Circle(at + new V2(2f, 0f), 3f, QHoney, 8);
+                    }
+                }
+            }
+        }
+
+        /// On the floor where she lands from a dive: wax cracks shooting out, honey splashed round, dust rolling out and fading.
+        void DrawDiveLanding(Enemy e, QueenState q, float t)
+        {
+            if (q.DiveT < Game.DiveLand || q.DiveT >= Game.DiveLand + 0.7f)
+                return;
+            float k = (q.DiveT - Game.DiveLand) / 0.7f, ek = 1f - (1f - k) * (1f - k), R = Game.DiveRadius;
+            V2 at = q.Shadow;
+            for (int i = 0; i < 7; i++)  // cracks
+            {
+                float an = i * MathX.Tau / 7f + QRnd(i + q.Dives * 7) * 0.5f, len = R * (0.9f + 0.5f * QRnd(i + 20)) * Mathf.Min(1f, k * 5f);
+                V2 d = V2.FromAngle(an), mid = at + d * len * 0.55f + V2.FromAngle(an + 1.4f) * 8f;
+                Line(at + d * 18f, mid, 2.5f, QDark.WithAlpha(0.7f * (1f - k)));
+                Line(mid, at + d * len, 1.6f, QDark.WithAlpha(0.6f * (1f - k)));
+            }
+            for (int i = 0; i < 9; i++)  // honey splashed
+            {
+                float an = i * MathX.Tau / 9f + QRnd(i + 40), d = R * (0.35f + 0.5f * QRnd(i + 50)) * Mathf.Min(1f, k * 6f);
+                Circle(at + V2.FromAngle(an) * d, (5f + 6f * QRnd(i + 60)) * (1f - 0.3f * k), QHoney.WithAlpha(0.55f * Mathf.Sqrt(1f - k)), 10);
+            }
+            for (int i = 0; i < 14; i++)  // dust
+            {
+                float an = i * MathX.Tau / 14f + QRnd(i + 70) * 0.4f, d = R * (0.4f + 0.8f * ek) * (0.85f + 0.3f * QRnd(i + 80));
+                Circle(at + V2.FromAngle(an) * d, 7f + 12f * k, HiveWax.WithAlpha(0.3f * (1f - k)), 10);
+            }
+        }
 
         /// A wing from its root (x, y in the frame), swept back along `ang`: a faint wax fill, its rim (notched when torn) and veins.
         void QueenWing(HiveFrame f, float x0, float y0, float len, float wid, float ang, float flap, bool torn, float alpha)
