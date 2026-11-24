@@ -3,14 +3,15 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Mender's Bow's Focus bar, Focus arrow, Scatter and its new held look (Core/BowFocus.cs; Docs/Mockups/menders-bow-rework.html).
+    /// The Mender's Bow's aim line and Focus meter, Focus arrow, Scatter and its new held look (Core/BowFocus.cs; Docs/Mockups/menders-bow-rework.html).
     ///
-    /// Always (it's how you play): the Focus bar beside you at full draw, a gold zone and a marker sweeping up and down
-    /// it; Scatter's cooldown as a teal arc under you; the gold Focus arrow wrapped in two wind ribbons and the small teal
-    /// Scatter arrows.
+    /// Always (it's how you play): your aim line closing from a wedge to a line as you draw, then at full draw turning into
+    /// the Focus meter, a marker running out along it and back into the gold zone at its far end; Scatter's cooldown as a
+    /// teal arc under you; the gold Focus arrow wrapped in two wind ribbons and the small teal Scatter arrows.
     /// With Visual effects on: the bow drawn 30% bigger (dark outline, gold tips, a green grip wrap) glowing gold while
-    /// the bar is up; after every shot the hand pulls a fresh arrow from the quiver on your back and swings it over your
-    /// shoulder onto the string; the bar pops in, bursts into shards on a Focus release (or shakes and fades on a miss);
+    /// the meter is up; after every shot the hand pulls a fresh arrow from the quiver on your back and swings it over your
+    /// shoulder onto the string; the meter snaps in, its zone bursts into shards on a Focus release (or it goes red, shakes
+    /// and fades on a miss);
     /// a Focus release flashes a gold ring and three wind crescents at the bow, says FOCUS!, and holds and shakes your
     /// own screen; the Focus arrow sheds wind streaks, bursts gold on each enemy it goes through and ends in a gust;
     /// Scatter snaps a fan of light, and its arrows that hit nothing stick in the floor a moment.
@@ -19,13 +20,13 @@ namespace Arena
         const byte PBowCrescent = 20, PBowFan = 21, PBowWind = 22, PBowGust = 23, PBowStick = 24, PBowImpact = 25;  // particle kinds (Juice.cs draws them through DrawBowFocusPart)
         public const float BowScale = 1.3f;   // the held bow, against the old model
         const float BowSwing = 0.25f;          // a fresh arrow from the quiver to the string (the bow's recovery)
-        const float BarW = 9f, BarH = 64f, BarBack = 40f, BarPop = 0.15f, BarFxLife = 0.6f;
+        const float BarPop = 0.15f, BarFxLife = 0.6f;  // the meter snapping in, and its look after a release
 
         static readonly Rgba BowWind = new Rgba(0.86f, 0.96f, 1f), ScatterTeal = new Rgba(0.5f, 0.9f, 0.85f), ScatterShaft = new Rgba(0.81f, 0.93f, 0.91f);
         static readonly Rgba FocusShaft = new Rgba(1f, 0.95f, 0.77f), BowGoldHot = new Rgba(1f, 0.89f, 0.48f), BowLeaf = new Rgba(0.35f, 1f, 0.55f);
 
         int barSeen;
-        float barFxT = 99f, barFxM, barFxZ;
+        float barFxT = 99f, barFxM;
         bool barFxOk;
         struct FocusCall { public V2 Pos; public float T; }
         readonly List<FocusCall> focusCalls = new List<FocusCall>();
@@ -58,7 +59,7 @@ namespace Arena
                 barSeen = game.BowReleases;
                 if (game.BowLastBar)
                 {
-                    barFxT = 0f; barFxOk = game.BowLastFocus; barFxM = game.BowLastMarker; barFxZ = game.BowZone;
+                    barFxT = 0f; barFxOk = game.BowLastFocus; barFxM = game.BowLastMarker;
                 }
             }
             for (int i = focusCalls.Count - 1; i >= 0; i--)
@@ -196,7 +197,20 @@ namespace Arena
             ArrowShape(b.Pos - dir * 18f, dir, 0.7f, 26f, ScatterShaft, ScatterTeal, 1.4f);
         }
 
-        // --- The Focus bar and Scatter's cooldown (WorldRenderer.cs, always) -------------------------------------------
+        // --- Your aim line, the Focus meter and Scatter's cooldown (WorldRenderer.cs, always) ----------------------------
+
+        const float AimFrom = 42f;     // the line starts this far past your body (past the drawn arrow's head)
+        const float AimLenMin = 120f, AimLenMax = 280f;  // its length at the start of a draw and at full (the meter's length)
+
+        /// The point `u` (0..1) along the meter (your aim line at full draw), `off` px to its side.
+        static V2 MeterPt(V2 a, V2 dir, float u, float off) => a + dir * (u * AimLenMax) + new V2(-dir.Y, dir.X) * off;
+
+        /// A band along the meter from u0 to u1, `half` px either side of the line.
+        void MeterBand(V2 a, V2 dir, float u0, float u1, float half, Rgba col)
+        {
+            SetColor(col);
+            Quad(MeterPt(a, dir, u0, -half), MeterPt(a, dir, u1, -half), MeterPt(a, dir, u1, half), MeterPt(a, dir, u0, half));
+        }
 
         void DrawBowFocusUi(float t)
         {
@@ -206,63 +220,119 @@ namespace Arena
             float cd = game.ScatterCooldown;
             if (cd > 0f)
                 Arc(me.Disp, me.Def.BodyR + 7f, 1.6f, ScatterTeal.WithAlpha(0.75f), 24, -MathX.Pi / 2f, MathX.Tau * Mathf.Clamp01(cd / Game.ScatterCd));
-            bool on = me.DrawT > 0f && game.BowFocusBar(me, me.DrawT);
-            float pop = 1f, m, z;
-            int state = 0;  // 0 live, 1 burst (Focus), 2 missed
-            if (on)
-            {
-                float since = me.DrawT - game.BowFull(me);
-                pop = Juicy ? BarEaseBack(since / BarPop) : 1f;
-                m = Game.BowMarker(since); z = game.BowZone;
-            }
-            else if (Juicy && barFxT < BarFxLife)
-            {
-                m = barFxM; z = barFxZ; state = barFxOk ? 1 : 2;
-            }
-            else
+            if (me.ParryActive || LaunchHides(me))
                 return;
-            V2 aim = V2.FromAngle(me.Aim);
-            V2 at = me.Disp - new V2(aim.X * BarBack, aim.Y * 10f);
-            float s = pop, alpha = 1f;
-            if (state == 2) { at += new V2(Mathf.Sin(barFxT * 90f) * 3f * (1f - barFxT / BarFxLife), 0f); alpha = 1f - barFxT / BarFxLife; }
-            if (state == 1) { float k = Mathf.Clamp01(barFxT / 0.35f); s = 1f + 0.6f * EaseOut3(k); alpha = 1f - k; }
-            if (alpha > 0.01f && s > 0.01f)
+            V2 dir = V2.FromAngle(me.Aim);
+            V2 a = me.Disp + dir * (me.Def.BodyR + AimFrom);
+            if (me.DrawT > 0f && !game.BowFocusBar(me, me.DrawT))
+                DrawBowAimClosing(me, a, dir, game.BowCharge(me, me.DrawT), t);
+            else if (me.DrawT > 0f)
+                DrawBowMeter(a, dir, me.DrawT - game.BowFull(me), t);
+            else if (Juicy && barFxT < BarFxLife)
+                DrawBowMeterGone(a, dir);
+        }
+
+        /// Drawing, before full: two rails close in from a soft wedge to one line as the charge builds, a bright core grows
+        /// out along the middle with the charge, and chevrons stream out along it, quicker and brighter as you near full.
+        void DrawBowAimClosing(Player me, V2 a, V2 dir, float c, float t)
+        {
+            var col = me.Def.Color.Mix(Rgba.White, 0.35f).Mix(BowGold, c * c);
+            float cone = 0.2f * (1f - c), len = Mathf.Lerp(AimLenMin, AimLenMax, c);
+            V2 l = V2.FromAngle(me.Aim - cone), r = V2.FromAngle(me.Aim + cone);
+            const int n = 8;
+            for (int i = 0; i < n; i++)  // the wedge between the rails, fading out
             {
-                System.Func<float, float, V2> P = (x, y) => at + new V2(x, y) * s;
-                System.Func<float, float> Y = v => BarH / 2f - v * BarH;  // 0 bottom .. 1 top
-                float hw = BarW / 2f, hh = BarH / 2f;
-                SetColor(new Rgba(0.043f, 0.059f, 0.075f, 0.92f * alpha));
-                Quad(P(-hw - 2f, -hh - 2f), P(hw + 2f, -hh - 2f), P(hw + 2f, hh + 2f), P(-hw - 2f, hh + 2f));
-                var edge = (state == 2 ? new Rgba(0.88f, 0.33f, 0.37f) : BowGold).WithAlpha(0.7f * alpha);
-                Line(P(-hw - 2f, -hh - 2f), P(hw + 2f, -hh - 2f), s, edge); Line(P(hw + 2f, -hh - 2f), P(hw + 2f, hh + 2f), s, edge);
-                Line(P(hw + 2f, hh + 2f), P(-hw - 2f, hh + 2f), s, edge); Line(P(-hw - 2f, hh + 2f), P(-hw - 2f, -hh - 2f), s, edge);
-                for (int i = 1; i < 8; i++)
-                    Line(P(-hw, -hh + i * BarH / 8f), P(-hw + 2f, -hh + i * BarH / 8f), 0.5f * s, new Rgba(1f, 1f, 1f, 0.18f * alpha));
-                bool hot = state == 0 && m >= z && m <= z + Game.BowFocusZone;
-                float y0 = Y(z + Game.BowFocusZone), y1 = Y(z);
-                if (hot)
-                {
-                    SetColor(BowGold.WithAlpha(0.3f * alpha));
-                    Quad(P(-hw - 4f, y0 - 4f), P(hw + 4f, y0 - 4f), P(hw + 4f, y1 + 4f), P(-hw - 4f, y1 + 4f));
-                }
-                SetColor((state == 2 ? new Rgba(0.55f, 0.55f, 0.55f, 0.5f) : hot ? BowGoldHot : BowGold.WithAlpha(0.55f)).WithAlpha((state == 2 ? 0.5f : hot ? 1f : 0.55f) * alpha));
-                Quad(P(-hw, y0), P(hw, y0), P(hw, y1), P(-hw, y1));
-                float my = Y(m);
-                var mc = (state == 1 ? Rgba.White : state == 2 ? new Rgba(0.88f, 0.33f, 0.37f) : hot ? Rgba.White : new Rgba(0.87f, 0.91f, 0.94f)).WithAlpha(alpha);
-                Line(P(-hw - 3f, my), P(hw + 3f, my), 1.6f * s, mc);
+                float u0 = i / (float)n, u1 = (i + 1f) / n, fade = 1f - (i + 0.5f) / n;
+                SetColor(col.WithAlpha(0.07f * fade * (0.6f + 0.4f * c)));
+                Quad(a + l * (len * u0), a + l * (len * u1), a + r * (len * u1), a + r * (len * u0));
+                var rail = col.WithAlpha((0.15f + 0.55f * fade) * (0.7f + 0.3f * c));
+                Line(a + l * (len * u0), a + l * (len * u1), 1.4f, rail);
+                Line(a + r * (len * u0), a + r * (len * u1), 1.4f, rail);
+            }
+            V2 le = a + l * len, re = a + r * len, side = new V2(-dir.Y, dir.X);  // little ticks at the rails' ends, turned inward
+            Line(le, le + (r - l).Normalized() * 5f + dir * -2f, 1.4f, col.WithAlpha(0.6f));
+            Line(re, re + (l - r).Normalized() * 5f + dir * -2f, 1.4f, col.WithAlpha(0.6f));
+            float core = len * c;  // the charge, along the middle
+            Line(a, a + dir * core, 2.2f, col.WithAlpha(0.18f));
+            Line(a, a + dir * core, 1.1f, Rgba.White.WithAlpha(0.55f + 0.3f * c));
+            Circle(a + dir * core, 2.2f + 0.8f * c, Rgba.White.WithAlpha(0.8f), 8);
+            for (int k = 0; k < 3; k++)  // chevrons streaming out
+            {
+                float u = Mathf.Repeat(t * (0.6f + 1.2f * c) + k / 3f, 1f);
+                V2 p = a + dir * (len * u);
+                float s = 3f, al = Mathf.Sin(u * MathX.Pi) * (0.25f + 0.45f * c);
+                Line(p - dir * s + side * s, p, 1.2f, col.WithAlpha(al));
+                Line(p - dir * s - side * s, p, 1.2f, col.WithAlpha(al));
+            }
+        }
+
+        /// Full draw: the aim line becomes the Focus meter. A slim dark track with ticks, the gold zone at its far end, and a
+        /// bright marker running out and back along it with a short trail; the track fills gold behind the marker, and the
+        /// zone flares while the marker is in it.
+        void DrawBowMeter(V2 a, V2 dir, float since, float t)
+        {
+            float pop = Juicy ? BarEaseBack(since / BarPop) : 1f;  // the rails snapping into a track
+            float half = 3.2f * pop, z = game.BowZone, m = Game.BowMarker(since);
+            bool hot = m >= z;
+            V2 side = new V2(-dir.Y, dir.X);
+            MeterBand(a, dir, 0f, 1f, half + 1.5f, new Rgba(0.03f, 0.045f, 0.06f, 0.6f));  // the track
+            var edge = BowGold.WithAlpha(0.45f);
+            Line(MeterPt(a, dir, 0f, -half - 1.5f), MeterPt(a, dir, 1f, -half - 1.5f), 1f, edge);
+            Line(MeterPt(a, dir, 0f, half + 1.5f), MeterPt(a, dir, 1f, half + 1.5f), 1f, edge);
+            for (int i = 1; i < 10; i++)  // ticks
+                Line(MeterPt(a, dir, i / 10f, -half - 1.5f), MeterPt(a, dir, i / 10f, -half + 0.5f), 0.8f, new Rgba(1f, 1f, 1f, 0.22f));
+            MeterBand(a, dir, 0f, m, half * 0.55f, BowGold.WithAlpha(0.28f));  // the fill behind the marker
+            // The zone: gold, flaring (a glow round it and a pulse) while the marker is in it.
+            if (hot)
+                MeterBand(a, dir, z - 0.015f, 1.015f, half + 6f + Mathf.Sin(t * 30f) * 1.2f, BowGold.WithAlpha(0.22f));
+            MeterBand(a, dir, z, 1f, half, hot ? BowGoldHot : BowGold.WithAlpha(0.6f));
+            V2 tip = MeterPt(a, dir, 1f, 0f);  // a chevron capping the far end
+            Line(tip + dir * 7f, tip - dir * 1f + side * (half + 5f), 1.6f, BowGold.WithAlpha(hot ? 1f : 0.7f));
+            Line(tip + dir * 7f, tip - dir * 1f - side * (half + 5f), 1.6f, BowGold.WithAlpha(hot ? 1f : 0.7f));
+            // The marker: a bright arrowhead pointing the way it's going, ghosts of where it just was behind it.
+            float goingOut = Mathf.Repeat(since / Game.BowFocusPeriod, 1f) < 0.5f ? 1f : -1f;
+            for (int g = 3; g >= 0; g--)
+            {
+                float mg = Game.BowMarker(Mathf.Max(0f, since - g * 0.025f));
+                V2 p = MeterPt(a, dir, mg, 0f);
+                float al = g == 0 ? 1f : 0.22f / g, w = (half + 4.5f) * (g == 0 ? 1f : 0.75f);
+                var mc = (hot ? Rgba.White : new Rgba(0.95f, 0.97f, 1f)).WithAlpha(al);
                 SetColor(mc);
-                Tri(P(-hw - 6f, my - 3f), P(-hw - 2f, my), P(-hw - 6f, my + 3f));
-                Tri(P(hw + 6f, my - 3f), P(hw + 2f, my), P(hw + 6f, my + 3f));
+                Tri(p + dir * (6f * goingOut), p + side * w - dir * (2f * goingOut), p - side * w - dir * (2f * goingOut));
             }
-            if (state == 1 && barFxT < 0.4f)  // the shards
+            Circle(MeterPt(a, dir, m, 0f), 2f, (hot ? BowGoldHot : Rgba.White), 8);
+        }
+
+        /// Just let go: the meter's last look. A Focus shot flashes the zone white, swells it and throws shards off it; a
+        /// miss turns the track red, shakes it sideways and fades it.
+        void DrawBowMeterGone(V2 a, V2 dir)
+        {
+            float k = Mathf.Clamp01(barFxT / BarFxLife), z = game.BowZone;
+            V2 side = new V2(-dir.Y, dir.X);
+            if (barFxOk)
             {
-                float k = barFxT / 0.4f;
-                for (int i = 0; i < 8; i++)
-                {
-                    float a = i / 8f * MathX.Tau + 0.3f, r = 6f + 40f * EaseOut3(k);
-                    Star4(at + new V2(Mathf.Cos(a) * r, Mathf.Sin(a) * r * 1.4f), 3f * (1f - k), BowGoldHot.WithAlpha(0.9f));
-                }
+                float q = Mathf.Clamp01(barFxT / 0.35f), al = 1f - q;
+                MeterBand(a, dir, 0f, 1f, 4.7f, new Rgba(0.03f, 0.045f, 0.06f, 0.85f * al));
+                MeterBand(a, dir, z - 0.02f * q, 1f + 0.02f * q, 3.2f + 9f * EaseOut3(q), Rgba.White.Mix(BowGold, q).WithAlpha(al));
+                V2 mid = MeterPt(a, dir, z + Game.BowFocusZone / 2f, 0f);
+                if (barFxT < 0.4f)
+                    for (int i = 0; i < 10; i++)
+                    {
+                        float an = i / 10f * MathX.Tau + 0.3f, rr = 8f + 46f * EaseOut3(barFxT / 0.4f);
+                        Star4(mid + new V2(Mathf.Cos(an) * rr * 1.3f, Mathf.Sin(an) * rr), 3.2f * (1f - barFxT / 0.4f), BowGoldHot.WithAlpha(0.9f));
+                    }
+                return;
             }
+            float al2 = 1f - k;
+            V2 off = side * (Mathf.Sin(barFxT * 90f) * 3f * (1f - k));
+            var red = new Rgba(0.88f, 0.33f, 0.37f);
+            MeterBand(a + off, dir, 0f, 1f, 4.7f, new Rgba(0.03f, 0.045f, 0.06f, 0.85f * al2));
+            MeterBand(a + off, dir, z, 1f, 3.2f, new Rgba(0.55f, 0.55f, 0.55f, 0.5f * al2));
+            Line(MeterPt(a + off, dir, 0f, -4.7f), MeterPt(a + off, dir, 1f, -4.7f), 1f, red.WithAlpha(0.8f * al2));
+            Line(MeterPt(a + off, dir, 0f, 4.7f), MeterPt(a + off, dir, 1f, 4.7f), 1f, red.WithAlpha(0.8f * al2));
+            V2 p = MeterPt(a + off, dir, barFxM, 0f);
+            SetColor(red.WithAlpha(al2));
+            Tri(p + dir * 6f, p + side * 7.7f - dir * 2f, p - side * 7.7f - dir * 2f);
         }
 
         /// The HUD pass (Juice.cs, with the damage numbers): FOCUS! over whoever let a Focus shot go.

@@ -102,7 +102,7 @@ namespace Arena
                 FillRect(0, 0, AW, AH, new Rgba(0f, 0f, 0f, 0.45f * EndBg));
             camZoomOn = zoomed;
 
-            if (aimLine && game.Me != null && !game.Me.Downed && !game.Me.ParryActive && !LaunchHides(game.Me))
+            if (aimLine && game.Me != null && !game.Me.Downed && !game.Me.ParryActive && !LaunchHides(game.Me) && !(game.Me.Weapon.Id == WeaponId.MendersBow && game.Me.DrawT > 0f))  // (a drawn bow has its own: BowFocusLook.cs)
                 DrawAimLine(game.Me, MouseArena(), t);
             if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.Revolver && game.Me.StunShots == 0)
                 DrawCylinder(game.Me, t);
