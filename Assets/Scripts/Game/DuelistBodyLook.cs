@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Arena
@@ -11,10 +12,35 @@ namespace Arena
     ///     mask aside (a dark face, violet eyes) while three violet silhouettes flicker round it, and snaps it back on;
     ///   into To the Death: it runs to the middle, points its sword at the floor and spins, its tip carving a crimson
     ///     circle, then raises the sword to its face and cuts down: a crimson flash, and it's battle-worn from there.
+    /// Its last stand (below 10%) starts with no change, so the look times it from when this client first saw it
+    /// (duelLastAt): it throws its cape off, half its mask breaks away to show a glowing crimson eye, a crimson shock
+    /// ring goes out and it gives one last salute, then drops low with its sword forward. From then on it fights
+    /// capeless and half-masked, its blade edged in crimson, a crimson glow pulsing round it.
     public partial class ArenaApp
     {
         static readonly Rgba DuelInk = new Rgba(0.04f, 0.045f, 0.07f, 0.95f), DuelDark = new Rgba(0.1f, 0.11f, 0.16f),
             DuelMask = new Rgba(0.95f, 0.93f, 0.9f), DuelWhite = new Rgba(0.95f, 0.96f, 1f);
+
+        const float DuelLastEntry = 1.4f;  // the last stand's entrance, seconds
+        // When each Duelist was first seen in its last stand (NaN: seen before it; -99: already in it when first seen).
+        readonly Dictionary<int, float> duelLastAt = new Dictionary<int, float>();
+
+        /// Seconds since this client saw the Duelist reach its last stand (large if it was already in it, -1 if not in it).
+        float DuelLastSince(Enemy e, float t)
+        {
+            var d = e.Duel;
+            bool last = d.Stage == DuelStage.LastStand;
+            if (!duelLastAt.TryGetValue(e.Id, out float at))
+                duelLastAt[e.Id] = at = last ? -99f : float.NaN;
+            if (!last)
+            {
+                duelLastAt[e.Id] = float.NaN;
+                return -1f;
+            }
+            if (float.IsNaN(at))
+                duelLastAt[e.Id] = at = t;
+            return t - at;
+        }
 
         void DrawDuelistBody(Enemy e, V2 pos, float r, float t)
         {
@@ -24,6 +50,21 @@ namespace Arena
             DuelPose(e, m.Face, out m.BladeAng, out m.Up);
             if (d != null && d.TransT > 0f)
                 DuelShiftPose(d, ref m, t);
+            if (d != null && d.Stage == DuelStage.LastStand)
+            {
+                m.LastSince = DuelLastSince(e, t);
+                float since = m.LastSince;
+                if (since < DuelLastEntry)
+                {
+                    m.Up = since < 0.75f;  // one last salute
+                    if (!m.Up)
+                        m.BladeAng = Mathf.Lerp(m.Face + 1.2f, m.Face + 0.05f, Mathf.Clamp01((since - 0.75f) / 0.25f));
+                }
+                else if (!m.Up)
+                    m.BladeAng = m.Face + (d.Dash != DuelDash.None ? 0f : 0.05f);  // low, sword straight forward
+            }
+            else if (d != null)
+                DuelLastSince(e, t);
             DrawMaestro(e, pos, r, m, t);
         }
 
@@ -37,6 +78,8 @@ namespace Arena
             public float Ghosts;     // 0-1: the Masquerade's violet silhouettes flickering round it
             public float Carve;      // 0-1: how much of the crimson circle its tip has carved
             public float Flash;      // 0-1: the crimson flash of the cut down its mask
+            public float LastSince;  // its last stand: seconds since it began (-1: not in it)
+            public bool Last => LastSince >= 0f;
         }
 
         static readonly Rgba DuelViolet = new Rgba(0.71f, 0.61f, 1f);
@@ -94,9 +137,11 @@ namespace Arena
             pos + V2.FromAngle(face) * (r * (up ? 0.2f : 0.35f)) + V2.FromAngle(face).Orthogonal() * (r * 0.8f);
 
         /// A rapier from `hand`: blade, ricasso, a gold cross-guard and a gold knuckle bow round the hand.
-        void DuelRapier(V2 hand, float ang, float len, float t)
+        void DuelRapier(V2 hand, float ang, float len, float t, float glow = 0f)
         {
             V2 d = V2.FromAngle(ang), s = d.Orthogonal();
+            if (glow > 0f)  // the last stand: a crimson edge
+                Line(hand + d * 6f, hand + d * len, 8f, DuelCrimson.WithAlpha(glow));
             Line(hand + d * 4f, hand + d * len, 3f, DuelWhite);
             Line(hand + d * 4f, hand + d * 14f, 4.5f, new Rgba(0.7f, 0.74f, 0.85f));
             Line(hand - s * 9f + d * 4f, hand + s * 9f + d * 4f, 3.5f, DuelGold);
@@ -147,6 +192,17 @@ namespace Arena
             }
         }
 
+        /// Half an ellipse: the `side` (+1 or -1) half along b.
+        void DuelHalfEllipse(V2 c, V2 a, V2 b, float side, Rgba col, int n)
+        {
+            SetColor(col);
+            for (int i = 0; i < n; i++)
+            {
+                float a0 = MathX.Pi * i / n, a1 = MathX.Pi * (i + 1) / n;
+                Tri(c, c + a * Mathf.Cos(a0) + b * (side * Mathf.Sin(a0)), c + a * Mathf.Cos(a1) + b * (side * Mathf.Sin(a1)));
+            }
+        }
+
         void DuelEllipseEdge(V2 c, V2 a, V2 b, float w, Rgba col, int n)
         {
             for (int i = 0; i < n; i++)
@@ -191,7 +247,20 @@ namespace Arena
             }
             float body = r * (1f - 0.08f * m.Bow);
             Rgba rim = m.Worn ? DuelCrimson : DuelSteel;
-            DuelCape(pos, body, face, r * m.CapeLen, m.CapeWidth, DuelCrimson.WithAlpha(0.9f), DuelGold, m.Worn, t, e.Id);
+            if (m.Last)
+            {
+                Circle(pos, r + 10f + 3f * Mathf.Sin(t * 5f), DuelCrimson.WithAlpha(0.1f + 0.06f * Mathf.Sin(t * 5f)), 28);  // the crimson glow
+                if (m.LastSince < 0.7f)
+                {
+                    float k = m.LastSince / 0.7f;  // the shock ring
+                    Arc(pos, r + 10f + 140f * k, 14f * (1f - k) + 2f, DuelCrimson.WithAlpha(0.8f * (1f - k)), 40);
+                }
+                float off = Mathf.Clamp01(m.LastSince / 0.9f);  // the cape thrown off behind, tumbling and fading
+                if (off < 1f)
+                    DuelCape(pos - f * (r * 3.2f * off), body, face + 1.4f * off, r * m.CapeLen, m.CapeWidth, DuelCrimson.WithAlpha(0.9f * (1f - off)), DuelGold.WithAlpha(1f - off), true, t, e.Id);
+            }
+            else
+                DuelCape(pos, body, face, r * m.CapeLen, m.CapeWidth, DuelCrimson.WithAlpha(0.9f), DuelGold, m.Worn, t, e.Id);
             // Body: ink edge, rim, dark coat.
             Circle(pos, body + 3f, DuelInk, 28);
             Circle(pos, body, rim, 28);
@@ -214,18 +283,41 @@ namespace Arena
                     Circle(mc + f * (body * 0.18f) + s * (k * body * 0.22f), 3f, DuelViolet.WithAlpha(m.MaskOff), 8);
                 mc += s * (body * 0.95f * m.MaskOff) + f * (body * 0.25f * m.MaskOff);
             }
-            DuelEllipse(mc, f * (body * 0.58f), s * (body * 0.62f), DuelMask, 18);
-            DuelEllipseEdge(mc, f * (body * 0.58f), s * (body * 0.62f), 1.4f, DuelInk.WithAlpha(0.6f), 18);
-            Arc(mc, body * 0.48f, 1.8f, DuelGold, 12, face - 1.2f, 2.4f);
-            for (int k = -1; k <= 1; k += 2)
+            if (m.Last)
             {
-                V2 eye = mc + f * (body * 0.18f) + s * (k * body * 0.25f);
-                DuelEllipse(eye, s * (body * 0.14f), f * (body * 0.06f), DuelInk, 10);
+                // Half a mask: the sword side has broken away (falling off during the entrance), a crimson eye under it.
+                float fall = Mathf.Clamp01((m.LastSince - 0.2f) / 0.9f);
+                if (fall < 1f)
+                    DuelHalfEllipse(mc + s * (body * 1.4f * fall) - f * (body * 0.4f * fall), f * (body * 0.58f), s * (body * 0.62f), 1f, DuelMask.WithAlpha(1f - fall), 10);
+                if (m.LastSince > 0.2f)
+                {
+                    V2 eyeR = mc + f * (body * 0.18f) + s * (body * 0.25f);
+                    float glow = Mathf.Clamp01((m.LastSince - 0.2f) / 0.3f) * (0.75f + 0.25f * Mathf.Sin(t * 8f));
+                    Circle(eyeR, body * 0.2f, DuelCrimson.WithAlpha(0.3f * glow), 10);
+                    DuelEllipse(eyeR, s * (body * 0.11f), f * (body * 0.07f), DuelCrimson.WithAlpha(glow), 10);
+                }
+                DuelHalfEllipse(mc, f * (body * 0.58f), s * (body * 0.62f), -1f, DuelMask, 10);
+                V2 top = mc + f * (body * 0.58f), bot = mc - f * (body * 0.58f);
+                for (int k = 0; k < 4; k++)  // the jagged break down the middle
+                    Line(Vec(top, bot, k / 4f) + s * (body * (k % 2 == 0 ? 0.05f : -0.06f)), Vec(top, bot, (k + 1) / 4f) + s * (body * (k % 2 == 0 ? -0.06f : 0.05f)), 1.6f, DuelInk);
+                Arc(mc, body * 0.48f, 1.8f, DuelGold, 8, face - 1.2f, 1.2f);
+                DuelEllipse(mc + f * (body * 0.18f) - s * (body * 0.25f), s * (body * 0.14f), f * (body * 0.06f), DuelInk, 10);
             }
-            if (m.Worn)
-                DuelCrack(mc + f * (body * 0.5f) - s * (body * 0.1f), -f, s, body * 0.6f);
+            else
+            {
+                DuelEllipse(mc, f * (body * 0.58f), s * (body * 0.62f), DuelMask, 18);
+                DuelEllipseEdge(mc, f * (body * 0.58f), s * (body * 0.62f), 1.4f, DuelInk.WithAlpha(0.6f), 18);
+                Arc(mc, body * 0.48f, 1.8f, DuelGold, 12, face - 1.2f, 2.4f);
+                for (int k = -1; k <= 1; k += 2)
+                {
+                    V2 eye = mc + f * (body * 0.18f) + s * (k * body * 0.25f);
+                    DuelEllipse(eye, s * (body * 0.14f), f * (body * 0.06f), DuelInk, 10);
+                }
+                if (m.Worn)
+                    DuelCrack(mc + f * (body * 0.5f) - s * (body * 0.1f), -f, s, body * 0.6f);
+            }
             V2 hand = m.MaskOff > 0f ? Vec(DuelHand(pos, body, face, m.Up), mc + s * (body * 0.5f), m.MaskOff) : DuelHand(pos, body, face, m.Up);
-            DuelRapier(hand, m.Up ? -MathX.Pi / 2f : m.BladeAng, r * 2.5f, t);
+            DuelRapier(hand, m.Up ? -MathX.Pi / 2f : m.BladeAng, r * 2.5f, t, m.Last ? 0.3f + 0.15f * Mathf.Sin(t * 6f) : 0f);
             if (m.Flash > 0f)
             {
                 Circle(pos, r + 6f + 30f * (1f - m.Flash), DuelCrimson.WithAlpha(0.35f * m.Flash), 28);

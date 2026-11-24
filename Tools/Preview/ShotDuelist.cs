@@ -6,6 +6,7 @@ using Arena;
 // DUELSHEET=<1-8>: one Duelist in the middle in that pose: 1 walking, 2 showing its lunge line, 3 lunging, 4 on guard,
 // 5 saluting (To the Death), 6 staggered, 7 a Masquerade decoy, 8 last stand (battle-worn). DUELSHEET=all: all eight.
 // DUELTRANS=<1 Masquerade|2 To the Death>,<s into the 2 s change>: the phase change's set piece (one Duelist in the middle).
+// DUELLAST=<s>: the last stand that long after it began (its entrance runs 1.4 s), one Duelist in the middle in its circle.
 // e.g. DUELSHEET=2 ZOOM=3 KNIGHT=1 CAMAT=800,450 Tools/Preview/shot.sh x hud 3 1 1
 static partial class Shot {
   static void DuelistSheetScene() {
@@ -21,6 +22,22 @@ static partial class Shot {
       de.Spawning = false; de.SpawnT = 0f; de.Disp = de.Pos = at; de.Facing = -0.5f;
       de.Hp = de.MaxHp * (to == DuelStage.Masquerade ? 0.64f : 0.29f);
       de.Duel = new DuelState { Stage = to - 1, TransTo = to, TransT = Math.Max(0.001f, 2f - into) };
+      foreach (var p in host.Game.Players.Values) { p.Pos = p.Disp = at + new V2(150f, 160f); p.Aim = MathX.Pi; }
+      return;
+    }
+    string last = Environment.GetEnvironmentVariable("DUELLAST");
+    if (last != null) {
+      float since = float.Parse(last, System.Globalization.CultureInfo.InvariantCulture);
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Effects.Clear(); host.Game.Bot = false;
+      var sp = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var at = new V2(Game.Width / 2f, Game.Height / 2f);
+      var de = (Enemy)sp.Invoke(host.Game, new object[] { EnemyType.Duelist, at, 0f, 0, false });
+      de.Spawning = false; de.SpawnT = 0f; de.Disp = de.Pos = at; de.Facing = -0.5f; de.Hp = de.MaxHp * 0.08f;
+      de.Duel = new DuelState { Stage = DuelStage.LastStand, Ring = 280f };
+      var fl = BindingFlags.NonPublic | BindingFlags.Instance;
+      var drawn = (Game)typeof(ArenaApp).GetField("game", fl | BindingFlags.Public).GetValue(app);
+      var seen = (System.Collections.Generic.Dictionary<int, float>)typeof(ArenaApp).GetField("duelLastAt", fl).GetValue(app);
+      seen[de.Id] = drawn.AnimT - since;
       foreach (var p in host.Game.Players.Values) { p.Pos = p.Disp = at + new V2(150f, 160f); p.Aim = MathX.Pi; }
       return;
     }
