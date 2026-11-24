@@ -136,7 +136,7 @@ namespace Arena
                 DrawPanelNeon(cabBootRect, cabBootE, 7f, 1.4f);  // Settings and Profile: the neon edge and glowing corners (MenuHolo.cs)
         }
 
-        bool cabGlass;  // the pause, lobby and Settings menus' list and run card are hologram glass (Settings and How to play windows too) (set round their drawing, MenuDrawer.cs)
+        bool cabGlass;  // the pause, lobby, Settings and Profile cabinets and the pause run card are hologram glass (their windows too) (set round their drawing, MenuDrawer.cs)
         float cabBootE = 99f;  // seconds into the cabinet's holo boot (99: none)
         Rect cabBootRect;
 
@@ -377,7 +377,7 @@ namespace Arena
             if (cabWinOn)
             {
                 CrtKit.LoadoutBox(cabWinRect, !CabNeon);
-                if (cabKind == 1 || cabKind == 2)  // a Settings section or How to play: the Tab screen's hologram glass (TabHolo.cs)
+                if (cabKind != 0)  // a Settings section, How to play or a profile option: the Tab screen's hologram glass (TabHolo.cs)
                     DrawHoloGlass(new Rect(cabWinRect.x + 1f, cabWinRect.y + 1f, cabWinRect.width - 2f, cabWinRect.height - 2f), WinNow);
             }
             cabWinEnabledWas = GUI.enabled;
