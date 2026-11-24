@@ -18,6 +18,7 @@ namespace Arena
         float whoCarPos, whoCarTarget;       // the carousel's place (in disks; whole numbers are a disk in the middle), and where it's easing to
         float carDragX = -1f, carDragFrom; // a drag across the disks: where it started, and the carousel's place then
         bool carDragged;               // the mouse moved enough that the press is a drag, not a click
+        int carBeforeNew;              // the disk in the middle when New profile was pressed (Cancel goes back to it)
 
         /// The disks on the carousel: every profile, then the blank disk while a new one is being named.
         int CarCount => whoList.Count + (whoEdit == "new" ? 1 : 0);
@@ -351,6 +352,7 @@ namespace Arena
             whoName = "";
             whoError = "";
             whoFocus = true;
+            carBeforeNew = CarMiddle;
             int blank = whoList.Count;
             whoCarTarget = Mathf.Round(whoCarPos) + CarOffsetFrom(Mathf.Round(whoCarPos), blank);
             if (!(fxOn && !fxReduced) || whoList.Count == 0)
@@ -365,13 +367,20 @@ namespace Arena
             return d > n / 2f ? d - n : d;
         }
 
+        /// Ends naming or renaming; a cancelled new profile's blank disk leaves and the carousel slides back to the disk it came from.
         void CancelWhoEdit()
         {
+            bool wasNew = whoEdit == "new";
             whoEdit = null;
             whoError = "";
-            whoCarTarget = Mathf.Round(whoCarTarget);
-            if (CarCount > 0)
-                whoCarPos = whoCarTarget = Mod(Mathf.RoundToInt(whoCarTarget), CarCount);
+            int n = CarCount;
+            if (n == 0)
+                return;
+            int back = wasNew ? Mathf.Clamp(carBeforeNew, 0, n - 1) : Mod(Mathf.RoundToInt(whoCarTarget), n);
+            float from = Mathf.Round(whoCarTarget);
+            whoCarTarget = from + CarOffsetFrom(from, back);
+            if (n == 1 || !(fxOn && !fxReduced))
+                whoCarPos = whoCarTarget = back;
         }
     }
 }

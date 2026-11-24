@@ -415,10 +415,7 @@ namespace Arena
             if ((DkKey(new Rect(bx, r.y + 76f, bw, 32f), "Save", Ui.Primary, true, 15) || enter))
                 WhoCommitEdit();
             if (canCancel && DkKey(new Rect(bx - bw - 8f, r.y + 76f, bw, 32f), "Cancel", Ui.Primary, false, 15))
-            {
-                whoEdit = null;
-                whoError = "";
-            }
+                CancelWhoEdit();
             if (whoError.Length > 0)
                 Ui.Label(new Rect(r.x + 16f, r.y + 76f, bx - bw - r.x - 40f, 32f), whoError, 13, Ui.Warn, TextAnchor.MiddleLeft, false, true);
         }
