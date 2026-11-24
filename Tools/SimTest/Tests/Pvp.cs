@@ -206,6 +206,41 @@ static partial class Program
         host.Leave("");
         client.Leave("");
 
+        // The lobby's PVP switch: off, the Hangout has no PvP; the client's lobby sees the switch.
+        {
+            int port2 = nextPort++;
+            var h2 = new Session();
+            h2.Host(port2, "Host", Role.Dps);
+            var c2 = new Session();
+            c2.Join("127.0.0.1", port2, "Friend", Role.Tank);
+            WaitForLobby(h2, c2);
+            PollBoth(h2, c2, 80);
+            Check(h2.HangoutPvp && c2.HangoutPvp, "PvP starts on in the lobby");
+            c2.SetHangoutPvp(false);
+            PollBoth(h2, c2, 40);
+            Check(h2.HangoutPvp, "only the host can flip the PVP switch");
+            h2.SetHangoutPvp(false);
+            PollBoth(h2, c2, 40);
+            Check(!h2.HangoutPvp && !c2.HangoutPvp, "the host turns it off; the client's lobby shows it off");
+            c2.StartHangout();
+            WaitForGame(h2, c2, dt);
+            Run(new[] { h2, c2 }, dt, 1f);
+            var g2 = h2.Game;
+            Check(g2.HangoutOn && !g2.PvpOn && !c2.Game.PvpOn, "with the switch off the Hangout opens without PvP, on every screen");
+            var t2 = g2.Players[c2.Game.MyId];
+            g2.Enemies.Clear();
+            float h0 = t2.Hp;
+            for (int f = 0; f < 120; f++)
+            {
+                g2.Me.Pos = g2.Me.Disp = new V2(500f, 450f);
+                t2.Pos = t2.Disp = c2.Game.Me.Pos = c2.Game.Me.Disp = new V2(600f, 450f);
+                h2.Poll(); g2.FixedStep(dt, new PlayerInput { Fire = true, AimAt = t2.Pos }); g2.Update(dt);
+                Step(c2, dt);
+            }
+            Check(t2.Hp >= h0 - 0.01f, "...so another player's shots don't hurt you");
+            h2.Leave(""); c2.Leave("");
+        }
+
         // Not in a normal run: a query with an attacker gives only enemies.
         var plain = new Session().Game;
         Check(!plain.PvpOn, "no PvP outside the Hangout");

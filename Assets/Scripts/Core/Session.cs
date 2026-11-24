@@ -141,7 +141,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 477;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 478;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -160,6 +160,7 @@ namespace Arena
         // Lobby mode (host decides; everyone sees it).
         public GameMode Mode = GameMode.Campaign;   // the mode picked (GameMode.cs); a resumed run plays the Campaign whatever it says (PlayMode)
         public bool HuntLong = true;                       // the Boss Hunt is the long one (Hunts.LongLength steps, Docs/LongHunt.md), not the ten
+        public bool HangoutPvp = true;                     // the Hangout's PvP is on (the lobby's PVP switch, host only; Pvp.cs)
         public bool HuntMapMode = true;                    // the Boss Hunt is played as a hunt map (Docs/HuntMap.md): a route of nodes you vote on instead of ten fixed waves
         /// The mode the next run plays: the one picked, except that continuing a saved run is the Campaign.
         public GameMode PlayMode => Resume == null ? Mode : Resume.IsHunt ? GameMode.Hunt : GameMode.Campaign;
@@ -1226,6 +1227,7 @@ namespace Arena
             w.Write((byte)HuntBoss);
             w.Write(HuntMapMode);
             w.Write(HuntLong);
+            w.Write(HangoutPvp);  // the lobby's PVP switch (Pvp.cs)
             // Continuing a saved run: its seats, so everyone's lobby can show them.
             w.Write(Resume != null);
             if (Resume != null)
@@ -1250,6 +1252,15 @@ namespace Arena
         }
 
         // --- Lobby mode ------------------------------------------------------------
+
+        /// Host: the lobby's PVP switch: whether players' attacks hurt each other in the Hangout (Pvp.cs).
+        public void SetHangoutPvp(bool on)
+        {
+            if (!IsHost || HangoutPvp == on)
+                return;
+            HangoutPvp = on;
+            BroadcastLobby();
+        }
 
         /// Host: the lobby's mode (GameMode.cs).
         public void SetMode(GameMode mode)
@@ -1612,6 +1623,7 @@ namespace Arena
                     HuntBoss = (EnemyType)r.ReadByte();
                     HuntMapMode = r.ReadBoolean();
                     HuntLong = r.ReadBoolean();
+                    HangoutPvp = r.ReadBoolean();
                     Resume = null;
                     if (r.ReadBoolean())
                     {
