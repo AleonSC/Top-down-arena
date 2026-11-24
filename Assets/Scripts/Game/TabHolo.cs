@@ -81,6 +81,7 @@ namespace Arena
                 GUI.matrix = Matrix4x4.TRS(new Vector3(offX, offY + r.center.y * (1f - sy) * scale, 0f), Quaternion.identity, new Vector3(scale, scale * sy, 1f));
                 holoBusy = true;
             }
+            Ui.Fill(r, new Color(0.02f, 0.05f, 0.12f, 0.97f));  // solid underlay: the arena no longer shows through
             DrawHoloGlass(r, now);
             draw();
             LobbyKit.Corners(r, 18f);  // the bracket corners the other menu boxes have
