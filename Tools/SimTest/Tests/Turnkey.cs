@@ -130,6 +130,29 @@ static partial class Program
         Check(foes == counted && doors.Count > 0, "doors and traps don't hold the wave open (Foes skips them)");
         Check(clientPhase && clientDoor, "the friend's game sees the Turnkey working and its door");
 
+        // Its doors stand in an outer wall, facing in: the body DoorIn from a wall's face, floor in front, none behind.
+        Func<Enemy, float> faceGap = d =>
+        {
+            V2 n = V2.FromAngle(d.Facing), face = d.Pos - n * Game.DoorIn;
+            float gap = float.MaxValue;
+            if (g.RoomsOn)
+                foreach (var w in g.CurrentWorld.Walls())
+                    if (!w.Round && Layouts.Inside(w, face - n * 2f, 0f)) gap = 0f;
+            if (!g.RoomsOn)
+                gap = Math.Min(Math.Min(Math.Abs(face.X - g.ArenaMin.X), Math.Abs(face.X - g.ArenaMax.X)), Math.Min(Math.Abs(face.Y - g.ArenaMin.Y), Math.Abs(face.Y - g.ArenaMax.Y)));
+            return gap;
+        };
+        Func<V2, bool> floor = p => g.CurrentWorld.Areas.Any(a => a.Contains(p));
+        bool inWall = doors.All(d => faceGap(d) < 1f), facingIn = doors.All(d => floor(d.Pos + V2.FromAngle(d.Facing) * 60f));
+        Console.WriteLine("  its doors: {0}; in a wall {1}, facing in {2}; rooms {3}", string.Join(" ", doors.Select(d => string.Format("({0:0},{1:0} {2:0}deg)", d.Pos.X, d.Pos.Y, d.Facing * 57.3f))), inWall, facingIn, g.RoomsOn);
+        Check(inWall && facingIn, "a Cell Door is built into an outer wall, facing into the arena");
+        Check(doors.Count < 2 || doors[0].Pos.FartherThan(doors[1].Pos, Game.DoorApart - 1f), "its doors stand apart along the wall");
+        var doorSpot = typeof(Game).GetMethod("DoorSpot");
+        var spotArgs = new object[] { new V2(800f, 450f), null, null };
+        bool found = (bool)doorSpot.Invoke(g, spotArgs);
+        V2 spotAt = (V2)spotArgs[1], spotIn = (V2)spotArgs[2];
+        Check(found && floor(spotAt + spotIn * 60f) && spotAt.DistanceTo(new V2(800f, 450f)) <= Game.DoorReach, "DoorSpot finds a free spot on a wall near the middle of the arena");
+
         // Its death jams its doors: no more Rioters.
         hurt.Invoke(g, new object[] { tk, 1e6f, 1 });
         Run(s, dt, 0.5f, null, () => { hold(); me.Pos = home; });
@@ -144,6 +167,47 @@ static partial class Program
         bool jammed = doors.All(d => !g.Enemies.ContainsKey(d.Id) || g.Enemies[d.Id].Phase == 2);
         Check(!g.Enemies.ContainsKey(tkId) && jammed && rioters.Count == before, "with its Turnkey dead a door jams shut and lets no more out");
         quiet();
+
+        // Being built: a door stands at its spot (phase 3) and opens for business when the work's done; if its Turnkey dies
+        // at the work, the half-built door goes.
+        var tk2 = put(EnemyType.Turnkey, home + new V2(300f, -200f));
+        tk2.T2 = 0f; tk2.PhaseT = 0f; tk2.Phase = 1;
+        Enemy building = null;
+        Run(s, dt, 1f, () => (building = g.Enemies.Values.FirstOrDefault(o => o.Type == EnemyType.CellDoor && o.ParentId == tk2.Id)) != null, () => { hold(); me.Pos = home; });
+        bool startedBuilt = building != null && building.Phase == 3 && tk2.Phase == 3;
+        Run(s, dt, 0.3f, null, () => { hold(); me.Pos = home; tk2.Pos = home + new V2(300f, -200f); });
+        bool clientBuilding = building != null && s[1].Game.Enemies.TryGetValue(building.Id, out var cb) && cb.Phase == 3;
+        Run(s, dt, Game.TurnkeyBuild, null, () => { hold(); me.Pos = home; tk2.Pos = home + new V2(300f, -200f); });
+        bool opened = building != null && building.Phase == 1;
+        Console.WriteLine("  a door being built: started {0} (the friend sees it {1}), working after {2:0.0} s {3}", startedBuilt, clientBuilding, Game.TurnkeyBuild, opened);
+        Check(startedBuilt && clientBuilding && opened, "a door stands at its spot while the Turnkey builds it, then starts letting Rioters out");
+        tk2.T2 = 0f; tk2.PhaseT = 0f; tk2.Phase = 1;
+        Enemy half = null;
+        Run(s, dt, 1f, () => (half = g.Enemies.Values.FirstOrDefault(o => o.Type == EnemyType.CellDoor && o.ParentId == tk2.Id && o.Phase == 3)) != null, () => { hold(); me.Pos = home; });
+        if (half != null) hurt.Invoke(g, new object[] { tk2, 1e6f, 1 });
+        Run(s, dt, 0.5f, null, () => { hold(); me.Pos = home; });
+        Check(half != null && !g.Enemies.ContainsKey(half.Id), "a door half built when its Turnkey dies goes with it");
+
+        quiet();
+
+        // In the Rooms world: on a wall with floor in front and none behind (not a wall between two rooms).
+        foreach (var gg in new[] { g, s[1].Game }) gg.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        Run(s, dt, 0.6f, null, () => { hold(); });
+        if (g.RoomsOn)
+        {
+            var hub = g.CurrentWorld.Areas[g.CurrentWorld.Hub];
+            var rArgs = new object[] { (hub.Min + hub.Max) * 0.5f, null, null };
+            bool rFound = (bool)doorSpot.Invoke(g, rArgs);
+            V2 rAt = (V2)rArgs[1], rIn = (V2)rArgs[2], rFace = rAt - rIn * Game.DoorIn;
+            bool onWall = g.CurrentWorld.Walls().Any(w => !w.Round && Layouts.Inside(w, rFace - rIn * 2f, 0f));
+            bool outer = floor(rFace + rIn * 40f) && !g.CurrentWorld.Areas.Any(a => !a.Sealed && !a.Floating && a.Contains(rFace - rIn * (Rooms.WallT + 16f)));
+            Console.WriteLine("  the Rooms world: a door spot {0} at {1:0},{2:0} facing {3:0},{4:0}; on a wall {5}, outer {6}", rFound, rAt.X, rAt.Y, rIn.X, rIn.Y, onWall, outer);
+            Check(rFound && onWall && outer, "in the Rooms world a door goes on an outer wall, facing in");
+        }
+        else
+            Console.WriteLine("  (the Rooms world didn't come up: its check skipped)");
+        foreach (var gg in new[] { g, s[1].Game }) gg.Diff.Set(DiffKnob.ArenaExpanding, 0f);
+        Run(s, dt, 0.3f, null, () => { hold(); });
 
         // A Floor Mine: arms, beeps when you step close, blows up.
         me.Pos = home;
