@@ -28,7 +28,7 @@ namespace Arena
             if (n > 0 && host && DkKey(new Rect(x + w - 110f, y + 2f, 110f, 24f), "Turn all off", Ui.Neutral))
                 foreach (var d in Modifiers.All)
                     session.SetModifier(d.Mod, false);
-            Ui.Label(new Rect(x, y + 28f, w, 18f), "// " + (host ? "click a card to turn it on or off. they last the whole run, for everyone (Practice Range too)."
+            Ui.Label(new Rect(x, y + 28f, w, 18f), "// " + (host ? "click a card to turn it on or off. they last the whole run, for everyone."
                 : "the host picks these. they last the whole run, for everyone."), 11, Ui.Muted);
             y += 46f;
 

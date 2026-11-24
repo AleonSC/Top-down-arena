@@ -103,7 +103,7 @@ namespace Arena
                 V2 at = ToUi(s.Pos + new V2(0f, -50f));
                 var ink = (s.Elite ? new Rgba(1f, 0.8f, 0.3f) : SpawnerRed).ToColor();
                 var box = new Rect(at.X - 80f, at.Y - 22f, 160f, 13f);
-                Ui.Label(box, "SPAWNER  ·  " + (s.Elite ? "ELITE " : "") + PracticeEnemyName(s.Type).ToUpperInvariant(), 10, ink, TextAnchor.MiddleCenter, true);
+                Ui.Label(box, "SPAWNER  ·  " + (s.Elite ? "ELITE " : "") + Defs.ListName(s.Type).ToUpperInvariant(), 10, ink, TextAnchor.MiddleCenter, true);
                 Ui.Label(new Rect(box.x, box.y + 12f, box.width, 12f), "every " + s.Every + " s  ·  " + s.Alive + "/" + s.Cap + " alive", 9, ink.WithAlpha(0.7f), TextAnchor.MiddleCenter);
             }
         }

@@ -24,7 +24,7 @@ namespace Arena
         static V2 LobbyTitleAnchor => new V2(LobbyTitleRect.x + 34f, LobbyTitleRect.center.y);
         /// The "!" connection key, at the column's right end (shown while the mouse is over it).
         static Rect LobbyInfoKey => new Rect(PartyX + PartyW - LobbyHeadKey, LobbyHeadY, LobbyHeadKey, LobbyHeadKey);
-        /// Campaign / Boss Hunt / Practice (or the Resume banner).
+        /// Campaign / Boss Hunt / Survival (or the Resume banner).
         static Rect LobbyModeRect => new Rect(PartyX, 82f, PartyW, 52f);
         /// "PARTY (n/3)", the line over the party cards.
         static Rect LobbyPartyLabel => new Rect(PartyX, 146f, 220f, 22f);
@@ -59,7 +59,7 @@ namespace Arena
 
         const float ModePageTop = 108f, ModePageBottom = 684f;
         static Rect ModePageRect => new Rect(PartyX, ModePageTop, W - 2f * PartyX, ModePageBottom - ModePageTop);  // the menu card grows into it (LobbyEnter.cs)
-        // Its pieces for the entrance (with the Back and title bands above): the carousel, TO THE LOBBY, and the page (with Practice's tabs).
+        // Its pieces for the entrance (with the Back and title bands above): the carousel, TO THE LOBBY, and the page.
         const float ModeHeadBandEnd = 78f, ModeGoBandX = 930f;
         static Rect ModeCarouselBand => new Rect(LobbyTitleBand.xMax, 0f, ModeGoBandX - LobbyTitleBand.xMax, ModeHeadBandEnd);
         static Rect ModeGoBand => new Rect(ModeGoBandX, 0f, W - ModeGoBandX, ModeHeadBandEnd);

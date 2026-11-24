@@ -9,7 +9,7 @@ Queen 2.5x), and every boss has 10% more on top (`BossHpBonus`), and every enemy
 listed damage. **Enemy damage grows about 1.5% a wave** (3% every two Campaign waves; Normal: 1.3x at wave 22, 2.5x at wave 100), on everything that hurts
 you. The host picks a [difficulty](#difficulty) in the lobby: Easy, Normal, Hard, Nightmare or Custom. Pick a role,
 then pick a mode: **Quick Play** (ten waves and a boss), the **Campaign** (100 waves, a boss after every 10th, then
-endless), a **Boss Hunt**, **Survival** or the **Practice Range**.
+endless), a **Boss Hunt** or **Survival**.
 
 There are no art assets: everything is drawn in code, and the game sets itself up when you
 press Play, so there are no scenes or prefabs to wire together.
@@ -61,7 +61,7 @@ no hover tips.
 | | Soldier | Elementalist | Summoner |
 |---|---|---|---|
 | **Tank** (150 HP + Ironhide, enemies prefer you) | Weapons: Scattergun (double damage and a shove point-blank; Alt lobs a Shock Grenade that stuns), Flak Cannon (airbursts at your cursor, shredding enemy bullets; Alt lays a proximity shell), Riot Repeater (rounds suppress: enemies hit shoot slower; Alt lobs tear gas), Grenade Launcher (4th key: HE grenades lobbed to your cursor; Alt lobs a smoke canister whose cloud jams regular enemies)<br>Abilities: Barrier, Roar, Bulldoze, **Deployable Cover** (4th choice, two charges of 12 s each: a "[" of steel plate lands 64 px in front of you along your aim, its back wall facing out and its arms reaching back toward you; from 0.4 s after the throw it stops every enemy shot that touches it and enemies can't walk through it, while your team's shots and bodies pass; it takes 400 damage (each shot wears it by what it would have hit for), up to three stand at once (another folds away the oldest), and they all fold away when the wave is cleared; its Rare card **Reinforced Plating** (two stacks) makes covers take 40% more damage and lets one more stand at once. A canister is tossed out and lands with a thump, the wall springs up, the arms swing back and bolt down; it dents, cracks and darkens as it wears, its bar going amber then red, and at 0 it bursts into tumbling plates and leaves scraps on the floor. Its sounds follow the look: a whoosh, the landing thump, a steel clang as the wall springs up, two clunks for the arms, a ratchet of bolts and a faint buzz as the light comes on; breaking is a crack, a ringing crash and plates clattering down; each shot it stops rings off it with a short ting, and folding away is two light clunks, a hiss and a click) | Weapons: Flamethrower (sets enemies burning), Frost Lance (a five-step frost chain that chills, freezes and shatters; parry cancels a step; Alt's Absolute Zero freezes everything near, then shatters it), Storm Hammer (a spinning hammer that electrifies what it hits), Wind Clash (4th key: a combo of air waves that hurt and shove; Alt's Tempest catches enemy shots round you)<br>Abilities: **Aeroaegis** (a wind vortex round the player your cursor is nearest: enemies can't enter, bullets are reflected), **Frost Nova** (freezes nearby enemies), **Flame Wall** (burns enemies, blocks bullets), **Flood** (4th choice, 16 s: you stamp and the ground floods 190 px round you for 6 s; enemies touching you take 10 and are thrown back 60 px (heavies and bosses only hurt), and every enemy wading in the water, which stays where you cast it, is slowed 40% (heavies and bosses 20%) and soaked **wet** (as Tsunami: lightning arcs to it) while it's in and 3 s after; a foam crest crashes out as it spreads, and after 6 s it drains back in, doing nothing. **Sounds:** a thud and splash as the wave crashes out, soft lapping while it floods, a gurgle as it drains; volume: Effects) | Weapons: Golem Staff (hold to lob a crushing boulder, + bullet-blocking Golem), Bone Guard (darts that cage enemies and thread them together, + 2 orbiting skeletons that shoot the caged; Alt raises an Ossuary Wall), Bear Totem (melee claws that cause bleeding, + Bear)<br>Abilities: **Golem Wall** (3 basalt golems that block bullets until they are broken; recasting replaces them), **Earthquake** (you slam the ground, then a Burrower breaks out at your cursor and tunnels through the enemies, biting each one it passes under), **Force Pact** (12 s cooldown: takes the regular enemy nearest your cursor (not bosses or boss adds) out of the wave; after a second of violet chains it comes back as your **thrall**: an enemy of that type on your side that fights within 240 px of you with its own attack at 75% damage, with 2.5x that type's health + 15 every two waves. Enemy shots and bodies hurt it, and a fallen thrall returns 15 s later as the same type (a ring of links round your feet fills while it's away). No enemy to take: it fizzles and the cooldown is refunded. Cast again on another enemy and the pact moves to that type; mastered, you keep two thralls: the last two types you chose), **Stampede** (the 4th choice, 14 s cooldown: a gate opens 60 px ahead and a line of 7 spirit beasts (bison, boars and stags) charges 320 px across your aim, trampling every enemy it meets for 20 damage (bosses and heavy enemies too) and shoving the rest along ahead of it; an enemy driven into a wall or a prop takes 15 more and is stunned for 0.5 s; bosses and heavies are run over, not carried; it does not block bullets; mastered: 9 beasts, and the herd turns and charges back over whatever stands in its path) |
-| **Healer** (140 HP, healing aura) | Weapons: Repulsion Cannon (hits fill a meter; hold Alt to pull enemies in), Revolver (Alt: Pistol Whip, a wide swing that destroys bullets and shoves enemies back), Mender's Bow<br>Abilities: Mend Pulse, **Adrenaline Shot** (instant, 14 s cooldown: injects the player closest to your cursor, you included, or just you when alone: 8 s of +30% move speed, +40% fire rate and 30% less damage taken; fire rate doesn't stack with Overdrive, the bigger wins; a heartbeat ring pulses round them while it lasts), Deployable Medkit (thrown at your cursor, 14 s cooldown: bursts into 6 healing orbs worth 15 health each that anyone can pick up for 6 s; a downed ally an orb reaches is picked up at 20% health), **Decoy Dummy** (4th choice, three charges of 4 s each: throws an inflatable soldier at your cursor, up to 280 px away; it lands, puffs up and from 0.7 s regular enemies within 240 px go for it and shoot at it instead of you (a boss or mini-boss only glances at a fresh one for a second). It has 40 health + 4 a wave: enemy shots that touch it stop there and wear it, and melee enemies bite it every half second and can't walk through it, while your team's shots pass. It lasts 12 s and up to three stand at once (another deflates the oldest); they all deflate when the wave is cleared. Shot down, it pops in a **confetti blast**: enemies within 90 px are stunned 0.4 s and shoved 60 px back (heavies are only stunned, bosses untouched). Its Rare card **Double-Ply** (two stacks) gives it 50% more health. It's a beige vinyl soldier with a red cross, a painted grin and a green helmet band that bobs, wobbles when hit and sags under half health; a dashed green ring shows its pull; popped, a gold ring flashes out, confetti flutters down and the empty skin zips off and lands flat. Sounds: a whoosh, a thump, a rising hiss and a rubbery boing as it puffs up, a squeak for each hit, a loud pop with a raspberry as it zips away, and a sighing hiss as it deflates) | Weapons: Radiant Orb (heals allies it passes), Chain Light (a cone of light, its damage shared between what's in it), Nimbus (a storm cloud follows your cursor, raining healing on allies under it and soaking enemies; click calls lightning on the spot beneath it; Alt spins it into a hurricane), Static Shock (4th key: hold for a cone of static that wires enemies into a shocking circuit and gives teammates Overcharge; Alt fires the Arc Cannon)<br>Abilities: **Healing Rain** (a rain at your cursor for 6 s: heals allies inside 8 HP a second, slows enemies 30%), **Gust Gate** (14 s cooldown: a ring of wind at your cursor, up to 340 px away, 140 px across, for 8 s. Anyone who walks through its edge, you included, gets +80% move speed for 3 s, fading over the last second; each player once per 1.2 s, and a new pass refreshes it. Enemies inside are pushed gently out (about 55 px a second; heavies half as hard, bosses not at all). Pale wind streaks circle it with dust riding them and a thin arc drains with its time; a boosted player trails speed lines and a swirl. Sounds: a rising gust on the cast and a swish for each pass), **Lumen Ward** (20 s cooldown: a huge cone of light from you toward your cursor for 6 s; it moves with you and turns as you aim. Allies inside heal 9 HP/s and enemy bullets inside it or touching its edge burn away), **Water Ward** (the 4th choice, 3 s: two drops of water fall from above and land on a ring 54 px round you, then circle you, up to 10 (at 10 the key reads FULL and a press does nothing). A drop that touches an enemy splashes: 12 damage to every enemy within 52 px, soaked **wet** for 4 s (as Tsunami: slowed 30%, lightning arcs to it). A drop that meets an enemy shot (not red aimed ones) eats it and bursts into a mist that soaks everything within 72 px, without damage. Drops last until used, or until you go down; the key shows how many are out. **Sounds:** a cool shimmer as you cast and a plop as each drop lands, a bright bloop and patter of spray for a splash, a hiss of steam and a soft puff of mist for a burst; volume: Effects) | Weapons: Sprite Staff (a firefly that seeds up to three enemies, + 2 healing sprites; seeded kills free more), Treant Rod (a root lash that mends allies it touches; the Treant roots and a root to you heals allies and slows enemies crossing it), Spirit Chalk (hold and drag to draw a line of spirit ink that burns enemies, heals allies on it (with the Warding Ink card it also blocks bullets); draw a loop round enemies to trap them)<br>Abilities: **Spirit Swarm** (5 healing sprites), **Phoenix** (a firebird that glides after your cursor for 10 s, shooting and sending out a healing pulse every 2 s: 8% max health to everyone within 220 px; it instantly revives a downed ally, ending itself), **Soul Lantern** (a lantern lands beside the ally nearest your cursor, or you when alone, and links to them for 6 s: it follows them, heals 8 health a second and flames the nearest enemy within 260 px for 7 every 0.6 s; 18 s cooldown) |
+| **Healer** (140 HP, healing aura) | Weapons: Repulsion Cannon (hits fill a meter; hold Alt to pull enemies in), Revolver (Alt: Pistol Whip, a wide swing that destroys bullets and shoves enemies back), Mender's Bow (Alt: Scatter, five small arrows in a fan)<br>Abilities: Mend Pulse, **Adrenaline Shot** (instant, 14 s cooldown: injects the player closest to your cursor, you included, or just you when alone: 8 s of +30% move speed, +40% fire rate and 30% less damage taken; fire rate doesn't stack with Overdrive, the bigger wins; a heartbeat ring pulses round them while it lasts), Deployable Medkit (thrown at your cursor, 14 s cooldown: bursts into 6 healing orbs worth 15 health each that anyone can pick up for 6 s; a downed ally an orb reaches is picked up at 20% health), **Decoy Dummy** (4th choice, three charges of 4 s each: throws an inflatable soldier at your cursor, up to 280 px away; it lands, puffs up and from 0.7 s regular enemies within 240 px go for it and shoot at it instead of you (a boss or mini-boss only glances at a fresh one for a second). It has 40 health + 4 a wave: enemy shots that touch it stop there and wear it, and melee enemies bite it every half second and can't walk through it, while your team's shots pass. It lasts 12 s and up to three stand at once (another deflates the oldest); they all deflate when the wave is cleared. Shot down, it pops in a **confetti blast**: enemies within 90 px are stunned 0.4 s and shoved 60 px back (heavies are only stunned, bosses untouched). Its Rare card **Double-Ply** (two stacks) gives it 50% more health. It's a beige vinyl soldier with a red cross, a painted grin and a green helmet band that bobs, wobbles when hit and sags under half health; a dashed green ring shows its pull; popped, a gold ring flashes out, confetti flutters down and the empty skin zips off and lands flat. Sounds: a whoosh, a thump, a rising hiss and a rubbery boing as it puffs up, a squeak for each hit, a loud pop with a raspberry as it zips away, and a sighing hiss as it deflates) | Weapons: Radiant Orb (heals allies it passes), Chain Light (a cone of light, its damage shared between what's in it), Nimbus (a storm cloud follows your cursor, raining healing on allies under it and soaking enemies; click calls lightning on the spot beneath it; Alt spins it into a hurricane), Static Shock (4th key: hold for a cone of static that wires enemies into a shocking circuit and gives teammates Overcharge; Alt fires the Arc Cannon)<br>Abilities: **Healing Rain** (a rain at your cursor for 6 s: heals allies inside 8 HP a second, slows enemies 30%), **Gust Gate** (14 s cooldown: a ring of wind at your cursor, up to 340 px away, 140 px across, for 8 s. Anyone who walks through its edge, you included, gets +80% move speed for 3 s, fading over the last second; each player once per 1.2 s, and a new pass refreshes it. Enemies inside are pushed gently out (about 55 px a second; heavies half as hard, bosses not at all). Pale wind streaks circle it with dust riding them and a thin arc drains with its time; a boosted player trails speed lines and a swirl. Sounds: a rising gust on the cast and a swish for each pass), **Lumen Ward** (20 s cooldown: a huge cone of light from you toward your cursor for 6 s; it moves with you and turns as you aim. Allies inside heal 9 HP/s and enemy bullets inside it or touching its edge burn away), **Water Ward** (the 4th choice, 3 s: two drops of water fall from above and land on a ring 54 px round you, then circle you, up to 10 (at 10 the key reads FULL and a press does nothing). A drop that touches an enemy splashes: 12 damage to every enemy within 52 px, soaked **wet** for 4 s (as Tsunami: slowed 30%, lightning arcs to it). A drop that meets an enemy shot (not red aimed ones) eats it and bursts into a mist that soaks everything within 72 px, without damage. Drops last until used, or until you go down; the key shows how many are out. **Sounds:** a cool shimmer as you cast and a plop as each drop lands, a bright bloop and patter of spray for a splash, a hiss of steam and a soft puff of mist for a burst; volume: Effects) | Weapons: Sprite Staff (a firefly that seeds up to three enemies, + 2 healing sprites; seeded kills free more), Treant Rod (a root lash that mends allies it touches; the Treant roots and a root to you heals allies and slows enemies crossing it), Spirit Chalk (hold and drag to draw a line of spirit ink that burns enemies, heals allies on it (with the Warding Ink card it also blocks bullets); draw a loop round enemies to trap them)<br>Abilities: **Spirit Swarm** (5 healing sprites), **Phoenix** (a firebird that glides after your cursor for 10 s, shooting and sending out a healing pulse every 2 s: 8% max health to everyone within 220 px; it instantly revives a downed ally, ending itself), **Soul Lantern** (a lantern lands beside the ally nearest your cursor, or you when alone, and links to them for 6 s: it follows them, heals 8 health a second and flames the nearest enemy within 260 px for 7 every 0.6 s; 18 s cooldown) |
 | **DPS** (110 HP, Momentum) | Weapons: Twin Rifle (streams cross at your cursor for 1.5×; hits load two grenades that Alt fires, left then right), Railgun (hold to charge a ricochet beam; Alt dumps the heat it builds as a cone of fire), Burst SMG (spins up: tighter and harder the longer you fire), Double Barrel (4th key: a side-by-side shotgun, one barrel a click)<br>Abilities: **Poison Dart** (8 s: a dart at the enemy nearest your cursor hits for 20 and poisons it for 18 a second over 5 s; if it dies while still poisoned, the poison jumps to the 3 nearest unpoisoned enemies within 180 px, 80% as strong and for the full 5 s again, and on from them when they die), **Airstrike** (16 s: throw a flare at your cursor, anywhere in the arena; a red lane lights up through it across your aim, wall to wall, and 1.2 s after the cast a jet carpets it: 55 a bomb, one every 140 px, each in 85 px; then the lane burns for 3 s at 15 a second. Allies are safe), Mark for Death, **Deployable Turret** (the 4th choice; 45 s cooldown: a crate drops on your spot and unfolds, and you climb in for 10 s: you can't move or dodge, and the turret fires twin barrels instead of your weapon. Hold Fire and it turns onto your cursor, spooling up from 7 to 30 rounds a second over 1.2 s; each round is 22 damage straight down the lane through the first 2 enemies, with a muzzle flash, gold tracers, casings and shakes that grow with the spool, and the barrels glow from steel to white-hot. The turret takes the damage meant for you (350 health, a bar under it that reddens as it wears); if it is wrecked you are thrown clear and it blows early. For the last 0.8 s it overheats and can't fire, then blows for 80 within 160 px. Press the key again to step out early: you are free at once and it overheats and blows after 0.8 s, so run. Heavy gunfire, a spin-up whine, an overheat alarm and a blast boom play with it. It folds away with no blast if you go down or the wave ends) | Weapons: Fireball (big, rolls through enemies, burning them), Arc Lightning (hold to tag up to 10 enemies in a wide cone, let go to chain lightning through them; Alt fires three forked bolts), Ice Shards (bank in orbit, launching at enemies that come near), Stonespear (slam up six hovering earth spears, throw them one by one or Alt all at one enemy)<br>Abilities: **Meteor** (a fireball streaks in over the warning circle, then 150 damage), **Blizzard** (slowing storm), **Tsunami** (a wave that soaks enemies: slowed, and lightning arcs to every wet one; a thin blue effect bar over a wet enemy drains as it dries), **Gale Wall** (the 4th choice; 18 s cooldown: a curved teal lens of wind 70 px in front of you for 5 s, staying where you cast it; enemy shots that reach it, red aimed ones too, stop and hang in it, each a charge (up to 40). Press the 1st ability again, or let it run out, to unleash a 70° cone 420 px toward your cursor: 40 damage + 6 per charge to each enemy in it (280 at full charge), shoving them back 80 px (half for Heavies, bosses aren't moved). The lens is a living plasma membrane: it boots out from its middle, every catch sends a ripple along it, held shots crackle, and as it fills it heats from violet to pink and flickers past 80%. A bar under you shows the charge, and your own screen outlines the cone. Sounds: a power-on sweep, a hum that rises with the charge, a thwip per catch, a chime when full, and a suck-in and boom on the unleash) | Weapons: Wolf Whistle (darts mark the prey your wolves hunt; every wolf biting at once is a takedown; kills grow the pack to 5, Alt merges it into an alpha, and the pack soaks 10% of your damage), Wisp Lantern (3 orbiting wisps you send out as your shots), Imp Caller (imps wait by you; tap to send them, hold to merge them into one big blast), Honeybee Staff (4th key: each click hatches a bee at your cursor that stings the nearest enemy once; hold Alt to spray slowing honey, and kills in it burst into free bees)<br>Abilities: **Bat Swarm** (8 bats circle you for a moment, then peel off and dive at enemies), **Hydra** (a three-headed hydra rises at your cursor for 8 s, each head spitting venom at a different enemy), **Alpha Call** (Blood Scent: your minions frenzy, building a stack with each bite, and lunge at 5) |
 
 **Wildcard** (a fourth role, locked until you have won a run as a Tank, a Healer and a DPS; a co-op win counts): it
@@ -73,7 +73,7 @@ class's icon (click one to turn the wheel to it); the 1st and 2nd chips choose w
 other slot's ability swaps over), and the preview casts whichever you clicked last. 125 health, no role passive (no taunt, no aura). The price: 10% less damage
 and 25% slower ability cooldowns (ultimate included). Class passives don't come with borrowed gear (a Hemomancer ability
 costs its health but there is no Blood Price bonus); a weapon's own cards still appear, and borrowed abilities earn
-mastery as usual. It can't be picked in the lobby or the Practice Range while locked. Bots keep their normal roles
+mastery as usual. It can't be picked in the lobby while locked. Bots keep their normal roles
 unless you give one the Wildcard role by hand. Design notes: [`Docs/Wildcard.md`](Docs/Wildcard.md).
 
 Generic upgrades (damage, fire rate, cooldowns, Extra Use, legendary cards) work for every class; minions
@@ -274,7 +274,7 @@ your weapon. Per extra projectile:
 | | **Wyvern Staff** (the 4th weapon key) | A wind **Wyvern** hovers over you (it comes with the staff; after Fire or a slam it drifts slowly back to you). Its **gale** (95 px round it) slows the enemies in it 30% (bosses 15%), shoves them away (34 px a second; not bosses or heavies) and slows enemy shots 30%; every enemy in it feeds your **Cinder** meter. **Fire** (hold): the Wyvern flies out to 120 px short of your cursor (no farther than 420 px from you) and streams fire at it for as long as you hold and have Cinder: 22 damage a second and burning (4 a second for 2 s). It costs 30 Cinder a second (the meter holds 100 and refills 6 a second, plus 1.5 for each enemy in the gale) and needs 15 to start. **Alt (7 s): Wyrm Slam**: the Wyvern dives to your cursor and slams the ground: 30 damage to every enemy within 130 px, stunned 1.2 s (heavies 0.6 s, bosses 0.4 s), small enemy shots there cleared, and 10 Cinder back for each enemy stunned (up to 40). A ring under your feet fills as the slam comes back | +25% breath damage and a 10% bigger gale and slam |
 | Healer · Soldier | **Repulsion Cannon** | Blasts enemies away in a 70° cone (240 px, 6 damage, 90 px push; bosses and heavies don't budge); enemies it hits shed tiny health orbs (heal 6, at most every 1.5 s each). **Undertow** (Alt): every blast that hits fills a meter (shown as a violet arc behind you), more per enemy the more it hits at once (1 enemy: 5, 2: 13, 3: 24, 4: 38, 5: 55, 6: 75, out of 100; no more past 8). Hold Alt (needs 10, the notch on the arc) to pull: a 60° current 300 px long drags enemies in it toward you at 140 px/s, stopping them just in front of you, slows them 40% and stings for 4 a second, while the meter drains 35 a second. You can't fire and move at 75% while pulling; let go (or run dry) and the next blast hits the crowd you gathered, filling the meter back up. Bosses and heavies don't budge. The pull has its own sound: an inhale as it starts, a swirling hum while you hold, a soft pop as it lets go. The meter empties if you change weapons | +20° wider, +2 damage and +30 px of push; the Undertow is 20° wider and pulls 30 px/s faster |
 | | **Revolver** | Six hard-hitting rounds, the last one heavy (double damage). **Tap** for perfectly aimed shots (one every 0.45 s, fast flying); **hold** to fan the hammer: after 0.2 s it empties the cylinder, a round every 0.07 s, each within 5° of your aim. Reloads in 1.2 s when empty, and slides rounds back in one at a time (every 0.25 s) once you stop shooting for 0.8 s. **Alt: Pistol Whip**: swing the gun in a wide arc (190°, 135 px) in front of you that destroys enemy bullets in it (big ones too, never a boss's red aimed shots), hits for 1.75x a round's damage and shoves enemies back; 4 s cooldown, shown as a short arc over your head filling up | +2 rounds in the cylinder, loaded as heavy rounds |
-| | **Mender's Bow** | **Hold to draw, release to fire** (you move at 85% while drawing). A tap looses a weak arrow (8 damage, heals 5); a full draw (0.9 s) hits for 40, flies at 950 px/s, pierces 2 and heals an ally it passes for 20. Let go within 0.25 s of full draw for a **perfect shot**: +25% (50 damage, heals 25). Holding longer keeps it at full; it never fires by itself | +1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan; taps stay single |
+| | **Mender's Bow** | **Hold to draw, release to fire** (you move at 85% while drawing). A tap looses a weak arrow (8 damage, heals 5); a full draw (0.9 s) hits for 40, flies at 950 px/s, pierces 2 and heals an ally it passes for 20. Holding longer keeps it at full; it never fires by itself. **Focus bar**: at full draw a bar pops up beside you with a gold zone (a fifth of the bar, at a new height each draw) and a marker sweeping up and down it (bottom to top and back every 0.8 s). Let go with the marker in the zone for a **Focus shot**: a gold arrow for 90 damage that goes through everything, heals an ally it passes for 30, flies at 1150 px/s and carries a gust of wind that shoves every enemy within 34 px of its path 70 px on and to the side (heavies half as far, bosses not at all); the bar bursts, FOCUS! pops up and your screen holds and shakes. Let go anywhere else and it's a plain full shot. **Alt: Scatter** (3 s cooldown, a teal arc under you while it cools): five small arrows in a 40° fan, 12 damage each, each heals an ally it passes for 6 and stops in the first enemy it meets, out to about 400 px; it drops a draw in progress | +1 arrow nocked: a full draw also looses an extra arrow (half damage) in a tight fan; taps stay single |
 | | **Twin Pistols** (4th key) | A pistol in each hand, **taking turns**: left, right, left (a round every 0.16 s, 10 damage, 780 px/s, within 1.5° of your aim). A hit can knock a **tiny health orb** loose (15% of hits, at most one per enemy every 1.5 s). **Alt: Laser Sights**: two thin red beams snap on from the muzzles and meet at your cursor (never closer than 120 px). For 4 s **both guns fire together** down the beams, a pair every 0.22 s, each round 14 damage (+40%), knocking orbs loose more often (25%); you move at 85%. 12 s cooldown from the press: a red bar over your head drains while the lasers are on, then a faint arc fills until it's ready | +1 round a shot, fanned a little, and Laser Sights lasts 1.5 s longer |
 | Healer · Elementalist | **Radiant Orb** | Hold fire to cast an orb of light (20 px) out to your cursor, up to 520 px away, and keep it there while you hold: drag it through enemies (8 damage to each it touches, 5 times a second) and over allies (4 healing, 5 times a second); let go and it fades | +1 Light Orb (Barrage adds one too) that circles your orb while it's out (you otherwise), hurting enemies and healing allies it touches |
 | | **Chain Light** | A 320 px cone of light (about 70° wide; Magnum Rounds widen it up to 100°, Homing Rounds narrow it 15% and strengthen it 10% a stack): 40 damage shared between every enemy in it (one alone takes it all), light arcing to each. Barrage adds cones edge to edge (60% damage each, like other weapons' Barrage copies), all within 200°: never a ring round you | +25% damage and a 15% longer cone |
@@ -337,8 +337,13 @@ your weapon. Per extra projectile:
 With your own Revolver, its cylinder shows as pips under your character (gold = heavy rounds), and a ring
 fills while it reloads. With **Visual effects** on, the gun kicks back and its cylinder clicks round on every shot, a flash
 and drifting smoke leave the muzzle and a brass casing flips out (a heavy round is a bigger, orange flash). The Mender's
-Bow's limbs bend as you draw, its arrowhead glints near full draw, a gold ring pops at full draw, and on release the
-string snaps and a ring of light flies off (gold for a perfect shot); arrows fly with a longer streak. Drawing only.
+Bow is drawn 30% bigger (a dark-outlined limb with gold tips and a green grip wrap) with a quiver on your back: its limbs
+bend as you draw, its arrowhead glints near full draw, a gold ring pops at full draw and the bow glows gold and trembles
+while the Focus bar is up; on release the string snaps and a ring of light flies off (gold for a Focus shot), and your
+hand pulls a fresh arrow from the quiver and swings it over your shoulder onto the string. A Focus shot flashes a gold
+ring and three wind crescents at the bow; its arrow is wrapped in two twisting wind ribbons, sheds streaks of wind,
+bursts gold on every enemy it goes through and ends in a gust. Scatter snaps a fan of light, and a Scatter arrow that
+hits nothing sticks in the floor a moment. Drawing only.
 
 Want a **wall of bullets** instead? The **Barrage** card (Rare, stacks to 3) makes every shot also fire a copy fanned
 out to the side (8° steps, alternating sides), at 60% damage. It stacks with the weapon upgrades above, so a Twin
@@ -525,7 +530,7 @@ for the Tank Elementalist, **Bloodbath** for the Tank Hemomancer, **Bone Phalanx
 are locked slots for ultimates still to come. Click a key to pick it (the picked one is in inverse video, like the
 weapon and ability keys): it goes to the host and the other players like your other picks, the detail box shows its
 charge time, what it does and what mastering it adds, and the preview casts it. Changing role or class goes back to
-key 0. The pick comes with you into the run, the Practice Range and a saved run (a continued run keeps the seat's).
+key 0. The pick comes with you into the run and a saved run (a continued run keeps the seat's).
 Mastery resets each run.
 
 ## Levels and upgrades
@@ -604,7 +609,7 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 
 ## Rules
 
-- **Timed waves:** a regular wave's enemies arrive over about 45 s instead of in one burst: a ramp-up (first 15%), three **surges** (at 20%, 48% and 76% of the window, about 7 s each) with quieter lulls between them (40% of the surge rate), then a taper as the wave dies down, and the wave ends when the last one is dead (the clear-up brings it to about a minute). Spawning waits while 14 + 3 every two waves (at most 60) foes are alive. Boss, Practice, designed, Zombie Infection and room-by-room waves keep their own pacing. Enemies pick the nearest breach (or the nearest valid spot in the Expanding arena's rooms, of four) to a player that is at least 350 px away, so big maps don't feel empty.
+- **Timed waves:** a regular wave's enemies arrive over about 45 s instead of in one burst: a ramp-up (first 15%), three **surges** (at 20%, 48% and 76% of the window, about 7 s each) with quieter lulls between them (40% of the surge rate), then a taper as the wave dies down, and the wave ends when the last one is dead (the clear-up brings it to about a minute). Spawning waits while 14 + 3 every two waves (at most 60) foes are alive. Boss, Zombie Infection and room-by-room waves keep their own pacing. Enemies pick the nearest breach (or the nearest valid spot in the Expanding arena's rooms, of four) to a player that is at least 350 px away, so big maps don't feel empty.
 - **Spawn portals:** on a timed wave the single enemies come in **bursts** (3 on wave 1, one more every 8 waves, up to 8) through a **spawn portal**: a violet digital gate whose segmented ring fills like a loading bar while it opens (1 s) where the burst comes in (an edge, a layout's enemy gate, a spot in the Expanding arena's rooms, never within 160 px of a player, and always with its whole ring clear of walls and pillars), then lets one enemy out every 0.35 s, with chevrons pointing the way they'll come. Shoot it closed (200 health, scaling like an enemy's) before it empties and it blows apart in a white flash: **the rest of its burst is cancelled**: +5 score each, plus 2 gold each as coins in the Expanding arena. An empty portal shrinks shut with no reward. Up to 2 portals are open at once (3 in a surge, when their rings chase faster and more bits pour in); with none open for 4 s a smaller burst comes anyway. Squads, Nests and breach waves keep their own way in.
 - **Recycling:** in the Expanding arena and Survival, a regular enemy that stays more than 1800 px from every standing player for 4 s comes back in at a fresh spawn spot near the party (the usual spawn-in, 0.6 s), so stragglers left behind on a big map keep the pressure on. Bosses, mini-bosses, portals, Nests, a duel room's enemies and Bound Wraiths stay where they are.
 - **Flank portals:** from wave 5, one burst in 4 (never a wave's first) opens **behind the party**, opposite the way the players are aiming: a red portal that takes 1.6 s to open, and a red arrow round your player points at it.
@@ -634,8 +639,8 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - If everyone is downed, it's game over. Clearing a wave revives anyone downed and heals everyone a bit.
 - **The Campaign is 100 waves, with a boss fight after every 10th.** Each wave of the old 50-wave track is fought
   twice (two "legs"), so enemies, new types and every number that grows by wave grow at half the pace: wave 37 plays
-  like wave 19 of the old run. **Wave numbers in this README are the Campaign's** (1-100). Quick Play, Boss Hunts, the
-  Practice Range and the Boss Lab have no legs: their wave n plays like Campaign waves 2n-1 and 2n (Quick Play's wave 10
+  like wave 19 of the old run. **Wave numbers in this README are the Campaign's** (1-100). Quick Play, Boss Hunts and the
+  Boss Lab have no legs: their wave n plays like Campaign waves 2n-1 and 2n (Quick Play's wave 10
   is the Campaign's 19-20), so halve a number here for them. XP, kill gold, chests and the Expanding arena's vectors per wave are halved to match, so you reach each
   boss about as strong as before. Runs saved before this stay 50 waves; Boss Hunts stay ten.
 - **A new enemy trickles in, and the last boss's fades out.** In a lesson that introduces an enemy (the Warden's and the Hive Queen's waves 2, 3, 4, 6, 7 and 8: Guards, Thugs, Security Guards, Riot Shields, Gas Grenadiers, Taser Guards, or their Hive counterparts), it arrives alone, after the wave's squads. After a boss, his faction fades over the next three waves (40%, 20%, 8% of the wave, singles only, no squads) with the tricky ones going first (Riot Shields, Gas Grenadiers and Taser Guards at once, the Security Guard after a wave, Thugs and Shivs (Bumbles and Hornets) after two, Rioters and Guards last), while the next faction's enemies come in at once. Later on, the **comeback squad** (two waves in every ten from wave 21) is big: an old boss's squad twice over, plus that faction's toughest enemy as an anchor, so a late Breakout is a crowd of Rioters. The Warden's first round is Rioters only (no Guards, so no Breakout either). Waves 1-2 have more enemies (12) and spawn faster, over a shorter window (24 s, the full 45 s by wave 11), so there's less waiting for the last few.
@@ -977,7 +982,7 @@ x projectiles x crits, plus boss legendary cards and companions) and compared wi
 picked sensibly from the same offers). A party far above typical meets a boss with more health: (how far above)
 to the 0.6 power, up to x3. Bosses after wave 40 already get +10% health every two waves for the same reason, so the bigger
 of the two applies, not both. Typical and weaker builds meet the usual boss, and a strong build still kills faster.
-Off in the Practice Range and the Boss Lab. (`run.sh 1 1 bosspower` prints the numbers.)
+Off in the Boss Lab. (`run.sh 1 1 bosspower` prints the numbers.)
 
 **Health at each phase change.** When a boss changes phase (every boss's phase shifts and last stand, and the
 Twin Reapers fusing and splitting) it knocks a few **small health orbs** loose in a ring just outside it: two
@@ -1044,7 +1049,7 @@ on their own (the arena floor does the reacting).
 
 ## Arena props
 
-Regular waves (not bosses, not the Practice Range) put things in the arena; boss fights only get health barrels.
+Regular waves (not bosses) put things in the arena; boss fights only get health barrels.
 What's left at the end of a wave stays for the next, and each wave tops it up; a boss wave clears it all away.
 
 | Prop | What it does |
@@ -1058,7 +1063,7 @@ What's left at the end of a wave stays for the next, and each wave tops it up; a
 ## Arena layouts
 
 Each **boss cycle** (the regular waves between two bosses) gets one of six fixed floor plans, picked at random and never
-the same one twice running. Boss waves, the Practice Range, Data Gates and the loadout preview are the plain open
+the same one twice running. Boss waves, Data Gates and the loadout preview are the plain open
 arena. A teal chip above the wave plate names the layout. Mockups: [`Docs/Mockups/arena-layouts.html`](Docs/Mockups/arena-layouts.html);
 design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
 
@@ -1153,7 +1158,7 @@ wave, everyone gets a shop before the boss:
 ## Expanding arena
 
 **The Campaign's and Quick Play's arena**: every new Campaign and Quick Play is played here (the **Simple Arena** modifier keeps the open arena
-instead; Boss Hunts, the Practice Range and runs saved before the Campaign use the open arena). Design:
+instead; Boss Hunts and runs saved before the Campaign use the open arena). Design:
 [`Docs/ExpandingArena.md`](Docs/ExpandingArena.md). It starts as the Classic box, already walled (no wrapping round the edges) with the camera following you at 1.5x
 (scroll to zoom out), and grows as you play:
 
@@ -1376,7 +1381,7 @@ everyone straight into any of the five.
 ## Run modifiers
 
 The lobby's **Modifiers** tab (on the tab row after Difficulty; it shows how many are on) lists 19 switches that change the
-whole run, for everyone (Practice Range too). They sit in three carousel rows, **Easier**, **Risky** and **Harder**, headed like
+whole run, for everyone. They sit in three carousel rows, **Easier**, **Risky** and **Harder**, headed like
 the Loadout's rows (the tier, a few words and how many of it are on): three cards in view, a bare arrow at each end and the
 mouse wheel to slide along. Each card has its tier's colour along the top, an icon, its name, what it does and an ON/OFF key
 like Ready's; click anywhere on a card to switch it. The **Enabled modifiers** box along the bottom holds a key for each one
@@ -1399,24 +1404,24 @@ with 1.6x its crates. **Nightfall** covers wherever the camera is, in every mode
 | Swift Foes | Enemies move 30% faster | Harder |
 | Famine | Enemies never drop health orbs (bosses still do) | Harder |
 | Lucky | Everyone starts with 3 extra upgrade rerolls | Easier |
-| Head Start | Everyone starts at level 3 (its two picks waiting) with a free legendary pick from the first boss's pool (not in the Practice Range) | Easier |
+| Head Start | Everyone starts at level 3 (its two picks waiting) with a free legendary pick from the first boss's pool | Easier |
 | Practiced | Abilities gain mastery twice as fast | Easier |
 | Bloodlust | Every kill heals its killer (2 HP + 0.1 every two waves, like Blood Moon), but enemies don't drop health orbs (bosses still do) and nobody regenerates (the Healer's aura stops healing themselves; it still heals allies) | Risky |
 | Gold Rush | Every kill gives everyone gold (like the Bazaar), and a shop opens before each boss; gold you don't spend is kept for the next shop instead of turning into XP | Easier |
-| Tiny Arena | After each boss, walls close in and take a quarter of the room (of its area), down to 40%. No wrapping round the edges while they're up, and bullets stop at them. They open for each boss's countdown and fight (not in the Practice Range) | Harder |
+| Tiny Arena | After each boss, walls close in and take a quarter of the room (of its area), down to 40%. No wrapping round the edges while they're up, and bullets stop at them. They open for each boss's countdown and fight | Harder |
 | Nightfall | Dark everywhere except 210 px round each player and a lantern beam (560 px, 48°) toward where each player aims; downed players lose their lantern | Harder |
 | Hunted | As each wave starts, one player (at random, among those standing) is hunted: every enemy goes for them (a Roar still pulls enemies off), and they deal double damage. Red brackets turn round them, and the HUD chip says who. While they're down, enemies pick someone else | Risky |
 | Death Throes | Every regular enemy (not bosses, nor things that give no XP) bursts into a ring of 6 slow shots 0.5 s after it dies, with a warning circle. Killing up close costs you | Harder |
 | Solid Walls | No wrapping round the edges: the arena's sides are walls (drawn as a glowing border), and bullets stop at them | Harder |
-| Cluttered | Every wave piles a lot more crates into the arena: 17 on wave 1, +3 every two waves, up to 48 (a normal run has 2 to 10), heavy crates from wave 15. They stay until enemy fire breaks them, so the field turns into a maze you have to wind through. Your shots still fly over them; enemy shots stop at them. Boss fights clear the arena, as usual. Not in the Practice Range | Harder |
+| Cluttered | Every wave piles a lot more crates into the arena: 17 on wave 1, +3 every two waves, up to 48 (a normal run has 2 to 10), heavy crates from wave 15. They stay until enemy fire breaks them, so the field turns into a maze you have to wind through. Your shots still fly over them; enemy shots stop at them. Boss fights clear the arena, as usual. | Harder |
 | Simple Arena | The open arena with its floor plans all run, instead of the Campaign's Expanding arena: no building rooms, and a path offer after each boss | Risky |
 | Second Wind | Once per boss cycle (waves 1-10, 11-20, ...), each player who goes down gets back up by themselves 2 s later at half health; it's used before a revive token. The HUD chip shows whether yours is ready. While anyone holds one, everyone being down isn't game over | Easier |
-| Zombie Infection | Every regular wave is a horde of green zombies, and the arena turns dark green. The count is the wave's usual x1.5 at wave 1, growing to x3 by wave 40, at most 60 alive at once (the rest come in as others fall), arriving faster so a bigger wave doesn't take longer; each zombie's XP is split so levels keep pace. **Seven kinds**: **Shambler** (wide triangle, slow, hits hard; from wave 1), **Runner** (narrow triangle, faster than you, packs of three; 5), **Spitter** (pentagon; hangs back and lobs acid that burns 10/s and slows 30%; 11, at most 4 a wave), **Bloater** (swelling circle; bursts into a spore cloud that slows 40%, on you if it reaches you; 15), **Crawler** (trapezoid; grabs and roots you for 1.5 s, 6/s, until you shoot it for 25; 17, at most 3), **Shrieker** (diamond; screams every 6 s, frenzying the zombies within 320 px: 30% faster for 4 s; 23, at most 2), **Mender** (cross; heals the zombies within 220 px by 15% every 3 s; 29, at most 2). **The dead rise:** a killed zombie has a 25% chance to get back up 3 s later (a green marker where it lies) at half health, worth no XP, and it won't rise twice; near a Mender it's 50%, in half the time. One that was burning or cut down by a melee weapon stays down (a Bloater never rises), and the wave isn't over until they're up and beaten. **Sounds:** a groan now and then from the horde, a wet rasp as the dead get back up, a spit, a grab, the Shrieker's scream, a Bloater's burst and a Mender's chime (volume: Enemies). Bosses, their adds and challenge rooms are unchanged. Not in the Practice Range (the zombies are in its picker, though) | Harder |
+| Zombie Infection | Every regular wave is a horde of green zombies, and the arena turns dark green. The count is the wave's usual x1.5 at wave 1, growing to x3 by wave 40, at most 60 alive at once (the rest come in as others fall), arriving faster so a bigger wave doesn't take longer; each zombie's XP is split so levels keep pace. **Seven kinds**: **Shambler** (wide triangle, slow, hits hard; from wave 1), **Runner** (narrow triangle, faster than you, packs of three; 5), **Spitter** (pentagon; hangs back and lobs acid that burns 10/s and slows 30%; 11, at most 4 a wave), **Bloater** (swelling circle; bursts into a spore cloud that slows 40%, on you if it reaches you; 15), **Crawler** (trapezoid; grabs and roots you for 1.5 s, 6/s, until you shoot it for 25; 17, at most 3), **Shrieker** (diamond; screams every 6 s, frenzying the zombies within 320 px: 30% faster for 4 s; 23, at most 2), **Mender** (cross; heals the zombies within 220 px by 15% every 3 s; 29, at most 2). **The dead rise:** a killed zombie has a 25% chance to get back up 3 s later (a green marker where it lies) at half health, worth no XP, and it won't rise twice; near a Mender it's 50%, in half the time. One that was burning or cut down by a melee weapon stays down (a Bloater never rises), and the wave isn't over until they're up and beaten. **Sounds:** a groan now and then from the horde, a wet rasp as the dead get back up, a spit, a grab, the Shrieker's scream, a Bloater's burst and a Mender's chime (volume: Enemies). Bosses, their adds and challenge rooms are unchanged. | Harder |
 
 ## Difficulty
 
 The lobby's **Difficulty** tab (on the tab row after Loadout): the host picks one of five cards, and everyone sees it (changing it takes back
-everyone's Ready). It applies to the whole run, Practice Range too, is kept in saved runs (a continued run keeps its
+everyone's Ready). It applies to the whole run, is kept in saved runs (a continued run keeps its
 difficulty), shows as a chip above the wave panel during the run (not on Normal), and is written in session
 recordings. **Custom** lets the host set every number below with a slider or by typing it in the box beside it
 (percent numbers are typed as percent: `12` is 12%); changing any number turns the difficulty into Custom, starting
@@ -1458,8 +1463,8 @@ on top (Tough Crowd, Frenzy, Swift Foes, Glass Cannon...).
 
 ## Quick Play
 
-**The lobby's first mode, and where a new profile starts.** In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt**,
-**Practice** or **Survival** on the mode carousel; the lobby opens next time on the mode the host last picked (a new profile: Quick Play).
+**The lobby's first mode, and where a new profile starts.** In the lobby the host picks **Quick Play**, **Campaign**, **Boss Hunt**
+or **Survival** on the mode carousel; the lobby opens next time on the mode the host last picked (a new profile: Quick Play).
 Picking it adds a **Quick Play** tab at the right end of the tab row: the run's shape (ten waves, the boss, endless), its rules, your Quick Play
 records (played, won, best wave, bosses), and **the boss pool**: a row for each of the ten bosses, with its model and name once
 you've beaten it anywhere, a **???** until then (on your first Quick Play the Warden shows, marked FIRST). It is laid out like the
@@ -1499,7 +1504,7 @@ stretch lit, your best time a gold line).
 
 ## Boss Hunt
 
-A new lobby opens on the **Game Mode** screen: the host picks **Quick Play**, **Campaign**, **Boss Hunt**, **Practice** or **Survival** on the mode carousel at the top (the mode in play is ringed in a neon tube of its colour; arrows, the mouse wheel or a click on a side mode turn it), and the mode's own page fills the screen under it (Practice has two: its waves and Training). **TO THE LOBBY** (top right, with the party count and how many are ready), Back or Esc go to the lobby (with Visual effects on, the screen blinks like a CRT changing channel: the mode page squashes to a bright line and the lobby opens out of it); the screen is part of the lobby, so going back to it never closes the lobby or drops anyone. In the lobby, the **mode card** at the top of the left column names the mode with its line; **CHANGE** (the host) or **VIEW** (a guest) opens the Game Mode screen again. Folder tabs stand on the big screen's top edge (the open one is lit in your role's colour and opens into the screen): the Saved loadouts star, **Loadout**, **Difficulty** and **Modifiers** at the left, and the **Hangout** at the right end; a second click on an open tab goes back to the Loadout. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); the Loadout tab takes you back (in the Practice Range too, where you can set them up but the range plays without them). A Boss Hunt is a short run that ends
+A new lobby opens on the **Game Mode** screen: the host picks **Quick Play**, **Campaign**, **Boss Hunt** or **Survival** on the mode carousel at the top (the mode in play is ringed in a neon tube of its colour; arrows, the mouse wheel or a click on a side mode turn it), and the mode's own page fills the screen under it. **TO THE LOBBY** (top right, with the party count and how many are ready), Back or Esc go to the lobby (with Visual effects on, the screen blinks like a CRT changing channel: the mode page squashes to a bright line and the lobby opens out of it); the screen is part of the lobby, so going back to it never closes the lobby or drops anyone. In the lobby, the **mode card** at the top of the left column names the mode with its line; **CHANGE** (the host) or **VIEW** (a guest) opens the Game Mode screen again. Folder tabs stand on the big screen's top edge (the open one is lit in your role's colour and opens into the screen): the Saved loadouts star, **Loadout**, **Difficulty** and **Modifiers** at the left, and the **Hangout** at the right end; a second click on an open tab goes back to the Loadout. **Perks** open from the **Perks** key right of your class name on the loadout (it shows your equipped perk and slots used, e.g. 1/2); the Loadout tab takes you back. A Boss Hunt is a short run that ends
 with one boss: **twenty steps** (see Hunt map below). Steps 1-19 bring only the boss's own enemies (its faction: for the Warden, Rioters and
 Guards, then Riot Shields, Gas Grenadiers, Security Guards and Taser Guards, its Breakout, Patrol and Cell block squads, and its Riot line on steps 10 and
 19); step 20 is the boss. Beat it and the hunt is won (**HUNT COMPLETE**); there's no endless, no
@@ -1524,7 +1529,7 @@ A perk is a rule you bring into a run, one per boss, unlocked by winning that bo
 **Perks** view (the loadout's Perks key): your **slots** on the left (one to start, a second after you win a full run, a third after you win five different
 hunts), and a card for each perk on the right. Click an unlocked card to equip it, click an equipped card (or the slot's
 *remove*) to take it off, and hover a card for the rules. A second perk from the same boss takes the first one's slot. Everyone
-brings their own perks in co-op, and each seat shows its perk icons on its party card. Perks are off in the Practice Range, the
+brings their own perks in co-op, and each seat shows its perk icons on its party card. Perks are off in the
 Boss Lab and the lobby preview. A saved run keeps each seat's perks, and when you continue it the view is read-only and shows
 what the seat was saved with. Equipped perks are saved with your profile.
 
@@ -1539,61 +1544,6 @@ the impact and breaks the plate into three pieces that fly off (with visual effe
 **Riot Gear** chip above the ability bar's XP strip fills from the bottom and shows the seconds left, then READY. Teammates' plates
 show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear's place. Other bosses' perks come later: the view shows them as locked placeholders. Runs don't yet note which perks were used (a
 "no perks" record variant is planned). Plan and build notes: `Docs/RiotGear.md`, `Docs/BossHuntsAndPerks.md`.
-
-## Practice Range
-
-In the lobby the host picks **Practice** (the Practice Range) on the mode carousel at the top (beside Quick Play, Campaign,
-Boss Hunt and Survival). Practice has two sections, as tabs on the big screen: **Practice** (build your own waves) and **Training**
-(short mechanic drills). Whichever you use, it's with everyone in the lobby, with upgrade picks between waves as usual, and
-**no XP counts**: a Practice run never reaches your profile (no rank XP, records, unlocks or run history), and the header
-says `NO XP · RESPAWN ON`. (Level-ups inside the run still give their upgrade picks.)
-
-**Respawn.** There's no game over in the Practice Range. When you go down, a **DOWNED** window opens in the middle of the
-screen and the wave keeps running behind it:
-
-- **RESPAWN HERE** (**R**): you're back on your feet where you fell, at full health, with the usual 1.5 s of invulnerability.
-  Each player respawns on their own; teammates can still revive you instead.
-- **RESTART WAVE** (the host's; **Enter**): clears the arena and starts this wave again after a short countdown, with
-  everyone on their feet at full health.
-- **BACK TO LOBBY** (the host's): everyone beams out, as from the pause menu.
-
-### Practice tab
-
-- **Waves** (left): a rack of cards, each with its number, level and what's in it (**+ Add**, **Copy**, **Remove**). The
-  **level** (1-50) sets how strong its enemies are: their health and fire rate as on that track wave of a normal run (level n is Campaign waves 2n-1 and 2n).
-  Tick **Loop the waves** to go round again after the last one; otherwise the run ends with **PRACTICE COMPLETE**.
-- **Enemies:** every regular enemy and boss is shown moving, as in a run, so you don't need to know their
-  names. **SORT** lists them by **Faction** (the basic eight, then each boss's faction in Campaign order, the boss first, each
-  section in its boss's colour with how many of it are in the wave), by **Job** (Pressure, Hunters, Zoners, Disruptors,
-  Anchors, then Bosses) or **A–Z**. The grid scrolls (mouse wheel, or click the bar at its right; sorted by faction, the
-  bar is striped in each faction's colour, so a click jumps to it). Click one to add it to the selected wave,
-  right-click (or its corner **-**) to take one away; hovering shows what it does. Bosses spawn first and bring their usual adds; the Twin Reapers come
-  as a pair.
-- **Shared:** everyone in the lobby sees the waves change as they're edited, with the editor's name on the wave
-  they're working on (players who can't edit follow along to it). The host can switch on **Let others edit** so
-  friends can change the waves too.
-- Everyone keeps their own loadout (the **Loadout** tab).
-- **Save** writes the setup to a text file named after the name box, in the `practice` folder next to the
-  sessions folder (**Folder** shows it). **Load** lists saved setups. The files are easy to edit by hand:
-
-  ```
-  # Top-Down Arena practice setup: warden drills
-  loop: no
-  wave 5: Grunt x4, Sniper x2
-  wave 10: The Warden x1, Shielder x2
-  ```
-
-  One line per wave: `wave <level>:` then each enemy as `<name> x<count>` (the count defaults to 1). Names
-  ignore case and "The". Unknown names are skipped and listed when you load.
-
-### Training tab
-
-Small, one-mechanic drills, laid out as cartridges in rows by group (**Move & Dodge**, **Weapons**, **Abilities**,
-**Enemies**, **Co-op**; four slots each, empty ones dashed). Click a drill to see its goal and steps, then **Load this drill**
-(the host's): its waves go into the Practice setup (so everyone sees them on the Practice tab), and Ready and Start play it
-with the rules above. Built-in drills: **Dodge Basics** (Move & Dodge): three short waves to slip through, Mortar rings, Spinner spirals, then a mixed volley with Grunts (dodge through it), ending with PRACTICE COMPLETE. Drills are
-`.training` text files: put them in the `training` folder (next to `practice`; **Folder** opens it, **Reload** re-reads it).
-The file is a Practice setup with a few extra lines first, and is documented in [`Docs/Training.md`](Docs/Training.md).
 
 ## Controls
 
@@ -1692,7 +1642,7 @@ afford it); everyone gets their share as if you'd walked there: a Gold chest's g
 chest's vectors straight to each stock, each player's card at their own feet (take it or throw it away; it's swept to you as
 the wave starts), a piece chest's or a Buildables chest's card at each player's feet too. Walking there stays free, and it only
 works between waves. In the arena, a small tag floats over every unopened **Gold** and **Vector** chest with what you get from it
-(**+56 GOLD**, **+24 VECTORS**; everyone gets the same), and **FULL** over a vector chest while your stock is full. Build and Next wave are left out when there is no building round (Practice, hunts, the last
+(**+56 GOLD**, **+24 VECTORS**; everyone gets the same), and **FULL** over a vector chest while your stock is full. Build and Next wave are left out when there is no building round (hunts, the last
 wave, a full map, other arenas): Results shows the next wave's panel then. Along the bottom of every tab: the **Start wave n**
 key (Y, bottom right), the **Auto-ready** switch, the status and the countdown bar. Skipping the build is fine (pieces keep
 for a later break): while you hold pieces, **n pieces saved for later** shows over the key. The next wave only starts once **everyone is ready**, **3 seconds** after the last Ready, and there is no
@@ -1709,7 +1659,7 @@ for the Hive Queen, violet for the Singularity...). A soft low pulse hums every 
 takes you. When it opens and the box isn't on your screen (shopping, building, or folded away), a toast at the top says
 **THE BOSS GATE IS OPEN**, with the boss's name and how many are in, for 4 seconds. It shows as a ring on the minimap and, when you're zoomed in, as an arrow at the edge of the view. The box's last tab reads **Gate**: **Go to the gate** (Y) folds the box
 away, and the status shows how many are in. Bots walk in on their own.
-The first countdown of a run, the Practice Range and the dev tools' wave jump don't use ready-up. Mockup:
+The first countdown of a run and the dev tools' wave jump don't use ready-up. Mockup:
 `Docs/Mockups/wave-cleared-ready.html` (option 1).
 
 **Chat.** In a run, press **Enter** to open a text line at the bottom right, above your card and the teammates'
@@ -1728,7 +1678,7 @@ was when that wave started (everyone's upgrades, levels, gold, the map), a life 
 the run and shows the results. Closing the game keeps it at the wave's start, so **Continue** respawns it later (the
 saved-runs list shows the lives left). Out of lives it's a plain game over. A run won without using a life is
 **Deathless** (on the results screen and in Recent runs). Every boss beaten also leaves a **checkpoint** (CHECKPOINT
-SAVED in the wave box), the fallback if the wave's save is missing. Not in Boss Hunts, Quick Play or the Practice Range.
+SAVED in the wave box), the fallback if the wave's save is missing. Not in Boss Hunts or Quick Play.
 
 When a run ends a results screen in the level-up picker's style says **GAME OVER** (red, with the boss that
 stopped you) or **VICTORY!** (gold), with the wave reached, time, score and total kills as tiles, then a card per
@@ -1793,7 +1743,7 @@ Everyone in the run sees and hears your skin. Not ability **mastery**, which is 
 **XP for a run:** 20 per wave cleared, 150 per boss defeated, 40 per ally revived and 500 for a win, times
 (1 + each active modifier's bonus: **Harder +25%**, **Risky +15%**, **Easier +0%**, at most x3) and the difficulty's
 step (Easy x0.75, Normal x1, Hard x1.25, Nightmare x1.5, Custom x1). A hunt counts its waves and the boss, with no
-win bonus. The Practice Range and runs where dev tools (F1) or the bot were used earn nothing, like Records.
+win bonus. Runs where dev tools (F1) or the bot were used earn nothing, like Records.
 **Ranks:** rank *r* to *r+1* costs 200 x *r* XP (rank 8 needs 1,600). Tiers start every 10 ranks up to 100, every 50 up to 500 and every 100 up to **1000** (the max): Recruit (1-9), Challenger 10, Veteran 20, Champion 30, Legend 40, Elite 50, Master 60, Grandmaster 70, Warlord 80, Overlord 90, Mythic 100, Ascendant 150, Paragon 200, Titan 250, Colossus 300, Sovereign 350, Immortal 400, Eternal 450, Celestial 500, Cosmic 600, Astral 700, Radiant 800, Transcendent 900, Apex 1000. Each tier has its own badge colour (wings from 30, a star from 50, three stars from 150), and every rank adds a **mark** under the number (up to 9; the 50 and 100 rank tiers add one per fifth or tenth of their span), starting again at each new tier.
 
 **Where it shows:** a **shield badge** with your rank on your portrait in the lobby (hover for the title and, for
@@ -1902,7 +1852,7 @@ players report, and only accepts a frame or trail your rank has. XP, what's equi
 **Runs save themselves.** The host's game saves the run as each wave starts (once everyone has picked their
 upgrades, the path is chosen and the shop is closed), and again if the run is left or the game closed between
 waves. Every arena saves (Classic and Expanding, with its map). Leaving mid-wave keeps the save from that wave's start. A run that's won or lost loses its save. The
-Practice Range, the lobby's loadout preview and Boss Lab fights are never saved.
+The lobby's loadout preview and Boss Lab fights are never saved.
 
 **Records count the Campaign's waves** (1-100): best wave, best endless wave, Recent runs and the run charts. A profile
 from before the Campaign has its waves doubled once when it loads (a 50-wave run's wave n is about the Campaign's wave
@@ -1924,10 +1874,10 @@ with upgrades and abilities by name, so they keep working as the game changes.
 
 **Profile** (the old Records and Your look pages, merged; opened by clicking your player card on the main menu or in the lobby; the pause and lobby menus have no Profile row): the same loadout box as the pause menu's (same opening and windows, with an X key at its top right instead of a Back key), in Settings' holo look (neon edges and glowing corners on the box and its window, a glowing line from the open option across to the window): a title, a profile card (your rank badge, name with a pencil key, title and rank, XP bar), four quiet tab keys (small faded letters, the open one a small lit pill) and the open tab's options as keys; each option opens in a CRT window to the right that slides out the first time and only retypes after that (its X key and Esc close it first, then the profile). **Look** is the cosmetics above. **Rank** is Progress (rank, title, XP, the next unlocks), the Reward ladder, Tiers (the five titles with their rank ranges) and XP sources. **Records** is Overview, Bosses, Classes, Challenge rooms and **Recent runs** (below). **Unlocks** has a window per kind (Frame, Trail, Background, Card background, Name effect, Aim line, Cursor, Emotes) with a check or a padlock on each cosmetic, and the run-feat unlocks. The Records tab keeps this computer's player's runs started, won and lost, best wave, best endless wave,
 
-**Records > Recent runs** (Docs/RecentRuns.md): a strip of your last 20 runs (newest first, four at a time with arrows; each card says the mode, class, wave and won, died or quit; a run you leave before it ends counts too, with no XP), six tiles for the open run (result, time, wave, damage, damage taken, XP) and two tabs. **Overview** has three graphs: **damage per second** over the run (your line in gold with a blue team line when you played in a party, alternating bands for the waves, a red tint on boss waves, a red dot where you went down), **health** over time for everyone in the party, and **accuracy per wave**. Hover a time graph for a readout of that moment. **Trends** shows the wave reached and the damage dealt run by run (green won, red died); click a run on it to open it. Each finished run keeps a sample of everyone's totals and health every 10 seconds, in a small file in your profile's `runs` folder (the newest 20 are kept); Quick Play is tracked like a run (a quit one too); after a win, the endless stretch gets its own **Endless** card (Quick Play's or the Campaign's, fallen or quit: a fall adds its best endless wave and XP for the waves and bosses since the win, a quit no XP); runs from before this, Challenge rooms and Practice have no graphs (Boss Hunts and rooms keep their own records). Co-op: every player's profile keeps its own copy with the whole party's lines. Runs with dev tools or the bot are not kept, like the rest of Records.
+**Records > Recent runs** (Docs/RecentRuns.md): a strip of your last 20 runs (newest first, four at a time with arrows; each card says the mode, class, wave and won, died or quit; a run you leave before it ends counts too, with no XP), six tiles for the open run (result, time, wave, damage, damage taken, XP) and two tabs. **Overview** has three graphs: **damage per second** over the run (your line in gold with a blue team line when you played in a party, alternating bands for the waves, a red tint on boss waves, a red dot where you went down), **health** over time for everyone in the party, and **accuracy per wave**. Hover a time graph for a readout of that moment. **Trends** shows the wave reached and the damage dealt run by run (green won, red died); click a run on it to open it. Each finished run keeps a sample of everyone's totals and health every 10 seconds, in a small file in your profile's `runs` folder (the newest 20 are kept); Quick Play is tracked like a run (a quit one too); after a win, the endless stretch gets its own **Endless** card (Quick Play's or the Campaign's, fallen or quit: a fall adds its best endless wave and XP for the waves and bosses since the win, a quit no XP); runs from before this, Challenge rooms have no graphs (Boss Hunts and rooms keep their own records). Co-op: every player's profile keeps its own copy with the whole party's lines. Runs with dev tools or the bot are not kept, like the rest of Records.
 best score, time played, totals (kills, damage, healing, downs, revives), each boss beaten, and runs and wins per
 class. The host tells every player's game when a boss falls and when a run ends, so in co-op everyone's records
-grow. Practice Range runs, Boss Lab fights, and runs where dev tools (F1) or the bot were used don't count.
+grow. Boss Lab fights and runs where dev tools (F1) or the bot were used don't count.
 **Profiles:** the game asks **Who's playing?** at launch (`Docs/Mockups/whos-playing-carousel.html`): the monitor with
 WHO'S PLAYING? on its glass and the floppy drive in its chin, and under it one big floppy disk per profile on an endless
 side-scrolling carousel: the middle disk large, two either side smaller and fainter, wrapping round. Scroll with the **‹ ›** keys,
@@ -2210,22 +2160,6 @@ chart**, and **Settings → Gameplay → Lag chart** sets the same thing (saved 
   every quarter second (time, ping, snapshot gap, worst frame, fps, KB/s in and out) and a row for each wave, boss and
   storm.
 
-## Wave Lab (wave tester, no install)
-
-Open `Tools/WaveLab/standalone/wavelab.html` in any browser (double-click it, or open the file on a phone): one page, no server, works
-offline. Build a wave set (enemy palette, squads, spawn points A-E you can drag, props, timing, level), load a built-in set or a `.waves`
-file, pick a class, weapon, 1st ability and gear tier, then **Play**. Play by hand (WASD, mouse, 1, Q, Ctrl; on a phone two thumb
-sticks and buttons) or switch the **bot** (Casual / Good / Expert) on at any time; God mode and a start wave are optional. When a run
-ends, or on **Report**, a per-wave table (clear time, kills, damage dealt/taken, healing, lowest HP, downs) appears, with Copy CSV.
-It is a **simplified simulation**: enemies have the real health, size, speed and colour, but move and shoot in a few generic styles
-(chaser, dasher, shooter, ring, boss...), not the game's own AI. Edit `Tools/WaveLab/standalone/app.html`, then run
-`python3 Tools/WaveLab/standalone/build.py` to rebuild `wavelab.html` (after enemy or wave-set changes, refresh `meta.json` first from the
-faithful server below).
-
-**Faithful version (real game simulation, needs a host):** `Tools/WaveLab/run.sh` serves the same editor on top of the real C# game
-code, and `WaveLab.exe` from the repo's [wave-lab release](https://github.com/AleonSC/Top-down-arena/releases/tag/wave-lab) opens it in its
-own window on Windows. Use it when the simplified enemies are not close enough.
-
 ## Making a build to send to your friend
 
 In Unity, use the menu **Arena → Build Windows Game**. It builds to `Build/TopDownArena/` and opens the folder. Zip
@@ -2275,8 +2209,8 @@ its fields the game's keys are off. Outside a run only VIEW and LABS show.
   makes them elite). The pad shows a ghost of its enemy, a ring filling to the next one and a pip per enemy alive; its tag says what and
   how often. Up to 12 at once; **UNDO** takes the newest away, **CLEAR** all of them (their enemies stay). The wave won't clear while one
   keeps refilling.
-- **LABS > DEV ARENA (PLAY AS ENEMIES) (host):** a sandbox for trying enemies' attacks. From the menu or the lobby it starts a Practice
-  Range match and turns it on; in a run it turns on there. The field is cleared, everyone goes into god mode, no enemies arrive and the
+- **LABS > DEV ARENA (PLAY AS ENEMIES) (host):** a sandbox for trying enemies' attacks. From the menu or the lobby it starts a Quick
+  Play match and turns it on; in a run it turns on there. The field is cleared, everyone goes into god mode, no enemies arrive and the
   wave never clears. The Spawn-an-enemy sheet opens with a row on top: **CLICK: SPAWN** puts enemies in front of you as usual, **CLICK:
   PLAY AS** spawns one and hands it to you, **LET GO**, **CLEAR ARENA** and **LEAVE DEV ARENA** (the wave then clears as usual). Playing as
   an enemy: your hero stands still and the camera follows the enemy (gold brackets, "YOU", and a controls strip at the top). **WASD** moves
@@ -2306,7 +2240,7 @@ its fields the game's keys are off. Outside a run only VIEW and LABS show.
   game, and stay on top of upgrades they pick later; **Reset stats** goes back to what their upgrades give.
   Also **God mode** (takes no damage), **Full heal**, **Level up** (an extra upgrade pick) and **Max mastery**
   (every ability they have to mastery 5). Joining players can see everyone's stats but not change them.
-- **VIEW and LABS drawers:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), a bot that plays for you, **text editing** (also F4, below), open the practice folder, and the **Boss Lab**.
+- **VIEW and LABS drawers:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), a bot that plays for you, **text editing** (also F4, below) and the **Boss Lab**.
   **Account rank** (PARTY drawer) sets this computer's rank without playing for it: **+1**, **+10**,
   **30**, **MAX** (1000) and **RESET** (rank 1). Cosmetics the new rank hasn't reached come off. **MAX** also
   unlocks everything (every Boss Hunt, every perk, all perk slots, the Wildcard; saved on the profile) and **RESET** locks it
@@ -2404,34 +2338,6 @@ From the command line, `Tools/SimTest/run.sh 1 1 lab <wave> <skill 1-3> <runs> <
 fights without drawing and prints the results. A seat is role/class/weapon, for example `T/S/0` (Tank
 Soldier, first weapon), `H/M/1`, `D/U/2` (U = Summoner) or `T/K/0` (K = Knight).
 
-### Designed waves (.waves files)
-
-A designed wave set is a plain-text `.waves` file: spawn points A-E, then each wave's **level** (how strong its enemies
-are, as that wave of a run), its **groups** (who arrives, from which points, when and how: one by one with a gap,
-together, in a line or in a ring round a player; or a squad) and its **props**. Edit one by hand or in **Wave Lab**
-(`Tools/WaveLab/run.sh`), which also plays it.
-
-The `.waves` file is plain text, e.g.
-
-```
-point B 70,450
-wave 6 level 6
-  group Breakout rush | Rioter x6, Guard | from B | at 0 | every 0.4 | one by one
-  group Riot line | squad Riot line | from A | at 11
-  prop crate 610,330
-```
-
-**Building designed waves into the game.** Put a `.waves` file in the repo's `Data/Waves/` folder, then run
-
-```bash
-Tools/WaveGen/build.sh
-```
-
-It reads every file with the game's own parser and writes `Assets/Scripts/Core/DesignedWaves.Generated.cs`, code that
-builds each set, so a final build carries them with no loose files (`DesignedWaves.Get("<name>")`). A file with a
-problem stops it with the file, the line and what's wrong, and nothing is written. The `wavegen` sim test fails if a file
-was added or changed without running the script.
-
 ### Session recording (for balancing)
 
 **Record sessions** in the F1 menu is on by default (turn it off there; `--record` forces it on). A red **● REC** in
@@ -2448,7 +2354,7 @@ Unity console shows why (once per match).
 
 Each file records:
 
-- the team (role, class, weapon, ability, ultimate), party size, start wave, the mode (run or Practice Range),
+- the team (role, class, weapon, ability, ultimate), party size, start wave, the mode,
   run modifiers, and how it ended (a run continued into endless mode records its real end, marked "(endless)")
 - each player's final level and the abilities they ended with, at their mastery levels
 - **per wave:** length, the path it was played on, enemies spawned and killed by type, damage the floor did to enemies
@@ -2474,8 +2380,7 @@ python Tools/SessionReport/report.py path/to/sessions
 It prints boss kill rates and times, difficulty by wave (damage taken, downs, time at low health), what
 downs players, where damage and healing come from, how each path plays (damage taken, healing, downs, how
 often it's offered and taken), the most dangerous enemies per spawn, upgrade pick rates, ability use and
-mastery, parry use, and how each class and role performs. Runs that used dev tools are flagged, and Practice
-Range sessions are left out of the tables unless you add `--practice`.
+mastery, parry use, and how each class and role performs. Runs that used dev tools are flagged.
 
 `Tools/SimTest/run.sh 1 1 ttk [last-wave]` is a balance probe: it plays a whole run with invulnerable bots
 that level up and pick upgrades at random, and prints how long each boss survived.

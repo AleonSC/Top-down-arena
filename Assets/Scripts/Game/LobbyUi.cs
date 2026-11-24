@@ -3,15 +3,14 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The lobby: the mode switch (a normal run or the Practice Range), the party with each player's
-    /// character drawn live, your loadout with a big preview of your character, and in Practice Range
-    /// mode the shared wave editor (PracticeUi.cs).
+    /// The lobby: the mode card, the party with each player's character drawn live, and your loadout with a
+    /// big preview of your character.
     public partial class ArenaApp
     {
         
         static readonly Color ModColor = new Color(0.85f, 0.45f, 0.95f);
 
-        int lobbyTab;              // 0 = your loadout (its own key), 1 = practice waves, 2 = modifiers, 3 = difficulty, 4 = boss hunt, 5 = perks (from the loadout), 6 = hangout
+        int lobbyTab;              // 0 = your loadout (its own key), 1 = unused (was the Practice Range), 2 = modifiers, 3 = difficulty, 4 = boss hunt, 5 = perks (from the loadout), 6 = hangout
         bool connInfoOpen;         // the "!" popup by the title: hosting/port and the invite addresses
         readonly Player previewPlayer = new Player { Id = -100 };
 
@@ -58,11 +57,8 @@ namespace Arena
             lockedTipOn = false;
             LobbyEntry me;
             session.Lobby.TryGetValue(session.MyId, out me);
-            bool practice = session.PracticeMode;
             bool onModeScreen = IsModeTab(lobbyTab);  // (before the checks below close a page the mode no longer has)
             // A mode change keeps the open tab (the Loadout stays up) unless it was the old mode's own.
-            if (!practice && (lobbyTab == 1 || lobbyTab == TrainingTab))
-                lobbyTab = 0;
             bool hunt = session.HuntMode;
             if (!hunt && lobbyTab == 4)
                 lobbyTab = 0;
@@ -77,7 +73,7 @@ namespace Arena
                 lobbyTab = 0;
             // On the Game Mode screen (ModeScreenUi.cs), turning the carousel shows the new mode's page; in the lobby a mode change
             // (the host's, seen by a guest) leaves the open tab alone.
-            int modeNow = practice ? 3 : hunt ? 2 : survival ? 4 : quick ? 0 : 1;
+            int modeNow = hunt ? 2 : survival ? 3 : quick ? 0 : 1;
             if (lastLobbyMode != modeNow)
             {
                 if (onModeScreen && session.Resume == null)
@@ -166,7 +162,7 @@ namespace Arena
             if (session.Status.Length > 0)
                 Ui.Label(new Rect(lx, y - 4f, lw, LobbySetupY - 6f - (y - 4f)), session.Status, 12, Ui.Warn, TextAnchor.LowerLeft, false, true);
 
-            // --- Right: the tab keys, then your loadout or the practice waves.
+            // --- Right: the tab keys, then your loadout.
             var body = LobbyBodyRect;
             TickHangoutAnim();  // LobbyRoom.cs
             if (hangoutAnim > 0f && hangoutAnim < 1f && me != null && session.Resume == null)
@@ -205,7 +201,7 @@ namespace Arena
                 CloseFavorites();  // (also closes the Saved loadouts drawer)
             }
             DrawLobbyTabs();  // Difficulty, Modifiers and the Hangout (LobbyLayout.cs)
-            DrawLobbyActions(me, practice);
+            DrawLobbyActions(me);
             LobbyGlowBox(LobbyBackKey);
             LobbyGlowBox(LobbyLoadoutKey);
             if (session.Resume == null)
@@ -241,22 +237,22 @@ namespace Arena
             return session.Lobby.TryGetValue(1, out host) ? host.Name : "the host";
         }
 
-        // The mode carousel's turn: modeTurn is the mode on top (unwrapped, mode = modeTurn mod 5), modeTurnPos eases toward it.
-        // Modes: 0 Quick Play (QuickPlay.cs), 1 Campaign, 2 Boss Hunt, 3 Practice, 4 Survival (Survival.cs).
+        // The mode carousel's turn: modeTurn is the mode on top (unwrapped, mode = modeTurn mod 4), modeTurnPos eases toward it.
+        // Modes: 0 Quick Play (QuickPlay.cs), 1 Campaign, 2 Boss Hunt, 3 Survival (Survival.cs).
         int modeTurn;
         float modeTurnPos;
         bool modeTurnSet;
 
         static string ModeTitle(int i) => ModeDef.For((GameMode)i).Name.ToUpperInvariant();
         static string ModeSub(int i) => ModeDef.For((GameMode)i).Blurb;
-        static Color? ModeAccent(int i) => i == 0 ? new Color(1f, 0.82f, 0.4f) : i == 2 ? new Color(1f, 0.62f, 0.58f) : i == 3 ? new Color(0.37f, 0.94f, 1f) : i == 4 ? new Color(0.55f, 0.95f, 0.6f) : (Color?)null;
+        static Color? ModeAccent(int i) => i == 0 ? new Color(1f, 0.82f, 0.4f) : i == 2 ? new Color(1f, 0.62f, 0.58f) : i == 3 ? new Color(0.55f, 0.95f, 0.6f) : (Color?)null;
 
         /// The mode carousel (like the Wildcard's class wheel): the mode in play big in the middle with its line under it, the other
         /// two smaller and faded either side, and arrows at the ends. Arrows, the mouse wheel or a click on a side mode turn it;
         /// only the host can.
         void DrawModeSwitch(Rect r, float t)
         {
-            const int n = 5;
+            const int n = 4;
             bool calm = fxReduced, host = session.IsHost;
             var ev = Event.current;
             int mode = (int)session.Mode;  // the carousel is in GameMode order
@@ -368,21 +364,6 @@ namespace Arena
                     CloseFavorites();
                 }
             }
-        }
-
-        string PracticeSummary()
-        {
-            int enemies = 0, bosses = 0;
-            foreach (var w in session.Plan.Waves)
-                foreach (var kv in w.Counts)
-                {
-                    if (Defs.Get(kv.Key).IsBoss)
-                        bosses += kv.Value;
-                    else
-                        enemies += kv.Value;
-                }
-            return session.Plan.Waves.Count + " wave" + (session.Plan.Waves.Count == 1 ? "" : "s") + "  ·  " + enemies + " enemies  ·  " + bosses + " boss" + (bosses == 1 ? "" : "es")
-                + (session.Plan.Loop ? "  ·  looping" : "");
         }
 
         // --- Party ----------------------------------------------------------------
@@ -706,7 +687,7 @@ namespace Arena
                 }
                 if ((Role)i == Role.Wildcard && !WildcardOpen)
                 {
-                    LockedSlot(b, WildcardLockText);  // Practice Range too: the role can't be picked until it's unlocked
+                    LockedSlot(b, WildcardLockText);  // the role can't be picked until it's unlocked
                     continue;
                 }
                 if (!LoadoutHoverTipsRetired && b.Contains(Event.current.mousePosition))  // (retired: the detail box shows the role on a click)
@@ -1778,7 +1759,7 @@ namespace Arena
 
         /// Ready and Start, the two big keys at the bottom of the party column (a guest's Ready takes the Start slot). Ready is lit
         /// once you are ready; Start is dim and dashed until everyone is.
-        void DrawLobbyActions(LobbyEntry me, bool practice)
+        void DrawLobbyActions(LobbyEntry me)
         {
             const float lx = PartyX, lw = PartyW;
             bool host = session.IsHost, calm = fxReduced;
@@ -1801,7 +1782,7 @@ namespace Arena
                 CrtUi.Text(new Rect(lx, readyRect.y - 30f, lw, 24f), note, 14, waiting == 0 ? CrtStyle.Ink : CrtStyle.Dim, TextAnchor.MiddleCenter, true, calm);
             if (host)
             {
-                bool startOn = session.AllReady && (!practice || session.Plan.Waves.Count > 0) && (!session.HuntMode || (session.LobbyHunt != null));  // (a locked hunt can't start)
+                bool startOn = session.AllReady && (!session.HuntMode || (session.LobbyHunt != null));  // (a locked hunt can't start)
                 if (DkKey(new Rect(lx, LobbyStartY, lw, LobbyStartH), "START", false, calm, PixelArt.Get("ui_play"), size: 22, minSize: 14, locked: !startOn))
                     session.StartMatch();
             }

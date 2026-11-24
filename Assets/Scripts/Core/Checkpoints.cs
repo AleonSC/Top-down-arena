@@ -8,7 +8,7 @@ namespace Arena
     /// save), a life used. Game over ends the run as usual (its save goes, the loss is recorded); closing the game keeps the
     /// save at the wave's start, so Continue respawns it later. A run won without using a life is Deathless. Every boss
     /// beaten also leaves a checkpoint (`<run>.checkpoint`, SaveStore), the fallback when the wave's save is missing.
-    /// Saved runs only: not Boss Hunts, Quick Play, the Practice Range, the Boss Lab or the lobby preview.
+    /// Saved runs only: not Boss Hunts, Quick Play, the Boss Lab or the lobby preview.
     public partial class Game
     {
         /// Lives used this run (replicated; saved).

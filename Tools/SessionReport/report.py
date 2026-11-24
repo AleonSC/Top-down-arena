@@ -8,7 +8,7 @@ Turn recording on in the game under Settings > Developer (or launch with --recor
 one JSON file per match. Pass one file to look at a single run, or a folder to see trends across
 many runs (boss kill times, what downs people, which upgrades get picked, ...).
 
-Practice Range sessions are listed but left out of the balance tables (pass --practice to include them).
+Old Practice Range sessions (the mode is gone) are listed but left out of the balance tables (pass --practice to include them).
 Runs where dev tools were used (god mode, stat edits, wave jumps, the bot) are flagged in the runs table.
 """
 import json

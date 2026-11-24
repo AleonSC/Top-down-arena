@@ -58,7 +58,7 @@ namespace Arena
 
         bool WcBuildAvail => game.ExpandOpen && game.Me != null;
 
-        /// The tab shown: without a building round (Practice, hunts, the last wave, a full map, other arenas) Results carries the
+        /// The tab shown: without a building round (hunts, the last wave, a full map, other arenas) Results carries the
         /// next wave's panel, so there is no Next wave tab.
         int WcStepNow() => wcStep == 2 && WcBuildAvail ? 2 : wcStep == 3 && WcChestsAvail ? 3 : 0;
 
@@ -115,7 +115,7 @@ namespace Arena
         /// The box shows between waves once this wave's numbers have arrived and nothing else (a path, the shop, a portal, your own picks) has the screen.
         bool WaveBoxUp(Player me) =>
             me != null && game.State == MatchState.Intermission && game.Wave > 0 && game.WaveReport != null && game.WaveReport.Wave == game.Wave
-            && me.Offer == null && game.PathOffer == null && !game.HuntMapVoting && !ExpandWindowUp && !game.ShopBlocksWave && game.ChallengePhase != RoomPhase.Portal && game.Practice == null && !BeamShowing;  // (the Practice Range has no ready-up; the boss beam-in: BossBeamLook.cs)
+            && me.Offer == null && game.PathOffer == null && !game.HuntMapVoting && !ExpandWindowUp && !game.ShopBlocksWave && game.ChallengePhase != RoomPhase.Portal && !BeamShowing;  // (the boss beam-in: BossBeamLook.cs)
 
         /// The full box is on screen (not minimized): it takes the mouse, and the build chip waits behind it.
         bool WaveBoxShown(Player me) => WaveBoxUp(me) && !wcMin;
@@ -175,7 +175,7 @@ namespace Arena
             if (step == 0)
             {
                 // Head: WAVE n CLEARED (gold after a boss) with the blinking cursor, and the wave's two numbers.
-                string title = boss && game.Practice == null ? "BOSS CLEARED" : (game.Practice != null ? "PRACTICE WAVE " : "WAVE ") + game.ShownWave + " CLEARED";
+                string title = boss ? "BOSS CLEARED" : "WAVE " + game.ShownWave + " CLEARED";
                 Color tc = boss ? CrtStyle.Gold : ink;
                 DrawWcHead(x, y, title, tc, calm);
                 if (boss && game.LivesMax > 0)  // the boss is down: the run's checkpoint is here now (Core/Checkpoints.cs)

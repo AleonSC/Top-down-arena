@@ -294,7 +294,7 @@ namespace Arena
             var oldColor = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, a);
             Ui.Alpha = a;
-            DrawScanBand(boss ? "BOSS STARTED" : "WAVE " + w + " STARTED", game.Practice != null ? "PRACTICE" : boss ? "HOLD THE LINE" : "FIGHT",
+            DrawScanBand(boss ? "BOSS STARTED" : "WAVE " + w + " STARTED", boss ? "HOLD THE LINE" : "FIGHT",
                 boss ? "SYS> BOSS LOADED" : "SYS> WAVE " + w.ToString("00") + " LOADED", boss ? "BOSS DETECTED" : "HOSTILES INBOUND", -1f, boss ? CrtStyle.Gold : CrtStyle.Ink, k, launchT < start + 0.9f);
             Ui.Alpha = 1f;
             GUI.color = oldColor;

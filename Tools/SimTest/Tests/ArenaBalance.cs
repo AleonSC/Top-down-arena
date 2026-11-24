@@ -118,7 +118,7 @@ static partial class Program
                         foreach (var l in g.Loots.Values) Console.WriteLine("    loot owner {0} at {1:0},{2:0}", l.Owner, l.Pos.X, l.Pos.Y);
                         Console.WriteLine("    client: foes {0}, loots {1}, myLoot {2}, roomsOn {3}, offer {4}, pos {5}", c.Game.Foes(), c.Game.Loots.Count, c.Game.MyLoot != null, c.Game.RoomsOn, c.Game.Me.Offer != null, c.Game.Me.Pos);
                         dumped = true;
-                        Console.WriteLine("    state {0} picks {1} offer {2} zombies {3} design {4}", g.State, string.Join(",", g.Players.Values.Select(q => q.PendingPicks + "/" + q.PrizePicks + "/" + (q.Offer != null))), "", g.ZombiesRising, g.DesignPending);
+                        Console.WriteLine("    state {0} picks {1} offer {2} zombies {3}", g.State, string.Join(",", g.Players.Values.Select(q => q.PendingPicks + "/" + q.PrizePicks + "/" + (q.Offer != null))), "", g.ZombiesRising);
                     }
                     cur.TakenPct = g.Players.Values.Average(p => 100f * (p.Run.DamageTaken - taken0[p.Id]) / Math.Max(1f, p.MaxHp));
                     cur.Downs = g.Players.Values.Sum(p => p.Run.Downs - downs0[p.Id]);

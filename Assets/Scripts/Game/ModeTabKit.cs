@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The pieces of the Game Mode page (ModePageUi.cs): the progress ring, the fact chips (also the Practice header's), the list
+    /// The pieces of the Game Mode page (ModePageUi.cs): the progress ring, the fact chips, the list
     /// rows (soft keys with a number, a portrait or "?", a name and a status chip) and the phosphor scope.
     public partial class ArenaApp
     {

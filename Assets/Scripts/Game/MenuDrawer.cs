@@ -350,7 +350,7 @@ namespace Arena
             var e = Event.current;
             bool lobby = CanQuitToLobby;
             var names = new List<string>(); var lines = new List<string>(); var ids = new List<int>();
-            bool many = game.Players.Count > 1, saved = game.RunId != null && game.Practice == null && (game.Hunt == null || game.HuntCheckpointed);
+            bool many = game.Players.Count > 1, saved = game.RunId != null && (game.Hunt == null || game.HuntCheckpointed);
             names.Add("KEEP PLAYING"); lines.Add("Back to the pause menu"); ids.Add(2);
             if (lobby)
             {
@@ -477,9 +477,9 @@ namespace Arena
             float px = RunSecIn(4);  // docking: each part slides in from the right in turn (RunSecIn), the players last
             DrawPartyStack(new Rect(r.x + px, r.y, r.width, r.height));  // the players, stacked up from its bottom
             float x = x0 + RunSecIn(0), y = r.y + 16f;
-            Ui.Label(new Rect(x, y, 200f, 14f), game.Practice != null ? "PRACTICE RANGE" : "THIS RUN", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(x, y, 200f, 14f), "THIS RUN", 11, Ui.Muted, TextAnchor.MiddleLeft, true);
             y += 18f;
-            string wave = game.Practice != null ? "WAVE " + Mathf.Max(1, game.PracticeIndex + 1) : "WAVE " + Mathf.Max(1, game.ShownWave);
+            string wave = "WAVE " + Mathf.Max(1, game.ShownWave);
             DkTitle(new Rect(x, y, 260f, 48f), wave, 38, CrtStyle.Gold, TextAnchor.MiddleLeft);
             float ww = Ui.TextWidth(wave, 38, true) + 16f;
             int secs = Mathf.RoundToInt(game.RunTime);
@@ -510,8 +510,8 @@ namespace Arena
             IconTile(tile, null, CrtStyle.Gold, 0f);
             bool fighting = game.BossNow && game.State == MatchState.Fighting;
             Ui.Label(new Rect(x + 78f, y + 4f, 300f, 14f), (fighting ? "BOSS · NOW" : "NEXT BOSS · AFTER WAVE " + (game.Hunt != null ? next : game.ShownEnd(next))), 10, Ui.Muted, TextAnchor.MiddleLeft, true);
-            DkTitle(new Rect(x + 78f, y + 18f, 300f, 28f), PracticePlan.NameOf(boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : boss), 20, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
-            if (!fighting && game.Practice == null)
+            DkTitle(new Rect(x + 78f, y + 18f, 300f, 28f), Defs.ListName(boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : boss), 20, new Color(1f, 0.85f, 0.55f), TextAnchor.MiddleLeft);
+            if (!fighting)
             {
                 int to = game.Hunt != null ? next - game.Wave - 1 : game.ShownEnd(next) - game.ShownWave;  // (a run: the regular waves left before the boss)
                 Ui.Label(new Rect(x + 78f, y + 46f, 320f, 16f), to <= 0 ? "Next up" : to + (to == 1 ? " wave" : " waves") + " before it", 12, Ui.Muted);
@@ -611,7 +611,7 @@ namespace Arena
             {
                 int k = game.Hunt != null || game.Quick ? 0 : Mathf.Max(1, game.Wave) % 5;  // (no Data Gates in a Boss Hunt)
                 DkTitle(new Rect(x + 78f, y + 18f, 320f, 28f), "Not yet", 19, new Color(0.75f, 0.68f, 1f), TextAnchor.MiddleLeft);
-                Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), k >= 1 && k <= 3 && game.Practice == null ? "A Data Gate opens after one of the next few waves" : nextPortal, 12, Ui.Muted);
+                Ui.Label(new Rect(x + 78f, y + 46f, 340f, 16f), k >= 1 && k <= 3 ? "A Data Gate opens after one of the next few waves" : nextPortal, 12, Ui.Muted);
             }
             return y + 78f;
         }
@@ -897,7 +897,7 @@ namespace Arena
             {
                 case 0:
                 {
-                    OpenSectionPanel("OVERVIEW", col, "Practice and dev-tool runs do not count.", k);
+                    OpenSectionPanel("OVERVIEW", col, "Dev-tool runs do not count.", k);
                     var span = TimeSpan.FromSeconds(p.PlayTime);
                     string played = span.TotalHours >= 1 ? (int)span.TotalHours + " h " + span.Minutes + " m" : (int)(p.PlayTime / 60f) + " min";
                     string[,] tiles = {
@@ -1006,8 +1006,7 @@ namespace Arena
             new HowTo { Name = "The basics", Icon = "crosshair", Color = new Color(1f, 0.55f, 0.5f), Intro = "Survive 50 waves with a boss every fifth one, or take a Boss Hunt: ten waves ending in one boss.",
                 Tips = new[,] { { "Hitbox", "Your hitbox is the small ring in the middle of your character, with a coloured dot at its centre. Only the ring's inside can be hit, not the whole body.", "0" }, { "Wrap around", "Walk off an edge to come in on the other side. Enemies and bullets can't follow.", "1" },
                     { "Roles", "Enemies prefer to target the Tank. A Healer's aura heals allies nearby. DPS hits hardest.", "8" }, { "Health orbs", "Kills sometimes drop green orbs that heal you. They drift toward you when you're close.", "9" },
-                    { "Dodge", "A tiny dash with a moment of invulnerability. Double tap a movement key or press {Dodge}.", "icon:blink" },
-                    { "Practice Range", "Pick it in the lobby to play waves and bosses you set up yourself.", "13" } } },
+                    { "Dodge", "A tiny dash with a moment of invulnerability. Double tap a movement key or press {Dodge}.", "icon:blink" } } },
             new HowTo { Name = "Fighting", Icon = "guard_reinforced", Color = new Color(0.55f, 0.8f, 1f), Intro = "Read the shots, parry what you can, and let your abilities grow.",
                 Tips = new[,] { { "Perfect parry", "Raise your parry just as a shot arrives: blocked bullets fly back at enemies and cost nothing.", "7" }, { "Boss shots", "Dark-cored shots are a boss's: violet ones wear blockers down, red ones can't be blocked.", "5" },
                     { "Boss bodies", "Touching a boss hurts and shoves you back. Parry up close to get past its fire.", "12" }, { "Status icons", "Snowflake = frozen, arrows = slowed, blue drop = wet, flame = burning, drop = bleeding, crosshair = marked.", "2" },

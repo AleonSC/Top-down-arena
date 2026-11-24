@@ -10,7 +10,7 @@ namespace Arena
         bool devPlayAs = true;  // the Spawn-an-enemy sheet in the Dev Arena: a click plays as the enemy (else just spawns it)
         bool possessAbilityWas, possessParryWas, possessQWas, possessEWas;
 
-        /// LABS > DEV ARENA: on or off in a run; from the menu or the lobby, host a Practice Range match and turn it on there.
+        /// LABS > DEV ARENA: on or off in a run; from the menu or the lobby, host a Quick Play match and turn it on there.
         void ToggleDevArena()
         {
             if (session.Screen == AppScreen.Game)
@@ -27,7 +27,7 @@ namespace Arena
                 HostGame();
             if (!session.IsHost)
                 return;
-            session.SetMode(GameMode.Practice);
+            session.SetMode(GameMode.Quick);
             int auto = session.AutoStart;
             session.AutoStart = 1;  // start now, without waiting for Ready
             session.StartMatch();

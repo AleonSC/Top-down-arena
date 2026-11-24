@@ -63,7 +63,7 @@ namespace Arena
         /// wave (enemy health, damage, fire rate, elites, new types, squads, approaches...) reads Wave, the track's wave:
         /// wave 37 plays as wave 19 does on the track (effective wave = shown wave / 2, rounded up). Per-wave rewards (XP,
         /// kill gold, vectors, chests) are halved (Pace) so a build reaches each boss as strong as before. Off for Boss Hunts,
-        /// the Practice Range, the Boss Lab, the lobby preview and runs saved before it (LongRun false: the old 50 waves).
+        /// the Boss Lab, the lobby preview and runs saved before it (LongRun false: the old 50 waves).
         public bool LongRun;                          // this run is a 100-wave Campaign (set by the start message; saved)
         public static bool LongRunDefault = true;     // a new run from the lobby is (the sim tests turn it off for the older suites)
         public int Leg;                               // 0: the first of the wave's two legs, 1: the second (replicated; saved)
@@ -107,7 +107,7 @@ namespace Arena
         public bool BossNext => Bosses.Slotted ? !BossSlot && IsBossWave(Wave) && LegDone : IsBossWave(Wave + 1);
 
         /// Host: the fight that starts next is the boss after wave `Wave` (and not wave `Wave + 1`).
-        bool BossStartsNext => Bosses.Slotted && Practice == null && !BossSlot && IsBossWave(Wave) && LegDone;
+        bool BossStartsNext => Bosses.Slotted && !BossSlot && IsBossWave(Wave) && LegDone;
 
         /// The boss of this wave, or of the next boss wave after it.
         public EnemyType BossAt(int wave) => Bosses.BossAt(wave);

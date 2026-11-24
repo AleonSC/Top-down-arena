@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 namespace Arena
 {
     /// Wildcard (Nov 2026, Docs/Wildcard.md) is a fourth role that borrows DPS gear from any class: it is unlocked by winning a run
@@ -194,7 +195,7 @@ namespace Arena
         public float BotRange = 330f;  // how far away bots like to fight with it
     }
 
-    /// Where the Practice Range's picker lists an enemy: by group, then in EnemyType order.
+    /// Where the dev tools' enemy list puts an enemy: by group, then in EnemyType order.
     public enum PickerGroup : byte { Hidden, Melee, Ranged, Late, Boss }
 
     public class EnemyDef
@@ -209,13 +210,23 @@ namespace Arena
         public bool Late;      // its AI is in LateGame.cs (LateMove, LateSpecial, LateFire)
         public bool Heavy;     // too heavy to slow down, shove around or knock back (bosses always are)
         public bool Mini;      // a challenge room's mini-boss: a boss bar, but none of a boss's rules (Challenges.cs)
-        public PickerGroup Picker;  // where the Practice Range's picker lists it (Hidden: only comes with its boss)
-        public string Blurb;   // one line on what it does (the Practice Range shows it on hover)
+        public PickerGroup Picker;  // where the dev tools' enemy list puts it (Hidden: only comes with its boss)
+        public string Blurb;   // one line on what it does
     }
 
     /// Stats for roles, enemies and bullets. Tweak numbers here to rebalance.
     public static partial class Defs
     {
+        static EnemyType[] pickable;
+
+        /// Every enemy the dev tools can spawn, in list order: each EnemyDef's Picker group, then EnemyType order. (Boss summons
+        /// like Gravity Wells and Hive Bombers are Hidden: they come with their boss.)
+        public static EnemyType[] Pickable => pickable ?? (pickable = ((EnemyType[])Enum.GetValues(typeof(EnemyType)))
+            .Where(t => Get(t).Picker != PickerGroup.Hidden).OrderBy(t => Get(t).Picker).ThenBy(t => (int)t).ToArray());
+
+        /// An enemy's name in lists (the Reapers come as a pair).
+        public static string ListName(EnemyType t) => t == EnemyType.ReaperOfDusk ? "Twin Reapers" : Get(t).Name;
+
         public static readonly RoleDef[] Roles =
         {
             new RoleDef
@@ -772,6 +783,8 @@ namespace Arena
             WaterballShot = 71, // the Waterball: rolls on through enemies and soaks them (ElementBalls.cs, Game/ElementBallLook.cs)
             GlyphShot = 73,    // a Glyph Stylus rune bolt: goes through enemies and heals the allies it passes (Arcanist.cs, Game/ArcanistLook.cs)
             SpectralBlade = 74, // a spectral blade: Runic Array's volleys and the shots a Grand Sigil sends back (Arcanist.cs, Game/ArcanistLook.cs)
+            FocusArrow = 75,   // a Mender's Bow Focus arrow: gold, wrapped in wind, shoves what it passes (BowFocus.cs, Game/BowFocusLook.cs)
+            ScatterArrow = 76, // one of the Mender's Bow's Scatter arrows: small and teal (BowFocus.cs, Game/BowFocusLook.cs)
             EarthballShot = 72; // the Earthball: stops on the first enemy, stuns it and breaks into rubble (ElementBalls.cs, Game/ElementBallLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark || kind == BottleShot;
@@ -822,6 +835,8 @@ namespace Arena
             Row(table, MinionShot, radius: 3.5f, color: new Rgba(0.85f, 1f, 0.95f));
             Row(table, KnightWave, radius: 11f, color: new Rgba(0.85f, 0.92f, 1f));
             Row(table, ArrowShot, radius: 4.5f, color: new Rgba(0.5f, 1f, 0.65f));
+            Row(table, FocusArrow, radius: 6f, color: new Rgba(1f, 0.82f, 0.3f));
+            Row(table, ScatterArrow, radius: 3.5f, color: new Rgba(0.5f, 0.9f, 0.85f));
             Row(table, StarShot, radius: 5.5f, color: new Rgba(0.8f, 0.85f, 0.95f));
             Row(table, NeedleShot, radius: 3f, color: new Rgba(0.55f, 1f, 0.75f));
             Row(table, KunaiShot, radius: 4f, color: new Rgba(0.8f, 0.85f, 0.95f));

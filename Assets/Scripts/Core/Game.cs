@@ -208,7 +208,6 @@ namespace Arena
         void ReadStart(BinaryReader r)
         {
             Stop();
-            PracticeIndex = -1;
             ResetPaths();
             ResetHuntMap();  // HuntMapGame.cs
             ResetExpansion();  // ExpansionGame.cs
@@ -371,7 +370,6 @@ namespace Arena
             HeroDummies.Clear();
             PossessId = -1;
             ClearRisers();
-            designQueue.Clear();
             pendingSpawns.Clear();
             pendingRemoved.Clear();
             lastDowned.Clear();
@@ -1421,7 +1419,10 @@ namespace Arena
             {
                 me.Firing = firing;
                 if (bowRelease > 0f)
+                {
                     me.BowRelease = bowRelease;
+                    me.BowFocus = bowFocusOut;  // timed in the Focus bar's zone (BowFocus.cs)
+                }
             }
             else
             {
@@ -1433,6 +1434,7 @@ namespace Arena
                 w.Write(me.Parrying);
                 w.Write(me.DrawT);
                 w.Write(bowRelease);
+                w.Write(bowFocusOut);  // the release was a Focus shot (BowFocus.cs)
                 w.Write(me.Sprint);  // the Dodge's sprint, for the others' wake (Dodge.cs)
                 w.Write(Bot);
                 session.SendToHost(Proto.End(w));
@@ -1493,6 +1495,8 @@ namespace Arena
             TickBoShoves(dt);   // BoStaff.cs: the Bo Staff's shoves landing
             TickStaff(dt);      // Quarterstaff.cs: the jab's cooldown, stacks dropped with the staff
             TickPistolWhip(dt); // PistolWhip.cs: the Revolver's Alt cooling down
+            TickScatter(dt);    // BowFocus.cs: the Mender's Bow's Alt cooling down
+            TickBowWind(dt);    // BowFocus.cs: Focus arrows' wind shoving what they pass
             dmgSrc = tickSrc;
             TickRepulsion(dt);  // Repulsion.cs: the Undertow pulling and draining its meter
             TickTwinRifle(dt);  // TwinGrenades.cs: the grenade tubes' cooldown, emptied with the rifle

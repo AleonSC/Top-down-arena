@@ -20,8 +20,6 @@ namespace Arena
         {
             if (State == MatchState.GameOver || State == MatchState.Idle || State == MatchState.Victory || Players.Count == 0)
                 return;
-            if (Practice != null)
-                return;  // the Practice Range never ends in a wipe: a downed player respawns (PracticeRespawn.cs)
             if (InRoom)
             {
                 foreach (var p in Players.Values)
@@ -123,23 +121,6 @@ namespace Arena
                             BeginSurvival();  // no wave to build: the clock starts (SurvivalGame.cs)
                             bossName = null;
                         }
-                        else if (Practice != null && Practice.Waves.Count > 0)
-                        {
-                            // Practice range: the next wave of the plan (wrapping round), at its level.
-                            PracticeIndex = (PracticeIndex + 1) % Practice.Waves.Count;
-                            var pw = Practice.Waves[PracticeIndex];
-                            Wave = Math.Max(1, pw.Level);
-                            if (Design != null && PracticeIndex < Design.Waves.Count)
-                                BuildDesignWave(Design.Waves[PracticeIndex]);  // the design being tested (WaveDesign.cs)
-                            else
-                                BuildPracticeWave(pw);
-                            var pm = Proto.Begin(Msg.PracticeWave);  // so everyone's HUD shows which practice wave this is
-                            pm.Write(PracticeIndex);
-                            session.Broadcast(Proto.End(pm));
-                            var boss = Array.Find(PracticePlan.Choices, t => Defs.Get(t).IsBoss && pw.Counts.ContainsKey(t) && pw.Counts[t] > 0);
-                            bossName = Defs.Get(boss).IsBoss ? PracticePlan.NameOf(boss) : null;
-                            BossSlot = bossName != null;
-                        }
                         else
                         {
                             if (BossStartsNext)
@@ -188,7 +169,6 @@ namespace Arena
                     if (DevFreeze)
                         break;  // F1 dev tool: nothing new spawns and the wave doesn't clear (DevTools.cs)
                     TickRisers(dt);  // Zombie Infection's dead getting back up (Zombies.cs)
-                    TickDesign(dt);  // a designed wave's groups arriving on their timers (WaveDesign.cs)
                     TickRoomsWave(dt);  // the Expanding arena's rooms (Rooms.cs)
                     if (TickSpawning(dt))
                     {
@@ -196,16 +176,9 @@ namespace Arena
                     }
                     else if (Foes() == 0 && PropsHoldWave())
                         HoldForTreasure();  // an unopened chest or an item left: the wave waits for it (Props.cs)
-                    else if (Foes() == 0 && !ZombiesRising && DesignPending == 0)
+                    else if (Foes() == 0 && !ZombiesRising)
                     {
-                        if (Practice != null)
-                        {
-                            if (PracticeIndex >= Practice.Waves.Count - 1 && !Practice.Loop)
-                                Win();  // practice complete
-                            else
-                                WaveCleared();
-                        }
-                        else if (Hunt != null && Wave >= HuntLength)
+                        if (Hunt != null && Wave >= HuntLength)
                             Win();  // a Boss Hunt ends with its boss (Hunts.cs)
                         else if (Wave >= LastWave && BossSlot && !Endless)
                             Win();  // the last boss is beaten (Quick Play: the first, after wave 10) (the last regular wave only leads up to it)
