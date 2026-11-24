@@ -160,7 +160,7 @@ namespace Arena
         float pauseClosedAt = -1f;   // when it started closing (-1: it isn't): its opening's clock stops there, so nothing pops in as it slides out
 
         /// Is the pause menu (or a screen opened from it) wanted?
-        bool PauseMenuWanted => session.Screen == AppScreen.Game && (pauseMenuOpen || (game.Paused && !tabPaused)) && !ModalScreenOpen && !RecallActive;
+        bool PauseMenuWanted => session.Screen == AppScreen.Game && (pauseMenuOpen || (game.Paused && !tabPaused && !wikiPickSticky)) && !ModalScreenOpen && !RecallActive;  // (PICK keeps a solo run paused with no menu over it)
 
         /// Each frame: run the pause menu's opening or closing, and its sounds.
         void StepPauseAnim(float dt)

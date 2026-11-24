@@ -2015,7 +2015,8 @@ their sides in 0.22 s. With Reduced effects they slide in and out with no trails
   outside closes it. **Hold the Wiki key** for the eyedropper: the text under the pointer gets a gold outline and, in a run, the enemy
   minion, player, shot (a player's opens their weapon), crate, barrel or chest under it counts too, and the tag lists an
   enemy's or player's status effects (a right click opens the first); a phase or attack name on a boss bar opens that boss's; a tag by the pointer names what a click opens (POINT AT SOMETHING when nothing), and a click opens
-  its page (an enemy, a boss, a class, an ability on your HUD, a card's name...). **New run** boots the lobby like a CRT out of the bay's screen: a
+  its page (an enemy, a boss, a class, an ability on your HUD, a card's name...). The same eyedropper is the **PICK** key at the
+  top of the wiki: the wiki steps aside (a solo run stays paused), and the next click on anything opens its page; Esc cancels. **New run** boots the lobby like a CRT out of the bay's screen: a
   link log types itself, squeezes into a bright line, and the line opens top and bottom like an old TV warming up to show the whole
   lobby. Its entrance is the end of the **disk boot sequence** (see Profiles): the case falls out from under the monitor, lands with a
   squash, a small bounce, a flare of its neon, the monitor jolting and dust puffing off its feet, then powers on (POWER, DISK, the key
