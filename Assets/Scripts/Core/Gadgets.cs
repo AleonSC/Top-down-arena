@@ -481,6 +481,7 @@ namespace Arena
             {
                 Stun(e, e.Def.IsBoss || e.Def.Mini ? EmpBossStun : EmpStun);
                 HurtEnemy(e, dmg, p.Id);
+                Charge(e, p.Id);  // Charged.cs
             }
             p.GadgetCd = ThrowGap;
             BroadcastFx(FxKind.Ring, p.Pos, EmpInk, EmpRadius, 0.5f, Sfx.SpellZap);

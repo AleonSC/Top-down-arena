@@ -5,7 +5,7 @@ namespace Arena
 {
     /// Charged (the electricity status; enemies only): any lightning hit (every WetArcs caller: Arc Lightning, Chain Light,
     /// Storm Hammer pulses, Lightning Rod, the Nimbus) and Static Shock's circuit and Arc Cannon leave what they hit charged for
-    /// ChargedTime s (refreshed, never stacked). Charged alone does nothing: only wet enemies conduct other lightning hits
+    /// ChargedTime s, and so do the Arc Knuckles (punches, Rocket Dash, Grab & Throw), the EMP and Shock Grenades (refreshed, never stacked). Charged alone does nothing: only wet enemies conduct other lightning hits
     /// (Tsunami.cs WetArcs; a wet, charged one still does, and those arcs don't charge). Wet AND charged, it shorts out: it takes
     /// ChargeDps a second (+ChargeDpsWave a wave) and every ChargeArcEvery s an arc jumps from it to the ChargeArcTargets
     /// nearest enemies within ChargeArcRange for ChargeArcDmg (+ChargeArcDmgWave a wave). Credited to whoever charged it.

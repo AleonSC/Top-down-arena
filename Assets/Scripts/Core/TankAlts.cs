@@ -112,6 +112,7 @@ namespace Arena
             {
                 BroadcastFx(FxKind.Bolt, z.Pos, e.Pos, ShockColor, 0f, 0.25f, Sfx.None);
                 HurtEnemy(e, ScatShockDamage * z.DmgMult, z.Owner);
+                Charge(e, z.Owner);  // Charged.cs
                 if (e.Hp > 0f)
                     Stun(e, e.Def.IsBoss ? ScatBossStun : ScatStun);
             }

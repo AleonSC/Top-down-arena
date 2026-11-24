@@ -74,6 +74,13 @@ static partial class Program
         step(3f);
         Check(hub.ChargedT == 0f && hub.Hp == stop && n1.Hp == n1Stop, "after 4 s the charge is gone: no more damage or arcs, though it's still wet");
 
+        // The EMP and a Shock Grenade charge what they hit too (the Arc Knuckles: Knight.cs, ArcKnucklesChain.cs).
+        g.Enemies.Clear(); spots.Clear();
+        var empd = pin(new V2(260f, 450f)); var shocked = pin(new V2(1000f, 450f)); var spared = pin(new V2(1400f, 800f));
+        typeof(Game).GetMethod("EmpPulse", flags).Invoke(g, new object[] { me });
+        typeof(Game).GetMethod("ShockGrenadeBurst", flags).Invoke(g, new object[] { new Zone { Owner = me.Id, Pos = new V2(1000f, 450f), Radius = 80f, DmgMult = 1f } });
+        Check(empd.ChargedT > 3.9f && shocked.ChargedT > 3.9f && spared.ChargedT == 0f, "an EMP pulse and a Shock Grenade charge what they hit, and nothing else");
+
         // Dry and charged does nothing on its own.
         g.Enemies.Clear(); spots.Clear();
         var lone = pin(new V2(800f, 450f)); var nb = pin(new V2(900f, 450f));
