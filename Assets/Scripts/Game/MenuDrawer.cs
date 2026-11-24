@@ -653,7 +653,9 @@ namespace Arena
         void DrawSettingsCabinet(bool paused)
         {
             cabBootLog = paused ? "> LINK OK   > SAVE OK   > SETTINGS" : "> LINK OK   > SAVE OK";
+            cabGlass = true;  // the Tab screen's hologram glass, like the pause and lobby menus
             BeginDrawer("SETTINGS", Ui.Accent, 1f, "Pick one to open it");
+            cabGlass = false;
             string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the network port", "Change your controls" };
             string[] gicons = { "pulse", "nova", "crosshair", "ui_pencil" };
             Color[] gcols = { new Color(0.5f, 0.69f, 1f), CrtStyle.Gold, new Color(0.55f, 1f, 0.55f), new Color(1f, 0.62f, 0.5f) };
