@@ -232,8 +232,8 @@ namespace Arena
             new RoleDef
             {
                 Name = "Tank", Ability = "Barrier", Color = new Rgba(0.35f, 0.6f, 1f),
-                Hp = 150f, Speed = 185f, HitR = 9f, BodyR = 18f, FireInterval = 0.45f, AbilityCd = 12f,
-                Desc = "The front line. A slower step, and enemies prefer to target you, so stand between them and your team. Ironhide: a 75-point shield takes hits before your health and refills 3 s after the last one. Your weapons and abilities block, shove and soak: barriers, shields and cover that buy your allies room to work.",
+                Hp = 170f, Speed = 185f, HitR = 9f, BodyR = 18f, FireInterval = 0.45f, AbilityCd = 12f,
+                Desc = "The front line. A slower step, and enemies prefer to target you, so stand between them and your team. Ironhide: a 25-point shield takes half of every hit (the rest reaches your health) and refills 3 s after the last one. Your weapons and abilities block, shove and soak: barriers, shields and cover that buy your allies room to work.",
             },
             new RoleDef
             {

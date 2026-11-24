@@ -7,7 +7,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 
 | Role | Health | Speed | Fire interval | Ability | Cooldown |
 |---|---|---|---|---|---|
-| Tank | 150 | 185 | 0.45 s | Barrier | 12 s |
+| Tank | 170 | 185 | 0.45 s | Barrier | 12 s |
 | Healer | 140 | 215 | 0.25 s | Mend Pulse | 10 s |
 | DPS | 110 | 240 | 0.1 s | Dash | 3.5 s |
 | Wildcard | 125 | 225 | 0.1 s | Any DPS ability | 3.5 s |
@@ -182,6 +182,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Adrenaline Shot | Healer | 1st, choice 2 | 14 s | - | Also gives the nearest other ally within 250 px a half-length (4 s) dose. | Boost a player's speed and fire rate and cut their damage taken. |
 | Deployable Medkit | Healer | 1st, choice 3 | 14 s | - | Bursts into 9 orbs worth 20 health each. | Throw a medkit that bursts into health orbs anyone can grab. |
 | Lifeline | Healer | ultimate | 90 s | - | Everyone also gets 4 s of Overdrive. | Revive and fully heal the whole party, with brief invulnerability. |
+| Field Hospital | Healer | ultimate | 150 s | - | 8 orbs, one back every 3 s. | Open a hospital cell behind a door: a shrine, healing orbs and a laser gate for a minute. |
 | Decoy Dummy | Healer | 1st, choice 5 | 4 s (+2 charges) | - | Dummies have 50% more health, and the confetti blast reaches 130 px. | Throw an inflatable soldier that enemies shoot at instead of you. |
 | Poison Dart | Dps | 1st, choice 1 | 8 s | - | Spreads to 5 enemies at a time, at full strength. | Poison the nearest enemy; the poison spreads when it dies. |
 | Airstrike | Dps | 1st, choice 2 | 16 s | - | A second wall lands 160 px further out, half a second later. | Call a jet to carpet a line with bombs. |
@@ -320,29 +321,29 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Shielder | Ranged | 140 | 60 | 17 | - | 25 | 22 |  | A front shield blocks shots and swings. It turns slowly: flank it. |
 | Hive Queen | Boss | 3000 | 40 | 44 | - | 400 | 180 | boss | Boss (wave 10): a hive in three phases — drones and bombers, sealing cells and honey, then a frenzied swarm. |
 | Reaper of Dusk | Boss | 2600 | 95 | 34 | - | 250 | 100 | boss | Boss pair (wave 15): a tether sweep, then they fuse into the Dual Reaper (pillars, holes), then split for a finale. |
-| Reaper of Dawn | Hidden | 2600 | 95 | 34 | - | 250 | 100 | boss |  |
+| Reaper of Dawn | Hidden | 2600 | 95 | 34 | - | 250 | 100 | boss | The Twin Reapers' second half: fights alongside the Reaper of Dusk, then fuses with it into the Dual Reaper. |
 | The Singularity | Boss | 3600 | 0 | 40 | - | 500 | 220 | boss | Boss (wave 20): corner gravity wells, pull, lasers and shrinking cages. |
 | The Colossus | Boss | 6800 | 35 | 54 | - | 600 | 260 | boss | Boss (wave 25): huge stomp rings with one gap, and thrown rocks. |
 | The Duelist | Boss | 6000 | 80 | 30 | - | 650 | 280 | boss | Boss (wave 30): teleports and leaves decoys that burst unless killed. |
 | The Duelist | Hidden | 70 | 0 | 30 | - | 0 | 0 |  |  |
 | The Lich | Boss | 5000 | 45 | 36 | - | 700 | 300 | boss | Boss (wave 35): immune while its phylactery stands; raises skeletons. |
-| Phylactery | Hidden | 600 | 0 | 18 | - | 50 | 0 | heavy |  |
+| Phylactery | Hidden | 600 | 0 | 18 | - | 50 | 0 | heavy | The Lich's soul jar: the Lich can't be hurt while it stands, so break it first. |
 | Storm Herald | Boss | 6000 | 55 | 40 | - | 800 | 320 | boss | Boss (wave 40), three phases: a gathering storm (strikes, lightning rods), a gale that pushes you and bends bullets, then a supercell that marks one player at a time. |
 | The Devourer | Boss | 6500 | 40 | 50 | - | 900 | 340 | boss | Boss (wave 45), three phases: hungry for morsels (your shots heal it), then swallowing players, then a mouth that heals it from the front. |
 | The Eclipse | Boss | 9000 | 30 | 52 | - | 2000 | 500 | boss | Final boss (wave 50), five phases and Totality: a sun and its moon. Hide in the moon's shadow from the flash, stay in the light, and kill it before the nova. |
-| Gravity Well | Hidden | 260 | 160 | 15 | - | 40 | 15 |  |  |
+| Gravity Well | Hidden | 260 | 160 | 15 | - | 40 | 15 |  | The Singularity's corner wells: they pull your shots into themselves. |
 | Brute | Melee | 200 | 62 | 19 | 24 | 15 | 14 | melee | Slow, tough melee bruiser that hits hard (24) when it reaches you. |
 | Lunger | Melee | 45 | 95 | 12 | 18 | 12 | 12 | melee | Circles in close, flashes a pink line, then leaps along it. |
-| Hive Bomber | Hidden | 30 | 330 | 10 | - | 2 | 0 | melee |  |
-| Cage Well | Hidden | 40 | 0 | 11 | - | 5 | 2 | melee |  |
+| Hive Bomber | Hidden | 30 | 330 | 10 | - | 2 | 0 | melee | The Hive Queen's explosive drones: they fly straight at where you were and blow up. |
+| Cage Well | Hidden | 40 | 0 | 11 | - | 5 | 2 | melee | The Singularity's small wells: they ring a player in a shrinking cage. |
 | Rioter | Hidden | 40 | 110 | 12 | 15 | 3 | 7 | melee | A prisoner in an orange jumpsuit throwing cuffed punches. Some drag a ball and chain and run slower. |
-| Hive Egg | Hidden | 60 | 0 | 15 | - | 4 | 3 | melee |  |
+| Hive Egg | Hidden | 60 | 0 | 15 | - | 4 | 3 | melee | The Hive Queen's eggs: break them before they hatch into drones. |
 | Guard | Hidden | 90 | 125 | 13 | 14 | 6 | 15 | melee | A corrections officer in khaki with a peaked cap and a nightstick. Up close it swings forehand then backhand: step out of the amber arc. |
-| The Dual Reaper | Hidden | 5200 | 150 | 58 | - | 500 | 200 | boss |  |
-| Reaper Pillar | Hidden | 120 | 0 | 24 | - | 5 | 4 | melee |  |
-| Singularity Shard | Hidden | 1000000 | 0 | 20 | - | 0 | 0 | melee |  |
-| Ball Lightning | Hidden | 70 | 0 | 15 | 20 | 3 | 2 | melee |  |
-| Morsel | Hidden | 60 | 0 | 14 | - | 0 | 0 |  |  |
+| The Dual Reaper | Hidden | 5200 | 150 | 58 | - | 500 | 200 | boss | The Twin Reapers fused into one: corner pillars, holes that can trap it, armored to a third of the damage. |
+| Reaper Pillar | Hidden | 120 | 0 | 24 | - | 5 | 4 | melee | The Dual Reaper's corner pillars: each one killed leaves a hole that can trap it. |
+| Singularity Shard | Hidden | 1000000 | 0 | 20 | - | 0 | 0 | melee | The Singularity's Split: shards that orbit and fire; damage to them goes to the core. |
+| Ball Lightning | Hidden | 70 | 0 | 15 | 20 | 3 | 2 | melee | The Storm Herald's orbs: they drift at you on the wind, arc to each other and pop into 8 shots. |
+| Morsel | Hidden | 60 | 0 | 14 | - | 0 | 0 |  | Food the Devourer spits out and crawls over to eat: shoot it or step on it first. |
 | Riot Shield | Melee | 60 | 120 | 16 | 8 | 10 | 10 | melee | An officer in steel-blue riot gear behind a tall shield that bashes you back. Go round it, or break the shield: then it falls fast. |
 | Gas Grenadier | Ranged | 50 | 75 | 14 | - | 8 | 9 |  | An officer in olive drab and a gas mask, lobbing tear-gas canisters at you. Step out of the cloud. |
 | The Gatekeeper | Hidden | 3000 | 55 | 34 | 25 | 150 | 80 | mini-boss, heavy | Challenge room mini-boss: a ring of shots with a gap, three aimed fans, and a charge along a shown line that ends in a burst. |
@@ -382,8 +383,8 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Graviton | Ranged | 50 | 80 | 14 | - | 8 | 10 |  | Lobs a small gravity well by you every 6 s. For 4 s it drags you in and swallows shots near it. Get clear, or shoot the well. |
 | Orbiter | Ranged | 60 | 95 | 12 | - | 8 | 11 |  | Circles you with three orbs turning round it. One flares, then it slings that orb straight at you, fast. |
 | Collapsar | Melee | 220 | 58 | 22 | 20 | 12 | 16 | melee | A slow, dense star that shrinks as it's shot. Killed, it collapses: a short pull, then a ring of 12 shots. Kill it at range. |
-| Small Well | Hidden | 30 | 0 | 11 | - | 1 | 3 | melee |  |
-| Implosion | Hidden | 1000000 | 0 | 10 | - | 0 | 0 | melee |  |
+| Small Well | Hidden | 30 | 0 | 11 | - | 1 | 3 | melee | Lobbed by a Graviton: for a few seconds it drags you toward it and bends your shots into it. |
+| Implosion | Hidden | 1000000 | 0 | 10 | - | 0 | 0 | melee | What a Collapsar leaves when killed: it pulls players in, then bursts into a ring of shots. |
 | Lens | Melee | 90 | 70 | 14 | 12 | 9 | 11 | melee | Carries a gravity lens in front of it. Shots into its face curve round it and away; it turns slowly, so hit it from the side. |
 | White Dwarf | Melee | 40 | 230 | 9 | 10 | 8 | 10 | melee | A small hot star that darts in, flashes white, then shoves you back and turns your shots near it round at you. Stop shooting when it flashes. |
 | Rubble | Melee | 40 | 110 | 12 | 15 | 3 | 7 | melee | A fist-sized chunk of the Colossus that rolls at you, weaving, in pairs. |
