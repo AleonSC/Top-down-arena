@@ -31,6 +31,7 @@ namespace Arena
             new Topic("Vectors", "Every player's building budget in the Expanding arena: pieces are free; vectors pay for gates, mystery doors and the Builder Shop's cards."),
             new Topic("Pit", "A void in a cell's floor: enemies shoved in die, players lose 15% health and climb out."),
             new Topic("Boss phase", "One part of a boss fight; a phase change moves to the next."),
+            new Topic("Steam", "Fire + water: an enemy that is wet and burning at once turns both to steam: a cloud for 3 s that scalds enemies in it and jams their weapons (bosses only take the scald)."),
             new Topic("Downed", "At 0 health you go down; a teammate can revive you, and a Defib Kit stands you up."),
         };
 

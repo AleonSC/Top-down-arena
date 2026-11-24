@@ -697,6 +697,7 @@ namespace Arena
         public float ChargedT, ChargePulseT;  // host: charged by lightning, and until a wet, charged one's next arc (Charged.cs)
         public int ChargedBy;
         public bool Charged;                // replicated, for the bolt icon and the arcs on its body
+        public float SteamCd;               // host: until it can turn to steam again (Steam.cs)
         public float WetLeft, WetPeak;      // wet seconds left (replicated, in tenths) and the most seen since it began: the effect bar's fill (Game/EffectBar.cs)
         public byte FrostChill;             // Frost Lance: chill on it, 0-2 (3 freezes; replicated for the pips; FrostLance.cs)
         public float FrostChillT;           // host: until the chill wears off

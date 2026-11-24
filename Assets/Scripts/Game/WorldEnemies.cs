@@ -146,6 +146,9 @@ namespace Arena
                 case ZoneKind.FlakMine:  // the Flak Cannon's Proximity Shell (TankAltLook.cs)
                     DrawFlakMine(z, t);
                     return;
+                case ZoneKind.Steam:  // fire + water (SteamLook.cs)
+                    DrawSteam(z, t);
+                    return;
                 case ZoneKind.ShockGrenade:  // the Scattergun's Shock Grenade (TankAltLook.cs)
                     DrawShockGrenade(z, t);
                     return;

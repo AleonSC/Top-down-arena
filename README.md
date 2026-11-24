@@ -654,6 +654,12 @@ Rarer cards show up a bit more often as you level. All the numbers live in
   arcs don't charge it). **Wet and charged** it shorts out (its arcs turn blue-white and flicker): it takes 6 damage a second
   (+0.3 a wave), and every 2.5 s an arc jumps from it to the 3 nearest enemies within 220 px for 25 (+1.25 a wave),
   credited to whoever charged it.
+- **Steam (Fire + Water):** an enemy that is wet and burning at once (any fire: the Flamethrower, Fireball, Spirit Chalk,
+  Warhorn Volley, Incendiary Rounds...) flashes the water to steam: the wet and the burn are both used up, and a steam
+  cloud (90 px, 3 s) billows up where it stands, with a hiss. Enemies inside take 8 damage a second (+0.4 a wave) and
+  their weapons are jammed (no attacking, like the Grenade Launcher's smoke; bosses and mini-bosses only take the scald),
+  credited to whoever lit the fire. Steam near an existing cloud refreshes it instead of stacking, and an enemy can't steam
+  again for 1 s. White wisps keep rising through it over a faint warm glow.
 - **Cauterize (Bleed + Burn):** fire landing on a bleeding enemy (the Flamethrower, the Fireball, Incendiary Rounds)
   sears the wound shut: all the bleed it had left lands at once, times 1.25, and the bleed ends. Whoever made it bleed
   is credited the bleed's share, whoever brought the fire the extra quarter, so fire never wastes an ally's bleed. A

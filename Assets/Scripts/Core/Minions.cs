@@ -775,6 +775,11 @@ namespace Arena
                     TickPhalanx(z, dt);  // BonePhalanx.cs
                     continue;  // (not a circle: nothing below applies)
                 }
+                if (z.Kind == ZoneKind.Steam)
+                {
+                    TickSteamCloud(z, dt);  // Steam.cs
+                    continue;
+                }
                 if (d.Dps > 0f || d.Slow > 0f || z.ExtraSlow > 0f)
                     foreach (var e in Enemies.Values)
                     {
