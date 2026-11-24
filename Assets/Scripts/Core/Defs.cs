@@ -161,6 +161,8 @@ namespace Arena
         OrbitShards, GlyphStylus, DancingBlades,
         // the Healer Elementalist's fourth (StaticShock.cs): a held cone of static, the Arc Cannon on Alt
         StaticShock,
+        // Training only (Training.cs): the recruit's Training Pistol; no lobby place, never in Defs.Weapons
+        TrainingPistol,
         // the Flamethrower's variants (ElementGuns.cs): the Water Gun splashes wet, the Gale Gun slices and slows
         WaterGun, GaleGun,
     }
@@ -701,6 +703,7 @@ namespace Arena
                 if (all[i] == null)
                     throw new InvalidOperationException("No " + (Role)(i / (KitCount * WeaponsPerRole)) + " weapon (Choice " + i % WeaponsPerRole
                         + ") for Kit." + (Kit)(i / WeaponsPerRole % KitCount) + ": add it to that class's WeaponDef list");
+            seen[(int)WeaponId.TrainingPistol] = true;  // (Training's own weapon: Training.Pistol, never in a lobby place)
             for (int i = 0; i < seen.Length; i++)
                 if (!seen[i])
                     throw new InvalidOperationException("No WeaponDef for " + (WeaponId)i);
@@ -725,6 +728,8 @@ namespace Arena
         /// The definition of a weapon, by id.
         public static WeaponDef WeaponOf(WeaponId id)
         {
+            if (id == WeaponId.TrainingPistol)
+                return Training.Pistol;
             if (byId == null)
             {
                 var all = new WeaponDef[Weapons.Length];

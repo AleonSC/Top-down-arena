@@ -29,7 +29,7 @@ namespace Arena
                 Circle(p.Disp - game.DashDir * 18f, r * 0.8f, col.WithAlpha(0.25f), 20);
             // The footprint: a faint disc and a ring in the role's colour, the size of what the body can be hit by.
             // The model (CharacterModels.cs) is drawn over it in the class's own colours, and a downed player is a grey disc.
-            Rgba role = p.Def.Color.WithAlpha(col.A);
+            Rgba role = (p.Recruit ? RecruitRing : p.Def.Color).WithAlpha(col.A);  // (a Training recruit has no role colour: RecruitLook.cs)
             var ds = DownStateOf(p);  // the going-down and getting-up looks (DownedLooks.cs); null with Visual effects off
             float rebuild = RebuildK(ds);
             if (p.Downed)
@@ -73,7 +73,7 @@ namespace Arena
                 else
                     DrawPlayerModel(p, modelR, t, col);
                 // The class's overlays on top: ability feedback, buffs and the like (ClassLooks.cs)
-                var look = LookOf(p.Kit).Body;
+                var look = p.Recruit ? null : LookOf(p.Kit).Body;  // (a Training recruit has no class look)
                 if (look != null && rebuild < 0f)
                     look(this, p, modelR, t, col);
                 if (rebuild < 0f)

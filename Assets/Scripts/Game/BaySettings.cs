@@ -299,6 +299,8 @@ namespace Arena
             bool changed = false;
             bool on = SetToggle(ref y, w, "Visual effects", "Glow, sparks, shattering enemies, lighting", fxOn, live, calm);
             if (on != fxOn) { fxOn = on; changed = true; }
+            bool lit = SetToggle(ref y, w, "Dynamic lighting", "Shots, blasts and fire cast shadows", lightsOn, live, calm);
+            if (lit != lightsOn) { lightsOn = lit; changed = true; }
             int shake = SetChoices(ref y, w, "Screen shake", "How hard hits rattle the view", new[] { "Off", "Low", "Full" }, fxShake, live, calm, !fxOn);
             if (shake != fxShake) { fxShake = shake; changed = true; }
             bool nums = SetToggle(ref y, w, "Damage numbers", "Small numbers rising off what's hit", fxNumbers, live, calm);

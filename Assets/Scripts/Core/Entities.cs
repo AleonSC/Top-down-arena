@@ -185,6 +185,7 @@ namespace Arena
         public Role Role;
         public RoleDef Def;
         public Kit Kit;
+        public bool Recruit;  // a Training recruit: no class look, no abilities, the Training Pistol (DrillGame.cs MakeRecruit)
         public WeaponDef Weapon;
         public AbilityId FirstAbility;
         public AbilityId WildcardAbility = AbilityId.None;  // a Wildcard ability: it sits on a 2nd–4th ability slot from the start (Game.Recalc)
