@@ -708,7 +708,7 @@ namespace Arena
             v.y += shakeY + leanPxY;  // (GL's y runs up the screen, the arena's runs down)
             if (punchK != 0f)
             {
-                float cx = punchX - leanPxX, cy = punchY + leanPxY;  // the Twin Rifle's punch, the bow's draw and release: a hair bigger or smaller round you (TwinRifleFx.cs, BowCameraFx.cs)
+                float cx = punchX - leanPxX, cy = punchY + leanPxY;  // the Twin Rifle's punch, a charge weapon's draw and release: a hair bigger or smaller round you (TwinRifleFx.cs, ChargeCameraFx.cs)
                 v.x = cx + (v.x - cx) * (1f + punchK);
                 v.y = cy + (v.y - cy) * (1f + punchK);
             }

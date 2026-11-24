@@ -7,7 +7,7 @@ using UnityEngine;
 // BOWFOCUS=<phase>,<s>: the Mender's Bow's Focus shot and Scatter (Core/BowFocus.cs, Game/BowFocusLook.cs) played through
 // the real game and Juice.cs: you, a Healer Soldier with the bow, at (520, 450) aiming right at a loose line of grunts.
 //   rest     standing with an arrow on the string (s ignored)
-//   draw     drawing: s seconds into the draw (the camera easing out and back, BowCameraFx.cs)
+//   draw     drawing: s seconds into the draw (the camera easing out and back, ChargeCameraFx.cs)
 //   bar      drawing: s seconds after the draw is full (the Focus bar up, the bow glowing)
 //   focus    let go in the gold zone: s seconds after (the Focus arrow, its wind, FOCUS!, the bar bursting)
 //   miss     let go outside the zone: s seconds after (a plain full arrow, the bar shaking away)
