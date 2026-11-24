@@ -8,7 +8,7 @@ namespace Arena
     {
         
         /// A progress ring: 40 dots round `c` (radius `rad`), the first `pct` of them lit in `acc`, `text` in the middle.
-        static void ModeRing(Vector2 c, float rad, float pct, Color acc, string text)
+        static void ModeRing(Vector2 c, float rad, float pct, Color acc, string text, int textSize = 13)
         {
             const int n = 40;
             int lit = Mathf.RoundToInt(Mathf.Clamp01(pct) * n);
@@ -18,7 +18,7 @@ namespace Arena
                 Ui.Fill(new Rect(c.x + Mathf.Cos(a) * rad - 1.5f, c.y + Mathf.Sin(a) * rad - 1.5f, 3f, 3f), k < lit ? acc : CrtStyle.Dim.WithAlpha(0.45f));
             }
             if (!string.IsNullOrEmpty(text))
-                CrtUi.Text(new Rect(c.x - rad + 5f, c.y - 11f, rad * 2f - 10f, 22f), text, 13, Color.white, TextAnchor.MiddleCenter, true, false);
+                CrtUi.Text(new Rect(c.x - rad + 5f, c.y - 11f, rad * 2f - 10f, 22f), text, textSize, Color.white, TextAnchor.MiddleCenter, true, false);
         }
 
         /// The mode's facts as outlined chips in `c`, left to right from x (`tags` split on "·"). Returns the x after the last one.
