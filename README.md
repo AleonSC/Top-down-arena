@@ -1598,6 +1598,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 | Gadget: tap to switch on / off, hold and let go to throw it where you aim | X |
 | Gadget wheel: hold to open, let go on a gadget to swap it into your hand | C |
 | Wiki: tap to look anything up (pauses a solo run; in co-op only on your screen); hold and click anything on screen (text, an enemy, a player) to open its page | I |
+| Rotate camera left / right: swing the view a quarter turn anticlockwise / clockwise (see Zoom in / out below) | [ ] |
 | 2nd, 3rd and 4th abilities | 2, 3 and 4 (changeable; once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |
@@ -1612,6 +1613,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 | Developer tools | F1 (see below) |
 | Kill every enemy on the field (dev, host) | B (when not on a chest item), once the F1 WAVE drawer's kill-all key is on |
 | Camera lean on / off | Settings → Gameplay (on by default). The view eases a few percent toward where you aim and move; the arena and wrapping are unchanged |
+| Rotate camera left / right | `[` / `]` (rebindable, Settings → Keybinds → Toggles). The view swings a quarter turn anticlockwise / clockwise (back and forth, any number of times) to look at what is above or below you; aiming, the camera lean and the labels turn with it. Local only, resets when a run ends |
 | Zoom in / out | Mouse scroll wheel during a run: up zooms in on you (up to 2x, the view follows you and stays inside the arena), down zooms back out to the whole arena. Eases back out when a run ends. While zoomed, arrows at the edge of the view point to everything off-screen: teammates in their colour with their name (pulsing red when downed), enemies in red (elites orange, bosses a big crimson arrow with a ring), and any unopened treasure chest in a pulsing arrow with a ring in its kind's colour (also a square on the Rooms minimap); nearer ones are bigger. Settings → Gameplay → Scroll-wheel zoom turns it off (on by default) |
 | Teammate shots 25–100% | Settings → Gameplay (100% by default). How solid other players' bullets are drawn, so a crowd of them doesn't hide the fight; yours and the enemies' stay full. Local only, saved on your machine |
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
