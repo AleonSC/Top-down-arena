@@ -37,6 +37,7 @@
 # STAMPEDE=<s since the cast> [STAMPEDEMASTERED=1] (the Tank Summoner's Stampede: the gate, the herd charging, fading; use 0.2, 0.7, 1.2; mode hud).
 # HEMODPS=spray|debt|rush (the DPS Hemomancer's Arterial Spray, Blood Debt, Vein Rush; DEBTSETTLE=paid|forfeit, RUSHT=<s>; mode hud).
 # GALEWALL=<s into the scene> (Gale Wall like the mockup: cast at 0.5 s, shots from 0.4 s; GALEBLAST=<s> unleashes it then; GALECAP=1 mastered; ShotGaleWall.cs).
+# QUEENHOLD=swell,<0-1>|lay,<s>|dive,<s> (with FLANKERS=1: the Brood Mother swelling before her eggs, laying them, in a royal dive).
 # QUEENSTAGE=<0-3> (with FLANKERS=1: the Hive Queen's Brood Mother body in Swarm, Honeycomb, Frenzy, Last Stand; ZOOM=2.6 CAMAT=800,215, mode hud 3 1 1).
 # WWARD=<s into the scene> (Water Ward: a cast every 3 s from 0.2 s; grunts walk in from WWENEMY s (default 6.5, -1 none); WWSHOOT=1 shots from above from 7 s; ShotWaterWard.cs).
 # BOWFOCUS=rest|draw|bar|focus|miss|swing|scatter,<s> (the Mender's Bow: Focus bar, Focus arrow, the arrow swung from the quiver, Scatter; mode hud, 1 player, ZOOM=2; ShotBowFocus.cs).

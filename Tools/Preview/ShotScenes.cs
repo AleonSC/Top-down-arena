@@ -2304,6 +2304,16 @@ static partial class Shot {
       fl(new V2(560f, 330f), 2.6f, 1); fl(new V2(1060f, 360f), 0.6f, 1);
       fl(new V2(470f, 560f), 0f, 2); fl(new V2(1150f, 520f), MathX.Pi, 2);
       var qn = (Enemy)sef.Invoke(host.Game, new object[] { EnemyType.HiveQueen, new V2(800f, 160f), 0f, 0, false }); qn.SpawnT = 0f; qn.Disp = qn.Pos;
+      // QUEENHOLD=swell,<0-1> | lay,<s into the Eggs turn> | dive,<s into a dive>: the Brood Mother's egg swell, laying, royal dive pose.
+      if (Environment.GetEnvironmentVariable("QUEENHOLD") != null)
+      {
+        var e = qn;
+        var qh = Environment.GetEnvironmentVariable("QUEENHOLD").Split(','); float qv = float.Parse(qh[1], System.Globalization.CultureInfo.InvariantCulture);
+        var q = e.Queen = new QueenState();
+        if (qh[0] == "swell") { q.Stage = QueenStage.Honeycomb; q.Turn = QueenTurn.Rest; q.Step = 5; q.TurnT = qv * 2f; }
+        else if (qh[0] == "lay") { q.Stage = QueenStage.Honeycomb; q.Turn = QueenTurn.Eggs; q.Step = 0; q.TurnT = qv; }
+        else { q.Stage = QueenStage.Frenzy; q.Turn = QueenTurn.Dive; q.Step = 2; q.DiveT = qv; q.Shadow = me.Pos; e.Pos = e.Disp = V2.Lerp(new V2(800f, 160f), q.Shadow, MathX.Clamp01((qv - 0.3f) / 0.9f)); }
+      }
       // QUEENSTAGE=<0-3>: her phase (Swarm, Honeycomb, Frenzy, Last Stand), for the Brood Mother's looks (QueenBodyLook.cs).
       if (Environment.GetEnvironmentVariable("QUEENSTAGE") != null) { int qs = int.Parse(Environment.GetEnvironmentVariable("QUEENSTAGE")); qn.Queen = new QueenState { Turn = QueenTurn.Rest, Step = -1, Stage = (QueenStage)qs }; qn.Hp = qn.MaxHp * new[] { 0.9f, 0.5f, 0.2f, 0.05f }[qs]; }
     }
