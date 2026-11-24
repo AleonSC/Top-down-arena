@@ -616,6 +616,9 @@ namespace Arena
             if (names != fxCallouts) { fxCallouts = names; changed = true; }
             bool calm = SwitchRow(new Rect(x + half + 36f, y, half, 54f), fxReduced, "Reduced effects", "No screen shake, hit-pause or white flashes");
             if (calm != fxReduced) { fxReduced = calm; changed = true; }
+            y += 64f;
+            bool lit = SwitchRow(new Rect(x, y, half, 54f), lightsOn, "Dynamic lighting", "Shots, blasts and fire cast shadows");  // LightingLook.cs
+            if (lit != lightsOn) { lightsOn = lit; changed = true; }
             float cy = y + 72f;
             WinLabel(new Rect(x, cy, w, 24f), "CRT colour", null, false);
             int theme = WinChoices(new Rect(x, cy + 26f, w, 34f), CrtUi.ThemeNames, CrtUi.Theme);
