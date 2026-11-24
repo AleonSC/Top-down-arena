@@ -185,6 +185,7 @@ namespace Arena
             ClearDpsGunLooks();  // DpsGunLooks.cs
             ClearAirTrails();  // AirTrailLooks.cs
             trauma = holdT = holdGap = hurtTint = introT = 0f;
+            ClearBowCam();  // BowCameraFx.cs
             wardenIntroT = -1f;
             myHp = -1f; myLevel = -1; myLegendaries = -1;
             heldFrame = false;
@@ -784,6 +785,7 @@ namespace Arena
             }
             trauma = Mathf.Max(0f, trauma - realDt * 1.8f);
             TwinKickStep(realDt);  // the Twin Rifle's screen kick (TwinRifleFx.cs)
+            BowCamStep(game.Me, realDt);  // the Mender's Bow's draw pull-back and release kick (BowCameraFx.cs)
             hurtTint = Mathf.Max(0f, hurtTint - realDt * 2.2f);
             introT = Mathf.Max(0f, introT - realDt);
             TickWardenIntro(realDt);  // WardenIntro.cs
@@ -1007,6 +1009,7 @@ namespace Arena
                 shakeY = k * Mathf.Sin(s * 53.7f + 1.3f);
             }
             BeginTwinKick(game.Me);  // the Twin Rifle's push and punch (TwinRifleFx.cs)
+            BeginBowCam(game.Me);    // the Mender's Bow's pull-back and kick (BowCameraFx.cs)
         }
 
         void EndJuiceFrame()

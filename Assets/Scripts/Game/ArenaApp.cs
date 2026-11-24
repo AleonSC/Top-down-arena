@@ -763,7 +763,7 @@ namespace Arena
             Vector3 m = Input.mousePosition;
             float ws = scale * WorldToUi;
             V2 s = new V2((m.x - offX) / ws, (UnityEngine.Screen.height - m.y - offY) / ws) + lean;  // (+ the camera lean, CameraLean.cs)
-            return CamZoomed ? UnzoomPoint(s) : s;  // (and the scroll-wheel zoom, CameraZoom.cs)
+            return BowCamUnpunch(CamZoomed ? UnzoomPoint(s) : s);  // (and the scroll-wheel zoom, CameraZoom.cs; the bow's draw zoom, BowCameraFx.cs)
         }
 
         // --- Menus and HUD (IMGUI, arena coordinates) --------------------------

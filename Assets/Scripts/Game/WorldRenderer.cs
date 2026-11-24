@@ -706,9 +706,9 @@ namespace Arena
             var v = CanvasPx(glShift + p * glZoom);
             v.x += shakeX - leanPxX;  // screen shake (Juice.cs) and camera lean (CameraLean.cs) while the world is drawn; 0 otherwise
             v.y += shakeY + leanPxY;  // (GL's y runs up the screen, the arena's runs down)
-            if (punchK > 0f)
+            if (punchK != 0f)
             {
-                float cx = punchX - leanPxX, cy = punchY + leanPxY;  // the Twin Rifle's punch: a hair bigger round you (TwinRifleFx.cs)
+                float cx = punchX - leanPxX, cy = punchY + leanPxY;  // the Twin Rifle's punch, the bow's draw and release: a hair bigger or smaller round you (TwinRifleFx.cs, BowCameraFx.cs)
                 v.x = cx + (v.x - cx) * (1f + punchK);
                 v.y = cy + (v.y - cy) * (1f + punchK);
             }
