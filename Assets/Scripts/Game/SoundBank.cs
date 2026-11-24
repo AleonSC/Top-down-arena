@@ -330,7 +330,8 @@ namespace Arena
                 Sfx.FrostSlam, Sfx.FrostBreak, Sfx.BlastSlash, Sfx.BlastFlurry, Sfx.BlastWhirl, Sfx.BlastCleave, Sfx.BlastFlight, Sfx.BlastTideGather, Sfx.BlastTideWave,
                 Sfx.ChickCut1, Sfx.ChickCut2, Sfx.ChickJab, Sfx.ChickSpin, Sfx.ChickShear, Sfx.ChickHit, Sfx.ChickHitHeavy, Sfx.ChickThrow, Sfx.ChickCross,
                 Sfx.NodNuki, Sfx.NodKesa, Sfx.NodMoon, Sfx.NodTenchi, Sfx.NodNagi, Sfx.NodKasumi, Sfx.NodNidan, Sfx.NodSenbon, Sfx.NodTsuka, Sfx.NodHiki,
-                Sfx.NodToStorm, Sfx.NodToGuard, Sfx.DtShot, Sfx.DtSpool })
+                Sfx.NodToStorm, Sfx.NodToGuard, Sfx.DtShot, Sfx.DtSpool, Sfx.LitTankEngine, Sfx.LitTankCannon, Sfx.LitTankFall,
+                Sfx.LitTankLand, Sfx.LitTankWarn, Sfx.LitTankHatch })
                 c[(int)s] = Category.Weapons;
             foreach (var s in new[] {
             Sfx.EnemyShot, Sfx.BossShift, Sfx.BossCharge, Sfx.BossPulse, Sfx.BossChime, Sfx.BossLaserWarn, Sfx.BossLaser, Sfx.BossSlam,
@@ -367,6 +368,7 @@ namespace Arena
             wallHumVoice = NewSource(owner, 64, true);  // the wall hum (WallHumSoundBank.cs)
             arcHumVoice = NewSource(owner, 64, true);   // Arc Lightning's charge hum (ArcLockSoundBank.cs)
             heliVoice = NewSource(owner, 64, true);     // the Attack Helicopter's rotor (HeliSoundBank.cs)
+            litTankVoice = NewSource(owner, 64, true);  // A Literal Tank's engine (LitTankSoundBank.cs)
             galeHumVoice = NewSource(owner, 64, true);    // Gale Wall's field hum (GaleWallSoundBank.cs)
             var folderFiles = OwnSoundFiles();          // the player's own sounds (decoded on the build thread)
             LoadProjectSounds(folderFiles);
@@ -405,6 +407,7 @@ namespace Arena
                 BuildNunchaku();  // NunchakuSoundBank.cs
                 BuildNodachi();  // NodachiSoundBank.cs
                 BuildHeli();  // HeliSoundBank.cs
+                BuildLitTank();  // LitTankSoundBank.cs
                 BuildFlood();  // FloodSoundBank.cs
                 BuildWaterWard();  // WaterWardSoundBank.cs
                 BuildGaleWall();  // GaleWallSoundBank.cs

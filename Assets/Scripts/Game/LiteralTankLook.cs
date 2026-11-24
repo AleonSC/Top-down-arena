@@ -21,6 +21,9 @@ namespace Arena
             public V2 Last, WreckAt;
             public float WreckHull;
             public float MarkT;                        // until the next pair of tread marks
+            public bool Landed;                        // the landing's crash played
+            public float WarnAt;                       // the next low-time beep (your own tank)
+            public float Rev;                          // the engine's revs (0 idle, 1 driving), eased
             public readonly List<TankMark> Marks = new List<TankMark>();
         }
 
@@ -44,13 +47,15 @@ namespace Arena
             {
                 if (!on)
                     return null;
-                tankVis[p.Id] = v = new TankVis { Up = true, OnAt = t - Game.TankSince(p), Hull = p.Aim, Last = p.Disp };
+                tankVis[p.Id] = v = new TankVis { Up = true, OnAt = t - Game.TankSince(p), Hull = p.Aim, Last = p.Disp, Landed = Game.TankSince(p) >= Game.TankDrop };  // a late joiner sees it already down
             }
             if (on && !v.Up)
             {
                 v.OnAt = t - Mathf.Clamp(Game.TankSince(p), 0f, 0.2f);
                 v.Hull = p.Aim;
                 v.Last = p.Disp;
+                v.Landed = false;
+                v.Rev = 0f;
             }
             else if (!on && v.Up)
             {
@@ -59,6 +64,7 @@ namespace Arena
                 v.WreckHull = v.Hull;
                 if (Juicy)
                     Sparks(p.Disp, Game.TankFire, 18, 260f, 0.5f, 2.6f);
+                sounds?.Play(Sfx.LitTankHatch, p == game.Me ? 0.6f : 0.3f, Time.unscaledTime);  // you pop out (the wreck's boom is sent)
             }
             v.Up = on;
             float dt = Mathf.Max(0f, Time.deltaTime);
@@ -79,9 +85,48 @@ namespace Arena
                     }
                 }
             }
+            if (on)
+                TankSounds(p, v, t, dt);
             v.Last = p.Disp;
             v.Marks.RemoveAll(m => t - m.Born > TankMarkLife);
             return v;
+        }
+
+        float tankEngineLevel, tankEnginePitch = 1f, tankEngineAt = -9f;  // the loudest tank's engine this frame (TickLitTankSound)
+        const float TankRevSpeed = 150f;  // px/s: driving this fast is full revs
+
+        /// The landing's crash, your own tank's low-time beeps, and the engine's level and pitch (LitTankSoundBank.cs).
+        void TankSounds(Player p, TankVis v, float t, float dt)
+        {
+            bool mine = p == game.Me;
+            float since = t - v.OnAt;
+            if (!v.Landed && since >= Game.TankDrop)
+            {
+                v.Landed = true;
+                sounds?.Play(Sfx.LitTankLand, mine ? 0.9f : 0.5f, Time.unscaledTime);
+            }
+            if (mine && p.TankT < 3f && t >= v.WarnAt)
+            {
+                v.WarnAt = t + 0.5f;
+                sounds?.Play(Sfx.LitTankWarn, 0.45f, Time.unscaledTime);
+            }
+            if (!v.Landed)
+                return;
+            float speed = dt > 0f ? (p.Disp - v.Last).Length / dt : 0f;
+            v.Rev = Mathf.MoveTowards(v.Rev, Mathf.Clamp01(speed / TankRevSpeed), dt * 2.5f);
+            float level = (mine ? 1f : 0.5f) * (0.4f + 0.6f * v.Rev);
+            if (Time.unscaledTime - tankEngineAt > 0.05f || level >= tankEngineLevel)
+            {
+                tankEngineLevel = level;
+                tankEnginePitch = 0.82f + 0.35f * v.Rev;
+                tankEngineAt = Time.unscaledTime;
+            }
+        }
+
+        void TickLitTankSound()
+        {
+            if (sounds != null)
+                sounds.SetLitTankEngine(Time.unscaledTime - tankEngineAt < 0.25f ? tankEngineLevel * 0.5f : 0f, tankEnginePitch);
         }
 
         /// From DrawPlayer, before the model: the tank (true: it is drawn in place of the model), or while it falls, the tank

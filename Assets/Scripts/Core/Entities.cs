@@ -158,6 +158,9 @@ namespace Arena
         MenuPlay, MenuKey, MenuQuit, MenuEject, MenuRooms, NeonSpark, BayVault, BayBack, RunContinue, RunDelArm, RunDelete,
         // Graze (Graze.cs, GrazeSoundBank.cs): an enemy shot skimming past you. Played by your own screen, never sent.
         Graze,
+        // A Literal Tank (LitTankSoundBank.cs): the engine's loop, the main gun, the drop's whistle (sent with the cast), the landing,
+        // the last seconds' beep, the hatch. The rest are played by each screen from the look or the shell, never sent.
+        LitTankEngine, LitTankCannon, LitTankFall, LitTankLand, LitTankWarn, LitTankHatch,
     }
 
     public struct SoundCue
