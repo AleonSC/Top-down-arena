@@ -245,6 +245,8 @@ static partial class Shot {
       }
     }
     if (host.Game.Reapers != null) { var R = host.Game.Reapers; Console.WriteLine("reapers stage {0} turn {1} turnT {2:0.0} trans {3} {4:0.0} suck {5:0.0} trapped {6} holes {7}", R.Stage, R.Turn, R.TurnT, R.Trans, R.TransT, R.Suck, R.Trapped, R.Holes.Count); }
+    // LICHAT=x,y: pin the Lich there for a close look at its body (LichBodyLook.cs; use with ZOOM and CAMAT on the same spot).
+    if (Environment.GetEnvironmentVariable("LICHAT") != null) { var la = Environment.GetEnvironmentVariable("LICHAT").Split(','); foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Lich) { e.Pos = new V2(float.Parse(la[0]), float.Parse(la[1])); e.Disp = e.Pos; } }
     foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Lich) Console.WriteLine("lich stage {0} turn {1} turnT {2:0.0} prisons {3} spirits {4} sweep {5}", e.Lich?.Stage, e.Lich?.Turn, e.Lich?.TurnT, e.Lich?.Prisons.Count, e.Lich?.Spirits.Count, e.Lich?.SweepOn);
     foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.HiveQueen) Console.WriteLine("queen stage {0} turn {1} turnT {2:0.0} trans {3:0.0} cells {4} cloud {5}", e.Queen?.Stage, e.Queen?.Turn, e.Queen?.TurnT, e.Queen?.TransT, e.Queen?.Cells.Count, e.Queen?.CloudOn);
     // WARDENSET=exposed|stun|fan: the Warden blinded by its own light (the light on it), stunned, or warning of a fan volley.
@@ -889,6 +891,7 @@ static partial class Shot {
       typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
       cg.AnimT += 0.3f;
     }
+    ReaperLookScene(me);  // MOCKUP: REAPERLOOK= (ShotReaperLook.cs)
     if (Environment.GetEnvironmentVariable("ZOOM") != null) {  // ZOOM=<1-2>: the scroll-wheel zoom, centred on you and held inside the arena (CameraZoom.cs)
       float z = float.Parse(Environment.GetEnvironmentVariable("ZOOM"), System.Globalization.CultureInfo.InvariantCulture);
       int crot = Environment.GetEnvironmentVariable("CAMROT") != null ? int.Parse(Environment.GetEnvironmentVariable("CAMROT")) : 0;  // CAMROT=<quarter turns clockwise> (CameraRotate.cs); CAMROTANG=<deg>: a mid-swing angle instead

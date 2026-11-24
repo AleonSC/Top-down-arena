@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// How the Duelist's fight looks (Duelist.cs): its sword, the guard's raised blade, the salute's glint, the reeling
+    /// How the Duelist's fight looks (Duelist.cs; its body: DuelistBodyLook.cs): the guard's raised blade, the salute's glint, the reeling
     /// stagger, the warning lines and dash trails, the hanging blades, the dueling circle and its decoys' hollow shots.
     public partial class ArenaApp
     {
@@ -57,19 +57,14 @@ namespace Arena
             }
         }
 
-        /// On the Duelist (and its decoys, which look the same): its sword; the guard's steel arc; the salute's raised
-        /// sword and gold glint; reeling when it's been parried.
+        /// On the Duelist (its body and sword: DuelistBodyLook.cs): the guard's steel arc; the salute's shrinking ring and
+        /// gold glint; reeling when it's been parried.
         void DrawDuelistBlade(Enemy e, V2 pos, float r, float t)
         {
             if (e.Type == EnemyType.Decoy)
-            {
-                DrawSword(pos, e.Facing, r, false, t);
                 return;
-            }
             var s = e.Duel;
             bool salute = s != null && s.SaluteT > 0f, stagger = s != null && s.StaggerT > 0f;
-            float face = e.Facing + (stagger ? Mathf.Sin(t * 14f) * 0.35f : 0f);
-            DrawSword(pos, face, r, salute, t);
             if (s == null)
                 return;
             if (Game.DuelGuarding(e))
@@ -92,15 +87,6 @@ namespace Arena
                     Circle(pos + new V2(Mathf.Cos(a) * 26f, -(r + 12f) + Mathf.Sin(a) * 8f), 4f, DuelGold, 8);
                 }
             }
-        }
-
-        /// A rapier along the facing (or held straight up in salute), with a gold guard.
-        void DrawSword(V2 pos, float face, float r, bool up, float t)
-        {
-            V2 dir = up ? new V2(0f, -1f) : V2.FromAngle(face + 0.25f), side = dir.Orthogonal();
-            V2 hilt = pos + (up ? V2.FromAngle(face) * (r * 0.4f) : V2.FromAngle(face + 0.25f) * (r * 0.6f)) + side * (r * 0.45f);
-            Line(hilt, hilt + dir * (r * 1.9f), 3f, new Rgba(0.95f, 0.96f, 1f));
-            Line(hilt - side * 8f, hilt + side * 8f, 4f, DuelGold);
         }
 
         /// A decoy's harmless shot: a pale ring.
