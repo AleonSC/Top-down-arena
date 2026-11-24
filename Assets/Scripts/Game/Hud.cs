@@ -163,10 +163,7 @@ namespace Arena
                     if (game.ShopOpen && me != null && !pauseUp)
                         DrawShopRoomHint(me);  // the Expanding arena: walk to the shop room (ExpansionUi.cs)
                     if (game.HangoutOn)
-                    {
-                        DrawHangoutTag();  // HangoutUi.cs: no countdown, no wave band
-                        break;
-                    }
+                        break;  // (Practice plays in the lobby's window, HangoutUi.cs: no wave band)
                     var choosing = new List<string>();
                     foreach (var p in game.Players.Values)
                         if (p.PendingPicks + p.PendingLegendary + p.PendingMods + p.PendingCards + p.PendingMilestones + p.PrizePicks > 0 && p.Id != game.MyId)

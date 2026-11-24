@@ -3,30 +3,42 @@ using UnityEngine;
 namespace Arena
 {
     /// Leaving the Game Mode screen for the lobby with effects on: the "CRT blink" (the channel-change cousin of the lobby's
-    /// power-cycle leave, LobbyCrtLeave.cs), 0.72 s, every curve eased at both ends so no frame jumps:
+    /// power-cycle leave, LobbyCrtLeave.cs), 0.9 s, every curve eased at both ends so no frame jumps:
     ///   0.0 s   TO THE LOBBY, Back or Esc: the mode screen squashes (ease in-out) to a white-hot line about the middle, whitening
     ///           as it goes (the CRT back and bezel stay on; the screen goes dark round the band)
     ///   0.28 s  just the line, blooming
-    ///   0.36 s  the lobby opens out of it (ease out, a slight overshoot) while the line fades over it, the white gone by 0.56 s;
-    ///           the scanlines, there all along, fade by 0.72 s
+    ///   0.36 s  the lobby opens out of it (ease out, a 2% overshoot settling by 0.74 s) while the line fades over it, the
+    ///           white gone by 0.6 s; the scanlines, there all along, ease out by 0.9 s
+    /// Its clock steps at most 1/30 s a frame (like LobbyEnter.cs): the lobby's first draw can hitch, which would otherwise
+    /// skip the opening and pop the lobby in.
     /// The switch itself is instant (`lobbyTab` is the lobby's at once); the closing half draws the old page, drawn only (Repaint,
     /// Ui.NoHit), so nothing takes a click. GL models squash with it (crtSquashOn, CanvasPx). Reduced effects or Visual effects
-    /// off: the plain switch. Preview: `LOBBYTAB=8 MODEBLINK=<s> shot.sh x lobby` (0.1, 0.24, 0.32, 0.42, 0.55).
+    /// off: the plain switch. Preview: `LOBBYTAB=8 MODEBLINK=<s> shot.sh x lobby` (0.1, 0.24, 0.32, 0.45, 0.6, 0.8).
     public partial class ArenaApp
     {
-        const float ModeBlinkLen = 0.72f, MbOffEnd = 0.28f, MbLineEnd = 0.36f, MbOnEnd = 0.62f;
-        float modeBlinkAt = -9f;  // when the blink started (unscaled time)
+        const float ModeBlinkLen = 0.9f, MbOffEnd = 0.28f, MbLineEnd = 0.36f, MbOnEnd = 0.74f;
+        float modeBlinkT = -1f;   // seconds into the blink (capped steps, TickModeBlink); below 0 when not blinking
         int modeBlinkFrom;        // the mode screen's page, drawn while it closes
 
-        float ModeBlinkT => Time.unscaledTime - modeBlinkAt;
-        bool ModeBlinking => ModeBlinkT >= 0f && ModeBlinkT < ModeBlinkLen;
+        float ModeBlinkT => modeBlinkT;
+        bool ModeBlinking => modeBlinkT >= 0f && modeBlinkT < ModeBlinkLen;
+
+        /// Update: run the blink's clock, a hitch pausing it rather than skipping ahead.
+        void TickModeBlink(float dt)
+        {
+            if (modeBlinkT < 0f)
+                return;
+            modeBlinkT += Mathf.Min(dt, EnterMaxStep);
+            if (modeBlinkT >= ModeBlinkLen)
+                modeBlinkT = -1f;
+        }
 
         /// Back to the lobby from the Game Mode screen (TO THE LOBBY, Back, Esc).
         void LeaveModeScreen()
         {
             if (fxOn && !fxReduced && OnModeScreen)
             {
-                modeBlinkAt = Time.unscaledTime;
+                modeBlinkT = 0f;
                 modeBlinkFrom = lobbyTab;
             }
             lobbyTab = 0;
@@ -52,10 +64,10 @@ namespace Arena
             {
                 float o = Seg(k, MbLineEnd, MbOnEnd);
                 sx = 1.03f - 0.03f * EaseOut(o);
-                sy = Mathf.Max(0.006f, EaseBackOut(o));
+                sy = Mathf.Max(0.006f, EaseBackSoft(o));
             }
             var full = new Rect(0f, 0f, W, H);
-            float scan = 0.35f * Seg(k, 0f, 0.12f) * (1f - Seg(k, 0.5f, ModeBlinkLen));  // the scanlines: in, there throughout, out
+            float scan = 0.35f * Mathf.SmoothStep(0f, 1f, Seg(k, 0f, 0.12f)) * (1f - Mathf.SmoothStep(0f, 1f, Seg(k, 0.5f, ModeBlinkLen)));  // the scanlines: in, there throughout, out
             // The screen dark round the band (the CRT back shows through a little; the bezel is drawn over it after).
             float bandH = sy > 0f ? H * Mathf.Min(1f, sy) : 0f, bandY = (H - bandH) / 2f;
             var dark = new Color(0f, 0f, 0f, 0.9f);
@@ -84,7 +96,7 @@ namespace Arena
             lobbyTab = keepTab;
             Ui.NoHit = noHit;
             // The tube's white: building as it closes, fading as it opens.
-            float flash = open ? 0.8f * (1f - Mathf.SmoothStep(0f, 1f, Seg(k, MbLineEnd, 0.56f))) : 0.8f * Mathf.SmoothStep(0f, 1f, Seg(k, 0.06f, MbOffEnd));
+            float flash = open ? 0.8f * (1f - Mathf.SmoothStep(0f, 1f, Seg(k, MbLineEnd, 0.6f))) : 0.8f * Mathf.SmoothStep(0f, 1f, Seg(k, 0.06f, MbOffEnd));
             if (flash > 0f)
                 Ui.Fill(full, new Color(0.81f, 0.88f, 1f, flash));
             crtSquashOn = false;
@@ -93,6 +105,9 @@ namespace Arena
                 DrawModeBlinkLine(1f, 1f - Seg(k, MbLineEnd, MbLineEnd + 0.1f));  // the line fades over the opening band
             CrtScanlines(full, scan);
         }
+
+        /// Ease out with a gentle overshoot (about 2%, LobbyCrtLeave's EaseBackOut is 9%), level at the end.
+        static float EaseBackSoft(float x) { const float c = 0.8f; return 1f + (c + 1f) * Mathf.Pow(x - 1f, 3f) + c * Mathf.Pow(x - 1f, 2f); }
 
         /// The bright line at the screen's middle: `l` 0..1 shrinks it a little and blooms it, `a` fades it.
         void DrawModeBlinkLine(float l, float a)

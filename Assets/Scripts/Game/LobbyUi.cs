@@ -10,7 +10,7 @@ namespace Arena
         
         static readonly Color ModColor = new Color(0.85f, 0.45f, 0.95f);
 
-        int lobbyTab;              // 0 = your loadout (its own key), 1 = unused (was the Practice Range), 2 = modifiers, 3 = difficulty, 4 = boss hunt, 5 = perks (from the loadout), 6 = hangout
+        int lobbyTab;              // 0 = your loadout (its own key), 1 = unused (was the Practice Range), 2 = modifiers, 3 = difficulty, 4 = boss hunt, 5 = perks (from the loadout), 6 = the retired Hangout room, 12 = Practice (HangoutUi.cs)
         bool connInfoOpen;         // the "!" popup by the title: hosting/port and the invite addresses
         readonly Player previewPlayer = new Player { Id = -100 };
 
@@ -167,30 +167,13 @@ namespace Arena
             // --- Right: the tab keys, then your loadout.
             var body = LobbyBodyRect;
             TickHangoutAnim();  // LobbyRoom.cs
+            TickPracticeSwap();  // HangoutUi.cs: a swap to or from Practice glitches
             if (hangoutAnim > 0f && hangoutAnim < 1f && me != null && session.Resume == null)
                 DrawHangoutTransition(me, body, t);  // the preview window growing into the Hangout (or shrinking back)
-            else if (lobbyTab == 2)
-                DrawModifiers(body, t);
-            else if (lobbyTab == 3)
-                DrawDifficulty(body, t);  // DifficultyUi.cs
-            else if (lobbyTab == PerkTab)
-                DrawPerks(body, t);  // PerksUi.cs
-            else if (lobbyTab == HangoutTab)
-                DrawHangout(body, t);  // LobbyRoom.cs
-            else if (session.Resume != null)
-                DrawResumeSeats(body, t);  // SavesUi.cs
-            else if (me != null)
-            {
-                var editing = session.IsHost ? partyBots.Find(editBotId) : null;
-                LobbyEntry shown;
-                if (editing != null && session.Lobby.TryGetValue(editing.Id, out shown))
-                    DrawLoadout(shown, body, t, editing);  // the host choosing a bot's loadout
-                else
-                {
-                    editBotId = -1;
-                    DrawLoadout(me, body, t);
-                }
-            }
+            else if (PracticeFxOn)
+                DrawPracticeSwap(me, body, t, tab => DrawLobbyBody(tab, me, body, t));  // HangoutUi.cs
+            else
+                DrawLobbyBody(lobbyTab, me, body, t);
 
             // The tab row, drawn over the big screen's top edge so the lit tab opens into it (folder tabs, LobbyKit.FolderTab).
             bool onLoadout = lobbyTab == 0 || lobbyTab == PerkTab;
@@ -341,35 +324,53 @@ namespace Arena
             }
         }
 
+        /// The big screen for one tab: the loadout, a tab's page, or the Practice room (HangoutUi.cs).
+        void DrawLobbyBody(int tab, LobbyEntry me, Rect body, float t)
+        {
+            if (tab == 2)
+                DrawModifiers(body, t);
+            else if (tab == 3)
+                DrawDifficulty(body, t);  // DifficultyUi.cs
+            else if (tab == PerkTab)
+                DrawPerks(body, t);  // PerksUi.cs
+            else if (tab == HangoutTab)
+                DrawHangout(body, t);  // LobbyRoom.cs (retired)
+            else if (tab == PracticeTab)
+                DrawPractice(body, t);  // HangoutUi.cs
+            else if (session.Resume != null)
+                DrawResumeSeats(body, t);  // SavesUi.cs
+            else if (me != null)
+            {
+                var editing = session.IsHost ? partyBots.Find(editBotId) : null;
+                LobbyEntry shown;
+                if (editing != null && session.Lobby.TryGetValue(editing.Id, out shown))
+                    DrawLoadout(shown, body, t, editing);  // the host choosing a bot's loadout
+                else
+                {
+                    editBotId = -1;
+                    DrawLoadout(me, body, t);
+                }
+            }
+        }
+
         /// The mode's own tab keys right of the Saved star (Loadout and Perks have their own keys; Difficulty and Modifiers are rows over Ready).
-        /// The tab row after Loadout: Difficulty and Modifiers (each naming what's set when it isn't the default), and the Hangout
+        /// The tab row after Loadout: Difficulty and Modifiers (each naming what's set when it isn't the default), and Practice
         /// alone at the right end. A second click on an open tab goes back to the loadout.
         void DrawLobbyTabs()
         {
-            // The PVP switch, in the gap before the Hangout: whether players hurt each other there (host only; Pvp.cs).
-            {
-                bool was = GUI.enabled;
-                GUI.enabled = was && session.IsHost;
-                var pr = new Rect(LobbyHangoutKey.x - 88f, LobbyTabY + 2f, 80f, LobbyTabH - 4f);
-                bool on = DkSwitch(pr, session.HangoutPvp, "PVP");
-                if (on != session.HangoutPvp)
-                    session.SetHangoutPvp(on);
-                GUI.enabled = was;
-            }
             int mods = Modifiers.Count(session.Modifiers);
             var rects = new[] { LobbyDiffKey, LobbyModsKey, LobbyHangoutKey };
-            string[] names = { "DIFFICULTY", mods > 0 ? "MODIFIERS  (" + mods + ")" : "MODIFIERS", "HANGOUT" };
-            int[] tabs = { 3, 2, HangoutTab };
+            string[] names = { "DIFFICULTY", mods > 0 ? "MODIFIERS  (" + mods + ")" : "MODIFIERS", "PRACTICE" };
+            int[] tabs = { 3, 2, PracticeTab };
             for (int k = 0; k < 3; k++)
             {
-                bool on = k != 2 && lobbyTab == tabs[k];
+                bool on = lobbyTab == tabs[k];
                 LobbyGlowBox(rects[k]);
                 if (LobbyKit.FolderTab(rects[k], names[k], on))
                 {
-                    if (k == 2)  // the Hangout: the whole party in the real match, held between waves (Session.StartHangout, HangoutGame.cs)
+                    if (k == 2 && !on)  // Practice: the party's shared room in this window (Session.StartHangout, HangoutUi.cs)
                     {
-                        showcasePlay = false;
-                        session.StartHangout();
+                        OpenPractice();
                         continue;
                     }
                     lobbyTab = on ? 0 : tabs[k];

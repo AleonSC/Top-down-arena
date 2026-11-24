@@ -55,7 +55,7 @@ namespace Arena
 
         /// During a run the background sits behind the arena: it ignores the pointer (that is your aim) and clicks (your shots) and
         /// only drifts on its own; the arena floor (FloorGridLook.cs) does the reacting.
-        bool BgInRun => game != null && game.Running;
+        bool BgInRun => game != null && game.Running && session.Screen == AppScreen.Game;  // (not Practice behind the lobby)
 
         void AddRipple(V2 uiAt, float time, float power = 1f)
         {

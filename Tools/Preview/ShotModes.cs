@@ -254,7 +254,28 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("SURVLOBBY") != null) { host.Mode = GameMode.Survival; set("lobbyTab", 9); if (Environment.GetEnvironmentVariable("SURVLOBBY") == "2") { var sp2 = new Profile { TutorialDone = true }; sp2.SurvivalEnded("Knight Tank", 512f, 3); sp2.SurvivalEnded("Elementalist DPS", 845f, 4); sp2.SurvivalEnded("Knight Tank", 301f, 2); host.Game.ProfileOverride = sp2; } }  // SURVLOBBY=1: the lobby's Survival mode and tab (SurvivalUi.cs); 2: with some records
       if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky | RunMod.Hunted | RunMod.SecondWind; }
       // MODEBLINK=<s>: that long into the CRT blink back to the lobby from the Game Mode screen (LOBBYTAB=8 for its page; ModeBlink.cs).
-      if (Environment.GetEnvironmentVariable("MODEBLINK") != null) { set("modeBlinkFrom", Environment.GetEnvironmentVariable("LOBBYTAB") != null ? int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB")) : 8); set("lobbyTab", 0); set("modeBlinkAt", Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("MODEBLINK"), System.Globalization.CultureInfo.InvariantCulture)); }
+      if (Environment.GetEnvironmentVariable("MODEBLINK") != null) { set("modeBlinkFrom", Environment.GetEnvironmentVariable("LOBBYTAB") != null ? int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB")) : 8); set("lobbyTab", 0); set("modeBlinkT", float.Parse(Environment.GetEnvironmentVariable("MODEBLINK"), System.Globalization.CultureInfo.InvariantCulture)); }
+      // PRACTICE=1: the lobby's Practice window (HangoutUi.cs): the room up behind the lobby, everyone in it, two spawners on.
+      // PRACTICEFX=<s>: that far into the Loadout -> Practice glitch (0..0.26 the loadout out, 0.26..0.6 Practice in); PRACTICEBACK=1 the other way.
+      if (Environment.GetEnvironmentVariable("PRACTICE") != null || Environment.GetEnvironmentVariable("PRACTICEFX") != null) {
+        host.Lobby[3] = new LobbyEntry { Id = 3, Name = "Sam", Role = Role.Healer, Kit = Kit.Summoner, Weapon = 0, Ability = 0, Rank = 14, Frame = 1 };
+        host.MyId = 1;
+        host.Game.HangoutStart = true; host.Game.HostStart(); host.Game.HangoutStart = false;
+        host.Screen = AppScreen.Lobby;
+        var pg = host.Game;
+        foreach (int k in new[] { 0, 4 }) pg.Spawners[k].On = true;
+        var at = new[] { new V2(760f, 470f), new V2(900f, 400f), new V2(640f, 360f) };
+        int pi = 0;
+        foreach (var pp in pg.Players.Values) { pp.Pos = pp.Disp = at[pi % 3]; pp.Aim = pi == 0 ? -0.6f : 2.6f; pi++; }
+        pg.Players[2].Hp = pg.Players[2].MaxHp * 0.55f;
+        set("lobbyTab", 12); set("practiceLastTab", 12);
+        if (Environment.GetEnvironmentVariable("PRACTICEFX") != null) {
+          Time.unscaledTime = 20f;
+          bool back = Environment.GetEnvironmentVariable("PRACTICEBACK") != null;
+          set("practiceFxFrom", back ? 12 : 0); set("practiceFxTo", back ? 0 : 12); set("lobbyTab", back ? 0 : 12); set("practiceLastTab", back ? 0 : 12);
+          set("practiceFxAt", 20f - float.Parse(Environment.GetEnvironmentVariable("PRACTICEFX"), System.Globalization.CultureInfo.InvariantCulture));
+        }
+      }
       // HANGOUT=<trail,trail,trail>: the lobby's Hangout tab (LobbyRoom.cs) with three characters, each wearing that trail id and
       // mid-stride (so the trail shows), e.g. HANGOUT=trail-void,trail-prism,trail-frost.
       if (Environment.GetEnvironmentVariable("HANGOUT") != null) {

@@ -262,17 +262,23 @@ namespace Arena
             game.Update(Time.deltaTime * EndSpeed);  // slowed as a run ends (RunEnding.cs)
             LabUpdate(Time.deltaTime);  // Boss Lab bots (BossLabUi.cs)
             partyBots.Update(Time.deltaTime);  // bots in the lobby's open slots (PartyBots.cs)
+            bool heard = !(session.Screen == AppScreen.Lobby && game.Practicing && !PracticeShown);  // (Practice is heard only while its window is up: HangoutUi.cs)
             foreach (var sfx in game.Sounds)
-                sounds.Play(sfx.Sfx, sfx.Volume, Time.unscaledTime);
+                if (heard)
+                    sounds.Play(sfx.Sfx, sfx.Volume, Time.unscaledTime);
             game.Sounds.Clear();
             TickHeliSound();  // the Attack Helicopter's rotor (AttackHelicopterLook.cs, HeliSoundBank.cs)
-            TickGaleWallSounds();  // Gale Wall's cast, catches, chime, unleash and hum (GaleWallLook.cs; before TickArcLockSounds, which marks effects heard)
-            TickArcLockSounds();  // Arc Lightning's tags, hops, forks and charge hum (ArcLockSoundBank.cs)
+            if (heard)
+                TickGaleWallSounds();  // Gale Wall's cast, catches, chime, unleash and hum (GaleWallLook.cs; before TickArcLockSounds, which marks effects heard)
+            if (heard)
+                TickArcLockSounds();  // Arc Lightning's tags, hops, forks and charge hum (ArcLockSoundBank.cs)
             TickVectorGain(Time.unscaledDeltaTime);  // vectors coming in: the bursts, the "+10 VECTORS" and the chip (VectorGainLook.cs)
             TickLootSweep(Time.unscaledDeltaTime);  // your coins swept to you as the wave starts (LootSweepLook.cs)
             TickOneWayBump();  // a One-way piece's door holding you back: the bump (OneWayDoorLook.cs)
-            TickWallTouch(Time.deltaTime);  // a wall touched: its arcs ease in and out, and the hum (WallTouchLook.cs)
-            TickFootsteps(Time.deltaTime);  // footsteps from everyone's speed (Footsteps.cs)
+            if (heard)
+                TickWallTouch(Time.deltaTime);  // a wall touched: its arcs ease in and out, and the hum (WallTouchLook.cs)
+            if (heard)
+                TickFootsteps(Time.deltaTime);  // footsteps from everyone's speed (Footsteps.cs)
             UpdateMusic();
             UpdateLayout();
             TickBossSlow(Time.unscaledDeltaTime);  // a boss's death: a moment of slow motion (JuiceMoments.cs)
@@ -299,6 +305,9 @@ namespace Arena
             {
                 lobbyMenuOpen = false;
                 inspectId = -1;
+                if (lobbyTab == PracticeTab)
+                    lobbyTab = 0;  // back from a run on the loadout, no glitch (HangoutUi.cs)
+                practiceLastTab = lobbyTab;
             }
             if (session.Screen != AppScreen.Game || !pauseMenuOpen && !game.Paused)
                 runStatsOpen = false;  // the pause menu's Run stats closes with it (RunStatsUi.cs)
@@ -465,6 +474,7 @@ namespace Arena
             TickMenuIntro(Time.unscaledDeltaTime);  // the main menu drawing itself in, the first time (MenuIntro.cs)
             TickMenuSounds(Time.unscaledDeltaTime);  // the menu's hum, and quitting after Quit's sound (MenuHolo.cs)
             TickLobbyEnter(Time.unscaledDeltaTime);  // the menu turning into the lobby (LobbyEnter.cs)
+            TickModeBlink(Time.unscaledDeltaTime);   // the Game Mode screen blinking back to the lobby (ModeBlink.cs)
             TickRecall(Time.unscaledDeltaTime);      // back to the lobby from a run: the beam-out (Recall.cs)
             TickWindowClose();  // a menu window sliding out, then closing (WindowAnim.cs)
             TickTiles(Time.unscaledDeltaTime);   // the ability bar's tiles react (HudTiles.cs)
@@ -518,7 +528,10 @@ namespace Arena
             else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.Me != null && game.MysteryNear(game.Me.Pos) >= 0
                      && (Keybinds.Down(KeyAction.Interact) || Keybinds.Down(KeyAction.DiscardItem)))
                 game.UseMysteryDoor(Keybinds.Down(KeyAction.DiscardItem));
-            // On a Hangout spawner: F turns it on or off, B changes its enemy (the mouse wheel too: CameraZoom.cs; HangoutSpawners.cs).
+            // On a Hangout spawner: F turns it on or off, B changes its enemy (the mouse wheel too: CameraZoom.cs; HangoutSpawners.cs). In
+            // Practice (the lobby's window, HangoutUi.cs) while your keys play it.
+            else if (PracticeLive && game.Me != null && game.SpawnerNear(game.Me.Pos) >= 0 && (Keybinds.Down(KeyAction.Interact) || Keybinds.Down(KeyAction.DiscardItem)))
+                game.UseSpawner(game.SpawnerNear(game.Me.Pos), Keybinds.Down(KeyAction.Interact) ? 0 : 1);
             else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.Me != null && game.SpawnerNear(game.Me.Pos) >= 0
                      && (Keybinds.Down(KeyAction.Interact) || Keybinds.Down(KeyAction.DiscardItem)))
                 game.UseSpawner(game.SpawnerNear(game.Me.Pos), Keybinds.Down(KeyAction.Interact) ? 0 : 1);
@@ -542,7 +555,7 @@ namespace Arena
         /// Esc on every screen, and the end-of-run keys (retry, restart, lobby, continue).
         void HandleEscAndEndKeys(Player me, bool menuUp)
         {
-            bool escTaken = EscPressed && (pacEscFrame == Time.frameCount || HandleScreenEsc());  // the top tool screen (F1 menu, Boss Lab setup) takes Esc first (UiScreens.cs)
+            bool escTaken = EscPressed && (pacEscFrame == Time.frameCount || HandleScreenEsc() || WikiPickEsc());  // (WikiPickEsc: Esc cancels the wiki's PICK)  // the top tool screen (F1 menu, Boss Lab setup) takes Esc first (UiScreens.cs)
             if (session.Screen != AppScreen.Game && EscPressed && !escTaken)
             {
                 if (inspectId >= 0)
@@ -697,6 +710,8 @@ namespace Arena
                 wantAbility[i] = false;
             if (pauseMenuOpen || game.Paused)
                 input = new PlayerInput { AimAt = input.AimAt };  // no moving or shooting behind the menu
+            if (session.Screen == AppScreen.Lobby && game.Practicing)
+                input = PracticeInput(input);  // Practice behind the lobby: your keys only while its window is up and the mouse is over it (HangoutUi.cs)
             input = PossessStep(input);  // the Dev Arena: your keys drive the enemy you're playing instead (DevArenaUi.cs)
             game.FixedStep(Time.fixedDeltaTime * EndSpeed, input);
             LabFixedStep(Time.fixedDeltaTime);

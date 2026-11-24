@@ -77,6 +77,7 @@ namespace Arena
         HangoutOpen,  // client -> host: open the Hangout (the hidden mode that sits in the between-waves state; HangoutGame.cs). The host answers with a Start whose Hangout flag is set
         HangoutSpawner,   // client -> host: a press on a Hangout spawner (byte index, sbyte 0 on/off, +1/-1 its enemy; HangoutSpawners.cs)
         HangoutSpawners,  // host -> all: every Hangout spawner (count byte; each: enemy index byte, on bool)
+        PracticePlayer,   // host -> all: one player's loadout changed in the lobby while Practice is up: their Start record (Game.WriteStartPlayer); their character is swapped in place (HangoutGame.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -141,7 +142,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 479;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 480;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -160,7 +161,6 @@ namespace Arena
         // Lobby mode (host decides; everyone sees it).
         public GameMode Mode = GameMode.Campaign;   // the mode picked (GameMode.cs); a resumed run plays the Campaign whatever it says (PlayMode)
         public bool HuntLong = true;                       // the Boss Hunt is the long one (Hunts.LongLength steps, Docs/LongHunt.md), not the ten
-        public bool HangoutPvp = true;                     // the Hangout's PvP is on (the lobby's PVP switch, host only; Pvp.cs)
         public bool HuntMapMode = true;                    // the Boss Hunt is played as a hunt map (Docs/HuntMap.md): a route of nodes you vote on instead of ten fixed waves
         /// The mode the next run plays: the one picked, except that continuing a saved run is the Campaign.
         public GameMode PlayMode => Resume == null ? Mode : Resume.IsHunt ? GameMode.Hunt : GameMode.Campaign;
@@ -330,6 +330,7 @@ namespace Arena
             }
             StepLobbyCombat();  // (the Hangout's shots, health and respawns: LobbyCombat.cs)
             SendAvatars();
+            Game.SyncPractice();  // host: Practice follows the lobby's loadouts and newcomers (HangoutGame.cs)
         }
 
         // --- Emotes ------------------------------------------------------------
@@ -547,9 +548,9 @@ namespace Arena
                     var kit = ClampKit(r.ReadByte());
                     int wild = r.ReadByte();
                     int ult = r.ReadByte();
-                    if (Game.Running || Lobby.Count >= MaxPlayers)
+                    if (Game.InRun || Lobby.Count >= MaxPlayers)  // (Practice is no run: a newcomer joins it, HangoutGame.cs)
                     {
-                        Reject(peer, Game.Running ? "That game has already started. Ask the host to go back to the lobby, then join."
+                        Reject(peer, Game.InRun ? "That game has already started. Ask the host to go back to the lobby, then join."
                             : "That game is full (" + MaxPlayers + " players max).");
                         return;
                     }
@@ -677,7 +678,7 @@ namespace Arena
                     Game.OnPause(peer, r);
                     break;
                 case Msg.RoleRequest:
-                    { int v = r.ReadByte(); if (!Game.Running) SetRole(peer, v); }  // (a late lobby request mid-run is ignored)
+                    { int v = r.ReadByte(); if (!Game.InRun) SetRole(peer, v); }  // (a late lobby request mid-run is ignored; Practice is no run)
                     break;
                 case Msg.HangoutSpawner:
                     Game.OnHangoutSpawner(peer, r);  // HangoutSpawners.cs
@@ -687,21 +688,21 @@ namespace Arena
                         StartHangout();  // any player can open it; the host does (HangoutGame.cs)
                     break;
                 case Msg.WeaponRequest:
-                    { int v = r.ReadByte(); if (!Game.Running) SetWeapon(peer, v); }  // (a late lobby request mid-run is ignored)
+                    { int v = r.ReadByte(); if (!Game.InRun) SetWeapon(peer, v); }  // (a late lobby request mid-run is ignored; Practice is no run)
                     break;
                 case Msg.AbilityRequest:
-                    { int v = r.ReadByte(); if (!Game.Running) SetAbility(peer, v); }  // (a late lobby request mid-run is ignored)
+                    { int v = r.ReadByte(); if (!Game.InRun) SetAbility(peer, v); }  // (a late lobby request mid-run is ignored; Practice is no run)
                     break;
                 case Msg.UltRequest:
-                    { int v = r.ReadByte(); if (!Game.Running) SetUlt(peer, v); }  // (a late lobby request mid-run is ignored)
+                    { int v = r.ReadByte(); if (!Game.InRun) SetUlt(peer, v); }  // (a late lobby request mid-run is ignored; Practice is no run)
                     break;
                 case Msg.KitRequest:
-                    { int v = r.ReadByte(); if (!Game.Running) SetKit(peer, v); }  // (a late lobby request mid-run is ignored)
+                    { int v = r.ReadByte(); if (!Game.InRun) SetKit(peer, v); }  // (a late lobby request mid-run is ignored; Practice is no run)
                     break;
                 case Msg.WildcardRequest:
                 {
                     int ww = r.ReadByte(), wa = r.ReadByte(), ws = r.ReadByte();
-                    if (!Game.Running)
+                    if (!Game.InRun)
                         SetWildcard(peer, ww, wa, ws);
                     break;
                 }
@@ -907,7 +908,7 @@ namespace Arena
         void SetSeat(int id, int seat)
         {
             LobbyEntry e;
-            if (Resume == null || Game.Running || !Lobby.TryGetValue(id, out e) || seat < 0 || seat >= Resume.Seats.Count || SeatTaken(seat))
+            if (Resume == null || Game.InRun || !Lobby.TryGetValue(id, out e) || seat < 0 || seat >= Resume.Seats.Count || SeatTaken(seat))
                 return;
             TakeSeat(e, seat);
             BroadcastLobby();
@@ -1050,7 +1051,7 @@ namespace Arena
         void SetReady(int id, bool ready)
         {
             LobbyEntry e;
-            if (!Lobby.TryGetValue(id, out e) || Game.Running)
+            if (!Lobby.TryGetValue(id, out e) || Game.InRun)
                 return;
             e.Ready = ready;
             BroadcastLobby();
@@ -1227,7 +1228,6 @@ namespace Arena
             w.Write((byte)HuntBoss);
             w.Write(HuntMapMode);
             w.Write(HuntLong);
-            w.Write(HangoutPvp);  // the lobby's PVP switch (Pvp.cs)
             // Continuing a saved run: its seats, so everyone's lobby can show them.
             w.Write(Resume != null);
             if (Resume != null)
@@ -1253,19 +1253,10 @@ namespace Arena
 
         // --- Lobby mode ------------------------------------------------------------
 
-        /// Host: the lobby's PVP switch: whether players' attacks hurt each other in the Hangout (Pvp.cs).
-        public void SetHangoutPvp(bool on)
-        {
-            if (!IsHost || HangoutPvp == on)
-                return;
-            HangoutPvp = on;
-            BroadcastLobby();
-        }
-
         /// Host: the lobby's mode (GameMode.cs).
         public void SetMode(GameMode mode)
         {
-            if (!IsHost || Game.Running || mode == GameMode.None || mode == GameMode.Hangout)  // (the Hangout is hidden: HangoutGame.cs opens it, the carousel never picks it)
+            if (!IsHost || Game.InRun || mode == GameMode.None || mode == GameMode.Hangout)  // (the Hangout is hidden: HangoutGame.cs opens it, the carousel never picks it)
                 return;
             Mode = mode;
             if (Game.Profile != null && Resume == null && QuickDefault)
@@ -1282,7 +1273,7 @@ namespace Arena
         public void SetHuntBoss(EnemyType boss)
         {
             var h = Hunts.Get(boss);
-            if (!IsHost || Game.Running || h == null || !Hunts.Available(h, Game.Profile) || HuntBoss == boss)
+            if (!IsHost || Game.InRun || h == null || !Hunts.Available(h, Game.Profile) || HuntBoss == boss)
                 return;
             HuntBoss = boss;
             foreach (var e in Lobby.Values)
@@ -1293,7 +1284,7 @@ namespace Arena
         /// Host: play the Boss Hunt as a hunt map (a route you vote on) or as the ten fixed waves.
         public void SetHuntMapMode(bool on)
         {
-            if (!IsHost || Game.Running || HuntMapMode == on)
+            if (!IsHost || Game.InRun || HuntMapMode == on)
                 return;
             HuntMapMode = on;
             foreach (var e in Lobby.Values)
@@ -1304,7 +1295,7 @@ namespace Arena
         /// Host: the long Boss Hunt (20 steps) or the short one (10).
         public void SetHuntLong(bool on)
         {
-            if (!IsHost || Game.Running || HuntLong == on)
+            if (!IsHost || Game.InRun || HuntLong == on)
                 return;
             HuntLong = on;
             foreach (var e in Lobby.Values)
@@ -1335,7 +1326,7 @@ namespace Arena
         /// Host: turn a run modifier on or off. Everyone's Ready is taken back, since the run changed.
         public void SetModifier(RunMod mod, bool on)
         {
-            if (!IsHost || Game.Running || Resume != null)
+            if (!IsHost || Game.InRun || Resume != null)
                 return;  // (a continued run keeps the modifiers it was saved with)
             Modifiers = on ? Modifiers | mod : Modifiers & ~mod;
             foreach (var e in Lobby.Values)
@@ -1346,7 +1337,7 @@ namespace Arena
         /// Host: pick a difficulty preset, or Custom (which starts from the numbers you have). Ready is taken back.
         public void SetDifficulty(DifficultyLevel level)
         {
-            if (!IsHost || Game.Running || Resume != null || Diff.Level == level)
+            if (!IsHost || Game.InRun || Resume != null || Diff.Level == level)
                 return;  // (a continued run keeps the difficulty it was saved with)
             Diff.SetLevel(level);
             DifficultyChanged();
@@ -1355,7 +1346,7 @@ namespace Arena
         /// Host: set one difficulty number (the run becomes Custom).
         public void SetDifficultyKnob(DiffKnob k, float v)
         {
-            if (!IsHost || Game.Running || Resume != null)
+            if (!IsHost || Game.InRun || Resume != null)
                 return;
             var before = Diff.Copy();
             Diff.Set(k, v);
@@ -1623,7 +1614,6 @@ namespace Arena
                     HuntBoss = (EnemyType)r.ReadByte();
                     HuntMapMode = r.ReadBoolean();
                     HuntLong = r.ReadBoolean();
-                    HangoutPvp = r.ReadBoolean();
                     Resume = null;
                     if (r.ReadBoolean())
                     {
@@ -1638,7 +1628,7 @@ namespace Arena
                             Resume.Seats.Add(s);
                         }
                     }
-                    if (!Game.Running)
+                    if (!Game.InRun)
                         Screen = AppScreen.Lobby;
                     break;
                 }
@@ -1679,7 +1669,8 @@ namespace Arena
                 case Msg.Start:
                     ApplyMatchSetup();
                     Game.OnHostMessage(type, r);
-                    Resume = null;
+                    if (!Game.HangoutOn)
+                        Resume = null;  // (Practice keeps the lobby as it is, a saved run's seats too: HangoutGame.cs)
                     break;
                 default:
                     Game.OnHostMessage(type, r);

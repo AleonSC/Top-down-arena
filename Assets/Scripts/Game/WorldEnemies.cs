@@ -590,6 +590,8 @@ namespace Arena
                 DrawChomper(e, pos, r, col, t);
             else if (HiveKin.Is(e.Type))
                 DrawHiveBody(e, pos, r, col, t);  // HiveLook.cs: the Hive Queen's faction
+            else if (e.Type == EnemyType.HiveQueen)
+                DrawQueenBody(e, pos, r, col, t);  // QueenBodyLook.cs: the Brood Mother
             else if (e.Type == EnemyType.Wisp)
                 DrawWispBody(e, pos, r, col, t);  // ReaperCultLook.cs
             else if (Game.IsInfall(e.Type))

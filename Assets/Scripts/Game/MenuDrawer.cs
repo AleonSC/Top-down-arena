@@ -1034,7 +1034,7 @@ namespace Arena
             new HowTo { Name = "Playing together", Icon = "link", Color = new Color(0.55f, 1f, 0.6f), Intro = "Up to three players, one hosting.",
                 Tips = new[,] { { "Co-op", "1 to 3 players: one hosts, the others join (Tailscale makes this easy).", "6" }, { "Reviving", "Stand by a downed ally to bring them back. Healers and some upgrades do it faster.", "3" },
                     { "Pings and emotes", "Tap the ping key to mark your cursor, hold it for the wheel. Hold the emote key to cheer on your team.", "icon:ui_arrow" },
-                    { "Hangout", "Walk around the lobby with your party while you wait.", "icon:ui_star" },
+                    { "Practice", "Try your loadout in the lobby's window: spar with your party and spawn enemies while you wait.", "icon:ui_star" },
                     { "Pausing", "Anyone can pause: it pauses the run for everyone until someone resumes.", "icon:ui_play" } } },
         };
 
