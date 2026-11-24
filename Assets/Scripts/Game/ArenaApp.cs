@@ -543,7 +543,7 @@ namespace Arena
         /// Esc on every screen, and the end-of-run keys (retry, restart, lobby, continue).
         void HandleEscAndEndKeys(Player me, bool menuUp)
         {
-            bool escTaken = EscPressed && (pacEscFrame == Time.frameCount || HandleScreenEsc());  // the top tool screen (F1 menu, Boss Lab setup) takes Esc first (UiScreens.cs)
+            bool escTaken = EscPressed && (pacEscFrame == Time.frameCount || HandleScreenEsc() || WikiPickEsc());  // (WikiPickEsc: Esc cancels the wiki's PICK)  // the top tool screen (F1 menu, Boss Lab setup) takes Esc first (UiScreens.cs)
             if (session.Screen != AppScreen.Game && EscPressed && !escTaken)
             {
                 if (inspectId >= 0)

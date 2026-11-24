@@ -80,7 +80,14 @@ namespace Arena
             int n = calm ? title.Length : Mathf.Min(title.Length, Mathf.FloorToInt((now - wikiOpenedAt) / 0.03f));
             bool cursor = n < title.Length || !calm && Mathf.FloorToInt(now * 2f) % 2 == 0;
             CrtUi.Text(new Rect(scr.x + 18f, scr.y + 12f, 200f, 32f), title.Substring(0, n) + (cursor ? "_" : " "), 22, CrtStyle.Ink, TextAnchor.MiddleLeft, true, calm);
-            CrtUi.Text(new Rect(scr.xMax - 178f, scr.y + 12f, 160f, 32f), Wiki.All.Count + " ENTRIES", 10, CrtStyle.Dim, TextAnchor.MiddleRight, false, true);
+            // PICK: the eyedropper from here (WikiPick.cs): the wiki steps aside, the next click on anything opens its page.
+            if (DkKey(new Rect(scr.xMax - 104f, scr.y + 14f, 86f, 26f), "PICK", false, calm, PixelArt.Get("ui_cursor"), size: 11, rawSize: true) && live)
+            {
+                StartWikiPick();
+                CrtUi.End(scr, now, calm);
+                return;
+            }
+            CrtUi.Text(new Rect(scr.xMax - 290f, scr.y + 12f, 176f, 32f), Wiki.All.Count + " ENTRIES", 10, CrtStyle.Dim, TextAnchor.MiddleRight, false, true);
             Ui.Fill(new Rect(scr.x + 12f, scr.y + 50f, scr.width - 24f, 1f), CrtStyle.Ink.WithAlpha(0.25f));
 
             // The search box: typing goes back to the list.
