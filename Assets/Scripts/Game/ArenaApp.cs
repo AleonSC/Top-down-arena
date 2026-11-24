@@ -578,6 +578,10 @@ namespace Arena
                 {
                     // the bay's settings: back to the tiles, or the shutter down (BaySettings.cs)
                 }
+                else if (menuWikiOpen && session.Screen == AppScreen.Menu && MenuWikiEsc())
+                {
+                    // the bay's wiki: back a page, or the shutter down (BayWiki.cs)
+                }
                 else if ((menuPlayOpen || menuJoinOpen) && session.Screen == AppScreen.Menu && GUIUtility.keyboardControl == 0)
                     PlayPickerBack();  // the case's bay: the shutter rolls back down (SavesUi.cs, MenuMachine.cs)
             }

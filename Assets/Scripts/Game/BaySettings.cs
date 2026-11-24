@@ -26,7 +26,7 @@ namespace Arena
             menuSetOpen = !menuSetOpen;
             if (menuSetOpen)
             {
-                menuPlayOpen = menuJoinOpen = false;
+                menuPlayOpen = menuJoinOpen = menuWikiOpen = false;
                 menuSetGroup = menuSetShown = -1;
                 menuSetShownAt = Time.unscaledTime;
                 menuSetScroll = 0f;

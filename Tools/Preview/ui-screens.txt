@@ -77,3 +77,8 @@ shop              shop
 gameover          gameover
 victory           victory
 pickheld hud PICKHELD=1
+
+# Wiki (main menu, BayWiki.cs)
+menu-wiki         menu      WIKI=
+menu-wiki-search  menu      WIKI=rev
+menu-wiki-page    menu      WIKI= WIKIPAGE=Revolver

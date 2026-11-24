@@ -113,10 +113,14 @@ namespace Arena
                 MenuSound(Sfx.MenuKey);
                 menuJoinOpen = !menuJoinOpen;
                 if (menuJoinOpen)
-                    menuPlayOpen = menuSetOpen = false;
+                    menuPlayOpen = menuSetOpen = menuWikiOpen = false;
             }
-            if (MachKey(WikiKeyRect, "WIKI", 15, live, on ? BootLamp(T, 4.15f, 0) : 0))
-                MenuSound(Sfx.MenuKey);  // the wiki (planned): look up anything in the game
+            int wikiLamp = on ? BootLamp(T, 4.15f, menuWikiOpen ? 1 : 0) : 0;
+            if (MachKey(WikiKeyRect, "WIKI", 15, live, wikiLamp))
+            {
+                MenuSound(Sfx.MenuKey);
+                ToggleMenuWiki();  // BayWiki.cs: the wiki on the bay's screen
+            }
         }
 
         /// The control strip under the profile screen: a dark recessed plate with a divider in from each end, and between them the POWER
@@ -164,7 +168,7 @@ namespace Arena
             Ui.RoundBox(b, new Color(0.039f, 0.043f, 0.055f), 6);
             if (live && Event.current.type == EventType.Repaint)
             {
-                float target = menuPlayOpen || menuJoinOpen || menuSetOpen ? 1f : 0f;
+                float target = menuPlayOpen || menuJoinOpen || menuSetOpen || menuWikiOpen ? 1f : 0f;
                 float before = menuPlayK;
                 menuPlayK = fxOn && !fxReduced ? Mathf.MoveTowards(menuPlayK, target, Time.unscaledDeltaTime / MenuPlayLen) : target;
                 if (before == 0f && menuPlayK > 0f)
@@ -180,6 +184,8 @@ namespace Arena
                 bool screenLive = live && menuPlayK >= 1f;
                 if (menuSetOpen)
                     DrawBaySettings(MenuCard, screenLive);
+                else if (menuWikiOpen)
+                    DrawBayWiki(MenuCard, screenLive);
                 else if (menuJoinOpen)
                     DrawBayJoin(MenuCard, screenLive);
                 else

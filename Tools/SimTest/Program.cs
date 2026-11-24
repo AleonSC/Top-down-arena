@@ -496,6 +496,7 @@ static partial class Program
         Test("recycle", "enemy recycling (Recycling.cs): a straggler far from every player comes back in near the party", () => RecyclingTest(Dt)),
         Test("survival", "Survival (Survival.cs): the pressure curve, faction phases, the cap, squads, Elites, the same seed gives the same run", () => SurvivalTest(), () => SurvivalNetTest(Dt), () => SurvivalModsTest(Dt)),
         Test("hunts", "Boss Hunts: locked until the boss is beaten, the hunt's waves, winning it, its records", () => HuntTest(Dt)),
+        Test("wiki", "the in-game wiki: an entry with text for every class, weapon, ability, card, perk and enemy; search; references both ways", WikiTest),
         Test("perks", "perks: unlock rules, slots, equipping (one per boss), the profile line; Riot Gear: block, grace, 30 s recharge, burns go through; Contraband: the cycle chest and rare-or-better items", () => PerksTest(Dt), () => RiotGearTest(Dt), () => ContrabandTest(Dt)),
         Test("rank", "the account rank: the curve, XP for a run, modifier multiplier, profile, lobby sharing, a run ending", () => RankTest(Dt)),
         Test("remotechests", "the Chests tab: collect a chest from afar for a fee (between waves only), everyone's share straight to them", () => RemoteChestsTest(Dt)),
