@@ -1,10 +1,9 @@
 # Lobby Hangout
 
-> **Status: the Hangout is PLAY in the loadout's preview window.** The Hangout key (and the PLAY key on the window's top bar) hands
-> you the character in the mini window: WASD, mouse aim, fire, abilities, ultimate and Alt, your real loadout on the preview's three
-> dummies (`Showcase.Control`/`Play`, `LobbyUi.ShowcasePlayInput`; the mouse must be over the window; no cooldowns: `Game.ShowcasePlay` refills every slot each tick, `TickSlots`).
-> It is solo and offline, like the preview. The full-match `GameMode.Hangout` (protocol 468, `Core/HangoutGame.cs`, below) is built
-> and tested but no key opens it now; it is the base for party play and PvP later. The room described in the rest of this file (a lobby tab with
+> **Status: the Hangout key opens the full-match `GameMode.Hangout`** (`Core/HangoutGame.cs`, below; `LobbyUi.DrawLobbyTabs` calls
+> `Session.StartHangout`): the whole party in the real match held between waves, on three dummies, god mode, no cooldowns (`TickSlots`).
+> PLAY on the loadout preview window's top bar is the solo version: you drive the character in the mini window
+> (`Showcase.Control`/`Play`, `LobbyUi.ShowcasePlayInput`; no cooldowns: `Game.ShowcasePlay`). The room described in the rest of this file (a lobby tab with
 > its own light shots, `LobbyCombat.cs`, `LobbyRoom.cs`) is no longer reachable from the lobby; its code is kept until the owner
 > says to remove it.
 

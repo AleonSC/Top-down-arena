@@ -354,14 +354,14 @@ namespace Arena
             int[] tabs = { 3, 2, HangoutTab };
             for (int k = 0; k < 3; k++)
             {
-                bool on = k == 2 ? showcasePlay : lobbyTab == tabs[k];  // (the Hangout key is lit while PLAY is on)
+                bool on = k != 2 && lobbyTab == tabs[k];
                 LobbyGlowBox(rects[k]);
                 if (LobbyKit.FolderTab(rects[k], names[k], on))
                 {
-                    if (k == 2)  // the Hangout: your real loadout in the preview window, yours to play (Showcase.Control)
+                    if (k == 2)  // the Hangout: the whole party in the real match, held between waves (Session.StartHangout, HangoutGame.cs)
                     {
-                        lobbyTab = 0;
-                        showcasePlay = !showcasePlay;
+                        showcasePlay = false;
+                        session.StartHangout();
                         continue;
                     }
                     lobbyTab = on ? 0 : tabs[k];
