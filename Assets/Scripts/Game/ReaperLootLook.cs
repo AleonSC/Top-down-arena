@@ -3,20 +3,20 @@ using UnityEngine;
 namespace Arena
 {
     /// How the Twin Reapers' legendaries look (ReaperLoot.cs): your Twin Scythes, in Dusk's pink (the close one),
-    /// Dawn's blue (the wide one) and the Dual Reaper's gold (a third), and the thrown scythe of Scythe Throw.
+    /// Dawn's blue (the wide one) and the Dual Reaper's gold (a third), and the thrown scythe of Scythe Throw, all
+    /// with the Reapers' own pointed blade.
     /// Colours from ReaperLook.cs.
     public partial class ArenaApp
     {
-        /// A scythe: a curved blade swept back from the head of a short haft, with a faint trail behind the blade.
+        /// A scythe: the Reapers' pointed blade (ReaperBodyLook.cs) from the head of a short haft, curling back and
+        /// tapering to a sharp tip, with a faint trail behind it.
         void DrawScytheShape(V2 at, float aim, float size, Rgba col, float trail)
         {
-            V2 dir = V2.FromAngle(aim);
-            V2 head = at + dir * (size * 0.35f), foot = at - dir * (size * 0.6f);
-            Line(foot, head, Mathf.Max(2f, size * 0.12f), new Rgba(0.55f, 0.45f, 0.4f));  // the haft
-            if (trail > 0f)
-                Arc(head, size * 0.9f, size * 0.35f, col.WithAlpha(0.15f * trail), 14, aim + MathX.Pi * 0.5f, 1.6f);
-            Arc(head, size * 0.75f, Mathf.Max(3f, size * 0.22f), col, 14, aim + MathX.Pi * 0.5f, 1.7f);  // the blade, curving back
-            Arc(head, size * 0.75f + size * 0.1f, 1.5f, new Rgba(1f, 1f, 1f, 0.7f), 14, aim + MathX.Pi * 0.55f, 1.5f);  // its edge glint
+            V2 dir = V2.FromAngle(aim), head = at + dir * (size * 0.35f);
+            float len = size * 1.7f, rb = len * 0.46f;
+            if (trail > 0f)  // round the blade's own curve (DrawReaperScythe)
+                Arc(head - dir * rb, rb + size * 0.1f, size * 0.4f, col.WithAlpha(0.15f * trail), 14, aim, 1.55f);
+            DrawReaperScythe(head - dir * len * 0.65f, aim, len, 1f, col, 0f);
         }
 
         /// A Twin Scythe: which one it is (Dusk the close one, Dawn the wide one, the gold third) by the order they came.
