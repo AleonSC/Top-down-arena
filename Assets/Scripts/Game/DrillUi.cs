@@ -21,6 +21,8 @@ namespace Arena
                 DrawDrillWall(d);
             else if (key == "wallkick")
                 DrawDrillKick(d);
+            else if (key == "shoot")
+                DrawDrillTargets(d);
             else
                 DrawDrillBeacons(d);
             DrawDrillCard(d);
@@ -80,6 +82,34 @@ namespace Arena
                 Ui.Dot(rr, CrtStyle.Ink.WithAlpha(0.22f), true);
                 Ui.Label(rr, (i + 1).ToString(), Mathf.RoundToInt(rad * 0.6f), CrtStyle.Ink.WithAlpha(0.3f), TextAnchor.MiddleCenter, true);
             }
+        }
+
+        /// Shoot: the target's lane (a faint rail with end caps once it slides) and a pulsing ring round the target.
+        void DrawDrillTargets(DrillRunner d)
+        {
+            if (d.Done)
+                return;
+            float pulse = FxCalm ? 1f : 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 5f);
+            V2 c = Training.ShootSpot(d.Step, Game.Width, Game.Height);
+            if (Training.ShootSpeedAt(d.Step) > 0f)
+            {
+                V2 a = ToUi(c - new V2(Training.ShootSlide, 0f)), b = ToUi(c + new V2(Training.ShootSlide, 0f));
+                Ui.Fill(new Rect(a.X, a.Y - 1f, b.X - a.X, 2f), TrainColor.WithAlpha(0.25f));
+                Ui.Fill(new Rect(a.X - 1f, a.Y - 8f, 2f, 16f), TrainColor.WithAlpha(0.45f));
+                Ui.Fill(new Rect(b.X - 1f, b.Y - 8f, 2f, 16f), TrainColor.WithAlpha(0.45f));
+            }
+            if (d.TargetId == 0 || !game.Enemies.TryGetValue(d.TargetId, out var e))
+                return;
+            V2 p = ToUi(e.Disp);
+            float rad = ToUi(e.Disp + new V2(Training.BeaconRadius, 0f)).X - p.X;
+            Ui.Dot(new Rect(p.X - rad, p.Y - rad, rad * 2f, rad * 2f), TrainColor.WithAlpha(pulse), true);
+            for (int k = 0; k < 4; k++)  // crosshair ticks
+            {
+                V2 dir = V2.FromAngle(k * Mathf.PI / 2f);
+                V2 q = p + dir * (rad + 6f);
+                Ui.Fill(new Rect(q.X - 2f + dir.X * 4f, q.Y - 2f + dir.Y * 4f, 4f, 4f), TrainColor.WithAlpha(0.8f * pulse));
+            }
+            LobbyKit.Spaced(new Rect(p.X - 80f, p.Y + rad + 16f, 160f, 14f), "TARGET " + (d.Step + 1) + " / " + Training.ShootSteps, 10, TrainColor, TextAnchor.MiddleCenter, 2f);
         }
 
         /// Wall Kick: the lit panel glowing with KICK and arrows at its faces, kicked ones gold, then the flag (lit once all three
@@ -173,7 +203,10 @@ namespace Arena
             DkTitle(new Rect(r.x + 14f, r.y + 24f, r.width - 28f, 24f), dr.Name.ToUpperInvariant(), 20, TrainColor);
             bool dodge = dr.Key == "dodge";
             string dodgeKey = Keybinds.KeyName(Keybinds.Get(KeyAction.Dodge));
-            string line = d.Done ? "Done!" : dr.Key == "wallkick" ? (d.Step < Training.KickWalls
+            string line = d.Done ? "Done!" : dr.Key == "shoot" ? (Training.ShootSpeedAt(d.Step) > 0f
+                    ? "Target " + (d.Step + 1) + " slides: lead it a little and keep firing."
+                    : "Hold " + Keybinds.KeyName(Keybinds.Get(KeyAction.Fire)) + " on target " + (d.Step + 1) + " to break it.")
+                : dr.Key == "wallkick" ? (d.Step < Training.KickWalls
                     ? "Dodge (" + dodgeKey + ") into lit wall " + (d.Step + 1) + " to kick off it."
                     : "Hold " + dodgeKey + " after a dodge to sprint to the flag.")
                 : dodge ? "Dodge (" + Keybinds.KeyName(Keybinds.Get(KeyAction.Dodge)) + ") through wall " + (d.Step + 1) + " just as it reaches you."
@@ -182,9 +215,10 @@ namespace Arena
             Ui.Label(new Rect(r.x + 14f, r.y + 50f, r.width - 28f, 32f), line, 12, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);
             // Pips: one per beacon.
             float px = r.x + 14f, py = r.y + 88f;
+            float pipStep = Mathf.Min(22f, (r.width - 28f - 124f) / dr.Steps), pipSz = Mathf.Min(16f, pipStep - 4f);  // (twelve targets fit beside the clock)
             for (int i = 0; i < dr.Steps; i++)
             {
-                var pr = new Rect(px + i * 22f, py, 16f, 16f);
+                var pr = new Rect(px + i * pipStep, py + (16f - pipSz) / 2f, pipSz, pipSz);
                 bool done = i < d.Step;
                 Ui.Fill(pr, (done ? CrtStyle.Gold : i == d.Step ? TrainColor : CrtStyle.Dim).WithAlpha(done ? 0.85f : i == d.Step ? 0.4f : 0.15f));
                 HuntBox(pr, (done ? CrtStyle.Gold : i == d.Step ? TrainColor : CrtStyle.Dim).WithAlpha(0.7f));

@@ -28,8 +28,8 @@ namespace Arena
                 Goal = "Dodge through six bullet walls", Copy = "A dodge is a short dash with a blink of invulnerability. Dodge just as the wall reaches you." },
             new TrainingDrill { Group = "MOVEMENT", Key = "wallkick", Name = "Wall Kick", Keys = new[] { "CTRL", "HOLD CTRL" }, Gold = 15f, Silver = 25f, Built = true, Steps = KickSteps, StepNoun = "STEPS",
                 Goal = "Kick off three walls, reach the flag", Copy = "Dodge into a lit wall to bounce off it, with a free dodge back. Hold the key after a dodge to sprint." },
-            new TrainingDrill { Group = "COMBAT", Key = "shoot", Name = "Shoot", Keys = new[] { "LMB" }, Gold = 20f, Silver = 35f,
-                Goal = "Break twelve targets", Copy = "Hold left click to fire. Targets slide faster as the drill goes on." },
+            new TrainingDrill { Group = "COMBAT", Key = "shoot", Name = "Shoot", Keys = new[] { "LMB" }, Gold = 25f, Silver = 40f, Built = true, Steps = ShootSteps, StepNoun = "TARGETS",
+                Goal = "Break twelve targets", Copy = "Hold left click to fire. The first stand still; then they slide, faster each time." },
             new TrainingDrill { Group = "COMBAT", Key = "parry", Name = "Parry", Keys = new[] { "RMB" }, Gold = 25f, Silver = 40f,
                 Goal = "Block ten shots", Copy = "Hold right click to raise the parry shield. It blocks shots from the front." },
             new TrainingDrill { Group = "COMBAT", Key = "tells", Name = "Read the Tells", Keys = new[] { "CTRL" }, Gold = 30f, Silver = 45f,
@@ -97,6 +97,36 @@ namespace Arena
         {
             float dx = Math.Max(0f, Math.Abs(p.X - s.Pos.X) - s.HW), dy = Math.Max(0f, Math.Abs(p.Y - s.Pos.Y) - s.HH);
             return (float)Math.Sqrt(dx * dx + dy * dy);
+        }
+
+        // Shoot (drill 4): twelve targets, one at a time, each your own target dummy (only you hit or see it). The first three
+        // stand still; after that each slides back and forth across its lane, a little faster than the last.
+        public const int ShootSteps = 12, ShootStill = 3;
+        public const float ShootGap = 0.35f, ShootHp = 140f, ShootSlide = 220f, ShootSpeed = 90f, ShootSpeedStep = 30f;
+
+        static readonly float[,] ShootSpots = { { 0.5f, 0.3f }, { 0.25f, 0.6f }, { 0.75f, 0.6f }, { 0.5f, 0.22f }, { 0.3f, 0.78f }, { 0.7f, 0.3f },
+            { 0.5f, 0.75f }, { 0.28f, 0.28f }, { 0.72f, 0.75f }, { 0.5f, 0.45f }, { 0.3f, 0.5f }, { 0.7f, 0.5f } };
+
+        /// Target `step`'s lane centre in an arena w x h.
+        public static V2 ShootSpot(int step, float w, float h)
+        {
+            int i = Math.Max(0, Math.Min(ShootSteps - 1, step));
+            return new V2(ShootSpots[i, 0] * w, ShootSpots[i, 1] * h);
+        }
+
+        /// How fast target `step` slides (px/s; 0: it stands still).
+        public static float ShootSpeedAt(int step) => step < ShootStill ? 0f : ShootSpeed + ShootSpeedStep * (step - ShootStill);
+
+        /// Where target `step` is `t` seconds after it came up: sliding along its lane (a triangle wave, so the speed is even).
+        public static V2 ShootAt(int step, float t, float w, float h)
+        {
+            var c = ShootSpot(step, w, h);
+            float v = ShootSpeedAt(step);
+            if (v <= 0f)
+                return c;
+            float period = 4f * ShootSlide / v, k = (t % period) / period;  // 0..1 over one trip out and back each way
+            float off = k < 0.25f ? k * 4f : k < 0.75f ? 2f - k * 4f : k * 4f - 4f;  // 0 -> 1 -> -1 -> 0
+            return new V2(c.X + off * ShootSlide, c.Y);
         }
 
         /// The medal a best time earns: 3 gold, 2 silver, 1 bronze (finished), 0 none (best 0: never finished).

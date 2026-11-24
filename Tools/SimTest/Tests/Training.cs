@@ -158,6 +158,34 @@ static partial class Program
             play(0.5f, idle);
             Check(friend.Done && c.DrillRunners[client.MyId].Done && client.Game.ProfileOverride.DrillBestTime("wallkick") > 0f && hostProfile.DrillBestTime("wallkick") == 0f,
                 "Wall Kick: reaching the flag finishes it; the friend's game keeps the friend's best time");
+            // Shoot: twelve targets one at a time; the first three stand still, the rest slide along their lanes, faster each time.
+            host.StartDrill(3);
+            Run(new[] { host, client }, dt, 0.5f);
+            mine = g.DrillRunners[host.MyId];
+            bool stillFirst = true, slideLater = true, friendBounces = true, oneAtATime = true;
+            float lastSpeed = 0f;
+            for (int i = 0; i < Training.ShootSteps; i++)
+            {
+                Run(new[] { host, client }, dt, 2f, () => mine.TargetId != 0 && g.Enemies.ContainsKey(mine.TargetId));
+                if (mine.TargetId == 0 || !g.Enemies.TryGetValue(mine.TargetId, out var tgt))
+                    break;
+                var at0 = tgt.Pos;
+                Run(new[] { host, client }, dt, 0.6f);
+                float moved = (tgt.Pos - at0).Length, speed = Training.ShootSpeedAt(i);
+                if (i < Training.ShootStill) stillFirst &= moved < 1f;
+                else { slideLater &= moved > 20f && speed > lastSpeed; lastSpeed = speed; }
+                int mineUp = 0;
+                foreach (var e in g.Enemies.Values) if (g.DrillTargetOf(e, out int o) && o == host.MyId) mineUp++;
+                oneAtATime &= mineUp == 1;
+                float hp0 = tgt.Hp;
+                hurt.Invoke(g, new object[] { tgt, 9999f, client.MyId });
+                friendBounces &= tgt.Hp == hp0;
+                hurt.Invoke(g, new object[] { tgt, 9999f, host.MyId });
+                Run(new[] { host, client }, dt, 0.1f);
+            }
+            Run(new[] { host, client }, dt, 0.3f);
+            Check(mine.Done && mine.Step == Training.ShootSteps && stillFirst && slideLater && friendBounces && oneAtATime && c.DrillRunners[host.MyId].Done,
+                "Shoot: twelve targets one at a time, the first three still and the rest sliding faster each time; only your hits count");
             host.ReturnToLobby();
             WaitForLobby(host, client);
             Check(!g.DrillOn && !c.DrillOn && host.Screen == AppScreen.Lobby && client.Screen == AppScreen.Lobby && host.TrainingMode,

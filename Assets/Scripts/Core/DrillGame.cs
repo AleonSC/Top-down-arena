@@ -11,7 +11,8 @@ namespace Arena
         public int Step;       // steps done (the drill's Steps: finished)
         public float Time;     // seconds since the drill started, stopped at the finish
         public bool Done;
-        public int TargetId;   // the dummy on a shoot step's beacon (0: none up)
+        public int TargetId;   // the dummy on a shoot step's beacon, or the Shoot drill's target (0: none up)
+        public float TargetT;  // host: seconds since the target came up (the Shoot drill's slide)
         public float Flash;    // seconds since the last step was done (the ring's pop)
         public float Wall = float.NaN;  // Dodge: the wall's x (NaN: none up)
         public int Hits;       // Dodge: walls that caught you
@@ -78,6 +79,7 @@ namespace Arena
                         case "move": TickMoveDrill(d); break;
                         case "dodge": TickDodgeDrill(d, dt); break;
                         case "wallkick": TickKickDrill(d); break;
+                        case "shoot": TickShootDrill(d); break;
                     }
             Remaining = 0;
             DrillRecordMine();
@@ -89,6 +91,7 @@ namespace Arena
             foreach (var d in DrillRunners.Values)
             {
                 d.Flash += dt;
+                d.TargetT += dt;
                 d.HitT += dt;
                 d.SinceDodge += dt;
                 if (!d.Done)
@@ -177,6 +180,30 @@ namespace Arena
             }
             if (d.Wall < -40f || d.Wall > Width + 40f)
                 d.Wall = float.NaN;  // off the far side without crossing you (you wrapped round): it comes again
+        }
+
+        /// Host: Shoot. One target up at a time (your own dummy), sliding along its lane once the first few are down.
+        void TickShootDrill(DrillRunner d)
+        {
+            if (d.Done)
+                return;
+            if (d.TargetId == 0)
+            {
+                if (d.Flash < Training.ShootGap)
+                    return;
+                var e = SpawnEnemyAt(EnemyType.Grunt, Training.ShootSpot(d.Step, Width, Height), 0.2f, 0);
+                e.MaxHp = e.Hp = Training.ShootHp;
+                d.TargetId = e.Id;
+                d.TargetT = 0f;
+                return;
+            }
+            if (!Enemies.TryGetValue(d.TargetId, out var t))
+            {
+                d.TargetId = 0;
+                DrillStepDone(d);
+                return;
+            }
+            t.Pos = Training.ShootAt(d.Step, d.TargetT, Width, Height);
         }
 
         /// Host: Wall Kick. The kicks come in from each player's own game (DrillKicked); the last step is standing on the flag.
