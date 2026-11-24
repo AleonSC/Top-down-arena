@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The Game Mode screen's page for Quick Play, Campaign, Boss Hunt and Survival, drawn from one model (`ModePage`, built by
-    /// each mode's file) in the loadout's look: a slim one-line header (ring, name, tagline), the list under its heading on
+    /// each mode's file) in the loadout's look: the Tab screen's hologram glass (TabHolo.cs) in the mode's accent, a slim one-line header (ring, name, tagline), the list under its heading on
     /// the left, a compact scope with the dossier box under it in the middle, and a sidebar on the right: YOUR RECORDS (label and value rows) and
     /// RULES (lit: what the mode adds; dim: what it takes away), with the mode's note at its foot.
     /// Preview: `LOBBYTAB=8 shot.sh x lobby` (10 Campaign with CAMPAIGN=n, SURVLOBBY=2 Survival, 4 Boss Hunt with HUNT=1).
@@ -46,29 +46,29 @@ namespace Arena
         void DrawModePage(Rect r, float t, ModePage p)
         {
             LobbyKit.Panel(r);
+            DrawHoloGlass(new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f), Time.unscaledTime, p.Acc);  // the Tab screen's hologram glass
             float top = ModeHeadBand(r, p) + 6f;
             float x = r.x + 20f, w = r.width - 40f, bottom = r.yMax - 18f;
             const float listW = 270f, gap = 22f;
-            int shown = ModeList(x, top, listW, bottom - top, p, out var rows);
-            var f = p.Focus(shown);
-
             // Middle: the scope under its heading, then the dossier.
             const float sideW = 250f, dosH = 112f;
-            float x2 = x + listW + gap, w2 = w - listW - sideW - 2f * gap, y2 = top;
-            LobbyKit.Heading(x2, y2, w2, f.ScopeL, f.ScopeR, fxReduced, 14);
-            y2 += 36f;
+            float x2 = x + listW + gap, w2 = w - listW - sideW - 2f * gap, y2 = top + 36f;
             // A compact scope with the dossier under it, centred in the column (the same size on every mode).
             float cw = Mathf.Min(w2, 460f), ch = Mathf.Min(bottom - y2 - dosH - 10f, cw * 0.58f);
             float cy = y2 + Mathf.Max(0f, (bottom - y2 - ch - 10f - dosH) * 0.5f);
             var scope = new Rect(x2 + (w2 - cw) * 0.5f, cy, cw, ch);
             var dos = new Rect(scope.x, scope.yMax + 10f, cw, dosH);
+            bool turning = p.ScopeDraw == null && ModeScopeDrag(scope);
+
+            int shown = ModeList(x, top, listW, bottom - top, p, out var rows, turning);
+            var f = p.Focus(shown);
+            LobbyKit.Heading(x2, top, w2, f.ScopeL, f.ScopeR, fxReduced, 14);
             ModeScopeArea(scope, p, f);
             ModeDossier(dos, p, f, p.Rows[shown].Chip, p.Rows[shown].ChipCol);
 
             // Vertical separators between the three columns, in the gaps.
-            var sepCol = p.Acc.WithAlpha(0.22f);
-            Ui.Fill(new Rect(x + listW + gap * 0.5f, top, 1f, bottom - top), sepCol);
-            Ui.Fill(new Rect(x2 + w2 + gap * 0.5f, top, 1f, bottom - top), sepCol);
+            ModeSeparator(x + listW + gap * 0.5f, top, bottom, t, p.Acc, 0f);
+            ModeSeparator(x2 + w2 + gap * 0.5f, top, bottom, t, p.Acc, 0.5f);
 
             // Right: the sidebar, records as label and value rows, then the rules, the note at the foot.
             float sx = x2 + w2 + gap, sy = top;
@@ -98,6 +98,41 @@ namespace Arena
             ModeModels(rows, scope, t, p, f, shown);
         }
 
+        /// A column separator: a 3 px rail with a bright core in a soft halo, a scale of ticks down both sides, bracket caps
+        /// and a light running down it (phase 0..1 staggers the two).
+        void ModeSeparator(float cx, float y0, float y1, float t, Color acc, float phase)
+        {
+            float h = y1 - y0;
+            Ui.Fill(new Rect(cx - 5f, y0, 11f, h), acc.WithAlpha(0.04f));
+            Ui.Fill(new Rect(cx - 3f, y0, 7f, h), acc.WithAlpha(0.06f));
+            Ui.Fill(new Rect(cx - 1f, y0, 3f, h), acc.WithAlpha(0.32f));
+            Ui.Fill(new Rect(cx, y0, 1f, h), Color.Lerp(acc, Color.white, 0.35f).WithAlpha(0.55f));
+            int n = 0;
+            for (float ty = y0 + 12f; ty < y1 - 10f; ty += 12f, n++)
+            {
+                float len = n % 4 == 3 ? 6f : 3f;
+                var tc = acc.WithAlpha(n % 4 == 3 ? 0.45f : 0.25f);
+                Ui.Fill(new Rect(cx - 2f - len, ty, len, 1f), tc);
+                Ui.Fill(new Rect(cx + 3f, ty, len, 1f), tc);
+            }
+            foreach (float cy in new[] { y0, y1 - 2f })  // bracket caps
+            {
+                Ui.Fill(new Rect(cx - 6f, cy, 13f, 2f), acc.WithAlpha(0.8f));
+                Ui.Fill(new Rect(cx - 2f, cy + (cy == y0 ? 2f : -3f), 5f, 3f), acc.WithAlpha(0.55f));
+            }
+            Ui.Fill(new Rect(cx - 3f, y0 + h * 0.5f - 3f, 7f, 7f), acc.WithAlpha(0.35f));  // a node at the middle
+            Ui.Fill(new Rect(cx - 1f, y0 + h * 0.5f - 1f, 3f, 3f), Color.Lerp(acc, Color.white, 0.6f));
+            // The running light: a 46 px comet, every 3.5 s.
+            float py = y0 + Mathf.Repeat((fxReduced ? 0.3f : t / 3.5f) + phase, 1f) * (h + 46f) - 46f;
+            for (int i = 0; i < 8; i++)
+            {
+                float sy = py + i * 46f / 8f, k = (i + 1) / 8f;
+                float c0 = Mathf.Max(sy, y0 + 3f), c1 = Mathf.Min(sy + 46f / 8f, y1 - 3f);
+                if (c1 > c0)
+                    Ui.Fill(new Rect(cx - 1f, c0, 3f, c1 - c0), Color.Lerp(acc, Color.white, 0.5f).WithAlpha(0.8f * k * k));
+            }
+        }
+
         /// The slim header: a small ring, then the name with the tagline beside it on one line, over the accent rule.
         static float ModeHeadBand(Rect r, ModePage p)
         {
@@ -118,7 +153,8 @@ namespace Arena
         }
 
         /// The list column under its heading; rows shrink to fit. Returns the row shown (hovered, else the page's default).
-        int ModeList(float x, float y, float w, float h, ModePage p, out Rect[] rows)
+        /// While `hold` (the scope's model is being turned) the row shown stays put and nothing is hovered.
+        int ModeList(float x, float y, float w, float h, ModePage p, out Rect[] rows, bool hold = false)
         {
             LobbyKit.Heading(x, y, w, p.ListHead, p.ListCap, fxReduced, 14);
             y += 36f;
@@ -131,10 +167,10 @@ namespace Arena
             for (int i = 0; i < n; i++)
             {
                 rows[i] = new Rect(x, y + i * step, w, rowH);
-                if (rows[i].Contains(mp) && (p.Rows[i].Known || p.ShowLocked))
+                if (!hold && rows[i].Contains(mp) && (p.Rows[i].Known || p.ShowLocked))
                     hover = i;
             }
-            int shown = p.Shown = hover >= 0 ? hover : p.Default;
+            int shown = p.Shown = hold ? Mathf.Clamp(p.Shown, 0, n - 1) : hover >= 0 ? hover : p.Default;
             if (hover >= 0 && p.Rows[hover].Known && p.OnPick != null && Ui.HitArea(rows[hover]))
                 p.OnPick(hover);
             for (int i = 0; i < n; i++)
@@ -158,11 +194,13 @@ namespace Arena
 
         void ModeScopeArea(Rect scope, ModePage p, ModeFocus f)
         {
-            ModeScope(scope, "", "", p.ScopeDraw == null);
+            ModeScope(scope, "", "");
             if (p.ScopeDraw != null)
                 p.ScopeDraw(new Rect(scope.x + 14f, scope.y + 30f, scope.width - 28f, scope.height - 48f), p.Shown);
             else if (f.Unknown && !p.ShowLocked)
-                CrtUi.Text(scope, "?", 72, PhosGreen.WithAlpha(0.7f), TextAnchor.MiddleCenter, true, FxCalm);
+                CrtUi.Text(scope, "?", 72, ScopeGlow().WithAlpha(0.7f), TextAnchor.MiddleCenter, true, FxCalm);
+            else
+                LobbyKit.Spaced(new Rect(scope.x, scope.yMax - 20f, scope.width, 14f), "DRAG TO ROTATE", 9, ScopeGlow().WithAlpha(0.45f), TextAnchor.MiddleCenter, 2f);
         }
 
         void ModeModels(Rect[] rows, Rect scope, float t, ModePage p, ModeFocus f, int shown)

@@ -356,7 +356,14 @@ static partial class Program
         Check(clientStunned, "the stun reaches the stunned player's own game");
         if (cellF != null) cellF.Left = 0f;  // (let them out: the cell itself is suite holdingcell)
         Run(s, dt, 3f, () => g.HoldingCells.Count == 0, Clear);
-        Run(s, dt, 20f, () => w.Warden.Turn != WardenTurn.Light, Clear);
+        // Wait the turn out with nobody left to catch: a Taser Guard still up would stun someone again, and the turn can't
+        // end mid-catch (lock, net), so with unlucky rolls the light could net the same players over and over.
+        Run(s, dt, 20f, () => w.Warden.Turn != WardenTurn.Light, () =>
+        {
+            Clear();
+            foreach (var e in g.Enemies.Values) if (e.Type == EnemyType.TaserGuard) e.Hp = 0f;
+            foreach (var c in g.HoldingCells) c.Left = 0f;
+        });
         Unjail();
         Check(w.Warden.Turn != WardenTurn.Light && !Game.InCellZone(friend.Pos), "the searchlight turn ends, and the netted player is back in the fight");
 
@@ -438,6 +445,7 @@ static partial class Program
         }
 
         // Lockdown at 65%: its 5 s phase change, where it can't be hurt, the screen cleared.
+        foreach (var e in g.Enemies.Values) if (e.Type == EnemyType.SecurityGuard) e.Hp = 0f;  // (the wave's guards keep firing through it)
         w.Hp = w.MaxHp * 0.64f;
         Run(s, dt, 0.2f, null, Clear);
         float during = w.Hp;

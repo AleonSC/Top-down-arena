@@ -359,6 +359,9 @@ static partial class Shot {
       // SHOWCASEKEYS=1: the mouse over the preview (its zoom bar and MAIN FIRE | ALT FIRE keys up); SHOWCASEALT=1: ALT FIRE picked.
       if (Environment.GetEnvironmentVariable("SHOWCASEKEYS") != null) set("showcaseZoomA", 1f);
       if (Environment.GetEnvironmentVariable("SHOWCASEALT") != null) set("showcaseAlt", true);
+      // SHOWCASEHUE=<0-1>: the preview light's hue picked (-1 the role's colour); HUEOPEN=1: the wheel key's hue panel open (with SHOWCASEKEYS=1).
+      if (Environment.GetEnvironmentVariable("SHOWCASEHUE") != null) { set("showcaseHue", float.Parse(Environment.GetEnvironmentVariable("SHOWCASEHUE"))); set("showcaseHueLoaded", true); }
+      if (Environment.GetEnvironmentVariable("HUEOPEN") != null) set("showcaseHueOpen", true);
       var ab = Environment.GetEnvironmentVariable("ABILITY");
       if (ab != null) { host.Lobby[host.MyId].Ability = byte.Parse(ab); set("detailSel", 1); }
       {

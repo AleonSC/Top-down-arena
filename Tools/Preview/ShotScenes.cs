@@ -934,7 +934,7 @@ static partial class Shot {
     PhoenixScene();  // PHOENIX=<s since the cast> (ShotPhoenix.cs)
     SentryNovaScene();  // TURRET=<s> or NOVA=<s> since the cast [ABILCAP=1] [TURRETEND=1] [FXOFF=1] (ShotSentryNova.cs)
     JuiceMomentScene();  // MOMENT=multi|clear|level|lowhp|marks [MOMENTN] [MOMENTT] [MULTISTYLE=1] (ShotJuice.cs)
-    BowFocusScene();  // BOWFOCUS=rest|bar|focus|miss|swing|scatter,<s> (ShotBowFocus.cs)
+    BowFocusScene();  // BOWFOCUS=rest|draw|bar|focus|miss|swing|scatter,<s> (ShotBowFocus.cs)
     LagScene();  // LAG=pill|chart|guest [LAGFROZEN=1] (ShotLag.cs)
     BossGateScene();  // GATE=<fill> [GATEIN=<players in>] [GATEAGE=<s>] (ShotBossGate.cs)
     // NADET=<s>: the Twin Rifle's Rocket assist (TwinNadeLook.cs), a grenade fired from the left tube that long ago (aiming
@@ -2304,6 +2304,16 @@ static partial class Shot {
       fl(new V2(560f, 330f), 2.6f, 1); fl(new V2(1060f, 360f), 0.6f, 1);
       fl(new V2(470f, 560f), 0f, 2); fl(new V2(1150f, 520f), MathX.Pi, 2);
       var qn = (Enemy)sef.Invoke(host.Game, new object[] { EnemyType.HiveQueen, new V2(800f, 160f), 0f, 0, false }); qn.SpawnT = 0f; qn.Disp = qn.Pos;
+      // QUEENHOLD=swell,<0-1> | lay,<s into the Eggs turn> | dive,<s into a dive>: the Brood Mother's egg swell, laying, royal dive pose.
+      if (Environment.GetEnvironmentVariable("QUEENHOLD") != null)
+      {
+        var e = qn;
+        var qh = Environment.GetEnvironmentVariable("QUEENHOLD").Split(','); float qv = float.Parse(qh[1], System.Globalization.CultureInfo.InvariantCulture);
+        var q = e.Queen = new QueenState();
+        if (qh[0] == "swell") { q.Stage = QueenStage.Honeycomb; q.Turn = QueenTurn.Rest; q.Step = 5; q.TurnT = qv * 2f; }
+        else if (qh[0] == "lay") { q.Stage = QueenStage.Honeycomb; q.Turn = QueenTurn.Eggs; q.Step = 0; q.TurnT = qv; foreach (var at in new[] { new V2(420f, 420f), new V2(1180f, 380f), new V2(620f, 620f), new V2(1020f, 640f) }) { var eg = (Enemy)sef.Invoke(host.Game, new object[] { EnemyType.HiveEgg, at, Game.EggFlight - qv, qn.Id, false }); eg.Disp = eg.Pos; } }
+        else { q.Stage = QueenStage.Frenzy; q.Turn = QueenTurn.Dive; q.Step = 2; q.DiveT = qv; q.Shadow = new V2(800f, 400f); e.Pos = e.Disp = V2.Lerp(new V2(800f, 160f), q.Shadow, MathX.Clamp01((qv - 0.3f) / 0.9f)); }
+      }
       // QUEENSTAGE=<0-3>: her phase (Swarm, Honeycomb, Frenzy, Last Stand), for the Brood Mother's looks (QueenBodyLook.cs).
       if (Environment.GetEnvironmentVariable("QUEENSTAGE") != null) { int qs = int.Parse(Environment.GetEnvironmentVariable("QUEENSTAGE")); qn.Queen = new QueenState { Turn = QueenTurn.Rest, Step = -1, Stage = (QueenStage)qs }; qn.Hp = qn.MaxHp * new[] { 0.9f, 0.5f, 0.2f, 0.05f }[qs]; }
     }

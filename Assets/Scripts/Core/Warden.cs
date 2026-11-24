@@ -942,6 +942,13 @@ namespace Arena
                 if (!InDoorLane(e.Warden, at.X))
                     break;  // and never across a gate's door (or its lock), so the way through stays clear
             }
+            for (float d = 10f; InDoorLane(e.Warden, at.X) && d < Width; d += 10f)  // every try fell in a lane: slide sideways to the nearest clear spot
+                foreach (float x in new[] { at.X - d, at.X + d })
+                    if (x >= 100f && x <= Width - 100f && !InDoorLane(e.Warden, x))
+                    {
+                        at = new V2(x, at.Y);
+                        break;
+                    }
             SpawnPatchAt(PatchKind.Gas, at, GasFlight, GasFlight + GasLife, GasRadius, GasRadius);
             BroadcastFx(FxKind.Target, at, new Rgba(0.6f, 0.95f, 0.4f), GasRadius, GasFlight, Sfx.Throw);
         }

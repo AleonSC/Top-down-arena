@@ -61,7 +61,8 @@ namespace Arena
         public const float FlankOut = 300f, FlankTurn = 4.5f, FlankDiveTurn = 7f, FlankDive = 1.15f, FlankArrive = 70f, FlankMaxOut = 3f;  // turns in after FlankMaxOut s whatever
         // Honeycomb: eggs, sealing cells, nectar spray.
         const int EggCount = 4, DronesPerEgg = 2;
-        const float EggFlight = 0.6f, EggHatch = 6f;
+        public const float EggFlight = 0.6f;
+        const float EggHatch = 6f;
         public const float HiveCell = 70f;  // the hex cells' size (centre to corner)
         public const float CellWarn = 0.9f, CellLife = 1.4f;
         const float CellEvery = 1.5f, CellDamage = 18f, CellShare = 0.26f;
@@ -73,7 +74,8 @@ namespace Arena
         public const float BeeRadius = 5f;
         const float CloudSpeed = 170f, CloudHomeSpeed = 320f, CloudTime = 6f, BeeDamage = 8f;
         public const float DiveRadius = 110f;
-        const float DiveTime = 2f, DiveLand = 1.3f, DiveTrack = 0.5f, DiveDamage = 25f;
+        public const float DiveLand = 1.3f;
+        const float DiveTime = 2f, DiveTrack = 0.5f, DiveDamage = 25f;
         const int Dives = 3;
 
         static readonly QueenTurn[][] QueenTurns =
@@ -149,6 +151,23 @@ namespace Arena
                 return 0f;
             float t = q.DiveT;
             return t < 0.3f ? t / 0.3f : t < 1.1f ? 1f : Math.Max(0f, 1f - (t - 1.1f) / 0.2f);
+        }
+
+        /// How full her egg sac is, 0..1 (the Brood Mother's look): it swells through the breather before her Eggs turn
+        /// (or the phase change into the Honeycomb, whose first turn is Eggs), then squeezes empty as she lays them.
+        public static float QueenSwell(QueenState q)
+        {
+            if (q == null)
+                return 0f;
+            if (q.TransT > 0f)
+                return q.TransTo == QueenStage.Honeycomb ? Math.Max(0f, 1f - q.TransT / QueenTransTime) : 0f;
+            if (q.Turn == QueenTurn.Eggs)
+                return Math.Max(0f, 1f - q.TurnT / EggFlight);
+            var turns = QueenTurns[(int)q.Stage];
+            if (q.Turn != QueenTurn.Rest || q.Step < 0 || turns[(q.Step + 1) % turns.Length] != QueenTurn.Eggs)
+                return 0f;
+            float len = QueenTimes[(int)q.Stage][q.Step % turns.Length];
+            return Math.Min(1f, q.TurnT / Math.Max(0.1f, len));
         }
 
         bool QueenImmune(Enemy e) => e.Type == EnemyType.HiveQueen && e.Queen != null && (e.Queen.TransT > 0f || QueenAir(e.Queen) > 0.5f);
@@ -791,7 +810,7 @@ namespace Arena
             if (!has)
                 return;
             var q = e.Queen ?? (e.Queen = new QueenState());
-            int stage = (int)q.Stage, turn = (int)q.Turn, transTo = (int)q.TransTo, dives = q.Dives;
+            int stage = (int)q.Stage, turn = (int)q.Turn, transTo = (int)q.TransTo, dives = q.Dives, step = q.Step + 1;
             bool wasOn = q.CloudOn;
             s.Byte(ref stage);
             s.Byte(ref turn);
@@ -805,8 +824,10 @@ namespace Arena
             s.Vec(ref q.Shadow);
             s.Float(ref q.DiveT);
             s.Byte(ref dives);
+            s.Byte(ref step);  // (for the Brood Mother's swell before her eggs: QueenSwell)
             if (s.Reading)
             {
+                q.Step = step - 1;
                 q.Stage = (QueenStage)stage;
                 q.Turn = (QueenTurn)turn;
                 q.TransTo = (QueenStage)transTo;

@@ -7,8 +7,8 @@ namespace Arena
     /// lit from a beam along the bottom of the screen. Each panel is the level-up cards' Projection glass (CardArt.Holo in the CRT
     /// colour, see-through) with scanlines every 4 px, a band drifting down, a magenta / cyan edge fringe and a faint flicker, and
     /// it switches on from a thin line when the screen opens or the page changes. The text is drawn over the glass effects so it stays
-    /// sharp. Reduced effects: no band, flicker, cone lines or switch-on. Used by RunStatsUi.cs (the screen, Run so far, Team) and
-    /// HudTab.cs (your stats, Your build). Preview: `STATSTAB=0|1|2 [HOLOAT=<s>] Tools/Preview/shot.sh x tab 23 12.2 3`.
+    /// sharp. Reduced effects: no band, flicker, cone lines or switch-on. Used by RunStatsUi.cs (the screen, Run so far, Team),
+    /// HudTab.cs (your stats, Your build) and ModePageUi.cs (the Game Mode pages' glass, in the mode's accent). Preview: `STATSTAB=0|1|2 [HOLOAT=<s>] Tools/Preview/shot.sh x tab 23 12.2 3`.
     public partial class ArenaApp
     {
         // --- Layout (the mockup's B) ---------------------------------------------------------------------------------------------
@@ -94,11 +94,12 @@ namespace Arena
 
         /// The glass: the Projection body in the CRT colour (see-through), scanlines counted up from the bottom edge, the drifting band
         /// and the colour fringe down the sides; two short dips every 5 s.
-        void DrawHoloGlass(Rect r, float now)
+        /// `tint` replaces the CRT colour (the Game Mode pages use their mode's accent).
+        void DrawHoloGlass(Rect r, float now, Color? tint = null)
         {
             if (Event.current.type != EventType.Repaint)
                 return;
-            var ink = CrtStyle.Ink;
+            var ink = tint ?? CrtStyle.Ink;
             float t = MathX.Fmod(now, 5f) / 5f;
             bool dip = !FxCalm && ((t >= 0.94f && t < 0.96f) || t >= 0.98f);
             float oldAlpha = Ui.Alpha;

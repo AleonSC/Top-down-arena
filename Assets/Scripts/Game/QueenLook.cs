@@ -27,7 +27,10 @@ namespace Arena
             foreach (var cell in q.Cells)
                 DrawSealingCell(Game.HiveCells[cell.Index], cell.T, t);
             if (q.TransT <= 0f && q.Turn == QueenTurn.Dive && q.Dives < 3)
+            {
                 DrawDiveShadow(q, t);
+                DrawDiveLanding(e, q, t);  // QueenBodyLook.cs
+            }
             if (q.TransT <= 0f && q.Turn == QueenTurn.Spray)
             {
                 V2 d = V2.FromAngle((20f + 140f * q.Aux) * MathX.Pi / 180f);
@@ -89,7 +92,10 @@ namespace Arena
         void DrawQueenSwarm(float t)
         {
             var e = game.TheQueen();
-            if (e == null || e.Queen == null || !e.Queen.CloudOn)
+            if (e == null || e.Queen == null)
+                return;
+            DrawEggFlights(e, t);  // QueenBodyLook.cs
+            if (!e.Queen.CloudOn)
                 return;
             var q = e.Queen;
             for (int i = 0; i < Game.BeeCount; i++)

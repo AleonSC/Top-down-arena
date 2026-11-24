@@ -241,7 +241,9 @@ namespace Arena
             ProfSel = Mathf.Clamp(ProfSel, 0, n - 1);
             bool oneLine = n > 7;
             float rowH = oneLine ? 29f : 36f, step = rowH + 3f;
+            cabGlass = true;  // the Tab screen's hologram glass, like the other menus
             BeginDrawer("PROFILE", CrtStyle.Gold, 1f, "Your look, rank and records", 44, new Rect(26f, 316f, CabInW, 312f), new Rect(26f, 22f, CabInW, 78f));
+            cabGlass = false;
 
             // The profile screen: the badge, your name (a pencil key renames), title and rank, the XP bar.
             var ps = new Rect(26f, 112f, CabInW, 126f);

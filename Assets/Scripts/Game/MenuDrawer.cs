@@ -213,7 +213,9 @@ namespace Arena
             }
             LobbyMenuKeys();
             cabBootLog = "> LINK OK   > SAVE OK   > LOBBY";
+            cabGlass = true;
             BeginDrawer("MENU", Ui.Accent, 1f);
+            cabGlass = false;
             DrawMenuRows(LobbyMenuRows(), ref lobbySel);
             EndDrawerScreen();
             EndDrawer();
@@ -285,7 +287,9 @@ namespace Arena
             else
                 sub = "The arena is waiting";
             cabBootLog = "> LINK OK   > SAVE OK   > WAVE " + Mathf.Max(1, game.ShownWave);
+            cabGlass = true;
             BeginDrawer("PAUSED", Ui.Accent, 1f, sub);
+            cabGlass = false;
             DrawMenuRows(PauseMenuRows(), ref pauseSel);
             EndDrawerScreen();
             DrawRunStatsKey();
@@ -335,11 +339,11 @@ namespace Arena
                 PushShift(dx, 0f, a);
             float oldGl = glAlpha;
             glAlpha = a;  // the boss model fades with it
+            cabGlass = true;
             DrawRunCard(DrawerPanel, t);  // in the window's place, right of the box
+            cabGlass = false;
             glAlpha = oldGl;
             PopShift();
-            if (docking)
-                DockLand(new Rect(DrawerPanel.x + dx, DrawerPanel.y, DrawerPanel.width, DrawerPanel.height), 0.3f);
         }
 
         static readonly Color LobbyConfirmColor = new Color(1f, 0.6f, 0.45f);
@@ -380,7 +384,9 @@ namespace Arena
                 }
             }
             cabBootLog = "> LINK OK   > SAVE OK   > WAVE " + Mathf.Max(1, game.ShownWave);
+            cabGlass = true;
             BeginDrawer("QUIT?", LobbyConfirmColor, 1f, lobby ? "To the lobby, or out to the desktop" : "Out to the desktop");
+            cabGlass = false;
             float y = cabScreen.y + 10f;
             for (int i = 0; i < n; i++)
             {
@@ -473,6 +479,8 @@ namespace Arena
             if (!FxCalm && powerAge < 0f)
                 return;
             CrtKit.LoadoutBox(r);
+            if (cabGlass)
+                DrawHoloGlass(new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f), WinNow);
             runSecA = Ui.Alpha;
             runSecC = GUI.color;
             float x0 = r.x + 20f;
@@ -645,7 +653,9 @@ namespace Arena
         void DrawSettingsCabinet(bool paused)
         {
             cabBootLog = paused ? "> LINK OK   > SAVE OK   > SETTINGS" : "> LINK OK   > SAVE OK";
+            cabGlass = true;  // the Tab screen's hologram glass, like the pause and lobby menus
             BeginDrawer("SETTINGS", Ui.Accent, 1f, "Pick one to open it");
+            cabGlass = false;
             string[] lines = { "Volume for each kind of sound", "What the fight looks like", "Aim line, the HUD, the network port", "Change your controls" };
             string[] gicons = { "pulse", "nova", "crosshair", "ui_pencil" };
             Color[] gcols = { new Color(0.5f, 0.69f, 1f), CrtStyle.Gold, new Color(0.55f, 1f, 0.55f), new Color(1f, 0.62f, 0.5f) };
