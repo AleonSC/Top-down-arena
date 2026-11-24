@@ -50,6 +50,7 @@ namespace Arena
         FieldHospital,  // the Healer Soldier's second ultimate (FieldHospital.cs), picked on the lobby's Ultimate row
         LiteralTank,    // the Tank Soldier's third ultimate (LiteralTank.cs), key 2 of the lobby's Ultimate row
         StoneColossus,  // the Tank Elementalist's third ultimate (StoneColossus.cs), key 2 of the lobby's Ultimate row
+        Vortex,         // the Tank Elementalist's fourth ultimate (Vortex.cs), key 3 of the lobby's Ultimate row
         None = 255,
     }
 
@@ -327,7 +328,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Elementalist, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// Hemomancer.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 
