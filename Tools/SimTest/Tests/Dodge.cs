@@ -124,6 +124,19 @@ static partial class Program
         Check(cliMe.Pos.X > k1.X + 20f, "the kick gives the cooldown back: a dodge at once");
         Check(inv2 > 0.1f, "and the host lets the free dodge in");
         Check(client.Game.WallKicks == kicks1, "the free dodge doesn't kick again");
+
+        // Kick reach: a dodge that would end short of the crate (but within KickReach) runs on to it and kicks.
+        play(Game.DodgeCd + 0.2f, idle, idle);
+        float face = 700f - Game.HalfW(PropKind.Crate) - cliMe.Def.HitR - 5f;  // where a push-out stops you
+        cliMe.Pos = new V2(face - Game.DodgeDist - Game.KickReach * 0.7f, 450f);
+        play(0.2f, idle, idle);
+        float start = cliMe.Pos.X;
+        int kicks2 = client.Game.WallKicks;
+        float peak2 = 0f;
+        play(0.35f, idle, f => { peak2 = Math.Max(peak2, cliMe.Pos.X); return new PlayerInput { Dodge = f == 0, Move = f == 0 ? new V2(1f, 0f) : V2.Zero, AimAt = new V2(800f, 450f) }; });
+        Console.WriteLine("  kick reach: from {0:0} px off the crate, {1} kick(s), kicked back {2:0} px", face - start, client.Game.WallKicks - kicks2, peak2 - cliMe.Pos.X);
+        Check(client.Game.WallKicks == kicks2 + 1, "a dodge ending just short of a crate reaches on and kicks");
+        Check(peak2 - cliMe.Pos.X > Game.DodgeDist * 1.2f, "and the kickoff carries further than a dodge");
         s[0].Leave(""); s[1].Leave("");
     }
 }
