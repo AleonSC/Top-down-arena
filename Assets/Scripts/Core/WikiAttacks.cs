@@ -62,7 +62,7 @@ namespace Arena
             // The Lich
             new Attack(EnemyType.Lich, "The Crypt", "Soul fans", "A fan of 5 aimed piercing shots."),
             new Attack(EnemyType.Lich, "The Crypt", "Grave rings", "A slow ring of 16 big orbs, each turned 12°."),
-            new Attack(EnemyType.Lich, "The Crypt", "Raise the dead", "The dead climb out of its graves and come for you."),
+            new Attack(EnemyType.Lich, "The Crypt", "Raise the dead", "The dead climb out of its graves."),
             new Attack(EnemyType.Lich, "Soul Harvest", "Soul beams", "Beams joining the three phylacteries; they hurt to cross."),
             new Attack(EnemyType.Lich, "Soul Harvest", "Soul sweep", "Twice: a warning line, then a draining beam 900 px long swung 120° across toward the nearest player."),
             new Attack(EnemyType.Lich, "Soul Harvest", "Bone prison", "Twice: a ring of 14 spikes rises 110 px round each player, the gap facing away from the Lich; when up, they fire inward."),
