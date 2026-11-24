@@ -62,28 +62,11 @@ namespace Arena
             }
             else
                 sweepAngle = s.SweepA;
-            // Bone prisons: spikes rising round a ring, a gold mark at the gap.
+            // Bone prisons and wailing spirits (LichBodyLook.cs).
             foreach (var q in s.Prisons)
-            {
-                float k = MathX.Clamp01(q.T / Game.PrisonRise);
-                Arc(q.Center, Game.PrisonR, 1.5f, BoneCol.WithAlpha(0.15f), 48);
-                for (int i = 0; i < Game.PrisonSpikes; i++)
-                {
-                    float a = Game.PrisonSpikeAngle(q, i);
-                    V2 dir = V2.FromAngle(a), side = dir.Orthogonal(), at = q.Center + dir * Game.PrisonR;
-                    SetColor(BoneCol.WithAlpha(q.T >= Game.PrisonRise ? 0.4f : 1f));
-                    Tri(at + side * 6f, at - side * 6f, at - dir * (26f * k));
-                }
-                Circle(q.Center + V2.FromAngle(q.Gap) * Game.PrisonR, 7f, new Rgba(1f, 0.8f, 0.35f, 0.5f + 0.5f * Mathf.Sin(t * 16f)), 12);
-            }
-            // Wailing spirits: pale heads with a trailing wisp.
-            foreach (var sp in s.Spirits)
-            {
-                float a = sp.Diving ? 0f : t * Game.SpiritSpin;
-                Circle(sp.Pos, Game.SpiritR * 2.2f, SpiritCol.WithAlpha(sp.Diving ? 0.3f : 0.18f), 14);
-                Circle(sp.Pos, Game.SpiritR, new Rgba(0.75f, 0.94f, 1f), 14);
-                Circle(sp.Pos + V2.FromAngle(a) * 3f, 3f, new Rgba(0.05f, 0.16f, 0.2f), 8);
-            }
+                DrawBonePrison(q, t);
+            for (int i = 0; i < s.Spirits.Count; i++)
+                DrawWailingSpirit(s.Spirits[i], i, lich.Disp, t);
             // Where the spectre is about to appear.
             if (s.FadeT > 0f)
                 Arc(s.BlinkTo, 40f, 3f, SpectreCol.WithAlpha(0.5f + 0.5f * Mathf.Sin(t * 25f)), 32);
