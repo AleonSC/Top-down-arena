@@ -57,7 +57,7 @@ namespace Arena
         readonly float[] trR = new float[TrailN + 1];
         readonly bool[] trOk = new bool[TrailN + 1];
 
-        static int HalberdStepOf(Effect fx) => Mathf.Clamp(Mathf.RoundToInt(fx.Radius) % 10, 1, 4);
+        static int HalberdStepOf(Effect fx) => Mathf.Clamp(Mathf.RoundToInt(fx.Radius) % 10, 1, 5);
         static int HalberdOwnerOf(Effect fx) => Mathf.FloorToInt(fx.Radius / 10f + 0.001f);
 
         /// True while this player has a Reaper's Wheel step playing (the idle pose waits).
@@ -174,6 +174,8 @@ namespace Arena
                     ChopGlow(o, aim, reach, c);
                 if (step == 4)
                     WheelGlow(o, reach, c);
+                if (step == 5)
+                    LungeGlow(o, aim, reach, c);
                 HalberdHits(o, aim, reach, c, step, id, seed, true);
                 return;
             }
@@ -212,10 +214,10 @@ namespace Arena
             if (f < 0f || f >= 1f)
                 return;
             Rgba col = Game.HbGlow;
-            if (step == 3)
+            if (step == 3 || step == 5)
             {
-                V2 tip = o + V2.FromAngle(aim) * reach * HalberdMotion.ChopK;
-                Line(o, tip, 2f * Game.HbChopHalfW * (1f - f), col.WithAlpha(0.3f * (1f - f)));
+                V2 tip = o + V2.FromAngle(aim) * reach * (step == 3 ? HalberdMotion.ChopK : HalberdMotion.LungeK);
+                Line(o, tip, 2f * (step == 3 ? Game.HbChopHalfW : Game.LungeHalfW) * (1f - f), col.WithAlpha(0.3f * (1f - f)));
                 Line(o, tip, 2.5f, Rgba.White.WithAlpha(0.9f * (1f - f)));
                 return;
             }
@@ -234,6 +236,7 @@ namespace Arena
                 case 2: a = HalberdMotion.Start2 - HalberdMotion.End1; b = HalberdMotion.End2 - HalberdMotion.End1; break;
                 case 3: a = HalberdMotion.ChopRaise; b = HalberdMotion.ChopHit; break;
                 case 4: a = HalberdMotion.WheelWind; b = HalberdMotion.WheelWind + HalberdMotion.WheelSpin; break;
+                case 5: a = 0f; b = HalberdMotion.LungeOut; break;
                 default: a = HalberdMotion.Start1; b = HalberdMotion.End1; break;
             }
         }
@@ -313,6 +316,19 @@ namespace Arena
             GlowDisc(o + d * len, 34f, HalberdHot, 0.8f * (1f - u));
         }
 
+        /// The Pike Lunge: a hot streak down the line as the point drives out, and a flash at the point (glow pass).
+        void LungeGlow(V2 o, float aim, float reach, float c)
+        {
+            float q = c - HalberdMotion.LungeOut * 0.5f;
+            if (q < 0f || q > 0.25f)
+                return;
+            float u = q / 0.25f, len = reach * HalberdMotion.LungeK;
+            V2 d = V2.FromAngle(aim);
+            Line(o + d * 30f, o + d * len, 2f * Game.LungeHalfW * (1f - 0.6f * u), HalberdOrange.WithAlpha(0.3f * (1f - u)));
+            Line(o + d * (len * 0.5f), o + d * len, 2.4f, HalberdHot.WithAlpha(0.7f * (1f - u)));
+            GlowDisc(o + d * len, 30f, HalberdHot, 0.75f * (1f - u));
+        }
+
         /// The Reaping Wheel: a faint ring at the blade's reach while it turns (glow pass).
         void WheelGlow(V2 o, float reach, float c)
         {
@@ -351,10 +367,11 @@ namespace Arena
                 if (d < 1f)
                     continue;
                 float diff = Mathf.Repeat(rel.Angle - aim + MathX.Pi, MathX.Tau) - MathX.Pi;
-                if (step == 3)
+                if (step == 3 || step == 5)
                 {
                     float along = rel.X * ad.X + rel.Y * ad.Y, across = Mathf.Abs(rel.X * -ad.Y + rel.Y * ad.X);
-                    if (along < 0f || along > reach * HalberdMotion.ChopK + e.Radius || across > Game.HbChopHalfW + e.Radius)
+                    float len = reach * (step == 3 ? HalberdMotion.ChopK : HalberdMotion.LungeK), hw = step == 3 ? Game.HbChopHalfW : Game.LungeHalfW;
+                    if (along < 0f || along > len + e.Radius || across > hw + e.Radius)
                         continue;
                 }
                 else if (step == 4)
@@ -387,7 +404,7 @@ namespace Arena
                     Arc(at, 6f + q * 95f * sc, 5f * (1f - q / 0.45f) + 1f, HalberdDust.WithAlpha(0.4f * (1f - q / 0.45f)), 18);
                 if (q < 0.45f)  // the cut mark, along the way the blade travelled (across the chop's line)
                 {
-                    float al = 1f - q / 0.45f, ba = step == 3 ? aim + MathX.Pi / 2f : aim + HalberdMotion.StepAt(step, hitT).A;
+                    float al = 1f - q / 0.45f, ba = step == 3 || step == 5 ? aim + MathX.Pi / 2f : aim + HalberdMotion.StepAt(step, hitT).A;
                     V2 n = new V2(-Mathf.Sin(ba), Mathf.Cos(ba));
                     Line(at - n * 20f, at + n * 20f, 3.2f, HalberdOrange.WithAlpha(0.7f * al));
                     Line(at - n * 20f, at + n * 20f, 1.3f, Rgba.White.WithAlpha(al));

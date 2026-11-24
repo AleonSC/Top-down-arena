@@ -16,6 +16,9 @@ namespace Arena
     ///     doesn't matter) and pokes it whenever it is lined up and within the point's reach (PikeReachK of the weapon's): a thin
     ///     box out to the point, PikeMult of the weapon's damage, a PikeKnock shove straight away from you and a PikeStun stun
     ///     (heavies and bosses aren't moved; bosses aren't stunned), at most once every PikeGap (faster with fire rate).
+    ///     Let go of the key: Pike Lunge. The pike drives out along HbPikeA (where it points, not your aim) to
+    ///     HalberdMotion.LungeK of the reach: a thin box, LungeMult of the weapon's damage, a LungeKnock shove and a LungeStun
+    ///     stun; at most once every LungeCd (a tap of the key lunges at the nearest enemy).
     ///   Extra projectiles: +30 px reach (the weapon's Grow) and +10% damage on every step and poke. Long Haft (Rare card):
     ///     15% more reach on everything and a wider sweep on steps 1 and 2.
     ///   The look (Game/HalberdLook.cs) draws each step from its FxKind.HalberdStep, each poke from FxKind.HalberdPoke and the
@@ -32,6 +35,7 @@ namespace Arena
         public const float PikeSlow = 0.35f, PikeScan = 290f, PikeReachK = 1.15f, PikeTurn = 8f, PikeAlign = 0.16f;
         public const float PikeGap = 0.45f, PikeMult = 0.75f, PikeKnock = 110f, PikeStun = 0.3f, PikeHalfW = 16f, PikeJab = 0.07f, PikeFxTime = 0.32f;
         public static readonly Rgba HbGlow = new Rgba(0.56f, 0.94f, 0.78f), HbSpark = new Rgba(1f, 0.67f, 0.36f);
+        public const float LungeMult = 40f / 30f, LungeKnock = 80f, LungeStun = 0.4f, LungeHalfW = 15f, LungeCd = 1.2f;
         const byte DashPikeOn = 58, DashPikeOff = 59;
 
         /// How far the pike's point reaches for `p` (Long Haft and extra projectiles lengthen it).
@@ -119,7 +123,11 @@ namespace Arena
                 return;
             p.HbHeld = on;
             if (!on)
+            {
+                if (p.HbSet && CanSetPike(p) && p.HbLungeCd <= 0f)
+                    PikeLunge(p);
                 p.HbSet = false;
+            }
             else
                 TrySetPike(p);
         }
@@ -163,6 +171,7 @@ namespace Arena
             foreach (var p in Players.Values)
             {
                 p.HbPokeCd = Math.Max(0f, p.HbPokeCd - dt);
+                p.HbLungeCd = Math.Max(0f, p.HbLungeCd - dt);
                 if (p.Weapon.Id != WeaponId.Halberd || p.Downed)
                 {
                     p.HbSet = p.HbHeld = false;
@@ -209,6 +218,31 @@ namespace Arena
             QueueSwing(s);
             // The jab, drawn from its age: Pos2 the point at full reach, Radius the poker.
             BroadcastFx(FxKind.HalberdPoke, p.Pos, p.Pos + V2.FromAngle(p.HbPikeA) * reach, HbGlow, p.Id, PikeFxTime, Sfx.None);
+        }
+
+        /// Set the Pike let go: the pike drives out along where it points, a long thin box that hits everything on the line.
+        void PikeLunge(Player p)
+        {
+            int extra = ExtraShots(p);
+            var w = p.Weapon;
+            float baseReach = MeleeReach(p, (w.Reach + w.Grow * extra) * p.Stats.HalberdReachMult);
+            p.HbLungeCd = LungeCd / FireRate(p);
+            p.HbLunges++;
+            p.FireCd = Math.Max(p.FireCd, HalberdMotion.LungeOut + HalberdMotion.LungeHold);
+            var s = new Swing { Owner = p.Id, Aim = p.HbPikeA, Reach = baseReach * HalberdMotion.LungeK, Dmg = w.Damage * p.Stats.DmgMult * LungeMult * (1f + 0.1f * extra) };
+            s.HalfWidth = LungeHalfW;
+            s.Thrust = true;
+            s.Heavy = true;
+            s.Knock = LungeKnock;
+            s.Stun = LungeStun;
+            s.StarStun = true;
+            s.Delay = HalberdMotion.LungeOut * 0.8f;
+            s.NoFx = true;
+            s.Halberd = 5;
+            s.Sound = Sfx.LanceBreach;
+            QueueSwing(s);
+            // Drawn as step 5 from its age (HalberdLook.cs): Pos2 the weapon's reach along the pike.
+            BroadcastFx(FxKind.HalberdStep, p.Pos, p.Pos + V2.FromAngle(p.HbPikeA) * baseReach, HbGlow, p.Id * 10 + 5, HalberdMotion.StepTotal(5), Sfx.None);
         }
 
         // --- Your own game ------------------------------------------------------------------------------------------

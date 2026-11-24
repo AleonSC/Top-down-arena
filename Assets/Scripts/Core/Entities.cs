@@ -494,7 +494,8 @@ namespace Arena
         public float HbPikeA;                  // Halberd: where the set pike points, turning on its own to the nearest enemy (replicated)
         public bool HbHeld;                    // host: the Halberd's weapon-action key is down (the pike is set again after a stun)
         public float HbPokeCd;                 // host: until the set pike can poke again
-        public int HbPokes;                    // host: pokes so far (tests)
+        public int HbPokes, HbLunges;          // host: pokes and Pike Lunges so far (tests)
+        public float HbLungeCd;                // host: until letting go of the pike lunges again
         public bool BbHeld;                    // host: the weapon-action key is down (the Brace comes back up after a bash or a stun)
         public float BbMeleeT;                 // host: until a body leaning on the braced plate counts again (BulwarkMelee)
         public float BbLock, BbIdle, BbBlockT; // host: until the Brace can rise again, since it dropped (Ram drains after BbRamHold), until a block can sound again
