@@ -745,6 +745,7 @@ namespace Arena
                 if (d - e.Radius > reach || AngleTo(p.Pos, e.Pos, aim) > FanCone + (BodySlack(d, e.Radius)))
                     continue;
                 V2 away = d > 1f ? (e.Pos - p.Pos) / d : V2.FromAngle(aim);
+                WindHit(e, shove >= 0f ? away : -away);  // Wind.cs
                 float to = Math.Max(e.Radius + p.Def.BodyR + 6f, d + shove);
                 KnockEnemy(e, ClampToArena(p.Pos + away * to, e.Radius) - e.Pos);  // slides (Knock.cs)
             }

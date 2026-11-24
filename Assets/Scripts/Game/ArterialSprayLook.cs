@@ -283,7 +283,7 @@ namespace Arena
                     float d = Mathf.Repeat(t * 0.8f + kv.Value.Seed * 0.001f, 1f);
                     Ellipse(c + new V2(-r * 0.3f, r + 2f + d * 8f), 2.2f, 3.4f, 0f, new Rgba(0.69f, 0.06f, 0.16f, 1f - 0.5f * d), 8);
                 }
-                if (e.Chilled)  // slowed: a dashed ring
+                if (e.Slowed)  // slowed: a dashed ring
                     for (int k = 0; k < 14; k++)
                         Arc(c, r + 5f, 1.2f, new Rgba(1f, 0.35f, 0.43f, 0.5f), 3, MathX.Tau * k / 14f + t * 0.5f, MathX.Tau / 28f);
             }

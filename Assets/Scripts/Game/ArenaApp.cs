@@ -700,7 +700,7 @@ namespace Arena
             session.Poll();
             var input = new PlayerInput
             {
-                Move = new V2(Axis(KeyAction.MoveRight) - Axis(KeyAction.MoveLeft), Axis(KeyAction.MoveDown) - Axis(KeyAction.MoveUp)).Normalized(),
+                Move = UnrotateView(new V2(Axis(KeyAction.MoveRight) - Axis(KeyAction.MoveLeft), Axis(KeyAction.MoveDown) - Axis(KeyAction.MoveUp))).Normalized(),  // (keys move you on the screen: turned back with the camera, CameraRotate.cs)
                 AimAt = MouseArena(),
                 Fire = Keybinds.Held(KeyAction.Fire) && !fireBlocked && !DevTrapPlacing,
                 Ability = wantAbility[0] || Keybinds.Held(KeyAction.Ability1),

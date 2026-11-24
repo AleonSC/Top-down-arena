@@ -154,9 +154,16 @@ static partial class Shot {
       for (int f = 0; f < 60 * float.Parse(Environment.GetEnvironmentVariable("SOULGHOST")); f++) { me.Pos = new V2(700f, 450f); host.Poll(); host.Game.FixedStep(1f / 60f, new PlayerInput { AimAt = me.AimAt }); host.Game.Update(1f / 60f); }
     }
     if (Environment.GetEnvironmentVariable("FLAME") != null) {
-      // The Flamethrower held on a few enemies for FLAME=<seconds>: the stream and the burning.
-      me.Weapon = Defs.WeaponOf(WeaponId.Flamethrower); host.Game.Bot = false;
+      // The Flamethrower held on a few enemies for FLAME=<seconds>: the stream and the burning. FLAMEGUN=water|gale: its variants
+      // instead, the Water Gun or the Gale Gun (ElementGunLook.cs).
+      var fg = Environment.GetEnvironmentVariable("FLAMEGUN");
+      me.Weapon = Defs.WeaponOf(fg == "water" ? WeaponId.WaterGun : fg == "gale" ? WeaponId.GaleGun : WeaponId.Flamethrower); host.Game.Bot = false;
       me.Pos = me.Disp = new V2(700f, 450f);
+      if (fg != null) {  // a clean stage: three grunts in the stream, nothing else
+        host.Game.Enemies.Clear(); host.Game.Zones.Clear(); me.AegisT = 0f;
+        var fsp = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+        for (int q = 0; q < 3; q++) { var fe = (Enemy)fsp.Invoke(host.Game, new object[] { EnemyType.Grunt, me.Pos + new V2(90f + 45f * q, -40f + 40f * q), 0f, 0, false }); fe.SpawnT = 0f; fe.Spawning = false; }
+      }
       int k = 0;
       foreach (var e in host.Game.Enemies.Values) { if (k < 3) { e.Pos = e.Disp = me.Pos + new V2(90f + 45f * k, -40f + 40f * k); e.Hp = e.MaxHp = 1e5f; } else e.Pos = e.Disp = new V2(100f + 20f * k, 120f); k++; }
       V2 at = me.Pos + new V2(200f, 0f);
@@ -165,7 +172,7 @@ static partial class Shot {
         me.Pos = new V2(700f, 450f);
         host.Poll(); host.Game.FixedStep(1f / 60f, new PlayerInput { Fire = true, AimAt = at }); host.Game.Update(1f / 60f);
       }
-      foreach (var e in host.Game.Enemies.Values) Console.WriteLine("flame: {0} burning {1} hp lost {2:0}", e.Type, e.Burning, e.MaxHp - e.Hp);
+      foreach (var e in host.Game.Enemies.Values) Console.WriteLine("flame: {0} burning {1} wet {2} bleeding {3} slowed {4} hp lost {5:0}", e.Type, e.Burning, e.WetT > 0f, e.Bleeding, e.SlowMult < 1f, e.MaxHp - e.Hp);
     }
     if (Environment.GetEnvironmentVariable("PROPS") != null) {
       // The arena's props: a crate wall (one worn), an iron-bound crate, pots, a lit barrel, a closed chest, an opened one,

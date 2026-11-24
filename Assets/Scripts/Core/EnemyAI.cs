@@ -513,6 +513,9 @@ namespace Arena
                 TickWet(e, dt);  // Tsunami.cs: soaked enemies are slowed
                 TickCharged(e, dt);  // Charged.cs
                 TickBurn(e, dt);
+                TickSteam(e, dt);  // Steam.cs: wet and burning at once turns to steam
+                TickWind(e, dt);   // Wind.cs
+                TickChill(e, dt);  // Chill.cs
                 TickBleed(e, dt);  // KitWeapons.cs
                 TickBoneCage(e, dt);  // KitWeapons.cs
                 TickPoison(e, dt);  // Ninja.cs

@@ -944,7 +944,7 @@ namespace Arena
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
             int bleedStacks = 0, stars = 0, traits = 0, bubble = 0, cells = 0;
-            bool winding = false, penned = false, dormant = false, wet = false, hit = false, venom = false, charged = false;
+            bool winding = false, penned = false, dormant = false, wet = false, hit = false, venom = false, charged = false, slowed = false;
             int bleedHits = 0, wetTenths = 0;
             if (!s.Reading)
             {
@@ -963,6 +963,7 @@ namespace Arena
                 e.Venomed = venom;
                 charged = e.ChargedT > 0f;
                 e.Charged = charged;
+                slowed = ShowsSlowed(e);  // any slow (Chill.cs; Chilled, below, is ice only)
                 e.BubbleFrac = e.BubbleHp > 0f && e.BubbleMax > 0f ? Math.Min(1f, e.BubbleHp / e.BubbleMax) : 0f;
                 bubble = (int)Math.Ceiling(e.BubbleFrac * 255f);
                 if (e.BubbleHp > 0f)
@@ -980,8 +981,9 @@ namespace Arena
                 elite = e.Elite;
                 e.Marked = e.MarkT > 0f;  // the host draws from these too
                 e.Burning = e.BurnT > 0f || e.PoolT > 0f;
-                e.Frozen = IceFrozen(e) || IceSlowed(e) && e.SlowMult <= 0.15f;  // Glacial Tomb, Frost Nova, Cryo freezes (a Stun alone isn't ice: Daze.cs)
-                e.Chilled = IceSlowed(e) && !e.Frozen;
+                e.Frozen = IceFrozen(e);  // real ice only: Glacial Tomb, a third chill, Blood Freeze (a Stun alone isn't ice: Daze.cs)
+                e.Chilled = !e.Frozen && (e.FrostChill > 0 || e.IceSlowT > 0f);  // ice only (Chill.cs)
+                e.Slowed = slowed;
                 e.Bleeding = e.BleedT > 0f;
                 status = (byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0) | (e.Caged ? 32 : 0) | (e.Suppress >= SuppressShown ? 64 : 0) | (e.PoisonT > 0f ? 128 : 0));
                 bleedStacks = e.BleedStacks;
@@ -1014,6 +1016,7 @@ namespace Arena
             s.Byte(ref wetTenths);  // ...and its tenths of a second left, for the effect bar (Game/EffectBar.cs)
             s.Bool(ref venom);      // Poison Dart's venom (PoisonDart.cs)
             s.Bool(ref charged);    // charged by lightning (Charged.cs)
+            s.Bool(ref slowed);     // slowed by anything (Chill.cs; Chilled, in the status bits, is ice only)
             s.Bool(ref hit);        // just hit: the white flash (not every drop in health, or a burning enemy would stay white)
             int challengeBy = !s.Reading && e.ChallengeT > 0f ? e.ChallengeBy : 0;
             s.Byte(ref challengeBy);  // a Gauntlet's Challenge: who threw it (0: none) and how long it has left (Gauntlet.cs)
@@ -1078,6 +1081,7 @@ namespace Arena
                 e.WetPeak = wet ? Math.Max(e.WetPeak, e.WetLeft) : 0f;
                 e.Venomed = venom;
                 e.Charged = charged;
+                e.Slowed = slowed;
                 e.ChallengeBy = challengeBy;
                 e.ChallengeT = challengeT;
             }
