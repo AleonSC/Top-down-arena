@@ -56,6 +56,11 @@ namespace Arena
         }
 
         /// The case at boot time T (power: how far its lights are on, 0 to 1, for the eject's power-down). live: its keys take clicks.
+        /// MOCK (not merged): the main menu in the Tab screen's hologram glass. 1: its two screens; 2: the case and monitor too.
+#pragma warning disable 0649  // set only by Tools/Preview (MENUHOLO=1|2)
+        int menuHolo;
+#pragma warning restore 0649
+
         void DrawMachineCase(float T, float drop, float squash, float power, bool live, float t)
         {
             if (drop <= -469f)
@@ -68,6 +73,8 @@ namespace Arena
                 GUIUtility.ScaleAroundPivot(new Vector2(1f, squash), new Vector2(W / 2f, CaseRect.yMax));
             float hit = Seg(T, 3.35f, 3.38f) * (1f - Seg(T, 3.38f, 3.9f));
             Metal(CaseRect, 12);
+            if (menuHolo == 2)  // mock: the case as hologram glass (TabHolo.cs)
+                DrawHoloGlass(new Rect(CaseRect.x + 2f, CaseRect.y + 2f, CaseRect.width - 4f, CaseRect.height - 4f), Time.unscaledTime);
             NeonBox(CaseRect, 1f, hit, 12);
             DrawCaseKeys(T, power, live);
             HVent(new Rect(184f, 524f, 210f, 138f));
@@ -262,6 +269,8 @@ namespace Arena
             Ui.RoundBox(r, CrtUi.T(new Color(0.016f, 0.039f, 0.094f)), 5);
             Ui.RadialGlow(new Rect(r.x + 10f, r.y + 6f, r.width - 20f, r.height - 12f), CrtUi.T(new Color(0.235f, 0.43f, 0.86f)).WithAlpha(0.18f));
             EdgeRing(new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f), 1f, CrtUi.T(new Color(0.102f, 0.141f, 0.251f)));
+            if (menuHolo > 0)  // mock: the screen as hologram glass
+                DrawHoloGlass(new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f), Time.unscaledTime);
             float crt = Seg(T, 4.0f, 4.3f), shown = Seg(T, 4.25f, 4.45f) * power;
             if (crt > 0f && crt < 1f)  // the tube coming on: a line across, then it opens top and bottom
             {

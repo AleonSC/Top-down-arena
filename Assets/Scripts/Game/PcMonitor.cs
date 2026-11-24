@@ -28,6 +28,8 @@ namespace Arena
             if (shake)
                 GUI.BeginGroup(new Rect(monShakeX, monShakeY, W, H));
             Metal(MonRect, 14);
+            if (menuHolo == 2)  // mock: the monitor as hologram glass
+                DrawHoloGlass(new Rect(MonRect.x + 2f, MonRect.y + 2f, MonRect.width - 4f, MonRect.height - 4f), Time.unscaledTime);
             DrawMonitorGlass(title);
             DrawMonitorChin();
             DrawDriveSlot(1f, drive);

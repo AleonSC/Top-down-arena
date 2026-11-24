@@ -122,6 +122,8 @@ namespace Arena
             Ui.RoundBox(box, CrtUi.T(new Color(0.016f, 0.039f, 0.094f)), 6);
             Ui.RadialGlow(new Rect(box.x + 40f, box.y + 4f, box.width - 80f, box.height - 8f), CrtUi.T(new Color(0.235f, 0.43f, 0.86f)).WithAlpha(0.2f));
             EdgeRing(new Rect(box.x + 1f, box.y + 1f, box.width - 2f, box.height - 2f), 1f, CrtUi.T(new Color(0.102f, 0.141f, 0.251f)));
+            if (menuHolo > 0)  // mock: the title screen as hologram glass
+                DrawHoloGlass(new Rect(box.x + 1f, box.y + 1f, box.width - 2f, box.height - 2f), Time.unscaledTime);
         }
 
         /// Over the text: rolling scanlines, a glow along the screen's edge, a glare, and a blinking cursor in the bottom corner.
