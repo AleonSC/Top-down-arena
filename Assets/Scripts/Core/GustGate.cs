@@ -31,7 +31,10 @@ namespace Arena
             z.Cap = cap;
             foreach (var e in Enemies.Values)
                 if (!e.Def.IsBoss && e.SpawnT <= 0f && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius))
+                {
+                    WindHit(e, PushDir(z, e));  // Wind.cs
                     KnockEnemy(e, PushDir(z, e) * GgCastPush * (e.Def.Heavy ? 0.5f : 1f) * (cap ? 2f : 1f));
+                }
             BroadcastFx(FxKind.Ring, target, GgColor, z.Radius, 0.45f, Sfx.GaleCast);
         }
 
@@ -68,7 +71,10 @@ namespace Arena
             float push = GgPush * (z.Cap ? 2f : 1f) * dt;
             foreach (var e in Enemies.Values)
                 if (!e.Def.IsBoss && e.SpawnT <= 0f && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius))
+                {
+                    WindHit(e, PushDir(z, e));  // Wind.cs
                     KnockEnemy(e, PushDir(z, e) * push * (e.Def.Heavy ? 0.5f : 1f));
+                }
         }
 
         /// Host, every tick after the zones: remember where each player stood, for next tick's crossing test.

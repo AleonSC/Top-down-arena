@@ -32,6 +32,8 @@ namespace Arena
             { WeaponId.StaticShock, 23f },
             { WeaponId.Fireball, 71f },
             { WeaponId.Waterball, 56f },
+            { WeaponId.WaterGun, 60f },
+            { WeaponId.GaleGun, 82f },
             { WeaponId.Earthball, 82f },
             { WeaponId.ArcLightning, 116f },
             { WeaponId.IceShards, 70f },

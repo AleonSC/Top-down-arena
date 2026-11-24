@@ -42,7 +42,7 @@ namespace Arena
                     foreach (var e in FoesInCircle(p.Pos, reach, by: p.Id))
                     {
                         HurtEnemy(e, 40f * dmg, p.Id);
-                        Slow(e, 3f + s.NovaFreezeBonus, 0.1f);  // nearly frozen
+                        Chill(e, 1, 3f + s.NovaFreezeBonus, 0.1f);  // nearly still, and chilled (Chill.cs)
                     }
                     if (cap)
                         EraseEnemyBullets(p.Pos, reach);
@@ -775,6 +775,11 @@ namespace Arena
                     TickPhalanx(z, dt);  // BonePhalanx.cs
                     continue;  // (not a circle: nothing below applies)
                 }
+                if (z.Kind == ZoneKind.Steam)
+                {
+                    TickSteamCloud(z, dt);  // Steam.cs
+                    continue;
+                }
                 if (d.Dps > 0f || d.Slow > 0f || z.ExtraSlow > 0f)
                     foreach (var e in Enemies.Values)
                     {
@@ -788,7 +793,9 @@ namespace Arena
                         if (z.Kind == ZoneKind.BulletRain)
                             e.WetT = Math.Max(e.WetT, BulletRainWetTime);  // soaked: slowed, and lightning arcs to it (Tsunami.cs)
                         float slow = Math.Max(d.Slow, z.ExtraSlow);
-                        if (slow > 0f)
+                        if (z.Kind == ZoneKind.Blizzard)
+                            Chill(e, 1, 0.3f, 1f - slow, gated: true);  // ice: chilled too, a stack a second (Chill.cs)
+                        else if (slow > 0f)
                         {
                             Slow(e, 0.3f, 1f - slow);
                         }

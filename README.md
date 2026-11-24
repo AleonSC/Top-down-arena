@@ -273,6 +273,8 @@ your weapon. Per extra projectile:
 | | **Riot Repeater** | Steady single shots (11) with a little spread; each round that hits suppresses the enemy: it shoots 8% slower, up to 50% (25% for bosses), fading 25% a second. **Tear Gas** (Alt, 9 s): lobs a canister to your cursor; after 0.5 s it bursts into a pale cloud 100 px round for 5.5 s. Enemies in it are suppressed to the cap at once (50%, bosses 25%) and slowed 30%. A ring under your feet fills as it comes back | Fires in bursts: +1 round per burst, then a longer pause |
 | | **Grenade Launcher** (4th key) | A revolving drum of 6 HE grenades, 0.42 s apart, lobbed over enemies to your cursor (60 to 380 px): each spins in on an arc, hops once and bursts, 34 in 72 px (half at the edge) with a small shove; then a 1.5 s reload (the drum swings out and the hulls spill). **Smoke canister** (Alt, 0.55 s apart, while the HE drum keeps firing): each press lobs a canister that bounces twice and opens into a cloud 105 px round for 6 s. Regular enemies in it are slowed 45% and can't attack (a jammed-gun icon over them); bosses and mini-bosses are only slowed 30%. 3 canisters, one back every 6 s. Behind you: the drum's rounds and the canisters. Putting it away refills everything | +1 grenade a shot, fanned out |
 | Tank · Elementalist | **Flamethrower** | A short stream of fire (about 190 px): 2 flames every 0.06 s that hit the first enemy for 3 and carry on through the rest for 1, setting them burning (5 a second for 3 s, renewed by every hit) | +1 flame a burst and 25% more reach |
+| | **Water Gun** (the Flamethrower's variant: open its Variants window in the lobby and Equip it) | A long, narrow spray of water (about 370 px): a jet every 0.07 s (5 each, about 60 a second) that stops on the first enemy and **splashes**: that enemy and every enemy within 55 px of it are soaked **wet** for 3 s (slowed 30%, lightning arcs to them; they turn to steam if burning, and wind chills them). Sets nothing burning. A pump water gun with a cyan tank; the jets are cyan streaks that break into droplets at the end | +1 jet a burst and 25% more reach |
+| | **Gale Gun** (the Flamethrower's second variant) | An air blower (about 230 px): 2 gusts every 0.06 s that pass through enemies like flames (2.5 to the first, a third behind) and **slice** them: a bleed of 60% of the hit a second (the shared bleed: its stacks, the Blood Bolt burst and Cauterize all apply), a plain **slow** (30% for 0.6 s: Slowed, never Chilled), a light push (not heavies) and **wind** (it chills wet enemies and fans burning ones: Wind reactions). About 82 a second with the bleed. A grey leaf-blower with a spinning fan; the gusts are pale curls of wind | +1 gust a burst and 25% more reach |
 | | **Frost Lance** | Hold Fire for a five-step chain that flows from one move into the next: **Shiver Crescent** (a 158° sweep ahead, 178 px, 80%), **Backhand Rime** (the sweep back, rimes the floor, 80%), **Frost Waltz** (a full spin, 170 px all round, 70%), **Crystal Fan** (five crystals erupt from the floor in a fan, 50% each) and the **Avalanche Slam** (an overhead slam 140 px ahead, a 112 px blast, 135%); stop for 1 s and it starts over. Every hit **chills** (the pips under the enemy, slowed 30%; one chill a step, two for the slam); 3 chill **freezes** a regular enemy for 2.4 s (heavies 1.2 s; bosses only slow). The slam **shatters** a frozen enemy for 2.5x. **Parry** at any moment breaks the step in your hands (its hit never lands) but keeps your place in the chain; a **perfect parry** primes the **Rime Counter** (a gold glow): the next step skips its wind-up and adds one more chill. **Alt: Absolute Zero** (14 s): a 0.7 s charge (you move at half speed and can't attack) as a snowflake rune draws itself under you, then a white wave freezes everything within 290 px (67%), and 0.7 s later a second wave shatters it (100%, 2.5x on the frozen). **Sounds:** glassy chimes on a cold E minor chord over airy rushes: the crescent sweeping up, the backhand sweeping down with rime hissing, the waltz wheeling with a rising run, five crystals crunching up out of the floor, the slam's deep swing and its heavy crash of ice; a creaking crackle and a tink as an enemy freezes, a burst of glass on each shatter, a brittle snap when a parry breaks the lance; Absolute Zero's charge swells like a cold choir, its wave booms with the whole chord, its shatter cascades (Weapons volume for the swings, Effects for the rest) | +20% damage and 10% more reach |
 | | **Storm Hammer** | You haul a big steel hammer over your shoulder and throw it (it leaves your hand 0.22 s after the click): a 48 px hammer (40) tumbling end over end behind a storm cloud, with a bolt from the sky where it lands. It electrifies the enemy it hits: it arcs to 3 enemies round it three times over a second (5 each). **Alt (weapon action, 6 s cooldown): Thunder Slam**: you raise the hammer and drive it into the floor 52 px ahead (0.58 s), and a shockwave of lightning runs out 280 px, hurting every enemy it crosses once (40), shoving it 40 px (not bosses or heavies) and electrifying it (one arc). The hammer re-forms in your hand 0.2 s after the throw is ready, or after the slam. With Visual effects off the old small hammer is drawn | +15% hammer damage and 1 more enemy arced to (the slam hits 15% harder too) |
 | | **Wind Clash** (4th key) | Hold Fire for a four-step combo of air waves, each hitting an enemy once and shoving it away (not heavies): a **Crescent** (110° arc that sweeps down across your aim as it flies out to 170 px, 18, 45 px shove), a **Back Crescent** (the same sweeping back up), a **Gale Lance** (a 28 px line of wind straight out to 330 px, 29, 70 px shove) and a **Clash Ring** bursting round you (to 100 px, 22, 85 px shove); 0.34 / 0.34 / 0.44 / 0.62 s between steps, and a 0.9 s pause starts it over. **Tempest** (Alt, 9 s): for 3 s a 120 px storm of wind blows round you: 9 to every enemy in it 5 times a second with a light shove, and every enemy shot that comes in is caught, spins round you and bursts; you move 30% slower and can't attack while it blows (its cooldown fills a ring under your feet) | +20% damage and 10% bigger waves |
@@ -623,9 +625,14 @@ Arc Lightning, Wisp Lantern, Imp Caller, and the Fireball, which already rolls t
 per stack instead.
 A piercing shot can't hit the same enemy twice in a row, even inside two overlapping enemies.
 
-**Slows** don't add up: an enemy moves at its strongest slow until that one ends, then at the next-strongest one
-still running. A freeze (Frost Nova, Cryo's frozen solid) ends on time even while a weaker slow (Wet, ink, a slow
-zone) keeps being renewed.
+**Slowed and Chilled** are two statuses. **Slowed** is any slow (wind, honey, gas, ink, Graviton, ice...): it only slows
+and never builds to a freeze. **Chilled** is ice only: every ice attack (Frost Lance, Frost Nova, Blizzard, Cryo Rounds,
+Ice Shards at 25% for 1.5 s, Wind Chill) slows the enemy *and* adds a chill (steady ice: Blizzard, Cryo Rounds and Ice
+Shards add one a second at most). Chill wears off 3 s after the last one; the third freezes it (2.4 s, heavies 1.2 s),
+and the freeze lifts its slows, since the ice holds it still. Bosses are only slowed. Frozen means real ice only (can't
+move or shoot); Frost Nova's and Cryo's deep 0.1x slows show as chilled. **Slows** don't add up: an enemy moves at its
+strongest slow until that one ends, then at the next-strongest one still running. A deep slow (Frost Nova, Cryo's
+"frozen solid") ends on time even while a weaker slow (Wet, ink, a slow zone) keeps being renewed.
 
 **Virulence** (rare, two stacks, with Poison Dart; it took Phase Step's place with the old Dash): the venom deals 30% more and spreads 60 px further.
 
@@ -643,8 +650,8 @@ Rarer cards show up a bit more often as you level. All the numbers live in
   Enemies and bullets don't wrap, so the edges make a good escape route.
 - **Melee grace:** when a melee swing hits something, bodies you're touching can't hurt you for 0.3 s (contact damage only, not bullets or boss attacks). It keeps a melee build from being punished for standing close to land its hits.
 - Your hitbox is the small coloured dot ringed in white in the middle of your character, not the whole circle.
-- **Status effects** show as a tint on the enemy plus an icon above it: **snowflake** = frozen (encased in ice, can't
-  move or shoot), **blue double arrow** = slowed, **blue drop over a wave** = wet (a blue bar
+- **Status effects** show as a tint on the enemy plus an icon above it: **white snowflake in a block of ice** = frozen (encased in ice, can't
+  move or shoot), **blue snowflake** = chilled (ice; its stacks are pips under it), **grey-white double arrow** = slowed (anything), **blue drop over a wave** = wet (a blue bar
   over its health bar drains as it dries), **flame** = burning (flames rise off it), **blood drop** = bleeding
   (drops fall off it), **red crosshair** = marked (takes extra damage), **yellow zigzag bolt** = charged (small arcs
   crawl over it).
@@ -654,6 +661,23 @@ Rarer cards show up a bit more often as you level. All the numbers live in
   arcs don't charge it). **Wet and charged** it shorts out (its arcs turn blue-white and flicker): it takes 6 damage a second
   (+0.3 a wave), and every 2.5 s an arc jumps from it to the 3 nearest enemies within 220 px for 25 (+1.25 a wave),
   credited to whoever charged it.
+- **Steam (Fire + Water):** an enemy that is wet and burning at once (any fire: the Flamethrower, Fireball, Spirit Chalk,
+  Warhorn Volley, Incendiary Rounds...) flashes the water to steam: the wet and the burn are both used up, and a steam
+  cloud (90 px, 3 s) billows up where it stands, with a hiss. Enemies inside take 8 damage a second (+0.4 a wave) and
+  their weapons are jammed (no attacking, like the Grenade Launcher's smoke; bosses and mini-bosses only take the scald),
+  credited to whoever lit the fire. Steam near an existing cloud refreshes it instead of stacking, and an enemy can't steam
+  again for 1 s. White wisps keep rising through it over a faint warm glow.
+- **Meltwater (Ice → Water):** when a freeze ends (Glacial Tomb, a Frost Lance freeze, Blood Freeze, a shatter...; not a
+  stun), the melted ice leaves the enemy **wet** for 6 s. While it's frozen, fire just burns as usual; if it's still
+  burning when the ice melts, the water and fire turn to steam.
+- **Wind reactions:** wind has no status of its own; it reacts with the others. Every wind source counts: Wind Clash's
+  waves and Tempest, Gale Wall's blast, Gust Gate (the cast and its steady push), the Spirit Fan's gust, the Wyvern's gale
+  and the Nimbus's hurricane burst. An enemy reacts to wind at most once a second.
+  - **Wind Chill (Wind + Water):** wind on a **wet** enemy chills it like a Frost Lance strike (+1 chill, slowed 30% for
+    3 s); the third chill freezes it (2.4 s, heavies 1.2 s; bosses only get the slow). After a wind freeze, wind can't chill
+    that enemy for 6 s, so a steady wind can't keep it frozen through its meltwater.
+  - **Fan the Flames (Wind + Fire):** wind on a **burning** enemy spreads its fire, at 60% strength and for the time it has
+    left, to the 3 nearest enemies within 120 px downwind (the side the wind blows toward), credited to whoever lit it.
 - **Cauterize (Bleed + Burn):** fire landing on a bleeding enemy (the Flamethrower, the Fireball, Incendiary Rounds)
   sears the wound shut: all the bleed it had left lands at once, times 1.25, and the bleed ends. Whoever made it bleed
   is credited the bleed's share, whoever brought the fire the extra quarter, so fire never wastes an ally's bleed. A

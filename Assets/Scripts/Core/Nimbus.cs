@@ -205,6 +205,7 @@ namespace Arena
                 if (!Targetable(e) || Heavy(e) || e.Pos.FartherThan(m.Pos, R + 40f))
                     continue;
                 V2 rel = e.Pos - m.Pos;
+                WindHit(e, rel);  // Wind.cs
                 KnockEnemy(e, (rel.Length > 1f ? rel / rel.Length : RandDir()) * NimbusBurstShove);
             }
         }

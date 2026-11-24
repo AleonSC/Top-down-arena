@@ -504,7 +504,7 @@ namespace Arena
                 case WeaponId.MendersBow: case WeaponId.Railgun: hold = 1; offX = 18f; break;
                 case WeaponId.DoubleBarrel: hold = 1; offX = 15f; break;
                 case WeaponId.GrenadeLauncher: hold = 1; offX = 31f; break;  // (the front hand sits on the foregrip: GrenadeLauncherLook.cs GlFrontHand)
-                case WeaponId.Flamethrower: case WeaponId.Warhammer: hold = 1; offX = 12f; break;
+                case WeaponId.Flamethrower: case WeaponId.WaterGun: case WeaponId.GaleGun: case WeaponId.Warhammer: hold = 1; offX = 12f; break;
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
                 case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: case WeaponId.EmbolusSpears: case WeaponId.TwinPistols: hold = 2; break;
@@ -545,6 +545,8 @@ namespace Arena
             d[(int)WeaponId.BurstSmg] = DrawHeldBurstSmg;
             // ---- Elementalist
             d[(int)WeaponId.Flamethrower] = DrawHeldFlamethrower;
+            d[(int)WeaponId.WaterGun] = DrawHeldWaterGun;  // ElementGunLook.cs
+            d[(int)WeaponId.GaleGun] = DrawHeldGaleGun;
             d[(int)WeaponId.FrostLance] = DrawHeldFrostLance;
             d[(int)WeaponId.StormHammer] = (p, t, hold) => DrawStormHammerHeld(p, t);  // StormHammerLook.cs: raised, thrown, slammed and re-formed with the throw and the slam
             d[(int)WeaponId.RadiantOrb] = DrawHeldRadiantOrb;

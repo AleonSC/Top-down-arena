@@ -298,8 +298,8 @@ namespace Arena
             WikiStatusIf(e.Venomed, "Venom", into);
             WikiStatusIf(e.Wet, "Wet", into);
             WikiStatusIf(e.Charged, "Charged", into);
-            WikiStatusIf(e.FrostChill > 0, "Chilled", into);
-            WikiStatusIf(e.Chilled && e.FrostChill == 0, "Slowed", into);
+            WikiStatusIf(e.Chilled, "Chilled", into);
+            WikiStatusIf(e.Slowed, "Slowed", into);
             WikiStatusIf(e.Marked, "Marked", into);
             WikiStatusIf(e.Suppressed, "Suppressed", into);
         }
