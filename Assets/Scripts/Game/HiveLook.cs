@@ -109,6 +109,8 @@ namespace Arena
                     prev = next;
                 }
             }
+            if (w <= 0f)  // (a fill only)
+                return;
             V2 p0 = HiveEllipsePt(f, cx, cy, rx, ry, cr, sr, 0f);
             for (int i = 1; i <= segs; i++)
             {
