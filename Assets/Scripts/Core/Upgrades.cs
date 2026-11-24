@@ -47,6 +47,7 @@ namespace Arena
         DeployableTurret,  // the DPS Soldier's 4th choice (DeployableTurret.cs), the lobby's 4th choice
         ThornBloom,    // the DPS Hemomancer's 4th choice (ThornBloom.cs), the lobby's 4th choice
         KineticGrasp, GrandSigil, ArcaneTether, SanctumSigil, TelekineticCrush, RunicArray,  // the Arcanist's 1st abilities and ultimates (Arcanist.cs)
+        FieldHospital,  // the Healer Soldier's second ultimate (FieldHospital.cs), picked on the lobby's Ultimate row
         None = 255,
     }
 

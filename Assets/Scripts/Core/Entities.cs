@@ -822,7 +822,8 @@ namespace Arena
         public int Id;
         public int Owner;       // the player this copy is for (an enemy's or a crate's orb, Combat.cs SpawnOrbEach); 0: anyone's
         public bool Big, Tiny;  // Tiny: knocked loose by the Repulsion Cannon
-        public bool Med;        // a Deployable Medkit's orb (Medkit.cs)
+        public bool Med;        // a Deployable Medkit's orb (Medkit.cs), or a Field Hospital's
+        public int Hosp;        // host: the Field Hospital zone it lies in (FieldHospital.cs; 0: none): it only drifts to players inside
         public float MedHeal;   // host: what it heals
         public V2 Pos, Disp;
         public float Life;
