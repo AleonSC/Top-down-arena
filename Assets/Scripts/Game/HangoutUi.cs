@@ -36,7 +36,6 @@ namespace Arena
         /// The lobby's Practice key: open the room if it isn't up (the host starts it for the party), and look at it.
         void OpenPractice()
         {
-            showcasePlay = false;
             CloseFavorites();
             lobbyTab = PracticeTab;
             practiceWaitAt = Time.unscaledTime;

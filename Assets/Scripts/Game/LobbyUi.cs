@@ -20,12 +20,6 @@ namespace Arena
         float showcaseZoomA;       // the zoom meter's fade (0 hidden .. 1 shown)
         bool showcaseZoomDrag;
         float showcaseZoom = 1f;   // the preview's zoom meter (0.5 out .. 2 in), set by the slider under it or the mouse wheel over it
-        bool showcasePlay;         // the preview's PLAY key: you control the character in the window (Showcase.Control)
-        Vector2 showcaseMouse;     // the mouse over the window, as the last draw saw it
-        bool showcaseMouseOver;
-        V2 showcaseCamFocus;       // where the last draw looked, and how big (the mouse's place in the preview's world)
-        float showcaseCamZoom = 1f;
-        Rect showcaseCamView;
         bool showcaseIdle;         // the preview's IDLE key: the character stands still
         bool showcaseAlt;          // the preview's ALT FIRE key (off: MAIN FIRE): the weapon's Alt on a loop
         bool showcaseDemo, showcaseHasAlt;  // (this frame's preview: casting an ability or ultimate; the weapon has an Alt to show)
@@ -1589,20 +1583,17 @@ namespace Arena
                 showcaseIdle = !showcaseIdle;
             // MAIN FIRE | ALT FIRE, side by side, floating at the bottom middle: what the weapon shows. Lit: the one showing (neither
             // while an ability or ultimate is cast); a click goes back to the weapon's page and shows that one.
-            if (!showcasePlay)
-            {
-                const float Kw = 78f, Kh = 20f, Gap = 6f, Lift = 10f;
-                var mainKey = new Rect(view.center.x - Gap / 2f - Kw, view.yMax - Lift - Kh, Kw, Kh);
-                var altKey = new Rect(view.center.x + Gap / 2f, mainKey.y, Kw, Kh);
-                bool live = showcaseZoomA > 0.3f;
-                if (live && DkKey(mainKey, "MAIN FIRE", CrtStyle.Gold, !showcaseDemo && !showcaseAlt, 10))
-                    PickShowcaseFire(false);
-                bool en = GUI.enabled;
-                GUI.enabled = en && showcaseHasAlt;  // (locked for a weapon with no Alt)
-                if (live && DkKey(altKey, "ALT FIRE", CrtStyle.Gold, !showcaseDemo && showcaseAlt && showcaseHasAlt, 10))
-                    PickShowcaseFire(true);
-                GUI.enabled = en;
-            }
+            const float Kw = 78f, Kh = 20f, Gap = 6f, Lift = 10f;
+            var mainKey = new Rect(view.center.x - Gap / 2f - Kw, view.yMax - Lift - Kh, Kw, Kh);
+            var altKey = new Rect(view.center.x + Gap / 2f, mainKey.y, Kw, Kh);
+            bool live = showcaseZoomA > 0.3f;
+            if (live && DkKey(mainKey, "MAIN FIRE", CrtStyle.Gold, !showcaseDemo && !showcaseAlt, 10))
+                PickShowcaseFire(false);
+            bool en = GUI.enabled;
+            GUI.enabled = en && showcaseHasAlt;  // (locked for a weapon with no Alt)
+            if (live && DkKey(altKey, "ALT FIRE", CrtStyle.Gold, !showcaseDemo && showcaseAlt && showcaseHasAlt, 10))
+                PickShowcaseFire(true);
+            GUI.enabled = en;
             GUI.color = oc;
             Ui.Alpha = oa;
         }
@@ -1627,27 +1618,16 @@ namespace Arena
                 showcase = new Showcase();
             showcaseDemo = demo;
             showcaseHasAlt = ShowcaseAlt.Has(Defs.Weapon(me.Role, me.Kit, me.Weapon).Id);
-            showcase.SetControl(showcasePlay);
             showcase.AltFire = showcaseAlt && !demo;
-            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.FirstAbility(me.Role, me.Kit, shown), demo && !showcasePlay, ult, me.Ult);
+            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.FirstAbility(me.Role, me.Kit, shown), demo, ult, me.Ult);
             showcaseSeen = Time.unscaledTime;
-            showcaseMouse = Event.current.mousePosition;
-            showcaseMouseOver = view.Contains(showcaseMouse) && GUI.enabled;
             if (!BeginUiGl())
                 return;
             var rc = new Rgba(roleColor.r, roleColor.g, roleColor.b);
             var sg = showcase.Game;
             float zoom = Mathf.Min(1.1f, view.height / (showcase.Extent + 190f)) * showcaseZoom;
             V2 focus = Showcase.Home + new V2(0f, -showcase.Extent / 2f);
-            if (showcasePlay && sg.Me != null)
-            {
-                zoom = Mathf.Min(1.1f, view.height / 460f) * showcaseZoom;  // PLAY: the view follows you
-                focus = sg.Me.Disp;
-            }
             V2 centre = new V2(view.center.x, view.center.y);
-            showcaseCamFocus = focus;
-            showcaseCamZoom = zoom;
-            showcaseCamView = view;
             UiModelAt(centre - focus * zoom, zoom);
             UiClip(view);
             var glow = ShowcaseGlow(roleColor);
@@ -1797,30 +1777,6 @@ namespace Arena
                 SetShowcaseHue(-1f);
         }
 
-        /// PLAY: your keys and mouse as the preview's input, only while the mouse is over the window (so typing in the lobby never plays it).
-        PlayerInput ShowcasePlayInput()
-        {
-            var me = showcase.Me;
-            V2 aim = me != null ? me.Pos + V2.FromAngle(me.Aim) * 100f : Showcase.Home;
-            if (showcaseMouseOver && showcaseCamZoom > 0f)
-                aim = showcaseCamFocus + new V2(showcaseMouse.x - showcaseCamView.center.x, showcaseMouse.y - showcaseCamView.center.y) / showcaseCamZoom;
-            if (!showcaseMouseOver)
-                return new PlayerInput { AimAt = aim };
-            return new PlayerInput
-            {
-                Move = new V2(Axis(KeyAction.MoveRight) - Axis(KeyAction.MoveLeft), Axis(KeyAction.MoveDown) - Axis(KeyAction.MoveUp)).Normalized(),
-                AimAt = aim,
-                Fire = Keybinds.Held(KeyAction.Fire),
-                Ability = Keybinds.Held(KeyAction.Ability1),
-                AbilityQ = Keybinds.Held(KeyAction.Ability2),
-                AbilityE = Keybinds.Held(KeyAction.Ability3),
-                AbilityShift = Keybinds.Held(KeyAction.Ability4),
-                Ultimate = Keybinds.Held(KeyAction.Ultimate),
-                Parry = Keybinds.Held(KeyAction.Parry),
-                WeaponAction = Keybinds.Held(KeyAction.WeaponAction),
-            };
-        }
-
         /// The loadout preview runs only while the hero card is on screen.
         void ShowcaseFixedStep(float dt)
         {
@@ -1836,7 +1792,6 @@ namespace Arena
                 return;
             }
             showcase.Idle = showcaseIdle;
-            showcase.Play = showcasePlay ? ShowcasePlayInput() : default(PlayerInput);
             showcase.Step(dt);
             // Its sounds play muffled, as if heard through the preview window's glass (nothing else is drawn alongside it)
             foreach (var sfx in showcase.Game.Sounds)
@@ -1853,7 +1808,6 @@ namespace Arena
                 return;
             if (showcase == null)
                 showcase = new Showcase();
-            showcase.SetControl(showcasePlay);
             showcase.AltFire = showcaseAlt;
             showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.FirstAbility(me.Role, me.Kit, ShownAbility(me)), false, false, me.Ult);
             showcaseSeen = Time.unscaledTime;
