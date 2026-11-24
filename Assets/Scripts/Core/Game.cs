@@ -1220,6 +1220,7 @@ namespace Arena
                 DashT = 0f;
             else if (DashT > 0f)
             {
+                KickReachOn(me, dt);  // a Dodge ending just short of a wall reaches on to it (Dodge.cs)
                 DashT -= dt;
                 me.Pos += DashDir * dashSpeed * dt;
                 iceVel = DashDir * me.Speed * Paths.IceTopSpeed;  // on ice you slide out of a dash
