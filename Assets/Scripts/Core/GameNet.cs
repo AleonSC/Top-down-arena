@@ -384,6 +384,7 @@ namespace Arena
             SyncRoom(s);  // a challenge room's portal and room (Challenges.cs)
             SyncBossGate(s);  // the boss gate (BossGate.cs)
             SyncHoldingCells(s);  // the Warden's Holding Cells (HoldingCell.cs)
+            SyncDrill(s);  // a Training drill's runners (DrillGame.cs)
 
             int count = Players.Count;
             s.Byte(ref count);

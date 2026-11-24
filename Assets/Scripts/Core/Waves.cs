@@ -64,6 +64,11 @@ namespace Arena
                 TickShowcase(dt);  // the loadout preview's target dummies instead of waves (Showcase.cs)
                 return;
             }
+            if (DrillOn)
+            {
+                TickDrill(dt);  // a Training drill: no waves, each player's beacons (DrillGame.cs)
+                return;
+            }
             if (HangoutOn)
             {
                 TickHangout(dt);  // the between-waves state, held for good (HangoutGame.cs)

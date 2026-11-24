@@ -52,7 +52,7 @@ namespace Arena
     public partial class Game
     {
         /// This match's mode, from what the start set up (Hunt, SurvivalOn, Quick; none of them: the Campaign).
-        public GameMode Mode => HangoutOn ? GameMode.Hangout : Hunt != null ? GameMode.Hunt : SurvivalOn ? GameMode.Survival
+        public GameMode Mode => DrillOn ? GameMode.Training : HangoutOn ? GameMode.Hangout : Hunt != null ? GameMode.Hunt : SurvivalOn ? GameMode.Survival
             : Quick ? GameMode.Quick : GameMode.Campaign;
 
         /// What this run's mode allows (ModeDef).

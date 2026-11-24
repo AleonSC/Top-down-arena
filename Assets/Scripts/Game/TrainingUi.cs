@@ -171,12 +171,9 @@ namespace Arena
             LobbyGlowBox(go);
             string sub = !d.Built ? "COMING SOON" : !session.IsHost ? "THE HOST STARTS IT" : "R TO RETRY";
             if (DkKey(go, "START DRILL  >", can, fxReduced, size: 16, minSize: 12, accent: TrainColor, sub: sub, locked: !can) && can)
-                StartDrill(i);
+                session.StartDrill(i);  // DrillGame.cs
             Ui.Label(new Rect(x, b.yMax - 50f, w - 230f, 30f), "In a party, everyone runs the drill in their own lane.", 11, CrtStyle.Ink.WithAlpha(0.55f), TextAnchor.MiddleLeft, false, true);
         }
-
-        /// START DRILL on a built drill (each drill adds its start as it's built, Docs/Training.md).
-        void StartDrill(int i) => session.Status = Training.Drills[i].Name + " isn't playable yet";
 
         /// Keycaps in a row from (x, y), `h` tall.
         static void KeyRow(float x, float y, string[] keys, float h, Color c)
@@ -239,6 +236,8 @@ namespace Arena
                     {
                         if (k > 0) Dots(pts[k - 1], pts[k], you.WithAlpha(k <= 2 ? 0.7f : 0.2f));
                         Disc(pts[k], 11f, (k < 2 ? CrtStyle.Gold : TrainColor).WithAlpha(k < 2 ? 0.9f : 0.5f), true);
+                        if (Training.MoveShootStep(k))
+                            Disc(pts[k], 5f, red.WithAlpha(0.85f));  // a target to shoot
                     }
                     Disc(Lerp2(pts[2], pts[3], 0.35f), 8f, you);
                     break;

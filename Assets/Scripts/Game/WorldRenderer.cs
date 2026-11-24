@@ -298,7 +298,7 @@ namespace Arena
             PruneDarts();  // Poison Dart's stuck darts (PoisonDartLook.cs)
             segTol = CrowdTol();
             foreach (var e in game.Enemies.Values)
-                if (!Game.DevourUnder(e) && !Game.GutwormUnder(e) && !(e.Dormant ? game.FogHidesStill(e.Pos) : game.FogHides(e.Pos)))  // (room fog: hidden in an unseen room unless a player is close, RoomFog.cs); the Devourer or a Gutworm underground is just its ripple (DevourerLook.cs, LarderLook.cs)
+                if (!Game.DevourUnder(e) && !Game.GutwormUnder(e) && !(game.DrillTargetOf(e, out int drillOwner) && drillOwner != game.MyId) && !(e.Dormant ? game.FogHidesStill(e.Pos) : game.FogHides(e.Pos)))  // (room fog: hidden in an unseen room unless a player is close, RoomFog.cs); the Devourer or a Gutworm underground is just its ripple (DevourerLook.cs, LarderLook.cs)
                     DrawEnemy(e, t);
             segTol = SegTol;
             DrawDormantMarks(t);  // sleeping groups in unseen rooms: drifting z's (RoomFogLook.cs)

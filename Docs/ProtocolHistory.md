@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 484: `Msg.Start` gains the Training drill (sbyte, -1: none) after the Hangout flag; the game snapshot gains the drill runners after the Holding Cells (a byte count, then per runner: player id int, step byte, time float, done bool, target id int)
 - 483: `GameMode.Training` (5) can be the lobby's mode byte in `Msg.Lobby`; `None` moves to 6
 - 482: Ironhide cards (Iron Plates, Quick Refit, Shared Plating) shift upgrade card ids; the player snapshot gains `IronCap` (float) after `IronWait`
 - 481: the Hive Queen's snapshot gains her turn step (byte, step + 1) after `Dives`, for the Brood Mother's egg swell

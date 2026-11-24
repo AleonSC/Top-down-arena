@@ -1026,6 +1026,8 @@ namespace Arena
 
         void HurtEnemy(Enemy e, float dmg, int attacker)
         {
+            if (DrillShieldsHit(e, attacker))
+                return;  // another player's drill target (DrillGame.cs)
             if (e.Stand != null)
             {
                 PvpHurt(e.Stand, dmg * PvpHitMult(e, e.Stand, attacker), attacker);  // a player's stand-in: PvP (Pvp.cs)
