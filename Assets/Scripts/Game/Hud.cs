@@ -33,8 +33,8 @@ namespace Arena
             {
                 if (game.Recorder != null)  // this run is being recorded (hosts only)
                     Ui.Label(HudRecTag, "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
-                DrawObjectiveLine();  // the hunt/approach objective and layout tag (ApproachUi.cs)
                 DrawBossBars();
+                DrawObjectiveLine();  // the hunt/approach objective and layout tag (ApproachUi.cs), under the boss bars (bossBarsBottom)
             });
             DrawStageBanner();  // a boss changing phase (StageShiftLook.cs)
             DrawFreezeBanner();  // Blood Freeze's count and timer (BloodFreezeLook.cs)

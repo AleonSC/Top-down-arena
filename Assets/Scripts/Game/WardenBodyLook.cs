@@ -18,7 +18,7 @@ namespace Arena
         static readonly Rgba WdGunMetal = new Rgba(0.23f, 0.25f, 0.29f), WdGunDark = new Rgba(0.12f, 0.13f, 0.16f), WdWood = new Rgba(0.43f, 0.29f, 0.17f);
         static readonly Rgba WdBaton = new Rgba(0.12f, 0.13f, 0.16f), WdTip = new Rgba(1f, 0.7f, 0.28f), WdCan = new Rgba(0.44f, 0.49f, 0.35f);
 
-        enum WdPose { Walk, Gun, Spin, Radio, Point, Cover, Shield, WindUp, Slam, Throw, Kneel, Brace, Spread, Dazed }
+        enum WdPose { Walk, Gun, Spin, Radio, Point, Cover, Shield, WindUp, Slam, Throw, Kneel, Brace, Spread, Dazed, Keys }
 
         // The pose being drawn (set by WardenPose, read by the part drawers): the body's frame and a few dials.
         V2 wdPos, wdF, wdS;
@@ -40,15 +40,7 @@ namespace Arena
             if (w == null)
                 return WdPose.Walk;
             if (w.TransT > 0f)
-            {
-                if (w.TransTo == WardenStage.LastStand)
-                {
-                    crouch = 0.8f * Mathf.Clamp01(w.TransT / 0.3f);  // kneels while the plates lock on, rising at the end
-                    return WdPose.Kneel;
-                }
-                crouch = 0.3f;
-                return WdPose.Brace;
-            }
+                return WardenShiftPose(e, w, t, ref face, ref k, ref recoil, ref crouch, ref flare, ref tilt);
             if (w.StunT > 0f)
             {
                 tilt = 0.14f * Mathf.Sin(t * 9f);
@@ -151,6 +143,77 @@ namespace Arena
             return WdPose.Walk;
         }
 
+        /// A phase change, the Warden's 5 s set piece (Game.WardenTransTime): staggered by the blow that broke the phase, then
+        /// a move per phase while the players regroup. Lockdown: radios the tower, holds up his keys, slams the baton down.
+        /// Riot: roars with his arms wide, points the baton round the cell doors, turns the key, racks the shotgun.
+        /// Last stand: kneels while the plates lock on (Game.ArmorPlateAt), rises roaring, braces.
+        WdPose WardenShiftPose(Enemy e, WardenState w, float t, ref float face, ref float k, ref float recoil, ref float crouch, ref float flare, ref float tilt)
+        {
+            float at = Game.WardenTransTime - w.TransT;
+            if (at < 0.7f)  // staggered
+            {
+                float f = 1f - at / 0.7f;
+                tilt = 0.25f * f * Mathf.Sin(at * 18f);
+                crouch = 0.45f * f;
+                return WdPose.Dazed;
+            }
+            switch (w.TransTo)
+            {
+                case WardenStage.Lockdown:
+                    if (at < 2.2f)
+                        return WdPose.Radio;
+                    if (at < 3.6f)
+                    {
+                        k = Mathf.Sin((at - 2.2f) * 9f);  // shakes the keys at you
+                        return WdPose.Keys;
+                    }
+                    if (at < 4.4f)
+                    {
+                        k = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((at - 3.65f) / 0.15f));
+                        crouch = at < 3.8f ? 0.5f : 0.3f;
+                        flare = Mathf.Clamp01(1f - (at - 3.8f) * 3f);
+                        return WdPose.Slam;
+                    }
+                    crouch = 0.3f;
+                    return WdPose.Brace;
+                case WardenStage.Riot:
+                    if (at < 1.9f)
+                    {
+                        k = Mathf.Exp(-MathX.Fmod(at - 0.7f, 0.6f) * 5f);  // two roars, arms flung wide
+                        flare = 0.6f + 0.4f * k;
+                        return WdPose.Spread;
+                    }
+                    if (at < 3.4f)
+                    {
+                        face += Mathf.Lerp(-1.6f, 1.6f, Mathf.SmoothStep(0f, 1f, (at - 1.9f) / 1.5f));  // round the cell doors
+                        return WdPose.Point;
+                    }
+                    if (at < 4.3f)
+                    {
+                        k = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((at - 3.6f) / 0.4f)) * 1.6f;  // turns the key
+                        return WdPose.Keys;
+                    }
+                    k = Mathf.Sin(Mathf.Clamp01((at - 4.3f) / 0.5f) * MathX.Pi);  // racks the shotgun
+                    return WdPose.Gun;
+                default:  // the last stand
+                    if (at < 3.8f)
+                    {
+                        crouch = 0.8f * Mathf.Clamp01((at - 0.7f) / 0.3f);
+                        return WdPose.Kneel;
+                    }
+                    if (at < 4.5f)
+                    {
+                        float f = (at - 3.8f) / 0.7f;
+                        crouch = 0.8f * (1f - f);
+                        k = Mathf.Sin(f * MathX.Pi);
+                        flare = k;
+                        return WdPose.Spread;
+                    }
+                    crouch = 0.3f;
+                    return WdPose.Brace;
+            }
+        }
+
         /// The hands, in the body's frame (units of r/30, x forward, y to his right).
         void WdHands(WdPose p, float k, float recoil, float t, out Vector2 l, out Vector2 r)
         {
@@ -174,6 +237,7 @@ namespace Arena
                 case WdPose.Kneel: case WdPose.Brace: l = new Vector2(16f, -14f); r = new Vector2(16f, 14f); return;
                 case WdPose.Spread: l = new Vector2(8f - k * 4f, -24f - k * 10f); r = new Vector2(8f - k * 4f, 24f + k * 10f); return;
                 case WdPose.Dazed: l = new Vector2(2f, -24f); r = new Vector2(3f, 24f); return;
+                case WdPose.Keys: l = new Vector2(27f, -9f + k * 1.5f); r = new Vector2(7f, 21f); return;  // the ring held out in front
                 default:
                 {
                     float sw = Mathf.Sin(t * 1.8f) * 2f;  // the baton bobs as he walks
@@ -229,14 +293,20 @@ namespace Arena
                 Quad(ep - wdF * (5f * wdU) - wdS * (3f * wdU), ep + wdF * (5f * wdU) - wdS * (3f * wdU), ep + wdF * (5f * wdU) + wdS * (3f * wdU), ep - wdF * (5f * wdU) + wdS * (3f * wdU), Wd(WdGold));
                 Line(ep - wdF * (5f * wdU), ep + wdF * (5f * wdU), 1f, new Rgba(0f, 0f, 0f, 0.35f));
             }
-            V2 keys = WdAt(-10f, 15f * sh);
-            Arc(keys, 3f * wdU, 1.3f * wdU, Wd(WdGold), 14);
-            float jangle = Mathf.Sin(t * 3.1f) * 0.5f + (pose == WdPose.Walk && flare > 0f ? Mathf.Sin(t * 20f) * 0.6f : 0f);
-            for (int i = 0; i < 3; i++)
+            bool held = pose == WdPose.Keys;  // the ring in his hand (a phase change), else on his belt
+            V2 keys = held ? L + wdF * (6f * wdU) : WdAt(-10f, 15f * sh);
+            float kr = held ? 1.8f : 1f;
+            Arc(keys, 3f * kr * wdU, 1.3f * wdU, Wd(WdGold), 14);
+            float jangle = held ? k * 0.9f + Mathf.Sin(t * 14f) * 0.25f : Mathf.Sin(t * 3.1f) * 0.5f + (pose == WdPose.Walk && flare > 0f ? Mathf.Sin(t * 20f) * 0.6f : 0f);
+            for (int i = 0; i < (held ? 5 : 3); i++)
             {
-                V2 d = V2.FromAngle(fa + MathX.Pi * 0.75f + jangle + (i - 1) * 0.5f);
-                Line(keys + d * (3f * wdU), keys + d * (7f * wdU), 1.3f * wdU, Wd(new Rgba(0.81f, 0.63f, 0.29f)));
+                V2 d = V2.FromAngle(fa + (held ? 0f : MathX.Pi * 0.75f) + jangle + (i - (held ? 2 : 1)) * 0.5f);
+                Line(keys + d * (3f * kr * wdU), keys + d * ((3f * kr + 4f * kr) * wdU), 1.3f * kr * wdU, Wd(new Rgba(0.81f, 0.63f, 0.29f)));
+                if (held)
+                    Line(keys + d * ((3f * kr + 4f * kr) * wdU), keys + d * ((3f * kr + 4f * kr) * wdU) + V2.FromAngle(fa + jangle + (i - 2) * 0.5f + 1.57f) * (2.5f * wdU), 1.3f * wdU, Wd(new Rgba(0.81f, 0.63f, 0.29f)));  // the bit
             }
+            if (held && !wdSil)
+                Circle(keys, 9f * kr * wdU, WdGold.WithAlpha(0.12f + 0.08f * Mathf.Sin(t * 10f)), 20);  // a glint
 
             // What he holds under his arms: the shotgun.
             if (pose == WdPose.Gun)
@@ -261,7 +331,7 @@ namespace Arena
             // What he holds over his arms.
             switch (pose)
             {
-                case WdPose.Walk: case WdPose.Radio: case WdPose.Cover: case WdPose.Kneel: case WdPose.Brace: case WdPose.Dazed: case WdPose.Point: case WdPose.Spread:
+                case WdPose.Walk: case WdPose.Radio: case WdPose.Cover: case WdPose.Keys: case WdPose.Kneel: case WdPose.Brace: case WdPose.Dazed: case WdPose.Point: case WdPose.Spread:
                 {
                     V2 tip = pose == WdPose.Point ? WdAt(hr.x + 22f, hr.y - 4f) : WdAt(hr.x + 17f, hr.y + 5f);
                     WdBatonTo(R, tip, pose == WdPose.Point ? 0.8f + 0.2f * Mathf.Sin(t * 6f) : 0.6f);
