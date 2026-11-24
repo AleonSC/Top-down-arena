@@ -623,6 +623,8 @@ namespace Arena
                 DrawWardenBody(e, pos, r, col, spawning, t);  // WardenBodyLook.cs: the Chief Warden, posed for each move
             else if (Game.IsNonShooter(e.Type))
                 DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
+            else if (e.Type == EnemyType.Singularity)
+                DrawSingularityCore(e, pos, r, col, t);  // SingularityLook.cs: a lensed black hole
             else
                 Polygon(pos, r, e.Def.Sides, EnemyRotation(e, t), col);
             if (e.Frozen && !LeapCaged(e))  // (a Leap Slam's stun draws its own cage: LeapSlamLook.cs)
@@ -1031,10 +1033,6 @@ namespace Arena
                     break;
                 case EnemyType.Mortar:
                     Line(pos, pos + V2.FromAngle(e.Facing) * (r + 8f), 6f, col);
-                    break;
-                case EnemyType.Singularity:
-                    Circle(pos, r * 0.45f, new Rgba(0f, 0f, 0f, 1f), 24);
-                    Arc(pos, r * 0.45f, 2f, Rgba.White.WithAlpha(0.6f), 24);
                     break;
                 case EnemyType.Devourer:
                     DrawDevourerMouth(e, pos, r, t);  // DevourerLook.cs: its mouth opens when it feeds
