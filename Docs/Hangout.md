@@ -1,13 +1,12 @@
 # Lobby Hangout
 
-> **Status: the Hangout key opens the full-match `GameMode.Hangout`** (`Core/HangoutGame.cs`, below; `LobbyUi.DrawLobbyTabs` calls
-> `Session.StartHangout`): the whole party in the real match held between waves, on three dummies, no cooldowns (`TickSlots`), no god mode: at 0 health a beam respawn (`HangoutRespawn`, the boss wave's `FxKind.BossBeam`), and twelve
-> enemy spawners round the edges (`Core/HangoutSpawners.cs`, `Game/HangoutSpawnerLook.cs`; F on/off, B or the wheel changes the enemy; protocol 473). `Game.Battle` is on in the
-> Hangout, so its enemies, turrets and summons fight.
-> PLAY on the loadout preview window's top bar is the solo version: you drive the character in the mini window
-> (`Showcase.Control`/`Play`, `LobbyUi.ShowcasePlayInput`; no cooldowns: `Game.ShowcasePlay`). The room described in the rest of this file (a lobby tab with
-> its own light shots, `LobbyCombat.cs`, `LobbyRoom.cs`) is no longer reachable from the lobby; its code is kept until the owner
-> says to remove it.
+> **Status: Practice (the Hangout mode, `GameMode.Hangout`) plays inside the lobby's loadout window** (`Game/HangoutUi.cs`, protocol 480):
+> the lobby's **Practice** key (`LobbyUi.DrawLobbyTabs`, `OpenPractice`) asks for the room (`Session.StartHangout`) and swaps this player's big
+> screen to it with a glitch (`DrawPracticeSwap`); the screen stays the lobby (`Game.Practicing`; lobby requests check `Game.InRun`), so the
+> party column, Ready and Start work. Each player views it on their own; the room is shared. A loadout change swaps just that player
+> (`Msg.PracticePlayer`, `Game.SyncPractice`); a newcomer restarts it; Start replaces it. No target dummies, PvP always on (the PVP switch
+> is gone), control from the first frame. Spawners as below (`Core/HangoutSpawners.cs`). PLAY on the loadout preview is the solo version.
+> The room described at the end of this file (`LobbyCombat.cs`, `LobbyRoom.cs`) is retired; its code is kept until the owner says to remove it.
 
 ## The Hangout mode
 
@@ -20,10 +19,9 @@
 - **Between waves for good**: `TickWaves` hands over to `TickHangout`, which pins `State = Intermission` and `StateTimer = 60` every
   tick. No wave, no countdown, no level-ups (`Game.Quiet`: no XP, mastery, tutorial, recording or run stats; enemies stand still), and
   the host puts everyone in god mode.
-- **Target dummies**: the loadout preview's three (`TickDummies`, shared with `Showcase`), 260 health, standing in a row 140 px above
-  the arena's middle; one that falls is back a second later.
-- **HUD**: the GET READY / WAVE CLEARED band is replaced by a small HANGOUT chip (`Game/HangoutUi.cs`).
-- **Leaving**: the pause menu's Back to lobby, like any run.
+- **Target dummies**: removed (the loadout preview keeps its own).
+- **Window**: a PRACTICE chip at the window's top left; the world's own health bars and names (`Game/HangoutUi.cs`).
+- **Leaving**: the Loadout tab (your view only); the room ends when the run starts or the lobby closes.
 - Test: `Tools/SimTest/run.sh 1 30 hangoutmode`.
 - **Not built yet**: kit swapping inside the Hangout. (PvP is in: `Core/Pvp.cs`, Docs/Targeting.md; spawning enemies is the spawners.)
 

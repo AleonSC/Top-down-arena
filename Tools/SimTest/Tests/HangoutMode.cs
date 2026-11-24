@@ -3,8 +3,8 @@ using System.Linq;
 using System.Threading;
 using Arena;
 
-// The Hangout as a game mode (HangoutGame.cs, Docs/Hangout.md): a real match held between waves. Opened by a client's ask, every screen
-// agrees, no wave starts, the dummies stand and come back, firing works with the real loadout, nobody levels up or dies, and Back to lobby works.
+// Practice, the Hangout mode (HangoutGame.cs, Docs/Hangout.md): a real match held between waves behind the lobby. Opened by a client's ask,
+// every screen agrees and stays the lobby, control at once, no dummies, Ready and loadout swaps work, a newcomer joins, Start replaces it.
 static partial class Program
 {
 
@@ -24,41 +24,42 @@ static partial class Program
         Check(host.Mode == picked, "the carousel can't pick the Hangout");
 
         client.StartHangout();  // a client asks the host
-        WaitForGame(host, client, dt);
-        Check(host.Game.Running && client.Game.Running && host.Game.HangoutOn && client.Game.HangoutOn, "a client's ask opens it on every screen");
+        WaitForPractice(host, client, dt);
+        Check(host.Game.Running && client.Game.Running && host.Game.HangoutOn && client.Game.HangoutOn && host.Game.Practicing, "a client's ask opens it on every screen");
+        Check(host.Screen == AppScreen.Lobby && client.Screen == AppScreen.Lobby && !host.Game.InRun, "Practice plays inside the lobby: every screen stays the lobby");
         Check(host.Game.Mode == GameMode.Hangout && client.Game.Mode == GameMode.Hangout, "both screens play the Hangout mode");
         Check(!host.Game.Quick && !client.Game.Quick && host.Game.Hunt == null && !host.Game.SurvivalOn, "the lobby's own pick doesn't carry in");
 
+        // Control from the first tick: no countdown holds you.
+        var cm = client.Game.Me;
+        V2 start0 = cm.Pos;
+        for (int i = 0; i < 20; i++) { host.Poll(); host.Game.FixedStep(dt, new PlayerInput()); host.Game.Update(dt); client.Poll(); client.Game.FixedStep(dt, new PlayerInput { Move = new V2(1f, 0f), AimAt = cm.Pos }); client.Game.Update(dt); }
+        Check(!client.Game.HoldControls && cm.Pos.X > start0.X + 20f, "you move at once (" + (cm.Pos.X - start0.X).ToString("0") + " px)");
+
         var both = new[] { host, client };
         Run(both, dt, 3f);
-        Check(host.Game.Enemies.Count == 3 && client.Game.Enemies.Count == 3, "three target dummies stand, seen by the client (" + host.Game.Enemies.Count + ")");
-
-        // Fire the host's real weapon at a dummy until it falls: it comes back, nothing is gained.
+        Check(host.Game.Enemies.Count == 0 && client.Game.Enemies.Count == 0, "no target dummies (the loadout preview keeps its own)");
         float xp0 = host.Game.Me.Xp;
         int lvl0 = host.Game.Me.Level;
-        var target = host.Game.Enemies.Values.First();
-        int tid = target.Id;
-        bool fell = false;
-        for (int i = 0; i < 60 * 12 && !fell; i++)
-        {
-            Enemy e;
-            if (!host.Game.Enemies.TryGetValue(tid, out e))
-            {
-                fell = true;
-                break;
-            }
-            host.Poll();
-            if (host.Game.Me.Pos.FartherThan(e.Pos, 90f))
-                host.Game.Me.Pos = host.Game.Me.Disp = e.Pos + new V2(0f, 80f);  // (a close fight: any weapon reaches)
-            host.Game.FixedStep(dt, new PlayerInput { AimAt = e.Pos, Fire = true });
-            host.Game.Update(dt);
-            Step(client, dt);
-        }
-        Check(fell, "the loadout's own weapon takes a dummy down");
-        Run(both, dt, 2.5f);
-        Check(host.Game.Enemies.Count == 3, "...and it comes back");
-        Check(host.Game.Me.Level == lvl0 && host.Game.Me.Xp == xp0 && host.Game.Me.Offer == null && host.Game.Me.PendingPicks == 0, "no XP, no level-ups, no cards");
-        Check(host.Game.Coins.Count == 0 && host.Game.Orbs.Count == 0, "nothing drops");
+
+        // The lobby goes on around it: Ready works, and a changed loadout swaps just that player in place.
+        client.RequestReady(true);
+        Run(both, dt, 0.3f);
+        Check(host.Lobby[client.Game.MyId].Ready && host.Game.Practicing, "Ready works while Practice is up, and leaves it running");
+        client.RequestReady(false);
+        var hostMe = host.Game.Me;
+        hostMe.Pos = hostMe.Disp = new V2(300f, 300f);
+        var was = host.Game.Players[client.Game.MyId];
+        V2 standAt = was.Pos;
+        var oldWeapon = was.Weapon.Id;
+        client.RequestWeapon(client.Lobby[client.Game.MyId].Weapon == 0 ? 1 : 0);
+        Run(both, dt, 0.4f);
+        var after = host.Game.Players[client.Game.MyId];
+        Check(after != was && after.Weapon.Id != oldWeapon && client.Game.Me.Weapon.Id == after.Weapon.Id, "a new weapon swaps that player's character, on both screens (" + oldWeapon + " -> " + after.Weapon.Id + ")");
+        Check(after.Pos.DistanceTo(standAt) < 60f && host.Game.Me == hostMe && hostMe.Pos.DistanceTo(new V2(300f, 300f)) < 1f, "...where they stood, and nobody else is touched");
+        client.RequestKit(Kit.Knight);
+        Run(both, dt, 0.4f);
+        Check(host.Game.Players[client.Game.MyId].Kit == Kit.Knight && client.Game.Me.Kit == Kit.Knight && host.Game.Practicing, "a new class swaps them too");
 
         // Held for good between waves.
         Run(both, dt, 70f);
@@ -101,7 +102,7 @@ static partial class Program
         Run(both, dt, Game.SpawnerEvery * 2f + 1f);
         Check(host.Game.Enemies.Count > before && host.Game.Enemies.Values.Count(en => en.Type == pad.Type) >= 2, "it trickles its enemy in (" + (host.Game.Enemies.Count - before) + ")");
         Run(both, dt, Game.SpawnerEvery * (Game.SpawnerMax + 3));
-        Check(host.Game.Enemies.Values.Count(en => en.Type == pad.Type && !host.Game.Spawners.Skip(1).Any(sp => sp.Alive.Contains(en.Id))) <= Game.SpawnerMax + 3, "...up to its cap (dummies aside)");
+        Check(host.Game.Enemies.Values.Count(en => en.Type == pad.Type && !host.Game.Spawners.Skip(1).Any(sp => sp.Alive.Contains(en.Id))) <= Game.SpawnerMax + 3, "...up to its cap");
         // Its enemies fight: someone standing among them gets hurt (and beamed out at 0, never downed).
         var hm = host.Game.Me;
         float hurtBefore = hm.Run.DamageTaken;
@@ -114,7 +115,8 @@ static partial class Program
             host.Game.Update(dt);
             Step(client, dt);
         }
-        Check(hm.Run.DamageTaken > hurtBefore && !hm.Downed, "its enemies attack (the dummies never do)");
+        Check(hm.Run.DamageTaken > hurtBefore && !hm.Downed, "its enemies attack");
+        Check(host.Game.Me.Level == lvl0 && host.Game.Me.Xp == xp0 && host.Game.Me.Offer == null && host.Game.Me.PendingPicks == 0 && host.Game.Orbs.Count == 0, "no XP, no level-ups, no cards");
         var made = pad.Alive.ToList();
         client.Game.Me.Pos = client.Game.Me.Disp = pad.Pos;
         Run(both, dt, 0.2f);
@@ -133,6 +135,21 @@ static partial class Program
         Run(both, dt, 0.2f);
         Check(new[] { host.Game, client.Game }.All(g => g.Me.Slots.All(sl => sl.Id == AbilityId.None || sl.Charges == sl.MaxCharges && sl.Timer <= 0f))
             && host.Game.Me.Slots[Upgrades.UltSlot].Id != AbilityId.None, "no cooldowns: every ability and the ultimate come straight back");
+
+        // Someone joining while it's up: the room starts over with them in it.
+        var third = new Session();
+        third.Join("127.0.0.1", port, "Third", Role.Healer);
+        for (int i = 0; i < 400 && !(third.Game.Practicing && host.Game.Players.Count == 3); i++) { Step(host, dt); Step(client, dt); Step(third, dt); Thread.Sleep(1); }
+        Check(third.Screen == AppScreen.Lobby && third.Game.Practicing && host.Game.Players.Count == 3 && client.Game.Players.Count == 3, "a newcomer joins the room (it starts over with them)");
+        var three = new[] { host, client, third };
+
+        // Everyone ready: the real run replaces the room.
+        host.RequestReady(true); client.RequestReady(true); third.RequestReady(true);
+        Run(three, dt, 0.3f);
+        host.StartMatch();
+        for (int i = 0; i < 300 && (client.Screen != AppScreen.Game || third.Screen != AppScreen.Game); i++) { Step(host, dt); Step(client, dt); Step(third, dt); Thread.Sleep(1); }
+        Check(host.Screen == AppScreen.Game && client.Screen == AppScreen.Game && third.Screen == AppScreen.Game && host.Game.InRun && !host.Game.HangoutOn && !client.Game.PvpOn, "Start from the lobby replaces Practice with the real run");
+        third.Leave("");
 
         // Back to the lobby.
         host.ReturnToLobby();

@@ -237,6 +237,9 @@ namespace Arena
                 case Msg.HangoutSpawners:  // HangoutSpawners.cs
                     ReadSpawners(r);
                     break;
+                case Msg.PracticePlayer:  // a loadout changed in the lobby while Practice is up (HangoutGame.cs)
+                    OnPracticePlayer(r);
+                    break;
                 case Msg.Graze:  // an enemy shot skimmed past someone (Graze.cs)
                 {
                     int id = r.ReadInt32();
