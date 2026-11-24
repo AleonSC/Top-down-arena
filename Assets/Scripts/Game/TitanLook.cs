@@ -8,8 +8,10 @@ namespace Arena
     /// rubble it leaves are FxKind.TitanSlam (Pos2.X = 0 / 1 / 2), drawn from the effect's age.
     public partial class ArenaApp
     {
-        static readonly Rgba TitanBase = new Rgba(0.44f, 0.5f, 0.55f), TitanLite = new Rgba(0.66f, 0.74f, 0.79f), TitanDark = new Rgba(0.21f, 0.26f, 0.31f),
-            TitanGlow = new Rgba(0.43f, 0.89f, 1f), TitanDust = new Rgba(0.6f, 0.62f, 0.6f);
+        // The stone's colours: the Titan's blue-grey runestone, swapped for earth and lava while Stone Colossus draws (TitanPaint, StoneColossusLook.cs).
+        static readonly Rgba RuneBase = new Rgba(0.44f, 0.5f, 0.55f), RuneLite = new Rgba(0.66f, 0.74f, 0.79f), RuneDark = new Rgba(0.21f, 0.26f, 0.31f),
+            RuneGlow = new Rgba(0.43f, 0.89f, 1f), RuneDust = new Rgba(0.6f, 0.62f, 0.6f);
+        static Rgba TitanBase = RuneBase, TitanLite = RuneLite, TitanDark = RuneDark, TitanGlow = RuneGlow, TitanDust = RuneDust;
         const float TitanUnit = 2.36f;  // game pixels per drawing unit at Scale 1 (the body is about 175 px across with its fists)
 
         static float TH(float n) { float x = Mathf.Sin(n * 127.1f + 311.7f) * 43758.5453f; return x - (float)System.Math.Floor(x); }
@@ -206,8 +208,16 @@ namespace Arena
         /// floor true: the cracks and rubble (under everything); false: the ring, flying chunks and dust (over everything).
         void DrawTitanFx(Effect fx, bool floor)
         {
-            float age = fx.T;
             int kind = (int)(fx.Pos2.X + 0.5f);
+            if (kind >= Game.TitanEarth)
+                DrawColossusFx(fx, floor, kind);  // Stone Colossus's earth kinds (StoneColossusLook.cs)
+            else
+                TitanFx(fx, floor, kind);
+        }
+
+        void TitanFx(Effect fx, bool floor, int kind)
+        {
+            float age = fx.T;
             float seed = fx.Pos.X * 0.013f + fx.Pos.Y * 0.029f + kind * 7f;
             if (kind == 2)
             {

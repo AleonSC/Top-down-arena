@@ -515,6 +515,16 @@ namespace Arena
                 Shake(0.3f);  // the cast: one kick that dies away over the cuts (DeathLotusLook.cs)
             if (fx.Kind == FxKind.TitanSlam && me != null && fx.Pos2.X < 2f && me.Pos.DistanceTo(fx.Pos) < 1100f)
                 Shake(fx.Pos2.X > 0f ? 0.3f : 0.2f);  // a slam or the titan standing up (TitanLook.cs)
+            if (fx.Kind == FxKind.TitanSlam && me != null && fx.Pos2.X >= Game.TitanEarth - 0.5f && me.Pos.DistanceTo(fx.Pos) < 1100f)
+            {
+                int ek = (int)(fx.Pos2.X + 0.5f);  // Stone Colossus (StoneColossusLook.cs): a slam, the rise, a footfall
+                if (ek == Game.TitanEarth)
+                    Shake(0.24f);
+                else if (ek == Game.TitanEarth + 1)
+                    Shake(0.3f);
+                else if (ek == Game.ColFxStomp)
+                    Shake(0.06f);
+            }
         }
 
         /// An explosion: its share of this frame's shake, its sparks or shards, and a scorch and ripple when it's big.

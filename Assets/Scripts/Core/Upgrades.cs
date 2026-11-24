@@ -49,6 +49,7 @@ namespace Arena
         KineticGrasp, GrandSigil, ArcaneTether, SanctumSigil, TelekineticCrush, RunicArray,  // the Arcanist's 1st abilities and ultimates (Arcanist.cs)
         FieldHospital,  // the Healer Soldier's second ultimate (FieldHospital.cs), picked on the lobby's Ultimate row
         LiteralTank,    // the Tank Soldier's third ultimate (LiteralTank.cs), key 2 of the lobby's Ultimate row
+        StoneColossus,  // the Tank Elementalist's third ultimate (StoneColossus.cs), key 2 of the lobby's Ultimate row
         None = 255,
     }
 
@@ -95,6 +96,7 @@ namespace Arena
         public float UnbreakBonus, CavalryDmgBonus;  // Cavalry Call: extra damage blocked while the guard is up, extra damage per lance
         public float HolyRangeMult = 1f, HolySwiftBonus, OathCut, LayMult = 1f;
         public float BladedDamage, BladedReach, GauntletRange = 1f, GauntletDamage = 1f, SteelDamage, SteelReach;  // the DPS Knight's cards: Coup de Grace, Iron Grip, Forged Edge
+        public float ColBonusTime, ColSlamWide;  // Bedrock (StoneColossus.cs): +3 s, slams +25% wider a stack
         public float VolleyDamage, VolleyWide;  // Bodkin Points (WarhornVolley.cs): +25% damage, +20% width a stack
         // Ninja abilities
         public float CloneBonusTime, CloneHpMult = 1f, SmokeRadiusMult = 1f, SmokeBonusTime, PlateHpMult = 1f;
@@ -325,7 +327,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Elementalist, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// Hemomancer.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 
