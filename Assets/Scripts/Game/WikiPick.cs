@@ -17,7 +17,9 @@ namespace Arena
         bool wikiKeyDown;          // the Wiki key went down while nothing was typing
         float wikiKeyAt;           // when
         bool wikiPicked;           // a click picked something while it was held (so letting go doesn't open the list too)
-        bool wikiPicking;          // the eyedropper is on (the key held)
+        bool wikiPicking;          // the eyedropper is on (the key held, or PICK pressed)
+        bool wikiPickSticky;       // PICK in the wiki: the eyedropper stays on until a click picks something or Esc
+        bool wikiPickPaused;       // the wiki had paused a solo run when PICK hid it: it stays paused while you pick
         WikiEntry wikiPickTarget;  // what a click would open (drawn in the tag)
         const float WikiTapLen = 0.3f;  // held shorter than this with no pick: a tap
 
@@ -68,6 +70,11 @@ namespace Arena
                     wikiPaused = true;
                 }
             }
+            if (wikiPickPaused)  // back from PICK: the run it kept paused resumes when the wiki closes, as before
+            {
+                wikiPaused = game.Paused;
+                wikiPickPaused = false;
+            }
             if (at != null)
             {
                 wikiPage = null;
@@ -91,7 +98,9 @@ namespace Arena
                 wikiPicked = false;
             }
             bool held = wikiKeyDown && Keybinds.Held(KeyAction.Wiki);
-            wikiPicking = held && !WikiOpenNow && !ModalScreenOpen;
+            if (wikiPickSticky && (WikiOpenNow || session.Screen == AppScreen.Game && game.State != MatchState.Fighting && game.State != MatchState.Intermission && !game.Paused))
+                EndWikiPick();  // the wiki came back, or the run ended under it
+            wikiPicking = (held || wikiPickSticky) && !WikiOpenNow && !ModalScreenOpen;
             if (wikiKeyDown && !held)
             {
                 wikiKeyDown = false;
@@ -109,6 +118,39 @@ namespace Arena
                 wikiPickTarget = null;
         }
 
+        /// PICK in the wiki: hide it (the bay's shutter or the screen) and keep the eyedropper on; a solo run it paused stays paused.
+        void StartWikiPick()
+        {
+            InitWikiScreen();
+            wikiPickPaused = wikiPaused;
+            wikiPaused = false;  // (so closing the screen doesn't resume the run)
+            if (screenWiki.IsOpen)
+                CloseScreen(screenWiki);
+            else if (menuWikiOpen)
+                ToggleMenuWiki();
+            wikiPickSticky = true;
+            wikiPicked = false;
+            MenuSound(Sfx.MenuKey);
+        }
+
+        /// PICK ends with nothing picked (Esc, or the run ended): a run it kept paused resumes.
+        void EndWikiPick()
+        {
+            wikiPickSticky = false;
+            if (wikiPickPaused && game.Paused && !pauseMenuOpen)
+                game.RequestPause(false);
+            wikiPickPaused = false;
+        }
+
+        /// Esc while PICK is on: cancel it. True if it took the key.
+        bool WikiPickEsc()
+        {
+            if (!wikiPickSticky)
+                return false;
+            EndWikiPick();
+            return true;
+        }
+
         /// Start of OnGUI, while the eyedropper is on: a left click opens what's under the pointer (and goes no further).
         void WikiPickBeginGui()
         {
@@ -124,6 +166,7 @@ namespace Arena
             if (at == null)
                 return;
             wikiPicked = true;
+            wikiPickSticky = false;
             OpenWiki(at);
         }
 
@@ -270,7 +313,7 @@ namespace Arena
             var mp = Event.current.mousePosition;
             var t = wikiPickTarget;
             string name = t != null ? t.Name : "POINT AT SOMETHING";
-            string kind = t != null ? Wiki.KindName(t.Kind).ToUpperInvariant() + " · CLICK" : "TEXT, AN ENEMY, A SHOT, A CRATE...";
+            string kind = t != null ? Wiki.KindName(t.Kind).ToUpperInvariant() + " · CLICK" : wikiPickSticky ? "TEXT, AN ENEMY, A SHOT... · ESC CANCELS" : "TEXT, AN ENEMY, A SHOT, A CRATE...";
             string fx = null;  // the status effects on the enemy or player, the first one a right click away
             if (t != null && wikiPickStatuses.Count > 0)
             {

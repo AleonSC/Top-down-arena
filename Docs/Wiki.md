@@ -57,3 +57,6 @@ content joins with no extra work.
    `WikiStatusesOn`), or on the player under it (stunned, swallowed, taunting, downed, wounded); a right click opens the first.
    A phase or attack name on a boss bar opens that boss's phase or attack (`Wiki.PhaseIn`: "LAST STAND" under the Warden is the boss phase, not the
    Knight's Ultimate).
+   The wiki's **PICK** key (top right of its screen) starts the same eyedropper without holding anything (`StartWikiPick`): the wiki
+   steps aside (the bay's shutter rolls down, or the screen closes, a solo run it paused staying paused with no pause menu over it),
+   the next click on anything opens its page, and Esc cancels (`WikiPickEsc`), resuming the run.
