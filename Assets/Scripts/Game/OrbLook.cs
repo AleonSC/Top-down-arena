@@ -22,13 +22,16 @@ namespace Arena
         }
 
         /// A health orb, drawn like a Medkit's orb (HealerKitLooks.cs): a soft glow, a solid green disc with a white
-        /// rim and a white cross, pulsing and bobbing. Big orbs add a gold ring; tiny ones are paler.
+        /// rim and a white cross, pulsing and bobbing over a ground shadow, in a green neon outline. Big orbs add a gold ring; tiny ones are paler.
         void DrawPlainOrb(Orb o, float t)
         {
             var col = o.Tiny ? new Rgba(0.6f, 1f, 0.75f) : OrbGreen;
             float r = o.Radius * (1f + 0.12f * Mathf.Sin(t * 6f + o.Id));
-            V2 at = o.Disp + new V2(0f, 2.5f * Mathf.Sin(t * 3f + o.Id));
+            float bob = 2.5f * Mathf.Sin(t * 3f + o.Id);
+            V2 at = o.Disp + new V2(0f, bob);
+            PickupShadow(o.Disp, o.Radius, 2.5f - bob);  // CoinLook.cs
             Circle(at, r * 2.4f, col.WithAlpha(0.16f), 20);
+            NeonRing(at, r + 2.5f, o.Tiny ? col : OrbNeon);
             Circle(at, r, col, 16);
             Arc(at, r + 1.5f, 1.5f, Rgba.White.WithAlpha(0.8f), 16);
             float arm = r * 0.6f, w = o.Tiny ? 1.5f : 2.5f;
