@@ -1,7 +1,7 @@
 namespace Arena
 {
     /// The wiki's boss attacks (WikiKind.Attack), in the README's words, each under its boss and phase (a phase name from
-    /// WikiPhases.cs, or null for one used all fight). An attack that is also an enemy (Ball Lightning, Hive Egg) stays an enemy.
+    /// WikiPhases.cs, or null for one used all fight). The Lich's come from its turns (Lich.cs LichTurn), as the README only names them. An attack that is also an enemy (Ball Lightning, Hive Egg) stays an enemy.
     public static class WikiAttacks
     {
         public struct Attack
@@ -60,7 +60,16 @@ namespace Arena
             new Attack(EnemyType.Duelist, "To the Death", "Dueling circle", "A circle 360 px round the middle you can't leave; leaning on it hurts 15."),
             new Attack(EnemyType.Duelist, "To the Death", "Salute", "It salutes before it lunges: a perfect parry as it arrives knocks it off balance for 2.5 s at +50% damage; a dodge gets you raked."),
             // The Lich
+            new Attack(EnemyType.Lich, "The Crypt", "Soul fans", "A fan of 5 aimed piercing shots."),
+            new Attack(EnemyType.Lich, "The Crypt", "Grave rings", "A slow ring of 16 big orbs, each turned 12°."),
+            new Attack(EnemyType.Lich, "The Crypt", "Raise the dead", "The dead climb out of its graves and come for you."),
             new Attack(EnemyType.Lich, "Soul Harvest", "Soul beams", "Beams joining the three phylacteries; they hurt to cross."),
+            new Attack(EnemyType.Lich, "Soul Harvest", "Soul sweep", "Twice: a warning line, then a draining beam 900 px long swung 120° across toward the nearest player."),
+            new Attack(EnemyType.Lich, "Soul Harvest", "Bone prison", "Twice: a ring of 14 spikes rises 110 px round each player, the gap facing away from the Lich; when up, they fire inward."),
+            new Attack(EnemyType.Lich, "Soul Harvest", "Wailing spirits", "Spirits circle the Lich, then dive at where a player was."),
+            new Attack(EnemyType.Lich, "Undeath", "Grave hop", "A spectre that fades out and blinks to another of the six graves every 2 s."),
+            new Attack(EnemyType.Lich, "Undeath", "Dead hands", "Every 0.9 s hands stir under each player: get off the 50 px spot before they strike 0.8 s later."),
+            new Attack(EnemyType.Lich, "Undeath", "Soul storm", "A two-armed spiral that reverses halfway."),
             // The Storm Herald
             new Attack(EnemyType.StormHerald, "Gathering Storm", "Strikes", "6 s: a 70 px strike on each player and two random spots every 1.8 s, after a 1.1 s warning."),
             new Attack(EnemyType.StormHerald, "Gathering Storm", "Lightning rods", "7 s: four rods fall around you; every 1.4 s an arc flickers between a pair, then fires along the line."),

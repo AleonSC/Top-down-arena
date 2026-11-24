@@ -42,7 +42,7 @@ content joins with no extra work.
    (`WikiTopics.Things`, by PropKind and ChestKind; `Wiki.Of(PropKind, ChestKind)`).
    Then: **player status effects** (`WikiTopics.PlayerStatuses`: Swallowed, Grabbed, Taunting, linked to their causes; Slowed,
    Bleeding and Stunned say what they do on you) and **boss phases** (`Core/WikiPhases.cs`: every boss's phases with their health
-   range, linked to the boss, plus one shared Last stand). Then **boss attacks** (`Core/WikiAttacks.cs`: about 70, each linked to its
+   range, linked to the boss, plus one shared Last stand). Then **boss attacks** (`Core/WikiAttacks.cs`: about 80, the Lich's from its turns in `Lich.cs`, each linked to its
    phase and boss; an attack that is an enemy already, like Ball Lightning or Hive Egg, stays an enemy). About 785 entries.
 3. **Built: the Wiki key everywhere** (`Game/WikiPick.cs`): `KeyAction.Wiki` (I). A tap opens the wiki on the main menu's bay, or
    anywhere else as a modal screen (`screenWiki`: dimmed room, a CRT panel with the same screen; Esc or a click outside closes it).

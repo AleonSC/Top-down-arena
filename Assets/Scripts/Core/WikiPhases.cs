@@ -34,7 +34,7 @@ namespace Arena
             new Phase(EnemyType.Lich, "The Crypt", "100–65%", "One phylactery guards it (break it for a 12 s window); soul fans, grave rings, the dead rising."),
             new Phase(EnemyType.Lich, "Soul Harvest", "65–30%", "Three phylacteries joined by soul beams that hurt to cross; a soul sweep, bone prisons, wailing spirits."),
             new Phase(EnemyType.Lich, "Undeath", "30–10%", "A spectre blinking from grave to grave; dead hands and a soul storm."),
-            new Phase(EnemyType.Lich, "The Final Rite", "below 10%", "The Lich's last stand."),
+            new Phase(EnemyType.Lich, "The Final Rite", "below 10%", "The Lich's last stand: soul fans every second, grave rings every two, and the dead rise from all six graves every 6 s."),
             new Phase(EnemyType.StormHerald, "Gathering Storm", "100–65%", "It drifts along the top: Strikes on each player, Lightning rods that arc between pairs, and a Thunderclap of rings with two gaps."),
             new Phase(EnemyType.StormHerald, "Gale", "65–30%", "A wind blows across the arena all phase, pushing players and drifting every bullet, yours too: Crosswind volleys, Ball lightning that drifts at you and pops, and a Downburst of strikes in the wind's direction."),
             new Phase(EnemyType.StormHerald, "Supercell", "30–10%", "The sky goes dark. The Conductor marks one player at a time: when it runs out the charge jumps to every ally in the ring. A Storm front of strikes with a drifting gap, Strike rain and a Rod cage."),
