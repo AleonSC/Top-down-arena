@@ -24,6 +24,11 @@ namespace Arena
             V2 from = a.Disp, to = b.Disp, n = (to - from).Normalized().Orthogonal();
             bool fusing = R != null && R.Trans == 1;
             bool lit = fusing || (R != null && R.Turn == ReaperTurn.Sweep && R.TurnT > 0.6f);
+            if (ReaperConcept > 0)  // MOCKUP (ReaperConceptLook.cs)
+            {
+                DrawConceptTether(from, to, lit, R != null && R.Turn == ReaperTurn.Sweep, fusing ? 1f + 2f * Mathf.Clamp01(R.TransT / 1.6f) : 1f, t);
+                return;
+            }
             if (!lit)
             {
                 // Dark: a faint dashed thread (it doesn't hurt); blinking white as the sweep is about to start.
@@ -157,6 +162,8 @@ namespace Arena
         /// (where the lasers come from). Cracks glow across it as it splits apart.
         void DrawDualDetails(Enemy e, V2 pos, float r, float t)
         {
+            if (ReaperConcept > 0)  // MOCKUP: the concept draws the whole body
+                return;
             var R = game.Reapers;
             float facing = R != null && R.Turn == ReaperTurn.Lasers ? R.Laser : R != null && R.Turn == ReaperTurn.Chase ? R.Heading : t * 0.4f;
             V2.Axes(facing, out V2 f, out V2 side);
