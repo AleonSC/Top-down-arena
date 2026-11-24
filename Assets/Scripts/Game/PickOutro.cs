@@ -50,7 +50,6 @@ namespace Arena
         }
 
         static float EaseIn(float f) => f * f * f;
-        static float Lerp(float a, float b, float f) => a + (b - a) * f;
 
         /// One of the remembered cards, drawn in its slot as the picker draws it.
         void DrawOutroCard(Player me, int i, bool selected, float now)

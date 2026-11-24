@@ -92,13 +92,6 @@ namespace Arena
         /// The rail posts and the spinner's hub, for the look: (a, b) pairs of emitter ends and the hub.
         public static V2 Hub(ExpansionRoom r) => ToWorld(r, 1500f, 300f);
 
-        public static float SegDist(V2 p, V2 a, V2 b)
-        {
-            V2 ab = b - a;
-            float len2 = ab.LengthSq;
-            float k = len2 < 0.001f ? 0f : Math.Max(0f, Math.Min(1f, (p - a).Dot(ab) / len2));
-            return (p - (a + ab * k)).Length;
-        }
     }
 
     public partial class Game
@@ -155,7 +148,7 @@ namespace Arena
                     if (cd > 0f)
                         continue;
                     foreach (var b in beamBuf)
-                        if (RelicGauntlet.SegDist(p.Pos, b.A, b.B) < b.Half + p.Def.HitR * 0.5f)
+                        if (p.Pos.DistanceToSegment(b.A, b.B) < b.Half + p.Def.HitR * 0.5f)
                         {
                             Damage(p, RelicGauntlet.LaserDamage(Wave), "Laser");
                             relicGauntletCd[p.Id] = RelicGauntlet.HurtEvery;

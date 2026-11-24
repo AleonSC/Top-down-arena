@@ -101,10 +101,7 @@ namespace Arena
             return new Hand { X = a.X + (b.X - a.X) * t, Y = a.Y + (b.Y - a.Y) * t, Th = a.Th + (b.Th - a.Th) * t };
         }
 
-        /// The shortest turn from a to b.
-        public static float Wrap(float a) => (float)Math.IEEERemainder(a, MathX.Tau);
-
-        static Hand Mix(Hand a, Hand b, float k) => new Hand { X = a.X + (b.X - a.X) * k, Y = a.Y + (b.Y - a.Y) * k, Th = a.Th + Wrap(b.Th - a.Th) * k };
+        static Hand Mix(Hand a, Hand b, float k) => new Hand { X = a.X + (b.X - a.X) * k, Y = a.Y + (b.Y - a.Y) * k, Th = a.Th + MathX.WrapPi(b.Th - a.Th) * k };
 
         public static Pose Mix(Pose a, Pose b, float k) => new Pose { R = Mix(a.R, b.R, k), L = Mix(a.L, b.L, k) };
 
@@ -121,6 +118,6 @@ namespace Arena
         }
 
         /// The swinging stick's angle: it trails the handle (`th` now, `thLag` Lag seconds ago), a little past where the handle pointed.
-        public static float FreeAngle(float th, float thLag) => th - Wrap(th - thLag) * Whip;
+        public static float FreeAngle(float th, float thLag) => th - MathX.WrapPi(th - thLag) * Whip;
     }
 }

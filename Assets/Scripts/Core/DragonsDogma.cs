@@ -124,8 +124,7 @@ namespace Arena
                 // Steer: turn toward the goal at most DogmaTurn a second, fly on at speed (faster home, so it makes it).
                 float want = (goal - p.DogmaHead).Angle;
                 float diff = want - p.DogmaAng;
-                while (diff > MathX.Pi) diff -= MathX.Tau;
-                while (diff < -MathX.Pi) diff += MathX.Tau;
+                diff = MathX.WrapPi(diff);
                 float near = Math.Min(4f, Math.Max(1f, DogmaCloseIn / Math.Max(1f, (goal - p.DogmaHead).Length)));  // close in: turn harder, so it never circles its prey
                 float turn = DogmaTurn * (home ? 1.8f : 1f) * near * dt;
                 p.DogmaAng += Math.Max(-turn, Math.Min(turn, diff));

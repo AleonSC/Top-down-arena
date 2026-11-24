@@ -49,7 +49,7 @@ namespace Arena
                     float a, r;
                     Game.CereSlot(i, n, v.Clock, out a, out r);
                     bool fresh = i >= v.N;
-                    v.OffA[i] = fresh ? 0f : (float)System.Math.IEEERemainder(v.A[i] - a, MathX.Tau);
+                    v.OffA[i] = fresh ? 0f : MathX.WrapPi(v.A[i] - a);
                     v.OffR[i] = fresh ? 0f : v.R[i] - r;
                 }
                 v.N = n;

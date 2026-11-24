@@ -43,7 +43,7 @@ namespace Arena
         static V2 PickArc(V2 home, Vector2 slot, int i, float f)
         {
             float lift = (160f + 60f * (i % 3)) * Mathf.Sin(Mathf.PI * f);
-            return new V2(Lerp(home.X, slot.x, f), Lerp(home.Y, slot.y, f) - lift);
+            return new V2(MathX.Lerp(home.X, slot.x, f), MathX.Lerp(home.Y, slot.y, f) - lift);
         }
 
         /// Draws `draw` (a card, in its slot) at flight point f of its arc: small and turned edge-on near home, full size
@@ -55,7 +55,7 @@ namespace Arena
                 draw();
                 return;
             }
-            float k = Lerp(0.12f, 1f, f), sx = k * Mathf.Abs(Mathf.Cos((1f - f) * Mathf.PI * 1.5f)) + 0.02f;
+            float k = MathX.Lerp(0.12f, 1f, f), sx = k * Mathf.Abs(Mathf.Cos((1f - f) * Mathf.PI * 1.5f)) + 0.02f;
             V2 at = PickArc(home, slot.center, i, f);
             var oldMatrix = GUI.matrix;
             var oldColor = GUI.color;
@@ -94,7 +94,7 @@ namespace Arena
             if (k <= 0f || k >= 1f)
                 return;
             float a = Mathf.Sin(Mathf.PI * k), w = wide * (1f - k * 0.6f), footY = foot.Y - bodyR * 0.2f, fadeLen = bodyR * 2.1f;
-            float top = Lerp(footY, -20f, EaseOut(Mathf.Min(1f, k * 2.5f)));
+            float top = MathX.Lerp(footY, -20f, EaseOut(Mathf.Min(1f, k * 2.5f)));
             var gold = new Rgba(1f, 0.8f, 0.35f);
             const int bands = 10, sub = 4;  // each band split, so the foot's fade is smooth
             for (int b = 0; b < bands; b++)  // brightest near the foot, fading toward the top
@@ -102,7 +102,7 @@ namespace Arena
                 float fade = 1f - b / (float)bands;
                 for (int s = 0; s < sub; s++)
                 {
-                    float y0 = Lerp(footY, top, (b + s / (float)sub) / bands), y1 = Lerp(footY, top, (b + (s + 1f) / sub) / bands);
+                    float y0 = MathX.Lerp(footY, top, (b + s / (float)sub) / bands), y1 = MathX.Lerp(footY, top, (b + (s + 1f) / sub) / bands);
                     float soft = Mathf.Clamp01((footY - (y0 + y1) / 2f) / fadeLen);
                     if (soft <= 0f)
                         continue;
@@ -174,8 +174,8 @@ namespace Arena
                 return;
             }
             float e = IntroElapsed, pop = Seg(e, 0f, IntroTitlePop), up = EaseOut(Seg(e, IntroTitlePop + 0.05f, IntroTitleUp));
-            y = Lerp(H / 2f - 60f, restY, up);
-            size = Mathf.RoundToInt(restSize * Lerp(1.7f, 1f, EaseBack(pop)) * Lerp(1.15f, 1f, up));
+            y = MathX.Lerp(H / 2f - 60f, restY, up);
+            size = Mathf.RoundToInt(restSize * MathX.Lerp(1.7f, 1f, EaseBack(pop)) * MathX.Lerp(1.15f, 1f, up));
             band = Mathf.Min(1f, pop * 1.5f) * (1f - up);
         }
 
