@@ -1543,8 +1543,8 @@ namespace Arena
         /// The zoom meter along the preview's lower edge (a slider, "-" and "+" steps, and the mouse wheel over the window).
         void DrawShowcaseZoom(Rect view, Color roleColor)
         {
-            if (uiGlBlocked || hangoutAnim > 0f)
-                return;
+            if ((uiGlBlocked && !pieceGlOn) || hangoutAnim > 0f)
+                return;  // (pieceGlOn: a lobby piece sliding in shows it with the preview)
             const float Min = 0.5f, Max = 2f;
             var e = Event.current;
             bool over = view.Contains(e.mousePosition);

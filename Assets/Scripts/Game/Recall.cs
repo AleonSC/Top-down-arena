@@ -27,8 +27,9 @@ namespace Arena
 
         bool RecallActive => recallT >= 0f && session.Screen == AppScreen.Game;
 
-        /// The lobby coming back after a beam-out.
-        bool LobbyReturning => returnT >= 0f && session.Screen == AppScreen.Lobby;
+        /// The lobby coming back after a beam-out, including the frame the lobby opens on (before Update starts the clock),
+        /// so the whole lobby never shows for a frame first.
+        bool LobbyReturning => session.Screen == AppScreen.Lobby && (returnT >= 0f || recallT >= 0f);
 
         /// The host's way back to the lobby from a run: everyone's beam-out, then ReturnToLobby.
         void RecallToLobby()
@@ -82,7 +83,7 @@ namespace Arena
             if (returnT >= 0f)
             {
                 float before = returnT;
-                returnT += dt;
+                returnT += Mathf.Min(dt, EnterMaxStep);  // the lobby's first draws can hitch: pause the slide instead of skipping it (LobbyEnter.cs)
                 if (Passed(before, returnT, 0.15f))
                     sounds.Play(Sfx.LaunchSweep, 0.7f, Time.unscaledTime);
                 if (Passed(before, returnT, 0.85f))
@@ -177,10 +178,10 @@ namespace Arena
         /// Instead of DrawLobby while it comes back: the dark lifting, the two sides sliding in, the ring on your card.
         void DrawLobbyReturning()
         {
-            float e = returnT;
-            uiGlBlocked = true;  // its live models wait
-            LobbyPiece(LobbyLeftSide, e, 0.15f, 0.75f, -520f, 0f);   // the two sides (LobbyLayout.cs), as LaunchIntro's DrawLobbyLeaving
-            LobbyPiece(LobbyRightSide, e, 0.25f, 0.85f, 880f, 0f);
+            float e = Mathf.Max(0f, returnT);
+            uiGlBlocked = true;  // live models only inside the sliding pieces: they slide and fade with them instead of popping in after
+            LobbyPiece(LobbyLeftSide, e, 0.15f, 0.75f, -520f, 0f, true);   // the two sides (LobbyLayout.cs), as LaunchIntro's DrawLobbyLeaving
+            LobbyPiece(LobbyRightSide, e, 0.25f, 0.85f, 880f, 0f, true);
             uiGlBlocked = false;
             float dark = 1f - Seg(e, 0f, 0.45f);
             if (dark > 0f)
