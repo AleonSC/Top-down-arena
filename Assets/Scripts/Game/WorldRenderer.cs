@@ -82,6 +82,7 @@ namespace Arena
 
             DrawJuiceFloor();  // scorch marks and shot trails (Juice.cs)
             DrawFrostNovaGround();  // Frost Nova's cracks and frosted ground, under everything (FrostNovaLook.cs)
+            DrawLighting(t);  // shots, blasts and fire lighting the floor, their shadows cast (LightingLook.cs)
             DrawHeroDummies(t);  // the Dev Arena's stand-in heroes (DevArenaUi.cs)
             DrawArenaContents(t, true);
             DrawJuiceParts();  // shards, rings and sparks
