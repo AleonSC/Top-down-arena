@@ -255,6 +255,25 @@ namespace Arena
             }
         }
 
+        const float ShakeRate = 11f;  // the shake's random offsets per second (its fine layer: 2.3x that)
+
+        /// Smooth noise in -1..1 along `x`: a random value at each whole step, eased into the next (smoothstep). `seed`
+        /// picks one of several independent tracks (x and y, the slow and fine layers).
+        static float ShakeNoise(float x, int seed)
+        {
+            int i = Mathf.FloorToInt(x);
+            float f = x - i, u = f * f * (3f - 2f * f);
+            return Mathf.Lerp(ShakeHash(i, seed), ShakeHash(i + 1, seed), u);
+        }
+
+        static float ShakeHash(int i, int seed)
+        {
+            uint h = (uint)i * 374761393u + (uint)seed * 668265263u;
+            h = (h ^ (h >> 13)) * 1274126177u;
+            h ^= h >> 16;
+            return (h & 0xffff) / 32767.5f - 1f;
+        }
+
         void Shake(float amount)
         {
             if (fxShake == 0 || fxReduced)
@@ -1005,9 +1024,11 @@ namespace Arena
                 return;  // (frozen with P: the picture holds still)
             if (trauma > 0f)
             {
+                // Smooth noise, not a buzz: the picture drifts between random offsets eased into each other (ShakeNoise),
+                // a slow sway plus a finer, quicker layer, so a big hit rolls the camera and a small one just nudges it.
                 float k = trauma * trauma * (fxShake == 1 ? 0.45f : 1f) * 12f * drawScale, s = Time.unscaledTime;
-                shakeX = k * Mathf.Sin(s * 61.3f) * Mathf.Cos(s * 17.1f);
-                shakeY = k * Mathf.Sin(s * 53.7f + 1.3f);
+                shakeX = k * (0.75f * ShakeNoise(s * ShakeRate, 0) + 0.25f * ShakeNoise(s * ShakeRate * 2.3f, 2));
+                shakeY = k * (0.75f * ShakeNoise(s * ShakeRate, 1) + 0.25f * ShakeNoise(s * ShakeRate * 2.3f, 3));
             }
             BeginTwinKick(game.Me);  // the Twin Rifle's push and punch (TwinRifleFx.cs)
             BeginChargeCam(game.Me); // a charge weapon's pull-back and kick (ChargeCameraFx.cs)

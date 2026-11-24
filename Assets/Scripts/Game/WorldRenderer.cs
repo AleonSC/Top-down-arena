@@ -50,7 +50,10 @@ namespace Arena
             // Behind the arena: the background this player picked in the lobby, dimmed so the fight stays easy to read.
             float worldScale = drawScale;
             drawScale = worldScale / WorldToUi;  // the backgrounds draw in UI canvas coordinates
+            float keepSx = shakeX, keepSy = shakeY, keepPunch = punchK;
+            shakeX = shakeY = punchK = 0f;  // the backdrop stays put: shakes and a charge camera's zoom out would bare the screen's edges
             DrawMenuBackground(Time.time);
+            shakeX = keepSx; shakeY = keepSy; punchK = keepPunch;
             drawScale = worldScale;
             BeginEndingWorld();  // a run ending: the camera eased in on the blow, the colour draining (RunEnding.cs)
             BeginLeanFrame();    // the camera lean: the arena slides, the backdrop doesn't (CameraLean.cs)

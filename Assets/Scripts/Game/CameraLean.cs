@@ -89,16 +89,20 @@ namespace Arena
         /// The dim layer over the menu background behind the arena: the arena itself, or (while leaning) the strip it uncovers too.
         void FillArenaBackdrop(Rgba c)
         {
+            // A shake or a charge camera's zoom out (ChargeCameraFx.cs) moves the arena's edges in from the screen's: the
+            // backdrop reaches past them by that much, so the screen's edge never shows the background undimmed.
+            float more = (punchK < 0f ? -punchK * Mathf.Max(AW, AH) : 0f) + (shakeX != 0f || shakeY != 0f ? 24f : 0f);
             if (game.RoomsOn)  // the Rooms world: behind all of it (Rooms.cs), plus a lean's worth round it
             {
                 V2 lo = game.CurrentWorld.Min, hi = game.CurrentWorld.Max;
-                FillRect(lo.X - LeanMaxX - 2f, lo.Y - LeanMaxY - 2f, hi.X - lo.X + 2f * LeanMaxX + 4f, hi.Y - lo.Y + 2f * LeanMaxY + 4f, c);
+                float mx = LeanMaxX + 2f + more, my = LeanMaxY + 2f + more;
+                FillRect(lo.X - mx, lo.Y - my, hi.X - lo.X + 2f * mx, hi.Y - lo.Y + 2f * my, c);
                 return;
             }
-            if (lean.LengthSq < 0.0001f)
+            if (lean.LengthSq < 0.0001f && more <= 0f)
                 FillRect(0, 0, AW, AH, c);
             else
-                FillRect(-LeanMaxX - 2f, -LeanMaxY - 2f, AW + 2f * LeanMaxX + 4f, AH + 2f * LeanMaxY + 4f, c);
+                FillRect(-LeanMaxX - 2f - more, -LeanMaxY - 2f - more, AW + 2f * (LeanMaxX + 2f + more), AH + 2f * (LeanMaxY + 2f + more), c);
         }
     }
 }
