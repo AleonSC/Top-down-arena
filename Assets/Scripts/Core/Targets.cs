@@ -91,5 +91,8 @@ namespace Arena
         /// Host: an enemy that has finished spawning in and is still alive, so it can be hit or picked as a target.
         /// (A client can't use this: it doesn't get SpawnT; see IsSpawning.)
         static bool Targetable(Enemy e) => e.SpawnT <= 0f && e.Hp > 0f;
+
+        /// A player an enemy attack can land on: up and not in their hit grace.
+        static bool Hittable(Player p) => !p.Downed && p.InvulnT <= 0f;
     }
 }

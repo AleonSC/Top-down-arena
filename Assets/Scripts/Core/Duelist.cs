@@ -178,7 +178,7 @@ namespace Arena
             s.Ring = ringGoal <= 0f ? 0f : Math.Max(ringGoal, (s.Ring <= 0f ? 1000f : s.Ring) - RingClose * dt);
             if (s.Ring > 0f && s.Ring <= ringGoal + 1f)
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.FartherThan(ArenaMid, s.Ring - p.Def.BodyR - 3f))
+                    if (Hittable(p) && p.Pos.FartherThan(ArenaMid, s.Ring - p.Def.BodyR - 3f))
                         Damage(p, RingDamage, "The Duelist (dueling circle)");
 
             // This turn's moves, on time (missed while it reels from a parry).

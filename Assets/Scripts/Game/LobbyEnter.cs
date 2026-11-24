@@ -78,7 +78,7 @@ namespace Arena
         static float EaseInOut(float x) => x < 0.5f ? 4f * x * x * x : 1f - Mathf.Pow(-2f * x + 2f, 3f) / 2f;
 
         static Rect LerpRect(Rect a, Rect b, float k) =>
-            new Rect(Lerp(a.x, b.x, k), Lerp(a.y, b.y, k), Lerp(a.width, b.width, k), Lerp(a.height, b.height, k));
+            new Rect(MathX.Lerp(a.x, b.x, k), MathX.Lerp(a.y, b.y, k), MathX.Lerp(a.width, b.width, k), MathX.Lerp(a.height, b.height, k));
 
         /// Instead of DrawLobby while leaving: the entrance, backwards.
         void DrawLobbyLeavingToMenu() => DrawLobbyEntering(LeaveFrom * (1f - Mathf.Clamp01(leaveT / LeaveLen)), true);
@@ -125,7 +125,7 @@ namespace Arena
             // The title flies to the top left, shrinking, and turns into LOBBY (or GAME MODE) on the way.
             float tk = EaseInOut(Seg(e, 0f, 0.6f));
             var to = LobbyTitleAnchor;  // where the small LOBBY title's text sits (LobbyLayout.cs)
-            float cx = Lerp(W / 2f, to.X, tk), cy = Lerp(MenuTitleY, to.Y, tk), size = Lerp(MenuTitleSize, 18f, tk);
+            float cx = MathX.Lerp(W / 2f, to.X, tk), cy = MathX.Lerp(MenuTitleY, to.Y, tk), size = MathX.Lerp(MenuTitleSize, 18f, tk);
             float oldA = 1f - Seg(tk, 0.2f, 0.42f), newA = Seg(tk, 0.38f, 0.6f);
             if (oldA > 0f)
                 WithAlpha(oldA, () => Ui.Glitch(new Rect(cx - W / 2f, cy - size, W, size * 2f), "VECTOR COLOSSEUM", Mathf.RoundToInt(size), Color.white, TextAnchor.MiddleCenter, Ui.Accent));

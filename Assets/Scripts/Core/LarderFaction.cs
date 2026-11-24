@@ -129,7 +129,7 @@ namespace Arena
         void Chop(Enemy e)
         {
             foreach (var p in Players.Values)
-                if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && InCone(e.Pos, e.Facing, MathX.Pi / 2f, ChopReach, p.Pos, p.Def.HitR))
+                if (Hittable(p) && p.SwallowT <= 0f && InCone(e.Pos, e.Facing, MathX.Pi / 2f, ChopReach, p.Pos, p.Def.HitR))
                     Damage(p, ChopDamage, "Butcher");
             BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 14f), new Rgba(1f, 0.92f, 0.92f), 26f, 0.2f, Sfx.SwingHeavy);
         }
@@ -139,7 +139,7 @@ namespace Arena
         {
             V2 mouth = e.Pos + V2.FromAngle(e.Facing) * e.Radius;
             foreach (var p in Players.Values)
-                if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.CloserThan(mouth, p.Def.HitR + 12f))
+                if (Hittable(p) && p.SwallowT <= 0f && p.Pos.CloserThan(mouth, p.Def.HitR + 12f))
                 {
                     Damage(p, GulpBite, "Gulper");
                     BroadcastFx(FxKind.Spark, mouth, new Rgba(1f, 0.35f, 0.42f), 26f, 0.25f, Sfx.BossChomp);
@@ -233,7 +233,7 @@ namespace Arena
                 if (pt.Kind != PatchKind.Bile || !pt.Active)
                     continue;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))
+                    if (Hittable(p) && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))
                         DamageOverTime(p, SpitDps * 0.25f, "Bile Spitter (bile)");
             }
         }
@@ -261,7 +261,7 @@ namespace Arena
                 return;
             }
             foreach (var p in Players.Values)
-                if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.CloserThan(e.Pos, GutMarkR + p.Def.HitR))
+                if (Hittable(p) && p.SwallowT <= 0f && p.Pos.CloserThan(e.Pos, GutMarkR + p.Def.HitR))
                     Damage(p, GutBite, "Gutworm");
             float off = RandAngle();
             for (int i = 0; i < GutRing; i++)

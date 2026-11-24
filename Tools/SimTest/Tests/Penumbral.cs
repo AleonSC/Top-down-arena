@@ -190,7 +190,7 @@ static partial class Program
             {
                 bv = bv.Rotated(blade.AngVel * 0.005f); bp += bv * 0.005f;
                 nearYou = Math.Min(nearYou, bp.DistanceTo(aimedAt));
-                side = Math.Max(side, SegDist(bp, thrownFrom, aimedAt));
+                side = Math.Max(side, bp.DistanceToSegment(thrownFrom, aimedAt));
             }
             float home = bp.DistanceTo(thrownFrom);
             Console.WriteLine("  Sickle: the blade passes {0:0} px from you, swings {1:0} px off the line, ends {2:0} px from where it was thrown", nearYou, side, home);
@@ -297,9 +297,4 @@ static partial class Program
         Check(early.Count == 0, "none come before the Eclipse's approach");
     }
 
-    static float SegDist(V2 p, V2 a, V2 b)
-    {
-        V2 ab = b - a; float k = Math.Max(0f, Math.Min(1f, (p - a).Dot(ab) / Math.Max(1e-6f, ab.Dot(ab))));
-        return p.DistanceTo(a + ab * k);
-    }
 }

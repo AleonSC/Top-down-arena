@@ -532,7 +532,7 @@ namespace Arena
                 c.Drops.RemoveAt(i);
                 float dmg = d.Kind == ColDrop.Boulder || d.Kind == ColDrop.Pillar ? 30f : 40f;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(d.Pos, d.Radius + p.Def.HitR))
+                    if (Hittable(p) && p.Pos.CloserThan(d.Pos, d.Radius + p.Def.HitR))
                         Damage(p, dmg, d.Kind == ColDrop.Pillar ? "The Colossus (cave-in)" : d.Hot ? "The Colossus (meteor)" : "The Colossus (boulder)");
                 switch (d.Kind)
                 {
@@ -594,7 +594,7 @@ namespace Arena
                 c.LavaTickT = 0.25f;
                 foreach (var p in Players.Values)  // once a tick, however many pools overlap under you
                 {
-                    if (p.Downed || p.InvulnT > 0f)
+                    if (!Hittable(p))
                         continue;
                     foreach (var pt in Patches.Values)
                         if (pt.Kind == PatchKind.Lava && pt.Active && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))

@@ -284,7 +284,7 @@ namespace Arena
                 case 2:
                     e.Facing += e.Strafe * PulsarArc / PulsarSweep * dt;
                     foreach (var p in Players.Values)
-                        if (!p.Downed && p.InvulnT <= 0f && PulsarBeamDistance(e, p.Pos) < PulsarBeamWidth / 2f + p.Def.HitR)
+                        if (Hittable(p) && PulsarBeamDistance(e, p.Pos) < PulsarBeamWidth / 2f + p.Def.HitR)
                             Damage(p, PulsarDamage, e.Def.Name + " (beam)");
                     if (e.PhaseT <= 0f)
                     {

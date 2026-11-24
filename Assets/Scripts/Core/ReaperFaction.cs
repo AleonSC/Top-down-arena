@@ -125,7 +125,7 @@ namespace Arena
                 {
                     foreach (var p in Players.Values)
                     {
-                        if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f || p.Pos.FartherThan(e.Pos, e.Radius + ScytheReap + p.Def.HitR))
+                        if (!Hittable(p) || p.SwallowT > 0f || p.Pos.FartherThan(e.Pos, e.Radius + ScytheReap + p.Def.HitR))
                             continue;
                         if ((p.ParryActive || p.BbBrace) && ParryStrike(p, e, ScytheDamage))
                             continue;
@@ -143,7 +143,7 @@ namespace Arena
             V2 dir = dvec / len;
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f)
+                if (!Hittable(p) || p.SwallowT > 0f)
                     continue;
                 float along = (p.Pos - a.Pos).Dot(dir);
                 if (along < a.Radius || along > len - b.Radius)

@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Skipping an intro with a key or click (the main menu's pen plot, New run's terminal boot, the profile disk going in or
-    /// out) plays a 0.22 s "channel flip" instead of a hard cut (Docs/Mockups/intro-skip-static.html, look B): the finished
+    /// Skipping an intro with a key or click (the main menu's pen plot, New run's terminal boot, the profile disk coming
+    /// out; the disk going in fast-forwards instead, ProfileTransition.cs) plays a 0.22 s "channel flip" instead of a hard cut (Docs/Mockups/intro-skip-static.html, look B): the finished
     /// screen is grabbed once, then drawn back rolling up into place under a black sync bar, with a colour split,
     /// torn rows and snow that all fade as it settles. Drawn last in OnGUI (under the cursor). Reduced effects or Visual
     /// effects off: the plain cut.

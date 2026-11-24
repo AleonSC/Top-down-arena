@@ -246,7 +246,7 @@ namespace Arena
                 SwallowAtMouth(e, s);
                 foreach (var p in Players.Values)
                 {
-                    if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f)
+                    if (!Hittable(p) || p.SwallowT > 0f)
                         continue;
                     for (int k = 0; k < 12; k++)
                         if (ToothOn(k) && p.Pos.CloserThan(ToothPos(e.Pos, s.Spin, k), ToothHit + p.Def.HitR))
@@ -364,7 +364,7 @@ namespace Arena
                 return;
             s.Lunging = false;
             foreach (var p in Players.Values)
-                if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.CloserThan(e.Pos, e.Radius + BiteReach + p.Def.HitR)
+                if (Hittable(p) && p.SwallowT <= 0f && p.Pos.CloserThan(e.Pos, e.Radius + BiteReach + p.Def.HitR)
                     && Math.Abs(MathX.WrapPi((p.Pos - e.Pos).Angle - s.LungeAng)) < MathX.Pi / 2f + 0.2f)
                 {
                     Damage(p, BiteDamage, "The Devourer (bite)");
@@ -397,7 +397,7 @@ namespace Arena
             }
             s.BurrowT = 0f;
             foreach (var p in Players.Values)
-                if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && p.Pos.CloserThan(e.Pos, EruptRadius + p.Def.HitR))
+                if (Hittable(p) && p.SwallowT <= 0f && p.Pos.CloserThan(e.Pos, EruptRadius + p.Def.HitR))
                     Damage(p, BiteDamage, "The Devourer (eruption)");
             float off = RandAngle();
             for (int i = 0; i < 16; i++)
@@ -569,7 +569,7 @@ namespace Arena
             s.BileTickT = 0.25f;
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f)
+                if (!Hittable(p) || p.SwallowT > 0f)
                     continue;
                 foreach (var pt in Patches.Values)
                     if (pt.Kind == PatchKind.Bile && pt.Active && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))

@@ -158,8 +158,7 @@ namespace Arena
                         Daze(e);  // can't hit back for a split second (Daze.cs)
                         if (!Heavy(e))
                         {
-                            V2 away = (e.Pos - closest).Normalized();
-                            KnockEnemy(e, (away.IsZero ? dir.Orthogonal() : away) * 70f);  // slides (Knock.cs)
+                            ShoveFrom(e, closest, 70f, dir.Orthogonal());  // slides (Knock.cs)
                         }
                     }
                     if (cap)

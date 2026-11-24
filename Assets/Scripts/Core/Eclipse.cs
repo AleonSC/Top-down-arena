@@ -418,7 +418,7 @@ namespace Arena
                     continue;
                 V2 tip = f.From + V2.FromAngle(f.Ang) * FlareLen;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && !f.Hit.Contains(p.Id) && p.Pos.DistanceToSegment(f.From, tip) < FlareWidth / 2f + p.Def.HitR)
+                    if (Hittable(p) && !f.Hit.Contains(p.Id) && p.Pos.DistanceToSegment(f.From, tip) < FlareWidth / 2f + p.Def.HitR)
                     {
                         f.Hit.Add(p.Id);
                         Damage(p, FlareDamage, "The Eclipse (solar flare)");
@@ -436,7 +436,7 @@ namespace Arena
                 {
                     s.FlashT = 0f;
                     foreach (var p in Players.Values)
-                        if (!p.Downed && p.InvulnT <= 0f && !InMoonShadow(s, e.Pos, p.Pos, -p.Def.HitR * 0.5f))
+                        if (Hittable(p) && !InMoonShadow(s, e.Pos, p.Pos, -p.Def.HitR * 0.5f))
                             Damage(p, EclipseFlashDamage, "The Eclipse (eclipse flash)");
                     BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.95f, 0.8f), 1600f, 0.6f, Sfx.BossGong);  // the flash
                     if (--s.FlashLeft > 0)
@@ -455,7 +455,7 @@ namespace Arena
                 r.R -= UmbraRingSpeed * dt;
                 foreach (var p in Players.Values)
                 {
-                    if (p.Downed || p.InvulnT > 0f || r.Hit.Contains(p.Id))
+                    if (!Hittable(p) || r.Hit.Contains(p.Id))
                         continue;
                     if (InUmbraRing(r, p.Pos, p.Def.HitR))
                     {
@@ -491,7 +491,7 @@ namespace Arena
                     s.SweepA += EchoSweepSpin * dt;
                     foreach (var p in Players.Values)
                     {
-                        if (p.Downed || p.InvulnT > 0f)
+                        if (!Hittable(p))
                             continue;
                         for (int k = 0; k < 2; k++)
                             if (p.Pos.DistanceToSegment(e.Pos, e.Pos + V2.FromAngle(s.SweepA + k * MathX.Pi) * EchoSweepLen) < EchoSweepWidth / 2f + p.Def.HitR)
@@ -514,7 +514,7 @@ namespace Arena
                 }
                 foreach (var p in Players.Values)
                 {
-                    if (p.Downed || p.InvulnT > 0f)
+                    if (!Hittable(p))
                         continue;
                     for (int k = 0; k < DiskOrbs; k++)
                         if (DiskOrbAt(e.Pos, s.DiskT, k).DistanceTo(p.Pos) < EchoDiskOrbR + p.Def.HitR)

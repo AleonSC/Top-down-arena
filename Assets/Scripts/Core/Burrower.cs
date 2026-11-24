@@ -81,8 +81,7 @@ namespace Arena
             if (goal != null)
             {
                 float da = (goal.Pos - m.Pos).Angle - m.Aim;
-                while (da > MathX.Pi) da -= MathX.Tau;
-                while (da < -MathX.Pi) da += MathX.Tau;
+                da = MathX.WrapPi(da);
                 m.Aim += Math.Max(-BurrowerTurn * dt, Math.Min(BurrowerTurn * dt, da));
             }
             m.Pos = ClampToArena(m.Pos + V2.FromAngle(m.Aim) * d.Speed * dt, 30f);

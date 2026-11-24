@@ -67,12 +67,11 @@ namespace Arena
 
         static Pose Wrap(Pose p)
         {
-            p.Sp = (float)Math.IEEERemainder(p.Sp, MathX.Tau);
-            p.Ha = (float)Math.IEEERemainder(p.Ha, MathX.Tau);
+            p.Sp = MathX.WrapPi(p.Sp);
+            p.Ha = MathX.WrapPi(p.Ha);
             return p;
         }
 
-        static float Lerp(float a, float b, float t) => a + (b - a) * t;
         static float C01(float v) => v < 0f ? 0f : (v > 1f ? 1f : v);
         public static float Ease(byte e, float t)
         {
@@ -84,7 +83,7 @@ namespace Arena
 
         public static Pose Mix(Pose a, Pose b, float t) => new Pose
         {
-            Ha = Lerp(a.Ha, b.Ha, t), Hr = Lerp(a.Hr, b.Hr, t), Tw = Lerp(a.Tw, b.Tw, t), Sp = Lerp(a.Sp, b.Sp, t), Bless = Lerp(a.Bless, b.Bless, t)
+            Ha = MathX.Lerp(a.Ha, b.Ha, t), Hr = MathX.Lerp(a.Hr, b.Hr, t), Tw = MathX.Lerp(a.Tw, b.Tw, t), Sp = MathX.Lerp(a.Sp, b.Sp, t), Bless = MathX.Lerp(a.Bless, b.Bless, t)
         };
 
         /// The pose `c` seconds into a move: its keys, then back to the ready over Recover once it ends.
@@ -110,7 +109,7 @@ namespace Arena
         /// Where the hands grip the haft: both together, a little toward the head (the Halberd's two-handed hold).
         public static V2 Grip(V2 o, float aim, Pose m)
         {
-            float rel = (float)Math.IEEERemainder(m.Ha - m.Sp, MathX.Tau);
+            float rel = MathX.WrapPi(m.Ha - m.Sp);
             rel = rel < -1.9f ? -1.9f : rel > 1.9f ? 1.9f : rel;
             float a = aim + m.Sp + m.Tw * 0.4f + rel * 0.55f + 0.35f, r = 16f + C01((m.Hr - 40f) / 80f) * 6f;
             return o + V2.FromAngle(a) * r;
