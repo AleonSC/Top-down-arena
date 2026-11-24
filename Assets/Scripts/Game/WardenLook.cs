@@ -225,6 +225,7 @@ namespace Arena
             if (w.TransT > 0f)  // changing phase (can't be hurt): StageShiftLook.cs
             {
                 DrawStageShiftBoss(e, pos, r, t);
+                DrawWardenArmor(w, pos, r, t);  // plates locking on as it armors up
                 return;
             }
             if (w.Stage >= WardenStage.Riot)  // red-hot
@@ -691,7 +692,7 @@ namespace Arena
             bool arming = w.TransT > 0f && w.TransTo == WardenStage.LastStand;
             if (!arming && w.Armor <= 0f)
                 return;
-            float elapsed = 2f - w.TransT;
+            float elapsed = Game.WardenTransTime - w.TransT;
             int whole = arming ? plates : Mathf.CeilToInt(plates * Mathf.Clamp01(w.Armor / Mathf.Max(1f, w.ArmorMax)));
             for (int k = 0; k < plates; k++)
             {

@@ -63,22 +63,22 @@ namespace Arena
     public partial class Game
     {
         // Health at which each phase starts.
-        const float LockdownAt = 0.65f, RiotAt = 0.3f, LastStandAt = 0.1f;
+        public const float LockdownAt = 0.65f, RiotAt = 0.3f, LastStandAt = 0.1f;
 
         // The last stand, in the middle: a pause (red lanes show where the next burst goes, and an orb ring goes out as it
         // starts), then a long "+" burst of straight streams; each burst turns 45 degrees from the last (+, x, +, ...).
         // Every LastStandStunEvery seconds, a stun round at you (much slower than the searchlight turn's StunEvery).
-        // Going into the last stand it puts on armor (a 2 s phase change, plates locking on at these seconds in), worth
+        // Going into the last stand it puts on armor (during its 5 s phase change, plates locking on at these seconds in), worth
         // WardenArmorFrac of its max health; hits wear the armor before its health. It makes the last stand last without
         // touching the rest of the fight.
         public const float WardenArmorFrac = 0.235f;  // half the old 0.47 (owner's call). Boss Lab (Good bots, Knight Tank + Elementalist DPS, LABLOG=1) at the old values: armor 0.3: ~19 s, 0.42: ~24 s, 0.47: ~30 s, 0.55: ~39 s (runs vary by +-8 s)
-        public static readonly float[] ArmorPlateAt = { 0.55f, 0.8f, 1.05f, 1.3f, 1.55f };
+        public static readonly float[] ArmorPlateAt = { 1.2f, 1.75f, 2.3f, 2.85f, 3.4f };  // kneeling, through the 5 s change (WardenBodyLook.cs)
 
         public const float LastStandGap = 1f, LastStandBurst = 2.2f, LastStandCycle = LastStandGap + LastStandBurst, LastStandStunEvery = 3f;
 
         /// Which way the last stand's current (or next) burst faces: 0 for "+", 45 degrees for "x".
         public static float LastStandFacing(float turnT) => ((int)(turnT / LastStandCycle) % 2) * MathX.Pi / 4f;
-        const float WardenTransTime = 2f;
+        public const float WardenTransTime = 5f;  // a phase change: the Warden's 5 s set piece (WardenBodyLook.cs WardenShiftPose), a breather to regroup
         // Its own light: led across the Warden for ExposeHold seconds, it's blinded for ExposeTime (stops firing,
         // takes ExposedMult damage); then the light has to be on it afresh, after ExposeCooldown.
         public const float ExposeTime = 3f, ExposedMult = 1.5f;

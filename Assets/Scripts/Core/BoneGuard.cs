@@ -158,6 +158,43 @@ namespace Arena
                     break;
                 }
             }
+            if (!PvpOn)
+                return;
+            foreach (var q in Players.Values)  // PvP: another player's Ossuary Wall keeps you off it and darts you too (Pvp.cs)
+            {
+                if (q.Downed || q.WarpT > 0f)
+                    continue;
+                var s = StandOf(q);
+                s.WallDartT -= dt;
+                V2 push = V2.Zero;
+                Zone dart = null;
+                V2 at = V2.Zero;
+                foreach (var z in ossuaryWalls)
+                {
+                    if (z.Owner == q.Id || !Zones.ContainsKey(z.Id))
+                        continue;
+                    V2 a, b;
+                    OssuaryEnds(z, out a, out b);
+                    float reach = BoneWallThick + s.Radius;
+                    V2 c = ClosestOn(a, b, s.Pos), off = s.Pos - c;
+                    float d = off.Length;
+                    if (d >= reach + 2f)
+                        continue;
+                    if (d < reach)
+                        push += (d > 0.01f ? off / d : V2.FromAngle(z.Aim)) * (reach + 0.5f - d);
+                    if (dart == null)
+                    {
+                        dart = z;
+                        at = c;
+                    }
+                }
+                PvpWallPush(q, push);
+                if (dart == null || s.WallDartT > 0f)
+                    continue;
+                s.WallDartT = BoneWallTick;
+                HurtEnemy(s, BoneWallDart * dart.DmgMult, dart.Owner);
+                BroadcastFx(FxKind.Spark, at, dart.Def.Color, 8f, 0.2f, Sfx.None);
+            }
         }
 
         /// Host, from the enemy-bullet loop (Combat.cs): an enemy shot reaching an Ossuary Wall stops there.

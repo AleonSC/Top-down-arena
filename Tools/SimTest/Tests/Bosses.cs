@@ -437,15 +437,15 @@ static partial class Program
             foreach (var o in dropped) g.Orbs.Remove(o.Id);
         }
 
-        // Lockdown at 65%: 2 s where it can't be hurt, the screen cleared.
+        // Lockdown at 65%: its 5 s phase change, where it can't be hurt, the screen cleared.
         w.Hp = w.MaxHp * 0.64f;
         Run(s, dt, 0.2f, null, Clear);
         float during = w.Hp;
         var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
         hurt.Invoke(g, new object[] { w, 500f, 1 });
         Check(w.Warden.TransT > 0f && w.Hp == during && (bool)blocks.Invoke(g, new object[] { w, w.Pos + new V2(0f, 200f) }) && g.Bullets.Values.Count(b => Defs.IsEnemyShot(b.Kind)) == 0,
-            "at 65% it changes stage: it can't be hurt for 2 s and the screen is cleared");
-        Run(s, dt, 2.2f, null, Clear);
+            "at 65% it changes stage: it can't be hurt for its 5 s phase change and the screen is cleared");
+        Run(s, dt, Game.WardenTransTime + 0.2f, null, Clear);
         Check(w.Warden.Stage == WardenStage.Lockdown && w.Warden.Turn == WardenTurn.Cross && cg.Enemies[w.Id].Warden.Stage == WardenStage.Lockdown, "then Lockdown: the cross (everyone sees it)");
 
         // The gates: everyone sees them; one shoves the friend (on the friend's own game) and hurts once, or twice when it rolls over them.
@@ -529,7 +529,7 @@ static partial class Program
 
         // Riot at 30%: doors burst, rioters run at the nearest, the Warden included; the shield blocks from the front.
         w.Hp = w.MaxHp * 0.29f;
-        Run(s, dt, 2.6f, null, Clear);
+        Run(s, dt, Game.WardenTransTime + 0.6f, null, Clear);
         Check(w.Warden.Stage == WardenStage.Riot && w.Warden.Turn == WardenTurn.Rioters, "at 30%: the riot");
         Run(s, dt, 0.6f, null, Clear);
         int rioters = g.Enemies.Values.Count(e => e.Type == EnemyType.Rioter);
@@ -598,7 +598,7 @@ static partial class Program
 
         // The last stand below 10%: the rioters scatter.
         w.Hp = w.MaxHp * 0.09f;
-        Run(s, dt, 3f, () => w.Warden.Stage == WardenStage.LastStand && w.Warden.Turn == WardenTurn.LastStand, Clear);
+        Run(s, dt, Game.WardenTransTime + 1f, () => w.Warden.Stage == WardenStage.LastStand && w.Warden.Turn == WardenTurn.LastStand, Clear);
         Check(w.Warden.Stage == WardenStage.LastStand && g.Enemies.Values.Count(e => e.Type == EnemyType.Rioter) == 0, "below 10%: the last stand, and the rioters scatter");
         Run(s, dt, 0.5f, null, Clear);
         Check(w.Warden.LightMode == WardenLight.Follow && cg.Enemies[w.Id].Warden.LightMode == WardenLight.Follow && cg.Enemies[w.Id].Warden.Stage == WardenStage.LastStand,
@@ -623,7 +623,7 @@ static partial class Program
             var bot = g.Players[1];
             Action Clear = () => { foreach (var e in g.Enemies.Values) if (e != w) e.Hp = 0f; };
             w.Hp = w.MaxHp * 0.64f;
-            Run(s, dt, 2.5f, null, () => { Clear(); cg.Players[2].Pos = new V2(60f, 450f); });
+            Run(s, dt, Game.WardenTransTime + 0.5f, null, () => { Clear(); cg.Players[2].Pos = new V2(60f, 450f); });
             var seen = new HashSet<WardenGate>(); var hitBy = new HashSet<WardenGate>();
             Run(s, dt, 13f, null, () =>
             {

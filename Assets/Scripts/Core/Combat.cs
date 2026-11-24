@@ -1028,7 +1028,7 @@ namespace Arena
         {
             if (e.Stand != null)
             {
-                PvpHurt(e.Stand, dmg, attacker);  // a player's stand-in: PvP (Pvp.cs)
+                PvpHurt(e.Stand, dmg * PvpHitMult(e, e.Stand, attacker), attacker);  // a player's stand-in: PvP (Pvp.cs)
                 return;
             }
             if (e.Dormant)
