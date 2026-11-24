@@ -47,7 +47,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade }
+    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital }
 
     public class ZoneDef
     {
@@ -177,7 +177,8 @@ namespace Arena
             new ZoneDef { Name = "Grand Sigil", Color = new Rgba(0.72f, 0.55f, 1f) },     // the Tank Arcanist's ultimate (Arcanist.cs): binds and taunts enemies inside, freezes enemy shots at its rim, sends them back as it ends
             new ZoneDef { Name = "Sanctum Sigil", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 25f },  // the Healer Arcanist's ultimate (Arcanist.cs): follows its caster; Aim = the six runes left (a bit mask)
             new ZoneDef { Name = "Telekinetic Crush", Color = new Rgba(0.72f, 0.55f, 1f) },  // the DPS Arcanist's 1st ability (Arcanist.cs): lifts and pulls enemies in, then slams them together as it ends
-            new ZoneDef { Name = "Shock Grenade", Color = new Rgba(0.45f, 0.85f, 1f) },  // the Tank Soldier's Scattergun Alt (TankAlts.cs): lobbed in, shocks and stuns on landing; Aim the way it flew in, Radius its reach
+            new ZoneDef { Name = "Shock Grenade", Color = new Rgba(0.45f, 0.85f, 1f) },
+            new ZoneDef { Name = "Field Hospital", Color = new Rgba(0.4f, 1f, 0.6f) },  // the Healer Soldier's second ultimate (FieldHospital.cs): Pos the cell's middle (or the tent's), Radius half the cell, Aim the way to its door (NaN: a tent), Side who has used its shrine (a bit per player id)  // the Tank Soldier's Scattergun Alt (TankAlts.cs): lobbed in, shocks and stuns on landing; Aim the way it flew in, Radius its reach
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];
