@@ -17,6 +17,8 @@ namespace Arena
         public bool Control;  // the lobby's PLAY key: the preview is yours to play (WASD, mouse, fire, abilities): `Play` is this tick's input
         public PlayerInput Play;
         bool restart;         // switching PLAY on or off starts the scene over
+        public bool AltFire;  // the lobby's ALT FIRE key: press the weapon's Alt on a loop (ShowcaseAlt.cs); off (MAIN FIRE) just the trigger. An ability or ultimate demo does neither.
+        bool altShown;
         public bool Idle;  // the lobby's IDLE key: the character stands still and holds fire, and the dummies hold their spots
         public Game Game => session.Game;
         public Player Me => Game.Me;
@@ -81,10 +83,11 @@ namespace Arena
         /// few seconds; ultimate: cast your ultimate (F) instead.
         public void Show(Role role, Kit kit, int weapon, AbilityId ability, bool demo, bool ultimate = false, int ultPick = 0)
         {
-            if (!Game.Running || restart || role != this.role || kit != this.kit || weapon != this.weapon || ability != this.ability || ultimate != this.ultimate || ultPick != this.ultPick)
+            if (!Game.Running || restart || role != this.role || kit != this.kit || weapon != this.weapon || ability != this.ability || ultimate != this.ultimate || ultPick != this.ultPick || AltFire != altShown)
             {
                 restart = false;
                 this.ultPick = ultPick;
+                altShown = AltFire;
                 this.role = role;
                 this.kit = kit;
                 this.weapon = weapon;
@@ -168,16 +171,17 @@ namespace Arena
             if (!Idle && me.Pos.FartherThan(stroll, 6f) && Game.DashT <= 0f)
                 input.Move = (stroll - me.Pos).Normalized();
             // The bow draws and lets go; everything else just holds the trigger.
-            input.Fire = !Idle && (!Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f);
+            bool firing = !Idle && !demoAbility;  // an ability or ultimate demo shows just that: no trigger, no Alt
+            input.Fire = firing && (!Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f);
             if (me.Weapon.Id == WeaponId.GoreMortar)  // the Gore Mortar: held just long enough to lob the clot onto the dummies
             {
                 float c = MathX.Clamp01((Distance / me.Stats.ShotSpeedMult - Game.ClotMin) / (Game.ClotMax - Game.ClotMin));
-                input.Fire = !Idle && MathX.Fmod(t, 1.3f) < Game.BowMinDraw + c * (Game.BowFull(me) - Game.BowMinDraw) + 0.02f;
+                input.Fire = firing && MathX.Fmod(t, 1.3f) < Game.BowMinDraw + c * (Game.BowFull(me) - Game.BowMinDraw) + 0.02f;
             }
-            if (ShowcaseAlt.HoldsFire(me.Weapon.Id, t))
+            if (AltFire && ShowcaseAlt.HoldsFire(me.Weapon.Id, t))
                 input.Fire = false;
-            // Weapons with an Alt press it on a loop (ShowcaseAlt.cs).
-            input.WeaponAction = !Idle && ShowcaseAlt.Held(Game, me, t, dt);
+            // ALT FIRE: weapons with an Alt press it on a loop (ShowcaseAlt.cs), the trigger still going as each Alt's demo expects.
+            input.WeaponAction = firing && AltFire && ShowcaseAlt.Held(Game, me, t, dt);
             if (input.WeaponAction && ShowcaseAlt.NeedsAlly(me.Weapon.Id))
                 input.AimAt = Game.ShowcaseAllyPos(0);  // the Sunlance goes through a teammate
             if (demoAbility && !ultimate && ability == AbilityId.BladedDive && castT <= 0.1f)
@@ -218,7 +222,7 @@ namespace Arena
                 input.AimAt = Game.ShowcaseAllyPos(castCount % 2);  // the cursor on a teammate (Adrenaline Shot, Medkit, Healing Rain...), alternating
                 aimTicks--;
             }
-            if (me.Weapon.Id == WeaponId.SpiritChalk && !Idle)
+            if (me.Weapon.Id == WeaponId.SpiritChalk && firing)
             {
                 bool draw;
                 V2 aim = ShowcaseAlt.ChalkAim(t, Home + new V2(0f, -Distance), Home, out draw);

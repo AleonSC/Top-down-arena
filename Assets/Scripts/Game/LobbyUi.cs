@@ -27,6 +27,8 @@ namespace Arena
         float showcaseCamZoom = 1f;
         Rect showcaseCamView;
         bool showcaseIdle;         // the preview's IDLE key: the character stands still
+        bool showcaseAlt;          // the preview's ALT FIRE key (off: MAIN FIRE): the weapon's Alt on a loop
+        bool showcaseDemo, showcaseHasAlt;  // (this frame's preview: casting an ability or ultimate; the weapon has an Alt to show)
         bool showcaseMute;         // the preview's MUTE key (next to the zoom slider)
         float showcaseSeen;        // when the hero card last drew it (it's stopped once nobody looks)
 
@@ -1564,8 +1566,31 @@ namespace Arena
                 showcasePlay = !showcasePlay;  // WASD, the mouse, fire and your abilities work in the window while the mouse is over it
             if (showcaseZoomA > 0.3f && DkKey(idleKey, "IDLE", showcaseIdle ? CrtStyle.Gold : Ui.Neutral, false, 10))
                 showcaseIdle = !showcaseIdle;
+            // MAIN FIRE | ALT FIRE, side by side, floating at the bottom middle: what the weapon shows. Lit: the one showing (neither
+            // while an ability or ultimate is cast); a click goes back to the weapon's page and shows that one.
+            if (!showcasePlay)
+            {
+                const float Kw = 78f, Kh = 20f, Gap = 6f, Lift = 10f;
+                var mainKey = new Rect(view.center.x - Gap / 2f - Kw, view.yMax - Lift - Kh, Kw, Kh);
+                var altKey = new Rect(view.center.x + Gap / 2f, mainKey.y, Kw, Kh);
+                bool live = showcaseZoomA > 0.3f;
+                if (live && DkKey(mainKey, "MAIN FIRE", CrtStyle.Gold, !showcaseDemo && !showcaseAlt, 10))
+                    PickShowcaseFire(false);
+                bool en = GUI.enabled;
+                GUI.enabled = en && showcaseHasAlt;  // (locked for a weapon with no Alt)
+                if (live && DkKey(altKey, "ALT FIRE", CrtStyle.Gold, !showcaseDemo && showcaseAlt && showcaseHasAlt, 10))
+                    PickShowcaseFire(true);
+                GUI.enabled = en;
+            }
             GUI.color = oc;
             Ui.Alpha = oa;
+        }
+
+        void PickShowcaseFire(bool alt)
+        {
+            showcaseAlt = alt;
+            if (detailSel == 1 || detailSel == 2)
+                detailSel = 0;  // off the ability or ultimate: the weapon's page, and the preview back on the weapon
         }
 
         /// The live mini-arena on the hero card: your loadout in action, zoomed out to fit the dummies.
@@ -1579,7 +1604,10 @@ namespace Arena
             bool demo = detailSel == 1 || ult;  // (the role and class pages show the weapon)
             if (showcase == null)
                 showcase = new Showcase();
+            showcaseDemo = demo;
+            showcaseHasAlt = ShowcaseAlt.Has(Defs.Weapon(me.Role, me.Kit, me.Weapon).Id);
             showcase.SetControl(showcasePlay);
+            showcase.AltFire = showcaseAlt && !demo;
             showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.FirstAbility(me.Role, me.Kit, shown), demo && !showcasePlay, ult, me.Ult);
             showcaseSeen = Time.unscaledTime;
             showcaseMouse = Event.current.mousePosition;
@@ -1678,7 +1706,7 @@ namespace Arena
             {
                 var ab = Upgrades.Ability(ult ? me.UltId : Upgrades.FirstAbility(me.Role, me.Kit, shown));
                 Ui.Label(new Rect(view.x + 8f, view.yMax - 20f, view.width - 16f, 16f), ab.Name.ToUpperInvariant(), 10,
-                    Color.Lerp(roleColor, Color.white, 0.5f), TextAnchor.MiddleCenter, true);  // just the name (no key or "ultimate" prefix)
+                    Color.Lerp(roleColor, Color.white, 0.5f).ScaleAlpha(1f - showcaseZoomA), TextAnchor.MiddleCenter, true);  // just the name (no key or "ultimate" prefix); it gives way to the fire keys on hover
             }
         }
 
@@ -1739,6 +1767,7 @@ namespace Arena
             if (showcase == null)
                 showcase = new Showcase();
             showcase.SetControl(showcasePlay);
+            showcase.AltFire = showcaseAlt;
             showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.FirstAbility(me.Role, me.Kit, ShownAbility(me)), false, false, me.Ult);
             showcaseSeen = Time.unscaledTime;
         }

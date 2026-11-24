@@ -348,7 +348,7 @@ static partial class Program
 
         // The lobby's loadout preview draws with it (ShowcaseAlt.ChalkAim): a loop pens the middle dummy, Alt sets it alight,
         // then a line is scSwept across all three; and nothing is drawn while idle.
-        var show = new Showcase();
+        var show = new Showcase { AltFire = true };
         show.Show(Role.Healer, Kit.Summoner, 2, Upgrades.FirstAbility(Role.Healer, Kit.Summoner, 0), false);
         var sg = show.Game;
         Check(sg.Me.Weapon.Id == WeaponId.SpiritChalk, "the preview holds the Spirit Chalk");
