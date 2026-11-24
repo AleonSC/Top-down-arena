@@ -194,13 +194,13 @@ namespace Arena
 
         void ModeScopeArea(Rect scope, ModePage p, ModeFocus f)
         {
-            ModeScope(scope, "", "", p.ScopeDraw == null);
+            ModeScope(scope, "", "");
             if (p.ScopeDraw != null)
                 p.ScopeDraw(new Rect(scope.x + 14f, scope.y + 30f, scope.width - 28f, scope.height - 48f), p.Shown);
             else if (f.Unknown && !p.ShowLocked)
-                CrtUi.Text(scope, "?", 72, PhosGreen.WithAlpha(0.7f), TextAnchor.MiddleCenter, true, FxCalm);
+                CrtUi.Text(scope, "?", 72, ScopeGlow().WithAlpha(0.7f), TextAnchor.MiddleCenter, true, FxCalm);
             else
-                LobbyKit.Spaced(new Rect(scope.x, scope.yMax - 20f, scope.width, 14f), "DRAG TO ROTATE", 9, PhosGreen.WithAlpha(0.45f), TextAnchor.MiddleCenter, 2f);
+                LobbyKit.Spaced(new Rect(scope.x, scope.yMax - 20f, scope.width, 14f), "DRAG TO ROTATE", 9, ScopeGlow().WithAlpha(0.45f), TextAnchor.MiddleCenter, 2f);
         }
 
         void ModeModels(Rect[] rows, Rect scope, float t, ModePage p, ModeFocus f, int shown)
