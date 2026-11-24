@@ -2589,8 +2589,6 @@ static partial class Shot {
         var plant = typeof(Game).GetMethod("PlantDormantGroups", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         foreach (var dr in xg.Expanded.ToArray()) if (RoomFog.StartsUnseen(dr)) plant.Invoke(xg, new object[] { new System.Collections.Generic.List<ExpansionRoom> { dr }, false, null, 0, false });
       }
-      string trapHp = Environment.GetEnvironmentVariable("TRAPHP");  // TRAPHP=<0-1>: every room turret is damaged to that health (its health bar, RoomTrapLook.cs)
-      if (trapHp != null) { var nth = typeof(Game).GetMethod("NoteTrapHit", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance); foreach (var tr in xg.RoomTrapList.ToArray()) if (tr.Kind == TrapKind.Turret) nth.Invoke(xg, new object[] { tr.Pos, float.Parse(trapHp, System.Globalization.CultureInfo.InvariantCulture) }); }
       if (Environment.GetEnvironmentVariable("FOG") != null)  // FOG=1: every room but the core unseen (room fog, RoomFogLook.cs)
         for (int fi = 0; fi < xg.Expanded.Count; fi++) { var fr = xg.Expanded[fi]; fr.Unseen = RoomFog.StartsUnseen(fr); xg.Expanded[fi] = fr; }
       string fogRoom = Environment.GetEnvironmentVariable("FOGROOM");  // FOGROOM=<index>: every player stands in that room (its Expanded index), 120 px in from its left edge
@@ -2627,6 +2625,10 @@ static partial class Shot {
         }
       }
       xg.RoomsUp = true; xg.LayoutAge = 5f;
+      string trapHp = Environment.GetEnvironmentVariable("TRAPHP");  // TRAPHP=<0-1>: every room turret is damaged to that health (its health bar, RoomTrapLook.cs)
+      if (trapHp != null) { var nth = typeof(Game).GetMethod("NoteTrapHit", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance); foreach (var tr in xg.RoomTrapList.ToArray()) if (tr.Kind == TrapKind.Turret) nth.Invoke(xg, new object[] { tr.Pos, float.Parse(trapHp, System.Globalization.CultureInfo.InvariantCulture) }); }
+      string wtStand = Environment.GetEnvironmentVariable("TURRETSTAND");  // TURRETSTAND=dx,dy: you stand that far from the room turret nearest you (RoomTrapLook.cs)
+      if (wtStand != null) { var ws = wtStand.Split(','); foreach (var pl in xg.Players.Values) { V2 nr = pl.Pos; float wb = float.MaxValue; foreach (var r in xg.RoomTrapList) if (r.Kind == TrapKind.Turret && (r.Pos - pl.Pos).LengthSq < wb) { wb = (r.Pos - pl.Pos).LengthSq; nr = r.Pos; } pl.Pos = pl.Disp = nr + new V2(float.Parse(ws[0]), float.Parse(ws[1])); } }
       string mreset = Environment.GetEnvironmentVariable("MAPRESET");  // MAPRESET=<s since the reset>: the map just reset (MapResetLook.cs): the old rooms folding in, the biggest one kept, map 2, 27 vectors back
       if (mreset != null) {
         xg.FoldRooms.Clear(); xg.FoldRooms.AddRange(xg.Expanded);

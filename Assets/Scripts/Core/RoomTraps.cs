@@ -12,6 +12,7 @@ namespace Arena
         public V2 Pos;
         public TrapKind Kind;
         public float HalfX, HalfY;  // a spike plate's or slow field's half width and half height (a square, or a strip in a corridor; 0 for a turret)
+        public V2 Face;             // a turret set into a wall (the embrasure): the way out of the wall; zero for a free-standing one (Dev Kit)
     }
 
     /// Room traps: every Combat cell's trap slots each roll a trap or stay empty, seeded from the cell (no wire data: every machine
@@ -28,6 +29,53 @@ namespace Arena
         public static float SpikeDamage(int wave) => 6f + 0.4f * Math.Max(0, wave);
         public static float TurretDamage(int wave) => 8f + 0.5f * Math.Max(0, wave);
         public const float TurretHitR = 26f, TurretSolidR = 24f;  // (a turret is a solid post: nothing walks through it)
+        /// A map turret sits in a wall (owner Nov 24): `SnapReach` how far its slot looks for a wall straight up, down, left or right,
+        /// `WallOut` how far its middle stands out from the wall's face, `ArcCos` the cosine of its 75 degree half arc of fire.
+        public const float SnapReach = 110f, WallOut = 14f, ArcCos = 0.2588f;
+
+        /// Where a turret slot's turret goes: flush on the nearest wall straight up, down, left or right within SnapReach (its face
+        /// pointing out), or false when no wall is there (an open side or a door: no turret).
+        public static bool SnapToWall(V2 p, World w, out V2 pos, out V2 face)
+        {
+            pos = p; face = new V2(0f, 0f);
+            float best = SnapReach;
+            bool found = false;
+            SnapTry(w.Walls(), p, ref best, ref pos, ref face, ref found);
+            SnapTry(w.Cover, p, ref best, ref pos, ref face, ref found);
+            return found;
+        }
+
+    static void SnapTry(Solid[] boxes, V2 p, ref float best, ref V2 pos, ref V2 face, ref bool found)
+        {
+            if (boxes == null)
+                return;
+            foreach (var b in boxes)
+            {
+                if (b.Round)
+                    continue;
+                float x0 = b.Pos.X - b.HW, x1 = b.Pos.X + b.HW, y0 = b.Pos.Y - b.HH, y1 = b.Pos.Y + b.HH;
+                if (p.Y > y0 && p.Y < y1)
+                {
+                    if (x0 >= p.X && x0 - p.X < best) { best = x0 - p.X; pos = new V2(x0 - WallOut, p.Y); face = new V2(-1f, 0f); found = true; }
+                    if (x1 <= p.X && p.X - x1 < best) { best = p.X - x1; pos = new V2(x1 + WallOut, p.Y); face = new V2(1f, 0f); found = true; }
+                }
+                if (p.X > x0 && p.X < x1)
+                {
+                    if (y0 >= p.Y && y0 - p.Y < best) { best = y0 - p.Y; pos = new V2(p.X, y0 - WallOut); face = new V2(0f, -1f); found = true; }
+                    if (y1 <= p.Y && p.Y - y1 < best) { best = p.Y - y1; pos = new V2(p.X, y1 + WallOut); face = new V2(0f, 1f); found = true; }
+                }
+            }
+        }
+
+        /// Can a turret facing `face` (zero: free-standing, any way) aim at `to` from `from`? A wall turret turns 75 degrees either side of straight out.
+        public static bool InArc(V2 from, V2 face, V2 to)
+        {
+            if (face.X == 0f && face.Y == 0f)
+                return true;
+            var d = to - from;
+            float l = d.Length;
+            return l > 0.01f && d.Dot(face) >= ArcCos * l;
+        }
 
         /// A turret's health: your shots wear it down, and at zero it is wrecked for the rest of the map.
         public static float TurretHp(int wave) => 40f + 4f * Math.Max(0, wave);
@@ -93,7 +141,7 @@ namespace Arena
 
         public static bool InSquare(V2 centre, V2 p, float half) => Math.Abs(p.X - centre.X) <= half && Math.Abs(p.Y - centre.Y) <= half;
 
-        /// What a slot holds: nothing, or a kind (a slot on a wall favours a turret, one on the floor a spike or a slow field).
+        /// What a slot holds: nothing, or a kind (a slot on a wall favours a turret, one on the floor gets a spike or a slow field, never a turret).
         public static TrapKind? Roll(DetRandom rng, bool onWall)
         {
             if (rng.Float() < EmptyChance)
@@ -101,7 +149,7 @@ namespace Arena
             float r = rng.Float();
             if (onWall)
                 return r < 0.6f ? TrapKind.Turret : r < 0.8f ? TrapKind.Spike : TrapKind.Slow;
-            return r < 0.2f ? TrapKind.Turret : r < 0.6f ? TrapKind.Spike : TrapKind.Slow;
+            return r < 0.5f ? TrapKind.Spike : TrapKind.Slow;  // (turrets only on wall slots: they sit in the wall)
         }
 
         /// A room that may hold traps: a whole-cell Combat room (not the core).
@@ -156,6 +204,7 @@ namespace Arena
         List<RoomTrap> roomTrapList = new List<RoomTrap>();
         V2[] roomTurretPosts = new V2[0];  // the standing turrets, as the last RoomTrapList build left them (every frame builds it: the host's tick, everyone's draw)
         int roomTrapKey = int.MinValue;
+        World roomTrapWorld;  // the world the list's turrets were set into (a new world: build it again)
         readonly Dictionary<int, float> trapCd = new Dictionary<int, float>();
         readonly HashSet<long> trapWrecks = new HashSet<long>();      // turrets shot to bits this map (synced in Msg.ExpandState)
         readonly Dictionary<long, float> trapHp = new Dictionary<long, float>();  // host: a turret's health left
@@ -177,10 +226,26 @@ namespace Arena
                 int key = Expanded.Count + devTrapVer * 977;
                 foreach (var r in Expanded)
                     key = key * 31 + r.X * 7 + r.Y * 3 + (int)r.Kind + (r.Floating ? 1 : 0) + r.Surprise;
-                if (key != roomTrapKey)
+                var world = CurrentWorld;
+                if (key != roomTrapKey || world != roomTrapWorld)
                 {
                     roomTrapKey = key;
+                    roomTrapWorld = world;
                     roomTrapList = RoomTraps.For(Expanded);
+                    for (int i = roomTrapList.Count - 1; i >= 0; i--)  // a map turret sits in its wall, or isn't there (no wall: an open side or a door)
+                    {
+                        var tr = roomTrapList[i];
+                        if (tr.Kind != TrapKind.Turret)
+                            continue;
+                        if (world != null && RoomTraps.SnapToWall(tr.Pos, world, out V2 at, out V2 face))
+                        {
+                            tr.Pos = at;
+                            tr.Face = face;
+                            roomTrapList[i] = tr;
+                        }
+                        else
+                            roomTrapList.RemoveAt(i);
+                    }
                     roomTrapList.AddRange(devTraps);  // (DevTraps.cs)
                     roomTrapList.RemoveAll(t => t.Kind == TrapKind.Turret && trapWrecks.Contains(TrapKey(t.Pos)));  // (a wrecked turret stays gone)
                     var posts = new List<V2>();
@@ -355,7 +420,7 @@ namespace Arena
                     Player best = null;
                     float bd = RoomTraps.TurretRange * RoomTraps.TurretRange;
                     foreach (var p in Players.Values)
-                        if (!p.Downed && (p.Pos - t.Pos).LengthSq < bd)
+                        if (!p.Downed && (p.Pos - t.Pos).LengthSq < bd && RoomTraps.InArc(t.Pos, t.Face, p.Pos))
                         {
                             bd = (p.Pos - t.Pos).LengthSq;
                             best = p;

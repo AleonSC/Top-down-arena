@@ -2,7 +2,8 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// A room's traps on the floor (RoomTraps.cs): a turret in hostile red (a plate, a twin-barrelled head that tracks the nearest player),
+    /// A room's traps (RoomTraps.cs): a map turret is an embrasure set into its wall (an armoured half dome on a hazard collar, one heavy
+    /// barrel through a turning slit, 75 degrees either side of straight out); a Dev Kit turret stands on the floor (a plate, a twin-barrelled head that tracks the nearest player),
     /// a spike plate (a hatched grate whose slots jab steel points on the tick) and a slow field (a violet grid that sags under players on it); a shot-up turret is gone. Hidden while their room is dark.
     public partial class ArenaApp
     {
@@ -18,6 +19,7 @@ namespace Arena
                     continue;
                 if (tr.Kind == TrapKind.Spike) DrawSpikePlate(tr.Pos, tr.HalfX, tr.HalfY, t);
                 else if (tr.Kind == TrapKind.Slow) DrawSlowField(tr.Pos, tr.HalfX, tr.HalfY, t);
+                else if (tr.Face.X != 0f || tr.Face.Y != 0f) DrawEmbrasureTurret(tr.Pos, tr.Face, t);
                 else DrawTrapTurret(tr.Pos, t);
             }
         }
@@ -180,6 +182,101 @@ namespace Arena
             {
                 float flash = 0.5f + 0.5f * Mathf.Sin(t * 20f);
                 Circle(c + dir * 34f, 4f + 2f * flash, new Rgba(1f, 0.8f, 0.7f, 0.35f + 0.4f * flash), 10);
+            }
+        }
+
+        /// A map turret in its wall: the hazard collar, the dark half dome and its armour rings, the slit turning with one heavy barrel
+        /// (clamped to its arc, locked on the nearest player in it, a thin sight line), then the same damage as the floor turret's.
+        void DrawEmbrasureTurret(V2 home, V2 n, float t)
+        {
+            float hp = game.TurretHpFrac(home), ago = game.TurretHitAgo(home);
+            float hit = Mathf.Clamp01(1f - ago / 0.2f);
+            V2 shake = new V2(Mathf.Sin(ago * 95f + home.X), Mathf.Cos(ago * 83f + home.Y)) * (2.5f * hit);
+            V2 f = home - n * RoomTraps.WallOut, c = f + shake;  // the dome's middle sits on the wall's face
+            var tg = new V2(-n.Y, n.X);
+            float baseAng = n.Angle;
+            const float lim = 75f * Mathf.Deg2Rad;
+
+            float ang = Mathf.Sin(t * 0.8f + home.X * 0.01f) * 0.9f, best = RoomTraps.TurretRange * RoomTraps.TurretRange;
+            bool locked = false;
+            V2 target = home;
+            foreach (var p in game.Players.Values)
+            {
+                float d = (p.Pos - home).LengthSq;
+                if (p.Downed || d >= best || !RoomTraps.InArc(home, n, p.Pos))
+                    continue;
+                best = d;
+                var v = p.Pos - f;
+                ang = Mathf.Atan2(v.Dot(tg), v.Dot(n));
+                locked = true;
+                target = p.Pos;
+            }
+            ang = Mathf.Clamp(ang, -lim, lim);
+            V2 dir = n * Mathf.Cos(ang) + tg * Mathf.Sin(ang), side = new V2(-dir.Y, dir.X);
+            var red = RoomTrapRed.Mix(Rgba.White, hit);
+            var steel = new Rgba(0.32f, 0.3f, 0.36f, 1f);
+            System.Func<float, float, V2> P = (x, y) => f + tg * x + n * y;
+
+            Quad(P(-42f, -8f), P(42f, -8f), P(42f, 3f), P(-42f, 3f), new Rgba(0.18f, 0.05f, 0.06f, 1f));  // the collar, hazard teeth
+            for (int k = -3; k <= 3; k++)
+                Quad(P(k * 12f - 3f, -8f), P(k * 12f + 3f, -8f), P(k * 12f + 7f, 3f), P(k * 12f + 1f, 3f), RoomTrapRed.WithAlpha(0.55f));
+            Arc(c, 17f, 34f, new Rgba(0.1f, 0.03f, 0.04f, 0.96f), 24, baseAng - MathX.Pi / 2f, MathX.Pi);
+            Arc(c, 34f, 4f, red.WithAlpha(0.95f), 24, baseAng - MathX.Pi / 2f, MathX.Pi);
+            Arc(c, 22f, 1.5f, RoomTrapRed.WithAlpha(0.45f), 20, baseAng - MathX.Pi / 2f, MathX.Pi);
+            for (int k = 1; k < 6; k++)
+            {
+                var r = V2.FromAngle(baseAng - MathX.Pi / 2f + MathX.Pi * k / 6f);
+                Line(c + r * 23f, c + r * 32f, 1.5f, RoomTrapRed.WithAlpha(0.35f));
+            }
+            Arc(c, 17f, 30f, new Rgba(0f, 0f, 0f, 0.9f), 6, ang + baseAng - 0.16f, 0.32f);  // the slit
+            Line(c + dir * 10f, c + dir * 48f, 9f, steel);
+            Line(c + dir * 10f, c + dir * 48f, 5f, red.WithAlpha(0.95f));
+            Line(c + dir * 44f + side * 7f, c + dir * 44f - side * 7f, 5f, red);  // the muzzle brake
+            Circle(c, 9f, red.WithAlpha(0.9f), 12);
+            if (hit > 0f)
+                Arc(c, 17f, 34f, new Rgba(1f, 1f, 1f, 0.55f * hit), 24, baseAng - MathX.Pi / 2f, MathX.Pi);
+
+            V2 dome = c + n * 18f;  // damage shows on the dome: cracks, then smoke, then sparks and a glow of heat
+            var crack = new Rgba(1f, 0.7f, 0.5f, 0.85f);
+            if (hp < 0.66f)
+            {
+                Line(P(-26f, 6f), P(-16f, 14f), 1.5f, crack);
+                Line(P(-16f, 14f), P(-18f, 24f), 1.5f, crack);
+            }
+            if (hp < 0.33f)
+            {
+                Line(P(24f, 8f), P(15f, 16f), 1.5f, crack);
+                Line(P(15f, 16f), P(20f, 27f), 1.5f, crack);
+                Arc(c, 17f, 34f, new Rgba(1f, 0.35f, 0.1f, 0.12f + 0.1f * Mathf.Sin(t * 12f)), 24, baseAng - MathX.Pi / 2f, MathX.Pi);
+            }
+            if (hp < 0.5f)
+                for (int k = 0; k < 3; k++)  // smoke drifting up
+                {
+                    float ph = (t * 0.7f + k / 3f) % 1f;
+                    Circle(dome + new V2(Mathf.Sin(ph * 6f + k * 2f) * 5f, -8f - ph * 34f), 4f + ph * 8f, new Rgba(0.55f, 0.55f, 0.6f, 0.38f * (1f - ph)), 10);
+                }
+            if (ago < 0.35f)  // sparks fly off the hit
+                for (int k = 0; k < 7; k++)
+                {
+                    float a = baseAng + Mathf.Sin(home.X * 0.37f + k * 1.9f) * 1.4f;
+                    float run = 18f + ago * 190f * (0.6f + 0.15f * (k % 3));
+                    Line(dome + V2.FromAngle(a) * run, dome + V2.FromAngle(a) * (run + 8f), 2f, new Rgba(1f, 0.8f, 0.4f, 1f - ago / 0.35f));
+                }
+
+            V2 muzzle = c + dir * 50f;
+            if (locked)  // a thin sight line to you and a pulsing muzzle
+            {
+                float flash = 0.5f + 0.5f * Mathf.Sin(t * 20f);
+                Line(muzzle, muzzle + dir * Mathf.Min(260f, (target - muzzle).Length), 1f, RoomTrapRed.WithAlpha(0.22f));
+                Circle(muzzle, 3.5f + 2f * flash, new Rgba(1f, 0.8f, 0.7f, 0.35f + 0.4f * flash), 10);
+            }
+            if (hp < 1f)
+            {
+                float bw = 46f, bh = 6f;
+                V2 b = Mathf.Abs(n.Y) > 0.5f ? c + n * 50f : c + n * 30f + new V2(0f, -44f);  // (out past the dome; on a side wall, above it)
+                FillRect(b.X - bw / 2f - 1f, b.Y - bh / 2f - 1f, bw + 2f, bh + 2f, new Rgba(0.02f, 0.01f, 0.02f, 0.9f));
+                FillRect(b.X - bw / 2f, b.Y - bh / 2f, bw * hp, bh, RoomTrapRed.Mix(Rgba.White, hit).WithAlpha(0.95f));
+                NodeFrame(b.X - bw / 2f - 1f, b.Y - bh / 2f - 1f, bw + 2f, bh + 2f, 1.5f, RoomTrapRed.WithAlpha(0.8f));
             }
         }
     }
