@@ -623,6 +623,8 @@ namespace Arena
                 DrawGuardBody(e, pos, r, col, t);  // WardenLook.cs: the corrections officer and its nightstick swing
             else if (e.Type == EnemyType.Warden)
                 DrawWardenBody(e, pos, r, col, spawning, t);  // WardenBodyLook.cs: the Chief Warden, posed for each move
+            else if (e.Type == EnemyType.Colossus)
+                DrawColossusBody(e, pos, r, t);  // ColossusBodyLook.cs: the Quarry Golem, posed for each move
             else if (e.Type == EnemyType.Lich)
                 DrawLichBody(e, pos, r, col, t);  // LichBodyLook.cs: the Hooded Sorcerer, the Wraith in the Final Rite
             else if (e.Type == EnemyType.Phylactery)
@@ -1002,9 +1004,6 @@ namespace Arena
                 case EnemyType.Duelist:
                 case EnemyType.Decoy:
                     DrawDuelistBlade(e, pos, r, t);  // DuelistLook.cs
-                    break;
-                case EnemyType.Colossus:
-                    DrawColossusDetails(e, pos, r, t);  // ColossusLook.cs
                     break;
                 case EnemyType.Brute:
                     DrawBruteFace(e, pos, r, col);
