@@ -567,12 +567,13 @@ static partial class Program
         {
             arm(WeaponId.VeinTether, "Red Thread", n);
             friend.Pos = friend.Disp = me.Pos + new V2(900f, 0f);  // (no ally near: it all heals you)
+            me.Wound = 0f;  // (hits earlier in this suite left a wound: no heal gets past it)
             me.Hp = me.MaxHp * 0.5f; float hp0 = me.Hp;
             bloodHit.Invoke(g, new object[] { new Bullet { Kind = Defs.VeinShot, Owner = me.Id }, enemyAt(there), 10f });
             return me.Hp - hp0;
         };
         float vn0 = vein(0), vn1 = vein(1);
-        Check(near(vn0, 4f, 0.01f) && near(vn1, 5.5f, 0.01f), "Lifeline: 55% of the tether's damage heals (from 40%)");
+        Check(near(vn0, 4f, 0.01f) && near(vn1, 5.5f, 0.01f), "Red Thread: 55% of the tether's damage heals (from 40%)");
 
         var hemo = typeof(Game).GetMethod("BloodBoltBleed", flags);
         Func<int, int> bolts = n =>
