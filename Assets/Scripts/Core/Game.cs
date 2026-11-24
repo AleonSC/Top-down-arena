@@ -175,26 +175,11 @@ namespace Arena
             }
             w.Write((byte)session.Lobby.Count);
             foreach (var e in session.Lobby.Values)
-            {
-                w.Write(e.Id);
-                w.Write(e.Name);
-                w.Write((byte)e.Role);
-                w.Write((byte)e.Kit);
-                w.Write(e.Weapon);
-                w.Write(e.Ability);
-                w.Write(e.Wild);
-                w.Write(e.Ult);
-                var perks = PerksFor(e);
-                w.Write((byte)perks.Length);
-                foreach (var id in perks)
-                    w.Write((byte)id);
-                Session.WriteVgChain(w, e.Chain);  // their Vowguard chains (Vowguard.cs)
-            }
+                WriteStartPlayer(w, e);
             w.Write(ResumeFrom != null);  // continuing a saved run (RunSaves.cs)
             w.Write(ResumeFrom != null ? ResumeFrom.LongRun : LongRunDefault && !quick && !HangoutStart);  // a 100-wave Campaign (Hunts.cs); a saved run keeps its length
             WriteSurvivalStart(w, quick || HangoutStart);  // Survival mode: the flag and its seed (SurvivalGame.cs)
             w.Write(HangoutStart);  // the Hangout (HangoutGame.cs)
-            w.Write(session.HangoutPvp);  // ...and whether its PvP is on (the lobby's PVP switch; Pvp.cs)
             var msg = Proto.End(w);
             session.Broadcast(msg);
             var r = new BinaryReader(new MemoryStream(msg));
@@ -204,6 +189,60 @@ namespace Arena
                 ApplyResume(ResumeFrom);
             ResumeFrom = null;
             ResumeSeats.Clear();
+        }
+
+        /// One player's loadout in `Msg.Start` (and `Msg.PracticePlayer`, HangoutGame.cs): id, name, class, weapon, abilities, ultimate,
+        /// perks and Vowguard chains.
+        void WriteStartPlayer(BinaryWriter w, LobbyEntry e)
+        {
+            w.Write(e.Id);
+            w.Write(e.Name);
+            w.Write((byte)e.Role);
+            w.Write((byte)e.Kit);
+            w.Write(e.Weapon);
+            w.Write(e.Ability);
+            w.Write(e.Wild);
+            w.Write(e.Ult);
+            var perks = PerksFor(e);
+            w.Write((byte)perks.Length);
+            foreach (var id in perks)
+                w.Write((byte)id);
+            Session.WriteVgChain(w, e.Chain);  // their Vowguard chains (Vowguard.cs)
+        }
+
+        /// Reads WriteStartPlayer's record into a fresh player at full health, its stats and perks worked out (not yet placed).
+        Player ReadStartPlayer(BinaryReader r)
+        {
+            int id = r.ReadInt32();
+            string name = r.ReadString();
+            var role = (Role)r.ReadByte();
+            var kit = (Kit)r.ReadByte();
+            int weapon = r.ReadByte();
+            int ability = r.ReadByte();
+            int wild = r.ReadByte();  // a Wildcard ability (Defs.WildSecond)
+            int ult = r.ReadByte();   // the Ultimate row's key (LobbyEntry.Ult)
+            var perkBytes = new List<byte>();
+            for (int pn = r.ReadByte(); pn > 0; pn--)
+                perkBytes.Add(r.ReadByte());
+            var chain = Session.ReadVgChain(r);
+            var def = Defs.Get(role);
+            var p = new Player { Id = id, Role = role, Def = def, Name = name, Hp = def.Hp, MaxHp = def.Hp, Aim = -MathX.Pi / 2f, ScatShells = ScatShellMax };
+            p.Kit = kit;
+            p.VgChain = chain;
+            p.Weapon = Defs.Weapon(role, kit, weapon < Defs.WeaponLimit(role, kit) ? weapon : 0);
+            p.FirstAbility = Upgrades.FirstAbility(role, kit, ability);
+            p.UltPick = (byte)Upgrades.ClampUlt(role, kit, ult);
+            if (role == Role.Wildcard)
+            {
+                p.WildKit = Upgrades.UltKitOf(role, kit, p.UltPick);  // the class its Ultimate pick is from
+                p.WildcardAbility = Upgrades.FirstAbility(role, kit, Defs.WildSecond(wild));
+                p.CardAbilities[0] = p.WildcardAbility;  // on the 2nd ability key
+            }
+            p.BaseHp = def.Hp * Defs.KitHpMult(kit);
+            p.MaxHp = p.Hp = p.BaseHp;
+            Recalc(p);
+            GivePerks(p, Perks.Sanitize(perkBytes));
+            return p;
         }
 
         void ReadStart(BinaryReader r)
@@ -228,37 +267,9 @@ namespace Arena
             var entries = new List<Player>();
             for (int i = 0; i < n; i++)
             {
-                int id = r.ReadInt32();
-                string name = r.ReadString();
-                var role = (Role)r.ReadByte();
-                var kit = (Kit)r.ReadByte();
-                int weapon = r.ReadByte();
-                int ability = r.ReadByte();
-                int wild = r.ReadByte();  // a Wildcard ability (Defs.WildSecond)
-                int ult = r.ReadByte();   // the Ultimate row's key (LobbyEntry.Ult)
-                var perkBytes = new List<byte>();
-                for (int pn = r.ReadByte(); pn > 0; pn--)
-                    perkBytes.Add(r.ReadByte());
-                var chain = Session.ReadVgChain(r);
-                var def = Defs.Get(role);
-                var p = new Player { Id = id, Role = role, Def = def, Name = name, Hp = def.Hp, MaxHp = def.Hp, Aim = -MathX.Pi / 2f, ScatShells = ScatShellMax };
-                p.Kit = kit;
-                p.VgChain = chain;
-                p.Weapon = Defs.Weapon(role, kit, weapon < Defs.WeaponLimit(role, kit) ? weapon : 0);
-                p.FirstAbility = Upgrades.FirstAbility(role, kit, ability);
-                p.UltPick = (byte)Upgrades.ClampUlt(role, kit, ult);
-                if (role == Role.Wildcard)
-                {
-                    p.WildKit = Upgrades.UltKitOf(role, kit, p.UltPick);  // the class its Ultimate pick is from
-                    p.WildcardAbility = Upgrades.FirstAbility(role, kit, Defs.WildSecond(wild));
-                    p.CardAbilities[0] = p.WildcardAbility;  // on the 2nd ability key
-                }
-                p.BaseHp = def.Hp * Defs.KitHpMult(kit);
-                p.MaxHp = p.Hp = p.BaseHp;
+                var p = ReadStartPlayer(r);
                 p.Pos = new V2(Width / 2f + (i - (n - 1) / 2f) * 90f, Height / 2f + 140f);
                 p.Disp = p.Pos;
-                Recalc(p);
-                GivePerks(p, Perks.Sanitize(perkBytes));
                 if (Has(RunMod.Lucky))
                     p.Rerolls += Modifiers.LuckyRerolls;
                 entries.Add(p);
@@ -274,15 +285,14 @@ namespace Arena
                         NextOffer(p);
                     }
                 }
-                Players[id] = p;
-                lastDowned[id] = false;
-                lastLevel[id] = p.Level;
+                Players[p.Id] = p;
+                lastDowned[p.Id] = false;
+                lastLevel[p.Id] = p.Level;
             }
             bool resumed = r.ReadBoolean();
             LongRun = r.ReadBoolean();  // a 100-wave Campaign (Hunts.cs)
             ReadSurvivalStart(r);  // SurvivalGame.cs
             HangoutRead(r.ReadBoolean());  // HangoutGame.cs
-            PvpAllowed = r.ReadBoolean();  // Pvp.cs
             if (resumed && !IsHost)
                 foreach (var p in entries)
                     p.Level = 1;  // a continued run: the host sends everyone's levels and picks next (Head Start doesn't apply again)
@@ -311,7 +321,8 @@ namespace Arena
             StateTimer = StartDelay;
             Running = true;
             lastMyHp = Me != null ? Me.Hp : 0f;
-            session.Screen = AppScreen.Game;
+            if (!HangoutOn)
+                session.Screen = AppScreen.Game;  // (Practice plays inside the lobby's window: the screen stays the lobby, HangoutGame.cs)
             if (Recorder != null && !Recorder.Ended)
                 Recorder.End(this, "restarted");  // a new run started over one still going: finish its file first
             Recorder = null;

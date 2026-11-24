@@ -48,7 +48,7 @@ namespace Arena
 
         /// Can the host add a bot right now? (In the lobby, with a free slot, and not continuing a saved run, whose seats are for people.)
         public bool CanAdd(Session host) =>
-            host != null && host.IsHost && host.Screen == AppScreen.Lobby && !host.Game.Running && host.Resume == null
+            host != null && host.IsHost && host.Screen == AppScreen.Lobby && !host.Game.InRun && host.Resume == null
             && host.Lobby.Count + Pending() < Session.MaxPlayers;
 
         public bool Add(Session host)
@@ -115,7 +115,7 @@ namespace Arena
             {
                 if (host != null)
                     host.BotSeats.Clear();
-                if (marked && host != null && !host.Game.Running)
+                if (marked && host != null && !host.Game.InRun)
                 {
                     host.Game.Unrecorded = false;  // the last bot left: the run counts again
                     host.Game.BotParty = false;
@@ -158,7 +158,7 @@ namespace Arena
                 if (!host.Game.Paused)
                     b.S.Game.FixedStep(dt, new PlayerInput());
             }
-            if (!host.Game.Running)
+            if (!host.Game.InRun)
             {
                 host.Game.Unrecorded = true;  // (a run in progress keeps what it started with)
                 host.Game.BotParty = true;

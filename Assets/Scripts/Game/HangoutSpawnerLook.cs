@@ -6,7 +6,7 @@ namespace Arena
     /// The Hangout's spawners (Core/HangoutSpawners.cs): the pad on the floor with a ghost of its enemy (DrawHangoutSpawners, world pass;
     /// the dev spawner's look, DevSpawnerLook.cs: grey and still when off, red with a turning rim when on), and over the one you stand
     /// on its enemy's name and the keys (DrawHangoutSpawnerTags, HUD). The keys: Interact turns it on or off, the discard key or the
-    /// mouse wheel changes its enemy (UpdateWorldKeys, CameraZoom.cs).
+    /// mouse wheel changes its enemy (UpdateWorldKeys, CameraZoom.cs; in the Practice window, HangoutUi.cs).
     public partial class ArenaApp
     {
         static readonly Rgba HangoutPadOff = new Rgba(0.6f, 0.66f, 0.78f);
@@ -61,7 +61,8 @@ namespace Arena
         }
 
         /// HUD: over the spawner you stand on, its enemy and the keys.
-        void DrawHangoutSpawnerTags()
+        /// `toUi`: where a world point sits on the canvas (the Practice window's camera, HangoutUi.cs; the arena's when null).
+        void DrawHangoutSpawnerTags(System.Func<V2, V2> toUi = null)
         {
             var me = game.Me;
             if (!game.HangoutOn || me == null)
@@ -70,7 +71,7 @@ namespace Arena
             if (i < 0)
                 return;
             var s = game.Spawners[i];
-            V2 at = ToUi(s.Pos + s.Inward * 78f);  // (on the room side of the pad)
+            V2 at = toUi != null ? toUi(s.Pos + s.Inward * 78f) : ToUi(s.Pos + s.Inward * 78f);  // (on the room side of the pad)
             var ink = (s.On ? SpawnerRed : HangoutPadOff).ToColor();
             var box = new Rect(at.X - 110f, at.Y - 18f, 220f, 36f);
             Ui.Pill(box, new Color(0f, 0f, 0f, 0.7f));

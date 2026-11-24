@@ -918,7 +918,6 @@ static partial class Shot {
       host.Game.MasteryToasts.Add(new MasteryToast { Ability = me.Slots[1].Id, Level = 3, T = 2f });
       if (Environment.GetEnvironmentVariable("HOVER") != null) Event.current.mousePosition = new Vector2 { x = 500, y = 400 };
     }
-    if (Environment.GetEnvironmentVariable("HANGOUTMODE") != null) { var hg = host.Game; hg.HangoutOn = true; hg.State = MatchState.Intermission; hg.StateTimer = Game.HangoutHold; hg.Wave = 1; }  // HANGOUTMODE=1: the Hangout mode's chip in place of the wave band (HangoutUi.cs)
     if (Environment.GetEnvironmentVariable("PICKHELD") != null) {  // PICKHELD=1: a level-up won mid-fight between waves, its cards held while enemies are near (Game.PickHeld)
       var pg = host.Game; pg.State = MatchState.Intermission; pg.StateTimer = 12f; me.Offer = new[] { 0, 1, 2 }; me.PendingPicks = 2;
       if (!pg.PickHeld(me)) Console.Error.WriteLine("PICKHELD: no awake enemy near you in this scene");

@@ -28,8 +28,9 @@ namespace Arena
             GL.PushMatrix();
             GL.LoadPixelMatrix();
             GL.Begin(GL.TRIANGLES);
-            drawScale = game.Running ? scale * WorldToUi : scale;
-            if (game.Running)
+            bool world = game.Running && session.Screen == AppScreen.Game;  // (Practice runs behind the lobby, drawn in its window: HangoutUi.cs)
+            drawScale = world ? scale * WorldToUi : scale;
+            if (world)
                 DrawWorld();
             else if (LobbyCrtLeaving)
                 DrawCrtLeaveBackdrop(Time.time);  // squashed with the screen, the lobby's then the menu's (LobbyCrtLeave.cs)

@@ -87,6 +87,12 @@ static partial class Program
         for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
     }
 
+    // Step both sessions until Practice is up on the client (it plays behind the lobby: the screen stays the lobby).
+    static void WaitForPractice(Session host, Session client, float dt)
+    {
+        for (int i = 0; i < 300 && !client.Game.Practicing; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+    }
+
     // Poll both sessions until the client is in the lobby (at most 300 polls).
     static void WaitForLobby(Session host, Session client)
     {
