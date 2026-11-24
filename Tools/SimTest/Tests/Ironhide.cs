@@ -1,7 +1,8 @@
 using System;
+using System.Threading;
 using Arena;
 
-// The Tank role passive Ironhide (a 25 shield that takes half of each hit, the rest reaching health, refilling at 25/s after 3 s without damage; empty when
+// The Tank role passive Ironhide and its cards (Iron Plates, Quick Refit, Shared Plating; a 25 shield that takes half of each hit, the rest reaching health, refilling at 25/s after 3 s without damage; empty when
 // downed; Tanks only; in the snapshot) and the Healer aura's falloff (17 HP/s next to the Healer down to 5 at the rim).
 static partial class Program
 {
@@ -74,6 +75,47 @@ static partial class Program
         float dhp = dp.Hp;
         damage.Invoke(dg, new object[] { dp, 10f, "test" });
         Check(Game.Ironhide(dp) == 0f && dp.Hp < dhp, "a DPS has no Ironhide");
+
+        // The cards (Tank only): Iron Plates, Quick Refit, Shared Plating.
+        Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
+        Check(Upgrades.All[U("Iron Plates")].Role == Role.Tank && Upgrades.All[U("Quick Refit")].Role == Role.Tank && Upgrades.All[U("Shared Plating")].Role == Role.Tank, "the Ironhide cards are Tank cards");
+        var tick2 = typeof(Game).GetMethod("TickIronhide", flags);
+        p.Downed = false; p.Hp = p.MaxHp; p.IronLost = 0f; p.IronWait = 0f;
+        g.GrantUpgrade(1, U("Iron Plates")); g.GrantUpgrade(1, U("Iron Plates"));
+        tick2.Invoke(g, new object[] { p, dt });
+        Check(Math.Abs(p.IronCap - (Game.IronhideMax + 2f * Game.IronPlatesBonus)) < 0.01f && Math.Abs(Game.Ironhide(p) - p.IronCap) < 0.01f, "two Iron Plates: Ironhide holds " + p.IronCap);
+        g.GrantUpgrade(1, U("Quick Refit"));
+        p.InvulnT = 0f; damage.Invoke(g, new object[] { p, 10f, "test" });
+        Check(Math.Abs(p.IronWait - (Game.IronhideDelay - Game.IronRefitCut)) < 0.01f, "Quick Refit: the wait is " + Game.IronRefitCut + " s shorter");
+        p.IronLost = 20f; p.IronWait = 0f;
+        tick2.Invoke(g, new object[] { p, 0.1f });
+        Check(Math.Abs(p.IronLost - (20f - Game.IronhideRegen * (1f + Game.IronRefitRegen) * 0.1f)) < 0.01f, "...and the refill is 25% faster");
+
+        // Shared Plating: a host Tank and a DPS friend.
+        int port = nextPort++;
+        var sh = new Session { AutoStart = 2 };
+        sh.Host(port, "Iron", Role.Tank, 0, 0, Kit.Soldier);
+        sh.Game.Bot = false;
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Dps, 0);
+        WaitForGame(sh, client, dt);
+        var hg = sh.Game; var tankP = hg.Players[1]; var friend = hg.Players[2];
+        Step(sh, dt);
+        Check(friend.IronCap == 0f, "a DPS has no shield before Shared Plating");
+        hg.GrantUpgrade(1, U("Iron Plates"));
+        hg.GrantUpgrade(1, U("Shared Plating"));
+        for (int f = 0; f < 5; f++) { Step(sh, dt); Step(client, dt); }
+        Check(Math.Abs(tankP.IronCap - (Game.IronhideMax + Game.IronPlatesBonus) * Game.IronShareKeep) < 0.01f, "Shared Plating halves the Tank's Ironhide, Iron Plates too (" + tankP.IronCap + ")");
+        Check(Math.Abs(friend.IronCap - Game.IronShareGift) < 0.01f, "every other player gets a " + Game.IronShareGift + " shield");
+        hg.GrantUpgrade(1, U("Iron Plates"));
+        for (int f = 0; f < 3; f++) Step(sh, dt);
+        Check(Math.Abs(tankP.IronCap - (Game.IronhideMax + 2f * Game.IronPlatesBonus) * Game.IronShareKeep) < 0.01f && Math.Abs(friend.IronCap - Game.IronShareGift) < 0.01f, "later Iron Plates count half for the Tank and never change the gift");
+        friend.Hp = friend.MaxHp; friend.InvulnT = 0f; friend.IronLost = 0f;
+        float fhp = friend.Hp;
+        damage.Invoke(hg, new object[] { friend, 10f, "test" });
+        Check(Math.Abs(friend.IronLost - 10f * Game.IronhideShare) < 0.01f && Math.Abs(fhp - friend.Hp - 10f * (1f - Game.IronhideShare)) < 0.01f && Math.Abs(friend.IronWait - Game.IronhideDelay) < 0.01f, "the gift splits hits like Ironhide, with the base wait");
+        for (int f = 0; f < 60; f++) { Step(sh, dt); Step(client, dt); Thread.Sleep(2); }
+        Check(Math.Abs(client.Game.Players[2].IronCap - Game.IronShareGift) < 0.01f, "the friend's game knows the shield (for the plates and the HUD)");
 
         // The Healer aura's falloff.
         var heal = Make(Role.Healer); var hp = heal.Game.Players[1];

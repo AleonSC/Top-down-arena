@@ -3,7 +3,8 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Tank passive Ironhide (Ironhide.cs): five steel plates on a ring round the Tank, each a fifth of the shield.
+    /// The Tank passive Ironhide (Ironhide.cs): five steel plates on a ring round the Tank (or an ally given Shared Plating's
+    /// shield), each a fifth of the shield.
     /// Full plates are bright, the one refilling grows along its arc, spent ones are faint outlines; while the refill
     /// waits the ring dims, and when the last plate goes the ring flashes and blows out.
     public partial class ArenaApp
@@ -23,8 +24,9 @@ namespace Arena
             if (p.Downed)
                 return;
             float r = p.Def.BodyR + 13f;  // outside the body's own blue rim
-            float frac = now / Game.IronhideMax;
-            bool waiting = p.IronWait > 0f && now < Game.IronhideMax;
+            float cap = Mathf.Max(1f, p.IronCap);
+            float frac = Mathf.Clamp01(now / cap);
+            bool waiting = p.IronWait > 0f && now < cap;
             float slot = MathX.Tau / IronPlates, gap = 0.22f;
             float spin = t * 0.15f;
             for (int i = 0; i < IronPlates; i++)

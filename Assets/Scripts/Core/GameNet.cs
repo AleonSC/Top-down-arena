@@ -505,6 +505,7 @@ namespace Arena
             s.Float(ref p.MomentumT);
             s.Float(ref p.IronLost);  // Ironhide.cs
             s.Float(ref p.IronWait);
+            s.Float(ref p.IronCap);
             s.Float(ref p.SwiftT);  // Consecrate's Swiftness (HolyCross.cs)
             s.Float(ref p.TauntT);
             s.Float(ref p.AegisT);

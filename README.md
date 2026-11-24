@@ -81,6 +81,14 @@ use your damage and attack-speed bonuses too.
 
 **Tanks** (every class): **Ironhide**, the role passive. A 25-point shield takes **half of every hit** and your health takes the rest, so wounds still build but slower (it comes after an ability's shield, before a shrine's health past max). It refills at 25 a second once you've gone 3 s without taking damage; going down empties it, and you start every run with it full. Five steel plates on a ring round you show it (spent plates go faint, the one refilling grows back, and the ring flashes out when it breaks), with a steel "+25" beside your health (dim while the refill waits) and a steel stripe on the party health bars. A Wildcard has no Ironhide.
 
+**Ironhide cards** (Tanks only):
+
+| Card | Rarity | What it does |
+|---|---|---|
+| **Iron Plates** | Uncommon (x4) | Ironhide holds 15 more (25 → 85 at four) |
+| **Quick Refit** | Uncommon (x3) | The refill starts 0.5 s sooner (3 → 1.5 s at three) and runs 25% faster |
+| **Shared Plating** | Rare (x1) | Halves your Ironhide, so every Iron Plates (before or after) counts half. Every other player gets a fixed 25 shield that works like Ironhide (half of each hit, refills at 25/s after 3 s) and that cards never change. Several Tanks with it still give 25. Your Quick Refit stays full. |
+
 **DPS** (every class): **Momentum**, the role passive. Each kill you land adds a stack (up to 5), and each stack gives +3% move speed and +3% fire rate (+15% at full). The stacks age out together after 4 s without a kill (every kill refreshes the timer), and going down drops them. Amber pips under you show them. Only kills that give XP count (not target dummies); a Wildcard has no role passive, so no Momentum.
 
 **Healers** (every class): the healing aura heals allies within 170 px, more the closer they stand: 17 HP/s right next to you,
