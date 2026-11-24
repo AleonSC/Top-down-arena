@@ -63,13 +63,15 @@ namespace Arena
         {
             if (e.Type == EnemyType.Decoy)
             {
-                DrawSword(pos, e.Facing, r, false, t);
+                if (DuelistLookVariant == 0)
+                    DrawSword(pos, e.Facing, r, false, t);
                 return;
             }
             var s = e.Duel;
             bool salute = s != null && s.SaluteT > 0f, stagger = s != null && s.StaggerT > 0f;
             float face = e.Facing + (stagger ? Mathf.Sin(t * 14f) * 0.35f : 0f);
-            DrawSword(pos, face, r, salute, t);
+            if (DuelistLookVariant == 0)
+                DrawSword(pos, face, r, salute, t);
             if (s == null)
                 return;
             if (Game.DuelGuarding(e))

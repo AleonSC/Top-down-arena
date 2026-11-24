@@ -1023,6 +1023,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
   }
   static void ArenaScenes() {
+    DuelistSheetScene();  // DUELLOOK=0-3 DUELSHEET=<1-8>|all (ShotDuelist.cs)
     HoldingCellScene();  // HOLDCELL=<s> [HOLDCELLS=2], HOLDLOCK=1, HOLDNET=<s> (ShotHoldingCell.cs)
     ShockwaveScene();  // SHOCK=<s since the cast> [SHOCKCAP=1] [FXOFF=1] (ShotShockwave.cs)
     CereScene();  // CERE=<plates>,<s since the last cast>[,1 hurt] (ShotCeremonial.cs)
