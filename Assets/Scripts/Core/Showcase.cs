@@ -17,7 +17,7 @@ namespace Arena
         public bool Control;  // the lobby's PLAY key: the preview is yours to play (WASD, mouse, fire, abilities): `Play` is this tick's input
         public PlayerInput Play;
         bool restart;         // switching PLAY on or off starts the scene over
-        public bool AltFire;  // the lobby's ALT FIRE key: press the weapon's Alt on a loop (ShowcaseAlt.cs); off (MAIN FIRE) just the trigger. An ability or ultimate demo does neither.
+        public bool AltFire;  // the lobby's ALT FIRE key: press the weapon's Alt on a loop (ShowcaseAlt.cs); with no trigger; off (MAIN FIRE) just the trigger. An ability or ultimate demo does neither.
         bool altShown;
         public bool Idle;  // the lobby's IDLE key: the character stands still and holds fire, and the dummies hold their spots
         public Game Game => session.Game;
@@ -178,9 +178,9 @@ namespace Arena
                 float c = MathX.Clamp01((Distance / me.Stats.ShotSpeedMult - Game.ClotMin) / (Game.ClotMax - Game.ClotMin));
                 input.Fire = firing && MathX.Fmod(t, 1.3f) < Game.BowMinDraw + c * (Game.BowFull(me) - Game.BowMinDraw) + 0.02f;
             }
-            if (AltFire && ShowcaseAlt.HoldsFire(me.Weapon.Id, t))
-                input.Fire = false;
-            // ALT FIRE: weapons with an Alt press it on a loop (ShowcaseAlt.cs), the trigger still going as each Alt's demo expects.
+            if (AltFire)
+                input.Fire = false;  // ALT FIRE: only the Alt, never the trigger
+            // ALT FIRE: weapons with an Alt press it on a loop (ShowcaseAlt.cs).
             input.WeaponAction = firing && AltFire && ShowcaseAlt.Held(Game, me, t, dt);
             if (input.WeaponAction && ShowcaseAlt.NeedsAlly(me.Weapon.Id))
                 input.AimAt = Game.ShowcaseAllyPos(0);  // the Sunlance goes through a teammate
