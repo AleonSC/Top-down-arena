@@ -84,7 +84,8 @@ namespace Arena
     ///   Last stand (below 10%): it kneels in the middle; stomps with two gaps, its volley, a meteor every 3 s.
     public partial class Game
     {
-        const float ColCrumbleAt = 0.65f, ColMoltenAt = 0.3f, ColLastAt = 0.1f, ColTransTime = 2f;
+        const float ColCrumbleAt = 0.65f, ColMoltenAt = 0.3f, ColLastAt = 0.1f;
+        public const float ColTransTime = 2f;
         // Stomp rings: push blocks like the Warden's gates (GateRows, GateRowGap, GateBulletR), spreading out.
         public const float RingSpeed = 150f, RingWarn = 0.45f, RingGapHalf = 0.33f;  // the gap is 0.66 rad (about 38 degrees) wide...
         public const float RingGapMinArc = 100f;  // ...but never less than 100 px across, however close to its middle
@@ -97,7 +98,7 @@ namespace Arena
         public const float PillarR = 28f, PillarLife = 3f;
         public const float CrackSpeed = 600f, CrackMax = 900f, CrackWait = 0.6f, CrackStep = 45f;
         const float LavaDps = 20f, LavaLife = 6f, LavaWarn = 0.5f;
-        static readonly V2[] SlabSpots = { new V2(520f, 290f), new V2(1080f, 290f), new V2(430f, 600f), new V2(1170f, 600f) };
+        public static readonly V2[] SlabSpots = { new V2(520f, 290f), new V2(1080f, 290f), new V2(430f, 600f), new V2(1170f, 600f) };
 
         static readonly ColTurn[][] ColTurns =
         {
