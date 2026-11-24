@@ -82,6 +82,7 @@ namespace Arena
             d[(int)FxKind.AbsoluteZero] = (fx, f, t) => DrawAbsoluteZeroFx(fx);  // FrostLanceLook.cs
             d[(int)FxKind.HalberdStep] = (fx, f, t) => DrawHalberdStepFx(fx, false);  // HalberdLook.cs
             d[(int)FxKind.HalberdPoke] = (fx, f, t) => DrawHalberdPokeFx(fx, false);  // HalberdLook.cs
+            d[(int)FxKind.VortexWisp] = (fx, f, t) => DrawVortexWispFx(fx);  // VortexLook.cs
             d[(int)FxKind.BulwarkStep] = (fx, f, t) => DrawBulwarkStepFx(fx);  // BulwarkBarrierLook.cs
             d[(int)FxKind.BulwarkBash] = (fx, f, t) => DrawBulwarkBashFx(fx, t);  // BulwarkBarrierLook.cs
             d[(int)FxKind.BulwarkBlock] = (fx, f, t) => DrawBulwarkBlockFx(fx);  // BulwarkBarrierLook.cs

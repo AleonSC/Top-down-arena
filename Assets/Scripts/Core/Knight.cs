@@ -55,7 +55,7 @@ namespace Arena
         public byte CenserStep;       // a Censer step (1-3; Censer.cs): its hits light Embers, and it leaves incense as it lands
         public byte LanceKind;        // a Lance step (1-4; Lance.cs): its hits are cued and spark, and what it shoves can Impact; Hook & Haul takes back one still winding up
         public float LanceAcross;     // the Lance's Wide Sweep: the way its swing bats what it hits (LanceKnockDir)
-        public byte Halberd;          // a Reaper's Wheel step (1-4; Halberd.cs): the parry takes back one still winding up
+        public byte Halberd;          // a Reaper's Wheel step (1-4) or the Pike Lunge (5; Halberd.cs): the parry takes back one still winding up
         public byte Bulwark;          // a Bulwark Barrier hit (1-3 the chain, 4 the Shield Bash; BulwarkBarrier.cs): the parry takes back a chain step still winding up
         public byte Knuckle;          // an Arc Knuckles punch (1-6; ArcKnuckles.cs): the parry takes back one still winding up
         public int OnlyEnemy;         // != 0: hits only this enemy (the Arc Knuckles' locked-on Rocket Dash)

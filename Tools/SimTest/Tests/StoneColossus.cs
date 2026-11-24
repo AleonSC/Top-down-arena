@@ -23,8 +23,8 @@ static partial class Program
         Check(def.Name == "Stone Colossus" && def.Cooldown == 80f && def.Choice == AbilityDef.Ult && def.UltKey == 2 && def.Role == Role.Tank && def.Kit == Kit.Elementalist,
             "Stone Colossus is the Tank Elementalist's ultimate on key 2, 80 s");
         Check(Upgrades.Ultimate(Role.Tank, Kit.Elementalist) == AbilityId.GlacialTomb && Upgrades.Ultimate(Role.Tank, Kit.Elementalist, 1) == AbilityId.LightningRod
-            && Upgrades.Ultimate(Role.Tank, Kit.Elementalist, 2) == AbilityId.StoneColossus && Upgrades.AltUltimate(Role.Tank, Kit.Elementalist, 3) == AbilityId.None,
-            "Glacial Tomb stays the default, Lightning Rod key 1, Stone Colossus key 2, key 3 locked");
+            && Upgrades.Ultimate(Role.Tank, Kit.Elementalist, 2) == AbilityId.StoneColossus && Upgrades.AltUltimate(Role.Tank, Kit.Elementalist, 3) == AbilityId.Vortex,
+            "Glacial Tomb stays the default, Lightning Rod key 1, Stone Colossus key 2, Vortex key 3 (Vortex.cs)");
         Check(Upgrades.ClampUlt(Role.Tank, Kit.Elementalist, 2) == 2 && Upgrades.ClampUlt(Role.Dps, Kit.Elementalist, 2) == 0 && Upgrades.ClampUlt(Role.Healer, Kit.Elementalist, 2) == 0,
             "key 2 is only the tank's; other roles fall back to their default");
 
