@@ -61,6 +61,7 @@ namespace Arena
             var R = game.Reapers;
             if (R == null)
                 return;
+            DrawReaperShiftFloor(t);  // fusing or splitting (ReaperShiftLook.cs)
             foreach (var h in R.Holes)
             {
                 Ellipse(h, Game.HoleRadius, Game.HoleRadius * 0.76f, new Rgba(0f, 0f, 0f, 0.88f));
@@ -145,7 +146,7 @@ namespace Arena
                 return;
             if (R.Trans != 0)
             {
-                DrawStageShiftBoss(e, pos, r, t);  // StageShiftLook.cs
+                DrawReaperShiftOn(e, pos, r, t);  // ReaperShiftLook.cs
                 return;
             }
             if (R.Turn == ReaperTurn.Chase && !R.Trapped && R.Leap <= 0f && R.SwingT <= Game.SwingWarn)
@@ -166,7 +167,7 @@ namespace Arena
             var R = game.Reapers;
             if (R == null || R.Trans != 2)
                 return;
-            float k = Mathf.Clamp01(R.TransT / 1.2f);
+            float k = Mathf.Clamp01(R.TransT / Game.SplitBurst);
             for (int i = 0; i < 5; i++)
             {
                 float a = i * 1.26f + 0.3f;
