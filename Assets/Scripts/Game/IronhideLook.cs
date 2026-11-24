@@ -40,7 +40,9 @@ namespace Arena
                 if (fill >= 1f)  // a white glint along full plates
                     Arc(p.Disp, r + 1f, 1f, new Rgba(1f, 1f, 1f, waiting ? 0.25f : 0.5f), 8, a0 + sweep * 0.2f, sweep * 0.6f);
             }
-            if (ironBroke.TryGetValue(p.Id, out float bt) && t - bt < 0.45f)  // broken: a flash and the plates flung out
+            if (ironBroke.TryGetValue(p.Id, out float bt) && t < bt)
+                ironBroke.Remove(p.Id);  // a time from another game's clock (Practice's, seen by the lobby preview): forget it, else the flash below grows huge and washes the preview
+            else if (ironBroke.ContainsKey(p.Id) && t - bt < 0.45f)  // broken: a flash and the plates flung out
             {
                 float f = (t - bt) / 0.45f;
                 Arc(p.Disp, r + 14f * f, 2.5f * (1f - f), IronSteel.WithAlpha(0.8f * (1f - f)), 32);
