@@ -1,7 +1,7 @@
 # In-game wiki
 
-Status: steps 1, 3 and 4 built (Nov 24 2026): the registry and references, the WIKI screen on the main menu and everywhere else
-(Wiki key, pause and lobby rows), and the eyedropper. Step 2 is a proposal.
+Status: built (Nov 24 2026): steps 1-4: the registry and references, more kinds, the WIKI screen on the main menu and everywhere
+else (Wiki key, pause and lobby rows), and the eyedropper.
 
 ## What it is
 
@@ -32,7 +32,11 @@ content joins with no extra work.
 
 ## Steps
 
-2. **More kinds**: status effects, mechanics (Glossary terms: wound, mastery, expertise...), props, challenge rooms, game modes.
+2. **Built: more kinds** (about 650 entries): minions (text from their numbers in `Kits.Minions`, linked to the weapon that keeps
+   them), gadgets (`Game.GadgetDesc`, linked to the gadget chest), relics (a faction relic links to its boss), Black Market
+   buildables, run modifiers, paths, game modes, difficulty presets, challenge rooms, arena layouts, and mechanics
+   (`Core/WikiTopics.cs`, the Glossary's words; mentioned in any case, so "a wound" in any text links to Wound). The eyedropper
+   also picks minions. Not yet: status effects (no table of names), props and chests on the field.
 3. **Built: the Wiki key everywhere** (`Game/WikiPick.cs`): `KeyAction.Wiki` (I). A tap opens the wiki on the main menu's bay, or
    anywhere else as a modal screen (`screenWiki`: dimmed room, a CRT panel with the same screen; Esc or a click outside closes it).
    Solo runs pause while it's open (`wikiPaused`, resumed on close); co-op doesn't pause and nothing is sent (no protocol change).
@@ -41,4 +45,4 @@ content joins with no extra work.
    `Ui.Shown`, the smallest one under the pointer is outlined in gold); `Wiki.FindIn` turns it into an entry (the whole text as a name,
    else the longest entry name in it). In a run, the enemy (`Wiki.Of(EnemyType)`, a decoy shows its boss) or player (their class)
    under the pointer counts too. A tag by the pointer names what a click opens; the click is used up, so it never presses a button
-   or fires. Later: minions, shots, chests and props (they need entries first).
+   or fires. Minions count too (step 2). Later: shots, chests and props on the field.

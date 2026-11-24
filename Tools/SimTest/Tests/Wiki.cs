@@ -34,7 +34,7 @@ static partial class Program
         Check(all.Where(e => e.Kind == WikiKind.Weapon).All(e => e.Links.Any(l => l.Kind == WikiKind.Class) && e.Links.Any(l => l.Kind == WikiKind.Role)),
             "every weapon links to its class and role");
         var mention = all.FirstOrDefault(e => e.Mentions.Count > 0);
-        Check(mention != null && mention.Mentions.All(m => m.MentionedBy.Contains(mention) && mention.Text.Contains(m.Name)),
+        Check(mention != null && mention.Mentions.All(m => m.MentionedBy.Contains(mention) && mention.Text.IndexOf(m.Name, StringComparison.OrdinalIgnoreCase) >= 0),
             "a mention goes both ways and is named in the text" + (mention != null ? " (" + mention + " names " + mention.Mentions[0].Name + ")" : ""));
         Check(all.All(e => !Wiki.References(e).Contains(e)), "nothing references itself");
         // The eyedropper's lookups (BayWiki.cs, WikiPick.cs).
@@ -45,6 +45,19 @@ static partial class Program
         Check(Wiki.Of(EnemyType.Warden) != null && Wiki.Of(EnemyType.Warden).Kind == WikiKind.Boss, "an enemy on the field finds its entry (the Warden)");
         Check(Wiki.Of(EnemyType.Decoy) == Wiki.Find("The Duelist", WikiKind.Boss), "a boss's decoy finds its boss");
         Check(Wiki.Of(Kit.Knight) == Wiki.Find("Knight", WikiKind.Class), "a player finds their class");
+        // Step 2's kinds: each has entries, from its own table.
+        foreach (WikiKind k in Enum.GetValues(typeof(WikiKind)))
+            Check(all.Any(e => e.Kind == k), "the wiki has " + Wiki.KindName(k) + " entries");
+        Check(Wiki.Find("Land Mine", WikiKind.Gadget) != null && Wiki.Find("Wall Bounce", WikiKind.Relic) != null && Wiki.Find("Nightmare", WikiKind.Difficulty) != null
+            && Wiki.Find("Kill Rush", WikiKind.Challenge) != null && Wiki.Find("Wound", WikiKind.Mechanic) != null, "gadgets, relics, presets, challenge rooms and mechanics are in");
+        var golem = Wiki.Find("Golem", WikiKind.Minion);
+        Check(golem != null && golem.Links.Any(l => l.Kind == WikiKind.Weapon) && golem.Text.Length > 10, "a companion links to its weapon and its text comes from its numbers (Golem: " + (golem != null ? golem.Text : "none") + ")");
+        Check(Wiki.Of(MinionKind.Golem) == golem, "a minion on the field finds its entry");
+        Check(Wiki.Find("Grenade", WikiKind.Gadget) != null && Wiki.Find("Grenade", WikiKind.Gadget).Links.Any(l => l.Name == "Gadget chest"), "a gadget links to the gadget chest");
+        var seal = Wiki.Find("Warden's Seal", WikiKind.Relic);
+        Check(seal == null || seal.Links.Any(l => l.Kind == WikiKind.Boss && l.Name == "The Warden"), "a faction relic links to its boss");
+        var wound = Wiki.Find("Wound", WikiKind.Mechanic);
+        Check(wound != null && Wiki.References(wound).Any(r => r.Name == "Health shrine" || r.Kind == WikiKind.Mechanic), "a mechanic's text links to what it names (Wound: Health shrine)");
         int linked = all.Count(e => Wiki.References(e).Count > 0);
         Console.WriteLine("  " + linked + " of " + all.Count + " entries have references");
         var lone = all.Where(e => e.Kind != WikiKind.Role && e.Kind <= WikiKind.Ultimate || e.Kind == WikiKind.Perk || e.Kind == WikiKind.Boss).Where(e => Wiki.References(e).Count == 0).ToList();

@@ -6,7 +6,7 @@ using System.Text;
 namespace Arena
 {
     /// What a wiki entry is (its tag in the list). New kinds go at the end.
-    public enum WikiKind : byte { Class, Role, Weapon, Ability, Ultimate, Card, Perk, Enemy, Boss }
+    public enum WikiKind : byte { Class, Role, Weapon, Ability, Ultimate, Card, Perk, Enemy, Boss, Minion, Gadget, Relic, Buildable, Modifier, Path, Mode, Difficulty, Challenge, Layout, Mechanic }
 
     /// One thing in the game the wiki can show: its name, a line on what it is, its text and the entries it links to.
     public class WikiEntry
@@ -32,6 +32,10 @@ namespace Arena
         static Dictionary<string, WikiEntry> byName;
         static Dictionary<EnemyType, WikiEntry> enemyEntry;
         static Dictionary<Kit, WikiEntry> kitEntry;
+        static Dictionary<MinionKind, WikiEntry> minionEntry;
+
+        /// The entry for a minion on the field, or null.
+        public static WikiEntry Of(MinionKind k) { Build(); return minionEntry.TryGetValue(k, out var e) ? e : null; }
 
         /// The entry for an enemy or boss on the field (a boss's decoy shows its boss), or null.
         public static WikiEntry Of(EnemyType t)
@@ -79,7 +83,9 @@ namespace Arena
 
         public static List<WikiEntry> All { get { Build(); return all; } }
 
-        public static string KindName(WikiKind k) => k == WikiKind.Card ? "Upgrade card" : k.ToString();
+        public static string KindName(WikiKind k) =>
+            k == WikiKind.Card ? "Upgrade card" : k == WikiKind.Mode ? "Game mode" : k == WikiKind.Difficulty ? "Difficulty preset"
+            : k == WikiKind.Challenge ? "Challenge room" : k == WikiKind.Layout ? "Arena layout" : k == WikiKind.Modifier ? "Run modifier" : k.ToString();
 
         /// The entry with this name (any case), or null. Kind narrows it when two share a name.
         public static WikiEntry Find(string name, WikiKind? kind = null)
@@ -223,6 +229,7 @@ namespace Arena
 
             enemyEntry = enemyOf;
             kitEntry = kitOf;
+            BuildMore(kitOf, weaponOf, abilityOf, enemyOf);
             byName = new Dictionary<string, WikiEntry>();
             foreach (var e in all)
             {
@@ -236,6 +243,95 @@ namespace Arena
                 e.search = (e.Name + " " + e.Sub + " " + e.Text).ToLowerInvariant();
                 e.MentionedBy.Sort((a, b) => a.Kind != b.Kind ? a.Kind.CompareTo(b.Kind) : string.CompareOrdinal(a.Name, b.Name));
             }
+        }
+
+        /// Step 2's kinds (Docs/Wiki.md): minions, gadgets, relics, buildables, run modifiers, paths, game modes, difficulty presets,
+        /// challenge rooms, arena layouts and the mechanics in WikiTopics.cs.
+        static void BuildMore(Dictionary<Kit, WikiEntry> kitOf, Dictionary<WeaponId, WikiEntry> weaponOf, Dictionary<AbilityId, WikiEntry> abilityOf,
+            Dictionary<EnemyType, WikiEntry> enemyOf)
+        {
+            var minionOf = minionEntry = new Dictionary<MinionKind, WikiEntry>();
+            for (int i = 0; i < Kits.Minions.Length; i++)
+            {
+                var m = Kits.Minions[i];
+                if (m == null || string.IsNullOrEmpty(m.Name) || all.Exists(x => x.Kind == WikiKind.Minion && x.Name == m.Name))
+                    continue;
+                minionOf[(MinionKind)i] = Add(m.Name, WikiKind.Minion, "Minion", MinionText(m));
+            }
+            foreach (var w in Defs.Weapons)  // a weapon's companion
+                if (w != null && w.Companion != MinionKind.None && minionOf.TryGetValue(w.Companion, out var me) && weaponOf.TryGetValue(w.Id, out var we))
+                {
+                    Link(me, we);
+                    if (me.Sub == "Minion")
+                        me.Sub = "Companion minion";
+                }
+            foreach (GadgetId g in Enum.GetValues(typeof(GadgetId)))
+                if (g != GadgetId.None)
+                    Add(Game.GadgetName(g), WikiKind.Gadget, "Gadget", Game.GadgetDesc(g));
+            for (int i = 0; i < Relics.Count; i++)
+            {
+                var r = (RelicId)i;
+                var e = Add(Relics.Name(r), WikiKind.Relic, "Relic", Relics.Desc(r));
+                int f = Relics.FactionOf(r);  // a faction relic's boss: its text or name doesn't always say
+                if (f >= 0 && f < Game.BossCycle.Length && enemyOf.TryGetValue(Game.BossCycle[f], out var boss))
+                    Link(e, boss);
+            }
+            for (int i = 0; i < Market.Names.Length; i++)
+                Add(Market.Names[i], WikiKind.Buildable, "Black Market buildable", Market.Blurbs[i]);
+            foreach (var m in Modifiers.All)
+                if (m != null && !string.IsNullOrEmpty(m.Name))
+                    Add(m.Name, WikiKind.Modifier, "Run modifier", m.Desc);
+            foreach (var p in Paths.All)
+                if (p != null && !string.IsNullOrEmpty(p.Name))
+                    Add(p.Name, WikiKind.Path, string.IsNullOrEmpty(p.Kind) ? "Path" : p.Kind + " path", p.Blurb + (p.Rules != null && p.Rules.Length > 0 ? "\n" + string.Join(" · ", p.Rules) : ""));
+            foreach (GameMode gm in Enum.GetValues(typeof(GameMode)))
+                if (gm != GameMode.None && gm != GameMode.Hangout)
+                {
+                    var d = ModeDef.For(gm);
+                    Add(d.Name, WikiKind.Mode, "Game mode", d.Blurb);
+                }
+            for (int i = 0; i < Difficulty.Names.Length; i++)
+                Add(Difficulty.Names[i], WikiKind.Difficulty, "Difficulty preset", Difficulty.Blurbs[i]);
+            foreach (ChallengeKind c in Enum.GetValues(typeof(ChallengeKind)))
+                if (c != ChallengeKind.None)
+                    Add(Challenges.Name(c), WikiKind.Challenge, "Challenge room", Challenges.Goal(c, 1));
+            foreach (LayoutId l in Enum.GetValues(typeof(LayoutId)))
+            {
+                var d = Layouts.Get(l);
+                if (d != null && !string.IsNullOrEmpty(d.Name))
+                    Add(d.Name, WikiKind.Layout, "Arena layout", d.Blurb);
+            }
+            foreach (var t in WikiTopics.All)
+                Add(t.Name, WikiKind.Mechanic, "Mechanic", t.Text);
+            var gadgetChest = all.Find(x => x.Kind == WikiKind.Mechanic && x.Name == "Gadget chest");
+            foreach (var g in all.FindAll(x => x.Kind == WikiKind.Gadget))
+                Link(g, gadgetChest);  // where gadgets come from
+        }
+
+        /// A minion's line from its numbers (MinionDef): how it moves, what it does and how hard.
+        static string MinionText(MinionDef m)
+        {
+            string move = m.Move == MinionMove.Static ? "Stays where it is" : m.Move == MinionMove.Orbit ? "Circles its owner"
+                : m.Move == MinionMove.Chase ? "Chases enemies" : m.Move == MinionMove.FollowHurt ? "Follows hurt allies"
+                : m.Move == MinionMove.FollowOwner ? "Follows its owner" : "Fights near its owner";
+            string act = m.Attack == MinionAttack.Shoot ? "shoots" : m.Attack == MinionAttack.Bite ? "bites" : m.Attack == MinionAttack.Slam ? "slams"
+                : m.Attack == MinionAttack.Explode ? "explodes" : m.Attack == MinionAttack.Heal ? "heals allies" : null;
+            var sb = new StringBuilder(move);
+            if (act != null)
+            {
+                sb.Append("; ").Append(act);
+                if (m.Attack == MinionAttack.Heal && m.HealRate > 0f)
+                    sb.Append(" for ").Append(m.HealRate.ToString("0.#")).Append(" a second");
+                else if (m.Damage > 0f)
+                    sb.Append(" for ").Append(m.Damage.ToString("0.#")).Append(" damage");
+                if (m.Interval > 0f && m.Attack != MinionAttack.Explode)
+                    sb.Append(" every ").Append(m.Interval.ToString("0.##")).Append(" s");
+                if (m.Range > 0f)
+                    sb.Append(m.Attack == MinionAttack.Shoot ? ", " + m.Range.ToString("0") + " px range" : " (" + m.Range.ToString("0") + " px)");
+            }
+            if (m.BlockRadius > 0f)
+                sb.Append("; stops enemy bullets within ").Append(m.BlockRadius.ToString("0")).Append(" px");
+            return sb.Append('.').ToString();
         }
 
         static WikiEntry Add(string name, WikiKind kind, string sub, string text)
@@ -255,8 +351,8 @@ namespace Arena
                 to.MentionedBy.Add(e);
         }
 
-        /// Mentions: an entry's text naming another entry as a whole word (names of 4+ letters, case as written; the longest name
-        /// wins where names overlap, so "Arc Cannon" doesn't also count as "Arc").
+        /// Mentions: an entry's text naming another entry as a whole word (names of 4+ letters, case as written, mechanics in any case;
+        /// the longest name wins where names overlap, so "Arc Cannon" doesn't also count as "Arc").
         static void FindMentions()
         {
             var names = byName.Values.Where(x => x.Name.Length >= 4).OrderByDescending(x => x.Name.Length).ToList();
@@ -269,8 +365,10 @@ namespace Arena
                 {
                     if (n == e || n.Name == e.Name)
                         continue;
+                    // Mechanics are common words in running text ("a wound", "health shrine"): any case; other names as written.
+                    var cmp = n.Kind == WikiKind.Mechanic ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
                     int at = 0;
-                    while ((at = e.Text.IndexOf(n.Name, at, StringComparison.Ordinal)) >= 0)
+                    while ((at = e.Text.IndexOf(n.Name, at, cmp)) >= 0)
                     {
                         int end = at + n.Name.Length;
                         bool word = (at == 0 || !char.IsLetterOrDigit(e.Text[at - 1])) && (end >= e.Text.Length || !char.IsLetterOrDigit(e.Text[end]));

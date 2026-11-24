@@ -67,6 +67,28 @@ namespace Arena
         public const int EmpUses = 2;
         public const float EmpRadius = 280f, EmpStun = 1.6f, EmpBossStun = 0.4f, EmpDmg = 20f;
 
+        /// What a gadget does, in a line (the wiki; Docs/Glossary.md's wording).
+        public static string GadgetDesc(GadgetId g)
+        {
+            switch (g)
+            {
+                case GadgetId.Magnet: return "Timed, 60 s: switched on, every coin and vector pickup on the map flies to you; tap again to switch it off and save the rest.";
+                case GadgetId.Lodestone: return "Carries you to the hub's middle after a 3 s cast. 3 uses.";
+                case GadgetId.EnergyDrink: return "You move 60% faster while it's on (60 s in all).";
+                case GadgetId.ShieldGenerator: return "A dome that wipes out enemy bullets round you while it's on (20 s in all).";
+                case GadgetId.DefibKit: return "Stands a downed teammate up, or you 2 s after you go down.";
+                case GadgetId.Grenade: return "A throwable (3 charges, lobbed at the cursor): bursts for 90 in 95 px with a small shove.";
+                case GadgetId.SmokeBomb: return "A throwable (3 charges): a 115 px smoke cloud for 7 s; enemies in it are slowed and can't attack (bosses are only slowed).";
+                case GadgetId.GasGrenade: return "A throwable (3 charges): a 100 px cloud for 6 s that deals 22 a second and slows 30%.";
+                case GadgetId.Incendiary: return "A throwable (3 charges): 85 px of burning ground for 5 s.";
+                case GadgetId.Cloak: return "Hides you from enemies while it's on (15 s in all).";
+                case GadgetId.OverclockChip: return "Your fire rate and cooldowns are 40% faster while it's on (30 s in all).";
+                case GadgetId.LandMine: return "A throwable (3 charges): lies armed for 45 s; the first enemy to step on it sets it off for 100 in 95 px.";
+                case GadgetId.Emp: return "Two pulses that wipe enemy bullets round you and stun enemies.";
+            }
+            return "";
+        }
+
         public static string GadgetName(GadgetId g)
         {
             switch (g)

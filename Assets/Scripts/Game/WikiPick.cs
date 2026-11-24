@@ -123,7 +123,7 @@ namespace Arena
             OpenWiki(at);
         }
 
-        /// What the pointer is on: outlined text naming an entry first, then (in a run) the enemy or player under it.
+        /// What the pointer is on: outlined text naming an entry first, then (in a run) the enemy, minion or player under it.
         WikiEntry WikiUnderPointer()
         {
             var e = Wiki.FindIn(Ui.Hovered);
@@ -140,6 +140,16 @@ namespace Arena
                 {
                     best = d;
                     e = Wiki.Of(en.Type) ?? e;
+                }
+            }
+            foreach (var mn in game.Minions.Values)
+            {
+                var md = (int)mn.Kind < Kits.Minions.Length ? Kits.Minions[(int)mn.Kind] : null;
+                float d = mn.Pos.DistanceTo(m), r = (md != null ? md.Radius : 12f) + 6f;
+                if (d < r && d < best && Wiki.Of(mn.Kind) != null)
+                {
+                    best = d;
+                    e = Wiki.Of(mn.Kind);
                 }
             }
             foreach (var p in game.Players.Values)

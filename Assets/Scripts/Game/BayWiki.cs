@@ -214,7 +214,8 @@ namespace Arena
             return "MENTIONS IT · " + kind;
         }
 
-        /// The kind's colour in the lists: classes and roles gold, gear ink, cards and perks green, enemies and bosses red.
+        /// The kind's colour in the lists: classes and roles gold, cards and perks green, enemies and bosses red, things you carry or
+        /// find amber, the run's settings and places cyan, minions steel; gear and mechanics stay dim ink.
         static Color KindInk(WikiKind k)
         {
             switch (k)
@@ -225,6 +226,16 @@ namespace Arena
                 case WikiKind.Perk: return LampGreen;
                 case WikiKind.Enemy:
                 case WikiKind.Boss: return CrtStyle.Danger;
+                case WikiKind.Gadget:
+                case WikiKind.Relic:
+                case WikiKind.Buildable: return LampAmber;
+                case WikiKind.Modifier:
+                case WikiKind.Path:
+                case WikiKind.Mode:
+                case WikiKind.Difficulty:
+                case WikiKind.Challenge:
+                case WikiKind.Layout: return CrtStyle.Head;
+                case WikiKind.Minion: return CrtStyle.Steel;
                 default: return CrtStyle.Dim;
             }
         }
