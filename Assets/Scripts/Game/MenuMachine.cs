@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The main menu's case (design B of Docs/Mockups/main-menu-machines.html, its entrance from Docs/Mockups/disk-boot-sequence.html): a
-    /// graphite case in a neon outline under the monitor, with Play, Join game, Settings and Quit as keycaps down its left, a bay in the
+    /// graphite case in a neon outline under the monitor, with Play, Join game and Wiki as keycaps down its left, a bay in the
     /// middle behind a ribbed roller shutter, your profile on a small screen at the right (click it for your profile) over a grille and the
     /// POWER and DISK lights. Play rolls the shutter up onto your saved runs (Continue, delete, New run); Join game onto the host address
     /// and Connect; Settings onto the settings (BaySettings.cs); pressing the key again (or Esc) rolls it back down.
@@ -15,7 +15,9 @@ namespace Arena
         static readonly Rect CaseRect = new Rect(W / 2f - 490f, 256f, 980f, 440f);
         const float CaseClipTop = 238f;   // the case shows only below the monitor's bottom edge, so it falls out from under it
         static readonly Rect PlayKeyRect = new Rect(184f, 290f, 210f, 70f), JoinKeyRect = new Rect(184f, 380f, 210f, 52f);
-        static readonly Rect SettingsKeyRect = new Rect(184f, 450f, 210f, 52f), QuitKeyRect = new Rect(184f, 622f, 210f, 40f);
+        static readonly Rect WikiKeyRect = new Rect(184f, 450f, 210f, 52f);
+        // Under the profile screen: Settings (a cog), the POWER / DISK lights, Quit (a power button); then the grille, level with the left one.
+        static readonly Rect SettingsKeyRect = new Rect(888f, 460f, 32f, 32f), QuitKeyRect = new Rect(1066f, 460f, 32f, 32f);
         static readonly Rect BayRect = new Rect(424f, 288f, 432f, 376f);
         static readonly Rect ProfScreenRect = new Rect(886f, 290f, 214f, 150f);
         const float MachEnd = 4.8f;       // the boot sequence's length; past it the menu is settled
@@ -66,15 +68,16 @@ namespace Arena
             Metal(CaseRect, 12);
             NeonBox(CaseRect, 1f, hit, 12);
             DrawCaseKeys(T, power, live);
-            HVent(new Rect(184f, 524f, 210f, 76f));
+            HVent(new Rect(184f, 524f, 210f, 138f));
             DrawBay(T, live, t);
             DrawProfScreen(T, power, live, t);
-            HVent(new Rect(886f, 466f, 214f, 120f));
+            HVent(new Rect(886f, 524f, 214f, 138f));
             bool pw = T >= 3.75f && power > 0.5f, dk = T >= 3.85f && power > 0.5f;
-            Led(892f, 632f, LampGreen, pw);
-            ChinText(new Rect(906f, 627f, 60f, 16f), "POWER", 10, ChinInk);
-            Led(972f, 632f, LampAmber, dk);
-            ChinText(new Rect(986f, 627f, 60f, 16f), "DISK", 10, ChinInk);
+            Led(942f, 476f, LampGreen, pw);
+            ChinText(new Rect(956f, 471f, 50f, 16f), "POWER", 10, ChinInk);
+            Led(1010f, 476f, LampAmber, dk);
+            ChinText(new Rect(1024f, 471f, 40f, 16f), "DISK", 10, ChinInk);
+            DrawRoundKeys(T, power, live);
             GUI.matrix = oldM;
             GUI.EndGroup();
             GUI.EndGroup();
@@ -90,13 +93,12 @@ namespace Arena
             return on > 4f && T >= 4.25f ? settled : 1;
         }
 
-        /// Play, Join game, Settings and Quit down the case's left.
+        /// Play, Join game and Wiki down the case's left.
         void DrawCaseKeys(float T, float power, bool live)
         {
             bool on = power > 0.5f;
             int playLamp = on ? BootLamp(T, 3.95f, 1) : 0;
             int joinLamp = on ? BootLamp(T, 4.05f, menuJoinOpen ? 1 : 0) : 0;
-            int setLamp = on ? BootLamp(T, 4.15f, menuSetOpen ? 1 : 0) : 0;
             if (MachKey(PlayKeyRect, "PLAY", 20, live, playLamp, null, true))
             {
                 MenuSound(Sfx.MenuPlay);
@@ -114,12 +116,19 @@ namespace Arena
                 if (menuJoinOpen)
                     menuPlayOpen = menuSetOpen = false;
             }
-            if (MachKey(SettingsKeyRect, "SETTINGS", 15, live, setLamp))
+            if (MachKey(WikiKeyRect, "WIKI", 15, live, on ? BootLamp(T, 4.15f, 0) : 0))
+                MenuSound(Sfx.MenuKey);  // the wiki (planned): look up anything in the game
+        }
+
+        /// Settings (a cog) and Quit (a power button) either side of the POWER / DISK lights: small, flat and unlit.
+        void DrawRoundKeys(float T, float power, bool live)
+        {
+            if (FlatRoundKey(SettingsKeyRect, PixelArt.Get("ui_gear"), live))
             {
                 MenuSound(Sfx.MenuKey);
                 ToggleMenuSettings();  // BaySettings.cs: Settings on the bay's screen
             }
-            if (MachKey(QuitKeyRect, "QUIT", 13, live))
+            if (FlatRoundKey(QuitKeyRect, PixelArt.Get("ui_power"), live))
                 QuitWithSound();  // MenuHolo.cs: the tube switching off, then quit
         }
 

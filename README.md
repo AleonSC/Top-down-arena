@@ -1987,11 +1987,12 @@ their sides in 0.22 s. With Reduced effects they slide in and out with no trails
 - **The main menu** is a machine (`Docs/Mockups/main-menu-machines.html`, design B): at the top the **monitor**, a graphite case with
   the title on its CRT glass in a neon outline (each letter flips into place as it's typed; a blinking cursor after it) and a chin with
   ARENA CRT-14, two grilles, a power light and the **floppy drive** (READY in green with your profile's name) with its **eject key**
-  beside it (it goes back to Who's playing?). Under the monitor, the **case**, in a neon outline: **Play**, **Join game**, **Settings** and
-  **Quit** as graphite keycaps down its left (each with a lamp: Play's is lit, Join game's and Settings' light while theirs is open; they
+  beside it (it goes back to Who's playing?). Under the monitor, the **case**, in a neon outline: **Play**, **Join game** and **Wiki** (not
+  built yet) as graphite keycaps down its left over a grille (each with a lamp: Play's is lit, Join game's lights while it is open; they
   press down when clicked), a **bay** in the middle behind a ribbed metal roller shutter, and on the right **your profile** on a small
-  screen (a face, your name, rank title and number, the XP to the next rank; click it to open your **Profile**) over a grille and the
-  POWER and DISK lights. Until you have opened your profile once (and for at most your first five launches on that profile), a small
+  screen (a face, your name, rank title and number, the XP to the next rank; click it to open your **Profile**), then a row of small flat
+  round keys and lights under it (a cog for **Settings**, the POWER and DISK lights, a power button to **Quit**) and a grille level with
+  the left one. Until you have opened your profile once (and for at most your first five launches on that profile), a small
   purple **YOUR PROFILE** tag beside the screen bounces toward it; clicking the tag opens the profile too. **Play** rolls the shutter up
   onto your saved runs (see Saved runs); **Join game** rolls it up onto the host's address and **Connect** (and how joining is going,
   with **Cancel**); **Settings** rolls it up onto **SETTINGS** on the bay's screen: four tiles (Audio, Visual effects, Gameplay, Keybinds;

@@ -165,6 +165,21 @@ namespace Arena
             return live && Ui.HitArea(r);
         }
 
+        /// A small flat round button set into the case (the main menu's Settings and Quit): a dark recessed disc with a PixelArt icon
+        /// in the chin's ink, no dome light or glow; the icon brightens a little on hover. True when clicked.
+        static bool FlatRoundKey(Rect r, Texture2D icon, bool live)
+        {
+            bool held = MachHeld(r, live);
+            bool hover = live && GUI.enabled && r.Contains(Event.current.mousePosition);
+            Ui.Dot(new Rect(r.x - 1f, r.y - 1f, r.width + 2f, r.height + 2f), new Color(1f, 1f, 1f, 0.06f));  // the case's edge round the hole
+            Ui.Dot(r, new Color(0.043f, 0.047f, 0.059f));
+            var face = new Rect(r.x + 2f, r.y + 2f + (held ? 1f : 0f), r.width - 4f, r.height - 4f);
+            Ui.Dot(face, held ? new Color(0.098f, 0.102f, 0.118f) : new Color(0.125f, 0.13f, 0.145f));
+            float s = Mathf.Round(r.width * 0.5f);
+            Ui.Icon(new Rect(face.center.x - s / 2f, face.center.y - s / 2f, s, s), icon, hover ? KeyInk.WithAlpha(0.85f) : ChinInk.WithAlpha(0.8f));
+            return live && Ui.HitArea(r);
+        }
+
         static int wheelEvtFrame = -1, wheelReadFrame = -1;
 
         /// The mouse wheel over r (live: it may be used), in IMGUI's wheel units (about 3 a notch; positive: down, toward the end).
