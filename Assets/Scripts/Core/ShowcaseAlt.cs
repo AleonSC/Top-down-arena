@@ -52,7 +52,7 @@ namespace Arena
                     return tap;
                 } },
             // The Railgun: Heat Dump every 6 s, once a few charged shots have heated it.
-            { WeaponId.Railgun, (g, me, t, dt) => Tap(t, dt, 6f, 5.6f) },
+            { WeaponId.Railgun, (g, me, t, dt) => Primed(t, dt, 3f, 1.5f, () => { me.RailHeatF = Game.RailHeatMax; me.RailHeat = (byte)Game.RailHeatMax; }) },
             // The Twin Rifle Auto: lock on, and let go again a few seconds later (a dummy under the cursor is locked if one is near; TwinAuto.cs).
             { WeaponId.TwinRifleAuto, (g, me, t, dt) => Tap(t, dt, 4f, 1f) || Tap(t, dt, 4f, 3f) },
             // Out of Ammo: the spin, every 5 s.
@@ -97,24 +97,24 @@ namespace Arena
             { WeaponId.Rapier, (g, me, t, dt) => Tap(t, dt, 6f, 1f) || Tap(t, dt, 6f, 4f) },
             { WeaponId.BulwarkBarrier, (g, me, t, dt) => Hold(t, 7f, 1f, 3f) },      // Brace, held
             // The Quarterstaff: Jab spends its stacks while the key is down.
-            { WeaponId.Quarterstaff, (g, me, t, dt) => Hold(t, 5f, 2.5f, 1f) },
+            { WeaponId.Quarterstaff, (g, me, t, dt) => { if (Hold(t, 5f, 1.8f, 0.7f)) me.StaffStacks = (byte)Game.StaffBaseStacks; return Hold(t, 5f, 2.5f, 1f); } },
             // --- Ninja ---
             { WeaponId.Kusarigama, (g, me, t, dt) => Hold(t, 6f, 1f, 2.5f) },        // the whirl, held; let go for the snap
             { WeaponId.FumaShuriken, (g, me, t, dt) => Tap(t, dt, 6f, 1.5f) || Tap(t, dt, 6f, 4.5f) },  // Orbit, then Throw again
             { WeaponId.Katana, (g, me, t, dt) => Tap(t, dt, 4f, 1.5f) },            // the stance switch
             { WeaponId.Nodachi, (g, me, t, dt) => Tap(t, dt, 4f, 1.5f) },
             { WeaponId.Vowguard, (g, me, t, dt) => Tap(t, dt, 4f, 1.5f) },        // the stance switch           // the stance switch
-            { WeaponId.Kunai, (g, me, t, dt) => Tap(t, dt, 3f, 1.5f) },             // blink to the mark
+            { WeaponId.Kunai, (g, me, t, dt) => Primed(t, dt, 3f, 1.5f, () => { var e = Dummy(g, me); if (e != null && me.KunaiMarkT <= 0f) { me.KunaiMark = e.Pos + new V2(45f, 35f); me.KunaiMarkT = 1f; } }) },             // blink to the mark
             { WeaponId.Shuriken, (g, me, t, dt) => Tap(t, dt, 8f, 1.5f) || Tap(t, dt, 8f, 5.5f) },  // the fan to the Great Star and back
             { WeaponId.Nunchaku, (g, me, t, dt) => Tap(t, dt, 8f, 1.5f) || Tap(t, dt, 8f, 5.5f) },  // the guard up, then down
             // --- Hemomancer ---
             { WeaponId.BloodLash, (g, me, t, dt) => Hold(t, 8f, 2f, 2.5f) },        // Martyr's Leash, held
-            { WeaponId.BloodBrawler, (g, me, t, dt) => Tap(t, dt, 3f, 1.5f) },      // Sympathy on the marked enemy
-            { WeaponId.EmbolusSpears, (g, me, t, dt) => Tap(t, dt, 3f, 1.5f) },     // burst the spears
+            { WeaponId.BloodBrawler, (g, me, t, dt) => Primed(t, dt, 3f, 1.5f, () => { var e = Dummy(g, me); if (e != null) { me.BsTarget = e.Id; me.BsT = 1f; } }) },      // Sympathy on the marked enemy
+            { WeaponId.EmbolusSpears, (g, me, t, dt) => Primed(t, dt, 3f, 1.5f, () => StickSpears(g, me)) },     // burst the spears
             { WeaponId.BloodBlast, (g, me, t, dt) => Tap(t, dt, 8.5f, 1.5f) },      // the Crimson Tide (8 s cooldown)
             // --- Fourth weapons ---
             { WeaponId.ArcKnuckles, (g, me, t, dt) => Tap(t, dt, 3f, 1.5f) },       // Rocket Dash
-            { WeaponId.Stonespear, (g, me, t, dt) => Tap(t, dt, 4f, 2f) },          // the spear volley
+            { WeaponId.Stonespear, (g, me, t, dt) => Primed(t, dt, 4f, 2f, () => { if (me.SsMask == 0) { int n = g.SsSideCount(me); me.SsSide = n; me.SsMask = (1 << (2 * n)) - 1; me.SsAge = 0f; } }) },          // the spear volley
             { WeaponId.GrenadeLauncher, (g, me, t, dt) => Tap(t, dt, 8f, 1.5f) || Tap(t, dt, 8f, 5.5f) },  // the drum: smoke, then back to HE
             { WeaponId.StaticShock, (g, me, t, dt) => Tap(t, dt, 5.5f, 1.5f) },     // the Arc Cannon (5 s cooldown)
             { WeaponId.WindClash, (g, me, t, dt) => Tap(t, dt, 9.5f, 1.5f) },       // the Tempest (9 s cooldown)
@@ -145,6 +145,45 @@ namespace Arena
             }
             draw = false;
             return target;
+        }
+
+        // ALT FIRE shows the Alt without the trigger, so an Alt that spends what the main fire builds (heat, stacks, a mark, spears out)
+        // gets it set up just before the press (PrimeLead seconds, so it shows first).
+        const float PrimeLead = 0.7f;
+
+        /// A tap at `at` into each `period`, with `stage` run every tick of the PrimeLead before it.
+        static bool Primed(float t, float dt, float period, float at, Action stage)
+        {
+            if (Hold(t, period, at - PrimeLead, PrimeLead + dt))
+                stage();
+            return Tap(t, dt, period, at);
+        }
+
+        /// The dummy the preview aims at (the one nearest the cursor's spot ahead of you).
+        static Enemy Dummy(Game g, Player me)
+        {
+            V2 at = me.Pos + V2.FromAngle(me.Aim) * 250f;
+            Enemy best = null;
+            foreach (var e in g.Enemies.Values)
+                if (e.Hp > 0f && (best == null || e.Pos.DistanceTo(at) < best.Pos.DistanceTo(at)))
+                    best = e;
+            return best;
+        }
+
+        /// The Embolus Spears: both spears pinned into the aimed dummy, ready to burst.
+        static void StickSpears(Game g, Player me)
+        {
+            var e = Dummy(g, me);
+            if (e == null)
+                return;
+            for (int i = 0; i < 2; i++)
+                if (me.EsSt[i] == Game.EsInHand || me.EsSt[i] == Game.EsStuck)
+                {
+                    V2 dir = (e.Pos - me.Pos).Normalized();
+                    me.EsSt[i] = Game.EsStuck;
+                    me.EsDir[i] = dir;
+                    me.EsPos[i] = e.Pos + new V2(-dir.Y, dir.X) * (i == 0 ? -14f : 14f);
+                }
         }
 
         /// Runs `stage` (it sets up what the Alt needs) when the key is about to go down; passes `down` through.
