@@ -6,7 +6,7 @@ namespace Arena
 {
     /// The Game Mode screen's page for Quick Play, Campaign, Boss Hunt and Survival, drawn from one model (`ModePage`, built by
     /// each mode's file) in the loadout's look: a slim header (ring, name, tagline), the list under its heading on
-    /// the left, the scope and a dossier box in the middle, and a sidebar on the right: YOUR RECORDS (label and value rows) and
+    /// the left, a compact scope with the dossier box under it in the middle, and a sidebar on the right: YOUR RECORDS (label and value rows) and
     /// RULES (lit: what the mode adds; dim: what it takes away), with the mode's note at its foot.
     /// Preview: `LOBBYTAB=8 shot.sh x lobby` (10 Campaign with CAMPAIGN=n, SURVLOBBY=2 Survival, 4 Boss Hunt with HUNT=1).
     public partial class ArenaApp
@@ -41,7 +41,6 @@ namespace Arena
             public Action<int> OnPick;           // a click on a known row (Boss Hunt's pick)
             public string[] Rules;
             public bool ShowLocked;   // locked rows still show their model (name hidden) and can be hovered (Campaign)
-            public bool ScopeCompact; // a smaller, narrower scope with the dossier under it, centred in the column (Campaign)
         }
 
         void DrawModePage(Rect r, float t, ModePage p)
@@ -58,15 +57,11 @@ namespace Arena
             float x2 = x + listW + gap, w2 = w - listW - sideW - 2f * gap, y2 = top;
             LobbyKit.Heading(x2, y2, w2, f.ScopeL, f.ScopeR, fxReduced, 14);
             y2 += 36f;
-            var scope = new Rect(x2, y2, w2, bottom - y2 - dosH - 10f);
-            var dos = new Rect(x2, bottom - dosH, w2, dosH);
-            if (p.ScopeCompact)
-            {
-                float cw = Mathf.Min(w2, 460f), ch = Mathf.Min(scope.height, cw * 0.58f);
-                float cy = y2 + Mathf.Max(0f, (bottom - y2 - ch - 10f - dosH) * 0.5f);
-                scope = new Rect(x2 + (w2 - cw) * 0.5f, cy, cw, ch);
-                dos = new Rect(scope.x, scope.yMax + 10f, cw, dosH);
-            }
+            // A compact scope with the dossier under it, centred in the column (the same size on every mode).
+            float cw = Mathf.Min(w2, 460f), ch = Mathf.Min(bottom - y2 - dosH - 10f, cw * 0.58f);
+            float cy = y2 + Mathf.Max(0f, (bottom - y2 - ch - 10f - dosH) * 0.5f);
+            var scope = new Rect(x2 + (w2 - cw) * 0.5f, cy, cw, ch);
+            var dos = new Rect(scope.x, scope.yMax + 10f, cw, dosH);
             ModeScopeArea(scope, p, f);
             ModeDossier(dos, p, f, p.Rows[shown].Chip, p.Rows[shown].ChipCol);
 

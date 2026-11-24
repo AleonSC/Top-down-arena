@@ -21,7 +21,7 @@ namespace Arena
             var p = new ModePage { Title = "CAMPAIGN", Acc = CampaignColor,
                 Tagline = "One long run on a growing arena. Build as you go.", ListHead = "THE LADDER",
                 Rules = new[] { "PATHS + SHOPS", "LIVES", "SAVING", "CHALLENGES", "MODIFIERS + DIFFICULTY APPLY" },
-                ShowLocked = true, ScopeCompact = true };
+                ShowLocked = true };
             var bosses = new EnemyType[10];
             int beatenN = 0, next = 9;
             for (int i = 9; i >= 0; i--)
