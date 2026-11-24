@@ -79,8 +79,11 @@ namespace Arena
                 return;  // flickers for its last 1.5 s
             float pulse = 1f + 0.12f * Mathf.Sin(t * 6f + o.Id);
             float r = o.Radius * pulse;
-            V2 at = o.Disp + new V2(0f, 2.5f * Mathf.Sin(t * 3f + o.Id));
+            float bob = 2.5f * Mathf.Sin(t * 3f + o.Id);
+            V2 at = o.Disp + new V2(0f, bob);
+            PickupShadow(o.Disp, o.Radius, 2.5f - bob);  // CoinLook.cs
             Circle(at, r * 2.4f, KitGreen.WithAlpha(0.16f), 20);
+            NeonRing(at, r + 2.5f, KitGreen);
             Circle(at, r, KitGreen, 16);
             Arc(at, r + 1.5f, 1.5f, Rgba.White.WithAlpha(0.8f), 16);
             Line(at - new V2(r * 0.6f, 0f), at + new V2(r * 0.6f, 0f), 2.5f, Rgba.White);
