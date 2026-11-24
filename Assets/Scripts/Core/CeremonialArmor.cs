@@ -91,8 +91,7 @@ namespace Arena
                 {
                     if (e.SpawnT > 0f || e.Pos.FartherThan(at, CereHitR + e.Radius) || e.KnockLeft.Length > 1f)
                         continue;
-                    V2 away = (e.Pos - p.Pos).Normalized();
-                    KnockEnemy(e, (away.IsZero ? V2.FromAngle(0f) : away) * CereKnock);
+                    ShoveFrom(e, p.Pos, CereKnock, V2.FromAngle(0f));
                 }
                 if (p.PlateHp[i] <= 0f)
                 {

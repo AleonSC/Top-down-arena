@@ -129,8 +129,7 @@ namespace Arena
             {
                 if (e.SpawnT > 0f || Heavy(e) || e.Pos.FartherThan(center, range + e.Radius))
                     continue;
-                V2 away = (e.Pos - center).Normalized();
-                KnockEnemy(e, (away.IsZero ? RandDir() : away) * push);  // slides (Knock.cs)
+                ShoveFrom(e, center, push);  // slides (Knock.cs)
                 if (slowTime > 0f)
                 {
                     Slow(e, slowTime, 0.5f);

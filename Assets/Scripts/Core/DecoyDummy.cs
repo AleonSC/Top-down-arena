@@ -95,8 +95,7 @@ namespace Arena
                 Stun(e, DecoyStun);
                 if (!Heavy(e))
                 {
-                    V2 away = (e.Pos - z.Pos).Normalized();
-                    KnockEnemy(e, (away.IsZero ? V2.FromAngle(z.Aim) : away) * DecoyShove);  // slides (Knock.cs)
+                    ShoveFrom(e, z.Pos, DecoyShove, V2.FromAngle(z.Aim));  // slides (Knock.cs)
                 }
             }
             BroadcastFx(FxKind.DecoyPop, z.Pos, z.Pos + V2.FromAngle(z.Aim), Kits.Get(ZoneKind.DecoyDummy).Color, reach, 1.1f, Sfx.None);  // (its pop plays on each screen)

@@ -26,7 +26,6 @@ namespace Arena
         public static float End(bool up) => up ? End2 : End1;
         public static float Total(bool up) => End(up) + Follow + Recover;
 
-        static float Lerp(float a, float b, float t) => a + (b - a) * t;
         static float C01(float v) => v < 0f ? 0f : (v > 1f ? 1f : v);
         static float Eo(float t) { t = 1f - C01(t); return 1f - t * t * t; }
         static float Eio(float t) { t = C01(t); return t < 0.5f ? 2f * t * t : 1f - (float)Math.Pow(-2f * t + 2f, 2) / 2f; }
@@ -50,32 +49,32 @@ namespace Arena
             if (c < Start1)
             {
                 float u = Eio(c / Pull);
-                o.A = Lerp(RestA, WindA, u); o.K = Lerp(RestK, CoilK, u); o.Lift = Lerp(0.5f, 1f, u);
+                o.A = MathX.Lerp(RestA, WindA, u); o.K = MathX.Lerp(RestK, CoilK, u); o.Lift = MathX.Lerp(0.5f, 1f, u);
             }
             else if (c < End1)
             {
                 float s = c - Start1, u = s / SweepTime;
-                o.A = PassAngle(s, WindA, -Sweep, 1f); o.K = Lerp(CoilK, 1f, Eo(u / 0.28f)); o.Lift = Lerp(1f, 0.25f, Eio(u / 0.6f)); o.Pass = 1;
+                o.A = PassAngle(s, WindA, -Sweep, 1f); o.K = MathX.Lerp(CoilK, 1f, Eo(u / 0.28f)); o.Lift = MathX.Lerp(1f, 0.25f, Eio(u / 0.6f)); o.Pass = 1;
             }
             else if (up && c < Start2)
             {
                 float u = (c - End1) / Gap;
-                o.A = Sweep + Over * Eo(u / 0.6f); o.K = Lerp(1f, 0.97f, u); o.Roll = MathX.Pi * Eio(u); o.Lift = Lerp(0.25f, 0.5f, u);
+                o.A = Sweep + Over * Eo(u / 0.6f); o.K = MathX.Lerp(1f, 0.97f, u); o.Roll = MathX.Pi * Eio(u); o.Lift = MathX.Lerp(0.25f, 0.5f, u);
             }
             else if (up && c < End2)
             {
                 float s = c - Start2, u = s / SweepTime;
-                o.A = PassAngle(s, Sweep + Over, Sweep, -1f); o.K = 0.97f; o.Roll = MathX.Pi; o.Lift = Lerp(0.5f, 0.25f, Eio(u / 0.4f)); o.Pass = 2;
+                o.A = PassAngle(s, Sweep + Over, Sweep, -1f); o.K = 0.97f; o.Roll = MathX.Pi; o.Lift = MathX.Lerp(0.5f, 0.25f, Eio(u / 0.4f)); o.Pass = 2;
             }
             else if (c < end + Follow)
             {
                 float u = (c - end) / Follow, dir = up ? -1f : 1f, a0 = up ? -Sweep : Sweep;
-                o.A = a0 + dir * FollowA * Eo(u); o.K = Lerp(up ? 0.97f : 1f, 0.9f, u); o.Roll = up ? MathX.Pi : 0f; o.Lift = Lerp(0.25f, 0.45f, u);
+                o.A = a0 + dir * FollowA * Eo(u); o.K = MathX.Lerp(up ? 0.97f : 1f, 0.9f, u); o.Roll = up ? MathX.Pi : 0f; o.Lift = MathX.Lerp(0.25f, 0.45f, u);
             }
             else
             {
                 float u = Eio((c - end - Follow) / Recover), dir = up ? -1f : 1f, a0 = (up ? -Sweep : Sweep) + dir * FollowA;
-                o.A = Lerp(a0, RestA, u); o.K = Lerp(0.9f, RestK, u); o.Roll = up ? MathX.Pi * (1f + u) : 0f; o.Lift = Lerp(0.45f, 0.5f, u);
+                o.A = MathX.Lerp(a0, RestA, u); o.K = MathX.Lerp(0.9f, RestK, u); o.Roll = up ? MathX.Pi * (1f + u) : 0f; o.Lift = MathX.Lerp(0.45f, 0.5f, u);
             }
             return o;
         }

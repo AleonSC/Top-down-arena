@@ -539,14 +539,12 @@ namespace Arena
                 }
                 else if (knock > 0f && !Heavy(e))
                 {
-                    V2 away = (e.Pos - (circle && p.Weapon.Id == WeaponId.Warhammer ? circleAt : origin)).Normalized();  // the Warhammer's shockwave spreads from the slam's centre
-                    KnockEnemy(e, (away.IsZero ? dir : away) * knock);  // slides (Knock.cs)
+                    ShoveFrom(e, circle && p.Weapon.Id == WeaponId.Warhammer ? circleAt : origin, knock, dir);  // the Warhammer's shockwave spreads from the slam's centre  // slides (Knock.cs)
                 }
                 else if (knock < 0f && !Heavy(e))  // pulled in (Kusarigama), but never into you
                 {
-                    V2 away = (e.Pos - origin).Normalized();
                     float d = Math.Max(e.Pos.DistanceTo(origin) + knock, e.Radius + p.Def.BodyR + 4f);
-                    e.Pos = ClampToArena(origin + (away.IsZero ? dir : away) * d, e.Radius);
+                    e.Pos = ClampToArena(origin + AwayFrom(e.Pos, origin, dir) * d, e.Radius);
                 }
                 if (s.HealPerHit > 0f && healed < s.HealHits)
                 {

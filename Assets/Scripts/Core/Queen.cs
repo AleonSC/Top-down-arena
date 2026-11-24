@@ -699,7 +699,7 @@ namespace Arena
                 c.Hit = true;
                 sealedAny = true;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && InHexCell(HiveCells[c.Index], p.Pos, HiveCell - 4f))
+                    if (Hittable(p) && InHexCell(HiveCells[c.Index], p.Pos, HiveCell - 4f))
                         Damage(p, CellDamage, "Hive Queen (cells)");
             }
             if (sealedAny)
@@ -735,7 +735,7 @@ namespace Arena
             {
                 V2 b = BeePos(i, q.Cloud, q.TurnT, false);
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(b, BeeRadius + p.Def.HitR))
+                    if (Hittable(p) && p.Pos.CloserThan(b, BeeRadius + p.Def.HitR))
                         Damage(p, BeeDamage, "Hive Queen (swarm)");
             }
         }
@@ -767,7 +767,7 @@ namespace Arena
                 q.Landed = true;
                 e.Pos = q.Shadow;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(e.Pos, DiveRadius + p.Def.HitR))
+                    if (Hittable(p) && p.Pos.CloserThan(e.Pos, DiveRadius + p.Def.HitR))
                         Damage(p, DiveDamage, "Hive Queen (dive)");
                 e.Ang += 0.17f;
                 for (int i = 0; i < 18; i++)

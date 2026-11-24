@@ -206,7 +206,7 @@ namespace Arena
                 }
                 float dmg = 25f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(h.Pos, h.Radius))
+                    if (Hittable(p) && p.Pos.CloserThan(h.Pos, h.Radius))
                         Damage(p, dmg, "Storm Herald (lightning)");
                 var color = new Rgba(0.7f, 0.85f, 1f);
                 BroadcastFx(FxKind.Bolt, new V2(h.Pos.X + Rand(-60f, 60f), -20f), h.Pos, color, 0f, 0.25f, Sfx.SpellZap);

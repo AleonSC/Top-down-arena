@@ -647,7 +647,7 @@ namespace Arena
                     HeroDummyContact(e, contact);  // the Dev Arena's hero dummies (DevArena.cs)
                 foreach (var p in Players.Values)
                 {
-                    if (p.Downed || p.InvulnT > 0f || p.SwallowT > 0f || p.MeleeGraceT > 0f)
+                    if (!Hittable(p) || p.SwallowT > 0f || p.MeleeGraceT > 0f)
                         continue;
                     if ((p.ParryActive || p.BbBrace) && p.Pos.CloserThan(e.Pos, e.Radius + p.Def.BodyR + ParryReach) && ParryContact(p, e, contact))
                         continue;
@@ -839,7 +839,7 @@ namespace Arena
         {
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.InvulnT > 0f || p.Pos.FartherThan(e.Pos, BomberBlast + p.Def.HitR))
+                if (!Hittable(p) || p.Pos.FartherThan(e.Pos, BomberBlast + p.Def.HitR))
                     continue;
                 if ((p.ParryActive || p.BbBrace) && ParryContact(p, e, BomberDamage))
                     continue;  // a raised guard facing the blast takes it

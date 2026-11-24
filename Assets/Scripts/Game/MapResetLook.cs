@@ -22,7 +22,7 @@ namespace Arena
             var c = Game.ArenaMid;
             foreach (var r in game.FoldRooms)
             {
-                V2 a = Lerp(new V2(r.X, r.Y), c, pull), b = Lerp(new V2(r.X1, r.Y1), c, pull);
+                V2 a = V2.Lerp(new V2(r.X, r.Y), c, pull), b = V2.Lerp(new V2(r.X1, r.Y1), c, pull);
                 FillRect(a.X, a.Y, b.X - a.X, b.Y - a.Y, FoldInk.WithAlpha(0.08f * fade));
                 var ink = FoldInk.WithAlpha(0.85f * fade);
                 Line(a, new V2(b.X, a.Y), 3.5f, ink);
@@ -52,7 +52,6 @@ namespace Arena
             }
         }
 
-        static V2 Lerp(V2 a, V2 b, float t) => a + (b - a) * t;
 
         /// The kept room's box (area i) is part of the room the team kept.
         bool IsKept(int area)

@@ -276,8 +276,7 @@ namespace Arena
                     HurtEnemy(e, r.Dmg, p.Id);
                     if (!Heavy(e))
                     {
-                        V2 away = (e.Pos - r.From).Normalized();
-                        KnockEnemy(e, (away.IsZero ? V2.FromAngle(r.Aim) : away) * TideKnock);
+                        ShoveFrom(e, r.From, TideKnock, V2.FromAngle(r.Aim));
                     }
                     StackBlast(p, e, r.Press);
                 }
