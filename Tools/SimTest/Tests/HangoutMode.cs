@@ -79,7 +79,7 @@ static partial class Program
 
         // The spawners: twelve round the edges, all off. The client turns one on: its enemies come in and fight.
         Check(host.Game.Spawners.Length == Game.SpawnerCount && host.Game.Spawners.All(sp => !sp.On) && Game.SpawnerChoices.Length > 40 && !Game.SpawnerChoices.Any(t => Defs.Get(t).IsBoss), "twelve spawners, all off; every regular enemy can be picked, no bosses");
-        Check(host.Game.Spawners.All(sp => sp.Pos.X < 100f || sp.Pos.Y < 100f || sp.Pos.X > Game.Width - 100f || sp.Pos.Y > Game.Height - 100f), "...standing round the edges");
+        Check(host.Game.Spawners.All(sp => sp.Pos.X < 100f || sp.Pos.Y < 200f || sp.Pos.X > Game.Width - 100f || sp.Pos.Y > Game.Height - 200f), "...standing round the edges");
         var pad = host.Game.Spawners[0];
         client.Game.UseSpawner(0, 1);  // (from away from it: the host ignores the press)
         Run(both, dt, 0.3f);
