@@ -12,7 +12,7 @@ namespace Arena
     public enum KeyAction
     {
         MoveUp, MoveDown, MoveLeft, MoveRight, Dodge, Ability1, Ultimate, Ability2, Ability3, Ability4, Fire, Parry, WeaponAction,
-        Interact, DiscardItem, Gadget, PushWall, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp, OpenDoors, Map, GadgetWheel,
+        Interact, DiscardItem, Gadget, PushWall, Reroll, AimLine, ToggleHud, Mute, Emote, Ping, ReadyUp, OpenDoors, Map, GadgetWheel, Wiki,
     }
 
     public static class Keybinds
@@ -23,12 +23,12 @@ namespace Arena
         {
             KeyCode.W, KeyCode.S, KeyCode.A, KeyCode.D, KeyCode.LeftControl, KeyCode.Alpha1, KeyCode.Q, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4,
             KeyCode.Mouse0, KeyCode.Mouse1, KeyCode.LeftAlt,
-            KeyCode.F, KeyCode.B, KeyCode.X, KeyCode.None, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.None, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z, KeyCode.M, KeyCode.C,
+            KeyCode.F, KeyCode.B, KeyCode.X, KeyCode.None, KeyCode.R, KeyCode.V, KeyCode.H, KeyCode.None, KeyCode.T, KeyCode.Mouse2, KeyCode.Y, KeyCode.Z, KeyCode.M, KeyCode.C, KeyCode.I,
         };
         static readonly string[] Titles =
         {
             "Move up", "Move down", "Move left", "Move right", "Dodge", "1st ability", "Ultimate", "2nd ability", "3rd ability",
-            "4th ability", "Fire", "Parry", "Alternative fire", "Interact", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave", "Open a door", "Map", "Gadget wheel",
+            "4th ability", "Fire", "Parry", "Alternative fire", "Interact", "Discard chest item", "Use gadget", "Push wall", "Reroll upgrades", "Aim line on / off", "Hide / show the HUD", "Mute sound", "Emotes", "Ping", "Ready for the next wave", "Open a door", "Map", "Gadget wheel", "Wiki",
         };
         static readonly string[] Lines =
         {
@@ -40,6 +40,7 @@ namespace Arena
             "Take a chest item, open a mystery door, shut a gate, open the shop again in a shop room", "While standing on it", "Tap: use your gadget (switch it on or off, cast it, lob a charge). Hold and let go: throw it to a teammate where you aim", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once (no key until you give it one)", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)", "Between waves (Expanding arena): open the door picker",
             "Cycles the minimap, the full map and no map",
             "Hold to open the gadget wheel: let go on a gadget to swap it into your hand, in the middle to cancel",
+            "Tap: look anything up. Hold and click something on screen (an enemy, a card, a name) to open its page",
         };
         /// The groups on the Keybinds page: heading and the actions in each, in page order (every action in exactly one, except PushWall
         /// (retired with wall push, Nov 18; no key, its C went to the Gadget wheel) and OpenDoors (door picker removed): both kept so saved keys keep their slots).
@@ -50,7 +51,7 @@ namespace Arena
             new[] { KeyAction.Ability1, KeyAction.Ultimate, KeyAction.Ability2, KeyAction.Ability3, KeyAction.Ability4 },
             new[] { KeyAction.Fire, KeyAction.Parry, KeyAction.WeaponAction },
             new[] { KeyAction.Interact, KeyAction.DiscardItem, KeyAction.Gadget, KeyAction.GadgetWheel, KeyAction.Reroll },
-            new[] { KeyAction.AimLine, KeyAction.ToggleHud, KeyAction.Map, KeyAction.Mute, KeyAction.Emote, KeyAction.Ping, KeyAction.ReadyUp },
+            new[] { KeyAction.AimLine, KeyAction.ToggleHud, KeyAction.Map, KeyAction.Mute, KeyAction.Emote, KeyAction.Ping, KeyAction.ReadyUp, KeyAction.Wiki },
         };
 
         static readonly KeyCode[] keys = (KeyCode[])Defaults.Clone();

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The main menu's case (design B of Docs/Mockups/main-menu-machines.html, its entrance from Docs/Mockups/disk-boot-sequence.html): a
-    /// graphite case in a neon outline under the monitor, with Play, Join game, Settings and Quit as keycaps down its left, a bay in the
+    /// graphite case in a neon outline under the monitor, with Play, Join game and Wiki as keycaps down its left, a bay in the
     /// middle behind a ribbed roller shutter, your profile on a small screen at the right (click it for your profile) over a grille and the
     /// POWER and DISK lights. Play rolls the shutter up onto your saved runs (Continue, delete, New run); Join game onto the host address
     /// and Connect; Settings onto the settings (BaySettings.cs); pressing the key again (or Esc) rolls it back down.
@@ -15,7 +15,11 @@ namespace Arena
         static readonly Rect CaseRect = new Rect(W / 2f - 490f, 256f, 980f, 440f);
         const float CaseClipTop = 238f;   // the case shows only below the monitor's bottom edge, so it falls out from under it
         static readonly Rect PlayKeyRect = new Rect(184f, 290f, 210f, 70f), JoinKeyRect = new Rect(184f, 380f, 210f, 52f);
-        static readonly Rect SettingsKeyRect = new Rect(184f, 450f, 210f, 52f), QuitKeyRect = new Rect(184f, 622f, 210f, 40f);
+        static readonly Rect WikiKeyRect = new Rect(184f, 450f, 210f, 52f);
+        // Under the profile screen, a recessed control strip: Settings (a cog), the POWER / DISK lights, Quit (a power button); then the
+        // grille, level with the left one.
+        static readonly Rect StripRect = new Rect(886f, 456f, 214f, 40f);
+        static readonly Rect SettingsKeyRect = new Rect(892f, 462f, 28f, 28f), QuitKeyRect = new Rect(1066f, 462f, 28f, 28f);
         static readonly Rect BayRect = new Rect(424f, 288f, 432f, 376f);
         static readonly Rect ProfScreenRect = new Rect(886f, 290f, 214f, 150f);
         const float MachEnd = 4.8f;       // the boot sequence's length; past it the menu is settled
@@ -66,15 +70,13 @@ namespace Arena
             Metal(CaseRect, 12);
             NeonBox(CaseRect, 1f, hit, 12);
             DrawCaseKeys(T, power, live);
-            HVent(new Rect(184f, 524f, 210f, 76f));
+            HVent(new Rect(184f, 524f, 210f, 138f));
             DrawBay(T, live, t);
             DrawProfScreen(T, power, live, t);
-            HVent(new Rect(886f, 466f, 214f, 120f));
+            HVent(new Rect(886f, 524f, 214f, 138f));
             bool pw = T >= 3.75f && power > 0.5f, dk = T >= 3.85f && power > 0.5f;
-            Led(892f, 632f, LampGreen, pw);
-            ChinText(new Rect(906f, 627f, 60f, 16f), "POWER", 10, ChinInk);
-            Led(972f, 632f, LampAmber, dk);
-            ChinText(new Rect(986f, 627f, 60f, 16f), "DISK", 10, ChinInk);
+            DrawStrip(pw, dk);
+            DrawRoundKeys(T, power, live);
             GUI.matrix = oldM;
             GUI.EndGroup();
             GUI.EndGroup();
@@ -90,13 +92,12 @@ namespace Arena
             return on > 4f && T >= 4.25f ? settled : 1;
         }
 
-        /// Play, Join game, Settings and Quit down the case's left.
+        /// Play, Join game and Wiki down the case's left.
         void DrawCaseKeys(float T, float power, bool live)
         {
             bool on = power > 0.5f;
             int playLamp = on ? BootLamp(T, 3.95f, 1) : 0;
             int joinLamp = on ? BootLamp(T, 4.05f, menuJoinOpen ? 1 : 0) : 0;
-            int setLamp = on ? BootLamp(T, 4.15f, menuSetOpen ? 1 : 0) : 0;
             if (MachKey(PlayKeyRect, "PLAY", 20, live, playLamp, null, true))
             {
                 MenuSound(Sfx.MenuPlay);
@@ -112,14 +113,48 @@ namespace Arena
                 MenuSound(Sfx.MenuKey);
                 menuJoinOpen = !menuJoinOpen;
                 if (menuJoinOpen)
-                    menuPlayOpen = menuSetOpen = false;
+                    menuPlayOpen = menuSetOpen = menuWikiOpen = false;
             }
-            if (MachKey(SettingsKeyRect, "SETTINGS", 15, live, setLamp))
+            int wikiLamp = on ? BootLamp(T, 4.15f, menuWikiOpen ? 1 : 0) : 0;
+            if (MachKey(WikiKeyRect, "WIKI", 15, live, wikiLamp))
+            {
+                MenuSound(Sfx.MenuKey);
+                ToggleMenuWiki();  // BayWiki.cs: the wiki on the bay's screen
+            }
+        }
+
+        /// The control strip under the profile screen: a dark recessed plate with a divider in from each end, and between them the POWER
+        /// and DISK lights, each over its small label (the keys are drawn over it by DrawRoundKeys).
+        static void DrawStrip(bool pw, bool dk)
+        {
+            var r = StripRect;
+            Ui.RoundBox(new Rect(r.x, r.y + 1f, r.width, r.height), new Color(1f, 1f, 1f, 0.07f), 9);  // the lit lip under the recess
+            Ui.RoundBox(r, new Color(0.035f, 0.038f, 0.047f), 9);
+            Ui.RoundBox(new Rect(r.x + 1f, r.y + 2f, r.width - 2f, r.height - 3f), new Color(0.071f, 0.075f, 0.09f), 8);
+            foreach (float x in new[] { 928f, 1057f })
+            {
+                Ui.Fill(new Rect(x, r.y + 9f, 1f, r.height - 18f), new Color(0f, 0f, 0f, 0.55f));
+                Ui.Fill(new Rect(x + 1f, r.y + 9f, 1f, r.height - 18f), new Color(1f, 1f, 1f, 0.06f));
+            }
+            StripLight(966f, "POWER", LampGreen, pw);
+            StripLight(1020f, "DISK", LampAmber, dk);
+        }
+
+        static void StripLight(float cx, string label, Color c, bool on)
+        {
+            Led(cx - 3.5f, StripRect.y + 9f, c, on, 7f);
+            Ui.Label(new Rect(cx - 30f, StripRect.y + 20f, 60f, 12f), label, 8, ChinInk.WithAlpha(0.85f), TextAnchor.MiddleCenter, true);
+        }
+
+        /// Settings (a cog) and Quit (a power button) at the control strip's ends: small, flat and unlit.
+        void DrawRoundKeys(float T, float power, bool live)
+        {
+            if (FlatRoundKey(SettingsKeyRect, PixelArt.Get("ui_gear"), live))
             {
                 MenuSound(Sfx.MenuKey);
                 ToggleMenuSettings();  // BaySettings.cs: Settings on the bay's screen
             }
-            if (MachKey(QuitKeyRect, "QUIT", 13, live))
+            if (FlatRoundKey(QuitKeyRect, PixelArt.Get("ui_power"), live))
                 QuitWithSound();  // MenuHolo.cs: the tube switching off, then quit
         }
 
@@ -133,7 +168,7 @@ namespace Arena
             Ui.RoundBox(b, new Color(0.039f, 0.043f, 0.055f), 6);
             if (live && Event.current.type == EventType.Repaint)
             {
-                float target = menuPlayOpen || menuJoinOpen || menuSetOpen ? 1f : 0f;
+                float target = menuPlayOpen || menuJoinOpen || menuSetOpen || menuWikiOpen ? 1f : 0f;
                 float before = menuPlayK;
                 menuPlayK = fxOn && !fxReduced ? Mathf.MoveTowards(menuPlayK, target, Time.unscaledDeltaTime / MenuPlayLen) : target;
                 if (before == 0f && menuPlayK > 0f)
@@ -149,6 +184,8 @@ namespace Arena
                 bool screenLive = live && menuPlayK >= 1f;
                 if (menuSetOpen)
                     DrawBaySettings(MenuCard, screenLive);
+                else if (menuWikiOpen)
+                    DrawBayWiki(MenuCard, screenLive);
                 else if (menuJoinOpen)
                     DrawBayJoin(MenuCard, screenLive);
                 else

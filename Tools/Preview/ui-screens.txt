@@ -77,3 +77,14 @@ shop              shop
 gameover          gameover
 victory           victory
 pickheld hud PICKHELD=1
+
+# Wiki (main menu, BayWiki.cs)
+menu-wiki         menu      WIKI=
+menu-wiki-search  menu      WIKI=rev
+menu-wiki-page    menu      WIKI= WIKIPAGE=Revolver
+wiki-run          hud       WIKISCREEN=rev
+wiki-lobby        lobby     WIKISCREEN=,Revolver
+wiki-pick         hud       WIKIPICK=596,682
+wiki-pick-enemy   hud       WIKIPICK=450,333
+wiki-pick-crate   hud       WIKIPICK=240,135
+wiki-status       menu      WIKI= WIKIPAGE=Burning

@@ -1,0 +1,77 @@
+namespace Arena
+{
+    /// The wiki's mechanics (WikiKind.Mechanic): the things players meet that have no table of their own, in Docs/Glossary.md's words.
+    /// Add a line here when a new mechanic gets a name players see; the wiki suite checks each has text.
+    public static class WikiTopics
+    {
+        public struct Topic
+        {
+            public string Name, Text;
+            public Topic(string name, string text) { Name = name; Text = text; }
+        }
+
+        public static readonly Topic[] All =
+        {
+            new Topic("Alternative fire", "A weapon's secondary attack (\"Alt\" for short), on its own key: right after Fire on the Keybinds page."),
+            new Topic("1st ability", "Picked in the lobby: 3 choices per role and class, sometimes a 4th choice."),
+            new Topic("2nd, 3rd and 4th abilities", "Filled by very rare upgrade cards during a run."),
+            new Topic("Dodge", "A tiny dash with a moment of invulnerability; double tap a movement key does it too."),
+            new Topic("Parry", "Hold for the shield toward your cursor (right click by default)."),
+            new Topic("Interact", "The one \"use what you stand by\" key (F by default): take a chest item, open a mystery door, shut a gate, open a room shop again."),
+            new Topic("Level", "Your XP level in a run: each level-up brings upgrade cards, and every 10 levels a milestone card."),
+            new Topic("Rank", "Your profile's progress across runs; rank rewards unlock cosmetics (frames, trails, backgrounds, cursors...)."),
+            new Topic("Mastery", "An ability's 1-5 rank from using it; mastery 5 unlocks its capstone."),
+            new Topic("Expertise", "A class's 0-10 level from the XP of runs played as it (account-wide, cosmetic); it unlocks the class's weapon skins."),
+            new Topic("Companion", "The minion your weapon keeps (Golem, wolves, the Nimbus...)."),
+            new Topic("Thrall", "An enemy chained to you by Force Pact: it fights near you, and comes back after it falls."),
+            new Topic("Wound", "20% of every hit you take is a wound: it can't be healed back. Wounds carry across waves but never take more than 30% of your max health; they clear when a boss falls, at a health shrine, with the Medic's heal or at a Boss Hunt Rest."),
+            new Topic("Elite", "From wave 12 any enemy can spawn with a gold ring: 2.5x health, bigger, worth 3x XP, always drops an orb, and a trait shown over it (two traits from wave 35)."),
+            new Topic("Health shrine", "A map node a room claims; one use per player: full health plus health past max."),
+            new Topic("Vectors", "Every player's building budget in the Expanding arena: pieces are free; vectors pay for gates, mystery doors and the Builder Shop's cards."),
+            new Topic("Pit", "A void in a cell's floor: enemies shoved in die, players lose 15% health and climb out."),
+            new Topic("Boss phase", "One part of a boss fight; a phase change moves to the next."),
+            new Topic("Downed", "At 0 health you go down; a teammate can revive you, and a Defib Kit stands you up."),
+        };
+
+        /// Status effects on enemies (Enemy's timers in Entities.cs; the replicated flags are what the eyedropper's tag lists).
+        public static readonly Topic[] Statuses =
+        {
+            new Topic("Slowed", "Moves slower for a while. Only the strongest slow counts; the next-strongest takes over when it ends. Heavy enemies and bosses are too heavy to slow down."),
+            new Topic("Burning", "On fire (the Flamethrower, Incendiary Rounds, burning ground): takes damage every second until it burns out."),
+            new Topic("Bleeding", "The shared bleed (claws, Sanguine Orb, Blood Bolts, Vein Rush, Arterial Spray): damage over time. Bleed stacks go up to five from any source; a Blood Bolt that fills them bursts it."),
+            new Topic("Chilled", "Slowed by frost but not frozen. Frost Lance chill builds up to two; a third freezes it."),
+            new Topic("Frozen", "Encased in ice (Glacial Tomb, a third Frost Lance chill): can't move or shoot."),
+            new Topic("Wet", "Soaked by Tsunami: slowed, and lightning arcs to it."),
+            new Topic("Stunned", "Held in place, with stars over its head: can't move or shoot until it wears off."),
+            new Topic("Dazed", "Dazed by a close-in hit: can't attack for a moment, then can't be dazed again for a while."),
+            new Topic("Caged", "Caged by a third Bone Guard dart: can't move or shoot."),
+            new Topic("Marked", "Mark for Death: takes extra damage while the mark lasts."),
+            new Topic("Poisoned", "Medicine Darts' poison: damage over time that stacks."),
+            new Topic("Venom", "Poison Dart's venom: damage over time that spreads to enemies nearby when it dies."),
+            new Topic("Suppressed", "The Riot Repeater's suppression: it shoots slower while it lasts."),
+        };
+
+        /// Things standing in the arena (Props.cs): props by PropKind, chests by ChestKind (Kind is the PropKind or, for a chest, the
+        /// ChestKind; Chest says which).
+        public struct Thing
+        {
+            public string Name, Text;
+            public bool Chest;
+            public int Kind;
+            public Thing(string name, bool chest, int kind, string text) { Name = name; Chest = chest; Kind = kind; Text = text; }
+        }
+
+        public static readonly Thing[] Things =
+        {
+            new Thing("Crate", false, (int)PropKind.Crate, "Cover: enemy shots stop at it and wear it down; your shots fly over it. Solid to walk into."),
+            new Thing("Heavy crate", false, (int)PropKind.HeavyCrate, "A crate that takes twice the hits: cover from enemy shots, solid to walk into."),
+            new Thing("Barrel", false, (int)PropKind.Barrel, "Rare. Any shot sets it fizzing; 0.4 s later it blows up, hurting enemies (a lot) and players (a little), smashing crates and setting off other barrels."),
+            new Thing("Health barrel", false, (int)PropKind.HealthBarrel, "Boss fights only: a green barrel with a white cross drops in now and then; shoot it or walk into it and it breaks into health orbs."),
+            new Thing("Upgrade chest", true, (int)ChestKind.Upgrade, "A wave's rare treasure: touch it to open it, and every player gets their own item (an upgrade card or a legendary) that only they can see. Walk onto it, then take it (Interact) or discard it. The wave waits for both."),
+            new Thing("Gold chest", true, (int)ChestKind.Gold, "An Expanding arena chest: a burst of coins."),
+            new Thing("Piece chest", true, (int)ChestKind.Piece, "The orange chest that gives every player a piece card."),
+            new Thing("Buildables chest", true, (int)ChestKind.Buildable, "An Expanding arena chest: one Black Market buildable each."),
+            new Thing("Gadget chest", true, (int)ChestKind.Gadget, "The red chest that gives every player a gadget."),
+        };
+    }
+}

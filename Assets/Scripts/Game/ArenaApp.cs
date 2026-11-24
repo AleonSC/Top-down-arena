@@ -241,6 +241,7 @@ namespace Arena
             TickFrameSystems();
             var me = game.Me;
             bool tabKey = UpdatePauseStates(me);
+            UpdateWikiKey();  // the Wiki key: tap for the wiki, hold for the eyedropper (WikiPick.cs)
             bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused) || ModalScreenOpen;
             bool choosing = me != null && me.Offer != null && !menuUp && !game.PickHeld(me);  // (cards held back while enemies are near: Game.PickHeld)
             UpdatePointerAndBlocking(me, tabKey, menuUp, choosing);
@@ -345,7 +346,7 @@ namespace Arena
             bool watching = LabRunning && !lab.Seats[0].Human;  // Boss Lab with only bots: the mouse is just for the panel
             bool pathChoice = session.Screen == AppScreen.Game && (game.PathOffer != null || game.HuntMapVoting || ExpandWindowUp);
             bool shopping = session.Screen == AppScreen.Game && ShopScreenUp(me);  // the Bazaar's shop covers the arena (ShopUi.cs)
-            bool overlay = menuUp || choosing || tabHeld || pathChoice || shopping || game.State == MatchState.GameOver || game.State == MatchState.Victory || watching || MouseOnLab() || MouseOnDock() || WaveBoxShown(me) || MouseOnWcStrip(me) || MouseOnBuilderShop(me);  // (the Builder Shop's shelf, BuilderShopUi.cs; the Wave cleared box has buttons: a click on Ready must not fire, ping or emote)
+            bool overlay = menuUp || wikiPicking || choosing || tabHeld || pathChoice || shopping || game.State == MatchState.GameOver || game.State == MatchState.Victory || watching || MouseOnLab() || MouseOnDock() || WaveBoxShown(me) || MouseOnWcStrip(me) || MouseOnBuilderShop(me);  // (the Builder Shop's shelf, BuilderShopUi.cs; the Wave cleared box has buttons: a click on Ready must not fire, ping or emote)
             if (!(session.Screen == AppScreen.Lobby && lobbyTab == HangoutTab))  // (the Hangout ticks its own, in OnGUI)
                 TickEmoteBar(session.Screen == AppScreen.Game && me != null && !me.Downed && !overlay);  // EmoteBar.cs: while it's open a click picks an emote
             TickPing(session.Screen == AppScreen.Game && me != null && !me.Downed && !overlay && !emoteBarOpen);  // PingLooks.cs: tap to ping, hold for the wheel
@@ -366,7 +367,7 @@ namespace Arena
             fireBlocked = overlay || fireOnMenu || emoteBarOpen || pingWheelOpen || gadgetWheelOpen;
             parryBlocked = overlay || parryOnMenu;
             bool inMenus = session.Screen != AppScreen.Game;
-            bool overlayPointer = choosing || menuUp || tabHeld || pathChoice || shopping || watching || MouseOnLab() || MouseOnDock() || WaveBoxShown(me) || MouseOnWcStrip(me) || MouseOnBuilderShop(me)
+            bool overlayPointer = choosing || menuUp || wikiPicking || tabHeld || pathChoice || shopping || watching || MouseOnLab() || MouseOnDock() || WaveBoxShown(me) || MouseOnWcStrip(me) || MouseOnBuilderShop(me)
                 || game.State == MatchState.GameOver || game.State == MatchState.Victory;  // the end screen and rank report need the pointer
             // The system pointer is always hidden: wherever a pointer is wanted we draw the Corner pointer of your cursor look, and it
             // morphs into the crosshair when the run takes over (CursorLooks.cs).
@@ -577,6 +578,10 @@ namespace Arena
                 else if (menuSetOpen && session.Screen == AppScreen.Menu && MenuSettingsEsc())
                 {
                     // the bay's settings: back to the tiles, or the shutter down (BaySettings.cs)
+                }
+                else if (menuWikiOpen && session.Screen == AppScreen.Menu && MenuWikiEsc())
+                {
+                    // the bay's wiki: back a page, or the shutter down (BayWiki.cs)
                 }
                 else if ((menuPlayOpen || menuJoinOpen) && session.Screen == AppScreen.Menu && GUIUtility.keyboardControl == 0)
                     PlayPickerBack();  // the case's bay: the shutter rolls back down (SavesUi.cs, MenuMachine.cs)
@@ -804,6 +809,7 @@ namespace Arena
             if (Event.current.type == EventType.MouseDown)
                 Ui.ForgetPress();
             TextEditBeginGui();
+            WikiPickBeginGui();  // the Wiki key held: a click opens what's under the pointer (WikiPick.cs)
             Ui.BeginHoverFrame();
             bool modal = ModalScreenOpen || textEditOpen;
             bool dockOwns = DockOwnsEvent();  // the F1 dock is drawn last but its clicks come first: the screen under it doesn't see them (DevDock.cs)
@@ -892,6 +898,7 @@ namespace Arena
             {
                 DrawScreens();  // the top tool screen: F1 menu or Boss Lab setup (UiScreens.cs)
             }
+            DrawWikiPickTag();  // the eyedropper's tag by the pointer (WikiPick.cs)
             TextEditEndGui();
             DrawCabEdges();  // the cabinet menus' soft edges, over them (CrtWindows.cs)
             DrawSkipStatic();  // an intro just skipped: the channel flip over everything (SkipStatic.cs)

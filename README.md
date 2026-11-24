@@ -1576,6 +1576,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 | Interact: take your chest item (standing on it; B discards it), open a mystery door, shut a gate, open a room shop again | F |
 | Gadget: tap to switch on / off, hold and let go to throw it where you aim | X |
 | Gadget wheel: hold to open, let go on a gadget to swap it into your hand | C |
+| Wiki: tap to look anything up (pauses a solo run; in co-op only on your screen); hold and click anything on screen (text, an enemy, a player) to open its page | I |
 | 2nd, 3rd and 4th abilities | 2, 3 and 4 (changeable; once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |
@@ -1987,18 +1988,32 @@ their sides in 0.22 s. With Reduced effects they slide in and out with no trails
 - **The main menu** is a machine (`Docs/Mockups/main-menu-machines.html`, design B): at the top the **monitor**, a graphite case with
   the title on its CRT glass in a neon outline (each letter flips into place as it's typed; a blinking cursor after it) and a chin with
   ARENA CRT-14, two grilles, a power light and the **floppy drive** (READY in green with your profile's name) with its **eject key**
-  beside it (it goes back to Who's playing?). Under the monitor, the **case**, in a neon outline: **Play**, **Join game**, **Settings** and
-  **Quit** as graphite keycaps down its left (each with a lamp: Play's is lit, Join game's and Settings' light while theirs is open; they
+  beside it (it goes back to Who's playing?). Under the monitor, the **case**, in a neon outline: **Play**, **Join game** and **Wiki**
+  as graphite keycaps down its left over a grille (each with a lamp: Play's is lit, Join game's lights while it is open; they
   press down when clicked), a **bay** in the middle behind a ribbed metal roller shutter, and on the right **your profile** on a small
-  screen (a face, your name, rank title and number, the XP to the next rank; click it to open your **Profile**) over a grille and the
-  POWER and DISK lights. Until you have opened your profile once (and for at most your first five launches on that profile), a small
+  screen (a face, your name, rank title and number, the XP to the next rank; click it to open your **Profile**), then a recessed control
+  strip under it (a small flat cog key for **Settings**, the POWER and DISK lights over their labels, a power key to **Quit**) and a grille level with
+  the left one. Until you have opened your profile once (and for at most your first five launches on that profile), a small
   purple **YOUR PROFILE** tag beside the screen bounces toward it; clicking the tag opens the profile too. **Play** rolls the shutter up
   onto your saved runs (see Saved runs); **Join game** rolls it up onto the host's address and **Connect** (and how joining is going,
   with **Cancel**); **Settings** rolls it up onto **SETTINGS** on the bay's screen: four tiles (Audio, Visual effects, Gameplay, Keybinds;
   the arrow keys and Enter work too), and picking one switches the small screen off to a bright line and on again with that group's
   settings, all on the same screen (bar sliders with − and +, ON / OFF keys, rows of choices, key caps you click then press a key to
   rebind, the network port; a long page scrolls; each change flashes SAVED); **‹ BACK** or Esc returns to the tiles. Pressing the key
-  again, or Esc, rolls the shutter back down. (The lobby's and pause menu's Settings keep the side drawer.) **New run** boots the lobby like a CRT out of the bay's screen: a
+  again, or Esc, rolls the shutter back down. (The lobby's and pause menu's Settings keep the side drawer.) **Wiki** rolls it up onto
+  **WIKI**: a search box (type straight away) over every class, role, weapon, ability, Ultimate, upgrade card, perk, enemy, boss,
+  minion, gadget, relic, buildable, run modifier, path, game mode, difficulty preset, challenge room, arena layout, mechanic
+  (Dodge, Parry, Wound, Elite, Mastery, Vectors...), status effect (Burning, Frozen, Bleeding...) and prop or chest in the game, names first, then anything whose text matches (classes and roles in
+  gold, cards and perks in green, enemies and bosses in red, gadgets, relics and buildables in amber, modes, paths and the like in
+  cyan, minions in steel). Click a row (or Enter for the first) to open its page: what it is, its text, and its **references**: what it belongs to
+  (a weapon's class and role, a card's weapons, a boss's faction...), what its text names (NAMED HERE) and what names it (MENTIONS IT),
+  each one a link. **‹ BACK** or Esc steps back through the pages, then rolls the shutter down. New content joins the wiki on its own.
+  The same wiki opens anywhere else as a panel over the screen: the **Wiki key** (I; Settings → Keybinds → Toggles) or the **WIKI**
+  row in the pause and lobby menus. Solo, it pauses the run while open; in co-op it doesn't, and only you see it; Esc or a click
+  outside closes it. **Hold the Wiki key** for the eyedropper: the text under the pointer gets a gold outline and, in a run, the enemy
+  minion, player, shot (a player's opens their weapon), crate, barrel or chest under it counts too, and the tag lists an
+  enemy's status effects (a right click opens the first); a tag by the pointer names what a click opens (POINT AT SOMETHING when nothing), and a click opens
+  its page (an enemy, a boss, a class, an ability on your HUD, a card's name...). **New run** boots the lobby like a CRT out of the bay's screen: a
   link log types itself, squeezes into a bright line, and the line opens top and bottom like an old TV warming up to show the whole
   lobby. Its entrance is the end of the **disk boot sequence** (see Profiles): the case falls out from under the monitor, lands with a
   squash, a small bounce, a flare of its neon, the monitor jolting and dust puffing off its feet, then powers on (POWER, DISK, the key

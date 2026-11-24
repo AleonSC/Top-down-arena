@@ -47,10 +47,10 @@ namespace Arena
         /// Start of OnGUI: a click on outlined text opens the box (and goes no further).
         void TextEditBeginGui()
         {
-            Ui.PickText = textEditMode && !textEditOpen;
+            Ui.PickText = textEditMode && !textEditOpen || wikiPicking;  // (the Wiki key's eyedropper picks text the same way: WikiPick.cs)
             Ui.BeginPick();
             var ev = Event.current;
-            if (Ui.PickText && ev.type == EventType.MouseDown && ev.button == 0 && Ui.Hovered != null && !MouseOnTextBanner())
+            if (textEditMode && Ui.PickText && ev.type == EventType.MouseDown && ev.button == 0 && Ui.Hovered != null && !MouseOnTextBanner())
             {
                 textEditOriginal = Ui.Hovered;
                 textEditBuffer = TextOverrides.Apply(textEditOriginal);
