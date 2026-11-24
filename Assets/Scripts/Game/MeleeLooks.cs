@@ -32,7 +32,6 @@ namespace Arena
             public WeaponId Weapon;
             public float Sign = 1f;       // which way it sweeps (Twin Blades and the Katana alternate)
             public float BaseReach;       // the weapon's own reach (a Warhammer aftershock reaches further)
-            public int Fired;             // the Halberd: which sweeps' first cut has already kicked your screen (bit 1, bit 2)
             public float ModelEnd = -1f;  // a weapon with a held pose: the effect's age when its swing is back in that pose (-1: none)
         }
 
