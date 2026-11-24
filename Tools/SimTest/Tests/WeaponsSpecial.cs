@@ -206,7 +206,7 @@ static partial class Program
             "let go outside the zone: a plain full shot (40 damage, fast, pierces 2)");
         Check(barSeen && watch.Count == 1, "holding at full draw keeps the bar up and never fires by itself");
         Check(Game.BowMarker(0f) == 0f && Math.Abs(Game.BowMarker(Game.BowFocusPeriod / 2f) - 1f) < 1e-4f && Math.Abs(Game.BowMarker(Game.BowFocusPeriod * 0.75f) - 0.5f) < 1e-4f,
-            "the marker sweeps bottom to top and back every 0.8 s");
+            "the marker sweeps bottom to top and back every 1.3 s");
         float z0 = cg.BowZone; Draw(60); float z1 = cg.BowZone; Draw(60); float z2 = cg.BowZone;
         Check(z0 != z1 || z1 != z2, "the gold zone moves to a new height each draw");
         Check(sawDrawOnHost, "the host sees the joining player's draw (for the draw ring)");

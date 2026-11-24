@@ -16,7 +16,7 @@ namespace Arena
     /// it meets. Your game sends Msg.WeaponDash (DashScatter); the host checks the cooldown and looses them.
     public partial class Game
     {
-        public const float BowFocusPeriod = 0.8f;  // the marker goes bottom to top and back in this long
+        public const float BowFocusPeriod = 1.3f;  // the marker goes bottom to top and back in this long
         public const float BowFocusZone = 0.2f;    // the gold zone's share of the bar
         public const float BowZoneLow = 0.2f, BowZoneHigh = 0.75f;  // where the zone's bottom can be
         public const float BowFocusDmg = 90f, BowFocusHeal = 30f, BowFocusSpeed = 1150f, BowFocusReach = 1100f;
