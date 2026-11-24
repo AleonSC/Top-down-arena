@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 478: the lobby's PVP switch: `Msg.Lobby` gains `HangoutPvp` (bool, after `HuntLong`), `Msg.Start` a bool after the Hangout flag
 - 477: the Field Hospital: `AbilityId.FieldHospital`, `ZoneKind.FieldHospital` (its snapshot entry adds an int: who has used its shrine), `RoomKind.Hospital` (a room in `Msg.ExpandState`)
 - 476: PvP slows: the player snapshot gains `PvpSlowT` and `PvpSlowMult` (floats, after `WarpT`; Pvp.cs)
 - 475: the Hangout's spawners: `Msg.HangoutSpawner` (client -> host press) and `Msg.HangoutSpawners` (host -> all, every pad's enemy and switch)

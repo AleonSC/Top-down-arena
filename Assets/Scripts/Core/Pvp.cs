@@ -12,8 +12,11 @@ namespace Arena
     {
         public const float PvpDamage = 0.35f;  // the share of an attack's damage a player takes from another player
 
-        /// PvP is on: the Hangout (HangoutGame.cs).
-        public bool PvpOn => HangoutOn;
+        /// PvP is on: the Hangout (HangoutGame.cs), unless the lobby's PVP switch was off when it opened.
+        public bool PvpOn => HangoutOn && PvpAllowed;
+
+        /// The lobby's PVP switch as the Hangout opened (Session.HangoutPvp, sent in Msg.Start).
+        public bool PvpAllowed = true;
 
         readonly Dictionary<int, Enemy> stands = new Dictionary<int, Enemy>();
 

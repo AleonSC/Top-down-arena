@@ -194,6 +194,7 @@ namespace Arena
             w.Write(ResumeFrom != null ? ResumeFrom.LongRun : LongRunDefault && !quick && !HangoutStart);  // a 100-wave Campaign (Hunts.cs); a saved run keeps its length
             WriteSurvivalStart(w, quick || HangoutStart);  // Survival mode: the flag and its seed (SurvivalGame.cs)
             w.Write(HangoutStart);  // the Hangout (HangoutGame.cs)
+            w.Write(session.HangoutPvp);  // ...and whether its PvP is on (the lobby's PVP switch; Pvp.cs)
             var msg = Proto.End(w);
             session.Broadcast(msg);
             var r = new BinaryReader(new MemoryStream(msg));
@@ -281,6 +282,7 @@ namespace Arena
             LongRun = r.ReadBoolean();  // a 100-wave Campaign (Hunts.cs)
             ReadSurvivalStart(r);  // SurvivalGame.cs
             HangoutRead(r.ReadBoolean());  // HangoutGame.cs
+            PvpAllowed = r.ReadBoolean();  // Pvp.cs
             if (resumed && !IsHost)
                 foreach (var p in entries)
                     p.Level = 1;  // a continued run: the host sends everyone's levels and picks next (Head Start doesn't apply again)
