@@ -251,6 +251,7 @@ namespace Arena
             DrawWallPortals(t);  // the Expanding arena's wall portals, over their walls (RoomsLook.cs)
             DrawGates();     // the Expanding arena's shutter gates: a red laser grid when shut (GateLook.cs)
             DrawMysteryDoors();  // sealed mystery doors (MysteryDoorLook.cs)
+            DrawHospitals(t);  // Field Hospitals' laser gates, and the pick's lit doors (FieldHospitalLook.cs)
             DrawBreaches();  // the Expanding arena's breaches: a red hologram barrier in each (BreachLook.cs)
             DrawTourFlash();  // the breach warning's flash on the breach the camera is on (BreachTour.cs)
             DrawProps(t);  // crates, barrels and the chest (PropsLook.cs)

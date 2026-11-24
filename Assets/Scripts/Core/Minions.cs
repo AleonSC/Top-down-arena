@@ -709,12 +709,19 @@ namespace Arena
                 {
                     if (z.Kind == ZoneKind.GrandSigil || z.Kind == ZoneKind.ArcCrush)
                         ArcZoneEnds(z);  // the sigil sends its frozen shots back, the crush slams (Arcanist.cs)
+                    if (z.Kind == ZoneKind.FieldHospital)
+                        EndHospital(z);  // everyone out, the room off the map (FieldHospital.cs)
                     expired.Add(z);
                     continue;
                 }
                 if (z.Kind == ZoneKind.LumenWard)
                 {
                     TickLumen(z, dt);  // a cone, not a circle (LumenWard.cs)
+                    continue;
+                }
+                if (z.Kind == ZoneKind.FieldHospital)
+                {
+                    TickHospital(z, dt);  // orbs, shrine, laser gate (FieldHospital.cs)
                     continue;
                 }
                 foreach (var q in Players.Values)
