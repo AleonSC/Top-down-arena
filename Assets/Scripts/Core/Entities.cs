@@ -434,6 +434,7 @@ namespace Arena
         public float BashGraceT;    // host: until a Riot Shield can bash this player again (WardenFaction.cs)
         public float BleedT, BleedDps;  // host: a Rioter's bottle cut them: bleeds this much a second for this long (WardenFaction.cs)
         public float WarpT;         // beamed into the hub before a boss wave: can't move or shoot (replicated; BossBeam.cs)
+        public float PvpStunImmuneT;  // host: PvP: no new stun from another player until this runs out (Pvp.cs)
         public float PvpSlowT, PvpSlowMult = 1f;  // PvP: slowed by another player's attack, this long, to this speed (replicated; Pvp.cs)
         public float SwallowT;      // inside the Devourer: hidden, can't fire or be hit from outside (replicated; your own game holds you in it)
         public float UltT;                     // ultimate time left (Fortress: its dome's time, too)

@@ -77,6 +77,36 @@ static partial class Program
             mine.BleedT = 2f; mine.BleedDps = 20f; mine.BleedBy = me.Id;
             tick(60);
             Check(me.Hp >= myHp - 0.01f, "...but never your own on yourself");
+
+            // Marks and other states.
+            var hurt = typeof(Game).GetMethod("HurtEnemy", F);
+            Func<float> hitOnce = () => { them.Hp = them.MaxHp; them.InvulnT = 0f; float h0 = them.Hp; hurt.Invoke(g, new object[] { S(), 40f, me.Id }); return h0 - them.Hp; };
+            S().MarkT = 0f;
+            float unmarked = hitOnce();
+            var mk = S(); mk.MarkT = 3f; mk.MarkMult = 1.5f;
+            float marked = hitOnce();
+            Check(unmarked > 0f && Math.Abs(marked / unmarked - 1.5f) < 0.05f, "a mark on a player raises the hits they take, as on an enemy (" + unmarked.ToString("0.0") + " -> " + marked.ToString("0.0") + ")");
+            S().MarkT = 0f;
+            tick((int)((Game.PvpStunCap + Game.PvpStunImmune) / dt) + 10);
+            them.StunT = 0f;
+            S().GraspT = 2f;
+            tick(1);
+            Check(them.StunT > 0.5f, "a hold (Leech Tendrils' grasp) stuns the player (" + them.StunT.ToString("0.00") + " s)");
+            them.StunT = 0f;
+            S().GraspT = 2f;
+            tick(1);
+            Check(them.StunT <= 0f, "...and right after a stun, another can't chain onto them (PvpStunImmune)");
+            tick((int)((Game.PvpStunCap + Game.PvpStunImmune) / dt) + 10);
+            them.PvpSlowT = 0f;
+            S().WetT = 3f;
+            tick(2);
+            Check(them.PvpSlowT > 0f && them.PvpSlowMult < 1f, "wet (Tsunami, Bullet Rain) slows a player too");
+            S().WetT = 0f;
+            them.Hp = them.MaxHp;
+            float hpV = them.Hp;
+            var vn = S(); vn.VenomT = 2f; vn.VenomDps = 20f; vn.VenomBy = me.Id;
+            tick(60);
+            Check(them.Hp < hpV - 3f, "venom (Poison Dart) ticks on a player (" + (hpV - them.Hp).ToString("0.0") + ")");
         }
 
         // Walls: another player's Blood Wall and Ossuary Wall keep you off them and hurt you; your own never touch you.

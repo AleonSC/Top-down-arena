@@ -87,8 +87,8 @@ namespace Arena
             if (dmg <= 0f)
                 return;
             List<Enemy> targets = null;
-            foreach (var e in Enemies.Values)
-                if (e != struck && e.WetT > 0f && e.WetArcCd <= 0f && Targetable(e))
+            foreach (var e in AllFoes(by: owner))  // (with PvP on, a wet player too: Pvp.cs)
+                if (e != struck && e.WetT > 0f && e.WetArcCd <= 0f)
                     (targets ?? (targets = new List<Enemy>())).Add(e);
             if (targets == null)
                 return;
