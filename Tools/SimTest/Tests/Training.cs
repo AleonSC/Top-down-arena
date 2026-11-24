@@ -60,6 +60,15 @@ static partial class Program
                 "START DRILL starts the drill on every machine, a runner each, on the classic arena with no enemies");
             var me = g.Players[host.MyId];
             var mine = g.DrillRunners[host.MyId];
+            bool recruits = true;
+            foreach (var game in new[] { g, c })
+                foreach (var q in game.Players.Values)
+                    recruits &= q.Recruit && q.Weapon.Id == WeaponId.TrainingPistol && q.Role == Role.Dps && q.Slots.All(sl => sl.Id == AbilityId.None) && q.Perks.Length == 0;
+            int shotsBefore = g.Bullets.Count;
+            for (int f = 0; f < 20; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = me.Pos + new V2(300f, 0f) }); g.Update(dt); }
+            bool fired = g.Bullets.Values.Any(b => b.Owner == host.MyId);
+            Check(recruits && fired && Defs.WeaponOf(WeaponId.TrainingPistol) == Training.Pistol && !Defs.Weapons.Contains(Training.Pistol),
+                "a drill makes everyone a plain recruit on every machine (no abilities, ultimate or perks) with the Training Pistol, which fires and is in no lobby list");
             var hurt = typeof(Game).GetMethod("HurtEnemy", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             bool othersBounce = true, stood = true;
             int steps = 0;
@@ -217,6 +226,30 @@ static partial class Program
             Check(downHit && awayHit && mine.Done && mine.Step == Training.ParrySteps && mine.Hits == 2 && sides.Count >= 4 && c.DrillRunners[host.MyId].Done
                 && c.DrillRunners[host.MyId].Hits == 2,
                 "Parry: a shot meeting a lowered shield, or one facing away, is a hit; facing each shot blocks all ten, from many sides");
+            // Read the Tells: each wind-up is aimed where you stand; staying put is a hit, stepping out of it slips it.
+            host.StartDrill(5);
+            Run(new[] { host, client }, dt, 0.3f);
+            mine = g.DrillRunners[host.MyId];
+            me = g.Players[host.MyId];
+            Run(new[] { host, client }, dt, 5f, () => mine.Hits > 0, () => me.Pos = new V2(800f, 450f));
+            bool stoodHit = mine.Hits == 1 && mine.Step == 0;
+            var kinds = new HashSet<byte>();
+            Run(new[] { host, client }, dt, 40f, () => mine.Done, () =>
+            {
+                if (!mine.TellUp)
+                {
+                    me.Pos = new V2(800f, 450f);
+                    return;
+                }
+                kinds.Add(mine.TellKind);
+                V2 tellDir = mine.TellKind == Training.TellCircle ? new V2(1f, 0f) : (mine.TellAt - mine.TellFrom).Normalized();
+                me.Pos = mine.TellAt + new V2(-tellDir.Y, tellDir.X) * (mine.TellKind == Training.TellCircle ? Training.TellCircleR + 30f : Training.TellLaneHalf + 30f);
+            });
+            Run(new[] { host, client }, dt, 0.3f);
+            Check(stoodHit && mine.Done && mine.Step == Training.TellSteps && mine.Hits == 1 && kinds.Count == 3 && c.DrillRunners[host.MyId].Done
+                && Training.TellCatches(Training.TellLine, new V2(0f, 0f), new V2(100f, 0f), new V2(900f, 10f)) && !Training.TellCatches(Training.TellLine, new V2(0f, 0f), new V2(100f, 0f), new V2(50f, 40f))
+                && Training.TellCatches(Training.TellLane, new V2(0f, 0f), new V2(100f, 0f), new V2(300f, 40f)) && !Training.TellCatches(Training.TellLane, new V2(0f, 0f), new V2(100f, 0f), new V2(500f, 0f)),
+                "Read the Tells: standing in a wind-up is a hit; stepping out of each slips all eight (lines, lanes and circles)");
             host.ReturnToLobby();
             WaitForLobby(host, client);
             Check(!g.DrillOn && !c.DrillOn && host.Screen == AppScreen.Lobby && client.Screen == AppScreen.Lobby && host.TrainingMode,

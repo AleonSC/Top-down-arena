@@ -15,6 +15,13 @@ namespace Arena
         public float TargetT;  // host: seconds since the target came up (the Shoot drill's slide)
         public float Flash;    // seconds since the last step was done (the ring's pop)
         public float Wall = float.NaN;  // Dodge: the wall's x (NaN: none up)
+        public bool TellUp;    // Read the Tells: a wind-up is showing
+        public byte TellKind;  // its kind (Training.TellLine, TellLane, TellCircle)
+        public V2 TellFrom, TellAt;  // where it comes from and the spot it's aimed at
+        public float TellT;    // seconds into its wind-up
+        public float FiredT = 9f;  // seconds since the last one fired (its flash)
+        public V2 FiredFrom, FiredAt;  // ...and where it was
+        public byte FiredKind;
         public bool ShotUp;    // Parry: a shot is on its way
         public V2 Shot;        // Parry: where it is
         public int Hits;       // Dodge: walls that caught you
@@ -53,7 +60,29 @@ namespace Arena
             Hunt = null;
             HuntMapOn = false;
             foreach (var p in Players.Values)
+            {
+                MakeRecruit(p);
                 DrillRunners[p.Id] = new DrillRunner { PlayerId = p.Id };
+            }
+        }
+
+        /// Every player in a drill is a plain recruit, whatever their loadout: the DPS build with no class look, no abilities,
+        /// ultimate or perks, and the Training Pistol. Done on every machine as the Start is read, so nothing new goes over the wire.
+        void MakeRecruit(Player p)
+        {
+            p.Recruit = true;
+            p.Role = Role.Dps;
+            p.Def = Defs.Get(Role.Dps);
+            p.Kit = Kit.Soldier;
+            p.Weapon = Training.Pistol;
+            p.FirstAbility = AbilityId.None;
+            p.WildcardAbility = AbilityId.None;
+            for (int k = 0; k < p.CardAbilities.Length; k++)
+                p.CardAbilities[k] = AbilityId.None;
+            p.Perks = Perks.Empty;
+            p.BaseHp = p.Def.Hp;
+            Recalc(p);
+            p.Hp = p.MaxHp;
         }
 
         /// This machine's player's runner (null: not in a drill).
@@ -83,6 +112,7 @@ namespace Arena
                         case "wallkick": TickKickDrill(d); break;
                         case "shoot": TickShootDrill(d); break;
                         case "parry": TickParryDrill(d, dt); break;
+                        case "tells": TickTellsDrill(d); break;
                     }
             Remaining = 0;
             DrillRecordMine();
@@ -95,6 +125,8 @@ namespace Arena
             {
                 d.Flash += dt;
                 d.TargetT += dt;
+                d.TellT += dt;
+                d.FiredT += dt;
                 d.HitT += dt;
                 d.SinceDodge += dt;
                 if (!d.Done)
@@ -217,6 +249,40 @@ namespace Arena
             }
         }
 
+        /// Host: Read the Tells. After a short gap the next wind-up shows, aimed where you stand; when it ends it fires: caught is a
+        /// hit (and it comes again), clear and it's slipped.
+        void TickTellsDrill(DrillRunner d)
+        {
+            if (d.Done || !Players.TryGetValue(d.PlayerId, out var p))
+                return;
+            if (!d.TellUp)
+            {
+                if (d.Flash >= Training.TellGap && d.HitT >= Training.TellGap)
+                {
+                    d.TellKind = Training.TellKind(d.Step);
+                    d.TellAt = p.Pos;
+                    d.TellFrom = Training.TellStart(d.Step, p.Pos);
+                    d.TellT = 0f;
+                    d.TellUp = true;
+                }
+                return;
+            }
+            if (d.TellT < Training.TellWindup(d.Step))
+                return;
+            d.TellUp = false;
+            d.FiredT = 0f;
+            d.FiredFrom = d.TellFrom;
+            d.FiredAt = d.TellAt;
+            d.FiredKind = d.TellKind;
+            if (Training.TellCatches(d.TellKind, d.TellFrom, d.TellAt, p.Pos))
+            {
+                d.Hits++;
+                d.HitT = 0f;
+            }
+            else
+                DrillStepDone(d);
+        }
+
         /// A Parry shot's step toward `to` (the host's tick, and a client's view between snapshots).
         void MoveDrillShot(DrillRunner d, V2 to, float dt)
         {
@@ -312,6 +378,20 @@ namespace Arena
         /// A drill's dummy hit by someone who isn't its player: no damage.
         bool DrillShieldsHit(Enemy e, int attacker) => DrillTargetOf(e, out int owner) && owner != attacker;
 
+        /// Read the Tells' part of a runner in the snapshot: the wind-up showing and the last one fired.
+        static void SyncTell(NetSync s, DrillRunner d)
+        {
+            s.Bool(ref d.TellUp);
+            s.Byte(ref d.TellKind);
+            s.Vec(ref d.TellFrom);
+            s.Vec(ref d.TellAt);
+            s.Float(ref d.TellT);
+            s.Float(ref d.FiredT);
+            s.Vec(ref d.FiredFrom);
+            s.Vec(ref d.FiredAt);
+            s.Byte(ref d.FiredKind);
+        }
+
         /// Every player in the drill is done.
         public bool DrillAllDone
         {
@@ -355,6 +435,7 @@ namespace Arena
                     d.Hits = hits;
                     s.Bool(ref d.ShotUp);
                     s.Vec(ref d.Shot);
+                    SyncTell(s, d);
                 }
                 return;
             }
@@ -371,6 +452,7 @@ namespace Arena
                 s.Byte(ref hits);
                 s.Bool(ref d.ShotUp);
                 s.Vec(ref d.Shot);
+                SyncTell(s, d);
             }
         }
     }

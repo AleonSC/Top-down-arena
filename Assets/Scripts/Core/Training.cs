@@ -18,6 +18,11 @@ namespace Arena
     /// starts a run from the lobby's START: a drill starts from its own key on the page.
     public static class Training
     {
+        /// The Training Pistol: every recruit's one weapon in a drill (no lobby place; Defs.WeaponOf finds it here).
+        public static readonly WeaponDef Pistol = new WeaponDef { Id = WeaponId.TrainingPistol, Kit = Kit.Soldier, Role = Role.Dps, Choice = -1,
+            Name = "Training Pistol", Desc = "Primary Fire: one plain round a shot.", Speed = 760f, Life = 0.85f, Damage = 30f, FireInterval = 0.24f,
+            Sound = Sfx.ShotPistol, BotRange = 300f };
+
         public static readonly string[] Groups = { "MOVEMENT", "COMBAT" };
 
         public static readonly TrainingDrill[] Drills =
@@ -32,8 +37,8 @@ namespace Arena
                 Goal = "Break twelve targets", Copy = "Hold left click to fire. The first stand still; then they slide, faster each time." },
             new TrainingDrill { Group = "COMBAT", Key = "parry", Name = "Parry", Keys = new[] { "RMB" }, Gold = 25f, Silver = 35f, Built = true, Steps = ParrySteps, StepNoun = "SHOTS",
                 Goal = "Block ten shots", Copy = "Hold right click to raise the shield toward your cursor. Turn it to face each shot." },
-            new TrainingDrill { Group = "COMBAT", Key = "tells", Name = "Read the Tells", Keys = new[] { "CTRL" }, Gold = 30f, Silver = 45f,
-                Goal = "Slip eight wind-ups", Copy = "A Sniper's line, a Lunger's crouch: every big hit is shown first. Move when you see it." },
+            new TrainingDrill { Group = "COMBAT", Key = "tells", Name = "Read the Tells", Keys = new[] { "WASD", "CTRL" }, Gold = 16f, Silver = 24f, Built = true, Steps = TellSteps, StepNoun = "TELLS",
+                Goal = "Slip eight wind-ups", Copy = "A Sniper's line, a Lunger's lane, a slam's circle: every big hit is shown first. Get out of it." },
         };
 
         // Move and Aim (drill 1): five beacons in a zig-zag across the arena, one lit at a time. The first three are reached by
@@ -139,6 +144,35 @@ namespace Arena
         public static V2 ParryStart(int step, V2 at) => at + V2.FromAngle(ParrySides[Math.Max(0, Math.Min(ParrySteps - 1, step))] * (float)Math.PI / 4f) * ParryFrom;
 
         public static float ParrySpeedAt(int step) => ParrySpeed + ParrySpeedStep * step;
+
+        // Read the Tells (drill 6): eight wind-ups, one at a time, each aimed where you stand as it shows: a Sniper's thin line,
+        // a Lunger's wide lane, or a slam's circle. It fires when the wind-up ends: still in it is a hit (it comes again),
+        // out of it and you've slipped it. The wind-ups get shorter.
+        public const int TellSteps = 8;
+        public const byte TellLine = 0, TellLane = 1, TellCircle = 2;
+        public const float TellFrom = 420f, TellGap = 0.7f, TellLineHalf = 20f, TellLaneHalf = 46f, TellLaneLen = 300f, TellCircleR = 105f, TellFlash = 0.35f;
+        static readonly byte[] TellKinds = { TellLine, TellLane, TellCircle, TellLine, TellLane, TellCircle, TellLine, TellLane };
+        static readonly int[] TellSides = { 2, 6, 0, 5, 1, 0, 3, 7 };
+
+        public static byte TellKind(int step) => TellKinds[Math.Max(0, Math.Min(TellSteps - 1, step))];
+        public static float TellWindup(int step) => 1.15f - 0.06f * step;
+        public static string TellName(byte kind) => kind == TellLine ? "SNIPER" : kind == TellLane ? "LUNGER" : "SLAM";
+
+        /// Where tell `step` comes from, aimed at `at` (a slam comes down on the spot itself).
+        public static V2 TellStart(int step, V2 at) =>
+            TellKind(step) == TellCircle ? at : at + V2.FromAngle(TellSides[Math.Max(0, Math.Min(TellSteps - 1, step))] * (float)Math.PI / 4f) * TellFrom;
+
+        /// Is `p` caught when the tell fires? A line runs from its start through the spot and on across the arena; a lane runs
+        /// from its start to TellLaneLen past the spot; a circle is round the spot.
+        public static bool TellCatches(byte kind, V2 from, V2 at, V2 p)
+        {
+            if (kind == TellCircle)
+                return p.CloserThan(at, TellCircleR);
+            V2 dir = (at - from).Normalized();
+            float along = (p - from).Dot(dir), side = Math.Abs((p - from).Dot(new V2(-dir.Y, dir.X)));
+            float end = kind == TellLine ? 3000f : (at - from).Length + TellLaneLen;
+            return along >= 0f && along <= end && side <= (kind == TellLine ? TellLineHalf : TellLaneHalf);
+        }
 
         /// The medal a best time earns: 3 gold, 2 silver, 1 bronze (finished), 0 none (best 0: never finished).
         public static int Medal(TrainingDrill d, float best) => best <= 0f ? 0 : best <= d.Gold ? 3 : best <= d.Silver ? 2 : 1;

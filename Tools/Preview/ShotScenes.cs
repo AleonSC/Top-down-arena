@@ -505,12 +505,17 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("DRILL") != null) {
       // A Training drill (DrillGame.cs, DrillUi.cs): DRILL=<steps done>,<seconds>[,done[,hits]] (Move and Aim: you a little short of the lit beacon);
-      // DRILLID=1: the Dodge drill instead (the wall a little short of you; DRILLHIT=1: just caught by one); DRILLID=2: Wall Kick; DRILLID=3: Shoot; DRILLID=4: Parry (PARRYOFF=1: shield down).
+      // DRILLID=1: the Dodge drill instead (the wall a little short of you; DRILLHIT=1: just caught by one); DRILLID=2: Wall Kick; DRILLID=3: Shoot; DRILLID=4: Parry (PARRYOFF=1: shield down); DRILLID=5: Read the Tells (TELLT, TELLIN=1).
       var dp = Environment.GetEnvironmentVariable("DRILL").Split(',');
       var gm = host.Game;
       gm.Enemies.Clear(); gm.Bullets.Clear(); gm.Hunt = null; gm.Quick = false; gm.Wave = 1;
       gm.Drill = Environment.GetEnvironmentVariable("DRILLID") != null ? int.Parse(Environment.GetEnvironmentVariable("DRILLID")) : 0; gm.DrillRunners.Clear();
       var dk = Training.Drills[gm.Drill];
+      foreach (var q in gm.Players.Values) {  // everyone a recruit, as a drill's start does, with the scene's ability looks cleared
+        typeof(Game).GetMethod("MakeRecruit", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { q });
+        q.AegisT = 0f; q.UltT = 0f; q.BarrierT = 0f; q.ShieldHp = 0f; q.ShieldT = 0f; q.OverHp = 0f; q.FrenzyT = 0f; q.InvulnT = 0f;
+      }
+      gm.Props.Clear();
       foreach (var q in gm.Players.Values) gm.DrillRunners[q.Id] = new DrillRunner { PlayerId = q.Id, Step = 1, Time = 9f };
       var mine = gm.DrillRunners[me.Id];
       mine.Step = int.Parse(dp[0]); mine.Time = float.Parse(dp[1], System.Globalization.CultureInfo.InvariantCulture); mine.Flash = 9f;
@@ -524,6 +529,15 @@ static partial class Shot {
       if (dk.Key == "wallkick") {  // you short of the lit panel, or on the way to the flag
         at = mine.Step < Training.KickWalls ? Training.KickPanel(mine.Step, Game.Width, Game.Height).Pos + (mine.Step == 1 ? new V2(-40f, 150f) : new V2(-150f, 40f)) : Training.KickFlag(Game.Width, Game.Height) + new V2(-420f, 200f);
         me.Pos = me.Disp = at; me.AimAt = at + new V2(200f, 0f);
+      }
+      if (dk.Key == "tells") {  // a wind-up part-way (TELLT=<s>, default 0.6) aimed where you stood; you a step out of it (TELLIN=1: still in it)
+        me.Pos = me.Disp = new V2(800f, 470f);
+        if (!mine.Done) {
+          mine.TellUp = true; mine.TellKind = Training.TellKind(mine.Step); mine.TellAt = me.Pos; mine.TellFrom = Training.TellStart(mine.Step, me.Pos);
+          mine.TellT = Environment.GetEnvironmentVariable("TELLT") != null ? float.Parse(Environment.GetEnvironmentVariable("TELLT"), System.Globalization.CultureInfo.InvariantCulture) : 0.6f;
+          if (Environment.GetEnvironmentVariable("TELLIN") == null) { V2 dir = mine.TellKind == Training.TellCircle ? new V2(1f, 0f) : (mine.TellAt - mine.TellFrom).Normalized(); me.Pos = me.Disp = mine.TellAt + new V2(-dir.Y, dir.X) * (mine.TellKind == Training.TellCircle ? 140f : 80f); }
+          me.AimAt = mine.TellFrom; me.Aim = (mine.TellFrom - me.Pos).Angle;
+        }
       }
       if (dk.Key == "parry") {  // the shot on its way in from its side, you with the shield up toward it (PARRYOFF=1: down)
         me.Pos = me.Disp = new V2(800f, 470f);

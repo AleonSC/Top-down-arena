@@ -21,6 +21,8 @@ namespace Arena
                 Ui.Fill(new Rect(0f, 0f, W, H), CrtStyle.Danger.WithAlpha(0.22f * (1f - d.HitT / 0.45f)));
             if (key == "parry")
                 DrawDrillShot(d);
+            else if (key == "tells")
+                DrawDrillTells(d);
             else if (key == "dodge")
                 DrawDrillWall(d);
             else if (key == "wallkick")
@@ -85,6 +87,70 @@ namespace Arena
                 }
                 Ui.Dot(rr, CrtStyle.Ink.WithAlpha(0.22f), true);
                 Ui.Label(rr, (i + 1).ToString(), Mathf.RoundToInt(rad * 0.6f), CrtStyle.Ink.WithAlpha(0.3f), TextAnchor.MiddleCenter, true);
+            }
+        }
+
+        /// Read the Tells: the wind-up showing (a Sniper's line, a Lunger's lane, a slam's circle), filling in as it charges, its
+        /// name and seconds left at its source; then a bright flash of the shape as it fires.
+        void DrawDrillTells(DrillRunner d)
+        {
+            if (d.FiredT < Training.TellFlash && !FxCalm)
+                DrawTellShape(d.FiredKind, d.FiredFrom, d.FiredAt, 1f, 1f - d.FiredT / Training.TellFlash, true);
+            if (d.Done || !d.TellUp)
+                return;
+            float wind = Training.TellWindup(d.Step), k = Mathf.Clamp01(d.TellT / wind);
+            DrawTellShape(d.TellKind, d.TellFrom, d.TellAt, k, 1f, false);
+            V2 src = ToUi(d.TellFrom);
+            string label = Training.TellName(d.TellKind) + "  " + Mathf.Max(0f, wind - d.TellT).ToString("0.0");
+            if (d.TellKind != Training.TellCircle)
+            {
+                Ui.Dot(new Rect(src.X - 11f, src.Y - 11f, 22f, 22f), CrtStyle.Danger);
+                Ui.Dot(new Rect(src.X - 6f, src.Y - 6f, 12f, 12f), new Color(1f, 0.85f, 0.85f));
+            }
+            LobbyKit.Spaced(new Rect(src.X - 80f, src.Y - (d.TellKind == Training.TellCircle ? 8f : 34f), 160f, 14f), label, 10, CrtStyle.Danger, TextAnchor.MiddleCenter, 2f);
+        }
+
+        /// A tell's shape at charge `k` (0..1: how filled in), in red; `fired`: the bright white-hot flash of it going off.
+        void DrawTellShape(byte kind, V2 from, V2 at, float k, float alpha, bool fired)
+        {
+            Color c = fired ? new Color(1f, 0.82f, 0.8f) : CrtStyle.Danger;
+            if (kind == Training.TellCircle)
+            {
+                V2 m = ToUi(at);
+                float R = ToUi(at + new V2(Training.TellCircleR, 0f)).X - m.X;
+                Ui.Dot(new Rect(m.X - R, m.Y - R, R * 2f, R * 2f), c.WithAlpha(alpha * (fired ? 0.5f : 0.08f)));
+                Ui.Dot(new Rect(m.X - R, m.Y - R, R * 2f, R * 2f), c.WithAlpha(alpha * 0.85f), true);
+                float fr = R * k;  // the charge fills from the middle out
+                if (!fired && fr > 2f)
+                    Ui.Dot(new Rect(m.X - fr, m.Y - fr, fr * 2f, fr * 2f), c.WithAlpha(0.22f));
+                return;
+            }
+            V2 dir = (at - from).Normalized(), side = new V2(-dir.Y, dir.X);
+            float len = kind == Training.TellLine ? 2200f : (at - from).Length + Training.TellLaneLen;
+            float half = kind == Training.TellLine ? Training.TellLineHalf : Training.TellLaneHalf;
+            // The edges as dotted rails (a line's are close together), the middle filling up from the source as it charges.
+            for (float s = 0f; s < len; s += 9f)
+            {
+                foreach (float e in kind == Training.TellLine ? new[] { 0f } : new[] { -half, half })
+                {
+                    V2 q = ToUi(from + dir * s + side * e);
+                    float sz = kind == Training.TellLine ? (fired ? 5f : 2.5f) : 3f;
+                    Ui.Fill(new Rect(q.X - sz / 2f, q.Y - sz / 2f, sz, sz), c.WithAlpha(alpha * (fired ? 0.95f : 0.35f + 0.5f * k)));
+                }
+                if (kind == Training.TellLane && (fired || s < len * k))
+                {
+                    V2 a = ToUi(from + dir * s - side * half), b = ToUi(from + dir * s + side * half);
+                    for (float u = 0f; u <= 1f; u += 0.125f)
+                    {
+                        V2 q = a + (b - a) * u;
+                        Ui.Fill(new Rect(q.X - 1.5f, q.Y - 1.5f, 3f, 3f), c.WithAlpha(alpha * (fired ? 0.6f : 0.18f)));
+                    }
+                }
+            }
+            if (kind == Training.TellLine && !fired)  // the line's charge: a bright bead running from the source to the spot
+            {
+                V2 q = ToUi(from + dir * ((at - from).Length * k));
+                Ui.Dot(new Rect(q.X - 4f, q.Y - 4f, 8f, 8f), new Color(1f, 0.8f, 0.8f, alpha));
             }
         }
 
@@ -240,7 +306,11 @@ namespace Arena
             DkTitle(new Rect(r.x + 14f, r.y + 24f, r.width - 28f, 24f), dr.Name.ToUpperInvariant(), 20, TrainColor);
             bool dodge = dr.Key == "dodge";
             string dodgeKey = Keybinds.KeyName(Keybinds.Get(KeyAction.Dodge));
-            string line = d.Done ? "Done!" : dr.Key == "parry" ? "Hold " + Keybinds.KeyName(Keybinds.Get(KeyAction.Parry)) + " and turn the shield to face shot " + (d.Step + 1) + "."
+            string line = d.Done ? "Done!" : dr.Key == "tells" ? (!d.TellUp ? "Watch for the next wind-up."
+                    : d.TellKind == Training.TellLine ? "Sniper: step off its line before it fires."
+                    : d.TellKind == Training.TellLane ? "Lunger: get out of its lane, to the side."
+                    : "Slam: get out of the circle.")
+                : dr.Key == "parry" ? "Hold " + Keybinds.KeyName(Keybinds.Get(KeyAction.Parry)) + " and turn the shield to face shot " + (d.Step + 1) + "."
                 : dr.Key == "shoot" ? (Training.ShootSpeedAt(d.Step) > 0f
                     ? "Target " + (d.Step + 1) + " slides: lead it a little and keep firing."
                     : "Hold " + Keybinds.KeyName(Keybinds.Get(KeyAction.Fire)) + " on target " + (d.Step + 1) + " to break it.")
