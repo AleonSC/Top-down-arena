@@ -46,8 +46,9 @@ ul{margin:0;padding-left:18px}
     <button data-t="2.6">1 · PICK A DOOR</button>
     <button data-t="5.6">2 · OPENING</button>
     <button data-t="10">3 · HOSPITAL</button>
-    <button data-t="15.3">4 · SEALS</button>
-    <input id="scrub" type="range" min="0" max="16" step="0.01" value="0" aria-label="Timeline">
+    <button data-t="13.8">4 · EJECT</button>
+    <button data-t="15.6">5 · SEALS</button>
+    <input id="scrub" type="range" min="0" max="17" step="0.01" value="0" aria-label="Timeline">
   </div>
 
   <div class="grid">
@@ -68,8 +69,9 @@ ul{margin:0;padding-left:18px}
         <dt>Cell</dt><dd>1 lattice cell (6 × 6 tiles)</dd>
         <dt>Shrine</dt><dd>health shrine: each player once, fills health + 25% overheal</dd>
         <dt>Orbs</dt><dd>6 healing orbs, 20 each, one comes back every 4 s</dd>
-        <dt>Lasts</dt><dd>30 s, then the door seals and the cell folds away</dd>
-        <dt>Mastered</dt><dd>8 orbs, 40 s</dd>
+        <dt>Lasts</dt><dd>1 minute; a 3 s EJECT countdown, everyone inside is pushed out, then the door seals and the cell folds away</dd>
+        <dt>Door</dt><dd>green laser gate: allies walk through, enemies and their shots are stopped</dd>
+        <dt>Mastered</dt><dd>8 orbs, orbs back every 3 s</dd>
       </dl>
     </div>
   </div>
@@ -99,7 +101,7 @@ function doorPos(d){const x=OX+d.c*C,y=OY+d.r*C;
 const target=doors.find(d=>d.c===4&&d.r===1&&d.s==='N');
 
 let T=0,playing=true,last=performance.now();
-const LOOP=16;
+const LOOP=17;
 const ease=t=>t<0?0:t>1?1:1-Math.pow(1-t,3);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function glow(col,b){g.shadowColor=col;g.shadowBlur=b;}
@@ -205,8 +207,8 @@ function caption(txt){g.save();g.font='22px VT323, monospace';g.textAlign='left'
 const P0=[OX+4*C-30,OY+2.6*C]; // healer stands in the core
 function frame(){
   const t=T;drawFloor();
-  const opened=t>=5.4, sealing=t>=14.6;
-  const slide=ease((t-5.4)/0.7), sealP=clamp((t-14.6)/1.0,0,1);
+  const opened=t>=5.4, sealing=t>=15.1;
+  const slide=ease((t-5.4)/0.7), sealP=clamp((t-15.1)/1.0,0,1);
   const hospital=opened&&sealP<1;
   // hospital cell floor (slides in from one cell out)
   if(hospital){const[x,y]=cellRect(4,0);const dy=(1-slide)*-C*0.6;g.save();g.globalAlpha=(slide)*(1-sealP);
@@ -267,6 +269,8 @@ function frame(){
     const tk=ease((t-7.2)/2.2),dp=ease((t-8.6)/2.4);
     const tankP=[OX+5.3*C+(ccx+C*.3-OX-5.3*C)*tk,OY+2.8*C+(ccy+C*.3-OY-2.8*C)*tk];
     const dpsP=[OX+2.9*C+(ccx-C*.3-OX-2.9*C)*dp,OY+2.2*C+(ccy+C*.3-OY-2.2*C)*dp];
+    const ej=ease((t-14.6)/0.5);
+    if(ej>0){tankP[0]+=(dx+C*.25-tankP[0])*ej;tankP[1]+=(dy+C*.45-tankP[1])*ej;dpsP[0]+=(dx-C*.25-dpsP[0])*ej;dpsP[1]+=(dy+C*.4-dpsP[1])*ej;}
     const tankHp=t<9.2?.35:t<10.4?.52:1.25, dpsHp=t<11.1?.7:.87;
     player(P0[0],P0[1],'#7fd4ff',.55,'YOU · MEDIC',dx,dy);
     player(tankP[0],tankP[1],'#ffb35c',tankHp,'TANK',ccx,ccy);
@@ -275,13 +279,24 @@ function frame(){
     floatText(ccx+C*.95,ccy-C*.2,'SHRINE: FULL +25%',COL.gold,(t-10.4)/1.6);
     floatText(dpsP[0],dpsP[1]-34,'+20',COL.heal,(t-11.1)/1);
     // timer over the door
-    const left=Math.max(0,30-(t-6.2)*(30/8.4));
-    if(sealP<1){g.save();g.globalAlpha=1-sealP;g.fillStyle='#000a';g.fillRect(dx-40,dy+10,80,5);g.fillStyle=COL.heal;g.fillRect(dx-40,dy+10,80*left/30,5);
+    const left=Math.max(0,t<12.8?60-(t-6.2)*(57/6.6):3-(t-12.8)*(3/1.8));
+    if(sealP<1){g.save();g.globalAlpha=1-sealP;g.fillStyle='#000a';g.fillRect(dx-40,dy+10,80,5);g.fillStyle=COL.heal;g.fillRect(dx-40,dy+10,80*left/60,5);
       g.font='17px VT323, monospace';g.textAlign='center';g.fillStyle=COL.heal;g.fillText(Math.ceil(left)+' s',dx,dy+30);g.restore();}
     if(sealing){g.save();g.globalAlpha=sealP;g.strokeStyle=COL.cyan;g.lineWidth=4;glow(COL.cyan,12);g.beginPath();g.moveTo(dx-60,dy);g.lineTo(dx+60,dy);g.stroke();g.restore();}
     const cd=t<14.6?0:(t-14.6)/150;
-    hudKey('FIELD HOSPITAL',t<14.6?'ACTIVE':'150 s',t<14.6?left/30:cd,t<14.6?COL.heal:COL.dim);
-    caption(t<6.4?'The cell slides in and slams into the wall':t<14.6?'Shrine: each player once · orbs come back every 4 s':'30 s up: the door seals and the cell folds away');
+    // green laser gate: allies pass, enemies stopped
+    if(slide>.95&&sealP<1){g.save();g.globalAlpha=(1-sealP)*(.6+.4*Math.sin(t*9));g.strokeStyle=COL.heal;g.lineWidth=1.5;glow(COL.heal,8);
+      for(let i=-1;i<=1;i++){g.beginPath();g.moveTo(dx-22,dy+i*4);g.lineTo(dx+22,dy+i*4);g.stroke();}g.restore();}
+    // an enemy tries the gate
+    const ep=ease((t-8)/2.5),ex=OX+4.7*C+(dx+8-OX-4.7*C)*ep,ey=OY+2.1*C+(dy+22-OY-2.1*C)*ep;
+    if(t>7.6&&t<15.1){g.save();g.strokeStyle=COL.danger;g.lineWidth=2;glow(COL.danger,8);g.beginPath();g.moveTo(ex,ey-11);g.lineTo(ex+10,ey+7);g.lineTo(ex-10,ey+7);g.closePath();g.stroke();g.restore();
+      if(ep>.98&&Math.sin(t*20)>0){g.save();g.fillStyle=COL.heal;for(let k=0;k<4;k++){g.fillRect(ex-12+Math.random()*24,dy+4+Math.random()*6,2,2);}g.restore();}}
+    // eject countdown
+    if(t>12.8&&t<14.6){const n=Math.max(1,Math.ceil(left));g.save();g.font='40px VT323, monospace';g.textAlign='center';g.fillStyle=COL.gold;glow(COL.gold,10);
+      g.fillText('EJECT '+n,x+C/2,y+C*.22);g.restore();}
+    if(t>=14.6&&t<15.2){const p=(t-14.6)/.6;g.save();g.strokeStyle=`rgba(255,204,77,${1-p})`;g.lineWidth=3;g.beginPath();g.arc(ccx,ccy,20+p*C*.6,0,7);g.stroke();g.restore();}
+    hudKey('FIELD HOSPITAL',t<14.6?'ACTIVE':'150 s',t<14.6?left/60:cd,t<14.6?COL.heal:COL.dim);
+    caption(t<6.4?'The cell slides in and slams into the wall':t<12.8?'Laser gate keeps enemies out · shrine once each · orbs back every 4 s':t<15.1?'1 minute up: a countdown, then everyone inside is pushed out':'The door seals and the cell folds away');
   }
   // scanlines
   g.fillStyle='#00000022';for(let y=0;y<H;y+=3)g.fillRect(0,y,W,1);
