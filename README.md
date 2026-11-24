@@ -1897,7 +1897,7 @@ class. The host tells every player's game when a boss falls and when a run ends,
 grow. Boss Lab fights and runs where dev tools (F1) or the bot were used don't count.
 **Profiles:** the game asks **Who's playing?** at launch (`Docs/Mockups/whos-playing-carousel.html`): the monitor with
 WHO'S PLAYING? on its glass and the floppy drive in its chin, and under it one big floppy disk per profile on an endless
-side-scrolling carousel: the middle disk large, two either side smaller and fainter, wrapping round. Scroll with the **‹ ›** keys,
+side-scrolling carousel: the middle disk large, two either side smaller and fainter, fading out at the edges, wrapping round (with only 2 or 3 profiles the reel repeats, so a disk rolls smoothly off one side as its copy comes in on the other). Scroll with the **‹ ›** keys,
 the arrow keys (or A and D), the mouse wheel or by dragging the disks; click a side disk to bring it to the middle; click the middle one
 (or press Enter) to load it. The drive's readout says INSERT: <name> for the middle disk. Under the carousel: **PROFILE n OF m** (with a
 dot per profile while there are 12 or fewer; FULL at 50), then **Manage profiles** (RENAME and DELETE under the middle disk; Delete
