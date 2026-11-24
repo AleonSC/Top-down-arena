@@ -282,7 +282,7 @@ namespace Arena
         /// in it when the map isn't a rectangle) moves to the nearest room, inside its walls.
         V2 SnapIntoRooms(V2 pos, float r)
         {
-            if (!RoomsOn)
+            if (!RoomsOn || InCellZone(pos))  // (a Holding Cell's guards stay in it: HoldingCell.cs)
                 return pos;
             var areas = CurrentWorld.Areas;
             foreach (var a in areas)
@@ -411,14 +411,14 @@ namespace Arena
             alive.Clear();
             tanks.Clear();
             foreach (var p in Players.Values)
-                if (!p.Downed && (p.TauntT > 0f || JuggOn(p) || p.RodT > 0f))
+                if (!p.Downed && !Jailed(p) && (p.TauntT > 0f || JuggOn(p) || p.RodT > 0f))
                     return p.Id;  // Roar (or the Juggernaut Suit, or a Lightning Rod's charge): everyone goes for the tank
             Player hunted;
-            if (Has(RunMod.Hunted) && Players.TryGetValue(HuntedId, out hunted) && !hunted.Downed && hunted.VanishT <= 0f)
+            if (Has(RunMod.Hunted) && Players.TryGetValue(HuntedId, out hunted) && !hunted.Downed && hunted.VanishT <= 0f && !Jailed(hunted))
                 return hunted.Id;  // Hunted: everyone goes for the quarry (Modifiers.cs)
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.VanishT > 0f)  // a vanished Ninja can't be picked out (Ninja.cs)
+                if (p.Downed || p.VanishT > 0f || Jailed(p))  // a vanished Ninja can't be picked out (Ninja.cs); nor someone in a Holding Cell
                     continue;
                 alive.Add(p.Id);
                 if (p.Role == Role.Tank)
@@ -426,7 +426,7 @@ namespace Arena
             }
             if (alive.Count == 0)
                 foreach (var p in Players.Values)
-                    if (!p.Downed)
+                    if (!p.Downed && !Jailed(p))
                         alive.Add(p.Id);  // everyone has vanished: they search where they last saw them
             if (alive.Count == 0)
                 return 0;
@@ -496,8 +496,11 @@ namespace Arena
             AssignShooterTurns(dt);  // only so many regular shooters at once (Readability.cs)
             tickEnemies.Clear();
             tickEnemies.AddRange(Enemies.Values);
+            bool arenaHeld = ArenaHeld;  // everyone's in a Holding Cell: the arena holds still (HoldingCell.cs)
             foreach (var e in tickEnemies)  // copy: some enemies spawn others
             {
+                if (arenaHeld && !InCellZone(e.Pos))
+                    continue;
                 actingEnemy = e;  // its shots are stamped with it (Lightning Rod; LightningRod.cs)
                 e.T += dt;
                 TickKnock(e, dt);  // a push sliding (Knock.cs)
@@ -555,7 +558,14 @@ namespace Arena
                 e.RetargetT -= dt;
                 Player target;
                 Players.TryGetValue(e.TargetId, out target);
-                if (e.RetargetT <= 0f || target == null || target.Downed)
+                int inCell = HoldingCells.Count > 0 ? CellSlotAt(e.Pos, CellZone) : -1;
+                if (inCell >= 0)
+                {
+                    var cell = CellInSlot(inCell);  // a Holding Cell's guards go for its prisoner, and nobody else (HoldingCell.cs)
+                    e.TargetId = cell != null ? cell.PlayerId : 0;
+                    Players.TryGetValue(e.TargetId, out target);
+                }
+                else if (e.RetargetT <= 0f || target == null || target.Downed || HoldingCells.Count > 0 && Jailed(target))
                 {
                     e.TargetId = PickTarget();
                     e.RetargetT = 3f;

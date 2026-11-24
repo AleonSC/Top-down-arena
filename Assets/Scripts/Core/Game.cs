@@ -999,6 +999,7 @@ namespace Arena
             UpdatePropView(dt);    // crates, barrels, chests and their items (Props.cs)
             UpdateInkView(dt);     // Chalk.cs: the chalk's tip easing, a client's ink ageing
             UpdateWardenView(dt);  // Warden.cs
+            UpdateHoldingCellView(dt);  // HoldingCell.cs
             UpdateSingView(dt);    // Singularity.cs
             UpdateHeraldView(dt);  // Herald.cs
             UpdateEclipseView(dt); // Eclipse.cs
@@ -1147,6 +1148,8 @@ namespace Arena
                 for (int i = 0; i < held.Length; i++)
                     held[i] = MathX.Fmod(botT + i * 1.3f, 4f) < 0.1f;
             }
+            if (Bot && HoldingCells.Count > 0)
+                CellBot(me, ref move, ref aimAt, ref firing, held);  // in a Holding Cell, or a teammate in one (HoldingCell.cs)
             if (Bot)
             {
                 // Both bots: level-up picks (reroll once per pick while rerolls last, then take the best-scored card: BotPicks.cs) and the Bazaar.
@@ -1475,7 +1478,13 @@ namespace Arena
             return false;
         }
 
-        V2 ClampToArena(V2 pos, float r) => pos.Clamp(ArenaMin + new V2(r, r), ArenaMax - new V2(r, r));
+        V2 ClampToArena(V2 pos, float r)
+        {
+            int cell = CellSlotAt(pos, CellZone);
+            if (cell >= 0)
+                return ClampToCell(cell, pos, r);  // in a Holding Cell: its bars are the walls (HoldingCell.cs)
+            return pos.Clamp(ArenaMin + new V2(r, r), ArenaMax - new V2(r, r));
+        }
 
         /// Players wrap around: walking off one edge brings you in on the opposite side.
         public static V2 WrapArena(V2 pos) => new V2(MathX.Fmod(pos.X, Width), MathX.Fmod(pos.Y, Height));
@@ -1544,6 +1553,7 @@ namespace Arena
             TickChalk(dt);       // Chalk.cs: drawing, and what the ink does
             TickLarderHost(dt);     // LarderFaction.cs: loose bile pools, morsels stepped on with no Devourer about
             TickWardenFaction(dt);  // WardenFaction.cs: tear gas with no Warden about, the Riot Shields' bash grace
+            TickHoldingCells(dt);   // HoldingCell.cs: the Warden's net and cells
             TickPenumbral(dt);      // Penumbral.cs: Dusk Lobbers' pools drain
             TickReaperFaction(dt);  // ReaperFaction.cs: the Bound Wraiths' tethers, the Scythe Wraiths' reaps
             TickWaves(dt);
@@ -1551,7 +1561,8 @@ namespace Arena
             if (!SurvFrozen)  // (Survival holds the whole world while someone picks a card: no moves, no contact hits: SurvivalGame.cs)
             {
                 TickEnemies(dt * WorldRate);  // (slowed for a moment by a perfect parry: Parry.cs)
-                TickRecycling(dt * WorldRate);  // stragglers far from everyone come back in near the party (Recycling.cs)
+                if (!ArenaHeld)  // (the fight paused round a Holding Cell: HoldingCell.cs)
+                    TickRecycling(dt * WorldRate);  // stragglers far from everyone come back in near the party (Recycling.cs)
             }
             KeepOutOfDomes();  // Fortress's dome (Dome.cs)
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)

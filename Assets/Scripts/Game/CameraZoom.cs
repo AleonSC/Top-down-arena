@@ -32,7 +32,7 @@ namespace Arena
         const float ZoomHintTime = 14f;
 
         /// Any zoom at all this frame, or the rooms' following camera (false keeps every transform exactly as before).
-        bool CamZoomed => camZoom > 1.0001f || camFollow;
+        bool CamZoomed => camZoom > 1.0001f || camFollow || camCell;  // (camCell: locked in a Holding Cell, HoldingCellLook.cs)
 
         /// Arena units -> HUD canvas units for sizes around world things (rings, label offsets), with the zoom.
         float UiWorldScale => CamZoomed ? WorldToUi * camZoom : WorldToUi;
@@ -57,10 +57,24 @@ namespace Arena
                 camZoom = zoomWant = 1f;
                 camFocus = camFocusRaw = new V2(AW / 2f, AH / 2f);
                 camFollow = false;
+                camCell = false;
                 return;
             }
             if (game.Paused)
                 return;  // (the picture holds still behind a pause menu, and the wheel is the menu's)
+            if (Game.InCellZone(me.Pos) && !me.Downed)
+            {
+                camCell = true;  // locked in a Holding Cell: the view moves to the cell block, at the normal zoom (HoldingCellLook.cs)
+                camZoom = 1f;
+                camFocus = camFocusRaw = CellViewFocus(me);
+                return;
+            }
+            if (camCell)
+            {
+                camCell = false;  // back in the fight: a cut back to the arena
+                camFocusRaw = CamSubject(me);
+                camFocus = new V2(AW / 2f, AH / 2f);
+            }
             int pad = game.SpawnerNear(me.Pos);
             float padWheel = Input.mouseScrollDelta.y;
             if (pad >= 0 && (padWheel > 0.01f || padWheel < -0.01f) && GUIUtility.keyboardControl == 0 && !devMenuOpen && !InventoryUp)

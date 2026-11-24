@@ -62,7 +62,7 @@ namespace Arena
         /// it's locked on, dark while its shackle ring closes; it flickers on when it comes back.
         void DrawSearchlight(WardenState w, float t)
         {
-            if (w.LightMode == WardenLight.Off || w.LightMode == WardenLight.Ring)
+            if (w.LightMode == WardenLight.Off || w.LightMode == WardenLight.Net)
                 return;
             bool locked = w.LightMode == WardenLight.Lock;
             float on = w.LightMode == WardenLight.Follow && w.LightT < 0.35f && ((int)(w.LightT * 20f) & 1) == 1 ? 0.35f : 1f;
