@@ -87,7 +87,7 @@ its clamps, the rest of the picker fades, the disk flies to the drive, tips flat
 drawn over it); the drive's light pulses amber, then blinks in your rank colour while four cells fill and the readout goes DISK DETECTED,
 READING <NAME>, <NAME> READY. The menu's own intro (`MenuIntro.cs`) runs from a remapped clock (title types at 3.6 s, the arc at 4.05 s). Sounds:
 `Sfx.Disk*` (lift, fly, tip, slide / eject, click, read, ready) and `Sfx.Prof*` (select, the pen on the arc, box sweep, bar, chord), plus the pause
-menu's thunk and key ticks. Any key skips it; nothing can be clicked meanwhile. Reduced effects or Visual effects off: no move.
+menu's thunk and key ticks. Any key fast-forwards it (the rest plays silently in 0.5 s); nothing can be clicked meanwhile. Reduced effects or Visual effects off: no move.
 The lobby's own axis is unchanged except where it was drawn at the menu's place (the move into the lobby and back): there the drive fades.
 Audio and drawing only, no protocol bump. Preview: `PROFTR=<0..5.4>,<slot>[,back] Tools/Preview/shot.sh x whotr`.
 Profiles made before the limit (more than 3) stay on disk; the picker shows the first three until some are deleted.
