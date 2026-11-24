@@ -105,6 +105,7 @@ namespace Arena
                     KnockEnemy(e, away * GaleShove * (Heavy(e) ? 0.5f : 1f));
                 }
                 HurtEnemy(e, D, p.Id);
+                WindHit(e, e.Pos - p.Pos);  // Wind.cs
             }
             BroadcastFx(FxKind.GaleBlast, p.Pos, p.Pos + V2.FromAngle(face) * GaleReach, GaleColor, charge, GaleBlastT, Sfx.None);
             ClearGaleWall(p);

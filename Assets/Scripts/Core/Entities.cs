@@ -698,6 +698,7 @@ namespace Arena
         public int ChargedBy;
         public bool Charged;                // replicated, for the bolt icon and the arcs on its body
         public float SteamCd;               // host: until it can turn to steam again (Steam.cs)
+        public float WindCd, WindChillImmuneT;  // host: until wind can react with it again, and until wind can chill it again after a wind freeze (Wind.cs)
         public bool WasIced;                // host: frozen in real ice last tick (a freeze ending leaves it wet: Steam.cs)
         public float WetLeft, WetPeak;      // wet seconds left (replicated, in tenths) and the most seen since it began: the effect bar's fill (Game/EffectBar.cs)
         public byte FrostChill;             // Frost Lance: chill on it, 0-2 (3 freezes; replicated for the pips; FrostLance.cs)

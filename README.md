@@ -663,6 +663,14 @@ Rarer cards show up a bit more often as you level. All the numbers live in
 - **Meltwater (Ice → Water):** when a freeze ends (Glacial Tomb, a Frost Lance freeze, Blood Freeze, a shatter...; not a
   stun), the melted ice leaves the enemy **wet** for 6 s. While it's frozen, fire just burns as usual; if it's still
   burning when the ice melts, the water and fire turn to steam.
+- **Wind reactions:** wind has no status of its own; it reacts with the others. Every wind source counts: Wind Clash's
+  waves and Tempest, Gale Wall's blast, Gust Gate (the cast and its steady push), the Spirit Fan's gust, the Wyvern's gale
+  and the Nimbus's hurricane burst. An enemy reacts to wind at most once a second.
+  - **Wind Chill (Wind + Water):** wind on a **wet** enemy chills it like a Frost Lance strike (+1 chill, slowed 30% for
+    3 s); the third chill freezes it (2.4 s, heavies 1.2 s; bosses only get the slow). After a wind freeze, wind can't chill
+    that enemy for 6 s, so a steady wind can't keep it frozen through its meltwater.
+  - **Fan the Flames (Wind + Fire):** wind on a **burning** enemy spreads its fire, at 60% strength and for the time it has
+    left, to the 3 nearest enemies within 120 px downwind (the side the wind blows toward), credited to whoever lit it.
 - **Cauterize (Bleed + Burn):** fire landing on a bleeding enemy (the Flamethrower, the Fireball, Incendiary Rounds)
   sears the wound shut: all the bleed it had left lands at once, times 1.25, and the bleed ends. Whoever made it bleed
   is credited the bleed's share, whoever brought the fire the extra quarter, so fire never wastes an ally's bleed. A

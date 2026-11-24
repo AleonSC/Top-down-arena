@@ -133,6 +133,7 @@ namespace Arena
                     w.Hit.Add(e.Id);
                     any = true;
                     WeaponHurt(e, w.Dmg, w.Owner);
+                    WindHit(e, push);  // Wind.cs
                     if (e.Hp > 0f && !Heavy(e))
                         KnockEnemy(e, push * w.Knock);
                 }
@@ -239,6 +240,7 @@ namespace Arena
                     any = true;
                     WeaponHurt(e, dmg, p.Id);
                     V2 rel = e.Pos - p.Pos;
+                    WindHit(e, rel);  // Wind.cs
                     if (e.Hp > 0f && !Heavy(e))
                         KnockEnemy(e, (rel.Length > 1f ? rel / rel.Length : RandDir()) * TempestShove);
                 }

@@ -32,6 +32,8 @@ namespace Arena
             new Topic("Pit", "A void in a cell's floor: enemies shoved in die, players lose 15% health and climb out."),
             new Topic("Boss phase", "One part of a boss fight; a phase change moves to the next."),
             new Topic("Steam", "Fire + water: an enemy that is wet and burning at once turns both to steam: a cloud for 3 s that scalds enemies in it and jams their weapons (bosses only take the scald). A freeze melts into 6 s of wet when it ends, so a frozen, burning enemy steams as it thaws."),
+            new Topic("Wind Chill", "Wind on a wet enemy chills it (slowed; three chills freeze it). After a wind freeze, wind can't chill it again for 6 s."),
+            new Topic("Fan the Flames", "Wind on a burning enemy spreads its fire, at 60%, to up to three enemies close by downwind."),
             new Topic("Downed", "At 0 health you go down; a teammate can revive you, and a Defib Kit stands you up."),
         };
 
