@@ -596,6 +596,9 @@ namespace Arena
                 s.Byte(ref p.WallPlate[k]);
             s.Float(ref p.UnbreakT);
             s.Float(ref p.RodT);    // Lightning Rod's charge (LightningRod.cs)
+            s.Float(ref p.VortexT);  // Vortex (Vortex.cs)
+            s.Float(ref p.VortexAge);
+            s.Float(ref p.VortexR);
             s.Byte(ref p.HeliGuns);  // the Attack Helicopter (AttackHelicopter.cs): its guns, then their targets while it's out
             if (p.HeliGuns > 0)
             {

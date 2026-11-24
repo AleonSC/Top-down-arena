@@ -821,6 +821,36 @@ static partial class Shot {
         gm.Effects.Add(new Effect { Kind = FxKind.JuggShard, Pos = hit, Pos2 = at, Color = new Rgba(1f, 0.82f, 0.45f), Radius = me.Id, Dur = Game.JuggShardFx, T = 0.03f + 0.045f * i });
       }
     }
+    if (Environment.GetEnvironmentVariable("VORTEX") != null) {
+      // A Tank Elementalist's Vortex (VortexLook.cs): VORTEX=<seconds since the cast> (the wind-up runs to 0.4 s; use 0.2, 2 or 5.2),
+      // VXMASTERED=1 for 300 px; grunts swept round inside, one drawn in from past the edge, a few enemy shots swept away. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Elementalist; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Slots[Upgrades.UltSlot].Id = AbilityId.Vortex;
+      V2 from = new V2(640f, 440f);
+      me.Pos = me.Disp = from; me.Aim = -0.3f; me.AimAt = from + new V2(300f, -90f); me.Hp = me.MaxHp * 0.85f;
+      me.BarrierT = 0f; me.AegisT = 0f; me.OverdriveT = 0f; me.ShieldHp = 0f;
+      float vt = float.Parse(Environment.GetEnvironmentVariable("VORTEX"));
+      me.VortexAge = vt; me.VortexT = Math.Max(0.05f, Game.VortexWindup + Game.VortexTime - vt); me.UltT = me.VortexT;
+      me.VortexR = Environment.GetEnvironmentVariable("VXMASTERED") == "1" ? Game.VortexRadiusMastered : Game.VortexRadius;
+      var rnd = new System.Random(7);
+      for (int i = 0; i < 11; i++) {
+        bool outside = i >= 9;
+        float ang = i * 0.61f + (float)rnd.NextDouble() * 0.3f;
+        float rr = outside ? me.VortexR + 30f + 60f * (i - 9) : 95f + (float)rnd.NextDouble() * (me.VortexR - 110f);
+        V2 at = from + V2.FromAngle(ang) * rr;
+        var type = i == 3 ? EnemyType.Spinner : i == 6 ? EnemyType.Shard : EnemyType.Grunt;
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { type, at, 0f, 0, false });
+        en.SpawnT = 0f; en.Pos = en.Disp = at;
+        en.MaxHp = 1000f; en.Hp = outside ? 1000f : 1000f * (0.35f + 0.5f * (float)rnd.NextDouble());
+      }
+      if (vt >= Game.VortexWindup)
+        for (int i = 0; i < 4; i++) {
+          V2 at = from + V2.FromAngle(2.2f + i * 1.3f) * (me.VortexR - 30f - 25f * i);
+          gm.Effects.Add(new Effect { Kind = FxKind.VortexWisp, Pos = at, Pos2 = from, Color = Defs.BulletColor(Defs.SmallShot), Radius = 5f, Dur = Game.VortexWispTime, T = 0.08f + 0.1f * i });
+        }
+    }
     if (Environment.GetEnvironmentVariable("COLOSSUS") != null) {
       // A Tank Elementalist's Stone Colossus (StoneColossusLook.cs): COLOSSUS=<seconds since the cast> (the rise runs to 1 s; use 0.5 or 4),
       // COLWIND=<the slam, 0-1> (0.3: fists up, 0.7: down), COLEND=1: the crumble (rubble and boulders COLEND s in); with enemies round
