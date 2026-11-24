@@ -364,6 +364,21 @@ static partial class Shot {
       }
       foreach (var wp in host.Game.Players.Values) { wp.Pos = wp.Disp = only > 0 ? new V2(Game.Width / 2f + 120f, Game.Height / 2f + 50f) : new V2(Game.Width / 2f, Game.Height / 2f + 380f); wp.Aim = MathX.Pi; }
     }
+    // HERALDSHEET=1: four Storm Heralds in a row, one per phase (Gathering, Gale with an east wind, Supercell, last
+    // stand: HeraldBodyLook.cs). Use with ZOOM=1.38 CAMAT=640,360 shot.sh x hud 3 1 1.
+    if (Environment.GetEnvironmentVariable("HERALDSHEET") != null)
+    {
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Hazards.Clear();
+      var hsp = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      for (int i = 0; i < 4; i++)
+      {
+        var at = new V2(Game.Width / 2f + (i - 1.5f) * 220f, Game.Height / 2f);
+        var he = (Enemy)hsp.Invoke(host.Game, new object[] { EnemyType.StormHerald, at, 0f, 0, false });
+        he.Spawning = false; he.SpawnT = 0f; he.Disp = he.Pos = at; he.Facing = MathX.Pi / 2f; he.Flash = 0f;
+        he.Herald = new HeraldState { Stage = (HeraldStage)i, Wind = i == 1 ? 1 : 0 };
+      }
+      foreach (var hp in host.Game.Players.Values) { hp.Pos = hp.Disp = new V2(Game.Width / 2f, Game.Height / 2f + 330f); hp.Aim = -MathX.Pi / 2f; }
+    }
     // LAUNCH=<seconds>: a run launching from the lobby, that far in (LaunchIntro.cs).
     launchAt = Environment.GetEnvironmentVariable("LAUNCH") != null ? float.Parse(Environment.GetEnvironmentVariable("LAUNCH")) : -1f;
     if (launchAt >= 0f) {
@@ -884,6 +899,7 @@ static partial class Shot {
       typeof(ArenaApp).GetField("camZoom", f2).SetValue(app, z);
       V2 focus = me.Disp;
       string camAt = Environment.GetEnvironmentVariable("CAMAT");  // CAMAT=x,y: centre the zoom there instead of on you
+      if (camAt == "herald") { foreach (var he in host.Game.Enemies.Values) if (he.Type == EnemyType.StormHerald) focus = he.Disp; camAt = null; }  // CAMAT=herald: on the Storm Herald
       if (camAt != null) { var cp = camAt.Split(','); focus = new V2(float.Parse(cp[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(cp[1], System.Globalization.CultureInfo.InvariantCulture)); }
       typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, new V2(hx * 2 >= Game.Width ? Game.Width / 2f : Math.Max(hx, Math.Min(Game.Width - hx, focus.X)), hy * 2 >= Game.Height ? Game.Height / 2f : Math.Max(hy, Math.Min(Game.Height - hy, focus.Y))));
     }

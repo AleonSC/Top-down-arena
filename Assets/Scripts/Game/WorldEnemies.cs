@@ -621,6 +621,8 @@ namespace Arena
                 DrawGuardBody(e, pos, r, col, t);  // WardenLook.cs: the corrections officer and its nightstick swing
             else if (e.Type == EnemyType.Warden)
                 DrawWardenBody(e, pos, r, col, spawning, t);  // WardenBodyLook.cs: the Chief Warden, posed for each move
+            else if (e.Type == EnemyType.StormHerald && !spawning)
+                DrawHeraldBody(e, pos, r, col, t);  // HeraldBodyLook.cs: the Tempest Herald
             else if (Game.IsNonShooter(e.Type))
                 DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
             else

@@ -4,7 +4,7 @@ namespace Arena
 {
     /// How the Storm Herald's fight looks (Herald.cs): rain and wind streaks in the Gale, a darker sky in the
     /// Supercell, lightning rods and the arcs between them, ball lightning and its arcs, the Conductor's ring, the
-    /// last stand's spokes, and the storm cloud around the Herald itself. Built from the mockup in
+    /// last stand's spokes, and the glow round the Herald itself (its body: HeraldBodyLook.cs). Built from the mockup in
     /// Docs/Mockups/storm-herald-3-phase.html.
     public partial class ArenaApp
     {
@@ -147,23 +147,12 @@ namespace Arena
                 Line(a + dir * d, a + dir * Mathf.Min(len, d + 10f), width, col);
         }
 
-        /// Under the Herald's body: its storm cloud, darker and wider each phase, a glow, and arcs crawling over it.
+        /// Under the Herald's body (HeraldBodyLook.cs): its storm glow and, in the Gale, a wind sock of streaks.
         void DrawHeraldUnderlay(Enemy e, V2 pos, float r, float t)
         {
             var s = e.Herald;
             int stage = s == null ? 0 : (int)s.Stage;
-            var cloud = stage >= 2 ? new Rgba(0.16f, 0.12f, 0.27f, 0.75f) : new Rgba(0.2f, 0.24f, 0.38f, 0.7f);
-            for (int k = 0; k < 7; k++)
-            {
-                float a = t * 0.3f + k * MathX.Tau / 7f, rr = r + 22f + stage * 10f + Mathf.Sin(t * 1.3f + k) * 6f;
-                Circle(pos + new V2(Mathf.Cos(a) * rr * 0.8f, Mathf.Sin(a) * rr * 0.45f - 6f), 26f + stage * 4f, cloud, 18);
-            }
-            Circle(pos, r + 30f, StormBlue.WithAlpha(0.12f + 0.06f * Mathf.Sin(t * 6f)), 28);
-            if (Mathf.Sin(t * 7f) > 0.3f)
-            {
-                float a = t * 3f;
-                DrawBolt(pos + V2.FromAngle(a) * r, pos + V2.FromAngle(a + 1.4f) * r, 2f, StormWhite, (int)(t * 14f), 4);
-            }
+            Circle(pos, r + 30f, (stage >= 2 ? StormViolet : StormBlue).WithAlpha(0.1f + 0.05f * Mathf.Sin(t * 6f)), 28);  // its storm glow
             if (s != null && s.Wind != 0 && s.TransT <= 0f)  // a wind sock of streaks off its body
                 for (int k = 0; k < 3; k++)
                     Line(pos + new V2(-s.Wind * r * 0.5f, (k - 1) * 12f), pos + new V2(s.Wind * (r + 30f + 10f * Mathf.Sin(t * 8f + k)), (k - 1) * 12f), 2f, StormWhite.WithAlpha(0.35f));
