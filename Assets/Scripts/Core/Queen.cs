@@ -151,6 +151,23 @@ namespace Arena
             return t < 0.3f ? t / 0.3f : t < 1.1f ? 1f : Math.Max(0f, 1f - (t - 1.1f) / 0.2f);
         }
 
+        /// How full her egg sac is, 0..1 (the Brood Mother's look): it swells through the breather before her Eggs turn
+        /// (or the phase change into the Honeycomb, whose first turn is Eggs), then squeezes empty as she lays them.
+        public static float QueenSwell(QueenState q)
+        {
+            if (q == null)
+                return 0f;
+            if (q.TransT > 0f)
+                return q.TransTo == QueenStage.Honeycomb ? Math.Max(0f, 1f - q.TransT / QueenTransTime) : 0f;
+            if (q.Turn == QueenTurn.Eggs)
+                return Math.Max(0f, 1f - q.TurnT / EggFlight);
+            var turns = QueenTurns[(int)q.Stage];
+            if (q.Turn != QueenTurn.Rest || q.Step < 0 || turns[(q.Step + 1) % turns.Length] != QueenTurn.Eggs)
+                return 0f;
+            float len = QueenTimes[(int)q.Stage][q.Step % turns.Length];
+            return Math.Min(1f, q.TurnT / Math.Max(0.1f, len));
+        }
+
         bool QueenImmune(Enemy e) => e.Type == EnemyType.HiveQueen && e.Queen != null && (e.Queen.TransT > 0f || QueenAir(e.Queen) > 0.5f);
 
         /// In the air in a dive: she doesn't touch anyone.
@@ -791,7 +808,7 @@ namespace Arena
             if (!has)
                 return;
             var q = e.Queen ?? (e.Queen = new QueenState());
-            int stage = (int)q.Stage, turn = (int)q.Turn, transTo = (int)q.TransTo, dives = q.Dives;
+            int stage = (int)q.Stage, turn = (int)q.Turn, transTo = (int)q.TransTo, dives = q.Dives, step = q.Step + 1;
             bool wasOn = q.CloudOn;
             s.Byte(ref stage);
             s.Byte(ref turn);
@@ -805,8 +822,10 @@ namespace Arena
             s.Vec(ref q.Shadow);
             s.Float(ref q.DiveT);
             s.Byte(ref dives);
+            s.Byte(ref step);  // (for the Brood Mother's swell before her eggs: QueenSwell)
             if (s.Reading)
             {
+                q.Step = step - 1;
                 q.Stage = (QueenStage)stage;
                 q.Turn = (QueenTurn)turn;
                 q.TransTo = (QueenStage)transTo;
