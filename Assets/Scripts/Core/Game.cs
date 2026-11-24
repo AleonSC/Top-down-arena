@@ -1344,7 +1344,9 @@ namespace Arena
                 if (me.Slots[slot].Id == AbilityId.CeremonialArmor && me.PlateN >= CerePlateMax)
                     continue;  // Ceremonial Armor with all 10 plates up: don't waste the cooldown
                 if ((me.StandOn || Seated(me)) && MovesYou(me.Slots[slot].Id))
-                    continue;  // planted: nothing that would carry you off (LastStand.cs)
+                    continue;
+                if (TankOn(me))
+                    continue;  // in A Literal Tank: no abilities (LiteralTank.cs)  // planted: nothing that would carry you off (LastStand.cs)
                 bool orbitOut = OrbitRelease(me, slot);  // Blade Fan pressed again: the host throws the kunai (Ninja.cs)
                 bool harvestOut = HarvestPress(me, slot);  // Crimson Harvest pressed again: the host throws the ball (CrimsonHarvest.cs)
                 bool standOut = StandRelease(me, slot);  // Last Stand pressed again: the host brings it down (LastStand.cs)
@@ -1448,7 +1450,7 @@ namespace Arena
 
             LocalDodge(me, move, dodgePress, dodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
             me.Sprint = (byte)Math.Round(SprintFade * 255f);  // for everyone else's wake (sent in Msg.Input, then the snapshot)
-            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive, dt);  // weapon secondaries on their own key (Ninja.cs)
+            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
             if (LocalGreatStar(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // the Great Star stance: Fire draws the route and throws instead (GreatStar.cs)
             V2 edgeWant = RoomsHold(before, me.Pos, me.Def.BodyR);  // (a room locks behind you: Rooms.cs)
@@ -1529,6 +1531,7 @@ namespace Arena
             TickVolleys(dt);    // WarhornVolley.cs: the arrows' front crossing the field
             TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
+            TickTanks(dt);      // LiteralTank.cs: the tank's time, running enemies over, getting out
             TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders
             TickGaleWalls(dt);  // GaleWall.cs: lenses run down and unleash
             TickWaterWards(dt);    // WaterWard.cs: the drops circle, land, spread and splash
@@ -1745,6 +1748,8 @@ namespace Arena
                 {
                     // sitting in a Deployable Turret: it fires (TickDeployTurret), not your weapon
                 }
+                else if (TankOn(p))
+                    TickTankGun(p, dt);  // in A Literal Tank: its main gun, not your weapon (LiteralTank.cs)
                 else if (ColOn(p))
                     ColossusTrigger(p);  // the golem: Fire slams, the weapon is put away (StoneColossus.cs)
                 else if (p.StunShots > 0)

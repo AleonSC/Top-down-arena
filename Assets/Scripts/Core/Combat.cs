@@ -57,6 +57,7 @@ namespace Arena
             amount = LeashSoak(p, amount);  // Martyr's Leash sends a share down the chains (BloodLash.cs)
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
             amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
+            amount = TankSoak(p, amount);  // or A Literal Tank's (LiteralTank.cs)
             amount = TurretSoak(p, amount);  // the Deployable Turret you sit in takes the rest first (DeployableTurret.cs)
             if (p.ShieldHp > 0f)  // shields soak damage next (Guardian's Oath, Substitution, Blood Shell)
             {
@@ -204,7 +205,7 @@ namespace Arena
         /// Shots thrown in an arc (grenades, boulders, Gore Mortar clots, medkits): they fly over what's below and land.
         static bool Lobbed(byte kind) => kind == Defs.GrenadeShot || kind == Defs.BoulderShot || kind == Defs.ClotShot || kind == Defs.MedkitShot || kind == Defs.HoneyGlob;
 
-        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop && kind != Defs.HoneyGlob;
+        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop && kind != Defs.HoneyGlob && kind != Defs.TankShell;
 
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false, float homing = 0f)
         {
@@ -230,6 +231,8 @@ namespace Arena
                 return Sfx.ShotNova;
             if (kind == Defs.TreantSeed)
                 return Sfx.ShotSeed;
+            if (kind == Defs.TankShell)
+                return Sfx.LitTankCannon;  // A Literal Tank's main gun (LiteralTank.cs, LitTankSoundBank.cs)
             Player p;
             if (!Players.TryGetValue(owner, out p))
                 return Sfx.ShotRifle;
@@ -347,6 +350,13 @@ namespace Arena
                 {
                     string landSrc = CreditTo(BulletSrc(b));
                     LandClot(b);  // Hemomancer.cs
+                    dmgSrc = landSrc;
+                    continue;
+                }
+                if (b.Kind == Defs.TankShell)
+                {
+                    string landSrc = CreditTo(BulletSrc(b));
+                    TankShellBurst(b);  // LiteralTank.cs
                     dmgSrc = landSrc;
                     continue;
                 }
@@ -933,8 +943,9 @@ namespace Arena
                 foreach (var e in FoesInCircle(b.Pos, b.Splash, b.Pos, by: b.Owner))
                     if (e.Id != b.LastHit)
                         HurtEnemy(e, b.Dmg * 0.6f, b.Owner);
-                if (b.Kind == Defs.FlakShell || !SplashFxNearby(b))
-                    BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(b.Kind), b.Splash, 0.3f, b.Kind == Defs.FlakShell ? Sfx.Explode : Sfx.None);
+                bool loud = b.Kind == Defs.FlakShell || b.Kind == Defs.TankShell;  // (A Literal Tank's shells: LiteralTank.cs)
+                if (loud || !SplashFxNearby(b))
+                    BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(b.Kind), b.Splash, b.Kind == Defs.TankShell ? 0.45f : 0.3f, loud ? Sfx.Explode : Sfx.None);
                 PropBlast(b.Pos, b.Splash, b.Owner);
                 if (b.HealBurst > 0f)
                     CharmHeal(b);  // Ofuda (Ninja.cs)

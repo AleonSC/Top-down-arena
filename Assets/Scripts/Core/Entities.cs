@@ -158,6 +158,9 @@ namespace Arena
         MenuPlay, MenuKey, MenuQuit, MenuEject, MenuRooms, NeonSpark, BayVault, BayBack, RunContinue, RunDelArm, RunDelete,
         // Graze (Graze.cs, GrazeSoundBank.cs): an enemy shot skimming past you. Played by your own screen, never sent.
         Graze,
+        // A Literal Tank (LitTankSoundBank.cs): the engine's loop, the main gun, the drop's whistle (sent with the cast), the landing,
+        // the last seconds' beep, the hatch. The rest are played by each screen from the look or the shell, never sent.
+        LitTankEngine, LitTankCannon, LitTankFall, LitTankLand, LitTankWarn, LitTankHatch,
     }
 
     public struct SoundCue
@@ -357,6 +360,10 @@ namespace Arena
         public float JuggT, JuggArmor, JuggMax;  // the Juggernaut Suit (Juggernaut.cs), replicated: time left (0 = off), armour left, armour it went on with
         public bool JuggMastered;                // host: worn with the capstone (bigger shards)
         public int JuggShards;                   // host: flak shards thrown this run (tests, stats)
+        public float TankT, TankArmor, TankMax;  // A Literal Tank (LiteralTank.cs), replicated: time left (0 = off), armour left, armour it came with
+        public float TankCd;                     // host: until the main gun can fire again
+        public bool TankMastered;                // host: driven with the capstone (wider blasts)
+        public int TankShells, TankCrushes, TankWrecks;  // host: shells fired, enemies run over, tanks blown up this run (tests, stats)
         public float TitheClock;  // Vein Tithe (VeinTithe.cs), replicated: seconds since the cast (0 = not holding anyone)
         public readonly List<int> Tithed = new List<int>();  // Vein Tithe: the enemies held right now, in the order the tendrils reach them (replicated)
         public bool HarvestMastered;  // (host)
@@ -634,7 +641,7 @@ namespace Arena
         public float RiotT;  // Riot Gear: seconds until the shield is back, 0 = ready (RiotGear.cs)
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
-        public float Speed => Def.Speed * Stats.SpeedMult * Game.MomentumMult(this) * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (OverchargeT > 0f ? Game.OverchargeMove : 1f) * Game.GustMult(GustT) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (RepelPull ? Game.RepelPullSelfSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (NunGuard ? Game.NunGuardSlow : 1f) * (NodStance == 1 && Weapon.Id == WeaponId.Nodachi ? Game.NodGuardSlow : 1f) * (VgStance == 1 && Weapon.Id == WeaponId.Vowguard ? Game.VgSanctSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f) * Game.ColSpeed(this) * (WcTempestT > 0f ? Game.TempestSlow : 1f) * (FlZeroT > Game.ZeroDur - Game.ZeroCharge ? Game.ZeroSlow : 1f) * (TitheClock > 0f ? Game.TitheSlow : 1f) * (BbBrace ? Game.BraceSlow : 1f) * (ShardGuard ? Game.ShardGuardSlow : 1f) * (TpLaserT > 0f ? Game.TpLaserSlow : 1f) * (Game.EnergyDrinkOn(this) ? Game.EnergySpeed : 1f) * (PvpSlowT > 0f ? PvpSlowMult : 1f);
+        public float Speed => Def.Speed * Stats.SpeedMult * Game.MomentumMult(this) * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (OverchargeT > 0f ? Game.OverchargeMove : 1f) * Game.GustMult(GustT) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (RepelPull ? Game.RepelPullSelfSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (NunGuard ? Game.NunGuardSlow : 1f) * (NodStance == 1 && Weapon.Id == WeaponId.Nodachi ? Game.NodGuardSlow : 1f) * (VgStance == 1 && Weapon.Id == WeaponId.Vowguard ? Game.VgSanctSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f) * Game.ColSpeed(this) * (TankT > 0f ? Game.TankSlow : 1f) * (WcTempestT > 0f ? Game.TempestSlow : 1f) * (FlZeroT > Game.ZeroDur - Game.ZeroCharge ? Game.ZeroSlow : 1f) * (TitheClock > 0f ? Game.TitheSlow : 1f) * (BbBrace ? Game.BraceSlow : 1f) * (ShardGuard ? Game.ShardGuardSlow : 1f) * (TpLaserT > 0f ? Game.TpLaserSlow : 1f) * (Game.EnergyDrinkOn(this) ? Game.EnergySpeed : 1f) * (PvpSlowT > 0f ? PvpSlowMult : 1f);
         public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
         public float AuraRange => Game.AuraRange * Stats.AuraRangeMult;
     }

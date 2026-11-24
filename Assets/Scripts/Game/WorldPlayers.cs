@@ -58,8 +58,12 @@ namespace Arena
                 V2 emoteOff;
                 float emoteSpin;
                 int emoteId = preview ? emoteBodyFor : p.Id;  // (a menu preview only moves when the lobby says whose it is)
-                bool golem = rebuild < 0f && ColossusStanding(p);  // Stone Colossus: the golem stands in for the model (StoneColossusLook.cs)
-                if (golem)
+                bool inTank = rebuild < 0f && DrawLiteralTank(p, t, col.A);  // A Literal Tank: drawn in place of the model (LiteralTankLook.cs)
+                bool golem = !inTank && rebuild < 0f && ColossusStanding(p);  // Stone Colossus: the golem stands in for the model (StoneColossusLook.cs)
+                if (inTank)
+                {
+                }
+                else if (golem)
                     DrawColossus(p, t, col.A);
                 else if (rebuild >= 0f && !preview)
                     DrawRebuild(p, modelR, t, col.A, rebuild);  // standing back up: flecks, a scan line, a shockwave
@@ -77,7 +81,7 @@ namespace Arena
                     DrawPlayerModel(p, modelR, t, col);
                 // The class's overlays on top: ability feedback, buffs and the like (ClassLooks.cs)
                 var look = p.Recruit ? null : LookOf(p.Kit).Body;  // (a Training recruit has no class look)
-                if (look != null && rebuild < 0f && !golem)
+                if (look != null && rebuild < 0f && !inTank && !golem)
                     look(this, p, modelR, t, col);
                 if (rebuild < 0f)
                 {
@@ -109,6 +113,7 @@ namespace Arena
                 DrawWorldWound(p.Disp.X - 20f, p.Disp.Y - r - 12f, 40f, 4f, p);  // the wound: the bar's end that heals can't reach (HealthBars.cs)
                 DrawDebtBar(p, r, t);  // Blood Debt's ghost segment (BloodDebtLook.cs)
                 DrawJuggBar(p, r);     // the Juggernaut Suit's armour, over the health bar (JuggernautLook.cs)
+                DrawTankBar(p, r);     // A Literal Tank's armour and time (LiteralTankLook.cs)
             }
             if (p.Downed)
             {
