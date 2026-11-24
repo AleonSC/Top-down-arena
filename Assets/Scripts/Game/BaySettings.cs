@@ -301,6 +301,10 @@ namespace Arena
             if (on != fxOn) { fxOn = on; changed = true; }
             bool lit = SetToggle(ref y, w, "Dynamic lighting", "Shots, blasts and fire cast shadows", lightsOn, live, calm);
             if (lit != lightsOn) { lightsOn = lit; changed = true; }
+            int edge = SetChoices(ref y, w, "Shadow edges", "Hard lines, or soft and blurred", new[] { "Hard", "Soft" }, lightsSoft ? 1 : 0, live, calm, !fxOn || !lightsOn);
+            if ((edge == 1) != lightsSoft) { lightsSoft = edge == 1; changed = true; }
+            int dim = SetChoices(ref y, w, "Floor dim", "The floor darker, so the lights stand out", FloorDimNames, floorDim, live, calm, !fxOn || !lightsOn);
+            if (dim != floorDim) { floorDim = dim; changed = true; }
             int shake = SetChoices(ref y, w, "Screen shake", "How hard hits rattle the view", new[] { "Off", "Low", "Full" }, fxShake, live, calm, !fxOn);
             if (shake != fxShake) { fxShake = shake; changed = true; }
             bool nums = SetToggle(ref y, w, "Damage numbers", "Small numbers rising off what's hit", fxNumbers, live, calm);

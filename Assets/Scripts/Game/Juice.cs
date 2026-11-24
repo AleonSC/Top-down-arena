@@ -38,6 +38,8 @@ namespace Arena
             fxReduced = PlayerPrefs.GetInt("fx_reduced", 0) == 1;
             fxCallouts = PlayerPrefs.GetInt("fx_callouts", 1) == 1;  // AbilityLooks.cs
             lightsOn = PlayerPrefs.GetInt("lights_on", 1) == 1;  // LightingLook.cs
+            lightsSoft = PlayerPrefs.GetInt("lights_soft", 1) == 1;
+            floorDim = Mathf.Clamp(PlayerPrefs.GetInt("floor_dim", 0), 0, FloorDimNames.Length - 1);
             floorBend = PlayerPrefs.GetInt("floor_bend", 1) == 1;  // FloorGridLook.cs
             floorStyle = Mathf.Clamp(PlayerPrefs.GetInt("floor_style", 0), 0, FloorStyleNames.Length - 1);  // FloorStylesLook.cs
             CrtUi.Theme = PlayerPrefs.GetInt("crt_theme", 0);
@@ -59,6 +61,8 @@ namespace Arena
             PlayerPrefs.SetInt("fx_reduced", fxReduced ? 1 : 0);
             PlayerPrefs.SetInt("fx_callouts", fxCallouts ? 1 : 0);
             PlayerPrefs.SetInt("lights_on", lightsOn ? 1 : 0);
+            PlayerPrefs.SetInt("lights_soft", lightsSoft ? 1 : 0);
+            PlayerPrefs.SetInt("floor_dim", floorDim);
             PlayerPrefs.SetInt("floor_bend", floorBend ? 1 : 0);
             PlayerPrefs.SetInt("floor_style", floorStyle);
             PlayerPrefs.SetInt("crt_theme", CrtUi.Theme);
@@ -686,6 +690,7 @@ namespace Arena
                 {
                     muzzleT[b.Owner] = juiceClock + 0.05f;
                     AddPart(new Part { Kind = PSpark, Pos = b.Pos, Vel = b.Vel.Normalized() * 120f, Life = 0.08f, Max = 0.08f, Size = 4.5f, Col = new Rgba(0.85f, 0.92f, 1f) });
+                    NoteMuzzleLight(b.Pos, Defs.BulletColor(b.Kind));  // a flash of light on the floor (LightingLook.cs)
                 }
             }
             else if (b.Kind == Defs.Caltrop || b.Kind == Defs.GrenadeShot || b.Vel.Length <= 450f)

@@ -61,5 +61,15 @@ static partial class Program
             if (fan.Dist[i] < 0f || fan.Dist[i] > 250.01f) inside = false;
         }
         Check(sorted && inside && fan.N > LightCast.RimRays, "a crowded scene: " + fan.N + " rays, sorted by angle, each within reach");
+
+        // The caster cap: a light deep in a crowd looks at only its nearest casters, so its rays stay bounded, and a wall
+        // still counts before the bodies (no light leaks through a wall behind a crowd).
+        s.Clear();
+        s.AddBox(new V2(700f, 500f), 10f, 200f);  // a wall 190 px to the right, behind the crowd
+        for (int i = 0; i < 80; i++) s.AddDisc(new V2(380f + (i % 10) * 26f, 380f + (i / 10) * 30f + ((i % 10) * 7 % 11)), 9f);
+        LightCast.Cast(s, at, 300f, fan, LightCast.RimRays, 12);
+        Check(fan.N <= LightCast.RimRays + 12 * 4 && !LightCast.Lit(fan, new V2(760f, 640f)) && !LightCast.Lit(fan, new V2(780f, 360f)), "capped at 12 casters: " + fan.N + " rays, and the wall behind the crowd still blocks");
+        LightCast.Cast(s, at, 300f, fan, LightCast.RimRays, 0);
+        Check(fan.N == LightCast.RimRays && !fan.Shadowed, "a cap of 0: just the rim, no shadows (a frame over its ray budget)");
     }
 }

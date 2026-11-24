@@ -616,10 +616,18 @@ namespace Arena
             if (names != fxCallouts) { fxCallouts = names; changed = true; }
             bool calm = SwitchRow(new Rect(x + half + 36f, y, half, 54f), fxReduced, "Reduced effects", "No screen shake, hit-pause or white flashes");
             if (calm != fxReduced) { fxReduced = calm; changed = true; }
-            y += 64f;
-            bool lit = SwitchRow(new Rect(x, y, half, 54f), lightsOn, "Dynamic lighting", "Shots, blasts and fire cast shadows");  // LightingLook.cs
-            if (lit != lightsOn) { lightsOn = lit; changed = true; }
-            float cy = y + 72f;
+            // Lighting (LightingLook.cs): on / off as a lamp key by the title, Hard or Soft shadow edges; the floor dim beside it
+            y += 66f;
+            bool lightDim = !fxOn || !lightsOn;
+            WinLabel(new Rect(x, y, half - 110f, 24f), "Lighting", null, !fxOn);
+            if (DkKey(new Rect(x + half - 104f, y - 2f, 104f, 26f), lightsOn ? "ON" : "OFF", false, FxCalm, size: 13, accent: !fxOn ? CrtStyle.Dim : lightsOn ? CrtStyle.Ink : CrtStyle.Dim, lamp: true, lampLit: lightsOn))
+            { lightsOn = !lightsOn; changed = true; }
+            int edge = WinChoices(new Rect(x, y + 28f, half, 34f), new[] { "Hard shadows", "Soft shadows" }, lightsSoft ? 1 : 0, lightDim);
+            if ((edge == 1) != lightsSoft) { lightsSoft = edge == 1; changed = true; }
+            WinLabel(new Rect(x + half + 36f, y, half, 24f), "Floor dim", null, lightDim);
+            int dim = WinChoices(new Rect(x + half + 36f, y + 28f, half, 34f), FloorDimNames, floorDim, lightDim);
+            if (dim != floorDim) { floorDim = dim; changed = true; }
+            float cy = y + 80f;
             WinLabel(new Rect(x, cy, w, 24f), "CRT colour", null, false);
             int theme = WinChoices(new Rect(x, cy + 26f, w, 34f), CrtUi.ThemeNames, CrtUi.Theme);
             if (theme != CrtUi.Theme) { CrtUi.Theme = theme; changed = true; }

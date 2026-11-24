@@ -58,10 +58,13 @@ namespace Arena
         public const int RimRays = 20;
         const float Eps = 0.0012f;
 
-        static float[] lx0 = new float[256], ly0 = new float[256], lx1 = new float[256], ly1 = new float[256];
+        static float[] lx0 = new float[256], ly0 = new float[256], lx1 = new float[256], ly1 = new float[256], lkey = new float[256];
         static int ln;
 
-        public static void Cast(ShadowScene s, V2 at, float reach, LightFan fan, int rimRays = RimRays)
+        /// Casts one light. `maxCasters` caps the casters it looks at (the nearest; walls count as nearer than bodies,
+        /// so a crowd never lets light through a wall): the rays and their tests grow with it, so a light deep in a
+        /// crowd costs no more than this many. 0: no shadows at all (just the rim).
+        public static void Cast(ShadowScene s, V2 at, float reach, LightFan fan, int rimRays = RimRays, int maxCasters = int.MaxValue)
         {
             fan.At = at;
             fan.Reach = reach;
@@ -75,7 +78,7 @@ namespace Arena
                 float x0 = s.Segs[k], y0 = s.Segs[k + 1], x1 = s.Segs[k + 2], y1 = s.Segs[k + 3];
                 if (Math.Max(x0, x1) < at.X - reach || Math.Min(x0, x1) > at.X + reach || Math.Max(y0, y1) < at.Y - reach || Math.Min(y0, y1) > at.Y + reach)
                     continue;
-                AddLocal(at, r2, x0, y0, x1, y1);
+                AddLocal(at, r2, x0, y0, x1, y1, 0.5f);
             }
             for (int i = 0; i < s.DiscN; i++)
             {
@@ -85,8 +88,10 @@ namespace Arena
                 if (d2 <= (r + 1f) * (r + 1f) || d2 >= (reach + r) * (reach + r))
                     continue;
                 float d = (float)Math.Sqrt(d2), nx = -dy / d * r, ny = dx / d * r;
-                AddLocal(at, r2, cx + nx, cy + ny, cx - nx, cy - ny);
+                AddLocal(at, r2, cx + nx, cy + ny, cx - nx, cy - ny, 1f);
             }
+            if (ln > maxCasters)
+                KeepNearest(Math.Max(0, maxCasters));
 
             int n = 0;
             int need = rimRays + ln * 4;
@@ -153,8 +158,28 @@ namespace Arena
         /// Is `to` lit by this light (inside its fan and its reach)?
         public static bool Lit(LightFan fan, V2 to) => (to - fan.At).Length < Reach(fan, to) - 0.5f;
 
-        // The part of a segment inside the light's disc, kept for this light's rays.
-        static void AddLocal(V2 at, float r2, float x0, float y0, float x1, float y1)
+        // Keeps the k casters with the lowest key (a partial selection: k is small).
+        static void KeepNearest(int k)
+        {
+            for (int i = 0; i < k; i++)
+            {
+                int best = i;
+                for (int j = i + 1; j < ln; j++)
+                    if (lkey[j] < lkey[best])
+                        best = j;
+                if (best != i)
+                {
+                    Swap(lx0, i, best); Swap(ly0, i, best); Swap(lx1, i, best); Swap(ly1, i, best); Swap(lkey, i, best);
+                }
+            }
+            ln = k;
+        }
+
+        static void Swap(float[] a, int i, int j) { float t = a[i]; a[i] = a[j]; a[j] = t; }
+
+        // The part of a segment inside the light's disc, kept for this light's rays; `weight` scales its distance key
+        // (walls 0.5, bodies 1) for KeepNearest.
+        static void AddLocal(V2 at, float r2, float x0, float y0, float x1, float y1, float weight)
         {
             float ex = x1 - x0, ey = y1 - y0, fx = x0 - at.X, fy = y0 - at.Y;
             float a = ex * ex + ey * ey;
@@ -172,7 +197,10 @@ namespace Arena
             {
                 Array.Resize(ref lx0, ln * 2); Array.Resize(ref ly0, ln * 2);
                 Array.Resize(ref lx1, ln * 2); Array.Resize(ref ly1, ln * 2);
+                Array.Resize(ref lkey, ln * 2);
             }
+            float mx = x0 + ex * (t0 + t1) * 0.5f - at.X, my = y0 + ey * (t0 + t1) * 0.5f - at.Y;
+            lkey[ln] = (mx * mx + my * my) * weight * weight;
             lx0[ln] = x0 + ex * t0; ly0[ln] = y0 + ey * t0;
             lx1[ln] = x0 + ex * t1; ly1[ln] = y0 + ey * t1;
             ln++;
