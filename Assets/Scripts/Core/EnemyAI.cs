@@ -511,6 +511,7 @@ namespace Arena
                 if ((e.WadeT = Math.Max(0f, e.WadeT - dt)) <= 0f)
                     e.WadeMult = 1f;
                 TickWet(e, dt);  // Tsunami.cs: soaked enemies are slowed
+                TickCharged(e, dt);  // Charged.cs
                 TickBurn(e, dt);
                 TickBleed(e, dt);  // KitWeapons.cs
                 TickBoneCage(e, dt);  // KitWeapons.cs

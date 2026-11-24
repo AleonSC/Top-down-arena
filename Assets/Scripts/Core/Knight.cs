@@ -515,6 +515,8 @@ namespace Arena
                     dmg *= LashCrack;
                 dmg *= NinjaHitMult(p.Id, Defs.KnightSlash, e);  // Vanish's ambush (Ninja.cs)
                 HurtEnemy(e, dmg, p.Id);
+                if (s.Knuckle > 0)
+                    Charge(e, p.Id);  // an Arc Knuckles punch or Rocket Dash charges what it hits (Charged.cs)
                 Daze(e);  // a melee hit: it can't hit back for a split second (Daze.cs)
                 float knock = MeleeKnockOf(s);  // the standard melee shove unless the move has its own (MeleeHit.cs)
                 ModHit(e, p.Id, dmg, Defs.KnightSlash, dir, s.Slow);
