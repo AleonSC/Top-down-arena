@@ -1248,7 +1248,7 @@ namespace Arena
         void HostWeaponDash(int id, int kind, V2 target)
         {
             Player p;
-            if (!Players.TryGetValue(id, out p) || p.Downed)
+            if (!Players.TryGetValue(id, out p) || p.Downed || TankOn(p))  // (in A Literal Tank: no Alt, LiteralTank.cs)
                 return;
             var w = p.Weapon;
             if (HostArcanistDash(p, kind))

@@ -150,6 +150,10 @@ namespace Arena
                     CastJugg(p, cap);
                     break;
 
+                case AbilityId.LiteralTank:  // Tank: Soldier, the third ultimate (LiteralTank.cs)
+                    CastTank(p, cap);
+                    break;
+
                 case AbilityId.GlacialTomb:  // Tank: Elementalist
                     EraseEnemyBullets(p.Pos, 99999f);
                     foreach (var e in AllFoes(by: p.Id))
