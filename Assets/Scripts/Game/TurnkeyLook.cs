@@ -30,9 +30,9 @@ namespace Arena
             switch (e.Type)
             {
                 case EnemyType.Turnkey: DrawTurnkey(e, pos, r, t); break;
-                case EnemyType.CellDoor: DrawCellDoor(e, pos, r, t); break;
-                case EnemyType.FloorMine: DrawFloorMine(e, pos, r, t); break;
-                case EnemyType.ShackleTrap: DrawShackle(e, pos, r, t); break;
+                case EnemyType.CellDoor: if (TkMock != 0) DrawWallDoor(e, pos, r, t); else DrawCellDoor(e, pos, r, t); break;
+                case EnemyType.FloorMine: if (TkTrapMock) DrawFloorMineMock(e, pos, r, t); else DrawFloorMine(e, pos, r, t); break;
+                case EnemyType.ShackleTrap: if (TkTrapMock) DrawShackleMock(e, pos, r, t); else DrawShackle(e, pos, r, t); break;
             }
         }
 
@@ -74,6 +74,7 @@ namespace Arena
                 GuardStick(grip, head, 2.6f, new Rgba(0.55f, 0.4f, 0.22f));
                 Cap(head - V2.FromAngle(e.Facing + 0.6f - 1.1f * lift).Orthogonal() * 4f, head + V2.FromAngle(e.Facing + 0.6f - 1.1f * lift).Orthogonal() * 4f, 5f, new Rgba(0.35f, 0.37f, 0.42f));
                 // the cell going up in front of it: its outline, filling in
+                if (TkMock != 0) goto head;  // (TurnkeyMockLook.cs draws its blueprint on the wall)
                 V2 door = pos + f * (r + 18f);
                 var ghost = DoorSteel.WithAlpha(0.2f + 0.5f * work);
                 for (int k = 0; k < 6; k++)
@@ -86,6 +87,7 @@ namespace Arena
                 OfficerArm(body + s * r * 0.9f, body + s * r * 0.9f + f * (r * 0.4f + pump), 4.2f, TurnkeyOveralls, glove);
                 OfficerArm(body - s * r * 0.9f, body - s * r * 0.9f + f * (r * 0.4f - pump), 4.2f, TurnkeyOveralls, glove);
             }
+            head:
             Circle(body, r * 0.56f + OffInk, GuardInk, 28);
             Circle(body, r * 0.56f, OfficerSkin, 28);
             Arc(body, r * 0.5f, r * 0.28f, TurnkeyBeanie, 24, e.Facing + MathX.Pi - 1.7f, 3.4f);  // the beanie over the back of its head

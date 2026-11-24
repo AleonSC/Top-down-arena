@@ -95,6 +95,7 @@ namespace Arena
             DrawEnemyShots(t);  // enemy bullets on top of every effect, spark and glow, so a busy fight never hides what you must dodge
             DrawEndingWorld();  // a run ending: the victory's rays and sparks (RunEnding.cs)
             DrawArenaRules(t);  // Narrow Pass's walls and Fogbound's mist (PathsUi.cs)
+            DrawTurnkeyMockDoors(t);  // Tools/Preview only: the Turnkey rework's wall doors (TurnkeyMockLook.cs)
             bool zoomed = camZoomOn;
             camZoomOn = false;  // the screen overlays below fill the screen, unzoomed (CameraZoom.cs)
             DrawMood(AW, AH);  // tint, red corners when hurt or low
