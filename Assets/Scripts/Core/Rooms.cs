@@ -66,7 +66,7 @@ namespace Arena
 
         /// The run's arena layout (Docs/ExpandingArena.md). The Campaign (a 100-wave run, Hunts.cs LongLegs) and Quick Play
         /// (QuickPlay.cs) are the Expanding arena; the Simple Arena modifier keeps it the open arena.
-        public ArenaLayout ArenaKind => SurvivalOn ? ArenaLayout.Survival : Has(RunMod.SimpleArena) ? ArenaLayout.Single
+        public ArenaLayout ArenaKind => DrillOn ? ArenaLayout.Single : SurvivalOn ? ArenaLayout.Survival : Has(RunMod.SimpleArena) ? ArenaLayout.Single
             : D(DiffKnob.ArenaExpanding) >= 0.5f || LongLegs || Quick ? ArenaLayout.Expanding : ArenaLayout.Single;
 
         /// The geometry being played on right now: the walled world while it is up, else the plain arena box.

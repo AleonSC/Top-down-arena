@@ -142,7 +142,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 483;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 484;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -167,6 +167,7 @@ namespace Arena
         public bool HuntMode => PlayMode == GameMode.Hunt;            // a Boss Hunt (Hunts.cs): HuntBoss's
         public bool QuickMode => PlayMode == GameMode.Quick;          // Quick Play (QuickPlay.cs): the lobby's first mode, a new player's default
         public bool SurvivalMode => PlayMode == GameMode.Survival;    // Survival (Survival.cs, Docs/Survival.md): one clock, no waves
+        public bool TrainingMode => PlayMode == GameMode.Training;    // Training (Training.cs, Docs/Training.md): drills, started from the page, not START
         public static bool QuickDefault = true;     // a new host starts on Quick Play unless its profile last picked another mode (the sim tests turn it off)
         public EnemyType HuntBoss = EnemyType.Warden;
         public RunMod Modifiers;        // run modifiers (the lobby's Modifiers tab; the host picks)
@@ -1369,6 +1370,11 @@ namespace Arena
                 return;
             if (Screen == AppScreen.Lobby && AutoStart == 0 && !AllReady)
                 return;
+            if (TrainingMode)
+            {
+                Status = "Training starts from a drill on its page";
+                return;
+            }
             if (HuntMode && LobbyHunt == null)
             {
                 Status = "That Boss Hunt is locked: beat the boss in a run first";

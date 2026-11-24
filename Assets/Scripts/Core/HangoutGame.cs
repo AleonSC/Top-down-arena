@@ -30,7 +30,7 @@ namespace Arena
 
         /// A run that keeps no progress: the lobby's loadout preview and the Hangout. No XP, mastery, records, recording or tutorial, and
         /// the target dummies stand still.
-        public bool Quiet => ShowcaseMode || HangoutOn;
+        public bool Quiet => ShowcaseMode || HangoutOn || DrillOn;
 
         public const float HangoutHold = 60f;  // the countdown is held here, so the "next wave in" clock never runs out
 
