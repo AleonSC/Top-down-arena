@@ -238,6 +238,8 @@ namespace Arena
         // Parry upgrades.
         public float ParryCapacityMult = 1f, ParryArcMult = 1f, PerfectBonus, ReflectMult = 1f, CounterFireRate, MirrorChance;
         public bool ParryNoSlow;
+        public float IronBonus, IronDelayCut, IronRegenMult = 1f;  // Ironhide cards (Ironhide.cs): Iron Plates, Quick Refit
+        public bool SharedPlating;  // ...and Shared Plating
 
         // Milestone upgrades (offered every 10 levels; Upgrades.Milestones).
         public float XpMult = 1f;          // Scholar: XP earned
@@ -514,6 +516,10 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Uncommon, Name = "Regeneration", Desc = "Regenerate 3 HP per second", Apply = s => s.Regen += 3f },
             new UpgradeDef { Rarity = Rarity.Uncommon, Name = "Clarity", Desc = "-15% ability cooldowns", Apply = s => s.CdMult *= 0.85f },
             new UpgradeDef { Rarity = Rarity.Uncommon, Name = "Thick Skin", Desc = "Take 10% less damage", MaxStacks = 3, Apply = s => s.DamageTaken *= 0.9f },
+            new UpgradeDef { Rarity = Rarity.Uncommon, Role = Role.Tank, MaxStacks = 4, Name = "Iron Plates", Desc = "Ironhide holds 15 more (half that with Shared Plating)",
+                Apply = s => s.IronBonus += Game.IronPlatesBonus },
+            new UpgradeDef { Rarity = Rarity.Uncommon, Role = Role.Tank, MaxStacks = 3, Name = "Quick Refit", Desc = "Ironhide starts refilling 0.5 s sooner and refills 25% faster",
+                Apply = s => { s.IronDelayCut += Game.IronRefitCut; s.IronRegenMult += Game.IronRefitRegen; } },
             new UpgradeDef { Rarity = Rarity.Uncommon, MaxStacks = 2, Name = "Wide Guard", Desc = "Your parry shield covers a 30% wider arc", Apply = s => s.ParryArcMult += 0.3f },
 
             // Rare: ability upgrades and weapon mods
@@ -524,6 +530,8 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Rare, Unoffered = true, Name = "Extra Use: 4th Ability", Desc = "Your 4th ability gets +1 use", Apply = s => s.UseBonus[3]++ },
             new UpgradeDef { Rarity = Rarity.Rare, Role = Role.Healer, MaxStacks = 2, Name = "Sanctuary", Desc = "Aura reaches 40% farther and heals allies twice as fast; it heals you +1 HP/s",
                 Apply = s => { s.AuraRangeMult += 0.4f; s.AuraHealMult += 1f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Role = Role.Tank, MaxStacks = 1, Name = "Shared Plating", Desc = "Halve your Ironhide (Iron Plates count half from now on); every other player gets a 25 shield that works like Ironhide and never changes",
+                Apply = s => s.SharedPlating = true },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "+1 projectile: upgrades your weapon in its own way", Apply = s => s.ExtraShots += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Barrage", Desc = "Every shot also fires a copy fanned out to the side, at 60% damage. Stack it into a wall of bullets",
                 Apply = s => s.Fan += 1 },
