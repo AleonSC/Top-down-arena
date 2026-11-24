@@ -64,6 +64,18 @@ static partial class Program
         Check(host.Game.State == MatchState.Intermission && client.Game.State == MatchState.Intermission && host.Game.Wave == 1 && host.Game.StateTimer > 30f, "no wave ever starts: the state is held");
         Check(host.Game.Players.Values.All(p => p.Hp >= p.MaxHp - 0.01f && !p.Downed) && host.Game.Players.Values.All(p => p.DevGod), "everyone is up at full health");
 
+        // No cooldowns: a spent ability or ultimate is back on the next tick, on the host and on a client.
+        foreach (var g in new[] { host.Game, client.Game })
+            foreach (var sl in g.Me.Slots)
+                if (sl.Id != AbilityId.None)
+                {
+                    sl.Charges = 0;
+                    sl.Timer = 60f;
+                }
+        Run(both, dt, 0.2f);
+        Check(new[] { host.Game, client.Game }.All(g => g.Me.Slots.All(sl => sl.Id == AbilityId.None || sl.Charges == sl.MaxCharges && sl.Timer <= 0f))
+            && host.Game.Me.Slots[Upgrades.UltSlot].Id != AbilityId.None, "no cooldowns: every ability and the ultimate come straight back");
+
         // Back to the lobby.
         host.ReturnToLobby();
         PollBoth(host, client, 80);
@@ -82,6 +94,19 @@ static partial class Program
         float hp0 = sc.Game.Enemies.Values.Sum(e => e.Hp);
         for (int i = 0; i < 180; i++) { var d = sc.Game.Enemies.Values.OrderBy(e => e.Pos.DistanceTo(sc.Me.Pos)).First(); sc.Play = new PlayerInput { AimAt = d.Pos, Fire = true }; sc.Step(dt); }
         Check(sc.Game.Enemies.Values.Sum(e => e.Hp) < hp0 || sc.Game.Enemies.Count != 3, "holding fire with your real weapon hurts the dummies");
+        foreach (var sl in sc.Me.Slots)
+            if (sl.Id != AbilityId.None)
+            {
+                sl.Charges = 0;
+                sl.Timer = 60f;
+            }
+        for (int i = 0; i < 3; i++) { sc.Play = new PlayerInput { AimAt = sc.Me.Pos + new V2(0f, -200f) }; sc.Step(dt); }
+        Check(sc.Me.Slots.All(sl => sl.Id == AbilityId.None || sl.Charges == sl.MaxCharges && sl.Timer <= 0f) && sc.Me.Slots[Upgrades.UltSlot].Id != AbilityId.None,
+            "PLAY has no cooldowns: every ability and the ultimate come straight back");
+        sc.SetControl(false);
+        sc.Show(Role.Dps, Kit.Soldier, 0, Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0), false);
+        for (int i = 0; i < 3; i++) sc.Step(dt);
+        Check(!sc.Game.ShowcasePlay, "...and the plain preview keeps its cooldowns");
         sc.Stop();
     }
 }

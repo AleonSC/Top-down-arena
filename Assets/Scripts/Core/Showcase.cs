@@ -17,8 +17,6 @@ namespace Arena
         public bool Control;  // the lobby's PLAY key: the preview is yours to play (WASD, mouse, fire, abilities): `Play` is this tick's input
         public PlayerInput Play;
         bool restart;         // switching PLAY on or off starts the scene over
-        float ultT;           // PLAY: seconds the ultimate has sat empty
-        public const float PlayUltEvery = 8f;  // ...and it is topped up after this long (there are no kills to charge it)
         public bool Idle;  // the lobby's IDLE key: the character stands still and holds fire, and the dummies hold their spots
         public Game Game => session.Game;
         public Player Me => Game.Me;
@@ -129,24 +127,15 @@ namespace Arena
             restart = true;
         }
 
-        /// PLAY: the real game with your own input, on the same dummies. Cooldowns are real; the ultimate is topped up every PlayUltEvery.
+        /// PLAY: the real game with your own input, on the same dummies, with no cooldowns (Game.ShowcasePlay: every ability and the
+        /// ultimate are back at once).
         void StepControlled(float dt)
         {
             t += dt;
             Game.ShowcaseIdle = false;
+            Game.ShowcasePlay = true;
             if (allies)
                 Game.ShowcaseHoldAllies();
-            var ult = Me.Slots[Upgrades.UltSlot];
-            if (ult.Id != AbilityId.None && ult.Charges < ult.MaxCharges)
-            {
-                if ((ultT += dt) >= PlayUltEvery)
-                {
-                    Game.ShowcaseRefill(Upgrades.UltSlot);
-                    ultT = 0f;
-                }
-            }
-            else
-                ultT = 0f;
             Game.FixedStep(dt, Play);
             Game.Update(dt);
         }
@@ -162,6 +151,7 @@ namespace Arena
             }
             t += dt;
             Game.ShowcaseIdle = Idle;
+            Game.ShowcasePlay = false;
             var me = Me;
             var input = new PlayerInput { AimAt = Home + new V2(0f, -Distance) };
             if (allies && demoAbility)
@@ -262,6 +252,7 @@ namespace Arena
     {
         public bool ShowcaseMode;
         public bool ShowcaseIdle;  // the dummies hold their spots (the lobby's IDLE key)
+        public bool ShowcasePlay;  // PLAY (the Hangout): you drive the preview, with no cooldowns (TickSlots)
         readonly List<V2> dummySpots = new List<V2>();
         readonly List<int> dummyIds = new List<int>();
         readonly List<float> dummyRespawn = new List<float>();
