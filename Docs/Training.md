@@ -1,7 +1,7 @@
 # Training: drills that teach one mechanic each (design)
 
-Status: **steps 0-4 built: the mode, its page, Move and Aim, Dodge, Wall Kick and Shoot** (`Core/Training.cs`, `Core/DrillGame.cs`,
-`Game/TrainingUi.cs`, `Game/DrillUi.cs`, suite `training`; protocol 485). Next: step 5, the Parry drill.
+Status: **steps 0-5 built: the mode, its page, Move and Aim, Dodge, Wall Kick, Shoot and Parry** (`Core/Training.cs`, `Core/DrillGame.cs`,
+`Game/TrainingUi.cs`, `Game/DrillUi.cs`, suite `training`; protocol 485). Next: step 6, the Read the Tells drill.
 
 ## The owner's decisions
 
@@ -46,9 +46,12 @@ Times are first guesses until each drill is played.
 4. Shoot: break twelve targets (done). One at a time, each your own target dummy (140 health; only you hit or see it), at
    twelve fixed spots. The first three stand still; the rest slide back and forth 220 px either side of their spot, from
    90 px/s up by 30 each (`Training.ShootAt`, moved by the host; it reaches clients as an enemy, so nothing new on the wire).
-5. Parry: block ten shots.
+5. Parry: block ten shots (done). One at a time, each from a new side of a ring of eight round you (430 px out), homing
+   on you at 280 px/s, +15 a shot, so you can't step out of it. It's only yours (drawn for you alone, never a real shot):
+   on reaching you the host checks your shield is up and facing it (`Facing`); else it's a hit (red flash, HIT xN) and
+   that shot comes again. A ring of red dots round you shows the side it comes from, brighter as it nears.
 6. Read the Tells: slip eight wind-ups.
 
 ## Open questions
 
-- Medal times are first guesses (Move and Aim: gold 0:15, silver 0:25; Dodge: gold 0:20, silver 0:30; Wall Kick: gold 0:15, silver 0:25; Shoot: gold 0:25, silver 0:40).
+- Medal times are first guesses (Move and Aim: gold 0:15, silver 0:25; Dodge: gold 0:20, silver 0:30; Wall Kick: gold 0:15, silver 0:25; Shoot: gold 0:25, silver 0:40; Parry: gold 0:25, silver 0:35).

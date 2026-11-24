@@ -17,7 +17,11 @@ namespace Arena
             if (d == null)
                 return;
             string key = Training.Drills[game.Drill].Key;
-            if (key == "dodge")
+            if (d.HitT < 0.45f && !FxCalm)  // a hit (Dodge, Parry): a red flash over the screen
+                Ui.Fill(new Rect(0f, 0f, W, H), CrtStyle.Danger.WithAlpha(0.22f * (1f - d.HitT / 0.45f)));
+            if (key == "parry")
+                DrawDrillShot(d);
+            else if (key == "dodge")
                 DrawDrillWall(d);
             else if (key == "wallkick")
                 DrawDrillKick(d);
@@ -82,6 +86,41 @@ namespace Arena
                 Ui.Dot(rr, CrtStyle.Ink.WithAlpha(0.22f), true);
                 Ui.Label(rr, (i + 1).ToString(), Mathf.RoundToInt(rad * 0.6f), CrtStyle.Ink.WithAlpha(0.3f), TextAnchor.MiddleCenter, true);
             }
+        }
+
+        /// Parry: the shot coming in (a red bolt with a short trail), and an arc on the ring round you on the side it's coming from.
+        void DrawDrillShot(DrillRunner d)
+        {
+            var me = game.Me;
+            if (d.Done || !d.ShotUp || me == null)
+                return;
+            V2 s = ToUi(d.Shot), c = ToUi(me.Disp);
+            V2 way = c - s;
+            float len = Mathf.Max(1f, way.Length);
+            V2 dir = way * (1f / len);
+            for (int k = 1; k <= 6; k++)  // the trail
+            {
+                V2 q = s - dir * (k * 7f);
+                float r = 5f - k * 0.6f;
+                Ui.Dot(new Rect(q.X - r, q.Y - r, r * 2f, r * 2f), CrtStyle.Danger.WithAlpha(0.6f - k * 0.08f));
+            }
+            Ui.RadialGlow(new Rect(s.X - 18f, s.Y - 18f, 36f, 36f), CrtStyle.Danger.WithAlpha(0.6f));
+            Ui.Dot(new Rect(s.X - 7f, s.Y - 7f, 14f, 14f), CrtStyle.Danger);
+            Ui.Dot(new Rect(s.X - 3f, s.Y - 3f, 6f, 6f), new Color(1f, 0.9f, 0.9f));
+            // The warning arc: dots round you, brightest straight at the shot, closer as it nears.
+            float near = Mathf.Clamp01(1f - len / 300f), ang = Mathf.Atan2(-dir.Y, -dir.X), ring = 66f;  // (outside the player's own rings)
+            for (int k = -4; k <= 4; k++)
+            {
+                float a = ang + k * 0.12f, al = (1f - Mathf.Abs(k) / 5f) * (0.35f + 0.65f * near);
+                V2 q = c + new V2(Mathf.Cos(a), Mathf.Sin(a)) * ring;
+                Ui.Dot(new Rect(q.X - 3.5f, q.Y - 3.5f, 7f, 7f), CrtStyle.Danger.WithAlpha(al));
+            }
+            if (len > 120f)  // a quiet guide line while it's far
+                for (float t = 20f; t < len - ring - 10f; t += 16f)
+                {
+                    V2 q = s + dir * t;
+                    Ui.Fill(new Rect(q.X - 1f, q.Y - 1f, 2f, 2f), CrtStyle.Danger.WithAlpha(0.25f));
+                }
         }
 
         /// Shoot: the target's lane (a faint rail with end caps once it slides) and a pulsing ring round the target.
@@ -173,8 +212,6 @@ namespace Arena
         /// Dodge: your wall of shots sweeping across, with chevrons the way it runs; a red flash over the screen when one catches you.
         void DrawDrillWall(DrillRunner d)
         {
-            if (d.HitT < 0.45f && !FxCalm)
-                Ui.Fill(new Rect(0f, 0f, W, H), CrtStyle.Danger.WithAlpha(0.22f * (1f - d.HitT / 0.45f)));
             if (d.Done || float.IsNaN(d.Wall))
                 return;
             int dir = Training.WallDir(d.Step);
@@ -203,7 +240,8 @@ namespace Arena
             DkTitle(new Rect(r.x + 14f, r.y + 24f, r.width - 28f, 24f), dr.Name.ToUpperInvariant(), 20, TrainColor);
             bool dodge = dr.Key == "dodge";
             string dodgeKey = Keybinds.KeyName(Keybinds.Get(KeyAction.Dodge));
-            string line = d.Done ? "Done!" : dr.Key == "shoot" ? (Training.ShootSpeedAt(d.Step) > 0f
+            string line = d.Done ? "Done!" : dr.Key == "parry" ? "Hold " + Keybinds.KeyName(Keybinds.Get(KeyAction.Parry)) + " and turn the shield to face shot " + (d.Step + 1) + "."
+                : dr.Key == "shoot" ? (Training.ShootSpeedAt(d.Step) > 0f
                     ? "Target " + (d.Step + 1) + " slides: lead it a little and keep firing."
                     : "Hold " + Keybinds.KeyName(Keybinds.Get(KeyAction.Fire)) + " on target " + (d.Step + 1) + " to break it.")
                 : dr.Key == "wallkick" ? (d.Step < Training.KickWalls
@@ -228,7 +266,7 @@ namespace Arena
             Ui.Label(new Rect(r.xMax - 120f, py - 6f, 106f, 28f), DrillClock(d.Time), 22, Color.white, TextAnchor.MiddleRight, true);
             string next = medal == 3 ? "GOLD UNDER " + ModeClock(dr.Gold) : medal == 2 ? "SILVER UNDER " + ModeClock(dr.Silver) : "BRONZE: FINISH IT";
             LobbyKit.Spaced(new Rect(r.x + 14f, r.y + 112f, r.width - 28f, 12f), next, 9, MedalCol(medal).WithAlpha(0.85f), TextAnchor.MiddleLeft, 1.4f);
-            if (dodge && d.Hits > 0)
+            if (d.Hits > 0)
                 LobbyKit.Spaced(new Rect(r.x + 14f, r.y + 112f, r.width - 28f, 12f), "HIT x" + d.Hits, 9, CrtStyle.Danger.WithAlpha(d.HitT < 0.6f ? 1f : 0.75f), TextAnchor.MiddleRight, 1.4f);
         }
 
@@ -251,7 +289,7 @@ namespace Arena
             LobbyKit.Spaced(new Rect(r.center.x - 60f, r.y + 78f, 160f, 16f), MedalName(medal), 13, MedalCol(medal), TextAnchor.MiddleLeft, 2f);
             Ui.Label(new Rect(r.center.x - 60f, r.y + 94f, 180f, 26f), DrillClock(d.Time), 24, Color.white, TextAnchor.MiddleLeft, true);
             bool newBest = best > 0f && Mathf.Abs(best - d.Time) < 0.01f;
-            string extra = dr.Key == "dodge" ? (d.Hits == 0 ? "  ·  NO HITS" : "  ·  HIT x" + d.Hits) : "";
+            string extra = dr.Key == "dodge" || dr.Key == "parry" ? (d.Hits == 0 ? "  ·  NO HITS" : "  ·  HIT x" + d.Hits) : "";
             Ui.Label(new Rect(r.x, r.y + 130f, r.width, 18f), (newBest ? "NEW BEST" : "BEST  " + DrillClock(best)) + extra, 12, newBest ? CrtStyle.Gold : CrtStyle.Dim, TextAnchor.MiddleCenter, true);
             float y = r.y + 158f;
             if (others > 0)

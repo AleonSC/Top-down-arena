@@ -505,7 +505,7 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("DRILL") != null) {
       // A Training drill (DrillGame.cs, DrillUi.cs): DRILL=<steps done>,<seconds>[,done[,hits]] (Move and Aim: you a little short of the lit beacon);
-      // DRILLID=1: the Dodge drill instead (the wall a little short of you; DRILLHIT=1: just caught by one); DRILLID=2: Wall Kick; DRILLID=3: Shoot.
+      // DRILLID=1: the Dodge drill instead (the wall a little short of you; DRILLHIT=1: just caught by one); DRILLID=2: Wall Kick; DRILLID=3: Shoot; DRILLID=4: Parry (PARRYOFF=1: shield down).
       var dp = Environment.GetEnvironmentVariable("DRILL").Split(',');
       var gm = host.Game;
       gm.Enemies.Clear(); gm.Bullets.Clear(); gm.Hunt = null; gm.Quick = false; gm.Wave = 1;
@@ -524,6 +524,15 @@ static partial class Shot {
       if (dk.Key == "wallkick") {  // you short of the lit panel, or on the way to the flag
         at = mine.Step < Training.KickWalls ? Training.KickPanel(mine.Step, Game.Width, Game.Height).Pos + (mine.Step == 1 ? new V2(-40f, 150f) : new V2(-150f, 40f)) : Training.KickFlag(Game.Width, Game.Height) + new V2(-420f, 200f);
         me.Pos = me.Disp = at; me.AimAt = at + new V2(200f, 0f);
+      }
+      if (dk.Key == "parry") {  // the shot on its way in from its side, you with the shield up toward it (PARRYOFF=1: down)
+        me.Pos = me.Disp = new V2(800f, 470f);
+        if (!mine.Done) {
+          V2 from = Training.ParryStart(mine.Step, me.Pos);
+          mine.ShotUp = true; mine.Shot = me.Pos + (from - me.Pos).Normalized() * 170f;
+          me.Aim = (mine.Shot - me.Pos).Angle; me.AimAt = mine.Shot;
+          if (Environment.GetEnvironmentVariable("PARRYOFF") == null) me.Parrying = true;
+        }
       }
       if (dk.Key == "shoot" && !mine.Done) {  // the target up, part-way along its lane, you a way below it aiming at it
         var tp = Training.ShootAt(mine.Step, 1.1f, Game.Width, Game.Height);

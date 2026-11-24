@@ -186,6 +186,37 @@ static partial class Program
             Run(new[] { host, client }, dt, 0.3f);
             Check(mine.Done && mine.Step == Training.ShootSteps && stillFirst && slideLater && friendBounces && oneAtATime && c.DrillRunners[host.MyId].Done,
                 "Shoot: twelve targets one at a time, the first three still and the rest sliding faster each time; only your hits count");
+            // Parry: shots home in from changing sides; the shield up and facing blocks, anything else is a hit.
+            host.StartDrill(4);
+            Run(new[] { host, client }, dt, 0.3f);
+            mine = g.DrillRunners[host.MyId];
+            me = g.Players[host.MyId];
+            me.Pos = new V2(800f, 450f);
+            g.HoldParry = false;
+            Run(new[] { host, client }, dt, 5f, () => mine.Hits > 0, () => { me.Pos = new V2(800f, 450f); });
+            bool downHit = mine.Hits == 1 && mine.Step == 0;
+            Run(new[] { host, client }, dt, 5f, () => mine.Hits > 1, () =>
+            {
+                me.Pos = new V2(800f, 450f); g.HoldParry = true;
+                if (mine.ShotUp) aimOverride = me.Pos * 2f - mine.Shot;  // the shield turned away from it
+            });
+            bool awayHit = mine.Hits == 2 && mine.Step == 0;
+            var sides = new HashSet<int>();
+            Run(new[] { host, client }, dt, 40f, () => mine.Done, () =>
+            {
+                me.Pos = new V2(800f, 450f); g.HoldParry = true;
+                if (mine.ShotUp)
+                {
+                    aimOverride = mine.Shot;
+                    sides.Add((int)Math.Round((mine.Shot - me.Pos).Angle / (Math.PI / 4)));
+                }
+            });
+            g.HoldParry = false;
+            aimOverride = null;
+            Run(new[] { host, client }, dt, 0.3f);
+            Check(downHit && awayHit && mine.Done && mine.Step == Training.ParrySteps && mine.Hits == 2 && sides.Count >= 4 && c.DrillRunners[host.MyId].Done
+                && c.DrillRunners[host.MyId].Hits == 2,
+                "Parry: a shot meeting a lowered shield, or one facing away, is a hit; facing each shot blocks all ten, from many sides");
             host.ReturnToLobby();
             WaitForLobby(host, client);
             Check(!g.DrillOn && !c.DrillOn && host.Screen == AppScreen.Lobby && client.Screen == AppScreen.Lobby && host.TrainingMode,

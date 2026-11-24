@@ -15,6 +15,8 @@ namespace Arena
         public float TargetT;  // host: seconds since the target came up (the Shoot drill's slide)
         public float Flash;    // seconds since the last step was done (the ring's pop)
         public float Wall = float.NaN;  // Dodge: the wall's x (NaN: none up)
+        public bool ShotUp;    // Parry: a shot is on its way
+        public V2 Shot;        // Parry: where it is
         public int Hits;       // Dodge: walls that caught you
         public float HitT = 9f;  // Dodge: seconds since the last hit (the red flash)
         public float SinceDodge = 9f;  // host: seconds since this player last dodged
@@ -80,6 +82,7 @@ namespace Arena
                         case "dodge": TickDodgeDrill(d, dt); break;
                         case "wallkick": TickKickDrill(d); break;
                         case "shoot": TickShootDrill(d); break;
+                        case "parry": TickParryDrill(d, dt); break;
                     }
             Remaining = 0;
             DrillRecordMine();
@@ -109,6 +112,10 @@ namespace Arena
                 foreach (var d in DrillRunners.Values)
                     if (!float.IsNaN(d.Wall))
                         d.Wall += Training.WallDir(d.Step) * Training.WallSpeedAt(d.Step) * dt;
+            if (Training.Drills[Drill].Key == "parry")
+                foreach (var d in DrillRunners.Values)
+                    if (d.ShotUp && Players.TryGetValue(d.PlayerId, out var p))
+                        MoveDrillShot(d, p.Pos, dt);
             DrillRecordMine();
         }
 
@@ -180,6 +187,42 @@ namespace Arena
             }
             if (d.Wall < -40f || d.Wall > Width + 40f)
                 d.Wall = float.NaN;  // off the far side without crossing you (you wrapped round): it comes again
+        }
+
+        /// Host: Parry. After a short gap the next shot sets off from its side and homes on you; on reaching you it's blocked if
+        /// your shield is up and facing it, else it's a hit and that shot comes again.
+        void TickParryDrill(DrillRunner d, float dt)
+        {
+            if (d.Done || !Players.TryGetValue(d.PlayerId, out var p))
+                return;
+            if (!d.ShotUp)
+            {
+                if (d.Flash >= Training.ParryGap && d.HitT >= Training.ParryGap)
+                {
+                    d.Shot = Training.ParryStart(d.Step, p.Pos);
+                    d.ShotUp = true;
+                }
+                return;
+            }
+            MoveDrillShot(d, p.Pos, dt);
+            if (!d.Shot.CloserThan(p.Pos, Training.ParryHitR))
+                return;
+            d.ShotUp = false;
+            if (p.ParryActive && Facing(p, d.Shot - p.Pos))
+                DrillStepDone(d);
+            else
+            {
+                d.Hits++;
+                d.HitT = 0f;
+            }
+        }
+
+        /// A Parry shot's step toward `to` (the host's tick, and a client's view between snapshots).
+        void MoveDrillShot(DrillRunner d, V2 to, float dt)
+        {
+            V2 way = to - d.Shot;
+            float len = way.Length, step = Training.ParrySpeedAt(d.Step) * dt;
+            d.Shot = len <= step ? to : d.Shot + way * (step / len);
         }
 
         /// Host: Shoot. One target up at a time (your own dummy), sliding along its lane once the first few are down.
@@ -310,6 +353,8 @@ namespace Arena
                     if (hits != d.Hits)
                         d.HitT = 0f;
                     d.Hits = hits;
+                    s.Bool(ref d.ShotUp);
+                    s.Vec(ref d.Shot);
                 }
                 return;
             }
@@ -324,6 +369,8 @@ namespace Arena
                 s.Float(ref d.Wall);
                 int hits = Math.Min(255, d.Hits);
                 s.Byte(ref hits);
+                s.Bool(ref d.ShotUp);
+                s.Vec(ref d.Shot);
             }
         }
     }

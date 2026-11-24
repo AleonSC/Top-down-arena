@@ -30,8 +30,8 @@ namespace Arena
                 Goal = "Kick off three walls, reach the flag", Copy = "Dodge into a lit wall to bounce off it, with a free dodge back. Hold the key after a dodge to sprint." },
             new TrainingDrill { Group = "COMBAT", Key = "shoot", Name = "Shoot", Keys = new[] { "LMB" }, Gold = 25f, Silver = 40f, Built = true, Steps = ShootSteps, StepNoun = "TARGETS",
                 Goal = "Break twelve targets", Copy = "Hold left click to fire. The first stand still; then they slide, faster each time." },
-            new TrainingDrill { Group = "COMBAT", Key = "parry", Name = "Parry", Keys = new[] { "RMB" }, Gold = 25f, Silver = 40f,
-                Goal = "Block ten shots", Copy = "Hold right click to raise the parry shield. It blocks shots from the front." },
+            new TrainingDrill { Group = "COMBAT", Key = "parry", Name = "Parry", Keys = new[] { "RMB" }, Gold = 25f, Silver = 35f, Built = true, Steps = ParrySteps, StepNoun = "SHOTS",
+                Goal = "Block ten shots", Copy = "Hold right click to raise the shield toward your cursor. Turn it to face each shot." },
             new TrainingDrill { Group = "COMBAT", Key = "tells", Name = "Read the Tells", Keys = new[] { "CTRL" }, Gold = 30f, Silver = 45f,
                 Goal = "Slip eight wind-ups", Copy = "A Sniper's line, a Lunger's crouch: every big hit is shown first. Move when you see it." },
         };
@@ -128,6 +128,17 @@ namespace Arena
             float off = k < 0.25f ? k * 4f : k < 0.75f ? 2f - k * 4f : k * 4f - 4f;  // 0 -> 1 -> -1 -> 0
             return new V2(c.X + off * ShootSlide, c.Y);
         }
+
+        // Parry (drill 5): ten shots, one at a time, each from a new side (a ring of eight round you, never the same side twice
+        // running). It homes on you, so you can't step out of it: meet it with the shield raised and facing it. Only yours.
+        public const int ParrySteps = 10;
+        public const float ParryFrom = 430f, ParrySpeed = 280f, ParrySpeedStep = 15f, ParryGap = 0.6f, ParryHitR = 24f;
+        static readonly int[] ParrySides = { 0, 4, 2, 6, 1, 5, 3, 7, 0, 4 };  // eighths of a turn, from the right, clockwise on screen
+
+        /// Where shot `step` comes from, round `at`.
+        public static V2 ParryStart(int step, V2 at) => at + V2.FromAngle(ParrySides[Math.Max(0, Math.Min(ParrySteps - 1, step))] * (float)Math.PI / 4f) * ParryFrom;
+
+        public static float ParrySpeedAt(int step) => ParrySpeed + ParrySpeedStep * step;
 
         /// The medal a best time earns: 3 gold, 2 silver, 1 bronze (finished), 0 none (best 0: never finished).
         public static int Medal(TrainingDrill d, float best) => best <= 0f ? 0 : best <= d.Gold ? 3 : best <= d.Silver ? 2 : 1;
