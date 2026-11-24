@@ -5,20 +5,19 @@ namespace Arena
 {
     /// The Mender's Bow's Focus shot and Scatter, its Alt (Docs/Mockups/menders-bow-rework.html).
     ///
-    /// Focus: once a draw is full, the Focus bar pops up beside you. A marker sweeps up and down it (BowFocusPeriod for
-    /// a round trip) past a gold zone (BowFocusZone of the bar, at a new height each draw). Let go while the marker is in
+    /// Focus: once a draw is full, your aim line turns into a meter. A marker runs out along it and back (BowFocusPeriod
+    /// for a round trip) into a gold zone at its far end (the last BowFocusZone of it). Let go while the marker is in
     /// the zone and the arrow is a Focus arrow (Defs.FocusArrow): it hits much harder, goes through everything, and
     /// carries a gust of wind that shoves every enemy near its path. Let go anywhere else and it's a plain full shot.
-    /// The shooter's game runs the bar and decides (LocalBow); the host is told with the release (Msg.Input), like the
+    /// The shooter's game runs the meter and decides (LocalBow); the host is told with the release (Msg.Input), like the
     /// draw time itself.
     ///
     /// Scatter (the weapon-action key): five small arrows in a fan (Defs.ScatterArrow), each stopping in the first enemy
     /// it meets. Your game sends Msg.WeaponDash (DashScatter); the host checks the cooldown and looses them.
     public partial class Game
     {
-        public const float BowFocusPeriod = 1.3f;  // the marker goes bottom to top and back in this long
-        public const float BowFocusZone = 0.2f;    // the gold zone's share of the bar
-        public const float BowZoneLow = 0.2f, BowZoneHigh = 0.75f;  // where the zone's bottom can be
+        public const float BowFocusPeriod = 1.3f;  // the marker goes out to the end of the aim line and back in this long
+        public const float BowFocusZone = 0.2f;    // the gold zone: this share of the aim line, at its far end
         public const float BowFocusDmg = 90f, BowFocusHeal = 30f, BowFocusSpeed = 1150f, BowFocusReach = 1100f;
         public const float BowWindR = 34f;         // the gust shoves enemies this close to the arrow's path (plus their size)
         public const float BowWindShove = 70f;     // this far (heavies half; bosses not at all)
@@ -33,14 +32,13 @@ namespace Arena
 
         // --- The Focus bar (the shooter's game) ----------------------------------------------------------------
 
-        float bowZone = 0.5f;       // the bottom of this draw's gold zone (0 the bar's bottom, 1 its top)
         bool bowFocusOut;           // the release this frame was in the zone (sent with it)
-        readonly Random bowRng = new Random(7177);
 
-        /// Where this draw's gold zone starts (0 bottom .. 1 top); it spans BowFocusZone.
-        public float BowZone => bowZone;
+        /// Where the gold zone starts along the aim-line meter (0 at the bow, 1 at the line's far end): always the last
+        /// BowFocusZone of it.
+        public float BowZone => 1f - BowFocusZone;
 
-        /// The marker on the Focus bar, `sinceFull` seconds after the draw was full: 0 at the bottom, 1 at the top.
+        /// The marker on the aim-line meter, `sinceFull` seconds after the draw was full: 0 at the bow, 1 at the far end.
         public static float BowMarker(float sinceFull)
         {
             float ph = (float)(sinceFull / BowFocusPeriod - Math.Floor(sinceFull / BowFocusPeriod));
@@ -56,7 +54,7 @@ namespace Arena
             if (!BowFocusBar(p, draw))
                 return false;
             float m = BowMarker(draw - BowFull(p));
-            return m >= bowZone && m <= bowZone + BowFocusZone;
+            return m >= BowZone;
         }
 
         /// Your last release, for the bar's look as it goes (Game/BowFocusLook.cs): counted, whether the bar was up, where
@@ -77,8 +75,6 @@ namespace Arena
             BowLastFocus = bowFocusOut;
             BowLastMarker = BowLastBar ? BowMarker(draw - BowFull(me)) : 0f;
         }
-
-        void NewBowZone() => bowZone = BowZoneLow + (float)bowRng.NextDouble() * (BowZoneHigh - BowZoneLow);
 
         /// Host: a Focus arrow leaves the bow (the volley's first arrow on a Focus release).
         Bullet FocusArrow(Player p, V2 muzzle, float aim, float dmg)
