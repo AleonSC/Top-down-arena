@@ -82,7 +82,7 @@ namespace Arena
         public static KeyCode Get2(KeyAction a) => keys2[(int)a];
         public static KeyCode Get(KeyAction a, int slot) => slot == 0 ? keys[(int)a] : keys2[(int)a];
         public static bool IsDefault(KeyAction a) => keys[(int)a] == Defaults[(int)a] && keys2[(int)a] == KeyCode.None;
-        /// Starts with no key (Mute): its main key may be left empty, and right-click clears it.
+        /// Starts with no key (Mute).
         public static bool Unbindable(KeyAction a) => Defaults[(int)a] == KeyCode.None;
         /// The key's name, or null when the action has none (for hints that should then say nothing).
         public static string NameOrNull(KeyAction a) => Get(a) == KeyCode.None ? null : KeyName(Get(a));
@@ -198,15 +198,25 @@ namespace Arena
             return -1;
         }
 
-        /// Clear the main key of an action that may have none (Unbindable); the second key moves up.
+        /// Clear the main key; the second key moves up (with none, the action has no key at all).
         public static void Clear(KeyAction a)
         {
-            if (!Unbindable(a))
-                return;
             keys[(int)a] = keys2[(int)a];
             keys2[(int)a] = KeyCode.None;
             Changed();
         }
+
+        /// Take every key off the action (the X beside its keys): it can't be pressed until given one again.
+        public static void Unbind(KeyAction a)
+        {
+            if (keys[(int)a] == KeyCode.None && keys2[(int)a] == KeyCode.None)
+                return;
+            keys[(int)a] = keys2[(int)a] = KeyCode.None;
+            Changed();
+        }
+
+        /// The action has any key (main or second).
+        public static bool Bound(KeyAction a) => keys[(int)a] != KeyCode.None || keys2[(int)a] != KeyCode.None;
 
         /// Clear the secondary key.
         public static void Clear2(KeyAction a)
@@ -300,7 +310,7 @@ namespace Arena
             for (int i = 0; i < keys.Length; i++)
             {
                 int v = PlayerPrefs.GetInt("key_" + SavedName((KeyAction)i), (int)Defaults[i]);
-                keys[i] = Allowed((KeyCode)v, (KeyAction)i) ? (KeyCode)v : Defaults[i];
+                keys[i] = v == 0 ? KeyCode.None : Allowed((KeyCode)v, (KeyAction)i) ? (KeyCode)v : Defaults[i];  // (0: cleared with the X)
                 if (i == (int)KeyAction.Mute && keys[i] == KeyCode.M && !PlayerPrefs.HasKey("key_" + KeyAction.Map))
                     keys[i] = KeyCode.None;  // a save from before the Map key: M was Mute's old default, and goes to the map now
                 int v2 = PlayerPrefs.GetInt("key2_" + SavedName((KeyAction)i), 0);
@@ -403,6 +413,7 @@ namespace Arena
         {
             switch (k)
             {
+                case KeyCode.None: return "—";  // (an action cleared with the X)
                 case KeyCode.LeftAlt: return "Left Alt";
                 case KeyCode.RightAlt: return "Right Alt";
                 case KeyCode.LeftShift: return "Shift";

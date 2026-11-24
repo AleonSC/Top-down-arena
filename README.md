@@ -1628,7 +1628,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |
 | Ready for the next wave | Ready button or Y (rebindable), once your upgrade picks are done. Auto-ready switch beside it |
 | Map | M (rebindable), wherever a run has a minimap (the Expanding arena, Survival): cycles **minimap → full map → no map**. The minimap grows into the full map (the whole world fitted mid-screen, the game dimmed behind it, a legend under it) while the view zooms out; the full map and the minimap switch off like an old CRT (folding to a bright line, then a dot) and come back the same way. "MAP OFF · M to bring it back" shows for a moment. Remembered between launches |
-| Mute sound | No key by default: give it one in Settings → Keybinds (right click its key to clear it again), or use the switch in Settings → Audio |
+| Mute sound | No key by default: give it one in Settings → Keybinds (its × clears it again), or use the switch in Settings → Audio |
 | Ping | Middle mouse (rebindable), in a run. **Tap** to mark your cursor with the ping you used last (Here to begin with). **Hold** for 0.2 s and a six-slice wheel opens at the cursor: move to a slice and let go to send it, let go in the middle to cancel. Everyone sees it in your colour (teal, amber, violet) as a ripple, a beam of light and a glyph ring with your name for a second. **Here** (5 s), **Focus** (6 s: snaps to the enemy nearest your cursor, rings it and follows it until it dies), **Danger** (4 s, pulses faster), **Help** (5 s: also rings you), **Loot** (5 s) and **Go** (5 s). Three live per player (a fourth replaces your oldest), 0.4 s between pings. A click doesn't fire while the wheel is open |
 | Emotes | Hold T (rebindable): a see-through bar of every emote your rank has opens above the ability bar (in the Hangout, at the foot of the room). Scroll the wheel or click the arrows at its sides to move along it, click one in view or press its number (1-6, the slot it sits in: the numbers stay put, so what a key plays depends on how far along the bar you have scrolled) to play it. While it is open a click picks instead of firing. Let go and it closes |
 | Stats, upgrades and key layout (just for you) | Hold Tab (click a key on a 2nd–4th ability to move it). Works while choosing an upgrade too: the cards come back when you let go |
@@ -1658,7 +1658,8 @@ map, HUD and mute toggles (mute starts with no key). For Fire and Parry, a "Left
 (the page can't take a click as a key press, since the click is how you chose the row). Left and right click can't go on
 any other action, since they click everything else. Click a key, press the new one (a middle or side mouse button works too), and it
 changes at once; **Esc** cancels. A key already used by another action swaps with it, so nothing ends up on two. Every action also has a **second key**
-(the "+ ADD" slot beside it): either key does the action; right click a second key to clear it. The
+(the "+ ADD" slot beside it): either key does the action; right click a key to clear it. The red **×** at the end of a row takes every key off
+that action, so it can't be pressed at all (e.g. no Reroll key) until you give it one again; hints that name its key show "—". The
 arrow keys always move too. The ↺ beside a changed key puts it back; **Reset all** puts every key back. Saved on this computer. The menu keys
 (Esc, Tab, Enter, F1-F7) can't be changed, and menus are always clicked with the mouse. The number keys can be bound:
 while the upgrade picker is open, the numbers of its cards pick a card instead, and while the emote bar is open, the
