@@ -253,6 +253,8 @@ static partial class Shot {
       }
       if (Environment.GetEnvironmentVariable("SURVLOBBY") != null) { host.Mode = GameMode.Survival; set("lobbyTab", 9); if (Environment.GetEnvironmentVariable("SURVLOBBY") == "2") { var sp2 = new Profile { TutorialDone = true }; sp2.SurvivalEnded("Knight Tank", 512f, 3); sp2.SurvivalEnded("Elementalist DPS", 845f, 4); sp2.SurvivalEnded("Knight Tank", 301f, 2); host.Game.ProfileOverride = sp2; } }  // SURVLOBBY=1: the lobby's Survival mode and tab (SurvivalUi.cs); 2: with some records
       if (Environment.GetEnvironmentVariable("LOBBYTAB") != null) { set("lobbyTab", int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB"))); host.Modifiers = RunMod.GlassCannon | RunMod.Frenzy | RunMod.Lucky | RunMod.Hunted | RunMod.SecondWind; }
+      // TRAINING=1|2|3: the Training page mockup's layouts (TrainingUi.cs; with LOBBYTAB=13).
+      if (Environment.GetEnvironmentVariable("TRAINING") != null) set("trainLayout", int.Parse(Environment.GetEnvironmentVariable("TRAINING")));
       // MODEBLINK=<s>: that long into the CRT blink back to the lobby from the Game Mode screen (LOBBYTAB=8 for its page; ModeBlink.cs).
       if (Environment.GetEnvironmentVariable("MODEBLINK") != null) { set("modeBlinkFrom", Environment.GetEnvironmentVariable("LOBBYTAB") != null ? int.Parse(Environment.GetEnvironmentVariable("LOBBYTAB")) : 8); set("lobbyTab", 0); set("modeBlinkT", float.Parse(Environment.GetEnvironmentVariable("MODEBLINK"), System.Globalization.CultureInfo.InvariantCulture)); }
       // PRACTICE=1: the lobby's Practice window (HangoutUi.cs): the room up behind the lobby, everyone in it, two spawners on.

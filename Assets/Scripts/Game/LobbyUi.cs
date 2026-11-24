@@ -74,7 +74,7 @@ namespace Arena
             int modeNow = hunt ? 2 : survival ? 3 : quick ? 0 : 1;
             if (lastLobbyMode != modeNow)
             {
-                if (onModeScreen && session.Resume == null)
+                if (onModeScreen && session.Resume == null && lobbyTab != TrainingTab)
                     lobbyTab = ModeTabNow();
                 lastLobbyMode = modeNow;
             }
@@ -233,10 +233,10 @@ namespace Arena
         /// only the host can.
         void DrawModeSwitch(Rect r, float t)
         {
-            const int n = 4;
+            int n = trainLayout > 0 ? 5 : 4;  // (the Training mockup: a fifth key, TrainingUi.cs)
             bool calm = fxReduced, host = session.IsHost;
             var ev = Event.current;
-            int mode = (int)session.Mode;  // the carousel is in GameMode order
+            int mode = trainLayout > 0 ? 4 : (int)session.Mode;  // the carousel is in GameMode order
             int d0 = ((mode - modeTurn) % n + n) % n;  // follow the session the short way round (the host's turn, or someone else's)
             if (!modeTurnSet)
             {
@@ -287,10 +287,11 @@ namespace Arena
                 var kr = new Rect(Mathf.Round(cx + d * step - w / 2f), Mathf.Round(r.center.y - h / 2f), Mathf.Round(w), Mathf.Round(h));
                 bool top = i == mode && ad < 0.5f;
                 Ui.Alpha = oldAlpha * a;
-                bool click = DkKey(kr, ModeTitle(i), top, calm, size: ad < 0.5f ? 15 : 12, minSize: 9, enabled: host && ad < 1.2f,
-                    accent: ModeAccent(i));
+                bool train = trainLayout > 0 && i == 4;
+                bool click = DkKey(kr, train ? "TRAINING" : ModeTitle(i), top, calm, size: ad < 0.5f ? 15 : 12, minSize: 9, enabled: host && ad < 1.2f,
+                    accent: train ? TrainColor : ModeAccent(i));
                 if (top)  // a neon tube round the mode in play, fading as it slides off the middle
-                    Ui.NeonRim(kr, ModeAccent(i) ?? CrtStyle.Ink, 1f - ad * 2f);
+                    Ui.NeonRim(kr, (train ? TrainColor : ModeAccent(i)) ?? CrtStyle.Ink, 1f - ad * 2f);
                 Ui.Alpha = oldAlpha;
                 if (click && i != mode)
                     turnTo = modeTurn + (d > 0f ? 1 : -1);

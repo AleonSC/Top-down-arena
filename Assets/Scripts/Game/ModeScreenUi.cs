@@ -10,7 +10,7 @@ namespace Arena
     public partial class ArenaApp
     {
         /// The mode screen's pages (the old lobby tabs of each mode).
-        static bool IsModeTab(int tab) => tab == 4 || tab == QuickTab || tab == SurvivalTab || tab == CampaignTab;
+        static bool IsModeTab(int tab) => tab == 4 || tab == QuickTab || tab == SurvivalTab || tab == CampaignTab || tab == TrainingTab;
 
         /// The page the session's mode opens on.
         int ModeTabNow()
@@ -78,7 +78,9 @@ namespace Arena
 
             // The mode's page.
             var page = new Rect(PartyX, ModePageTop, W - 2f * PartyX, ModePageBottom - ModePageTop);
-            if (lobbyTab == 4 && session.HuntMode)
+            if (lobbyTab == TrainingTab)
+                DrawTrainingTab(page, t);  // TrainingUi.cs (mockup)
+            else if (lobbyTab == 4 && session.HuntMode)
                 DrawHuntPicker(page, t);  // HuntUi.cs
             else if (lobbyTab == QuickTab && session.QuickMode)
                 DrawQuickPlayTab(page, t);  // QuickPlayUi.cs
