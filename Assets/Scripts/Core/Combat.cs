@@ -231,7 +231,7 @@ namespace Arena
             if (kind == Defs.TreantSeed)
                 return Sfx.ShotSeed;
             if (kind == Defs.TankShell)
-                return Sfx.ShotCannon;  // A Literal Tank's main gun (LiteralTank.cs)
+                return Sfx.LitTankCannon;  // A Literal Tank's main gun (LiteralTank.cs, LitTankSoundBank.cs)
             Player p;
             if (!Players.TryGetValue(owner, out p))
                 return Sfx.ShotRifle;

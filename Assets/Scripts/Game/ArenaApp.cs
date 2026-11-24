@@ -267,6 +267,7 @@ namespace Arena
                 if (heard)
                     sounds.Play(sfx.Sfx, sfx.Volume, Time.unscaledTime);
             game.Sounds.Clear();
+            TickLitTankSound();  // A Literal Tank's engine (LiteralTankLook.cs, LitTankSoundBank.cs)
             TickHeliSound();  // the Attack Helicopter's rotor (AttackHelicopterLook.cs, HeliSoundBank.cs)
             if (heard)
                 TickGaleWallSounds();  // Gale Wall's cast, catches, chime, unleash and hum (GaleWallLook.cs; before TickArcLockSounds, which marks effects heard)

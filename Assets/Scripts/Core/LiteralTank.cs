@@ -68,7 +68,7 @@ namespace Arena
             foreach (var e in Enemies.Values)
                 if (Targetable(e) && !Heavy(e) && e.Pos.CloserThan(p.Pos, TankDropR + e.Radius))
                     ShoveFrom(e, p.Pos, TankDropShove);
-            BroadcastFx(FxKind.Ring, p.Pos, TankOlive, TankDropR, TankDrop, Sfx.BigExplode);
+            BroadcastFx(FxKind.Ring, p.Pos, TankOlive, TankDropR, TankDrop, Sfx.LitTankFall);  // (the landing's crash is played by each screen: LiteralTankLook.cs)
         }
 
         /// You hop out (time, armour gone, down, or the wave over) and the empty tank blows up.
