@@ -377,6 +377,16 @@ static partial class Program
         // Room turrets (RoomTraps.cs): your shots wear one down and wreck it, and the friend's game loses it too.
         for (int ri = 0; ri < g.Expanded.Count; ri++) { var rr = g.Expanded[ri]; rr.Unseen = true; g.Expanded[ri] = rr; }  // (turrets work in fog too)
         var turret = g.RoomTrapList.FirstOrDefault(tr => tr.Kind == TrapKind.Turret);
+        var mapTurrets = g.RoomTrapList.Where(tr => tr.Kind == TrapKind.Turret).ToList();
+        var walls = g.CurrentWorld.Walls().Concat(g.CurrentWorld.Cover).Where(w => !w.Round).ToList();
+        Func<RoomTrap, bool> flush = tr => walls.Any(w => { var q = tr.Pos - tr.Face * RoomTraps.WallOut; return Math.Abs(q.X - w.Pos.X) <= w.HW + 0.5f && Math.Abs(q.Y - w.Pos.Y) <= w.HH + 0.5f; });
+        Check(mapTurrets.Count > 0 && mapTurrets.All(tr => tr.Face.Length > 0.99f && flush(tr)), "every map turret is set into a wall, facing out of it (" + mapTurrets.Count + ")");
+        Check(cg.RoomTrapList.Where(tr => tr.Kind == TrapKind.Turret).Select(tr => tr.Pos).SequenceEqual(mapTurrets.Select(tr => tr.Pos)), "the friend's game sets them in the same walls");
+        Check(RoomTraps.InArc(new V2(0f, 0f), new V2(0f, -1f), new V2(100f, -100f)) && !RoomTraps.InArc(new V2(0f, 0f), new V2(0f, -1f), new V2(100f, -10f)) && !RoomTraps.InArc(new V2(0f, 0f), new V2(0f, -1f), new V2(0f, 50f)) && RoomTraps.InArc(new V2(0f, 0f), new V2(0f, 0f), new V2(0f, 50f)),
+            "a wall turret only aims 75 degrees either side of straight out; a free-standing one anywhere");
+        var floorRng = new DetRandom(7); bool noFloorTurret = true;
+        for (int k = 0; k < 400; k++) noFloorTurret &= RoomTraps.Roll(floorRng, false) != TrapKind.Turret;
+        Check(noFloorTurret, "a floor slot never rolls a turret");
         var stops = typeof(Game).GetMethod("RoomTrapStops", flags);
         var spawnB = typeof(Game).GetMethod("SpawnBullet", flags);
         Func<float, bool> shoot = dmg =>

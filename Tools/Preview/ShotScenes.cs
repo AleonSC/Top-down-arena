@@ -2589,15 +2589,10 @@ static partial class Shot {
         var plant = typeof(Game).GetMethod("PlantDormantGroups", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         foreach (var dr in xg.Expanded.ToArray()) if (RoomFog.StartsUnseen(dr)) plant.Invoke(xg, new object[] { new System.Collections.Generic.List<ExpansionRoom> { dr }, false, null, 0, false });
       }
-      string trapHp = Environment.GetEnvironmentVariable("TRAPHP");  // TRAPHP=<0-1>: every room turret is damaged to that health (its health bar, RoomTrapLook.cs)
-      if (trapHp != null) { var nth = typeof(Game).GetMethod("NoteTrapHit", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance); foreach (var tr in xg.RoomTrapList.ToArray()) if (tr.Kind == TrapKind.Turret) nth.Invoke(xg, new object[] { tr.Pos, float.Parse(trapHp, System.Globalization.CultureInfo.InvariantCulture) }); }
       if (Environment.GetEnvironmentVariable("FOG") != null)  // FOG=1: every room but the core unseen (room fog, RoomFogLook.cs)
         for (int fi = 0; fi < xg.Expanded.Count; fi++) { var fr = xg.Expanded[fi]; fr.Unseen = RoomFog.StartsUnseen(fr); xg.Expanded[fi] = fr; }
-      if (Environment.GetEnvironmentVariable("WALLTURRET") != null) ArenaApp.PreviewWallTurret = int.Parse(Environment.GetEnvironmentVariable("WALLTURRET"));  // WALLTURRET=1-4: mockup wall-mounted room turrets (WallTurretMock.cs)
       string fogRoom = Environment.GetEnvironmentVariable("FOGROOM");  // FOGROOM=<index>: every player stands in that room (its Expanded index), 120 px in from its left edge
       if (fogRoom != null) { var fro = xg.Expanded[int.Parse(fogRoom)]; foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = new V2(fro.X + 120, fro.Y + fro.H / 2); }
-      string wtStand = Environment.GetEnvironmentVariable("WALLTURRETSTAND");  // WALLTURRETSTAND=dx,dy: you stand that far from the room turret nearest you (WallTurretMock.cs)
-      if (wtStand != null) { var ws = wtStand.Split(','); foreach (var pl in xg.Players.Values) { V2 nr = pl.Pos; float wb = float.MaxValue; foreach (var r in xg.RoomTrapList) if (r.Kind == TrapKind.Turret && (r.Pos - pl.Pos).LengthSq < wb) { wb = (r.Pos - pl.Pos).LengthSq; nr = r.Pos; } pl.Pos = pl.Disp = nr + new V2(float.Parse(ws[0]), float.Parse(ws[1])); } }
       string trapStand = Environment.GetEnvironmentVariable("TRAPSTAND");  // TRAPSTAND=slow|spike[,dx,dy]: you stand on the trap of that kind nearest you, offset by dx,dy (RoomTrapLook.cs)
       if (trapStand != null) {
         var ts = trapStand.Split(','); var kind = ts[0] == "spike" ? TrapKind.Spike : TrapKind.Slow; Player me0 = null; foreach (var pl in xg.Players.Values) { me0 = pl; break; }
@@ -2630,6 +2625,10 @@ static partial class Shot {
         }
       }
       xg.RoomsUp = true; xg.LayoutAge = 5f;
+      string trapHp = Environment.GetEnvironmentVariable("TRAPHP");  // TRAPHP=<0-1>: every room turret is damaged to that health (its health bar, RoomTrapLook.cs)
+      if (trapHp != null) { var nth = typeof(Game).GetMethod("NoteTrapHit", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance); foreach (var tr in xg.RoomTrapList.ToArray()) if (tr.Kind == TrapKind.Turret) nth.Invoke(xg, new object[] { tr.Pos, float.Parse(trapHp, System.Globalization.CultureInfo.InvariantCulture) }); }
+      string wtStand = Environment.GetEnvironmentVariable("TURRETSTAND");  // TURRETSTAND=dx,dy: you stand that far from the room turret nearest you (RoomTrapLook.cs)
+      if (wtStand != null) { var ws = wtStand.Split(','); foreach (var pl in xg.Players.Values) { V2 nr = pl.Pos; float wb = float.MaxValue; foreach (var r in xg.RoomTrapList) if (r.Kind == TrapKind.Turret && (r.Pos - pl.Pos).LengthSq < wb) { wb = (r.Pos - pl.Pos).LengthSq; nr = r.Pos; } pl.Pos = pl.Disp = nr + new V2(float.Parse(ws[0]), float.Parse(ws[1])); } }
       string mreset = Environment.GetEnvironmentVariable("MAPRESET");  // MAPRESET=<s since the reset>: the map just reset (MapResetLook.cs): the old rooms folding in, the biggest one kept, map 2, 27 vectors back
       if (mreset != null) {
         xg.FoldRooms.Clear(); xg.FoldRooms.AddRange(xg.Expanded);
