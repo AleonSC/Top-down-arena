@@ -1,7 +1,7 @@
 // Signature-only stubs of the Unity APIs used by the project, for compile checks.
 using System;
 namespace UnityEngine {
-  public class Object { public string name; public HideFlags hideFlags; public static T FindFirstObjectByType<T>() where T: Object { return null; } public static void DontDestroyOnLoad(Object o){} public static void Destroy(Object o){} public static implicit operator bool(Object o){return o!=null;} }
+  public class Object { public string name; public HideFlags hideFlags; public static T FindFirstObjectByType<T>() where T: Object { return null; } public static T FindAnyObjectByType<T>() where T: Object { return null; } public static void DontDestroyOnLoad(Object o){} public static void Destroy(Object o){} public static implicit operator bool(Object o){return o!=null;} }
   public enum HideFlags { None=0, HideAndDontSave=61 }
   public class Component : Object { public GameObject gameObject; public string tag; }
   public class Behaviour : Component {}

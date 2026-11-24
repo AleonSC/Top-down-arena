@@ -753,6 +753,13 @@ namespace Arena
 
         static readonly Dictionary<string, Type> resolved = new Dictionary<string, Type>();
 
+        /// The assemblies a saved type can live in (game, mscorlib, System, System.Core): a fixed list, not
+        /// AppDomain.GetAssemblies, which Unity warns about (it can return unloaded assemblies).
+        static readonly Assembly[] TypeHomes =
+        {
+            typeof(Game).Assembly, typeof(object).Assembly, typeof(Uri).Assembly, typeof(HashSet<int>).Assembly,
+        };
+
         static Type Resolve(string name)
         {
             Type t;
@@ -760,7 +767,7 @@ namespace Arena
                 return t;
             t = typeof(Game).Assembly.GetType(name) ?? Type.GetType(name);
             if (t == null)
-                foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
+                foreach (var a in TypeHomes)
                     if ((t = a.GetType(name)) != null)
                         break;
             if (t == null)
