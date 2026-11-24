@@ -9,6 +9,8 @@ namespace Arena
     ///   camAng   the drawn angle in radians, a swing toward camRot (eases at RotateEase, snaps when close, so a settled view is exact)
     ///   view     a turned view is a following camera (CamZoomed); HoldInside keeps the focus in the world, with the turned
     ///            screen's bounding box (ViewHalf) mid-swing
+    ///   moving   the move keys are screen directions (W is up the screen): FixedUpdate turns them back by UnrotateView, so they
+    ///            swing with the camera; the mouse aim already does through MouseArena
     ///   lean     the camera lean's target is an arena direction; it is turned with the view (LeanTurn) so it still leans toward your aim
     public partial class ArenaApp
     {
