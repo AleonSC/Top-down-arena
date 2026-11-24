@@ -221,6 +221,12 @@ namespace Arena
 
         /// Your own draw: starts when you hold fire (once the last shot has recovered); letting go fires.
         /// Returns the draw time on the frame you let go, else 0.
+        /// Your own charge weapon's releases, counted, with the last one's weapon and charge (0 a tap, 1 full), for the
+        /// charge camera's kick (Game/ChargeCameraFx.cs). Local only.
+        public int ChargeReleases { get; private set; }
+        public WeaponId ChargeLastWeapon { get; private set; }
+        public float ChargeLastCharge { get; private set; }
+
         float LocalBow(Player me, bool firing, float dt)
         {
             bowCd -= dt;
@@ -242,6 +248,9 @@ namespace Arena
             {
                 bowFocusOut = BowInZone(me, bowDraw);  // let go in the Focus bar's zone: a Focus shot (BowFocus.cs)
                 NoteBowRelease(me, bowDraw);
+                ChargeReleases++;  // (the charge camera, Game/ChargeCameraFx.cs)
+                ChargeLastWeapon = me.Weapon.Id;
+                ChargeLastCharge = BowCharge(me, bowDraw);
                 release = Math.Min(10f, Math.Max(BowMinDraw, bowDraw));
                 bowDraw = -1f;
                 bowCd = BowRecover / FireRate(me);

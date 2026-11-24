@@ -164,7 +164,40 @@ namespace Arena
         static float Ease(float x) => x < 0.5f ? 2f * x * x : 1f - (-2f * x + 2f) * (-2f * x + 2f) / 2f;
 
         /// The pose `t` (0-1) through a move: eased between its keys, from and back to its stance's rest pose.
-        public static VgPose PoseAt(Move m, float t)
+        public static VgPose PoseAt(Move m, float t) => Walk(m, t, false);
+
+        /// The pose as drawn (Radiant motion, Docs/Mockups/vowguard-models.html): like PoseAt, but a strike (a segment that
+        /// swings the sword over 50°, punches the shield out or thrusts) first pulls back a little, then lets go fast.
+        /// It ends on the same keys, so the hits the host times from Move.Hits are unchanged.
+        public static VgPose ShownPoseAt(Move m, float t) => Walk(m, t, true);
+
+        public const float StopHit = 0.06f, StopFin = 0.09f;  // the drawn hit-stop on each hit (s)
+
+        /// The time (s) to draw a move at, `tau` s into it: it holds on each hit for StopHit (StopFin on a finisher), then
+        /// plays the rest a little faster so it still ends at Dur. `stopped`: in a hold.
+        public static float ShownT(Move m, float tau, out bool stopped)
+        {
+            stopped = false;
+            float t = Math.Max(0f, Math.Min(m.Dur, tau)), s = m.Fin ? StopFin : StopHit;
+            for (int i = 0; i < m.Hits.Length; i++)
+            {
+                float h = m.Hits[i].T * m.Dur, rest = m.Dur - h - s;
+                if (rest < 0.04f || t < h)
+                    continue;
+                if (t < h + s)
+                {
+                    stopped = true;
+                    t = h;
+                }
+                else
+                    t = h + (t - h - s) * (m.Dur - h) / rest;
+            }
+            return t;
+        }
+
+        static float EaseCubic(float x) => x < 0.5f ? 4f * x * x * x : 1f - (-2f * x + 2f) * (-2f * x + 2f) * (-2f * x + 2f) / 2f;
+
+        static VgPose Walk(Move m, float t, bool sharp)
         {
             var rest = Rest(m.Stance);
             var end = rest;
@@ -184,13 +217,31 @@ namespace Arena
                 var k = i < m.Keys.Length ? VgPose.Of(m.Keys[i], 1) : end;
                 if (t <= kt)
                 {
-                    float u = kt > prevT ? (t - prevT) / (kt - prevT) : 1f;
-                    return VgPose.Lerp(prev, k, Ease(Math.Max(0f, Math.Min(1f, u))));
+                    float u = Math.Max(0f, Math.Min(1f, kt > prevT ? (t - prevT) / (kt - prevT) : 1f));
+                    return sharp ? Sharp(prev, k, u) : VgPose.Lerp(prev, k, Ease(u));
                 }
                 prev = k;
                 prevT = kt;
             }
             return end;
+        }
+
+        /// One segment from a to b, `u` through it, with the pull back before a strike.
+        static VgPose Sharp(VgPose a, VgPose b, float u)
+        {
+            float dS = b.Sword - a.Sword;
+            bool bash = b.ShieldD - a.ShieldD > 14f, thrust = b.Reach - a.Reach > 0.5f;
+            if (Math.Abs(dS) <= 50f && !bash && !thrust)
+                return VgPose.Lerp(a, b, EaseCubic(u));
+            float e = Math.Max(0f, Math.Min(1f, (u - 0.28f) / 0.72f));
+            var o = VgPose.Lerp(a, b, 1f - (1f - e) * (1f - e) * (1f - e));
+            float w = u < 0.28f ? (float)Math.Sin(Math.PI * u / 0.28f * 0.5f) : Math.Max(0f, 1f - (u - 0.28f) / 0.2f);  // wind up, then let go
+            o.Sword -= Math.Sign(dS) * Math.Min(20f, Math.Abs(dS) * 0.16f) * w;
+            if (bash)
+                o.ShieldD -= 5f * w;
+            if (thrust)
+                o.Reach -= 0.25f * w;
+            return o;
         }
 
         // --- Chains -------------------------------------------------------------------------------------------------
