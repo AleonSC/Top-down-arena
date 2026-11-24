@@ -16,6 +16,9 @@ namespace Arena
     /// (duelLastAt): it throws its cape off, half its mask breaks away to show a glowing crimson eye, a crimson shock
     /// ring goes out and it gives one last salute, then drops low with its sword forward. From then on it fights
     /// capeless and half-masked, its blade edged in crimson, a crimson glow pulsing round it.
+    /// A decoy (the Masquerade's lookalikes, a Blink's leftover) flickers in as a violet silhouette on a violet thread
+    /// from the Duelist, then snaps solid with a violet ring (DrawDecoyEntrance, timed from when this client first saw
+    /// it: the snapshot only says it's spawning).
     public partial class ArenaApp
     {
         static readonly Rgba DuelInk = new Rgba(0.04f, 0.045f, 0.07f, 0.95f), DuelDark = new Rgba(0.1f, 0.11f, 0.16f),
@@ -42,10 +45,56 @@ namespace Arena
             return t - at;
         }
 
+        const float DecoyEntry = 0.6f;  // a decoy's entrance, seconds
+        readonly Dictionary<int, float> decoySeenAt = new Dictionary<int, float>();  // when each decoy was first drawn
+
+        /// A decoy's entrance: a flickering violet silhouette on a thread from the Duelist, then a ring as it turns
+        /// solid. Returns true while it's still only a silhouette (the body isn't drawn yet).
+        bool DrawDecoyEntrance(Enemy e, V2 pos, float r, float t)
+        {
+            if (!decoySeenAt.TryGetValue(e.Id, out float at))
+            {
+                if (decoySeenAt.Count > 64)  // forget decoys that are gone
+                {
+                    var gone = new List<int>();
+                    foreach (var id in decoySeenAt.Keys)
+                        if (!game.Enemies.ContainsKey(id))
+                            gone.Add(id);
+                    foreach (var id in gone)
+                        decoySeenAt.Remove(id);
+                }
+                decoySeenAt[e.Id] = at = t;
+            }
+            float since = t - at;
+            if (since >= DecoyEntry)
+                return false;
+            float k = since / DecoyEntry, ghost = Mathf.Clamp01(since / 0.15f), solid = Mathf.Clamp01((since - 0.35f) / 0.25f);
+            V2.Axes(e.Facing, out V2 f, out V2 s);
+            foreach (var o in game.Enemies.Values)  // the thread from the real one
+                if (o.Type == EnemyType.Duelist && o.Hp > 0f)
+                {
+                    float a = 0.7f * (1f - k);
+                    Line(o.Disp, pos, 6f, DuelViolet.WithAlpha(0.15f * a));
+                    Line(o.Disp, pos, 2f, DuelViolet.WithAlpha(a));
+                }
+            if (solid <= 0f)
+            {
+                float on = (0.55f + 0.45f * Mathf.Sin(t * 40f)) * ghost;
+                Circle(pos, r, DuelViolet.WithAlpha(0.25f * on), 24);
+                Arc(pos, r, 2.5f, DuelViolet.WithAlpha(0.95f * on), 24);
+                DuelEllipse(pos + f * (r * 0.2f), f * (r * 0.5f), s * (r * 0.55f), DuelMask.WithAlpha(0.7f * on), 14);
+                return true;
+            }
+            Arc(pos, r + 6f + 26f * solid, 3f * (1f - solid) + 1f, DuelViolet.WithAlpha(0.9f * (1f - solid)), 28);  // snapping solid
+            return false;
+        }
+
         void DrawDuelistBody(Enemy e, V2 pos, float r, float t)
         {
+            if (e.Type == EnemyType.Decoy && DrawDecoyEntrance(e, pos, r, t))
+                return;
             var d = e.Duel;
-            var m = new MaestroPose { Worn = d != null && d.Stage >= DuelStage.ToTheDeath, CapeLen = 1.35f, CapeWidth = 0.85f };
+            var m = new MaestroPose { Worn = d != null && d.Stage >= DuelStage.ToTheDeath, CapeLen = 1.35f, CapeWidth = 0.85f, LastSince = -1f };
             m.Face = e.Facing + (d != null && d.StaggerT > 0f ? Mathf.Sin(t * 14f) * 0.35f : 0f);
             DuelPose(e, m.Face, out m.BladeAng, out m.Up);
             if (d != null && d.TransT > 0f)
