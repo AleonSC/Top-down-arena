@@ -99,7 +99,7 @@ namespace Arena
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = new Color(0.02f, 0.02f, 0.03f);
             cam.orthographic = true;
-            if (FindFirstObjectByType<AudioListener>() == null)
+            if (FindAnyObjectByType<AudioListener>() == null)
                 cam.gameObject.AddComponent<AudioListener>();
             cam.gameObject.AddComponent<ArenaApp>();
             DontDestroyOnLoad(cam.gameObject);
