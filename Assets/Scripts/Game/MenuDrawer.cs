@@ -642,10 +642,10 @@ namespace Arena
             settingsGroup = Mathf.Clamp(settingsGroup, 0, SettingsGroups.Length - 1);
             if (!cabWin && !WindowClosing)
                 OpenCabWindow(1);  // the section's window opens with the cabinet: its X is how Settings closes
-            cabGlass = true;  // the holo look (MenuHolo.cs, Docs/Mockups/settings-holo.html)
+            cabHolo = true;  // the holo look (MenuHolo.cs, Docs/Mockups/settings-holo.html)
             DrawCabWindow();  // (first: it comes out from behind the cabinet)
             DrawSettingsCabinet(false);
-            cabGlass = false;
+            cabHolo = false;
         }
 
         /// The cabinet's list as Audio / Visual effects / Gameplay / Keybinds with a digital Back key under them. `paused`: in the pause or
