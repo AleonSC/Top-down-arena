@@ -65,6 +65,10 @@ namespace Arena
         public bool BowLastBar { get; private set; }
         public bool BowLastFocus { get; private set; }
         public float BowLastMarker { get; private set; }
+        /// How far the last release was drawn (BowCharge: 0 a tap, 1 full), for the screen kick (Game/BowCameraFx.cs).
+        public float BowLastCharge { get; private set; }
+        /// Your own Scatters loosed, counted (Game/BowCameraFx.cs kicks the screen on each).
+        public int ScatterLooses { get; private set; }
 
         void NoteBowRelease(Player me, float draw)
         {
@@ -74,6 +78,7 @@ namespace Arena
             BowLastBar = BowFocusBar(me, draw);
             BowLastFocus = bowFocusOut;
             BowLastMarker = BowLastBar ? BowMarker(draw - BowFull(me)) : 0f;
+            BowLastCharge = BowCharge(me, draw);
         }
 
         void NewBowZone() => bowZone = BowZoneLow + (float)bowRng.NextDouble() * (BowZoneHigh - BowZoneLow);
@@ -138,6 +143,7 @@ namespace Arena
             if (pressed && scatterLocalCd <= 0f && !me.Downed && me.StunShots <= 0)
             {
                 scatterLocalCd = ScatterCd;
+                ScatterLooses++;
                 bowDraw = -1f;                       // a draw in progress is dropped
                 bowCd = BowRecover / FireRate(me);   // and the next one waits for a fresh arrow
                 if (IsHost)
