@@ -54,6 +54,12 @@ static partial class Program
         Check(golem != null && golem.Links.Any(l => l.Kind == WikiKind.Weapon) && golem.Text.Length > 10, "a companion links to its weapon and its text comes from its numbers (Golem: " + (golem != null ? golem.Text : "none") + ")");
         Check(Wiki.Of(MinionKind.Golem) == golem, "a minion on the field finds its entry");
         Check(Wiki.Find("Grenade", WikiKind.Gadget) != null && Wiki.Find("Grenade", WikiKind.Gadget).Links.Any(l => l.Name == "Gadget chest"), "a gadget links to the gadget chest");
+        var burning = Wiki.Status("Burning");
+        Check(burning != null && Wiki.References(burning).Any(r => r.Name == "Flamethrower"), "a status links to what causes it (Burning: Flamethrower)");
+        Check(burning != null && burning.MentionedBy.Count >= 2, "statuses are found in other entries' text in any case (" + (burning != null ? burning.MentionedBy.Count : 0) + " name burning)");
+        Check(Wiki.Of(PropKind.Barrel, ChestKind.Upgrade) == Wiki.Find("Barrel", WikiKind.Prop) && Wiki.Of(PropKind.Chest, ChestKind.Gadget) == Wiki.Find("Gadget chest", WikiKind.Prop),
+            "a prop or chest on the field finds its entry");
+        Check(WikiTopics.Things.All(t => t.Chest ? Enum.IsDefined(typeof(ChestKind), (ChestKind)t.Kind) : Enum.IsDefined(typeof(PropKind), (PropKind)t.Kind)), "every prop entry names a real kind");
         var seal = Wiki.Find("Warden's Seal", WikiKind.Relic);
         Check(seal == null || seal.Links.Any(l => l.Kind == WikiKind.Boss && l.Name == "The Warden"), "a faction relic links to its boss");
         var wound = Wiki.Find("Wound", WikiKind.Mechanic);

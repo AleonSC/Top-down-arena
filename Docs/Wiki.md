@@ -36,7 +36,10 @@ content joins with no extra work.
    them), gadgets (`Game.GadgetDesc`, linked to the gadget chest), relics (a faction relic links to its boss), Black Market
    buildables, run modifiers, paths, game modes, difficulty presets, challenge rooms, arena layouts, and mechanics
    (`Core/WikiTopics.cs`, the Glossary's words; mentioned in any case, so "a wound" in any text links to Wound). The eyedropper
-   also picks minions. Not yet: status effects (no table of names), props and chests on the field.
+   also picks minions.
+   Then: **status effects** (`WikiTopics.Statuses`: Slowed, Burning, Bleeding, Chilled, Frozen, Wet, Stunned, Dazed, Caged, Marked,
+   Poisoned, Venom, Suppressed; mentioned in any case, so they link to what causes them) and **props and chests**
+   (`WikiTopics.Things`, by PropKind and ChestKind; `Wiki.Of(PropKind, ChestKind)`). About 675 entries.
 3. **Built: the Wiki key everywhere** (`Game/WikiPick.cs`): `KeyAction.Wiki` (I). A tap opens the wiki on the main menu's bay, or
    anywhere else as a modal screen (`screenWiki`: dimmed room, a CRT panel with the same screen; Esc or a click outside closes it).
    Solo runs pause while it's open (`wikiPaused`, resumed on close); co-op doesn't pause and nothing is sent (no protocol change).
@@ -45,4 +48,6 @@ content joins with no extra work.
    `Ui.Shown`, the smallest one under the pointer is outlined in gold); `Wiki.FindIn` turns it into an entry (the whole text as a name,
    else the longest entry name in it). In a run, the enemy (`Wiki.Of(EnemyType)`, a decoy shows its boss) or player (their class)
    under the pointer counts too. A tag by the pointer names what a click opens; the click is used up, so it never presses a button
-   or fires. Minions count too (step 2). Later: shots, chests and props on the field.
+   or fires. In a run it also picks minions, shots (a player's opens their weapon; an enemy's its shooter, on the host) and props
+   and chests (the pointer inside the box), and the tag lists the status effects on the enemy under it (its replicated flags:
+   `WikiStatusesOn`); a right click opens the first.

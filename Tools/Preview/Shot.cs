@@ -1056,7 +1056,7 @@ static partial class Shot {
     // there (the eyedropper): a first pass finds the text under it, as the game's frame before does, then is dropped.
     var wikiPickEnv = Environment.GetEnvironmentVariable("WIKIPICK");
     if (Environment.GetEnvironmentVariable("WIKISCREEN") != null) { var wq = Environment.GetEnvironmentVariable("WIKISCREEN").Split(','); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); typeof(ArenaApp).GetMethod("OpenWiki", f2).Invoke(app, new object[] { wq.Length > 1 ? Wiki.Find(wq[1]) : null }); set("wikiQuery", wq[0]); set("wikiOpenedAt", -100f); }
-    if (wikiPickEnv != null) { var wp = wikiPickEnv.Split(','); set("wikiPicking", true); Event.current.mousePosition = new Vector2(float.Parse(wp[0]), float.Parse(wp[1]));
+    if (wikiPickEnv != null) { var wp = wikiPickEnv.Split(','); set("wikiPicking", true); Event.current.mousePosition = new Vector2(float.Parse(wp[0]), float.Parse(wp[1])); Input.mousePosition = new Vector3(float.Parse(wp[0]), Screen.height - float.Parse(wp[1]), 0f);
       int tris0 = GL.Tris.Count, log0 = GUI.Log.Count; Event.current.type = EventType.Repaint;
       typeof(ArenaApp).GetMethod("TextEditBeginGui", f2).Invoke(app, null); DrawMode(); typeof(ArenaApp).GetMethod("TextEditEndGui", f2).Invoke(app, null);
       GL.Tris.RemoveRange(tris0, GL.Tris.Count - tris0); GUI.Log.RemoveRange(log0, GUI.Log.Count - log0);

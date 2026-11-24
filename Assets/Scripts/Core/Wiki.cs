@@ -6,7 +6,7 @@ using System.Text;
 namespace Arena
 {
     /// What a wiki entry is (its tag in the list). New kinds go at the end.
-    public enum WikiKind : byte { Class, Role, Weapon, Ability, Ultimate, Card, Perk, Enemy, Boss, Minion, Gadget, Relic, Buildable, Modifier, Path, Mode, Difficulty, Challenge, Layout, Mechanic }
+    public enum WikiKind : byte { Class, Role, Weapon, Ability, Ultimate, Card, Perk, Enemy, Boss, Minion, Gadget, Relic, Buildable, Modifier, Path, Mode, Difficulty, Challenge, Layout, Mechanic, Status, Prop }
 
     /// One thing in the game the wiki can show: its name, a line on what it is, its text and the entries it links to.
     public class WikiEntry
@@ -33,6 +33,18 @@ namespace Arena
         static Dictionary<EnemyType, WikiEntry> enemyEntry;
         static Dictionary<Kit, WikiEntry> kitEntry;
         static Dictionary<MinionKind, WikiEntry> minionEntry;
+        static Dictionary<int, WikiEntry> thingEntry;
+
+        /// The entry for a prop or chest on the field, or null.
+        public static WikiEntry Of(PropKind k, ChestKind chest)
+        {
+            Build();
+            int key = k == PropKind.Chest ? 100 + (int)chest : (int)k;
+            return thingEntry.TryGetValue(key, out var e) ? e : null;
+        }
+
+        /// The entry for a status effect by name ("Burning"), or null.
+        public static WikiEntry Status(string name) => Find(name, WikiKind.Status);
 
         /// The entry for a minion on the field, or null.
         public static WikiEntry Of(MinionKind k) { Build(); return minionEntry.TryGetValue(k, out var e) ? e : null; }
@@ -85,7 +97,7 @@ namespace Arena
 
         public static string KindName(WikiKind k) =>
             k == WikiKind.Card ? "Upgrade card" : k == WikiKind.Mode ? "Game mode" : k == WikiKind.Difficulty ? "Difficulty preset"
-            : k == WikiKind.Challenge ? "Challenge room" : k == WikiKind.Layout ? "Arena layout" : k == WikiKind.Modifier ? "Run modifier" : k.ToString();
+            : k == WikiKind.Status ? "Status effect" : k == WikiKind.Prop ? "Prop" : k == WikiKind.Challenge ? "Challenge room" : k == WikiKind.Layout ? "Arena layout" : k == WikiKind.Modifier ? "Run modifier" : k.ToString();
 
         /// The entry with this name (any case), or null. Kind narrows it when two share a name.
         public static WikiEntry Find(string name, WikiKind? kind = null)
@@ -303,7 +315,12 @@ namespace Arena
             }
             foreach (var t in WikiTopics.All)
                 Add(t.Name, WikiKind.Mechanic, "Mechanic", t.Text);
-            var gadgetChest = all.Find(x => x.Kind == WikiKind.Mechanic && x.Name == "Gadget chest");
+            foreach (var t in WikiTopics.Statuses)
+                Add(t.Name, WikiKind.Status, "Status effect", t.Text);
+            thingEntry = new Dictionary<int, WikiEntry>();
+            foreach (var t in WikiTopics.Things)
+                thingEntry[t.Chest ? 100 + t.Kind : t.Kind] = Add(t.Name, WikiKind.Prop, t.Chest ? "Chest" : "Prop", t.Text);
+            var gadgetChest = all.Find(x => x.Kind == WikiKind.Prop && x.Name == "Gadget chest");
             foreach (var g in all.FindAll(x => x.Kind == WikiKind.Gadget))
                 Link(g, gadgetChest);  // where gadgets come from
         }
@@ -366,7 +383,7 @@ namespace Arena
                     if (n == e || n.Name == e.Name)
                         continue;
                     // Mechanics are common words in running text ("a wound", "health shrine"): any case; other names as written.
-                    var cmp = n.Kind == WikiKind.Mechanic ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+                    var cmp = n.Kind == WikiKind.Mechanic || n.Kind == WikiKind.Status ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
                     int at = 0;
                     while ((at = e.Text.IndexOf(n.Name, at, cmp)) >= 0)
                     {

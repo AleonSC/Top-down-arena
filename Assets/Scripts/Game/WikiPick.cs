@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 namespace Arena
@@ -113,9 +115,11 @@ namespace Arena
             var ev = Event.current;
             if (ev.type == EventType.Repaint)
                 wikiPickTarget = wikiPicking ? WikiUnderPointer() : null;
-            if (!wikiPicking || ev.type != EventType.MouseDown || ev.button != 0)
+            if (!wikiPicking || ev.type != EventType.MouseDown || ev.button > 1)
                 return;
             var at = WikiUnderPointer();
+            if (ev.button == 1)  // a right click: the first status effect on the enemy under the pointer
+                at = wikiPickStatuses.Count > 0 ? wikiPickStatuses[0] : null;
             ev.Use();  // a click while picking never reaches the buttons under it
             if (at == null)
                 return;
@@ -123,23 +127,30 @@ namespace Arena
             OpenWiki(at);
         }
 
-        /// What the pointer is on: outlined text naming an entry first, then (in a run) the enemy, minion or player under it.
+        readonly List<WikiEntry> wikiPickStatuses = new List<WikiEntry>();  // on the enemy under the pointer
+
+        /// What the pointer is on: outlined text naming an entry first, then (in a run) the nearest enemy, minion, player or shot under
+        /// it (a player's shot opens their weapon, an enemy's its shooter when this game knows it), then a prop or chest it's over. The
+        /// status effects on an enemy under it go to wikiPickStatuses (the tag lists them; a right click opens the first).
         WikiEntry WikiUnderPointer()
         {
+            wikiPickStatuses.Clear();
             var e = Wiki.FindIn(Ui.Hovered);
             if (e != null || session.Screen != AppScreen.Game)
                 return e;
             var m = MouseArena();
             float best = float.MaxValue;
+            Enemy picked = null;
             foreach (var en in game.Enemies.Values)
             {
                 if (en.Hp <= 0f)
                     continue;
                 float d = en.Pos.DistanceTo(m), r = Defs.Get(en.Type).Radius + 8f;
-                if (d < r && d < best)
+                if (d < r && d < best && Wiki.Of(en.Type) != null)
                 {
                     best = d;
-                    e = Wiki.Of(en.Type) ?? e;
+                    e = Wiki.Of(en.Type);
+                    picked = en;
                 }
             }
             foreach (var mn in game.Minions.Values)
@@ -150,18 +161,76 @@ namespace Arena
                 {
                     best = d;
                     e = Wiki.Of(mn.Kind);
+                    picked = null;
                 }
             }
             foreach (var p in game.Players.Values)
             {
                 float d = p.Pos.DistanceTo(m);
-                if (d < 22f && d < best)
+                if (d < 22f && d < best && Wiki.Of(p.Kit) != null)
                 {
                     best = d;
-                    e = Wiki.Of(p.Kit) ?? e;
+                    e = Wiki.Of(p.Kit);
+                    picked = null;
                 }
             }
+            foreach (var b in game.Bullets.Values)
+            {
+                float d = b.Pos.DistanceTo(m);
+                if (d >= b.Radius + 6f || d >= best)
+                    continue;
+                var by = WikiShotSource(b);
+                if (by != null)
+                {
+                    best = d;
+                    e = by;
+                    picked = null;
+                }
+            }
+            if (e == null)
+                foreach (var pr in game.Props.Values)
+                {
+                    if (Mathf.Abs(pr.Pos.X - m.X) > Game.HalfW(pr) + 4f || Mathf.Abs(pr.Pos.Y - m.Y) > Game.HalfH(pr) + 4f)
+                        continue;
+                    e = Wiki.Of(pr.Kind, pr.Chest);
+                    if (e != null)
+                        break;
+                }
+            if (picked != null)
+                WikiStatusesOn(picked, wikiPickStatuses);
             return e;
+        }
+
+        /// Whose a shot is: a player's opens their weapon; an enemy's, the enemy that fired it when this game knows (the host).
+        WikiEntry WikiShotSource(Bullet b)
+        {
+            if (b.Owner != 0)
+                return game.Players.TryGetValue(b.Owner, out var p) && p.Weapon != null ? Wiki.Find(p.Weapon.Name, WikiKind.Weapon) : null;
+            return b.Shooter != 0 && game.Enemies.TryGetValue(b.Shooter, out var en) ? Wiki.Of(en.Type) : null;
+        }
+
+        static void WikiStatusIf(bool on, string name, List<WikiEntry> into)
+        {
+            var s = on ? Wiki.Status(name) : null;
+            if (s != null)
+                into.Add(s);
+        }
+
+        /// The status effects an enemy shows (its replicated flags, so every game sees the same).
+        static void WikiStatusesOn(Enemy e, List<WikiEntry> into)
+        {
+            WikiStatusIf(e.Frozen, "Frozen", into);
+            WikiStatusIf(e.Caged, "Caged", into);
+            WikiStatusIf(e.Dazed, "Dazed", into);
+            WikiStatusIf(e.Burning, "Burning", into);
+            WikiStatusIf(e.Bleeding || e.BleedStacks > 0, "Bleeding", into);
+            WikiStatusIf(e.Poisoned, "Poisoned", into);
+            WikiStatusIf(e.Venomed, "Venom", into);
+            WikiStatusIf(e.Wet, "Wet", into);
+            WikiStatusIf(e.FrostChill > 0, "Chilled", into);
+            WikiStatusIf(e.Chilled && e.FrostChill == 0, "Slowed", into);
+            WikiStatusIf(e.Marked, "Marked", into);
+            WikiStatusIf(e.Suppressed, "Suppressed", into);
         }
 
         /// The eyedropper's tag by the pointer: WIKI and what a click opens, or a hint.
@@ -174,14 +243,24 @@ namespace Arena
             var mp = Event.current.mousePosition;
             var t = wikiPickTarget;
             string name = t != null ? t.Name : "POINT AT SOMETHING";
-            string kind = t != null ? Wiki.KindName(t.Kind).ToUpperInvariant() + " · CLICK" : "TEXT, AN ENEMY, A PLAYER";
-            float w = Mathf.Max(Ui.TextWidth(name, 13, true), Ui.TextWidth(kind, 9)) + 58f;
-            var r = new Rect(Mathf.Min(mp.x + 18f, W - w - 6f), Mathf.Min(mp.y + 16f, H - 46f), w, 40f);
+            string kind = t != null ? Wiki.KindName(t.Kind).ToUpperInvariant() + " · CLICK" : "TEXT, AN ENEMY, A SHOT, A CRATE...";
+            string fx = null;  // the enemy's status effects, the first one a right click away
+            if (t != null && wikiPickStatuses.Count > 0)
+            {
+                var sb = new StringBuilder();
+                for (int i = 0; i < wikiPickStatuses.Count; i++)
+                    sb.Append(i == 0 ? "" : " · ").Append(wikiPickStatuses[i].Name.ToUpperInvariant());
+                fx = sb.Append("  (RIGHT CLICK: ").Append(wikiPickStatuses[0].Name.ToUpperInvariant()).Append(')').ToString();
+            }
+            float w = Mathf.Max(Mathf.Max(Ui.TextWidth(name, 13, true), Ui.TextWidth(kind, 9)), fx != null ? Ui.TextWidth(fx, 9) : 0f) + 58f;
+            var r = new Rect(Mathf.Min(mp.x + 18f, W - w - 6f), Mathf.Min(mp.y + 16f, H - 60f), w, fx != null ? 54f : 40f);
             Ui.Fill(r, new Color(0.02f, 0.035f, 0.08f, 0.94f));
             EdgeRing(r, 1f, (t != null ? CrtStyle.Gold : CrtStyle.Ink).WithAlpha(0.8f));
             Ui.Icon(new Rect(r.x + 9f, r.y + 10f, 20f, 20f), PixelArt.Get("ui_book"), t != null ? CrtStyle.Gold : CrtStyle.Dim);
             Ui.Label(new Rect(r.x + 38f, r.y + 4f, r.width - 42f, 18f), name, 13, t != null ? CrtStyle.Ink : CrtStyle.Dim, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.x + 38f, r.y + 21f, r.width - 42f, 14f), kind, 9, t != null ? KindInk(t.Kind) : CrtStyle.Dim, TextAnchor.MiddleLeft, false);
+            if (fx != null)
+                Ui.Label(new Rect(r.x + 38f, r.y + 35f, r.width - 42f, 14f), fx, 9, KindInk(WikiKind.Status), TextAnchor.MiddleLeft, false);
             Ui.MenuFont = old;
         }
 

@@ -236,6 +236,8 @@ namespace Arena
                 case WikiKind.Challenge:
                 case WikiKind.Layout: return CrtStyle.Head;
                 case WikiKind.Minion: return CrtStyle.Steel;
+                case WikiKind.Status: return new Color(0.85f, 0.55f, 1f);  // violet: what's on an enemy
+                case WikiKind.Prop: return LampAmber;
                 default: return CrtStyle.Dim;
             }
         }
