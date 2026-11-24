@@ -50,19 +50,19 @@ namespace Arena
             float top = ModeHeadBand(r, p) + 6f;
             float x = r.x + 20f, w = r.width - 40f, bottom = r.yMax - 18f;
             const float listW = 270f, gap = 22f;
-            int shown = ModeList(x, top, listW, bottom - top, p, out var rows);
-            var f = p.Focus(shown);
-
             // Middle: the scope under its heading, then the dossier.
             const float sideW = 250f, dosH = 112f;
-            float x2 = x + listW + gap, w2 = w - listW - sideW - 2f * gap, y2 = top;
-            LobbyKit.Heading(x2, y2, w2, f.ScopeL, f.ScopeR, fxReduced, 14);
-            y2 += 36f;
+            float x2 = x + listW + gap, w2 = w - listW - sideW - 2f * gap, y2 = top + 36f;
             // A compact scope with the dossier under it, centred in the column (the same size on every mode).
             float cw = Mathf.Min(w2, 460f), ch = Mathf.Min(bottom - y2 - dosH - 10f, cw * 0.58f);
             float cy = y2 + Mathf.Max(0f, (bottom - y2 - ch - 10f - dosH) * 0.5f);
             var scope = new Rect(x2 + (w2 - cw) * 0.5f, cy, cw, ch);
             var dos = new Rect(scope.x, scope.yMax + 10f, cw, dosH);
+            bool turning = p.ScopeDraw == null && ModeScopeDrag(scope);
+
+            int shown = ModeList(x, top, listW, bottom - top, p, out var rows, turning);
+            var f = p.Focus(shown);
+            LobbyKit.Heading(x2, top, w2, f.ScopeL, f.ScopeR, fxReduced, 14);
             ModeScopeArea(scope, p, f);
             ModeDossier(dos, p, f, p.Rows[shown].Chip, p.Rows[shown].ChipCol);
 
@@ -153,7 +153,8 @@ namespace Arena
         }
 
         /// The list column under its heading; rows shrink to fit. Returns the row shown (hovered, else the page's default).
-        int ModeList(float x, float y, float w, float h, ModePage p, out Rect[] rows)
+        /// While `hold` (the scope's model is being turned) the row shown stays put and nothing is hovered.
+        int ModeList(float x, float y, float w, float h, ModePage p, out Rect[] rows, bool hold = false)
         {
             LobbyKit.Heading(x, y, w, p.ListHead, p.ListCap, fxReduced, 14);
             y += 36f;
@@ -166,10 +167,10 @@ namespace Arena
             for (int i = 0; i < n; i++)
             {
                 rows[i] = new Rect(x, y + i * step, w, rowH);
-                if (rows[i].Contains(mp) && (p.Rows[i].Known || p.ShowLocked))
+                if (!hold && rows[i].Contains(mp) && (p.Rows[i].Known || p.ShowLocked))
                     hover = i;
             }
-            int shown = p.Shown = hover >= 0 ? hover : p.Default;
+            int shown = p.Shown = hold ? Mathf.Clamp(p.Shown, 0, n - 1) : hover >= 0 ? hover : p.Default;
             if (hover >= 0 && p.Rows[hover].Known && p.OnPick != null && Ui.HitArea(rows[hover]))
                 p.OnPick(hover);
             for (int i = 0; i < n; i++)
@@ -198,6 +199,8 @@ namespace Arena
                 p.ScopeDraw(new Rect(scope.x + 14f, scope.y + 30f, scope.width - 28f, scope.height - 48f), p.Shown);
             else if (f.Unknown && !p.ShowLocked)
                 CrtUi.Text(scope, "?", 72, PhosGreen.WithAlpha(0.7f), TextAnchor.MiddleCenter, true, FxCalm);
+            else
+                LobbyKit.Spaced(new Rect(scope.x, scope.yMax - 20f, scope.width, 14f), "DRAG TO ROTATE", 9, PhosGreen.WithAlpha(0.45f), TextAnchor.MiddleCenter, 2f);
         }
 
         void ModeModels(Rect[] rows, Rect scope, float t, ModePage p, ModeFocus f, int shown)

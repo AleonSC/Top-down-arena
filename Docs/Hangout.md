@@ -5,7 +5,7 @@
 > screen to it with a glitch (`DrawPracticeSwap`); the screen stays the lobby (`Game.Practicing`; lobby requests check `Game.InRun`), so the
 > party column, Ready and Start work. Each player views it on their own; the room is shared. A loadout change swaps just that player
 > (`Msg.PracticePlayer`, `Game.SyncPractice`); a newcomer restarts it; Start replaces it. No target dummies, PvP always on (the PVP switch
-> is gone), control from the first frame. Spawners as below (`Core/HangoutSpawners.cs`). PLAY on the loadout preview is the solo version.
+> is gone), control from the first frame. Spawners as below (`Core/HangoutSpawners.cs`).
 > The room described at the end of this file (`LobbyCombat.cs`, `LobbyRoom.cs`) is retired; its code is kept until the owner says to remove it.
 
 ## The Hangout mode
