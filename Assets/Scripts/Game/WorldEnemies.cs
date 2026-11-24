@@ -625,6 +625,10 @@ namespace Arena
                 DrawWardenBody(e, pos, r, col, spawning, t);  // WardenBodyLook.cs: the Chief Warden, posed for each move
             else if (e.Type == EnemyType.Colossus)
                 DrawColossusBody(e, pos, r, t);  // ColossusBodyLook.cs: the Quarry Golem, posed for each move
+            else if (e.Type == EnemyType.Lich)
+                DrawLichBody(e, pos, r, col, t);  // LichBodyLook.cs: the Hooded Sorcerer, the Wraith in the Final Rite
+            else if (e.Type == EnemyType.Phylactery)
+                DrawPhylactery(e, pos, r, col, t);  // LichBodyLook.cs: a soul jar
             else if (Game.IsNonShooter(e.Type))
                 DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
             else if (Game.IsTwin(e.Type))
@@ -775,7 +779,7 @@ namespace Arena
                 case EnemyType.ReaperOfDusk:
                 case EnemyType.ReaperOfDawn:
                     DrawTwinShell(e, pos, r, t);
-                    DrawStageShiftBoss(e, pos, r, t);  // changing phase (StageShiftLook.cs)
+                    DrawReaperShiftOn(e, pos, r, t);  // fusing or splitting (ReaperShiftLook.cs)
                     break;
                 case EnemyType.DualReaper:
                     DrawDualUnderlay(e, pos, r, t);  // ReaperLook.cs
@@ -1049,9 +1053,6 @@ namespace Arena
                     break;
                 case EnemyType.Eclipse:
                     Circle(pos, r * 0.8f, new Rgba(0.02f, 0.02f, 0.04f, 1f), 32);
-                    break;
-                case EnemyType.Phylactery:
-                    Polygon(pos, r * 0.5f, 4, -t * 2f, Rgba.White.WithAlpha(0.8f));
                     break;
                 case EnemyType.BallLightning:
                     DrawBallLightning(e, pos, r, t);  // HeraldLook.cs
