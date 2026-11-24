@@ -47,6 +47,38 @@ static partial class Program
         Check(me.Hp >= mine0 - 0.01f, "...and never the shooter");
         Check(Game.PvpDamage > 0f && Game.PvpDamage < 1f, "at a share of the weapon's damage (" + Game.PvpDamage + ")");
 
+        // Status effects: what an attack leaves on a player's stand-in becomes their own, halved and capped (TickPvp).
+        {
+            var F = BindingFlags.NonPublic | BindingFlags.Instance;
+            var standOf = typeof(Game).GetMethod("StandOf", F);
+            Func<Enemy> S = () => (Enemy)standOf.Invoke(g, new object[] { them });
+            Action<int> tick = n => { for (int i = 0; i < n; i++) { place(); host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = them.Pos }); g.Update(dt); Step(client, dt); } };
+            them.StunT = 0f; them.PvpSlowT = 0f; them.Hp = them.MaxHp;
+            typeof(Game).GetMethod("Stun", F).Invoke(g, new object[] { S(), 4f });
+            tick(1);
+            Check(them.StunT > 0.9f && them.StunT <= Game.PvpStunCap + 0.01f, "a stun on a player: halved and capped (" + them.StunT.ToString("0.00") + " s)");
+            tick((int)(Game.PvpStunCap / dt) + 5);
+            g.Slow(S(), 4f, 0.2f);
+            tick(2);
+            Check(them.PvpSlowT > 1f && them.PvpSlowMult >= Game.PvpSlowFloor - 0.01f && them.PvpSlowMult < 1f, "a slow: halved, never below " + Game.PvpSlowFloor + " speed (" + them.PvpSlowMult.ToString("0.00") + ")");
+            Check(client.Game.Me.PvpSlowT > 0.5f && client.Game.Me.Speed < client.Game.Me.Def.Speed * 0.9f, "...and the slowed player's own game moves them slower");
+            tick(220);
+            V2 before = client.Game.Me.Pos;
+            typeof(Game).GetMethod("KnockEnemy", F).Invoke(g, new object[] { S(), new V2(120f, 0f) });
+            for (int i = 0; i < 40; i++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = them.Pos }); g.Update(dt); Step(client, dt); }
+            Check(client.Game.Me.Pos.X > before.X + 30f, "a push knocks the player back on their own screen (" + (client.Game.Me.Pos.X - before.X).ToString("0") + " px)");
+            them.Hp = them.MaxHp;
+            float hpB = them.Hp;
+            var bleed = S(); bleed.BleedT = 2f; bleed.BleedDps = 20f; bleed.BleedBy = me.Id;
+            tick(60);
+            Check(them.Hp < hpB - 3f && !them.Downed, "a bleed from another player ticks on them (" + (hpB - them.Hp).ToString("0.0") + ")");
+            var mine = (Enemy)standOf.Invoke(g, new object[] { me });
+            float myHp = me.Hp;
+            mine.BleedT = 2f; mine.BleedDps = 20f; mine.BleedBy = me.Id;
+            tick(60);
+            Check(me.Hp >= myHp - 0.01f, "...but never your own on yourself");
+        }
+
         // Every weapon, fire and Alt, at a player: nothing throws, and most of them land.
         int hurtBy = 0, tried = 0;
         var missed = new System.Collections.Generic.List<string>();

@@ -1,8 +1,8 @@
 # Targeting: one way to ask "what does this hit?"
 
-> **Status: steps 1-4 done.** `Core/FoeQuery.cs` answers every player attack loop but three; PvP is on in the Hangout (`Core/Pvp.cs`):
+> **Status: steps 1-5 done.** `Core/FoeQuery.cs` answers every player attack loop but three; PvP is on in the Hangout (`Core/Pvp.cs`):
 > 89 of 91 weapons hit players in the `pvp` test (the other two only miss its close range), and every ability's query does. Status
-> effects on players (slows, stuns, knockback, bleeds) are the open step.
+> effects reach players too (step 5).
 
 ## Why
 
@@ -38,8 +38,12 @@ struct enumerables: no allocation, they nest, and `HurtEnemy` inside one is safe
    `SnapFoes(by)`; `DotDamage` (burns, ink) routes stand-ins too, as damage over time; other players' Spirit Chalk ink burns you.
    The `pvp` test lists any weapon that doesn't land: Gore Mortar (its lob lands 160 px out at least) and Fuma Shuriken (it needs
    its orbit stance) only miss the test's close range.
-5. **Status effects on players** (open): slows, stuns, freezes, knockback, marks and bleeds land on the stand-in and do nothing.
-   Each needs mapping to its player version (Player.SlowT, StunT, a knock), one effect at a time.
+5. **Status effects on players** (done, `TickPvp`): stand-ins are kept between ticks, so whatever an attack writes on one (however
+   it's written) is read back each Hangout tick and becomes the player's own: a freeze, stun or hold is `StunT` (halved, at most
+   `PvpStunCap` 1.2 s), a slow is `PvpSlowT`/`PvpSlowMult` (replicated, protocol 476; halved, at most 3 s, never below 45% speed),
+   a push is a knockback (`KnockPlayer`, half the distance), and burns, bleeds and poison tick as damage over time from whoever set
+   them (never your own on yourself). A melee daze does nothing to a player (it would be a stun-lock). Marks and other enemy-only
+   states (seeded, wet, charged...) still do nothing on a player.
 
 ## Behaviour notes
 

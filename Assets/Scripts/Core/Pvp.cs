@@ -73,6 +73,62 @@ namespace Arena
         }
     }
 
+    public partial class Game
+    {
+        public const float PvpStatus = 0.5f, PvpStunCap = 1.2f, PvpSlowCap = 3f, PvpSlowFloor = 0.45f;  // status effects from another player: half as long, a stun never past 1.2 s, a slow never past 3 s or below 45% speed
+
+        /// Host, each Hangout tick: what other players' attacks left on each stand-in becomes that player's own version, the way the
+        /// stand-in's damage does (PvpHurt). Every attack writes enemy fields, however it's written, so this catches them all: a
+        /// freeze, stun or hold is a stun (StunT, your own game stops you), a slow is PvpSlowT (replicated, Player.Speed), a push
+        /// is a knockback (KnockPlayer), and burns, bleeds and poison tick as damage over time from whoever set them. A daze (every
+        /// melee hit) does nothing: on a player it would be a stun-lock.
+        void TickPvp(float dt)
+        {
+            if (!PvpOn || !IsHost)
+                return;
+            foreach (var q in Players.Values)
+            {
+                Enemy s;
+                if (!stands.TryGetValue(q.Id, out s))
+                    continue;
+                if (q.Downed || q.WarpT > 0f)
+                {
+                    ClearStand(s);
+                    continue;
+                }
+                float stun = Math.Max(s.FrozenT, s.StunT);
+                if (stun > 0f)
+                    q.StunT = Math.Max(q.StunT, Math.Min(PvpStunCap, stun * PvpStatus));
+                if (s.SlowT > 0f && s.SlowMult < 1f && s.FrozenT <= 0f)
+                {
+                    q.PvpSlowT = Math.Max(q.PvpSlowT, Math.Min(PvpSlowCap, s.SlowT * PvpStatus));
+                    q.PvpSlowMult = Math.Max(PvpSlowFloor, Math.Min(q.PvpSlowT > 0f ? q.PvpSlowMult : 1f, s.SlowMult));
+                }
+                if (s.KnockLeft.Length > 1f)
+                    KnockPlayer(q, s.KnockLeft, s.KnockLeft.Length * PvpStatus);
+                if (s.BurnT > 0f)
+                    PvpHurt(q, s.BurnDps * dt, s.BurnBy, true);
+                if (s.BleedT > 0f)
+                    PvpHurt(q, s.BleedDps * dt, s.BleedBy, true);
+                if (s.PoisonT > 0f)
+                    PvpHurt(q, s.PoisonDps * dt, s.PoisonBy, true);
+                s.BurnT = Math.Max(0f, s.BurnT - dt);
+                s.BleedT = Math.Max(0f, s.BleedT - dt);
+                s.PoisonT = Math.Max(0f, s.PoisonT - dt);
+                s.FrozenT = s.StunT = s.SlowT = s.SlowT2 = s.DazeT = 0f;  // (taken over: the player's own timers run them now)
+                s.SlowMult = s.SlowMult2 = 1f;
+                s.KnockLeft = default(V2);
+            }
+        }
+
+        static void ClearStand(Enemy s)
+        {
+            s.FrozenT = s.StunT = s.SlowT = s.SlowT2 = s.DazeT = s.BurnT = s.BleedT = s.PoisonT = 0f;
+            s.SlowMult = s.SlowMult2 = 1f;
+            s.KnockLeft = default(V2);
+        }
+    }
+
     public partial class Enemy
     {
         /// PvP: the player this is the stand-in for (Pvp.cs); null for every real enemy.

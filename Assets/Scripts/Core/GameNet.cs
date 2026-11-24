@@ -544,6 +544,8 @@ namespace Arena
             s.Float(ref p.StunT);
             s.Float(ref p.SwallowT);
             s.Float(ref p.WarpT);  // (BossBeam.cs)
+            s.Float(ref p.PvpSlowT);  // a slow from another player (Pvp.cs)
+            s.Float(ref p.PvpSlowMult);
             int grasped = p.Grasp.Count;  // Leech Tendrils' held enemies (Hemomancer.cs)
             s.Byte(ref grasped);
             if (s.Reading)
