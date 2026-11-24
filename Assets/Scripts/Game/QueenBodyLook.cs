@@ -24,6 +24,8 @@ namespace Arena
             var q = e.Queen;
             if (q != null && q.TransT <= 0f && q.Turn == QueenTurn.Spray)
                 return (20f + 140f * q.Aux) * MathX.Pi / 180f;
+            if (q != null && Game.QueenAir(q) > 0f && (q.Shadow - pos).Length > 4f)  // diving: at where she'll land
+                return Mathf.Atan2(q.Shadow.Y - pos.Y, q.Shadow.X - pos.X);
             float best = 1e9f;
             V2 to = new V2(0f, 1f);
             foreach (var p in game.Players.Values)
@@ -40,7 +42,8 @@ namespace Arena
             var q = e.Queen;
             int stage = q == null ? 0 : (int)q.Stage;
             bool frz = stage >= (int)QueenStage.Frenzy, last = stage == (int)QueenStage.LastStand;
-            float air = q != null ? Game.QueenAir(q) : 0f;
+            float air = q != null ? Game.QueenAir(q) : 0f, swell = Game.QueenSwell(q);
+            bool laying = swell > 0f && q != null && q.TransT <= 0f && q.Turn == QueenTurn.Eggs;  // squeezing her eggs out
             float a = col0.A, hit = (e.Flash > 0f || JuiceFlash(e)) ? HitFlashMix(e) : 0f;
             hiveCrowd = game.Enemies.Count > HiveCrowd;
             float ang = QueenFacing(e, pos);
@@ -51,23 +54,25 @@ namespace Arena
             Rgba col = (frz ? QFrenzy : QAmber).Mix(Rgba.White, hit).WithAlpha(a);
             Rgba wax = HiveWax.WithAlpha(a), white = HiveWhite.WithAlpha(a);
             const float tr = 10f, hr = 7f;
-            float pulse = 1f + 0.045f * Mathf.Sin(t * (stage == (int)QueenStage.Frenzy ? 7f : 2.6f));
-            float rx = 34f * pulse, ry = (last ? 18f : 25f) * pulse, ax = -(tr * 0.55f + rx - 2f);
-            float fl = Mathf.Sin(t * (air > 0f ? 80f : 52f));
+            // the sac: pulsing, swelling before she lays (throbbing faster as it fills), tucked in and narrowed in a dive
+            float pulse = 1f + (0.045f + 0.035f * swell) * Mathf.Sin(t * (stage == (int)QueenStage.Frenzy ? 7f : 2.6f + 9f * swell * swell));
+            float rx = 34f * pulse * (1f + 0.22f * swell) * (1f - 0.2f * air), ry = (last ? 18f : 25f) * pulse * (1f + 0.3f * swell) * (1f - 0.22f * air);
+            float ax = -(tr * 0.55f + rx - 2f);
+            float fl = Mathf.Sin(t * (air > 0f ? 80f : 52f)), legIn = 1f - 0.65f * air;
 
             // legs
             for (int sd = -1; sd <= 1; sd += 2)
                 for (int k = 0; k < 3; k++)
                 {
                     float lx = Mathf.Lerp(-tr * 0.6f, tr * 0.7f, k / 2f), sw = Mathf.Sin(t * 5f + k + sd) * 1.5f;
-                    V2 p1 = f.P(lx + (k - 1) * 4f, sd * (tr + 5f));
+                    V2 p1 = f.P(lx + (k - 1) * 4f * legIn + 3f * air, sd * (tr + 5f * legIn));  // in a dive: folded in under her, forward
                     HiveStroke(f.P(lx, sd * tr * 0.7f), p1, thin, col, K * 3f);
-                    HiveStroke(p1, f.P(lx + (k - 1) * 7f + sw, sd * (tr + 9f)), thin, col, K * 3f);
+                    HiveStroke(p1, f.P(lx + (k - 1) * 7f * legIn + sw * legIn + 6f * air, sd * (tr + 9f * legIn)), thin, col, K * 3f);
                 }
 
             // the sac: a see-through fill (red in the Frenzy), its outline and segment arcs
             HiveEllipse(f, ax, 0f, rx, ry, 0f, (frz ? QRed : HiveWax).WithAlpha(a), frz ? 0.32f : 0.16f, 0f, 0f, 24);
-            HiveEllipse(f, ax, 0f, rx, ry, 0f, col, 0f, lw, gl * 0.7f, 28);
+            HiveEllipse(f, ax, 0f, rx, ry, 0f, col.Mix(HiveWhite.WithAlpha(a), 0.35f * swell), 0f, lw * (1f + 0.4f * swell), gl * (0.7f + 0.8f * swell), 28);
             for (int i = 1; i <= 4; i++)
             {
                 float xx = ax + rx - i * rx * 0.42f, h = ry * Mathf.Sqrt(Mathf.Max(0f, 1f - Mathf.Pow((xx - ax) / rx, 2f))) * 0.95f;
@@ -81,13 +86,14 @@ namespace Arena
                 }
             }
             // the eggs inside, each with a larva showing; they boil in the Frenzy, two left in the Last Stand
-            int eggs = last ? 2 : 7;
+            // (swelling: packed to the rim and glowing; just laid: three left, refilling)
+            int eggs = last ? 2 : q != null && q.TransT <= 0f && q.Turn == QueenTurn.Eggs && swell < 0.5f ? 3 : 7;
             for (int i = 0; i < eggs; i++)
             {
-                float ea = i * 2.4f + 0.4f, er = i == 0 ? 0f : 0.35f + 0.35f * QRnd(i);
+                float ea = i * 2.4f + 0.4f, er = i == 0 ? 0f : (0.35f + 0.35f * QRnd(i)) * (1f + 0.25f * swell);
                 float ex = ax + Mathf.Cos(ea) * rx * er * 0.8f, ey = Mathf.Sin(ea) * ry * er * 0.75f;
                 float jit = stage == (int)QueenStage.Frenzy ? Mathf.Sin(t * 22f + i) * 1.4f : Mathf.Sin(t * 2f + i) * 0.6f;
-                HiveEllipse(f, ex + jit, ey, 5.2f, 3.6f, ea, wax, 0.5f, Mathf.Max(1f, K), K * (frz ? 10f : 5f), 10);
+                HiveEllipse(f, ex + jit, ey, 5.2f * (1f + 0.2f * swell), 3.6f * (1f + 0.2f * swell), ea, wax, 0.5f + 0.3f * swell, Mathf.Max(1f, K), K * (frz ? 10f : 5f + 6f * swell), 10);
                 Circle(f.P(ex + jit + 1f, ey), Mathf.Max(1f, 1.5f * K), (frz ? QRed : QHoney).WithAlpha(a), 6);
             }
             if (stage == (int)QueenStage.Honeycomb)  // wrapped in a wax lattice
@@ -113,7 +119,16 @@ namespace Arena
                     Circle(f.P(ax - rx + 4f - p * 26f - i * 2f, 4f + Mathf.Sin(i * 2.1f) * 5f + p * 4f), (2.4f - 1.4f * p) * K, QHoney.WithAlpha(a * (1f - p)), 8);
                 }
             }
-            // the ovipositor
+            // the ovipositor (flaring as she lays, with a spurt of honey behind)
+            if (laying)
+            {
+                Circle(f.P(ax - rx - 6f, 0f), (6f + 6f * swell) * K, QHoney.WithAlpha(a * 0.35f * swell), 12);
+                for (int i = 0; i < 4; i++)
+                {
+                    float p = 1f - swell;
+                    Circle(f.P(ax - rx - 8f - p * 30f, (i - 1.5f) * 6f * p), (2.2f - p) * K + 0.6f, QHoney.WithAlpha(a * swell), 8);
+                }
+            }
             {
                 V2 o0 = f.P(ax - rx + 2f, -3f), o1 = f.P(ax - rx - 8f, 0f), o2 = f.P(ax - rx + 2f, 3f);
                 SetColor(col.WithAlpha(a * 0.5f));
@@ -123,8 +138,14 @@ namespace Arena
             }
 
             // stubby wings (torn from the Frenzy on), then the thorax and its wax gem
+            // (in a dive: spread wide and long, beating hard, with a ghost of the last beat behind each)
+            float wl = Mathf.Lerp(24f, 42f, air), ww = Mathf.Lerp(8f, 13f, air), wa = Mathf.Lerp(0.95f, 0.5f, air);
             for (int sd = -1; sd <= 1; sd += 2)
-                QueenWing(f, tr * 0.1f, sd * tr * 0.6f, 24f, 8f, MathX.Pi + sd * (0.95f + 0.15f * fl), fl, frz, a * (air > 0f ? 0.35f : 0.6f));
+            {
+                if (air > 0.05f)
+                    QueenWing(f, tr * 0.1f, sd * tr * 0.6f, wl, ww, MathX.Pi + sd * (wa + 0.45f * air), -fl, frz, a * 0.22f * air);
+                QueenWing(f, tr * 0.1f, sd * tr * 0.6f, wl, ww, MathX.Pi + sd * (wa + 0.15f * fl), fl, frz, a * Mathf.Lerp(0.6f, 0.45f, air));
+            }
             HiveEllipse(f, 0f, 0f, tr, tr, 0f, col, 0.34f, lw, gl, 16);
             if (!last)
                 HiveHexRing(f, 0f, 0f, tr * 0.38f, MathX.Pi / 6f, (frz ? QRed : HiveWax).WithAlpha(a), 0.6f, thin, K * 10f);
