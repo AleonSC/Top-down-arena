@@ -1,6 +1,8 @@
 # Vowguard (Healer Knight, 4th weapon)
 
 Status: built (protocol 453). Mockup: https://claude.ai/artifact/Ca5cn1c4Hd88ZnakEtqT49 (`Docs/Mockups/vowguard.html`).
+Look: Radiant, with springs, wind-ups, hit-stop, body twist, afterimages, a stance-switch twirl and an idle sway (mockup
+https://claude.ai/artifact/Az1cwjCX5DxnEpfYtXNx4X, `Docs/Mockups/vowguard-models.html`; the owner picked look C and all the motion).
 
 ## The owner's decisions
 
