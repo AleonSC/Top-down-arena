@@ -570,6 +570,27 @@ static partial class Program
             for (int f = 0; f < 5; f++) { me.Pos = from; foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(800f, 450f) }); } }
             Check(!me.HbSet, "letting go of the key lifts the pike");
         }
+        // Pike Lunge: letting go of the set pike drives it out along where it points (past the pokes' reach), once every LungeCd.
+        {
+            g.Enemies.Clear(); g.Bullets.Clear(); me.FireCd = 0f; me.HbLungeCd = 0f;
+            float ang = 1.0f;
+            var foe = Dummy(from + V2.FromAngle(ang) * 268f);  // past the pokes' 230 px, inside the lunge's 260 (plus its body)
+            int lunges0 = me.HbLunges, pokes0 = me.HbPokes;
+            float d0 = foe.Pos.DistanceTo(from), heldTook = 0f;
+            Action<int, bool> hold = (n, alt) => { for (int f = 0; f < n; f++) { me.Pos = from; queue.Clear(); foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = new V2(800f, 450f), WeaponAction = alt } : new PlayerInput()); } } };
+            hold(40, true);
+            heldTook = foe.MaxHp - foe.Hp;
+            hold(30, false);
+            float took = foe.MaxHp - foe.Hp, d1 = foe.Pos.DistanceTo(from);
+            int lunges1 = me.HbLunges;
+            hold(2, true); hold(20, false);  // a quick tap again, inside the cooldown
+            Console.WriteLine("  pike lunge: held {0:0} dmg ({1} pokes), let go: {2} lunge, {3:0} dmg, pushed {4:0} -> {5:0} px; tap again: {6} lunge(s)",
+                heldTook, me.HbPokes - pokes0, lunges1 - lunges0, took - heldTook, d0, d1, me.HbLunges - lunges1);
+            float want = me.Weapon.Damage * me.Stats.DmgMult * Game.LungeMult;
+            Check(heldTook == 0f && lunges1 == lunges0 + 1 && Math.Abs(took - want) < 1f, "letting go of the pike lunges at the enemy it points to, past the pokes' reach (" + want.ToString("0") + ")");
+            Check(d1 > d0 + 40f, "the lunge shoves what it hits");
+            Check(me.HbLunges == lunges1, "a tap right after doesn't lunge again (cooldown)");
+        }
         s[0].Leave(""); s[1].Leave("");
     }
 
