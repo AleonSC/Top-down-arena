@@ -2032,7 +2032,7 @@ volume, and a seamless loop mode for hums and drones (the game loops `WallHum`, 
 so they never change the fight or what your friend sees):
 
 - **Visual effects** on/off. Off draws the arena exactly as before.
-- **Screen shake:** Off, **Low** (the default) or Full. **Charge camera:** every hold-and-release weapon (Mender's Bow, Railgun, Warhammer, Golem Staff, Arc Lightning, Imp Caller, Gore Mortar) eases your view out and back against your aim as it charges, then snaps it forward past rest on release and settles, kicking by how full the charge was; the Railgun pulls back and kicks hardest, the Warhammer punches in most, the Imp Caller is lightest. Off with Screen shake off or Reduced effects. Getting hurt, a heavy enemy's death and above all a boss's
+- **Screen shake:** Off, **Low** (the default) or Full. **Charge camera:** every hold-and-release weapon (Mender's Bow, Railgun, Warhammer, Golem Staff, Arc Lightning, Imp Caller, Gore Mortar) eases your view out and back against your aim as it charges, then snaps it forward past rest on release and settles, kicking by how full the charge was; the Railgun pulls back and kicks hardest, the Warhammer punches in most, the Imp Caller is lightest. A fully charged Railgun beam or Warhammer slam holds the picture for a moment on its first hit (about 2 and 3 frames). Off with Screen shake off or Reduced effects. Getting hurt, a heavy enemy's death and above all a boss's
   death kick the camera; explosions only add a light rumble (several at once don't pile up).
 - **Arena floor:** **Bending** (the default) or Static. The floor grid lights up in each player's class colour near
   them; with Bending its lines also bow away from every player like a stretched sheet and trail a little behind them as

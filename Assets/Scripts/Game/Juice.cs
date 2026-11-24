@@ -571,6 +571,7 @@ namespace Arena
                 if (s.Squash < 0.35f)
                     s.Squash = 1f - 0.6f * e.FlashHeat;
                 s.Flash = 0.09f;
+                ChargeHitCheck(e);  // a full Railgun or Warhammer charge landing: hold a moment (ChargeCameraFx.cs)
             }
             s.Pos = e.Disp; s.Hp = e.Hp; s.Max = e.MaxHp; s.Rot = EnemyRotation(e, t);
             s.R = e.Type == EnemyType.Singularity ? e.Def.Radius : e.Radius;

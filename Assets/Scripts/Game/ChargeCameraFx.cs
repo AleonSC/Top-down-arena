@@ -10,7 +10,8 @@ namespace Arena
     ///     (Over bigger, Kick along the aim), then settles back (CamSettle). Every release kicks: a tap a little (CamTapPower),
     ///     a full charge fully; the bow's Focus shot most (CamFocusPower) and its Scatter a medium kick (CamScatterPower);
     ///   - a charge dropped without a release (Scatter, the shield, going down, a weapon swap) eases back slowly, with no kick;
-    ///   - a Focus arrow's first hit holds the picture a frame or two (FocusHitPause, BowFocusLook.cs).
+    ///   - a Focus arrow's first hit holds the picture a frame or two (FocusHitPause, BowFocusLook.cs); so does the first
+    ///     enemy struck by a full-charge Railgun beam (RailHitPause) or Warhammer slam (HammerHitPause) (ChargeHitCheck).
     /// Each weapon's numbers are a CamProfile (CamProfileOf). Applied through the Twin Rifle's push and punch (TwinRifleFx.cs,
     /// Px in WorldRenderer.cs); MouseArena undoes the zoom so the cursor stays on what it's over. Off with Screen shake off or
     /// Reduced effects; 1.5x with Screen shake on Full.
@@ -41,6 +42,10 @@ namespace Arena
         const float CamSnapTime = 0.08f, CamSettle = 14f, CamLetGo = 3.5f;  // snap in; settle (per s); a dropped charge easing back
         const float CamTapPower = 0.25f, CamFocusPower = 1.35f, CamScatterPower = 0.6f;
         const float FocusHitPause = 0.03f;  // a Focus arrow's first hit: about two frames held
+        const float RailHitPause = 0.035f, HammerHitPause = 0.05f;  // a full-charge Railgun beam's or Warhammer slam's first hit
+        const float RailHitWindow = 0.15f, HammerHitWindow = 0.4f;  // how long after the release a hit still counts (the slam lands after its swing)
+        const float RailHitLane = 40f, HammerHitReach = 170f;       // where: within this of the beam's line, or of you
+        const float HeavyFull = 0.95f;                              // a release charged at least this far is a full one
 
         float camDraw;          // the charge's share, eased (0 none, 1 full)
         float camDrawAim;       // the aim it slides back against (radians)
@@ -51,6 +56,10 @@ namespace Arena
         float camRelAim;        // its aim
         CamProfile camRelProf;  // and its weapon
         int camSeen = -1, camScatter = -1;
+        bool heavyArmed;        // a full Railgun or Warhammer release still waiting for its first hit
+        WeaponId heavyWeapon;
+        V2 heavyFrom;           // where you stood
+        float heavyAim;         // and aimed
         float camZoomK;         // this frame: how much bigger the picture is drawn round you (negative: smaller)
         V2 camPush;             // ... and how far it's pushed (arena units)
         V2 camAt;               // ... round this point (you)
@@ -61,6 +70,7 @@ namespace Arena
             camRelT = 99f;
             camPush = V2.Zero;
             camSeen = camScatter = -1;
+            heavyArmed = false;
         }
 
         /// Once a frame (real time, Juice.cs): follow your charge, start a kick on each release or Scatter.
@@ -90,6 +100,8 @@ namespace Arena
                     : w == WeaponId.MendersBow && game.BowLastFocus ? CamFocusPower
                     : Mathf.Lerp(CamTapPower, 1f, game.ChargeLastCharge);
                 camDraw = 0f;
+                heavyArmed = heavyFirstHit != camSeen && !scatter && (w == WeaponId.Railgun || w == WeaponId.Warhammer) && game.ChargeLastCharge >= HeavyFull;
+                heavyWeapon = w; heavyFrom = me.Disp; heavyAim = me.Aim;
             }
             else if (me.DrawT > 0f && prof.Out > 0f)
             {
@@ -103,6 +115,8 @@ namespace Arena
             if (camDraw < 0.001f)
                 camDraw = 0f;
             camRelT += realDt;
+            if (heavyArmed && camRelT > (heavyWeapon == WeaponId.Railgun ? RailHitWindow : HammerHitWindow))
+                heavyArmed = false;  // it hit nothing
 
             float k = fxShake == 2 ? 1.5f : 1f;
             float z = -camDrawProf.Out * camDraw;
@@ -162,6 +176,40 @@ namespace Arena
 
         /// MouseArena: undo the charge camera's zoom so the cursor's arena point is what's drawn under it.
         V2 ChargeCamUnpunch(V2 a) => camZoomK == 0f || !Juicy ? a : camAt + (a - camAt) * (1f / (1f + camZoomK));
+
+        /// Juice.cs, an enemy struck this frame: if it's the first hit of your full Railgun beam or Warhammer slam, hold.
+        /// A release this same frame that ChargeCamStep hasn't seen yet counts too (the beam lands with it).
+        void ChargeHitCheck(Enemy e)
+        {
+            var me = game.Me;
+            if (me == null || fxReduced || fxShake == 0)
+                return;
+            WeaponId w; V2 from; float aim;
+            if (game.ChargeReleases != camSeen && camSeen >= 0)
+            {
+                w = game.ChargeLastWeapon;
+                if ((w != WeaponId.Railgun && w != WeaponId.Warhammer) || game.ChargeLastCharge < HeavyFull)
+                    return;
+                from = me.Disp; aim = me.Aim;
+            }
+            else if (heavyArmed)
+            {
+                w = heavyWeapon; from = heavyFrom; aim = heavyAim;
+            }
+            else
+                return;
+            V2 d = e.Disp - from, dir = V2.FromAngle(aim);
+            bool near = w == WeaponId.Railgun
+                ? d.Dot(dir) > 0f && Mathf.Abs(d.Dot(dir.Orthogonal())) < RailHitLane + e.Radius
+                : d.Length < HammerHitReach + e.Radius;
+            if (!near)
+                return;
+            holdT = Mathf.Max(holdT, w == WeaponId.Railgun ? RailHitPause : HammerHitPause);
+            heavyArmed = false;
+            if (game.ChargeReleases != camSeen)
+                heavyFirstHit = game.ChargeReleases;  // (so ChargeCamStep doesn't arm it again)
+        }
+        int heavyFirstHit = -1;
 
         /// Your own Focus arrow's first hit: hold the picture a frame or two (BowFocusLook.cs). Skips Hold's gap, so it
         /// still lands just after the release's own hold.
