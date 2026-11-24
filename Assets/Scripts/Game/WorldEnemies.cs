@@ -146,6 +146,9 @@ namespace Arena
                 case ZoneKind.FlakMine:  // the Flak Cannon's Proximity Shell (TankAltLook.cs)
                     DrawFlakMine(z, t);
                     return;
+                case ZoneKind.Steam:  // fire + water (SteamLook.cs)
+                    DrawSteam(z, t);
+                    return;
                 case ZoneKind.ShockGrenade:  // the Scattergun's Shock Grenade (TankAltLook.cs)
                     DrawShockGrenade(z, t);
                     return;
@@ -1068,7 +1071,7 @@ namespace Arena
 
         static readonly Rgba IceColor = new Rgba(0.55f, 0.85f, 1f);
         static readonly Rgba FireColor = new Rgba(1f, 0.42f, 0.1f);
-        static readonly Rgba SlowColor = new Rgba(0.45f, 0.7f, 1f);
+        static readonly Rgba SlowColor = new Rgba(0.82f, 0.85f, 0.9f);  // Slowed: grey-white (Chilled is the ice blue)
         static readonly Rgba MarkColor = new Rgba(1f, 0.25f, 0.25f);
         static readonly Rgba ChargeColor = new Rgba(1f, 0.9f, 0.35f);  // Charged: electric yellow
         static readonly Rgba ShortColor = new Rgba(0.75f, 0.92f, 1f);  // wet and charged: shorting out, blue-white
@@ -1142,34 +1145,53 @@ namespace Arena
             Arc(pos, cr + 5f, 1.2f, bone.WithAlpha(0.5f + 0.2f * Mathf.Sin(t * 6f)), 28);
         }
 
-        /// A row of small icons over an enemy, one per status: snowflake = frozen, blue chevrons =
-        /// slowed, blue drop over a wave = wet (Tsunami; its effect bar drains under it), flame = burning, blood drop = bleeding, green bubbles = poisoned, a green drop with a dart through it = Poison Dart's venom, yellow zigzag bolt = charged, amber pause = suppressed (shoots slower), red crosshair = marked (takes extra damage).
+        /// A row of small icons over an enemy, one per status: white snowflake in ice = frozen, blue snowflake = chilled (ice), grey-white chevrons =
+        /// slowed (anything), blue drop over a wave = wet (Tsunami; its effect bar drains under it), flame = burning, blood drop = bleeding, green bubbles = poisoned, a green drop with a dart through it = Poison Dart's venom, yellow zigzag bolt = charged, amber pause = suppressed (shoots slower), red crosshair = marked (takes extra damage).
         void DrawStatusIcons(Enemy e, V2 center, float t)
         {
             bool iced = e.Frozen && !LeapCaged(e);
-            int n = (iced ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Wet ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0) + (e.Suppressed ? 1 : 0) + (e.Poisoned ? 1 : 0) + (e.Venomed ? 1 : 0) + (e.Charged ? 1 : 0);
+            int n = (iced ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Slowed ? 1 : 0) + (e.Wet ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0) + (e.Suppressed ? 1 : 0) + (e.Poisoned ? 1 : 0) + (e.Venomed ? 1 : 0) + (e.Charged ? 1 : 0);
             if (n == 0)
                 return;
             const float size = 8f, step = 21f;
             float x = center.X - (n - 1) * step / 2f;
             var bg = new Rgba(0f, 0f, 0f, 0.55f);
-            if (iced)
+            if (iced)  // frozen: a white snowflake in a block of ice
             {
                 V2 c = new V2(x, center.Y);
                 Circle(c, size + 3f, bg, 12);
-                for (int k = 0; k < 3; k++)  // snowflake: three crossing spokes with tips
+                Polygon(c, size + 1.5f, 6, MathX.Pi / 6f, IceColor.WithAlpha(0.85f));
+                for (int k = 0; k < 3; k++)
+                {
+                    V2 d = V2.FromAngle(MathX.Pi / 2f + k * MathX.Pi / 3f) * (size * 0.8f);
+                    Line(c - d, c + d, 1.8f, Rgba.White);
+                }
+                x += step;
+            }
+            if (e.Chilled)  // chilled (ice only, Chill.cs): a blue snowflake with tips (its stacks are the pips under it)
+            {
+                V2 c = new V2(x, center.Y);
+                Circle(c, size + 3f, bg, 12);
+                for (int k = 0; k < 3; k++)
                 {
                     V2 d = V2.FromAngle(MathX.Pi / 2f + k * MathX.Pi / 3f) * size;
                     Line(c - d, c + d, 2f, IceColor);
+                    for (int j = 0; j < 2; j++)  // a little fork at each tip
+                    {
+                        float sgn = j == 0 ? 1f : -1f;
+                        V2 tip = c + d * sgn, back = d * (-sgn * 0.35f);
+                        Line(tip, tip + back.Rotated(0.6f), 1.2f, IceColor);
+                        Line(tip, tip + back.Rotated(-0.6f), 1.2f, IceColor);
+                    }
                 }
                 Circle(c, 1.6f, Rgba.White, 6);
                 x += step;
             }
-            if (e.Chilled)
+            if (e.Slowed)  // slowed by anything: two grey-white downward chevrons
             {
                 V2 c = new V2(x, center.Y);
                 Circle(c, size + 3f, bg, 12);
-                for (int k = 0; k < 2; k++)  // two downward chevrons: slowed
+                for (int k = 0; k < 2; k++)
                 {
                     float y = c.Y - 3f + k * 4.5f;
                     Line(new V2(c.X - size * 0.8f, y - 2f), new V2(c.X, y + 2f), 2f, SlowColor);

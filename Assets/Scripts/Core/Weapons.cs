@@ -522,6 +522,8 @@ namespace Arena
                 case WeaponId.BloodBrawler:  // (BloodBrawler.cs)
                     return p.Def.BodyR + w.Reach * p.Stats.ShotSpeedMult;
                 case WeaponId.Flamethrower:  // the lead flame's reach (Minions.cs)
+                case WeaponId.WaterGun:      // (ElementGuns.cs)
+                case WeaponId.GaleGun:
                 case WeaponId.SpiritFan:     // the gust's reach (Ninja.cs)
                     return p.Def.BodyR + w.Speed * w.Life * (1f + w.Grow * x) * p.Stats.ShotSpeedMult * PierceReach(p);
                 case WeaponId.RepulsionCannon:  // the Repulsion Cannon's cone

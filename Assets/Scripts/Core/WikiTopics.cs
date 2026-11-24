@@ -31,17 +31,20 @@ namespace Arena
             new Topic("Vectors", "Every player's building budget in the Expanding arena: pieces are free; vectors pay for gates, mystery doors and the Builder Shop's cards."),
             new Topic("Pit", "A void in a cell's floor: enemies shoved in die, players lose 15% health and climb out."),
             new Topic("Boss phase", "One part of a boss fight; a phase change moves to the next."),
+            new Topic("Steam", "Fire + water: an enemy that is wet and burning at once turns both to steam: a cloud for 3 s that scalds enemies in it and jams their weapons (bosses only take the scald). A freeze melts into 6 s of wet when it ends, so a frozen, burning enemy steams as it thaws."),
+            new Topic("Wind Chill", "Wind on a wet enemy chills it (slowed; three chills freeze it). After a wind freeze, wind can't chill it again for 6 s."),
+            new Topic("Fan the Flames", "Wind on a burning enemy spreads its fire, at 60%, to up to three enemies close by downwind."),
             new Topic("Downed", "At 0 health you go down; a teammate can revive you, and a Defib Kit stands you up."),
         };
 
         /// Status effects on enemies (Enemy's timers in Entities.cs; the replicated flags are what the eyedropper's tag lists).
         public static readonly Topic[] Statuses =
         {
-            new Topic("Slowed", "Moves slower for a while. Only the strongest slow counts; the next-strongest takes over when it ends. Heavy enemies and bosses are too heavy to slow down. On you: honey puddles and some attacks slow you too."),
+            new Topic("Slowed", "Moves slower for a while, from anything that slows (wind, honey, gas, ink, ice...). Only the strongest slow counts; the next-strongest takes over when it ends. It never builds to a freeze. Heavy enemies and bosses are too heavy to slow down. On you: honey puddles and some attacks slow you too."),
             new Topic("Burning", "On fire (the Flamethrower, Incendiary Rounds, burning ground): takes damage every second until it burns out."),
             new Topic("Bleeding", "The shared bleed (claws, Sanguine Orb, Blood Bolts, Vein Rush, Arterial Spray): damage over time. Bleed stacks go up to five from any source; a Blood Bolt that fills them bursts it. On you: a Rioter's bottle cut bleeds you for a while."),
-            new Topic("Chilled", "Slowed by frost but not frozen. Frost Lance chill builds up to two; a third freezes it."),
-            new Topic("Frozen", "Encased in ice (Glacial Tomb, a third Frost Lance chill): can't move or shoot."),
+            new Topic("Chilled", "Ice only. Every ice attack (Frost Lance, Frost Nova, Blizzard, Cryo Rounds, Ice Shards, Wind Chill) slows it and adds a chill; steady ice adds one a second at most. The third chill freezes it, and the freeze lifts the slow. Bosses are only slowed."),
+            new Topic("Frozen", "Encased in ice (Glacial Tomb, Blood Freeze, a third chill): can't move or shoot. It melts into 6 s of wet."),
             new Topic("Wet", "Soaked by Tsunami: slowed, and lightning arcs to it."),
             new Topic("Charged", "Hit by lightning (Arc Lightning, Storm Hammer, Static Shock, the Nimbus, Arc Knuckles, EMP, Shock Grenades...): charged for 4 s. Alone it does nothing; wet and charged, it shorts out: constant damage, and every 2.5 s an arc to the three enemies nearest it."),
             new Topic("Stunned", "Held in place, with stars over its head: can't move or shoot until it wears off. On you: a Taser Guard's Fork Bolt stops you moving for a moment."),

@@ -186,20 +186,7 @@ namespace Arena
             if (e.Hp <= 0f)
                 return;
             if (chill > 0 && !frozen)
-            {
-                Slow(e, FlChillHold, 1f - FlChillSlow);
-                e.FrostChillT = FlChillHold;
-                if (!e.Def.IsBoss)
-                {
-                    e.FrostChill = (byte)Math.Min(FlFreezeAt, e.FrostChill + chill);
-                    if (e.FrostChill >= FlFreezeAt)
-                    {
-                        e.FrostChill = 0;
-                        e.FrozenT = Math.Max(e.FrozenT, (e.Def.Heavy ? FlHeavyFreeze : FlFreezeTime) + owner.Stats.IceFreezeBonus);
-                        BroadcastFx(FxKind.FrostBurst, e.Pos, FlColor, 0f, 2.4f, Sfx.FrostFreeze);
-                    }
-                }
-            }
+                Chill(e, chill, FlChillHold, 1f - FlChillSlow, false, owner.Stats.IceFreezeBonus);  // Chill.cs
             if (!Heavy(e) && !IceFrozen(e))
                 KnockEnemy(e, shove);
         }

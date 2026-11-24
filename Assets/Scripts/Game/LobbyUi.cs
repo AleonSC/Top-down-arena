@@ -804,7 +804,7 @@ namespace Arena
                         continue;
                     }
                     var main = new Rect(b.x, b.y, Mathf.Round(b.width * 0.8f), b.height);  // (most of the key for the name: FLAMETHROWER is one long word)
-                    if (DkKey(main, Defs.Weapon(me.Role, me.Kit, i).Name.ToUpperInvariant(), WeaponKeyOn(me, i), calm, size: 14, minSize: 7))
+                    if (DkKey(main, (Defs.Weapon(me.Role, me.Kit, i).KeyLabel ?? Defs.Weapon(me.Role, me.Kit, i).Name).ToUpperInvariant(), WeaponKeyOn(me, i), calm, size: 14, minSize: 7))
                     {
                         tgt.RequestWeapon(i);
                         if (self)
@@ -1543,8 +1543,8 @@ namespace Arena
         /// The zoom meter along the preview's lower edge (a slider, "-" and "+" steps, and the mouse wheel over the window).
         void DrawShowcaseZoom(Rect view, Color roleColor)
         {
-            if (uiGlBlocked || hangoutAnim > 0f)
-                return;
+            if ((uiGlBlocked && !pieceGlOn) || hangoutAnim > 0f)
+                return;  // (pieceGlOn: a lobby piece sliding in shows it with the preview)
             const float Min = 0.5f, Max = 2f;
             var e = Event.current;
             bool over = view.Contains(e.mousePosition);

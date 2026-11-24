@@ -142,6 +142,7 @@ namespace Arena
                 if (!Targetable(e) || e.Pos.FartherThan(m.Pos, R + e.Radius))
                     continue;
                 foes++;
+                WindHit(e, e.Pos - m.Pos);  // Wind.cs
                 Slow(e, 0.25f, e.Def.IsBoss ? 1f - (1f - WyvGaleBossSlow) * boost : 1f - (1f - WyvGaleSlow) * boost);
                 if (!Heavy(e))
                 {
