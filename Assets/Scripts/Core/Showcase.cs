@@ -14,9 +14,6 @@ namespace Arena
         const float FirstCast = 1.2f;            // the dummies are up by then (Mark for Death needs a target)
 
         readonly Session session = new Session();
-        public bool Control;  // the lobby's PLAY key: the preview is yours to play (WASD, mouse, fire, abilities): `Play` is this tick's input
-        public PlayerInput Play;
-        bool restart;         // switching PLAY on or off starts the scene over
         public bool AltFire;  // the lobby's ALT FIRE key: press the weapon's Alt on a loop (ShowcaseAlt.cs); with no trigger; off (MAIN FIRE) just the trigger. An ability or ultimate demo does neither.
         bool altShown;
         public bool Idle;  // the lobby's IDLE key: the character stands still and holds fire, and the dummies hold their spots
@@ -83,9 +80,8 @@ namespace Arena
         /// few seconds; ultimate: cast your ultimate (F) instead.
         public void Show(Role role, Kit kit, int weapon, AbilityId ability, bool demo, bool ultimate = false, int ultPick = 0)
         {
-            if (!Game.Running || restart || role != this.role || kit != this.kit || weapon != this.weapon || ability != this.ability || ultimate != this.ultimate || ultPick != this.ultPick || AltFire != altShown)
+            if (!Game.Running || role != this.role || kit != this.kit || weapon != this.weapon || ability != this.ability || ultimate != this.ultimate || ultPick != this.ultPick || AltFire != altShown)
             {
-                restart = false;
                 this.ultPick = ultPick;
                 altShown = AltFire;
                 this.role = role;
@@ -121,40 +117,12 @@ namespace Arena
             demoAbility = demo;
         }
 
-        /// Turn PLAY on or off (the scene starts over, so nothing from the other way plays on).
-        public void SetControl(bool on)
-        {
-            if (Control == on)
-                return;
-            Control = on;
-            restart = true;
-        }
-
-        /// PLAY: the real game with your own input, on the same dummies, with no cooldowns (Game.ShowcasePlay: every ability and the
-        /// ultimate are back at once).
-        void StepControlled(float dt)
-        {
-            t += dt;
-            Game.ShowcaseIdle = false;
-            Game.ShowcasePlay = true;
-            if (allies)
-                Game.ShowcaseHoldAllies();
-            Game.FixedStep(dt, Play);
-            Game.Update(dt);
-        }
-
         public void Step(float dt)
         {
             if (!Game.Running || Me == null)
                 return;
-            if (Control)
-            {
-                StepControlled(dt);
-                return;
-            }
             t += dt;
             Game.ShowcaseIdle = Idle;
-            Game.ShowcasePlay = false;
             var me = Me;
             var input = new PlayerInput { AimAt = Home + new V2(0f, -Distance) };
             if (allies && demoAbility)
@@ -256,7 +224,6 @@ namespace Arena
     {
         public bool ShowcaseMode;
         public bool ShowcaseIdle;  // the dummies hold their spots (the lobby's IDLE key)
-        public bool ShowcasePlay;  // PLAY (the Hangout): you drive the preview, with no cooldowns (TickSlots)
         readonly List<V2> dummySpots = new List<V2>();
         readonly List<int> dummyIds = new List<int>();
         readonly List<float> dummyRespawn = new List<float>();

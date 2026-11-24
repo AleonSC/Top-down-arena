@@ -156,32 +156,5 @@ static partial class Program
         PollBoth(host, client, 80);
         Check(host.Screen == AppScreen.Lobby && client.Screen == AppScreen.Lobby && !host.Game.HangoutOn && !host.Game.Running, "Back to lobby ends it, and the lobby plays a normal mode again");
 
-        // PLAY in the loadout's preview window (Showcase.Control): your input drives the real game on the dummies.
-        var sc = new Showcase();
-        sc.Show(Role.Dps, Kit.Soldier, 0, Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0), false);
-        for (int i = 0; i < 60; i++) sc.Step(dt);
-        V2 home = sc.Me.Pos;
-        sc.SetControl(true);
-        sc.Show(Role.Dps, Kit.Soldier, 0, Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0), false);
-        Check(sc.Game.Running && sc.Control && sc.Me.Pos.DistanceTo(Showcase.Home) < 1f, "PLAY starts the scene over");
-        for (int i = 0; i < 60; i++) { sc.Play = new PlayerInput { Move = new V2(1f, 0f), AimAt = sc.Me.Pos + new V2(0f, -200f) }; sc.Step(dt); }
-        Check(sc.Me.Pos.X > Showcase.Home.X + 50f, "WASD moves you in the window (and nothing walks you home)");
-        float hp0 = sc.Game.Enemies.Values.Sum(e => e.Hp);
-        for (int i = 0; i < 180; i++) { var d = sc.Game.Enemies.Values.OrderBy(e => e.Pos.DistanceTo(sc.Me.Pos)).First(); sc.Play = new PlayerInput { AimAt = d.Pos, Fire = true }; sc.Step(dt); }
-        Check(sc.Game.Enemies.Values.Sum(e => e.Hp) < hp0 || sc.Game.Enemies.Count != 3, "holding fire with your real weapon hurts the dummies");
-        foreach (var sl in sc.Me.Slots)
-            if (sl.Id != AbilityId.None)
-            {
-                sl.Charges = 0;
-                sl.Timer = 60f;
-            }
-        for (int i = 0; i < 3; i++) { sc.Play = new PlayerInput { AimAt = sc.Me.Pos + new V2(0f, -200f) }; sc.Step(dt); }
-        Check(sc.Me.Slots.All(sl => sl.Id == AbilityId.None || sl.Charges == sl.MaxCharges && sl.Timer <= 0f) && sc.Me.Slots[Upgrades.UltSlot].Id != AbilityId.None,
-            "PLAY has no cooldowns: every ability and the ultimate come straight back");
-        sc.SetControl(false);
-        sc.Show(Role.Dps, Kit.Soldier, 0, Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0), false);
-        for (int i = 0; i < 3; i++) sc.Step(dt);
-        Check(!sc.Game.ShowcasePlay, "...and the plain preview keeps its cooldowns");
-        sc.Stop();
     }
 }
