@@ -311,7 +311,7 @@ namespace Arena
                     foreach (var at in R.Blasts)
                     {
                         foreach (var p in Players.Values)
-                            if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(at, BlastRadius + p.Def.HitR))
+                            if (Hittable(p) && p.Pos.CloserThan(at, BlastRadius + p.Def.HitR))
                                 Damage(p, BlastDamage, "The Dual Reaper (power-up)");
                         BroadcastFx(FxKind.Boom, at, new Rgba(1f, 0.7f, 0.3f), BlastRadius, 0.45f, Sfx.None);
                     }
@@ -386,7 +386,7 @@ namespace Arena
             V2 dir = dvec / len;
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.InvulnT > 0f)
+                if (!Hittable(p))
                     continue;
                 float along = (p.Pos.X - a.Pos.X) * dir.X + (p.Pos.Y - a.Pos.Y) * dir.Y;
                 if (along < a.Radius || along > len - b.Radius)
@@ -586,7 +586,7 @@ namespace Arena
                             R.Suck = 0f;
                             PullStrength = 0f;
                             foreach (var p in Players.Values)
-                                if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(d.Pos, SuckRadius + p.Def.HitR))
+                                if (Hittable(p) && p.Pos.CloserThan(d.Pos, SuckRadius + p.Def.HitR))
                                     Damage(p, SuckDamage, "The Dual Reaper (blast)");
                             BroadcastFx(FxKind.Boom, d.Pos, new Rgba(1f, 0.6f, 0.3f), SuckRadius, 0.6f, Sfx.BigExplode);
                             R.TurnT = 0f;  // and again, with the pillars that are left
@@ -601,7 +601,7 @@ namespace Arena
                         R.Laser += DualLaserSpin * dt;
                         foreach (var p in Players.Values)
                         {
-                            if (p.Downed || p.InvulnT > 0f)
+                            if (!Hittable(p))
                                 continue;
                             for (int k = 0; k < 2; k++)
                             {
@@ -638,7 +638,7 @@ namespace Arena
                             float sa = R.Heading + side * MathX.Pi / 2f;
                             foreach (var p in Players.Values)
                             {
-                                if (p.Downed || p.InvulnT > 0f || p.Pos.FartherThan(d.Pos, SwingReach + p.Def.HitR))
+                                if (!Hittable(p) || p.Pos.FartherThan(d.Pos, SwingReach + p.Def.HitR))
                                     continue;
                                 float diff = Math.Abs(MathX.WrapPi((p.Pos - d.Pos).Angle - sa));
                                 if (diff < SwingHalfArc)
@@ -735,7 +735,7 @@ namespace Arena
                         rp.T = 0f;
                         foreach (var p in Players.Values)
                         {
-                            if (p.Downed || p.InvulnT > 0f || p.Pos.FartherThan(e.Pos, ReapReach + p.Def.HitR))
+                            if (!Hittable(p) || p.Pos.FartherThan(e.Pos, ReapReach + p.Def.HitR))
                                 continue;
                             float diff = Math.Abs(MathX.WrapPi((p.Pos - e.Pos).Angle - rp.A));
                             if (diff < ReapHalfArc)

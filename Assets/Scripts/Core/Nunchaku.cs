@@ -182,9 +182,7 @@ namespace Arena
             {
                 hitAt[e.Id] = NunDiscGap;
                 V2 c = e.Pos.DistanceSq(dR) < e.Pos.DistanceSq(dL) ? dR : dL;
-                V2 away = (e.Pos - c).Normalized();
-                if (away.IsZero)
-                    away = V2.FromAngle(p.Aim);
+                V2 away = AwayFrom(e.Pos, c, V2.FromAngle(p.Aim));
                 WeaponHurt(e, p.Weapon.Damage * NunDiscMult * p.Stats.DmgMult, p.Id);
                 Daze(e);  // a melee hit: it can't hit back for a split second (Daze.cs)
                 if (!Heavy(e))

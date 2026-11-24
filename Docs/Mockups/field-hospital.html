@@ -1,0 +1,311 @@
+<title>Field Hospital</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one CRT screen (the animated arena) over a strip of stage keys, then the proposed numbers in two columns. */
+:root{
+  --bg:#05070f; --panel:#0b1120; --ink:#cfe3ff; --dim:#6f84a8; --cyan:#3fe0ff; --heal:#5dff9a; --gold:#ffcc4d; --danger:#ff4d5e; --violet:#c45cff;
+  --display:"VT323", ui-monospace, monospace; --body:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--display);font-weight:400;font-size:44px;line-height:1;margin:0;color:var(--heal);letter-spacing:.04em;text-wrap:balance}
+.sub{color:var(--dim);margin:4px 0 0}
+.note{color:var(--gold);font-size:12px}
+.screen{position:relative;border:1px solid #1f3b5a;background:#070b16;box-shadow:0 0 0 1px #000,0 0 30px #3fe0ff22}
+canvas{display:block;width:100%;height:auto;max-width:100%}
+.keys{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font-family:var(--display);font-size:20px;letter-spacing:.06em;background:transparent;color:var(--cyan);border:1px solid var(--cyan);padding:4px 14px;cursor:pointer}
+button:hover,button.on{background:var(--cyan);color:var(--bg)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+input[type=range]{flex:1;min-width:140px;accent-color:var(--heal)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.card{background:var(--panel);border:1px solid #1c2b45;padding:14px 16px;min-width:0}
+.card h2{font-family:var(--display);font-weight:400;font-size:26px;margin:0 0 6px;color:var(--cyan);letter-spacing:.05em}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0}
+dt{color:var(--dim);text-transform:uppercase;font-size:11px;letter-spacing:.08em;padding-top:3px}
+dd{margin:0;font-variant-numeric:tabular-nums}
+ul{margin:0;padding-left:18px}
+.q{color:var(--gold)}
+@media (prefers-reduced-motion:reduce){button{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>FIELD HOSPITAL</h1>
+    <p class="sub">Healer Soldier · second ultimate (picked instead of Lifeline) · press Q, pick a door, a medical cell opens behind it.</p>
+    <p class="note">Approximate HTML mockup: glow and fonts are browser effects. The real look comes from the game's draw code once it's built.</p>
+  </header>
+
+  <div class="screen"><canvas id="c" width="1400" height="830" aria-label="Animated mockup of the Field Hospital ultimate"></canvas></div>
+
+  <div class="keys">
+    <button id="play" class="on">PAUSE</button>
+    <button data-t="2.6">1 · PICK A DOOR</button>
+    <button data-t="5.6">2 · OPENING</button>
+    <button data-t="10">3 · HOSPITAL</button>
+    <button data-t="13.8">4 · EJECT</button>
+    <button data-t="15.6">5 · SEALS</button>
+    <input id="scrub" type="range" min="0" max="17" step="0.01" value="0" aria-label="Timeline">
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>HOW IT WORKS</h2>
+      <ul>
+        <li><b>Q</b>: every free door spot lights up as a green hologram door (the mystery door look, a white <b>+</b> instead of <b>?</b>), with a ghost of the cell behind it.</li>
+        <li>Door spots whose cell is already taken (a built room, a mystery door's room, a sealed mini-boss room) show a dim red <b>×</b>. You can't build over them.</li>
+        <li><b>Fire</b> on a lit door: the cell slides in and slams into the wall. <b>Q</b> again cancels; nothing is spent.</li>
+        <li>No free door spot in reach: nothing is spent and the key shows NO ROOM.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>PROPOSED NUMBERS</h2>
+      <dl>
+        <dt>Cooldown</dt><dd>150 s (Lifeline is 90 s)</dd>
+        <dt>Reach</dt><dd>any lit door spot within 900 px of you</dd>
+        <dt>Cell</dt><dd>1 lattice cell (6 × 6 tiles)</dd>
+        <dt>Shrine</dt><dd>health shrine: each player once, fills health + 25% overheal</dd>
+        <dt>Orbs</dt><dd>6 healing orbs, 20 each, one comes back every 4 s</dd>
+        <dt>Lasts</dt><dd>1 minute; a 3 s EJECT countdown, everyone inside is pushed out, then the door seals and the cell folds away</dd>
+        <dt>Door</dt><dd>green laser gate: allies walk through, enemies and their shots are stopped</dd>
+        <dt>Mastered</dt><dd>8 orbs, orbs back every 3 s</dd>
+      </dl>
+    </div>
+  </div>
+</div>
+
+<script>
+const cv=document.getElementById('c'),g=cv.getContext('2d');
+const W=cv.width,H=cv.height,C=150,OX=100,OY=40; // cell size and map origin
+const COLS=8,ROWS=5;
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const COL={cyan:css('--cyan'),heal:css('--heal'),gold:css('--gold'),danger:css('--danger'),violet:css('--violet'),ink:css('--ink'),dim:css('--dim')};
+const key=(c,r)=>c+','+r;
+// built cells: the core (4x3) + one piece
+const built=new Set();for(let c=2;c<=5;c++)for(let r=1;r<=3;r++)built.add(key(c,r));built.add(key(6,2));
+// taken cells (not built, can't override)
+const taken={[key(1,1)]:'MINI-BOSS',[key(1,2)]:'MINI-BOSS',[key(6,1)]:'MYSTERY'};
+const TARGET={c:4,r:0,side:'N',from:{c:4,r:1}};
+// door spots: outer edges of built cells
+const doors=[];
+const dirs={N:[0,-1],S:[0,1],W:[-1,0],E:[1,0]};
+for(const k of built){const[c,r]=k.split(',').map(Number);
+  for(const s in dirs){const[dx,dy]=dirs[s],nc=c+dx,nr=r+dy;if(built.has(key(nc,nr)))continue;
+    const off=nc<0||nr<0||nc>=COLS||nr>=ROWS;
+    doors.push({c,r,s,nc,nr,ok:!off&&!taken[key(nc,nr)],why:off?'EDGE':taken[key(nc,nr)],mystery:taken[key(nc,nr)]==='MYSTERY'});}}
+function doorPos(d){const x=OX+d.c*C,y=OY+d.r*C;
+  return {N:[x+C/2,y],S:[x+C/2,y+C],W:[x,y+C/2],E:[x+C,y+C/2]}[d.s];}
+const target=doors.find(d=>d.c===4&&d.r===1&&d.s==='N');
+
+let T=0,playing=true,last=performance.now();
+const LOOP=17;
+const ease=t=>t<0?0:t>1?1:1-Math.pow(1-t,3);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function glow(col,b){g.shadowColor=col;g.shadowBlur=b;}
+
+function drawFloor(){
+  g.fillStyle='#070b16';g.fillRect(0,0,W,H);
+  // faint lattice
+  g.strokeStyle='#3fe0ff10';g.lineWidth=1;
+  for(let c=0;c<=COLS;c++){g.beginPath();g.moveTo(OX+c*C,OY);g.lineTo(OX+c*C,OY+ROWS*C);g.stroke();}
+  for(let r=0;r<=ROWS;r++){g.beginPath();g.moveTo(OX,OY+r*C);g.lineTo(OX+COLS*C,OY+r*C);g.stroke();}
+  // built floor
+  for(const k of built){const[c,r]=k.split(',').map(Number);g.fillStyle='#0d1426';g.fillRect(OX+c*C,OY+r*C,C,C);
+    g.strokeStyle='#3fe0ff0c';for(let i=1;i<6;i++){g.beginPath();g.moveTo(OX+c*C+i*20,OY+r*C);g.lineTo(OX+c*C+i*20,OY+r*C+C);g.stroke();g.beginPath();g.moveTo(OX+c*C,OY+r*C+i*20);g.lineTo(OX+c*C+C,OY+r*C+i*20);g.stroke();}}
+  // taken cells: hatched
+  for(const k in taken){const[c,r]=k.split(',').map(Number);const x=OX+c*C,y=OY+r*C;
+    g.save();g.beginPath();g.rect(x+2,y+2,C-4,C-4);g.clip();
+    g.strokeStyle=taken[k]==='MYSTERY'?'#c45cff22':'#ff4d5e22';for(let i=-C;i<C*2;i+=12){g.beginPath();g.moveTo(x+i,y);g.lineTo(x+i+C,y+C);g.stroke();}
+    g.restore();g.setLineDash([4,6]);g.strokeStyle=taken[k]==='MYSTERY'?'#c45cff55':'#ff4d5e55';g.strokeRect(x+2,y+2,C-4,C-4);g.setLineDash([]);
+  }
+  g.font='18px VT323, monospace';g.textAlign='center';g.fillStyle='#ff4d5e88';g.fillText('SEALED MINI-BOSS ROOM',OX+1.5*C,OY+1*C+C+6);
+  g.fillStyle='#c45cff99';g.fillText('MYSTERY ROOM',OX+6.5*C,OY+1*C+C/2+6);
+}
+function drawWalls(hospital){
+  g.strokeStyle=COL.cyan;g.lineWidth=4;glow(COL.cyan,12);
+  const cells=new Set(built);if(hospital)cells.add(key(4,0));
+  for(const k of cells){const[c,r]=k.split(',').map(Number);const x=OX+c*C,y=OY+r*C;
+    for(const s in dirs){const[dx,dy]=dirs[s];if(cells.has(key(c+dx,r+dy))){
+        if(!(hospital&&((c===4&&r===0&&s==='S')||(c===4&&r===1&&s==='N'))))continue;}
+      const isH=hospital&&((c===4&&r===0&&s==='S')||(c===4&&r===1&&s==='N'));
+      if(isH&&r===1)continue; // draw the shared wall once
+      const seg=(x1,y1,x2,y2,gap)=>{if(!gap){g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();return;}
+        const mx=(x1+x2)/2,my=(y1+y2)/2,hx=(x2-x1)/C*22,hy=(y2-y1)/C*22;
+        g.beginPath();g.moveTo(x1,y1);g.lineTo(mx-hx,my-hy);g.moveTo(mx+hx,my+hy);g.lineTo(x2,y2);g.stroke();};
+      const gap=isH; // the hospital's doorway stays open
+      if(s==='N')seg(x,y,x+C,y,gap);if(s==='S')seg(x,y+C,x+C,y+C,gap);if(s==='W')seg(x,y,x,y+C);if(s==='E')seg(x+C,y,x+C,y+C);}}
+  g.shadowBlur=0;
+  // a few cover blocks in the core
+  g.lineWidth=2;g.strokeStyle='#3fe0ffaa';[[2.45,1.45],[5.3,1.45],[2.45,3.3],[5.3,3.3],[3.75,2.25]].forEach(([c,r])=>{g.strokeRect(OX+c*C,OY+r*C,30,30);});
+}
+function holoDoor(x,y,s,col,t,alpha,mark){
+  const horiz=(s==='N'||s==='S');const w=horiz?46:10,h=horiz?10:46;
+  g.save();g.globalAlpha=alpha;g.fillStyle='#000a';g.fillRect(x-w/2,y-h/2,w,h);
+  glow(col,14);g.fillStyle=col+'55';g.fillRect(x-w/2,y-h/2,w,h);
+  g.strokeStyle=col;g.lineWidth=2;
+  const b=6;[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx,sy])=>{const cx=x+sx*(w/2+4),cy=y+sy*(h/2+4);g.beginPath();g.moveTo(cx-sx*b,cy);g.lineTo(cx,cy);g.lineTo(cx,cy-sy*b);g.stroke();});
+  // scan lines
+  g.shadowBlur=0;g.strokeStyle=col+'66';g.lineWidth=1;const off=(t*20)%4;
+  if(horiz)for(let i=-h/2+off;i<h/2;i+=4){g.beginPath();g.moveTo(x-w/2,y+i);g.lineTo(x+w/2,y+i);g.stroke();}
+  else for(let i=-w/2+off;i<w/2;i+=4){g.beginPath();g.moveTo(x+i,y-h/2);g.lineTo(x+i,y+h/2);g.stroke();}
+  g.fillStyle='#fff';g.font='bold 18px IBM Plex Mono, monospace';g.textAlign='center';g.textBaseline='middle';glow(col,8);g.fillText(mark,x,y+1);
+  g.restore();g.textBaseline='alphabetic';
+}
+function cellRect(c,r){return [OX+c*C,OY+r*C,C,C];}
+function ghostCell(c,r,a,t,hover){
+  const[x,y]=cellRect(c,r);g.save();g.globalAlpha=a;
+  g.fillStyle=hover?'#5dff9a18':'#5dff9a08';g.fillRect(x+4,y+4,C-8,C-8);
+  g.setLineDash([8,6]);g.lineDashOffset=-t*20;g.strokeStyle=hover?COL.heal:'#5dff9a66';g.lineWidth=hover?2:1;if(hover)glow(COL.heal,10);
+  g.strokeRect(x+4,y+4,C-8,C-8);g.setLineDash([]);g.shadowBlur=0;
+  if(hover){g.globalAlpha=a*.5;cross(x+C/2,y+C/2,10,COL.heal);}
+  g.restore();
+}
+function cross(x,y,s,col){g.fillStyle=col;g.fillRect(x-s*.35,y-s,s*.7,s*2);g.fillRect(x-s,y-s*.35,s*2,s*.7);}
+function blockedMark(x,y,a){g.save();g.globalAlpha=a;g.strokeStyle=COL.danger;g.lineWidth=2;glow(COL.danger,6);
+  g.beginPath();g.moveTo(x-6,y-6);g.lineTo(x+6,y+6);g.moveTo(x+6,y-6);g.lineTo(x-6,y+6);g.stroke();g.restore();}
+
+function player(x,y,col,hp,name,aimx,aimy){
+  g.save();glow(col,10);g.strokeStyle=col;g.lineWidth=2;g.beginPath();g.arc(x,y,13,0,7);g.stroke();
+  g.fillStyle=col+'44';g.fill();g.shadowBlur=0;
+  const a=Math.atan2(aimy-y,aimx-x);g.strokeStyle=col;g.beginPath();g.moveTo(x+Math.cos(a)*8,y+Math.sin(a)*8);g.lineTo(x+Math.cos(a)*20,y+Math.sin(a)*20);g.stroke();
+  // hp bar
+  g.fillStyle='#000a';g.fillRect(x-18,y-26,36,4);g.fillStyle=hp>1?COL.gold:(hp<.4?COL.danger:COL.heal);g.fillRect(x-18,y-26,36*Math.min(hp,1),4);
+  if(hp>1){g.fillStyle=COL.gold;g.fillRect(x-18,y-26,36,4);}
+  g.font='15px VT323, monospace';g.textAlign='center';g.fillStyle=col;g.fillText(name,x,y+30);g.restore();
+}
+function cursor(x,y,col){g.save();g.strokeStyle=col;g.lineWidth=2;glow(col,6);g.beginPath();g.arc(x,y,9,0,7);g.moveTo(x-14,y);g.lineTo(x-5,y);g.moveTo(x+5,y);g.lineTo(x+14,y);g.moveTo(x,y-14);g.lineTo(x,y-5);g.moveTo(x,y+5);g.lineTo(x,y+14);g.stroke();g.restore();}
+
+function shrine(x,y,t,rise,used){
+  g.save();g.globalAlpha=rise;
+  // plinth
+  g.fillStyle='#1b2433';g.fillRect(x-22,y-14,44,30);g.strokeStyle='#8aa0bf';g.lineWidth=1.5;g.strokeRect(x-22,y-14,44,30);
+  g.fillStyle='#5b6b85';[[-22,-14],[18,-14],[-22,12],[18,12]].forEach(([dx,dy])=>g.fillRect(x+dx,y+dy,4,4));
+  // floating cross
+  const fy=y-30-Math.sin(t*2.4)*4-(1-rise)*-20;
+  glow(COL.heal,used?4:20);cross(x,fy,11,used?'#5dff9a66':COL.heal);g.shadowBlur=0;
+  // pulse ring
+  if(!used){const p=(t*.7)%1;g.strokeStyle=`rgba(93,255,154,${.5*(1-p)})`;g.lineWidth=2;g.beginPath();g.arc(x,y,20+p*40,0,7);g.stroke();}
+  g.restore();
+}
+function orb(x,y,t,a){g.save();g.globalAlpha=a;glow(COL.heal,12);g.fillStyle='#bfffd6';g.beginPath();g.arc(x,y+Math.sin(t*3+x)*2,5,0,7);g.fill();
+  g.strokeStyle=COL.heal;g.lineWidth=1.5;g.beginPath();g.arc(x,y+Math.sin(t*3+x)*2,8,0,7);g.stroke();g.restore();}
+function floatText(x,y,txt,col,p){if(p<0||p>1)return;g.save();g.globalAlpha=1-p;g.font='20px VT323, monospace';g.textAlign='center';g.fillStyle=col;glow(col,6);g.fillText(txt,x,y-p*30);g.restore();}
+
+function hudKey(label,state,charge,col){
+  const x=W-200,y=H-50;g.save();g.strokeStyle=col;g.lineWidth=1.5;g.strokeRect(x,y,120,22);
+  g.font='18px VT323, monospace';g.textAlign='center';g.fillStyle=col;g.fillText('ULT·Q',x+60,y+16);
+  g.fillText(state,x+60,y+40);
+  for(let i=0;i<6;i++){g.fillStyle=i<charge*6?col:'#ffffff22';g.fillRect(x+6+i*19,y+28-38,16,3);}
+  g.fillStyle=COL.dim;g.font='15px VT323, monospace';g.fillText(label,x+60,y-14);g.restore();
+}
+function caption(txt){g.save();g.font='22px VT323, monospace';g.textAlign='left';g.fillStyle=COL.ink;g.fillText(txt,OX,H-14);g.restore();}
+
+// scripted path of the cursor
+const P0=[OX+4*C-30,OY+2.6*C]; // healer stands in the core
+function frame(){
+  const t=T;drawFloor();
+  const opened=t>=5.4, sealing=t>=15.1;
+  const slide=ease((t-5.4)/0.7), sealP=clamp((t-15.1)/1.0,0,1);
+  const hospital=opened&&sealP<1;
+  // hospital cell floor (slides in from one cell out)
+  if(hospital){const[x,y]=cellRect(4,0);const dy=(1-slide)*-C*0.6;g.save();g.globalAlpha=(slide)*(1-sealP);
+    g.fillStyle='#0c1a16';g.fillRect(x,y+dy,C,C);g.strokeStyle='#5dff9a14';
+    for(let i=1;i<6;i++){g.beginPath();g.moveTo(x+i*20,y+dy);g.lineTo(x+i*20,y+dy+C);g.stroke();g.beginPath();g.moveTo(x,y+dy+i*20);g.lineTo(x+C,y+dy+i*20);g.stroke();}
+    // green cross painted on floor
+    g.globalAlpha*=.12;cross(x+C/2,y+dy+C/2,40,COL.heal);g.restore();}
+  drawWalls(hospital&&slide>.95);
+  if(hospital&&slide<=.95){const[x,y]=cellRect(4,0);const dy=(1-slide)*-C*0.6;g.save();g.globalAlpha=slide;g.strokeStyle=COL.heal;g.lineWidth=4;glow(COL.heal,16);g.strokeRect(x,y+dy,C,C);g.restore();}
+  // regular door spots (gold squares) when not targeting
+  const targeting=t>=1&&t<5.4;
+  const tf=clamp((t-1)/0.4,0,1);
+  for(const d of doors){const[x,y]=doorPos(d);
+    if(d.mystery){holoDoor(x,y,d.s,COL.violet,t,1,'?');if(targeting)blockedMark(x+(d.s==='N'?28:0),y-(d.s==='N'?0:28),tf*.9);continue;}
+    if(d===target&&opened)continue;
+    if(!targeting){g.fillStyle='#ffcc4d99';g.fillRect(x-4,y-4,8,8);continue;}
+    if(d.ok){ghostCell(d.nc,d.nr,tf*.8,t,false);}
+  }
+  if(targeting){
+    // cursor path: from player to the target door
+    const[tx,ty]=doorPos(target);const m=ease((t-1.4)/2.4);
+    const cx=P0[0]+60+(tx-P0[0]-60)*m, cy=P0[1]-40+(ty-20-P0[1]+40)*m;
+    const hoverD=m>.97?target:null;
+    for(const d of doors){if(d.mystery)continue;const[x,y]=doorPos(d);
+      if(d.ok){if(d===hoverD)ghostCell(d.nc,d.nr,1,t,true);holoDoor(x,y,d.s,COL.heal,t,tf*(d===hoverD?1:.75),'+');}
+      else{g.fillStyle='#ffffff22';g.fillRect(x-4,y-4,8,8);blockedMark(x,y,tf*.9);}}
+    // range ring
+    g.save();g.globalAlpha=tf*.25;g.setLineDash([3,7]);g.strokeStyle=COL.heal;g.beginPath();g.arc(P0[0],P0[1],900*0.6,0,7);g.stroke();g.restore();
+    if(hoverD){const[x,y]=cellRect(4,0);g.save();g.font='20px VT323, monospace';g.textAlign='center';g.fillStyle=COL.heal;glow(COL.heal,6);g.fillText('FIELD HOSPITAL',x+C/2,y+C+48);g.restore();}
+    player(P0[0],P0[1],'#7fd4ff',.55,'YOU · MEDIC',cx,cy);
+    player(OX+5.3*C,OY+2.8*C,'#ffb35c',.35,'TANK',OX+6*C,OY+3*C);
+    player(OX+2.9*C,OY+2.2*C,'#ff6fa8',.7,'DPS',OX+2*C,OY+3*C);
+    cursor(cx,cy,COL.heal);
+    hudKey('FIELD HOSPITAL','PICK A DOOR',1,COL.heal);
+    caption(t<1.4?'Q: every free door spot lights up':'Fire on a lit door · Q cancels · red × = cell already taken');
+  } else if(!opened){
+    player(P0[0],P0[1],'#7fd4ff',.55,'YOU · MEDIC',P0[0]+50,P0[1]-40);
+    player(OX+5.3*C,OY+2.8*C,'#ffb35c',.35,'TANK',OX+6*C,OY+3*C);
+    player(OX+2.9*C,OY+2.2*C,'#ff6fa8',.7,'DPS',OX+2*C,OY+3*C);
+    hudKey('FIELD HOSPITAL','READY',1,COL.gold);caption('Field Hospital ready');
+    if(t>.7){g.save();g.globalAlpha=1-(t-.7)/.3;g.strokeStyle=COL.heal;g.lineWidth=3;g.strokeRect(W-204,H-54,128,30);g.restore();}
+  } else {
+    const[x,y]=cellRect(4,0);const ccx=x+C/2,ccy=y+C/2+8;const[dx,dy]=doorPos(target);
+    // slam flash + ring
+    const sp=(t-6.1)/0.8;if(sp>0&&sp<1){g.save();g.strokeStyle=`rgba(255,204,77,${1-sp})`;g.lineWidth=3;g.beginPath();g.arc(dx,dy,10+sp*120,0,7);g.stroke();
+      g.fillStyle=`rgba(255,204,77,${.5*(1-sp)})`;g.fillRect(dx-60,dy-3,120,6);g.restore();}
+    // hologram splits into the wall
+    const hp=clamp((t-5.4)/0.5,0,1);if(hp<1){g.save();g.globalAlpha=1-hp;g.fillStyle=COL.heal;g.fillRect(dx-23-hp*30,dy-5,23,10);g.fillRect(dx+hp*30,dy-5,23,10);g.restore();}
+    const alive=clamp((t-6.2)/0.6,0,1)*(1-sealP);
+    // shrine, used by tank at ~10.4
+    shrine(ccx,ccy,t,alive,t>10.4&&t<14.6?false:false);
+    // orbs: 6 round the shrine, two taken
+    for(let i=0;i<6;i++){const a=i/6*Math.PI*2+t*.25;const ox=ccx+Math.cos(a)*C*.36,oy=ccy-6+Math.sin(a)*C*.3;
+      const pop=clamp((t-6.6-i*.12)/.3,0,1);
+      let taken=(i===1&&t>9.2&&t<13.2)||(i===4&&t>11.1&&t<15.1);
+      if(!taken)orb(ox,oy,t,pop*(1-sealP));}
+    // players walk in
+    const tk=ease((t-7.2)/2.2),dp=ease((t-8.6)/2.4);
+    const tankP=[OX+5.3*C+(ccx+C*.3-OX-5.3*C)*tk,OY+2.8*C+(ccy+C*.3-OY-2.8*C)*tk];
+    const dpsP=[OX+2.9*C+(ccx-C*.3-OX-2.9*C)*dp,OY+2.2*C+(ccy+C*.3-OY-2.2*C)*dp];
+    const ej=ease((t-14.6)/0.5);
+    if(ej>0){tankP[0]+=(dx+C*.25-tankP[0])*ej;tankP[1]+=(dy+C*.45-tankP[1])*ej;dpsP[0]+=(dx-C*.25-dpsP[0])*ej;dpsP[1]+=(dy+C*.4-dpsP[1])*ej;}
+    const tankHp=t<9.2?.35:t<10.4?.52:1.25, dpsHp=t<11.1?.7:.87;
+    player(P0[0],P0[1],'#7fd4ff',.55,'YOU · MEDIC',dx,dy);
+    player(tankP[0],tankP[1],'#ffb35c',tankHp,'TANK',ccx,ccy);
+    player(dpsP[0],dpsP[1],'#ff6fa8',dpsHp,'DPS',ccx,ccy);
+    floatText(tankP[0],tankP[1]-34,'+20',COL.heal,(t-9.2)/1);
+    floatText(ccx+C*.95,ccy-C*.2,'SHRINE: FULL +25%',COL.gold,(t-10.4)/1.6);
+    floatText(dpsP[0],dpsP[1]-34,'+20',COL.heal,(t-11.1)/1);
+    // timer over the door
+    const left=Math.max(0,t<12.8?60-(t-6.2)*(57/6.6):3-(t-12.8)*(3/1.8));
+    if(sealP<1){g.save();g.globalAlpha=1-sealP;g.fillStyle='#000a';g.fillRect(dx-40,dy+10,80,5);g.fillStyle=COL.heal;g.fillRect(dx-40,dy+10,80*left/60,5);
+      g.font='17px VT323, monospace';g.textAlign='center';g.fillStyle=COL.heal;g.fillText(Math.ceil(left)+' s',dx,dy+30);g.restore();}
+    if(sealing){g.save();g.globalAlpha=sealP;g.strokeStyle=COL.cyan;g.lineWidth=4;glow(COL.cyan,12);g.beginPath();g.moveTo(dx-60,dy);g.lineTo(dx+60,dy);g.stroke();g.restore();}
+    const cd=t<14.6?0:(t-14.6)/150;
+    // green laser gate: allies pass, enemies stopped
+    if(slide>.95&&sealP<1){g.save();g.globalAlpha=(1-sealP)*(.6+.4*Math.sin(t*9));g.strokeStyle=COL.heal;g.lineWidth=1.5;glow(COL.heal,8);
+      for(let i=-1;i<=1;i++){g.beginPath();g.moveTo(dx-22,dy+i*4);g.lineTo(dx+22,dy+i*4);g.stroke();}g.restore();}
+    // an enemy tries the gate
+    const ep=ease((t-8)/2.5),ex=OX+4.7*C+(dx+8-OX-4.7*C)*ep,ey=OY+2.1*C+(dy+22-OY-2.1*C)*ep;
+    if(t>7.6&&t<15.1){g.save();g.strokeStyle=COL.danger;g.lineWidth=2;glow(COL.danger,8);g.beginPath();g.moveTo(ex,ey-11);g.lineTo(ex+10,ey+7);g.lineTo(ex-10,ey+7);g.closePath();g.stroke();g.restore();
+      if(ep>.98&&Math.sin(t*20)>0){g.save();g.fillStyle=COL.heal;for(let k=0;k<4;k++){g.fillRect(ex-12+Math.random()*24,dy+4+Math.random()*6,2,2);}g.restore();}}
+    // eject countdown
+    if(t>12.8&&t<14.6){const n=Math.max(1,Math.ceil(left));g.save();g.font='40px VT323, monospace';g.textAlign='center';g.fillStyle=COL.gold;glow(COL.gold,10);
+      g.fillText('EJECT '+n,x+C/2,y+C*.22);g.restore();}
+    if(t>=14.6&&t<15.2){const p=(t-14.6)/.6;g.save();g.strokeStyle=`rgba(255,204,77,${1-p})`;g.lineWidth=3;g.beginPath();g.arc(ccx,ccy,20+p*C*.6,0,7);g.stroke();g.restore();}
+    hudKey('FIELD HOSPITAL',t<14.6?'ACTIVE':'150 s',t<14.6?left/60:cd,t<14.6?COL.heal:COL.dim);
+    caption(t<6.4?'The cell slides in and slams into the wall':t<12.8?'Laser gate keeps enemies out · shrine once each · orbs back every 4 s':t<15.1?'1 minute up: a countdown, then everyone inside is pushed out':'The door seals and the cell folds away');
+  }
+  // scanlines
+  g.fillStyle='#00000022';for(let y=0;y<H;y+=3)g.fillRect(0,y,W,1);
+}
+const scrub=document.getElementById('scrub'),play=document.getElementById('play');
+function tick(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(playing){T=(T+dt)%LOOP;scrub.value=T;}frame();requestAnimationFrame(tick);}
+play.onclick=()=>{playing=!playing;play.textContent=playing?'PAUSE':'PLAY';play.classList.toggle('on',playing);};
+scrub.oninput=()=>{T=+scrub.value;playing=false;play.textContent='PLAY';play.classList.remove('on');};
+document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{T=+b.dataset.t;playing=false;play.textContent='PLAY';play.classList.remove('on');});
+if(matchMedia('(prefers-reduced-motion: reduce)').matches){T=10;playing=false;play.textContent='PLAY';play.classList.remove('on');}
+requestAnimationFrame(tick);
+</script>

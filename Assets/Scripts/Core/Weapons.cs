@@ -90,8 +90,7 @@ namespace Arena
                 return 1f;
             if (!Heavy(e))
             {
-                V2 away = (e.Pos - p.Pos).Normalized();
-                KnockEnemy(e, (away.IsZero ? b.Vel.Normalized() : away) * ScatterShove * p.Stats.ScatterShoveMult);  // slides (Knock.cs)
+                ShoveFrom(e, p.Pos, ScatterShove * p.Stats.ScatterShoveMult, b.Vel.Normalized());  // slides (Knock.cs)
             }
             return ScatterPointBlank;
         }
@@ -202,7 +201,6 @@ namespace Arena
 
         public bool BowPerfect(Player p, float draw) => draw >= BowFull(p) && draw <= BowFull(p) + BowPerfectWindow;
 
-        static float Lerp(float a, float b, float t) => a + (b - a) * t;
 
         /// The host fires a bow shot when the shooter's release arrives (with how long they drew).
         void TickBow(Player p)
@@ -395,8 +393,8 @@ namespace Arena
                     // Focus bar's zone and the first arrow is a Focus arrow instead (BowFocus.cs).
                     float c = BowCharge(p, p.BowShotDraw);
                     bool focus = p.BowShotFocus && c >= 1f;
-                    float baseDmg = Lerp(8f, 40f, c), speed = Lerp(450f, 950f, c), reach = Lerp(500f, 900f, c);
-                    float heal = Lerp(5f, 20f, c);
+                    float baseDmg = MathX.Lerp(8f, 40f, c), speed = MathX.Lerp(450f, 950f, c), reach = MathX.Lerp(500f, 900f, c);
+                    float heal = MathX.Lerp(5f, 20f, c);
                     // A full draw also looses an extra arrow (half damage) per extra projectile, in a tight fan.
                     int arrows = c >= 1f ? 1 + extra : 1;
                     for (int k = 0; k < arrows; k++)
@@ -487,7 +485,7 @@ namespace Arena
             switch (w.Id)
             {
                 case WeaponId.MendersBow:  // as far as the current draw sends it
-                    return p.Def.BodyR + Lerp(500f, 900f, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
+                    return p.Def.BodyR + MathX.Lerp(500f, 900f, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
                 case WeaponId.GolemStaff:  // where the boulder lands with the current charge (Minions.cs)
                     return BoulderDistance(p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
                 case WeaponId.GoreMortar:  // where the Gore Mortar's clot lands with the current charge (Hemomancer.cs)

@@ -281,6 +281,9 @@ namespace Arena
                 case ZoneKind.SafeRoom:
                     DrawSafeRoom(z, t);  // EngineerLook.cs (its own time ring)
                     return;
+                case ZoneKind.FieldHospital:
+                    DrawHospitalZone(z, t);  // FieldHospitalLook.cs (its gate and time are drawn over the walls)
+                    return;
                 case ZoneKind.GrandSigil:
                     DrawGrandSigil(z, t);  // ArcanistLook.cs (its own time ring)
                     return;

@@ -85,8 +85,7 @@ namespace Arena
             if (to.Length > 8f)
             {
                 float da = to.Angle - m.Aim;
-                while (da > MathX.Pi) da -= MathX.Tau;
-                while (da < -MathX.Pi) da += MathX.Tau;
+                da = MathX.WrapPi(da);
                 m.Aim += Math.Max(-TitanTurn * dt, Math.Min(TitanTurn * dt, da));
             }
             if (m.SlamT >= 0f)  // winding up, then following through; it stands still

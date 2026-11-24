@@ -80,10 +80,7 @@ namespace Arena
                 dmgSrc = was;
                 if (e.Hp <= 0f || e.Def.IsBoss)
                     continue;
-                V2 away = (e.Pos - w.Pos).Normalized();
-                if (away.IsZero)
-                    away = RandDir();
-                KnockEnemy(e, away * (Heavy(e) ? ShockwaveHeavyKnock : ShockwaveKnock));  // slides (Knock.cs)
+                ShoveFrom(e, w.Pos, Heavy(e) ? ShockwaveHeavyKnock : ShockwaveKnock);  // slides (Knock.cs)
             }
             Free(snap7);
         }

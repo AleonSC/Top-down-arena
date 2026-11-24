@@ -330,7 +330,7 @@ namespace Arena
                 else if (a.Surprise > 0 && game.SurpriseFresh) { fill = SurpriseInk(a.Surprise).WithAlpha(0.22f); line = SurpriseInk(a.Surprise); }
                 else if (a.Owner != 0 && a.Kind == RoomKind.Combat) { fill = OwnerInk(a.Owner).WithAlpha(0.18f); line = OwnerInk(a.Owner).WithAlpha(0.85f); }
                 else if (a.Kind == RoomKind.Shop) { fill = ShopTint.WithAlpha(0.22f); line = DoorGold; }
-                else if (a.Kind == RoomKind.BlackMarket || a.Kind == RoomKind.Arms || a.Kind == RoomKind.Medic) { fill = KindInk(a.Kind, a.Floor).WithAlpha(0.2f); line = KindInk(a.Kind, a.Floor); }  // (a Black Market, Arms Dealer or Medic from a card or a door)
+                else if (a.Kind == RoomKind.BlackMarket || a.Kind == RoomKind.Arms || a.Kind == RoomKind.Medic || a.Kind == RoomKind.Hospital) { fill = KindInk(a.Kind, a.Floor).WithAlpha(0.2f); line = KindInk(a.Kind, a.Floor); }  // (a Black Market, Arms Dealer or Medic from a card or a door)
                 else if (a.Kind == RoomKind.Floor) { fill = Paths.Get(a.Floor).Accent.WithAlpha(0.2f); line = Paths.Get(a.Floor).Accent; }
                 else if (a.Hub) { fill = new Rgba(0.4f, 0.64f, 1f, 0.14f); line = new Rgba(0.4f, 0.64f, 1f, 0.75f); }
                 else if (a.Hall) { fill = new Rgba(0.4f, 0.64f, 1f, 0.06f); line = new Rgba(0.4f, 0.64f, 1f, 0.35f); }

@@ -519,7 +519,7 @@ namespace Arena
             if (sing.Phase == SingLasers)
                 foreach (var p in Players.Values)
                 {
-                    if (p.Downed || p.InvulnT > 0f)
+                    if (!Hittable(p))
                         continue;
                     for (int k = 0; k < lasers; k++)
                         if (OnLaser(sing.Pos, sing.Facing + MathX.Tau * k / lasers, p.Pos, LaserWidth / 2f + p.Def.HitR))
@@ -531,7 +531,7 @@ namespace Arena
             if (DiskUp(sing))  // the accretion disk's orbs hurt like big orbs
                 foreach (var p in Players.Values)
                 {
-                    if (p.Downed || p.InvulnT > 0f)
+                    if (!Hittable(p))
                         continue;
                     float reach = DiskOrbR + p.Def.HitR, d = p.Pos.DistanceTo(sing.Pos);
                     if (Math.Abs(d - DiskInnerR) > reach && Math.Abs(d - DiskOuterR) > reach)
@@ -571,7 +571,7 @@ namespace Arena
                     w.Pos = c.Center + V2.FromAngle(c.Spin + w.Ang) * c.Radius;
                 }
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && Math.Abs(p.Pos.DistanceTo(c.Center) - c.Radius) < CageWallWidth / 2f + p.Def.HitR)
+                    if (Hittable(p) && Math.Abs(p.Pos.DistanceTo(c.Center) - c.Radius) < CageWallWidth / 2f + p.Def.HitR)
                         Damage(p, dmg, "The Singularity (cage)");
             }
             foreach (int id in broken)

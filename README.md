@@ -34,7 +34,7 @@ Every weapon, ability, enemy, role and class with its numbers (health, damage, c
 The lobby is one calm blue CRT screen with a 36 px margin and soft, darker edges: the party column is on the left, the big loadout screen on the right washed with a soft gradient in your role's colour (it eases when you pick another role), and the tabs above it are small, faded caps with the open one a lit pill. Every option is a digital key (outlined, inverse video under the mouse or when picked; locked ones are dashed with a padlock), and the colour lives in the party cards, the live preview, the stat bars and the pixel icons. With Visual effects on (and Reduced effects off) it's alive: its pieces **holo-boot** as you come in (a scan line wipes down each, then it flickers), box frames near the cursor light up with a crisp bright line (and a faint echo just outside) where they're closest, the scanlines crawl slowly down, a faint **radar sweep** turns over the loadout preview, and readying sends a small green spark with a short tail from Ready up the gap between the party column and the big screen into that player's card, a thin ring bursts 10 px off it and the card keeps a faint thin green line while ready. Starting the run glitches the lobby (red and blue copies split off, torn bands jump sideways) and switches it off like an old CRT, squashed to a line that shrinks to a point, before the drop-in. In it each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight,
 Ninja, Hemomancer), then one of that combination's three weapons (four for the Soldier, Elementalist, Summoner, Knight, Ninja and Hemomancer DPS and the Soldier, Elementalist, Summoner, Knight, Ninja and Hemomancer Tank, and the Healer Soldier, Elementalist and Knight: their fourth on the 4th key) and three 1st abilities (four for a few: their fourth on the 4th key). Weapons and abilities are
 unique to their role and class. The **Ultimate** row under them shows the combination's ultimates: key 0 is its default
-ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, the Tank Elementalist: Lightning Rod, the Tank Summoner: Bone Phalanx, the Tank Ninja: Dragon's Dogma, the Tank Hemomancer: **Bloodbath**, the DPS Soldier: Attack Helicopter, and the DPS Knight: Warhorn Volley); the
+ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, the Tank Elementalist: Lightning Rod, the Tank Summoner: Bone Phalanx, the Tank Ninja: Dragon's Dogma, the Tank Hemomancer: **Bloodbath**, the DPS Soldier: Attack Helicopter, the Healer Soldier: Field Hospital, and the DPS Knight: Warhorn Volley); the
 other keys are locked. Click a key to pick it (inverse video, like the weapon and ability keys): the detail box and the
 preview show it. The pick goes back to the default when you change role or class; bots use the default, a Wildcard's
 row lists its class wheel's class, and a saved run's seats keep theirs.
@@ -391,7 +391,7 @@ Parry upgrades show up like any other card:
 **Q** fires your **ultimate**. Each role and class combination has its own default one, and some have others to
 pick instead on the lobby's **Ultimate** row (so far the Tank Soldier: **Juggernaut Suit** and the Tank Elementalist: **Lightning Rod**, below the table; and the
 Tank Hemomancer: **Bloodbath**, in the Hemomancer table; and the Tank Summoner: **Bone Phalanx**, below the table; and the
-Tank Ninja: **Dragon's Dogma**, below; and the DPS Soldier: **Attack Helicopter**, below; and the DPS Knight: **Warhorn Volley**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
+Tank Ninja: **Dragon's Dogma**, below; and the DPS Soldier: **Attack Helicopter**, below; and the Healer Soldier: **Field Hospital**, below; and the DPS Knight: **Warhorn Volley**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
 that upgrades don't shorten, and start each run half charged. The HUD shows the charge in the gold slot.
 
 **Juggernaut Suit** (Tank Soldier, picked instead of Fortress, 75 s): six steel plates clamp onto you over 0.6 s and
@@ -415,6 +415,23 @@ or the wave is cleared. You hear its rotor (a deep blade whop over a turbine whi
 climbs away, the barrels whine up on a fresh target, and every round cracks (all on the Weapons volume). Mastered: a
 second gun on the other wing, so two targets at once. Design:
 [`Docs/Mockups/attack-helicopter.html`](Docs/Mockups/attack-helicopter.html) (the Orbit pattern).
+
+**Field Hospital** (Healer Soldier, picked instead of Lifeline, 150 s): in a Grid run, pressing it starts a pick. Every
+free door spot within 900 px of you lights up as a green hologram door with a white **+** (the mystery door's look in
+medic green) and a dashed outline of the cell behind it; a spot whose cell is taken (a built room, a mystery door on it,
+a sealed mini-boss room beside it, or a shrine, chest or relic waiting in it) shows a small red cross. Click a lit door
+(or anywhere in its cell) and that one cell opens behind it as a real room; the key again cancels, and nothing is spent
+while no door is lit. Inside: a **health shrine** in the middle (each player once: clears wounds, fills your health and
+adds 25% of your max past it), **6 healing orbs** of 20 each that come back one every 4 s (they only drift to players
+inside, never out through the walls; one also picks a downed ally up), and a **green laser gate** across its door:
+allies walk through, enemies are put back out and their shots burn away inside. It has no door spots of its own
+(nothing is built off it) and isn't counted as a built room. It lasts **1 minute** from when it opens, through the break between waves too (a map reset takes it with the
+rest of the map); then a bar
+over the door runs out and **EJECT 3, 2, 1** counts down over it: everyone still inside is put out at its door, the
+orbs go, and the cell comes off the map. Outside a Grid run it is a **tent** at your cursor (up to 360 px away): the
+same shrine and orbs inside a 150 px ring of green beams that keeps enemies and their shots out. Mastered: 8 orbs, one
+back every 3 s. Bots use it when in danger or hurt beside a hurt ally, on the free door nearest them. Design:
+[`Docs/Mockups/field-hospital.html`](Docs/Mockups/field-hospital.html).
 
 **Dragon's Dogma** (Tank Ninja, picked instead of Thousand Clones, 70 s): a gold sigil opens under you, the arena dims
 and a great azure spirit dragon (680 px long, gold spine and antlers, a shadow on the floor) pours out of you head first.
@@ -516,7 +533,7 @@ the key, pops "MASTERY 3" over it and shows a line above the keys with what it g
 | **Drawbridge** | The bridge stands for 8 s. | **Lightning Rod** | Lasts 8 s and each bolt arcs to 3 enemies. |
 | **Flood** | Deluge: the flood is 30% wider and lasts 9 s. | **Bone Phalanx** | 10 skeletons with 180 health each (a 250 px front). |
 | **Dragon's Dogma** | Hunts for 7 s, and every enemy it devours heals you 3%. | **Warhorn Volley** | The volley is 40% wider and the fire burns for 8 s. |
-| **Attack Helicopter** | A second gun on the wing: two targets at once. | | |
+| **Attack Helicopter** | A second gun on the wing: two targets at once. | **Field Hospital** | 8 orbs, one back every 3 s. |
 
 A popup appears when an ability gains mastery. The **Tab** menu shows each ability's mastery as five pips (the next one
 fills as it earns XP). What mastery 5 unlocks is always written in gold under each ability's description: in the lobby
@@ -526,7 +543,7 @@ with "…"; hover a Tab tile to read it in full.
 
 In the lobby, the loadout screen's **Ultimate** row has four keys. Key 0 is your role and class's default ultimate;
 the next keys hold the others you can pick instead (key 1 is **Juggernaut Suit** for the Tank Soldier, **Lightning Rod**
-for the Tank Elementalist, **Bloodbath** for the Tank Hemomancer, **Bone Phalanx** for the Tank Summoner, **Dragon's Dogma** for the Tank Ninja, **Attack Helicopter** for the DPS Soldier and **Warhorn Volley** for the DPS Knight), and the rest
+for the Tank Elementalist, **Bloodbath** for the Tank Hemomancer, **Bone Phalanx** for the Tank Summoner, **Dragon's Dogma** for the Tank Ninja, **Attack Helicopter** for the DPS Soldier, **Field Hospital** for the Healer Soldier and **Warhorn Volley** for the DPS Knight), and the rest
 are locked slots for ultimates still to come. Click a key to pick it (the picked one is in inverse video, like the
 weapon and ability keys): it goes to the host and the other players like your other picks, the detail box shows its
 charge time, what it does and what mastering it adds, and the preview casts it. Changing role or class goes back to
@@ -2016,7 +2033,7 @@ volume, and a seamless loop mode for hums and drones (the game loops `WallHum`, 
 so they never change the fight or what your friend sees):
 
 - **Visual effects** on/off. Off draws the arena exactly as before.
-- **Screen shake:** Off, **Low** (the default) or Full. **Charge camera:** every hold-and-release weapon (Mender's Bow, Railgun, Warhammer, Golem Staff, Arc Lightning, Imp Caller, Gore Mortar) eases your view out and back against your aim as it charges, then snaps it forward past rest on release and settles, kicking by how full the charge was; the Railgun pulls back and kicks hardest, the Warhammer punches in most, the Imp Caller is lightest. Off with Screen shake off or Reduced effects. Getting hurt, a heavy enemy's death and above all a boss's
+- **Screen shake:** Off, **Low** (the default) or Full. **Charge camera:** every hold-and-release weapon (Mender's Bow, Railgun, Warhammer, Golem Staff, Arc Lightning, Imp Caller, Gore Mortar) eases your view out and back against your aim as it charges, then snaps it forward past rest on release and settles, kicking by how full the charge was; the Railgun pulls back and kicks hardest, the Warhammer punches in most, the Imp Caller is lightest. A fully charged Railgun beam or Warhammer slam holds the picture for a moment on its first hit (about 2 and 3 frames). Off with Screen shake off or Reduced effects. Getting hurt, a heavy enemy's death and above all a boss's
   death kick the camera; explosions only add a light rumble (several at once don't pile up).
 - **Arena floor:** **Bending** (the default) or Static. The floor grid lights up in each player's class colour near
   them; with Bending its lines also bow away from every player like a stretched sheet and trail a little behind them as

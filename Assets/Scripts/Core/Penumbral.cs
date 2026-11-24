@@ -152,7 +152,7 @@ namespace Arena
                 return;
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.InvulnT > 0f || p.Pos.FartherThan(e.Pos, NovaBlastR + p.Def.HitR))
+                if (!Hittable(p) || p.Pos.FartherThan(e.Pos, NovaBlastR + p.Def.HitR))
                     continue;
                 if ((p.ParryActive || p.BbBrace) && ParryContact(p, e, NovaBlastDamage))
                     continue;  // a raised guard facing it takes it
@@ -183,7 +183,7 @@ namespace Arena
                     if (e.PhaseT <= 0f)
                     {
                         foreach (var p in Players.Values)
-                            if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(e.Pos, GnomonReach) && !InGnomonShadow(e, p.Pos))
+                            if (Hittable(p) && p.Pos.CloserThan(e.Pos, GnomonReach) && !InGnomonShadow(e, p.Pos))
                                 Damage(p, GnomonDamage, e.Def.Name + " (flash)");
                         BroadcastFx(FxKind.Ring, e.Pos - V2.FromAngle(e.Facing) * e.Radius, new Rgba(1f, 0.95f, 0.8f), GnomonReach, 0.35f, Sfx.Shockwave);
                         e.Phase = 2;
@@ -241,7 +241,7 @@ namespace Arena
                 if (pt.Kind != PatchKind.Dusk || !pt.Active)
                     continue;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))
+                    if (Hittable(p) && p.Pos.CloserThan(pt.Pos, pt.Radius + p.Def.HitR))
                         DamageOverTime(p, DuskDps * 0.25f, "Dusk");
             }
         }
@@ -289,7 +289,7 @@ namespace Arena
                     break;
                 case 2:
                     foreach (var p in Players.Values)
-                        if (!p.Downed && p.InvulnT <= 0f && HelioLaneDistance(e, p.Pos) < HelioWidth / 2f + p.Def.HitR)
+                        if (Hittable(p) && HelioLaneDistance(e, p.Pos) < HelioWidth / 2f + p.Def.HitR)
                             Damage(p, HelioDamage, e.Def.Name + " (flare)");
                     if (e.PhaseT <= 0f)
                     {

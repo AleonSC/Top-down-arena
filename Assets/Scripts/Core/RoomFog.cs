@@ -22,7 +22,7 @@ namespace Arena
 
         /// Whether a room the map gets starts unseen: everything but the core and the vendors' rooms (Shop, Black Market, Arms
         /// Dealer, Medic, Builder Shop), which are never fogged (a kept room is settled by the map reset).
-        public static bool StartsUnseen(ExpansionRoom r) => !Expansion.IsGridCore(r) && !IsVendorRoom(r.Kind);
+        public static bool StartsUnseen(ExpansionRoom r) => !Expansion.IsGridCore(r) && !IsVendorRoom(r.Kind) && r.Kind != RoomKind.Hospital;
 
         /// A vendor's room: never under fog.
         public static bool IsVendorRoom(RoomKind k) =>

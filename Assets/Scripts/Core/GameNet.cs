@@ -1199,6 +1199,8 @@ namespace Arena
             }
             if (z.Kind == ZoneKind.Stampede)  // the herd's walk (Stampede.cs)
                 s.Float(ref z.Marched);
+            if (z.Kind == ZoneKind.FieldHospital)  // who has used its shrine (FieldHospital.cs)
+                s.Int(ref z.Side);
             if (s.Reading)
                 Zones[z.Id] = z;
         }
