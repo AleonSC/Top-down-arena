@@ -115,6 +115,7 @@ namespace Arena
             DodgeFrom = me.Pos;
             AddFx(FxKind.Ring, WallKickAt, new Rgba(1f, 0.85f, 0.45f), 26f, 0.25f);
             Sounds.Add(Sfx.DodgeSwish);
+            DrillNoteKick();  // the Wall Kick drill (DrillGame.cs)
         }
 
         /// Host: a client dodged. They are invulnerable from now on for a moment.

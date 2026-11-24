@@ -70,6 +70,22 @@ namespace Arena
                 p.InvulnT = Math.Max(p.InvulnT, 0.5f);  // (nothing in a drill hurts)
                 p.Hp = p.MaxHp;
             }
+            DrillClocks(dt);
+            if (IsHost)
+                foreach (var d in DrillRunners.Values)
+                    switch (Training.Drills[Drill].Key)
+                    {
+                        case "move": TickMoveDrill(d); break;
+                        case "dodge": TickDodgeDrill(d, dt); break;
+                        case "wallkick": TickKickDrill(d); break;
+                    }
+            Remaining = 0;
+            DrillRecordMine();
+        }
+
+        /// Every runner's clocks (the host's tick, and a client's view between snapshots).
+        void DrillClocks(float dt)
+        {
             foreach (var d in DrillRunners.Values)
             {
                 d.Flash += dt;
@@ -78,24 +94,30 @@ namespace Arena
                 if (!d.Done)
                     d.Time += dt;
             }
-            if (!IsHost && Training.Drills[Drill].Key == "dodge")
+        }
+
+        /// A client, every frame: the clocks and the Dodge walls run on between snapshots, and its own finish is kept.
+        void UpdateDrillView(float dt)
+        {
+            if (IsHost || !DrillOn)
+                return;
+            DrillClocks(dt);
+            if (Training.Drills[Drill].Key == "dodge")
                 foreach (var d in DrillRunners.Values)
                     if (!float.IsNaN(d.Wall))
-                        d.Wall += Training.WallDir(d.Step) * Training.WallSpeedAt(d.Step) * dt;  // (on between snapshots)
-            if (IsHost)
-                foreach (var d in DrillRunners.Values)
-                    switch (Training.Drills[Drill].Key)
-                    {
-                        case "move": TickMoveDrill(d); break;
-                        case "dodge": TickDodgeDrill(d, dt); break;
-                    }
-            Remaining = 0;
-            if (!drillRecorded && MyDrill != null && MyDrill.Done && Profile != null)
-            {
-                drillRecorded = true;
-                Profile.DrillDone(Training.Drills[Drill].Key, MyDrill.Time);
-                Profile.Save();
-            }
+                        d.Wall += Training.WallDir(d.Step) * Training.WallSpeedAt(d.Step) * dt;
+            DrillRecordMine();
+        }
+
+        /// This machine's player finished: their best time goes into this machine's profile (once).
+        void DrillRecordMine()
+        {
+            var mine = MyDrill;
+            if (drillRecorded || mine == null || !mine.Done || Profile == null)
+                return;
+            drillRecorded = true;
+            Profile.DrillDone(Training.Drills[Drill].Key, mine.Time);
+            Profile.Save();
         }
 
         /// Host: Move and Aim (`Training.MoveSteps` beacons). A touch step is reached by standing on its beacon; a shoot step by bringing down your own dummy on it.
@@ -155,6 +177,36 @@ namespace Arena
             }
             if (d.Wall < -40f || d.Wall > Width + 40f)
                 d.Wall = float.NaN;  // off the far side without crossing you (you wrapped round): it comes again
+        }
+
+        /// Host: Wall Kick. The kicks come in from each player's own game (DrillKicked); the last step is standing on the flag.
+        void TickKickDrill(DrillRunner d)
+        {
+            if (d.Done || d.Step < Training.KickWalls || !Players.TryGetValue(d.PlayerId, out var p))
+                return;
+            if (p.Pos.CloserThan(Training.KickFlag(Width, Height), Training.FlagReach))
+                DrillStepDone(d);
+        }
+
+        /// Host: a player wall-kicked (their own game saw it: Dodge.cs, Msg.DrillKick). Off the lit panel, that step is done.
+        public void DrillKicked(int id)
+        {
+            if (!IsHost || !DrillOn || Training.Drills[Drill].Key != "wallkick" || !DrillRunners.TryGetValue(id, out var d) || d.Done
+                || d.Step >= Training.KickWalls || !Players.TryGetValue(id, out var p))
+                return;
+            if (Training.BoxDistance(Training.KickPanel(d.Step, Width, Height), p.Pos) <= Training.KickNear)
+                DrillStepDone(d);
+        }
+
+        /// Your own game: you wall-kicked; the host counts it for the Wall Kick drill.
+        void DrillNoteKick()
+        {
+            if (!DrillOn || Training.Drills[Drill].Key != "wallkick")
+                return;
+            if (IsHost)
+                DrillKicked(MyId);
+            else
+                session.SendToHost(Proto.End(Proto.Begin(Msg.DrillKick)));
         }
 
         /// Host: a player dodged (Dodge.cs), for the Dodge drill.

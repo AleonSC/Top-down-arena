@@ -1017,6 +1017,7 @@ namespace Arena
             UpdateInkView(dt);     // Chalk.cs: the chalk's tip easing, a client's ink ageing
             UpdateWardenView(dt);  // Warden.cs
             UpdateHoldingCellView(dt);  // HoldingCell.cs
+            UpdateDrillView(dt);   // DrillGame.cs: a client's drill clocks and walls, and its own finish
             UpdateSingView(dt);    // Singularity.cs
             UpdateHeraldView(dt);  // Herald.cs
             UpdateEclipseView(dt); // Eclipse.cs

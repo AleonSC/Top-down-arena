@@ -16,8 +16,11 @@ namespace Arena
             var d = game.MyDrill;
             if (d == null)
                 return;
-            if (Training.Drills[game.Drill].Key == "dodge")
+            string key = Training.Drills[game.Drill].Key;
+            if (key == "dodge")
                 DrawDrillWall(d);
+            else if (key == "wallkick")
+                DrawDrillKick(d);
             else
                 DrawDrillBeacons(d);
             DrawDrillCard(d);
@@ -79,6 +82,64 @@ namespace Arena
             }
         }
 
+        /// Wall Kick: the lit panel glowing with KICK and arrows at its faces, kicked ones gold, then the flag (lit once all three
+        /// are kicked) with a dotted line from you.
+        void DrawDrillKick(DrillRunner d)
+        {
+            float pulse = FxCalm ? 1f : 0.75f + 0.25f * Mathf.Sin(Time.unscaledTime * 5f);
+            for (int i = 0; i < Training.KickWalls; i++)
+            {
+                var s = Training.KickPanel(i, Game.Width, Game.Height);
+                V2 a = ToUi(s.Pos - new V2(s.HW, s.HH)), b = ToUi(s.Pos + new V2(s.HW, s.HH));
+                var r = new Rect(a.X, a.Y, b.X - a.X, b.Y - a.Y);
+                bool done = i < d.Step, lit = i == d.Step && !d.Done;
+                if (done)
+                {
+                    Ui.Fill(r, CrtStyle.Gold.WithAlpha(0.25f));
+                    CrtKit.Frame(r, 2f, CrtStyle.Gold.WithAlpha(0.8f));
+                    continue;
+                }
+                if (!lit)
+                {
+                    Ui.Label(new Rect(r.center.x - 20f, r.center.y - 10f, 40f, 20f), (i + 1).ToString(), 14, CrtStyle.Ink.WithAlpha(0.35f), TextAnchor.MiddleCenter, true);
+                    continue;
+                }
+                var g = new Rect(r.x - 18f, r.y - 18f, r.width + 36f, r.height + 36f);
+                Ui.RadialGlow(g, TrainColor.WithAlpha(0.35f * pulse));
+                Ui.Fill(r, TrainColor.WithAlpha(0.35f * pulse));
+                CrtKit.Frame(r, 2f, TrainColor.WithAlpha(pulse));
+                bool tall = r.height > r.width;
+                LobbyKit.Spaced(new Rect(r.center.x - 40f, r.yMax + 8f, 80f, 14f), "KICK", 11, TrainColor, TextAnchor.MiddleCenter, 3f);
+                if (tall)  // arrows into both faces
+                    for (int side = -1; side <= 1; side += 2)
+                        Chevron(new Vector2(side < 0 ? r.x - 14f : r.xMax + 14f, r.center.y), -side, TrainColor.WithAlpha(pulse));
+            }
+            // The flag.
+            V2 fw = Training.KickFlag(Game.Width, Game.Height), fc = ToUi(fw);
+            bool flagLit = d.Step >= Training.KickWalls && !d.Done;
+            float rad = ToUi(fw + new V2(Training.BeaconRadius, 0f)).X - fc.X;
+            Color fcol = d.Done ? CrtStyle.Gold : flagLit ? TrainColor : CrtStyle.Ink.WithAlpha(0.3f);
+            if (flagLit)
+                Ui.RadialGlow(new Rect(fc.X - rad * 2.4f, fc.Y - rad * 2.4f, rad * 4.8f, rad * 4.8f), TrainColor.WithAlpha(0.3f * pulse));
+            Ui.Dot(new Rect(fc.X - rad, fc.Y - rad, rad * 2f, rad * 2f), fcol.WithAlpha(flagLit ? pulse : 1f), true);
+            Ui.Fill(new Rect(fc.X - 1f, fc.Y - rad * 0.8f, 3f, rad * 1.4f), fcol);  // the pole
+            Ui.Fill(new Rect(fc.X + 2f, fc.Y - rad * 0.8f, rad * 0.7f, rad * 0.45f), fcol);  // the cloth
+            if (flagLit)
+            {
+                LobbyKit.Spaced(new Rect(fc.X - 80f, fc.Y + rad + 8f, 160f, 14f), "FLAG", 10, TrainColor, TextAnchor.MiddleCenter, 3f);
+                if (game.Me != null)
+                {
+                    V2 from = ToUi(game.Me.Disp), dir = fc - from;
+                    float len = dir.Length;
+                    for (float s = 30f; s < len - rad - 6f; s += 14f)
+                    {
+                        V2 q = from + dir * (s / len);
+                        Ui.Fill(new Rect(q.X - 1.5f, q.Y - 1.5f, 3f, 3f), TrainColor.WithAlpha(0.5f));
+                    }
+                }
+            }
+        }
+
         /// Dodge: your wall of shots sweeping across, with chevrons the way it runs; a red flash over the screen when one catches you.
         void DrawDrillWall(DrillRunner d)
         {
@@ -111,7 +172,11 @@ namespace Arena
             HudCrt(new Rect(r.x + 14f, r.y + 6f, 220f, 16f), "TRAINING  ·  DRILL " + (game.Drill + 1).ToString("00"), 15, CrtStyle.Dim);
             DkTitle(new Rect(r.x + 14f, r.y + 24f, r.width - 28f, 24f), dr.Name.ToUpperInvariant(), 20, TrainColor);
             bool dodge = dr.Key == "dodge";
-            string line = d.Done ? "Done!" : dodge ? "Dodge (" + Keybinds.KeyName(Keybinds.Get(KeyAction.Dodge)) + ") through wall " + (d.Step + 1) + " just as it reaches you."
+            string dodgeKey = Keybinds.KeyName(Keybinds.Get(KeyAction.Dodge));
+            string line = d.Done ? "Done!" : dr.Key == "wallkick" ? (d.Step < Training.KickWalls
+                    ? "Dodge (" + dodgeKey + ") into lit wall " + (d.Step + 1) + " to kick off it."
+                    : "Hold " + dodgeKey + " after a dodge to sprint to the flag.")
+                : dodge ? "Dodge (" + Keybinds.KeyName(Keybinds.Get(KeyAction.Dodge)) + ") through wall " + (d.Step + 1) + " just as it reaches you."
                 : Training.MoveShootStep(d.Step) ? "Aim at the target on beacon " + (d.Step + 1) + " and bring it down."
                 : "Walk onto beacon " + (d.Step + 1) + ".";
             Ui.Label(new Rect(r.x + 14f, r.y + 50f, r.width - 28f, 32f), line, 12, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);

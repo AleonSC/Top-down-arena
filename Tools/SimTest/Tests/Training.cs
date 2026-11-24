@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using Arena;
 
@@ -115,6 +116,48 @@ static partial class Program
             Check(mine.Done && mine.Step == Training.DodgeSteps && mine.Hits == 1 && c.DrillRunners[host.MyId].Done && c.DrillRunners[host.MyId].Hits == 1
                 && hostProfile.DrillBestTime("dodge") > 0f,
                 "Dodge: dodging as each wall reaches you takes you through all six; the finish and the hit count reach the friend, and the best time is kept");
+            // Wall Kick: the friend kicks off the three panels (their own game sees each kick and tells the host), then reaches the flag.
+            host.StartDrill(2);
+            Run(new[] { host, client }, dt, 0.5f);
+            var friend = g.DrillRunners[client.MyId];
+            var cliMe = c.Players[client.MyId];
+            Check(g.Drill == 2 && g.LayoutOn && g.ActiveLayout.Solids.Length == Training.KickWalls && c.LayoutOn,
+                "Wall Kick: the three panels stand in the arena on every machine");
+            Func<int, PlayerInput> idle = f => new PlayerInput { AimAt = new V2(800f, 450f) };
+            Action<float, Func<int, PlayerInput>> play = (secs, ci) =>
+            {
+                for (int f = 0; f < secs / dt; f++)
+                {
+                    host.Poll(); g.FixedStep(dt, idle(f)); g.Update(dt);
+                    client.Poll(); c.FixedStep(dt, ci(f)); c.Update(dt);
+                }
+            };
+            int kicksBefore = c.WallKicks;
+            // A kick off the wrong panel (the third, while the first is lit) doesn't count.
+            var p3 = Training.KickPanel(2, Game.Width, Game.Height);
+            cliMe.Pos = p3.Pos - new V2(p3.HW + 50f, 0f);
+            play(Game.DodgeCd, idle);
+            play(0.3f, f => new PlayerInput { Dodge = f == 0, Move = f == 0 ? new V2(1f, 0f) : V2.Zero, AimAt = new V2(800f, 450f) });
+            play(0.2f, idle);
+            bool wrongIgnored = c.WallKicks > kicksBefore && friend.Step == 0;
+            var stepsAfter = new List<int>();
+            for (int i = 0; i < Training.KickWalls; i++)
+            {
+                var pn = Training.KickPanel(i, Game.Width, Game.Height);
+                bool tall = pn.HH > pn.HW;
+                V2 into = tall ? new V2(1f, 0f) : new V2(0f, 1f);
+                cliMe.Pos = pn.Pos - (tall ? new V2(pn.HW + 50f, 0f) : new V2(0f, pn.HH + 50f));
+                play(Game.DodgeCd, idle);
+                play(0.3f, f => new PlayerInput { Dodge = f == 0, Move = f == 0 ? into : V2.Zero, AimAt = new V2(800f, 450f) });
+                play(0.2f, idle);
+                stepsAfter.Add(friend.Step);
+            }
+            Check(wrongIgnored && stepsAfter.Count == 3 && stepsAfter[0] == 1 && stepsAfter[1] == 2 && stepsAfter[2] == 3,
+                "Wall Kick: each kick off the lit panel is a step, sent from the friend's own game; a kick off another panel isn't");
+            cliMe.Pos = Training.KickFlag(Game.Width, Game.Height);
+            play(0.5f, idle);
+            Check(friend.Done && c.DrillRunners[client.MyId].Done && client.Game.ProfileOverride.DrillBestTime("wallkick") > 0f && hostProfile.DrillBestTime("wallkick") == 0f,
+                "Wall Kick: reaching the flag finishes it; the friend's game keeps the friend's best time");
             host.ReturnToLobby();
             WaitForLobby(host, client);
             Check(!g.DrillOn && !c.DrillOn && host.Screen == AppScreen.Lobby && client.Screen == AppScreen.Lobby && host.TrainingMode,
