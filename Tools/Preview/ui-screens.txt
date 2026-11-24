@@ -40,6 +40,7 @@ lobby-huntmap     lobby     HUNT=1 HUNTMAP=1 LOBBYTAB=4
 huntmap           huntmap   6 12.2 3 NOISY=1
 huntmap-voted     huntmap   6 12.2 3 NOISY=1 HMVOTE=1
 lobby-quick       lobby     LOBBYTAB=8
+lobby-training    lobby     TRAINING=2
 lobby-perks       lobby     LOBBYTAB=5 PERKS=1
 lobby-menu        lobby     LOBBYMENU=1
 # The lobby's entrances and exits, mid-way (they cut the lobby into pieces by LobbyLayout.cs's bands)

@@ -40,9 +40,7 @@ namespace Arena
             public Action<Rect, int> ScopeDraw;  // in place of the model (Survival's graph)
             public Action<int> OnPick;           // a click on a known row (Boss Hunt's pick)
             public string[] Rules;
-            public bool ShowLocked;
-            public string RecHead = "YOUR RECORDS", RulesHead = "RULES";
-            public bool NoModels;     // no models in the rows (Training's drills)   // locked rows still show their model (name hidden) and can be hovered (Campaign)
+            public bool ShowLocked;   // locked rows still show their model (name hidden) and can be hovered (Campaign)
         }
 
         void DrawModePage(Rect r, float t, ModePage p)
@@ -74,7 +72,7 @@ namespace Arena
 
             // Right: the sidebar, records as label and value rows, then the rules, the note at the foot.
             float sx = x2 + w2 + gap, sy = top;
-            LobbyKit.Heading(sx, sy, sideW, p.RecHead, null, fxReduced, 14);
+            LobbyKit.Heading(sx, sy, sideW, "YOUR RECORDS", null, fxReduced, 14);
             sy += 38f;
             for (int i = 0; i < f.RecVals.Length; i++)
             {
@@ -86,7 +84,7 @@ namespace Arena
                 sy += 27f;
             }
             sy += 14f;
-            LobbyKit.Heading(sx, sy, sideW, p.RulesHead, null, fxReduced, 14);
+            LobbyKit.Heading(sx, sy, sideW, "RULES", null, fxReduced, 14);
             sy += 38f;
             foreach (var rule in p.Rules)
             {
@@ -210,7 +208,7 @@ namespace Arena
             if (BeginUiGl())
             {
                 for (int i = 0; i < rows.Length; i++)
-                    if (!p.NoModels && (p.Rows[i].Known || p.ShowLocked))
+                    if (p.Rows[i].Known || p.ShowLocked)
                         ModeRowModel(rows[i], p.Rows[i].Model, t, i == shown);
                 if (p.ScopeDraw == null && (!f.Unknown || p.ShowLocked))
                     ModeScopeModel(scope, f.Model, t);

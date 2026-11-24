@@ -69,12 +69,15 @@ namespace Arena
             bool campaign = session.Mode == GameMode.Campaign && session.Resume == null;
             if (!campaign && lobbyTab == CampaignTab)
                 lobbyTab = 0;
+            bool training = session.TrainingMode;
+            if (!training && lobbyTab == TrainingTab)
+                lobbyTab = 0;
             // On the Game Mode screen (ModeScreenUi.cs), turning the carousel shows the new mode's page; in the lobby a mode change
             // (the host's, seen by a guest) leaves the open tab alone.
-            int modeNow = hunt ? 2 : survival ? 3 : quick ? 0 : 1;
+            int modeNow = hunt ? 2 : survival ? 3 : quick ? 0 : training ? 5 : 1;
             if (lastLobbyMode != modeNow)
             {
-                if (onModeScreen && session.Resume == null && lobbyTab != TrainingTab)
+                if (onModeScreen && session.Resume == null)
                     lobbyTab = ModeTabNow();
                 lastLobbyMode = modeNow;
             }
@@ -226,17 +229,23 @@ namespace Arena
 
         static string ModeTitle(int i) => ModeDef.For((GameMode)i).Name.ToUpperInvariant();
         static string ModeSub(int i) => ModeDef.For((GameMode)i).Blurb;
-        static Color? ModeAccent(int i) => i == 0 ? new Color(1f, 0.82f, 0.4f) : i == 2 ? new Color(1f, 0.62f, 0.58f) : i == 3 ? new Color(0.55f, 0.95f, 0.6f) : (Color?)null;
+        static Color? ModeAccent(int i) => i == 0 ? new Color(1f, 0.82f, 0.4f) : i == 2 ? new Color(1f, 0.62f, 0.58f) : i == 3 ? new Color(0.55f, 0.95f, 0.6f)
+            : i == (int)GameMode.Training ? TrainColor : (Color?)null;
+
+        /// The carousel's modes, in its order round the ring (the Hangout is hidden).
+        static readonly GameMode[] ModeCarousel = { GameMode.Quick, GameMode.Campaign, GameMode.Hunt, GameMode.Survival, GameMode.Training };
 
         /// The mode carousel (like the Wildcard's class wheel): the mode in play big in the middle with its line under it, the other
         /// two smaller and faded either side, and arrows at the ends. Arrows, the mouse wheel or a click on a side mode turn it;
         /// only the host can.
         void DrawModeSwitch(Rect r, float t)
         {
-            int n = trainLayout > 0 ? 5 : 4;  // (the Training mockup: a fifth key, TrainingUi.cs)
+            int n = ModeCarousel.Length;
             bool calm = fxReduced, host = session.IsHost;
             var ev = Event.current;
-            int mode = trainLayout > 0 ? 4 : (int)session.Mode;  // the carousel is in GameMode order
+            int mode = System.Array.IndexOf(ModeCarousel, session.Mode);  // the carousel's slot (ModeCarousel order)
+            if (mode < 0)
+                mode = 1;
             int d0 = ((mode - modeTurn) % n + n) % n;  // follow the session the short way round (the host's turn, or someone else's)
             if (!modeTurnSet)
             {
@@ -287,18 +296,18 @@ namespace Arena
                 var kr = new Rect(Mathf.Round(cx + d * step - w / 2f), Mathf.Round(r.center.y - h / 2f), Mathf.Round(w), Mathf.Round(h));
                 bool top = i == mode && ad < 0.5f;
                 Ui.Alpha = oldAlpha * a;
-                bool train = trainLayout > 0 && i == 4;
-                bool click = DkKey(kr, train ? "TRAINING" : ModeTitle(i), top, calm, size: ad < 0.5f ? 15 : 12, minSize: 9, enabled: host && ad < 1.2f,
-                    accent: train ? TrainColor : ModeAccent(i));
+                int gm = (int)ModeCarousel[i];
+                bool click = DkKey(kr, ModeTitle(gm), top, calm, size: ad < 0.5f ? 15 : 12, minSize: 9, enabled: host && ad < 1.2f,
+                    accent: ModeAccent(gm));
                 if (top)  // a neon tube round the mode in play, fading as it slides off the middle
-                    Ui.NeonRim(kr, (train ? TrainColor : ModeAccent(i)) ?? CrtStyle.Ink, 1f - ad * 2f);
+                    Ui.NeonRim(kr, ModeAccent(gm) ?? CrtStyle.Ink, 1f - ad * 2f);
                 Ui.Alpha = oldAlpha;
                 if (click && i != mode)
                     turnTo = modeTurn + (d > 0f ? 1 : -1);
                 if (ModeHoverTips && ad < 0.5f && kr.Contains(ev.mousePosition))  // the description is a hover tip, on the middle mode only
                 {
-                    TipStart(kr, ModeTitle(i), CrtStyle.Ink);
-                    TipAdd(ModeSub(i), 13, Ui.Text);
+                    TipStart(kr, ModeTitle(gm), CrtStyle.Ink);
+                    TipAdd(ModeSub(gm), 13, Ui.Text);
                     if (!host)
                         TipAdd("Only the host can switch the mode.", 11, Ui.Muted);
                 }
@@ -317,7 +326,7 @@ namespace Arena
                 int m = ((turnTo % n) + n) % n;
                 modeTurn = turnTo;
                 if (m != mode)
-                    session.SetMode((GameMode)m);
+                    session.SetMode(ModeCarousel[m]);
             }
         }
 
@@ -1853,7 +1862,7 @@ namespace Arena
                 CrtUi.Text(new Rect(lx, readyRect.y - 30f, lw, 24f), note, 14, waiting == 0 ? CrtStyle.Ink : CrtStyle.Dim, TextAnchor.MiddleCenter, true, calm);
             if (host)
             {
-                bool startOn = session.AllReady && (!session.HuntMode || (session.LobbyHunt != null));  // (a locked hunt can't start)
+                bool startOn = session.AllReady && (!session.HuntMode || (session.LobbyHunt != null)) && !session.TrainingMode;  // (a locked hunt can't start; Training starts from its page)
                 if (DkKey(new Rect(lx, LobbyStartY, lw, LobbyStartH), "START", false, calm, PixelArt.Get("ui_play"), size: 22, minSize: 14, locked: !startOn))
                     session.StartMatch();
             }

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The Game Mode screen: the mode carousel and the mode's own page (Quick Play, Campaign, Boss Hunt,
-    /// Survival) on a full screen of their own, so they never share the big screen with the loadout. It's a view inside the lobby
+    /// Survival, Training) on a full screen of their own, so they never share the big screen with the loadout. It's a view inside the lobby
     /// (the party, readiness and connection stay as they are): the host lands on it when a lobby opens, CHANGE on the lobby's mode
     /// card comes back to it (VIEW for guests), and Back, Esc or TO THE LOBBY go back to the lobby. Open while `lobbyTab` is one of
     /// the mode tabs (IsModeTab). Preview: `LOBBYTAB=8 shot.sh x lobby` (Quick Play; 4 Boss Hunt with HUNT=1).
@@ -18,6 +18,7 @@ namespace Arena
             if (session.HuntMode) return 4;
             if (session.SurvivalMode) return SurvivalTab;
             if (session.QuickMode) return QuickTab;
+            if (session.TrainingMode) return TrainingTab;
             return CampaignTab;
         }
 
@@ -78,8 +79,8 @@ namespace Arena
 
             // The mode's page.
             var page = new Rect(PartyX, ModePageTop, W - 2f * PartyX, ModePageBottom - ModePageTop);
-            if (lobbyTab == TrainingTab)
-                DrawTrainingTab(page, t);  // TrainingUi.cs (mockup)
+            if (lobbyTab == TrainingTab && session.TrainingMode)
+                DrawTrainingTab(page, t);  // TrainingUi.cs
             else if (lobbyTab == 4 && session.HuntMode)
                 DrawHuntPicker(page, t);  // HuntUi.cs
             else if (lobbyTab == QuickTab && session.QuickMode)
