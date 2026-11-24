@@ -1,0 +1,418 @@
+<title>Hive Queen Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: title, today's look, then three directions (one big live view that cycles her phases + a strip of every phase), then all three at game scale beside her bees.
+   Colour: the Hive's own palette (amber, honey, wax, red for warnings), on warm black. Dark only: the arena is dark and the draw style is phosphor vector.
+   Type: Barlow Condensed names, Barlow body, Plex Mono labels — same family as the Hive Roster mockup. */
+:root{
+  --bg:#0d0b07; --panel:#16120a; --arena:#0a0805; --line:#2f2713; --fg:#f4ead0; --muted:#a09578;
+  --amber:#ffc533; --honey:#ffa21a; --wax:#f3e4b3; --red:#ff5a3c;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1{font:700 clamp(44px,9vw,76px)/.92 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;color:var(--amber);text-wrap:balance}
+h2{font:700 34px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0;text-wrap:balance}
+p{margin:0}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.lede{max-width:62ch;color:var(--muted)}
+.frame{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--arena);max-width:100%}
+canvas{display:block;width:100%;height:auto}
+.today{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px;align-items:center}
+.today img{display:block;width:100%;height:auto}
+.today ul{margin:0;padding-left:18px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+.today li b{color:var(--fg);font-weight:600}
+section.opt{display:flex;flex-direction:column;gap:14px}
+.ohead{display:flex;justify-content:space-between;align-items:baseline;gap:8px 16px;flex-wrap:wrap}
+.tag{font:500 12px var(--mono);color:var(--honey);letter-spacing:.06em;text-transform:uppercase}
+.pitch{max-width:70ch}
+.big canvas{aspect-ratio:480/280}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:500 12px var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:6px 10px;cursor:pointer}
+.chips button[aria-pressed="true"]{color:#140f05;background:var(--amber);border-color:var(--amber)}
+.chips button:focus-visible{outline:2px solid var(--wax);outline-offset:2px}
+.strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.strip figure{margin:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.strip canvas{aspect-ratio:1/1}
+.strip figcaption{font:500 11px var(--mono);color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.strip figcaption b{color:var(--fg);font-weight:500;display:block}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:8px 24px;color:var(--muted);font-size:15px}
+.notes p b{color:var(--wax);font-weight:600}
+.scale canvas{aspect-ratio:800/190}
+.foot{font:400 13px var(--mono);color:var(--muted);max-width:80ch}
+@media (max-width:640px){.today{grid-template-columns:1fr}.strip{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){.chips button{transition:none}}
+</style>
+
+<main>
+<header>
+  <div class="eyebrow">Boss look · Hive Queen · mockup</div>
+  <h1>The Hive Queen, reworked</h1>
+  <p class="lede">Three directions for her body, each shown live and through every phase (Swarm, Honeycomb, Frenzy, Last Stand) plus airborne in a royal dive. Same palette and body plan as her Hive bees, so she reads as their queen.</p>
+</header>
+
+<section class="today">
+  <div class="frame"><img src="today.png" alt="Today's Hive Queen: a flat yellow hexagon above two detailed bombers"></div>
+  <div>
+    <div class="eyebrow">Today (Tools/Preview render)</div>
+    <ul>
+      <li><b>A flat hexagon.</b> Her own bombers and bees are drawn with more detail than she is.</li>
+      <li><b>No facing.</b> You can't tell where she's aiming or what she's winding up.</li>
+      <li><b>Phases change little on her.</b> Only rings and glows around the hex.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="opt" id="opt-a">
+  <div class="ohead"><h2>A · Monarch</h2><span class="tag">regal · long body · four wings</span></div>
+  <p class="pitch">A big queen bee: long tapered abdomen with a stinger, four wax wings, a gold tiara and a glowing wax gem on her back. Phases change her armour: wax scales grow over her abdomen in the Honeycomb, she burns red with torn wings in the Frenzy, and loses a wing and leaks honey in the Last Stand.</p>
+  <div class="frame big"><canvas data-opt="0" width="960" height="560"></canvas></div>
+  <div class="chips" data-for="0"></div>
+  <div class="strip" data-opt="0"></div>
+</section>
+
+<section class="opt" id="opt-b">
+  <div class="ohead"><h2>B · Brood Mother</h2><span class="tag">grotesque · egg sac · stubby wings</span></div>
+  <p class="pitch">A small head and thorax dragging a huge, see-through egg sac that pulses with eggs and larvae. It ties straight into her Eggs turn and drones. The sac is wrapped in wax in the Honeycomb, glows red and boils in the Frenzy, and hangs half-empty and leaking in the Last Stand.</p>
+  <div class="frame big"><canvas data-opt="1" width="960" height="560"></canvas></div>
+  <div class="chips" data-for="1"></div>
+  <div class="strip" data-opt="1"></div>
+</section>
+
+<section class="opt" id="opt-c">
+  <div class="ohead"><h2>C · Comb Throne</h2><span class="tag">armoured · orbiting comb · readable health</span></div>
+  <p class="pitch">A slimmer queen inside a ring of six comb cells she carries like armour. The ring tells the fight's progress at a glance: brood cells with drones in the Swarm, sealed wax walls in the Honeycomb, three cracked red cells in the Frenzy, and none left in the Last Stand.</p>
+  <div class="frame big"><canvas data-opt="2" width="960" height="560"></canvas></div>
+  <div class="chips" data-for="2"></div>
+  <div class="strip" data-opt="2"></div>
+</section>
+
+<section class="opt">
+  <div class="ohead"><h2>At game scale</h2><span class="tag">beside her Worker, Soldier and Bumble</span></div>
+  <div class="frame scale"><canvas id="scale" width="1600" height="380"></canvas></div>
+  <div class="notes">
+    <p><b>All three</b> face where she aims (the head and tiara turn toward her target), so fans, sprays and dives have a visible wind-up direction.</p>
+    <p><b>Kept from today:</b> the drone shield's orbit, the dive shadow and its red ring, the frenzy and last-stand rings, the Honeycomb floor.</p>
+    <p><b>Drawing:</b> only shapes the game already draws (triangles, circles, lines, arcs); the soft glow here stands in for the game's glow pass, so expect it a bit crisper in Unity.</p>
+  </div>
+</section>
+
+<p class="foot">Pick one (or mix parts, e.g. B's egg sac with C's comb ring) and I'll port it into QueenLook.cs with Tools/Preview renders of each phase.</p>
+</main>
+
+<script>
+(function(){
+var TAU=Math.PI*2;
+var C={amber:'#ffc533',honey:'#ffa21a',wax:'#f3e4b3',red:'#ff5a3c',white:'#fff7e0',orange:'#ff7a1f',frenzy:'#ff6e45',pale:'#ffec9a',bumble:'#e8920c',brown:'#2a1d08',player:'#9fe8ff',floor:'#2a2210',gold:'#ffd75a',dark:'#1a1206'};
+var STAGES=['Swarm','Honeycomb','Frenzy','Last Stand','Royal dive'];
+var STAGE_HP=['100–65%','65–30%','30–0%','last stand','frenzy'];
+function clamp(v,a,b){a=a==null?0:a;b=b==null?1:b;return Math.max(a,Math.min(b,v));}
+function lerp(a,b,t){return a+(b-a)*t;}
+function rnd(n){var x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x);}
+var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- drawing helpers (vector, glow) ---------- */
+function stroke(c,col,w,blur){c.strokeStyle=col;c.lineWidth=w;c.shadowColor=col;c.shadowBlur=blur==null?8:blur;c.lineJoin='round';c.lineCap='round';c.stroke();}
+function shape(c,col,fillA,w,blur){c.save();c.globalAlpha*=fillA;c.fillStyle=col;c.shadowBlur=0;c.fill();c.restore();stroke(c,col,w,blur);}
+function fill(c,col,a){c.save();c.globalAlpha*=a;c.fillStyle=col;c.shadowBlur=0;c.fill();c.restore();}
+function pathPts(c,pts,close){c.beginPath();for(var i=0;i<pts.length;i++){if(i)c.lineTo(pts[i][0],pts[i][1]);else c.moveTo(pts[i][0],pts[i][1]);}if(close)c.closePath();}
+function poly(c,x,y,r,n,rot){var p=[];for(var i=0;i<n;i++){var a=rot+i*TAU/n;p.push([x+Math.cos(a)*r,y+Math.sin(a)*r]);}pathPts(c,p,true);}
+function ell(c,x,y,rx,ry,rot){c.beginPath();c.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),rot||0,0,TAU);}
+function line(c,x1,y1,x2,y2,col,w,blur){c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);stroke(c,col,w,blur);}
+function ring(c,x,y,r,col,w,a0,a1){c.beginPath();c.arc(x,y,r,a0==null?0:a0,a1==null?TAU:a1);stroke(c,col,w,6);}
+function dot(c,x,y,r,col,blur){c.beginPath();c.arc(x,y,r,0,TAU);c.fillStyle=col;c.shadowColor=col;c.shadowBlur=blur||0;c.fill();}
+function withAlpha(c,a,fn){c.save();c.globalAlpha*=clamp(a);fn();c.restore();}
+
+function floor(c,W,H,stage,t){
+  c.fillStyle='#0a0805';c.fillRect(0,0,W,H);
+  c.save();c.shadowBlur=0;c.lineWidth=1;
+  var R=22,dx=R*1.5,dy=Math.sqrt(3)*R;
+  var col=stage===1?'#4a3a14':stage>=2&&stage<=3?'#4a1f12':C.floor;
+  c.strokeStyle=col;c.globalAlpha=stage===1||stage===2?.8:.55;
+  for(var gx=-1;gx*dx<W+R;gx++)for(var gy=-1;gy*dy<H+dy;gy++){
+    var cx=gx*dx,cy=gy*dy+(gx&1?dy/2:0);poly(c,cx,cy,R-1,6,0);c.stroke();}
+  c.restore();
+}
+function player(c,x,y,a){
+  c.save();c.translate(x,y);c.rotate(a);
+  pathPts(c,[[9,0],[-6,-6],[-3,0],[-6,6]],true);shape(c,C.player,.25,1.6,8);c.restore();
+}
+
+/* ---------- the Hive's bees (from the Hive Roster mockup) ---------- */
+function insect(c,o){
+  var s=o.s||1,t=o.t||0,col=o.col,ar=o.abd||[8,5.5],tr=o.th||4.5,hr=o.head||3.4,wl=o.wing||[10,3.4];
+  c.save();c.translate(o.x,o.y);c.rotate(o.ang||0);c.scale(s,s);
+  var ax=-(ar[0]+tr*.55),hx=tr*.95+hr*.5,fl=Math.sin(t*(o.flap||50));
+  [-1,1].forEach(function(sd){
+    ell(c,-wl[0]*.3,sd*(tr+wl[1]*.55),wl[0],wl[1]*(.55+.45*Math.abs(fl)),sd*.45);
+    c.save();c.globalAlpha*=.5;shape(c,C.white,.12,1,3);c.restore();});
+  ell(c,ax,0,ar[0],ar[1]);shape(c,col,.22,1.8,9);
+  var n=o.stripes==null?2:o.stripes;
+  for(var i=0;i<n;i++){var xx=ax-ar[0]*.55+(i+.5)*ar[0]*1.1/n;var h=ar[1]*Math.sqrt(Math.max(0,1-Math.pow((xx-ax)/ar[0],2)))*.92;
+    line(c,xx,-h,xx,h,col,1.5,3);}
+  c.beginPath();c.arc(0,0,tr,0,TAU);shape(c,col,.3,1.8,9);
+  if(o.armor){poly(c,0,0,tr+2.6,6,0);stroke(c,col,1.4,6);}
+  if(o.fuzz){for(var k=0;k<o.fuzz;k++){var a=k*TAU/o.fuzz,j=1+.25*Math.sin(t*9+k*1.7),rr=(k%2?tr+3.5:tr+5)*j;
+    line(c,Math.cos(a)*tr*.9,Math.sin(a)*tr*.9,Math.cos(a)*rr,Math.sin(a)*rr,col,1.1,2);}}
+  c.beginPath();c.arc(hx,0,hr,0,TAU);shape(c,col,.35,1.8,9);
+  if(o.mand!=null){var m=o.mand;[-1,1].forEach(function(sd){
+    c.beginPath();c.moveTo(hx+hr*.8,sd*hr*.35);c.quadraticCurveTo(hx+hr+5,sd*(hr*.9+m*4.5),hx+hr+7,sd*(1.2+m*3.2));stroke(c,col,1.8,6);});}
+  c.restore();
+}
+var K={};
+K.worker=function(c,x,y,a,t,s){insect(c,{x:x,y:y,ang:a,t:t,s:(s||1)*1.15,col:C.amber,abd:[6,4.2],th:3.5,head:2.7,stripes:2,wing:[8,3],flap:62});};
+K.soldier=function(c,x,y,a,t){insect(c,{x:x,y:y,ang:a,t:t,s:1.45,col:C.orange,abd:[9,6.5],th:5.4,head:4.2,stripes:3,wing:[10,3.4],flap:34,armor:true,mand:.3});};
+K.bumble=function(c,x,y,a,t){insect(c,{x:x,y:y,ang:a,t:t,s:1.9,col:C.bumble,abd:[8.5,7],th:6.2,head:3.8,stripes:3,wing:[7,2.8],flap:26,fuzz:16});};
+
+/* ---------- queen parts (local coords: facing +x, 1 unit = 1 game px at s=1) ---------- */
+function bodyCol(stage){return stage===2||stage===3?C.frenzy:C.amber;}
+
+/* a wing from the root, swept back; torn = notches cut in its rim */
+function wing(c,rx,ry,len,wid,ang,flap,col,torn,alpha){
+  c.save();c.translate(rx,ry);c.rotate(ang);
+  var w=wid*(.6+.4*Math.abs(flap));
+  var pts=[],N=14;
+  for(var i=0;i<=N;i++){var u=i/N,a=Math.PI*u;
+    var x=-Math.sin(a*.5+Math.PI*.0)*0+(-len*u),y=Math.sin(a)*w*(1-.35*u);
+    if(torn&&i>3&&i<N-1&&rnd(i*7.3+len)<.45)y*=.45;
+    pts.push([x,y]);}
+  for(var j=N;j>=0;j--){var u2=j/N;pts.push([-len*u2,-Math.sin(Math.PI*u2)*w*.25]);}
+  pathPts(c,pts,true);
+  c.save();c.globalAlpha*=alpha==null?.6:alpha;shape(c,C.wax,.14,1.1,4);c.restore();
+  /* veins */
+  c.save();c.globalAlpha*=.35*(alpha==null?1:alpha);
+  line(c,0,0,-len*.92,w*.18,C.wax,.8,0);line(c,-len*.35,w*.12,-len*.7,w*.7,C.wax,.7,0);line(c,-len*.55,w*.18,-len*.85,w*.45,C.wax,.7,0);
+  c.restore();c.restore();
+}
+
+/* tapered abdomen outline (Monarch): profile half-width at u in [0,1] from waist (0) to tip (1) */
+function taper(u,maxW){return maxW*Math.sin(Math.PI*Math.pow(u,.62))*(1-.15*u)+.6;}
+function abdomenPath(c,x0,len,maxW){
+  var pts=[],N=22;
+  for(var i=0;i<=N;i++){var u=i/N;pts.push([x0-len*u,taper(u,maxW)]);}
+  for(var j=N;j>=0;j--){var u2=j/N;pts.push([x0-len*u2,-taper(u2,maxW)]);}
+  pathPts(c,pts,true);
+}
+
+function head(c,hx,hr,col,t,stage,crown){
+  /* antennae: elbowed, flick */
+  var fl=Math.sin(t*3)*.12;
+  [-1,1].forEach(function(sd){
+    var bx=hx+hr*.6,by=sd*hr*.45,ex=bx+hr*1.1,ey=sd*(hr*1.0+2)+sd*fl*6;
+    c.beginPath();c.moveTo(bx,by);c.lineTo(ex,ey);c.lineTo(ex+hr*.9,ey+sd*(hr*.45)+sd*fl*4);stroke(c,col,1.4,4);
+    dot(c,ex+hr*.9,ey+sd*(hr*.45)+sd*fl*4,1.4,col,4);});
+  c.beginPath();c.arc(hx,0,hr,0,TAU);shape(c,col,.35,2,9);
+  /* compound eyes */
+  [-1,1].forEach(function(sd){ell(c,hx+hr*.15,sd*hr*.58,hr*.48,hr*.3,sd*.35);fill(c,C.dark,.9);
+    ell(c,hx+hr*.15,sd*hr*.58,hr*.48,hr*.3,sd*.35);stroke(c,col,1,3);
+    dot(c,hx+hr*.3,sd*hr*.52,Math.max(.8,hr*.09),stage===2||stage===3?C.red:C.white,stage>=2?6:0);});
+  /* mandibles */
+  [-1,1].forEach(function(sd){c.beginPath();c.moveTo(hx+hr*.85,sd*hr*.25);c.quadraticCurveTo(hx+hr*1.35,sd*hr*.5,hx+hr*1.45,sd*hr*.12);stroke(c,col,1.4,4);});
+  if(crown){ /* tiara: five gold spikes round the back of the head, a gem in the middle */
+    var cc=stage>=2&&stage<=3?C.orange:C.gold;
+    for(var k=0;k<5;k++){var a=Math.PI+(k-2)*.42,r0=hr*.95,r1=hr*(k===2?1.75:1.45);
+      var p0=[hx+Math.cos(a-.15)*r0,Math.sin(a-.15)*r0],p1=[hx+Math.cos(a)*r1,Math.sin(a)*r1],p2=[hx+Math.cos(a+.15)*r0,Math.sin(a+.15)*r0];
+      pathPts(c,[p0,p1,p2],true);shape(c,cc,.55,1.3,8);}
+    ring(c,hx,0,hr*.98,cc,1.3,Math.PI-1.0,Math.PI+1.0);
+  }
+}
+
+/* the drone shield: six cells orbiting, a drone in each (today it's six empty hexes) */
+function droneShield(c,R,t,s){
+  ring(c,0,0,R+10,'rgba(255,220,120,.25)',1.2);
+  for(var i=0;i<6;i++){var a=i*TAU/6+t*.3,x=Math.cos(a)*R,y=Math.sin(a)*R;
+    poly(c,x,y,10,6,a);c.save();c.globalAlpha*=.55+.2*Math.sin(t*6+i);stroke(c,C.pale,1.4,8);c.restore();
+    K.worker(c,x,y,a+Math.PI/2,t+i,.7/s);}
+}
+
+function embers(c,t,n,spread,col){
+  for(var i=0;i<n;i++){var p=(t*.6+rnd(i))%1,a=rnd(i+9)*TAU,r=spread*(.3+.7*rnd(i+3));
+    withAlpha(c,(1-p)*.9,function(){dot(c,Math.cos(a)*r+Math.sin(t*2+i)*4,Math.sin(a)*r-p*36,1.4,col,6);});}
+}
+function honeyDrip(c,x,y,t,n){
+  for(var i=0;i<n;i++){var p=(t*.5+i/n)%1;withAlpha(c,1-p,function(){dot(c,x-p*26-i*2,y+Math.sin(i*2.1)*5+p*4,2.4-1.4*p,C.honey,8);});}
+}
+
+/* ---------- A · Monarch ---------- */
+function monarch(c,stage,t,air,thin){
+  var col=bodyCol(stage),tr=thin?9:12,hr=thin?6.5:8.5,len=thin?34:44,maxW=thin?10:14.5,x0=-tr*.7;
+  var fl=Math.sin(t*(air>0?70:stage===2?44:28)),torn=stage>=2,frz=stage===2||stage===3;
+  /* legs */
+  [-1,1].forEach(function(sd){for(var k=0;k<3;k++){var lx=lerp(-tr*.6,tr*.7,k/2),sw=Math.sin(t*4+k+sd)*1.5;
+    c.beginPath();c.moveTo(lx,sd*tr*.7);c.lineTo(lx+(k-1)*5,sd*(tr+6));c.lineTo(lx+(k-1)*9+sw,sd*(tr+11));stroke(c,col,1.3,3);}});
+  /* wings: hind then fore (Last Stand: left forewing gone) */
+  [-1,1].forEach(function(sd){
+    wing(c,-tr*.1,sd*tr*.55,len*.62,tr*.75,Math.PI+sd*(.55+.12*fl),fl,col,torn,air>0?.35:.55);
+    if(!(stage===3&&sd<0))wing(c,tr*.15,sd*tr*.65,len*.95,tr*.95,Math.PI+sd*(.32+.1*fl),fl,col,torn,air>0?.35:.6);
+  });
+  if(stage===3){withAlpha(c,.6,function(){line(c,tr*.15,-tr*.65,-6,-tr*1.3,col,1.2,4);line(c,-6,-tr*1.3,-3,-tr*1.6,col,1,2);});}
+  /* abdomen + stinger */
+  abdomenPath(c,x0,len,maxW);shape(c,col,frz?.3:.22,2,10);
+  var tipx=x0-len;
+  pathPts(c,[[tipx+2,-2.4],[tipx-9,0],[tipx+2,2.4]],true);shape(c,frz?C.red:col,.6,1.4,8);
+  for(var i=1;i<=5;i++){var u=i/6.2,xx=x0-len*u,h=taper(u,maxW)*.92;
+    var sc=frz?(i%2?C.pale:C.orange):col;line(c,xx,-h,xx,h,sc,frz?2.2:1.6,frz?10:3);}
+  if(stage===1||stage===3){ /* wax scales over the abdomen */
+    for(var r=0;r<3;r++)for(var q=-2;q<=2;q++){var u3=.18+r*.24,xx2=x0-len*u3+(q&1?3:0),yy=q*5.6,h3=taper(u3,maxW);
+      if(Math.abs(yy)+3>h3)continue;if(stage===3&&rnd(r*11+q)<.5)continue;
+      poly(c,xx2,yy,3.1,6,0);shape(c,C.wax,.3,1,4);}
+  }
+  if(stage===3)honeyDrip(c,tipx+4,0,t,5);
+  /* thorax with the gem */
+  c.beginPath();c.arc(0,0,tr,0,TAU);shape(c,col,.32,2,10);
+  ring(c,0,0,tr*.62,col,1,-.9,.9);ring(c,0,0,tr*.62,col,1,Math.PI-.9,Math.PI+.9);
+  poly(c,-tr*.1,0,tr*.32,6,Math.PI/6);shape(c,frz?C.red:C.wax,.65+.25*Math.sin(t*3),1.4,14);
+  if(stage===3){line(c,tr*.3,-tr*.7,-tr*.2,-tr*.1,C.dark,1.4,0);line(c,-tr*.2,-tr*.1,tr*.1,tr*.4,C.dark,1.2,0);}
+  head(c,tr*.95+hr*.55,hr,col,t,stage,true);
+}
+
+/* ---------- B · Brood Mother ---------- */
+function brood(c,stage,t,air){
+  var col=bodyCol(stage),tr=10,hr=7,frz=stage===2||stage===3;
+  var pulse=1+.045*Math.sin(t*(stage===2?7:2.6)),rx=34*pulse,ry=(stage===3?18:25)*pulse,ax=-(tr*.55+rx-2);
+  var fl=Math.sin(t*(air>0?80:52));
+  [-1,1].forEach(function(sd){for(var k=0;k<3;k++){var lx=lerp(-tr*.6,tr*.7,k/2),sw=Math.sin(t*5+k+sd)*1.5;
+    c.beginPath();c.moveTo(lx,sd*tr*.7);c.lineTo(lx+(k-1)*4,sd*(tr+5));c.lineTo(lx+(k-1)*7+sw,sd*(tr+9));stroke(c,col,1.3,3);}});
+  /* the sac */
+  ell(c,ax,0,rx,ry);
+  c.save();c.globalAlpha*=frz?.32:.16;c.fillStyle=frz?C.red:C.wax;c.shadowBlur=0;c.fill();c.restore();
+  ell(c,ax,0,rx,ry);stroke(c,col,2,12);
+  /* segment arcs */
+  for(var i=1;i<=4;i++){var xx=ax+rx-i*rx*.42,h=ry*Math.sqrt(Math.max(0,1-Math.pow((xx-ax)/rx,2)));
+    c.beginPath();c.moveTo(xx,-h*.95);c.quadraticCurveTo(xx-6,0,xx,h*.95);stroke(c,col,1.2,3);}
+  /* eggs inside */
+  var eggs=stage===3?2:7;
+  for(var e=0;e<eggs;e++){var ea=e*2.4+.4,er=e===0?0:(.35+.35*rnd(e))*1,ex=ax+Math.cos(ea)*rx*er*.8,ey=Math.sin(ea)*ry*er*.75;
+    var jit=stage===2?Math.sin(t*22+e)*1.4:Math.sin(t*2+e)*.6;
+    ell(c,ex+jit,ey,5.2,3.6,ea);shape(c,C.wax,.5,1,frz?10:5);
+    dot(c,ex+jit+1,ey,1.5,frz?C.red:C.honey,frz?8:3);}
+  if(stage===1){ /* wax lattice over the sac */
+    c.save();ell(c,ax,0,rx-1,ry-1);c.clip();
+    for(var gx=-4;gx<=4;gx++)for(var gy=-3;gy<=3;gy++){var cx=ax+gx*10.5,cy=gy*12+(gx&1?6:0);poly(c,cx,cy,6.6,6,0);c.save();c.globalAlpha*=.55;stroke(c,C.wax,1,3);c.restore();}
+    c.restore();}
+  if(stage===3){line(c,ax+10,-ry*.6,ax-4,-ry*.1,C.dark,1.4,0);line(c,ax-4,-ry*.1,ax-14,ry*.3,C.dark,1.2,0);honeyDrip(c,ax-rx+4,4,t,6);}
+  /* ovipositor */
+  pathPts(c,[[ax-rx+2,-3],[ax-rx-8,0],[ax-rx+2,3]],true);shape(c,col,.5,1.4,6);
+  /* stubby wings */
+  [-1,1].forEach(function(sd){wing(c,tr*.1,sd*tr*.6,24,8,Math.PI+sd*(.95+.15*fl),fl,col,stage>=2,air>0?.35:.6);});
+  c.beginPath();c.arc(0,0,tr,0,TAU);shape(c,col,.34,2,10);
+  if(stage!==3){poly(c,0,0,tr*.38,6,Math.PI/6);shape(c,frz?C.red:C.wax,.6,1.2,10);}
+  head(c,tr*.95+hr*.55,hr,col,t,stage,true);
+}
+
+/* ---------- C · Comb Throne ---------- */
+function throne(c,stage,t,air,ang){
+  var R=46,cells=stage===0||stage===1||stage===4?6:stage===2?3:0,spin=t*(stage===2?.9:.35);
+  /* the ring sits in world space (doesn't turn with her), drawn first so she's on top */
+  c.save();c.rotate(-ang);
+  if(stage===1){ /* sealed: walls between cells */
+    for(var i=0;i<6;i++){var a0=spin+i*TAU/6,a1=spin+(i+1)*TAU/6;
+      line(c,Math.cos(a0)*R,Math.sin(a0)*R,Math.cos(a1)*R,Math.sin(a1)*R,C.wax,3,8);}}
+  for(var k=0;k<cells;k++){var a=spin+k*TAU/6*(stage===2?2:1),x=Math.cos(a)*R,y=Math.sin(a)*R;
+    var cc=stage===2?C.frenzy:C.wax;
+    poly(c,x,y,14,6,a);shape(c,cc,stage===1?.55:.18,2,stage===2?14:8);
+    poly(c,x,y,9.5,6,a);c.save();c.globalAlpha*=.6;stroke(c,stage===2?C.red:C.amber,1,3);c.restore();
+    if(stage===0||stage===4){ /* a curled larva / drone waiting */
+      c.beginPath();c.arc(x,y,4.6,a,a+4.4);stroke(c,C.white,2.2,6);}
+    if(stage===1){line(c,x-4,y-4,x+4,y+4,C.amber,1,0);line(c,x-4,y+4,x+4,y-4,C.amber,1,0);}
+    if(stage===2){line(c,x-6,y-3,x,y+1,C.dark,1.3,0);line(c,x,y+1,x+3,y+7,C.dark,1.2,0);dot(c,x,y,3,C.honey,10);}
+    /* a strut to her */
+    c.save();c.globalAlpha*=.35;line(c,Math.cos(a)*18,Math.sin(a)*18,Math.cos(a)*(R-14),Math.sin(a)*(R-14),cc,1.2,0);c.restore();
+  }
+  if(stage===3){ /* shards left on the floor */
+    for(var j=0;j<5;j++){var sa=j*1.3+.5,sr=56+rnd(j)*14;withAlpha(c,.5,function(){pathPts(c,[[Math.cos(sa)*sr,Math.sin(sa)*sr],[Math.cos(sa)*sr+6,Math.sin(sa)*sr+2],[Math.cos(sa)*sr+2,Math.sin(sa)*sr+6]],true);shape(c,C.wax,.3,1,3);});}}
+  c.restore();
+  monarch(c,stage===4?0:stage,t,air,true);
+}
+
+var DRAW=[function(c,st,t,air){monarch(c,st===4?0:st,t,air,false);},function(c,st,t,air){brood(c,st===4?0:st,t,air);},function(c,st,t,air,ang){throne(c,st,t,air,ang);}];
+
+/* one queen at x,y facing ang, in a stage (4 = airborne dive) */
+function queen(c,opt,stage,x,y,ang,t,s){
+  var air=stage===4?.5+.5*Math.sin(t*1.6):0;
+  if(stage===4){ /* the dive: shadow on the floor, red landing ring, her lifted and bigger */
+    var sx=x,sy=y+30;
+    withAlpha(c,.45+.25*(1-air),function(){ell(c,sx,sy,62*s*(.6+.4*(1-air)),44*s*(.6+.4*(1-air)),0);c.fillStyle='#000';c.shadowBlur=0;c.fill();});
+    var on=(Math.floor(t*14)&1)===0;withAlpha(c,on?1:.6,function(){ring(c,sx,sy,66*s,C.red,2.2);});
+    y-=10+26*air;s*=1+.18*air;
+  }
+  c.save();c.translate(x,y);
+  if(stage===0&&opt!==2){c.save();c.scale(s,s);droneShield(c,62,t,s);c.restore();}
+  if(stage===2||stage===3){withAlpha(c,1,function(){c.beginPath();c.arc(0,0,(opt===1?70:66)*s,0,TAU);c.fillStyle='rgba(255,90,50,'+(.07+.04*Math.sin(t*8))+')';c.shadowBlur=0;c.fill();});}
+  if(stage===3){ring(c,0,0,(58+3*Math.sin(t*14))*s,'rgba(255,128,51,.85)',3);}
+  if(stage===4){withAlpha(c,.12*air+.06,function(){c.beginPath();c.arc(0,0,72*s,0,TAU);c.fillStyle=C.white;c.shadowBlur=0;c.fill();});
+    withAlpha(c,.4*air,function(){ring(c,0,0,68*s,C.white,1.6);});}
+  c.rotate(ang);c.scale(s,s);
+  DRAW[opt](c,stage,t,air,ang);
+  c.restore();
+  if(stage===2){c.save();c.translate(x,y);c.scale(s,s);embers(c,t,14,46,C.orange);c.restore();}
+}
+
+/* ---------- views ---------- */
+var views=[];
+function view(cv,draw){var c=cv.getContext('2d');views.push({cv:cv,c:c,draw:draw});}
+
+/* big canvas per option: cycles the five states, or pins one from the chips */
+var pinned=[-1,-1,-1],labels=[];
+document.querySelectorAll('canvas[data-opt]').forEach(function(cv){
+  var opt=+cv.dataset.opt,W=480,H=280;
+  var chips=document.querySelector('.chips[data-for="'+opt+'"]');
+  var btns=[];
+  ['Cycle'].concat(STAGES).forEach(function(n,i){var b=document.createElement('button');b.type='button';b.id='chip-'+opt+'-'+i;b.textContent=n;
+    b.setAttribute('aria-pressed',i===0?'true':'false');
+    b.addEventListener('click',function(){pinned[opt]=i-1;btns.forEach(function(x,j){x.setAttribute('aria-pressed',j===i?'true':'false');});});
+    chips.appendChild(b);btns.push(b);});
+  view(cv,function(c,t){
+    c.setTransform(2,0,0,2,0,0);
+    var st=pinned[opt]>=0?pinned[opt]:Math.floor(t/3.2)%5;
+    floor(c,W,H,st,t);
+    var px=405+Math.sin(t*.7)*30,py=150+Math.cos(t*.9)*55,qx=200+Math.sin(t*.5)*22,qy=128+Math.sin(t*.8)*8;
+    var ang=Math.atan2(py-qy,px-qx);
+    /* her attack cue: an aimed fan of honey shots along where she faces */
+    var cyc=(t%3.2)/3.2;
+    if(st!==4&&cyc>.55&&cyc<.95){var f=(cyc-.55)/.4;
+      for(var k=-2;k<=2;k++){var a=ang+k*.16,d=60+f*200;withAlpha(c,1-f*.6,function(){dot(c,qx+Math.cos(a)*d,qy+Math.sin(a)*d,4,st>=2&&st<=3?C.frenzy:C.honey,10);});}}
+    queen(c,opt,st,qx,qy,ang,t,1.12);
+    player(c,px,py,Math.atan2(qy-py,qx-px));
+    /* stage chip */
+    c.save();c.shadowBlur=0;c.font='600 13px "Barlow Condensed", "Arial Narrow", sans-serif';c.fillStyle='rgba(10,8,5,.75)';c.fillRect(10,10,150,24);
+    c.fillStyle=st===2||st===3?C.frenzy:C.amber;c.fillText(STAGES[st].toUpperCase(),18,27);
+    c.fillStyle='#a09578';c.font='500 10px "IBM Plex Mono", monospace';c.fillText(STAGE_HP[st],92,26);c.restore();
+  });
+});
+
+/* strips: all five states side by side */
+document.querySelectorAll('.strip[data-opt]').forEach(function(el){
+  var opt=+el.dataset.opt;
+  STAGES.forEach(function(n,st){
+    var fig=document.createElement('figure');var cv=document.createElement('canvas');cv.width=320;cv.height=320;
+    cv.setAttribute('aria-label',STAGES[st]);
+    var cap=document.createElement('figcaption');cap.innerHTML='<b>'+n+'</b>'+STAGE_HP[st];
+    var fr=document.createElement('div');fr.className='frame';fr.appendChild(cv);fig.appendChild(fr);fig.appendChild(cap);el.appendChild(fig);
+    view(cv,function(c,t){c.setTransform(2,0,0,2,0,0);floor(c,160,160,st,t);queen(c,opt,st,84,st===4?92:80,-.35+Math.sin(t*.6)*.25,t+st*.7,.68);});
+  });
+});
+
+/* scale line: her bees, then the three queens, all at the same scale */
+view(document.getElementById('scale'),function(c,t){
+  var W=800,H=190;c.setTransform(2,0,0,2,0,0);floor(c,W,H,0,t);
+  var y=100;
+  K.worker(c,50,y,0,t);K.soldier(c,110,y,0,t);K.bumble(c,185,y,0,t);
+  queen(c,0,1,345,y,0,t,1);queen(c,1,1,540,y,0,t+.5,1);queen(c,2,1,700,y,0,t+1,.82);
+  c.save();c.shadowBlur=0;c.fillStyle='#a09578';c.font='500 11px "IBM Plex Mono", monospace';
+  [['WORKER',36],['SOLDIER',90],['BUMBLE',165],['A · MONARCH',300],['B · BROOD MOTHER',480],['C · COMB THRONE',650]].forEach(function(l){c.fillText(l[0],l[1],178);});
+  c.restore();
+});
+
+var t0=performance.now();
+function frame(now){
+  var t=reduce?2.1:Math.max(0,(now-t0)/1000);
+  for(var i=0;i<views.length;i++){var v=views[i];v.c.setTransform(1,0,0,1,0,0);v.c.clearRect(0,0,v.cv.width,v.cv.height);v.c.save();v.draw(v.c,t);v.c.restore();}
+  if(!reduce)requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>

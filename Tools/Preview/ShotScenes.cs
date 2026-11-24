@@ -2304,6 +2304,8 @@ static partial class Shot {
       fl(new V2(560f, 330f), 2.6f, 1); fl(new V2(1060f, 360f), 0.6f, 1);
       fl(new V2(470f, 560f), 0f, 2); fl(new V2(1150f, 520f), MathX.Pi, 2);
       var qn = (Enemy)sef.Invoke(host.Game, new object[] { EnemyType.HiveQueen, new V2(800f, 160f), 0f, 0, false }); qn.SpawnT = 0f; qn.Disp = qn.Pos;
+      // QUEENSTAGE=<0-3>: her phase (Swarm, Honeycomb, Frenzy, Last Stand), for the Brood Mother's looks (QueenBodyLook.cs).
+      if (Environment.GetEnvironmentVariable("QUEENSTAGE") != null) { int qs = int.Parse(Environment.GetEnvironmentVariable("QUEENSTAGE")); qn.Queen = new QueenState { Turn = QueenTurn.Rest, Step = -1, Stage = (QueenStage)qs }; qn.Hp = qn.MaxHp * new[] { 0.9f, 0.5f, 0.2f, 0.05f }[qs]; }
     }
     if (Environment.GetEnvironmentVariable("BOULDER") != null) {
       // The Golem Staff: charging a throw (BOULDER=<draw seconds>, with the landing marker), and boulders in flight.
