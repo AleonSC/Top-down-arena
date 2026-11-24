@@ -8,7 +8,7 @@ namespace Arena
     /// the pause menu, the lobby's Esc menu, Settings, How to play and the Records pages. A tall cabinet on the left holds a
     /// header screen and one screen of digital keys (the pause menu's choices, or Settings' four sections); what a key opens
     /// is a CRT window to its right, which slides out of the cabinet the first time and only retypes after that. The pause
-    /// menu leaves the frozen arena in view, with a "this run" screen over it when no window is out.
+    /// menu leaves the frozen arena in view (the old "this run" screen, DrawRunScreen, is no longer drawn).
     public partial class ArenaApp
     {
         // The floating cabinet: 24 px in from the left, top and bottom; CabW x CabH is the inside of its 1 px outline.
@@ -296,7 +296,6 @@ namespace Arena
             CabFoot(null, "HOLD TAB RUN STATS & BUILD   H HIDE HUD");
             EndDrawer();
             DrawTip(true);
-            DrawRunScreen(t);
         }
 
         /// The small square key in the pause box's header, lined up with the right edge of the rows: three statistic bars, "Current run
@@ -412,7 +411,6 @@ namespace Arena
             }
             EndDrawerScreen();
             EndDrawer();
-            DrawRunScreen(t);
         }
 
         void ConfirmQuit(int choice)
