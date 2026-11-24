@@ -9,8 +9,20 @@ using Arena;
 // DUELLAST=<s>: the last stand that long after it began (its entrance runs 1.4 s), one Duelist in the middle in its circle.
 // DUELDECOY=<s>: the Masquerade that long after its decoys appeared (their entrance runs 0.6 s): the Duelist and three
 // decoys sliding out from it to their places round you.
+// DUELGONE=<s>: as DUELDECOY=1, but the three decoys shattered that long ago (the shatter runs 0.55 s).
 // e.g. DUELSHEET=2 ZOOM=3 KNIGHT=1 CAMAT=800,450 Tools/Preview/shot.sh x hud 3 1 1
 static partial class Shot {
+  /// Tell the game's look when it first and last drew a decoy (ArenaApp.decoySeen, DuelistBodyLook.cs); goneAt >= 0: shattering since then.
+  static void SeenDecoy(int id, float at, float last, float goneAt, V2 pos, float face, float r) {
+    var fl = BindingFlags.NonPublic | BindingFlags.Instance;
+    var dict = typeof(ArenaApp).GetField("decoySeen", fl).GetValue(app);
+    var type = typeof(ArenaApp).GetNestedType("DecoySeen", BindingFlags.NonPublic);
+    var o = Activator.CreateInstance(type, true);
+    foreach (var kv in new (string, object)[] { ("At", at), ("Last", last), ("GoneAt", goneAt), ("Face", face), ("R", r), ("Pos", pos) })
+      type.GetField(kv.Item1).SetValue(o, kv.Item2);
+    dict.GetType().GetProperty("Item").SetValue(dict, o, new object[] { id });
+  }
+
   static void DuelistSheetScene() {
     string sheet = Environment.GetEnvironmentVariable("DUELSHEET"), trans = Environment.GetEnvironmentVariable("DUELTRANS");
     if (trans != null) {
@@ -51,7 +63,9 @@ static partial class Shot {
       var you = new V2(Game.Width / 2f, Game.Height / 2f + 60f);
       var fl = BindingFlags.NonPublic | BindingFlags.Instance;
       var drawn = (Game)typeof(ArenaApp).GetField("game", fl | BindingFlags.Public).GetValue(app);
-      var seen = (System.Collections.Generic.Dictionary<int, float>)typeof(ArenaApp).GetField("decoySeenAt", fl).GetValue(app);
+      string goneEnv = Environment.GetEnvironmentVariable("DUELGONE");
+      float gone = goneEnv != null ? float.Parse(goneEnv, System.Globalization.CultureInfo.InvariantCulture) : -1f;
+      if (gone >= 0f) since = 1f;
       float out1 = Math.Min(1f, since / 0.8f), ring = 180f;
       V2 home = you + V2.FromAngle(-MathX.Pi / 2f) * ring;
       for (int k = 0; k < 4; k++) {
@@ -59,7 +73,8 @@ static partial class Shot {
         var de = (Enemy)sp.Invoke(host.Game, new object[] { k == 0 ? EnemyType.Duelist : EnemyType.Decoy, at, 0f, 0, false });
         de.Spawning = false; de.SpawnT = 0f; de.Disp = de.Pos = at; de.Facing = (you - at).Angle;
         if (k == 0) { de.Hp = de.MaxHp * 0.6f; de.Duel = new DuelState { Stage = DuelStage.Masquerade, Turn = DuelTurn.Masquerade }; }
-        else { de.Spawning = since < 0.4f; seen[de.Id] = drawn.AnimT - since; }
+        else if (gone >= 0f) { host.Game.Enemies.Remove(de.Id); SeenDecoy(de.Id, drawn.AnimT - 2f, drawn.AnimT - gone - 0.02f, drawn.AnimT - gone, at, de.Facing, de.Radius); }
+        else { de.Spawning = since < 0.4f; SeenDecoy(de.Id, drawn.AnimT - since, drawn.AnimT, -1f, at, de.Facing, de.Radius); }
       }
       foreach (var p in host.Game.Players.Values) { p.Pos = p.Disp = you; p.Aim = MathX.Pi / 2f; }  // (facing away: no hits knocking it on into To the Death)
       return;
@@ -87,7 +102,7 @@ static partial class Shot {
       var e = (Enemy)spawn.Invoke(gm, new object[] { i == 6 ? EnemyType.Decoy : EnemyType.Duelist, at, 0f, 0, false });
       e.Spawning = false; e.SpawnT = 0f; e.Disp = e.Pos = at; e.Facing = face;
       if (i != 6) { e.Duel = new DuelState(); sets[i](e.Duel, e); }
-      else ((System.Collections.Generic.Dictionary<int, float>)typeof(ArenaApp).GetField("decoySeenAt", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(app))[e.Id] = -99f;  // long since in
+      else SeenDecoy(e.Id, -99f, 0f, -1f, at, face, e.Radius);  // long since in
     }
     foreach (var p in gm.Players.Values) { p.Pos = p.Disp = only > 0 ? new V2(Game.Width / 2f + 150f, Game.Height / 2f + 160f) : new V2(Game.Width / 2f, Game.Height / 2f + 380f); p.Aim = MathX.Pi; }
   }

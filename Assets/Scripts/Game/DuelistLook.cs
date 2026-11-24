@@ -11,6 +11,7 @@ namespace Arena
         /// On the floor: the circle, the warning line or trail of a dash, and the blades left hanging (the Duelist's and Blade Dancers').
         void DrawDuelFloor(float t)
         {
+            DrawDecoyExits(t);  // decoys shattering (DuelistBodyLook.cs)
             foreach (var e in game.Enemies.Values)
             {
                 if (e.Type != EnemyType.Duelist && e.Type != EnemyType.BladeDancer && e.Type != EnemyType.Gallant && e.Type != EnemyType.Harlequin || e.Duel == null || game.IsSpawning(e))  // (a Blade Dancer's lunge: CourtFaction.cs)

@@ -18,7 +18,9 @@ namespace Arena
     /// capeless and half-masked, its blade edged in crimson, a crimson glow pulsing round it.
     /// A decoy (the Masquerade's lookalikes, a Blink's leftover) flickers in as a violet silhouette on a violet thread
     /// from the Duelist, then snaps solid with a violet ring (DrawDecoyEntrance, timed from when this client first saw
-    /// it: the snapshot only says it's spawning).
+    /// it: the snapshot only says it's spawning). When one goes (shot down, popped at the end of its turn, or winked out
+    /// by a phase change) it shatters like glass: violet shards and pieces of its mask flying out, its sword spinning
+    /// away, a violet ring (DrawDecoyExits, from where this client last saw it).
     public partial class ArenaApp
     {
         static readonly Rgba DuelInk = new Rgba(0.04f, 0.045f, 0.07f, 0.95f), DuelDark = new Rgba(0.1f, 0.11f, 0.16f),
@@ -46,26 +48,75 @@ namespace Arena
         }
 
         const float DecoyEntry = 0.6f;  // a decoy's entrance, seconds
-        readonly Dictionary<int, float> decoySeenAt = new Dictionary<int, float>();  // when each decoy was first drawn
+        const float DecoyExit = 0.55f;  // a decoy's shatter, seconds
+        class DecoySeen { public float At, Last, GoneAt = -1f, Face, R; public V2 Pos; }
+        readonly Dictionary<int, DecoySeen> decoySeen = new Dictionary<int, DecoySeen>();  // each decoy: first and last drawn, where
+
+        /// Decoys that just went: a shatter where each was last seen. Called each frame (DrawDuelFloor).
+        void DrawDecoyExits(float t)
+        {
+            if (decoySeen.Count == 0)
+                return;
+            List<int> done = null;
+            foreach (var kv in decoySeen)
+            {
+                var d = kv.Value;
+                if (d.GoneAt < 0f)
+                {
+                    if (game.Enemies.ContainsKey(kv.Key))
+                        continue;
+                    if (t - d.Last > 0.25f)  // long gone (not drawn for a while): no shatter
+                    {
+                        (done = done ?? new List<int>()).Add(kv.Key);
+                        continue;
+                    }
+                    d.GoneAt = t;
+                }
+                float k = (t - d.GoneAt) / DecoyExit;
+                if (k >= 1f)
+                {
+                    (done = done ?? new List<int>()).Add(kv.Key);
+                    continue;
+                }
+                DrawDecoyShatter(d.Pos, d.Face, d.R, k, kv.Key, t);
+            }
+            if (done != null)
+                foreach (int id in done)
+                    decoySeen.Remove(id);
+        }
+
+        /// Glass breaking: shards of violet and mask white flying out and spinning, the sword tumbling, a ring.
+        void DrawDecoyShatter(V2 pos, float face, float r, float k, int id, float t)
+        {
+            float ease = 1f - (1f - k) * (1f - k), fade = 1f - k;
+            Arc(pos, r + 70f * ease, 3f * fade + 0.5f, DuelViolet.WithAlpha(0.9f * fade), 32);
+            Circle(pos, r * (1f - 0.7f * k), DuelViolet.WithAlpha(0.3f * fade), 24);
+            for (int i = 0; i < 12; i++)
+            {
+                float a = face + i * 2.399f + id, dist = r * (0.3f + (1.6f + 0.5f * ((i * 7 + id) % 5) / 4f) * ease);
+                float spin = a + k * (i % 2 == 0 ? 7f : -6f), size = r * (i % 3 == 0 ? 0.45f : 0.32f) * (1f - 0.4f * k);
+                V2 c = pos + V2.FromAngle(a) * dist, u = V2.FromAngle(spin), v = u.Orthogonal();
+                Rgba col = (i % 3 == 0 ? DuelMask : i % 3 == 1 ? DuelViolet : DuelSteel).WithAlpha(fade);
+                SetColor(col);
+                Tri(c + u * size, c + v * (size * 0.6f) - u * (size * 0.4f), c - v * (size * 0.7f) - u * (size * 0.2f));
+            }
+            V2 hilt = pos + V2.FromAngle(face + 0.6f) * (r * (0.8f + 1.2f * ease));  // its sword, tumbling away
+            V2 dir = V2.FromAngle(face + 0.3f + k * 9f);
+            Line(hilt, hilt + dir * (r * 2f), 2.5f, DuelWhite.WithAlpha(fade));
+            Line(hilt - dir.Orthogonal() * 7f, hilt + dir.Orthogonal() * 7f, 3f, DuelGold.WithAlpha(fade));
+        }
 
         /// A decoy's entrance: a flickering violet silhouette on a thread from the Duelist, then a ring as it turns
         /// solid. Returns true while it's still only a silhouette (the body isn't drawn yet).
         bool DrawDecoyEntrance(Enemy e, V2 pos, float r, float t)
         {
-            if (!decoySeenAt.TryGetValue(e.Id, out float at))
-            {
-                if (decoySeenAt.Count > 64)  // forget decoys that are gone
-                {
-                    var gone = new List<int>();
-                    foreach (var id in decoySeenAt.Keys)
-                        if (!game.Enemies.ContainsKey(id))
-                            gone.Add(id);
-                    foreach (var id in gone)
-                        decoySeenAt.Remove(id);
-                }
-                decoySeenAt[e.Id] = at = t;
-            }
-            float since = t - at;
+            if (!decoySeen.TryGetValue(e.Id, out var seen))
+                decoySeen[e.Id] = seen = new DecoySeen { At = t };
+            seen.Last = t;
+            seen.Pos = pos;
+            seen.Face = e.Facing;
+            seen.R = r;
+            float since = t - seen.At;
             if (since >= DecoyEntry)
                 return false;
             float k = since / DecoyEntry, ghost = Mathf.Clamp01(since / 0.15f), solid = Mathf.Clamp01((since - 0.35f) / 0.25f);
