@@ -465,6 +465,7 @@ namespace Arena
             TickMenuIntro(Time.unscaledDeltaTime);  // the main menu drawing itself in, the first time (MenuIntro.cs)
             TickMenuSounds(Time.unscaledDeltaTime);  // the menu's hum, and quitting after Quit's sound (MenuHolo.cs)
             TickLobbyEnter(Time.unscaledDeltaTime);  // the menu turning into the lobby (LobbyEnter.cs)
+            TickModeBlink(Time.unscaledDeltaTime);   // the Game Mode screen blinking back to the lobby (ModeBlink.cs)
             TickRecall(Time.unscaledDeltaTime);      // back to the lobby from a run: the beam-out (Recall.cs)
             TickWindowClose();  // a menu window sliding out, then closing (WindowAnim.cs)
             TickTiles(Time.unscaledDeltaTime);   // the ability bar's tiles react (HudTiles.cs)
