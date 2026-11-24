@@ -7,6 +7,8 @@ namespace Arena
     public sealed class TrainingDrill
     {
         public string Key, Name, Group, Goal, Copy;  // Key: the profile's id for it
+        public int Steps = 1;        // steps to finish it (beacons, walls...)
+        public string StepNoun = "STEPS";  // what they are, for the HUD's count ("BEACONS LEFT")
         public string[] Keys;        // the keys it teaches, as shown on its card (the default binds)
         public float Gold, Silver;   // medal times in seconds (bronze: finish it)
         public bool Built;           // playable yet
@@ -20,10 +22,10 @@ namespace Arena
 
         public static readonly TrainingDrill[] Drills =
         {
-            new TrainingDrill { Group = "MOVEMENT", Key = "move", Name = "Move and Aim", Keys = new[] { "WASD", "MOUSE" }, Gold = 15f, Silver = 25f, Built = true,
+            new TrainingDrill { Group = "MOVEMENT", Key = "move", Name = "Move and Aim", Keys = new[] { "WASD", "MOUSE" }, Gold = 15f, Silver = 25f, Built = true, Steps = MoveSteps, StepNoun = "BEACONS",
                 Goal = "Reach the five beacons", Copy = "Walk onto the first three. A target stands on the last two: aim and bring it down." },
-            new TrainingDrill { Group = "MOVEMENT", Key = "dodge", Name = "Dodge", Keys = new[] { "CTRL" }, Gold = 20f, Silver = 35f,
-                Goal = "Dash through six bullet walls", Copy = "A dodge is a short dash with a blink of invulnerability. Time it into the wall." },
+            new TrainingDrill { Group = "MOVEMENT", Key = "dodge", Name = "Dodge", Keys = new[] { "CTRL" }, Gold = 20f, Silver = 30f, Built = true, Steps = DodgeSteps, StepNoun = "WALLS",
+                Goal = "Dodge through six bullet walls", Copy = "A dodge is a short dash with a blink of invulnerability. Dodge just as the wall reaches you." },
             new TrainingDrill { Group = "MOVEMENT", Key = "wallkick", Name = "Wall Kick", Keys = new[] { "HOLD CTRL" }, Gold = 20f, Silver = 35f,
                 Goal = "Kick off three walls, reach the flag", Copy = "Hold after a dodge to sprint. Dodge into a wall to bounce off it with a free dodge." },
             new TrainingDrill { Group = "COMBAT", Key = "shoot", Name = "Shoot", Keys = new[] { "LMB" }, Gold = 20f, Silver = 35f,
@@ -50,6 +52,15 @@ namespace Arena
 
         /// A beacon you shoot open (a dummy stands on it) rather than walk onto.
         public static bool MoveShootStep(int step) => step >= 3;
+
+        // Dodge (drill 2): six walls of shots sweep across the arena, top to bottom, one at a time, from alternate sides and a
+        // little faster each time. Dodge as one reaches you and you're through; get hit and it starts again from its side.
+        public const int DodgeSteps = 6;
+        public const float WallSpeed = 250f, WallSpeedStep = 30f, WallGap = 0.8f, WallSlack = 0.25f;  // WallSlack: past the dodge's invulnerability (the dodge reaches the host late)
+
+        /// Wall `step`'s speed (px/s) and which way it runs (+1: from the left).
+        public static float WallSpeedAt(int step) => WallSpeed + WallSpeedStep * step;
+        public static int WallDir(int step) => step % 2 == 0 ? 1 : -1;
 
         /// The medal a best time earns: 3 gold, 2 silver, 1 bronze (finished), 0 none (best 0: never finished).
         public static int Medal(TrainingDrill d, float best) => best <= 0f ? 0 : best <= d.Gold ? 3 : best <= d.Silver ? 2 : 1;

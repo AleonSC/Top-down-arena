@@ -504,19 +504,24 @@ static partial class Shot {
       if (tp.Length > 2 && tp[2] == "open") { host.Game.State = MatchState.Intermission; host.Game.ExpandOpen = true; }  // a build round open (the BUILD A ROOM lesson)
     }
     if (Environment.GetEnvironmentVariable("DRILL") != null) {
-      // A Training drill (DrillGame.cs, DrillUi.cs): DRILL=<beacons done>,<seconds>[,done] (Move and Aim; you a little short of the lit beacon).
+      // A Training drill (DrillGame.cs, DrillUi.cs): DRILL=<steps done>,<seconds>[,done[,hits]] (Move and Aim: you a little short of the lit beacon);
+      // DRILLID=1: the Dodge drill instead (the wall a little short of you; DRILLHIT=1: just caught by one).
       var dp = Environment.GetEnvironmentVariable("DRILL").Split(',');
       var gm = host.Game;
       gm.Enemies.Clear(); gm.Bullets.Clear(); gm.Hunt = null; gm.Quick = false; gm.Wave = 1;
-      gm.Drill = 0; gm.DrillRunners.Clear();
+      gm.Drill = Environment.GetEnvironmentVariable("DRILLID") != null ? int.Parse(Environment.GetEnvironmentVariable("DRILLID")) : 0; gm.DrillRunners.Clear();
+      var dk = Training.Drills[gm.Drill];
       foreach (var q in gm.Players.Values) gm.DrillRunners[q.Id] = new DrillRunner { PlayerId = q.Id, Step = 1, Time = 9f };
       var mine = gm.DrillRunners[me.Id];
       mine.Step = int.Parse(dp[0]); mine.Time = float.Parse(dp[1], System.Globalization.CultureInfo.InvariantCulture); mine.Flash = 9f;
-      if (dp.Length > 2 && dp[2] == "done") { mine.Step = Training.MoveSteps; mine.Done = true; if (gm.Profile != null) gm.Profile.DrillDone("move", mine.Time); }
-      var at = Training.MoveBeacon(Math.Min(mine.Step, Training.MoveSteps - 1), Game.Width, Game.Height);
+      if (dp.Length > 3) mine.Hits = int.Parse(dp[3]);
+      if (dp.Length > 2 && dp[2] == "done") { mine.Step = dk.Steps; mine.Done = true; if (gm.Profile != null) gm.Profile.DrillDone(dk.Key, mine.Time); }
+      var at = dk.Key == "dodge" ? new V2(900f, 470f) : Training.MoveBeacon(Math.Min(mine.Step, Training.MoveSteps - 1), Game.Width, Game.Height);
+      if (dk.Key == "dodge" && !mine.Done) { mine.Wall = 900f - Training.WallDir(mine.Step) * 110f; if (Environment.GetEnvironmentVariable("DRILLHIT") != null) { mine.Hits = Math.Max(1, mine.Hits); mine.HitT = 0.1f; mine.Wall = 900f + Training.WallDir(mine.Step) * 40f; } }
       me.Pos = me.Disp = at + new V2(-170f, 60f); me.Aim = 0f; me.AimAt = at;
       int k2 = 0; foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = new V2(300f + 140f * k2++, 820f); }
-      if (!mine.Done && Training.MoveShootStep(mine.Step)) {
+      if (dk.Key == "dodge") { me.Pos = me.Disp = at; me.AimAt = at + new V2(200f, 0f); }
+      if (dk.Key == "move" && !mine.Done && Training.MoveShootStep(mine.Step)) {
         var e = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { EnemyType.Grunt, at, 0f, 0, false });
         e.Disp = e.Pos; mine.TargetId = e.Id;
       }

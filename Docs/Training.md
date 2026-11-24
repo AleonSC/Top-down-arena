@@ -1,7 +1,7 @@
 # Training: drills that teach one mechanic each (design)
 
-Status: **steps 0-1 built: the mode, its page and the Move and Aim drill** (`Core/Training.cs`, `Core/DrillGame.cs`,
-`Game/TrainingUi.cs`, `Game/DrillUi.cs`, suite `training`; protocol 484). Next: step 2, the Dodge drill.
+Status: **steps 0-2 built: the mode, its page, Move and Aim and Dodge** (`Core/Training.cs`, `Core/DrillGame.cs`,
+`Game/TrainingUi.cs`, `Game/DrillUi.cs`, suite `training`; protocol 485). Next: step 3, the Wall Kick drill.
 
 ## The owner's decisions
 
@@ -35,7 +35,10 @@ Times are first guesses until each drill is played.
 
 0. The mode and its page (done).
 1. Move and Aim: walk onto three beacons, shoot the targets on two more (done).
-2. Dodge: dash through six bullet walls.
+2. Dodge: dodge through six walls of shots (done). Each wall is a column of shots sweeping the whole arena from one side,
+   alternate sides, a little faster each time (250 px/s, +30 a wall), 0.8 s apart. It's only yours (drawn for you alone, never
+   a real shot). The host tells when it crosses you: a dodge within its invulnerability plus 0.25 s of slack (for the dodge's
+   trip to the host) takes you through; anything else is a hit (a red flash, HIT xN) and that wall starts again.
 3. Wall Kick: kick off three walls, reach the flag.
 4. Shoot: break twelve targets.
 5. Parry: block ten shots.
@@ -43,4 +46,4 @@ Times are first guesses until each drill is played.
 
 ## Open questions
 
-- Medal times are first guesses (gold 0:15, silver 0:25 for Move and Aim).
+- Medal times are first guesses (Move and Aim: gold 0:15, silver 0:25; Dodge: gold 0:20, silver 0:30).

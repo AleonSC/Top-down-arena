@@ -288,8 +288,8 @@ namespace Arena
             MiniBrackets(wr, ink, a);
             MiniText(new Rect(wr.x, wr.y, wr.width, 16f), MiniWave(), 16, dim, a, TextAnchor.MiddleRight);
             var myDrill = game.MyDrill;  // a drill counts its beacons instead (DrillGame.cs)
-            MiniText(new Rect(wr.x, wr.y + 12f, wr.width, 50f), myDrill != null ? (Training.MoveSteps - myDrill.Step).ToString() : game.Remaining.ToString(), 52, ink, a, TextAnchor.MiddleRight);
-            MiniText(new Rect(wr.x, wr.y + 60f, wr.width, 16f), myDrill != null ? "BEACONS LEFT" : "ENEMIES LEFT", 16, dim, a, TextAnchor.MiddleRight);
+            MiniText(new Rect(wr.x, wr.y + 12f, wr.width, 50f), myDrill != null ? (Training.Drills[game.Drill].Steps - myDrill.Step).ToString() : game.Remaining.ToString(), 52, ink, a, TextAnchor.MiddleRight);
+            MiniText(new Rect(wr.x, wr.y + 60f, wr.width, 16f), myDrill != null ? Training.Drills[game.Drill].StepNoun + " LEFT" : "ENEMIES LEFT", 16, dim, a, TextAnchor.MiddleRight);
             MiniScan(new Rect(wr.x - 4f, wr.y - 4f, wr.width + 8f, wr.height + 8f), a);
 
             // What you carry: one slim row each above the wave, as the teammates sit above your health (only what this run has)

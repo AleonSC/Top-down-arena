@@ -8,11 +8,16 @@ namespace Arena
     public sealed class DrillRunner
     {
         public int PlayerId;
-        public int Step;       // beacons done (Training.MoveSteps: finished)
+        public int Step;       // steps done (the drill's Steps: finished)
         public float Time;     // seconds since the drill started, stopped at the finish
         public bool Done;
         public int TargetId;   // the dummy on a shoot step's beacon (0: none up)
-        public float Flash;    // seconds since the last beacon was reached (the ring's pop)
+        public float Flash;    // seconds since the last step was done (the ring's pop)
+        public float Wall = float.NaN;  // Dodge: the wall's x (NaN: none up)
+        public int Hits;       // Dodge: walls that caught you
+        public float HitT = 9f;  // Dodge: seconds since the last hit (the red flash)
+        public float SinceDodge = 9f;  // host: seconds since this player last dodged
+        public float LastX = float.NaN;  // host: the player's x last tick (a dodge can cross the wall in one)
     }
 
     /// Training's drill run (`GameMode.Training`): the real match on the classic arena with no waves, held in a fight with no
@@ -68,12 +73,22 @@ namespace Arena
             foreach (var d in DrillRunners.Values)
             {
                 d.Flash += dt;
+                d.HitT += dt;
+                d.SinceDodge += dt;
                 if (!d.Done)
                     d.Time += dt;
             }
+            if (!IsHost && Training.Drills[Drill].Key == "dodge")
+                foreach (var d in DrillRunners.Values)
+                    if (!float.IsNaN(d.Wall))
+                        d.Wall += Training.WallDir(d.Step) * Training.WallSpeedAt(d.Step) * dt;  // (on between snapshots)
             if (IsHost)
                 foreach (var d in DrillRunners.Values)
-                    TickMoveDrill(d);
+                    switch (Training.Drills[Drill].Key)
+                    {
+                        case "move": TickMoveDrill(d); break;
+                        case "dodge": TickDodgeDrill(d, dt); break;
+                    }
             Remaining = 0;
             if (!drillRecorded && MyDrill != null && MyDrill.Done && Profile != null)
             {
@@ -83,7 +98,7 @@ namespace Arena
             }
         }
 
-        /// Host: Move and Aim. A touch step is reached by standing on its beacon; a shoot step by bringing down your own dummy on it.
+        /// Host: Move and Aim (`Training.MoveSteps` beacons). A touch step is reached by standing on its beacon; a shoot step by bringing down your own dummy on it.
         void TickMoveDrill(DrillRunner d)
         {
             if (d.Done || !Players.TryGetValue(d.PlayerId, out var p))
@@ -109,11 +124,51 @@ namespace Arena
             }
         }
 
+        /// Host: Dodge. After a short gap the next wall sets off from its side; when it crosses you, a dodge in the last moment
+        /// takes you through it, anything else is a hit and the wall starts again.
+        void TickDodgeDrill(DrillRunner d, float dt)
+        {
+            if (d.Done || !Players.TryGetValue(d.PlayerId, out var p))
+                return;
+            int dir = Training.WallDir(d.Step);
+            if (float.IsNaN(d.Wall))
+            {
+                if (d.Flash >= Training.WallGap && d.HitT >= Training.WallGap)
+                    d.Wall = dir > 0 ? 0f : Width;
+                return;
+            }
+            float was = d.Wall, lastX = float.IsNaN(d.LastX) ? p.Pos.X : d.LastX;
+            d.Wall += dir * Training.WallSpeedAt(d.Step) * dt;
+            d.LastX = p.Pos.X;
+            float a = (lastX - was) * dir, b = (p.Pos.X - d.Wall) * dir;  // > 0: you're ahead of the wall
+            if (a >= 0f && b < 0f && a < 150f && b > -150f)  // the wall and you passed each other this tick (not a wrap round the edge)
+            {
+                d.Wall = float.NaN;
+                if (d.SinceDodge <= DodgeInvuln + Training.WallSlack)
+                    DrillStepDone(d);
+                else
+                {
+                    d.Hits++;
+                    d.HitT = 0f;
+                }
+                return;
+            }
+            if (d.Wall < -40f || d.Wall > Width + 40f)
+                d.Wall = float.NaN;  // off the far side without crossing you (you wrapped round): it comes again
+        }
+
+        /// Host: a player dodged (Dodge.cs), for the Dodge drill.
+        void DrillDodged(int id)
+        {
+            if (DrillOn && DrillRunners.TryGetValue(id, out var d))
+                d.SinceDodge = 0f;
+        }
+
         void DrillStepDone(DrillRunner d)
         {
             d.Step++;
             d.Flash = 0f;
-            if (d.Step >= Training.MoveSteps)
+            if (d.Step >= Training.Drills[Drill].Steps)
                 d.Done = true;
         }
 
@@ -170,6 +225,12 @@ namespace Arena
                     s.Float(ref d.Time);
                     s.Bool(ref d.Done);
                     s.Int(ref d.TargetId);
+                    s.Float(ref d.Wall);
+                    int hits = d.Hits;
+                    s.Byte(ref hits);
+                    if (hits != d.Hits)
+                        d.HitT = 0f;
+                    d.Hits = hits;
                 }
                 return;
             }
@@ -181,6 +242,9 @@ namespace Arena
                 s.Float(ref d.Time);
                 s.Bool(ref d.Done);
                 s.Int(ref d.TargetId);
+                s.Float(ref d.Wall);
+                int hits = Math.Min(255, d.Hits);
+                s.Byte(ref hits);
             }
         }
     }

@@ -91,6 +91,30 @@ static partial class Program
             Run(new[] { host, client }, dt, 0.5f);
             Check(g.DrillOn && !g.DrillRunners[host.MyId].Done && g.DrillRunners[host.MyId].Step == 0 && hostProfile.DrillBestTime("move") > 0f,
                 "Retry starts the drill over and keeps the best time");
+            // Dodge: the first wall is taken standing still (a hit, it comes again), then six dodged as they reach you.
+            host.StartDrill(1);
+            Run(new[] { host, client }, dt, 0.5f);
+            mine = g.DrillRunners[host.MyId];
+            me = g.Players[host.MyId];
+            var dodged = typeof(Game).GetMethod("DrillDodged", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            bool sawWallOnClient = false;
+            Run(new[] { host, client }, dt, 12f, () => mine.Hits > 0, () =>
+            {
+                me.Pos = new V2(800f, 450f);
+                sawWallOnClient |= c.DrillRunners.TryGetValue(host.MyId, out var cw) && !float.IsNaN(cw.Wall);
+            });
+            Check(g.DrillOn && g.Drill == 1 && mine.Hits == 1 && mine.Step == 0 && sawWallOnClient,
+                "Dodge: a wall that reaches you without a dodge is a hit and doesn't count; the friend's game shows the wall");
+            Run(new[] { host, client }, dt, 40f, () => mine.Done, () =>
+            {
+                me.Pos = new V2(800f, 450f);
+                if (!float.IsNaN(mine.Wall) && Math.Abs(mine.Wall - me.Pos.X) < 30f && mine.SinceDodge > 1f)
+                    dodged.Invoke(g, new object[] { host.MyId });
+            });
+            Run(new[] { host, client }, dt, 0.3f);
+            Check(mine.Done && mine.Step == Training.DodgeSteps && mine.Hits == 1 && c.DrillRunners[host.MyId].Done && c.DrillRunners[host.MyId].Hits == 1
+                && hostProfile.DrillBestTime("dodge") > 0f,
+                "Dodge: dodging as each wall reaches you takes you through all six; the finish and the hit count reach the friend, and the best time is kept");
             host.ReturnToLobby();
             WaitForLobby(host, client);
             Check(!g.DrillOn && !c.DrillOn && host.Screen == AppScreen.Lobby && client.Screen == AppScreen.Lobby && host.TrainingMode,

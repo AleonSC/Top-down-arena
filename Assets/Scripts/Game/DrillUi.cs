@@ -16,7 +16,10 @@ namespace Arena
             var d = game.MyDrill;
             if (d == null)
                 return;
-            DrawDrillBeacons(d);
+            if (Training.Drills[game.Drill].Key == "dodge")
+                DrawDrillWall(d);
+            else
+                DrawDrillBeacons(d);
             DrawDrillCard(d);
             if (d.Done)
                 DrawDrillResult(d);
@@ -76,6 +79,27 @@ namespace Arena
             }
         }
 
+        /// Dodge: your wall of shots sweeping across, with chevrons the way it runs; a red flash over the screen when one catches you.
+        void DrawDrillWall(DrillRunner d)
+        {
+            if (d.HitT < 0.45f && !FxCalm)
+                Ui.Fill(new Rect(0f, 0f, W, H), CrtStyle.Danger.WithAlpha(0.22f * (1f - d.HitT / 0.45f)));
+            if (d.Done || float.IsNaN(d.Wall))
+                return;
+            int dir = Training.WallDir(d.Step);
+            V2 top = ToUi(new V2(d.Wall, 0f)), bot = ToUi(new V2(d.Wall, Game.Height));
+            float x = top.X, rad = Mathf.Max(4f, (ToUi(new V2(d.Wall + 7f, 0f)).X - x));
+            Ui.Fill(new Rect(x - rad * 2.2f, top.Y, rad * 4.4f, bot.Y - top.Y), CrtStyle.Danger.WithAlpha(0.08f));
+            int k = 0;
+            for (float y = top.Y + 10f; y < bot.Y - 4f; y += rad * 3.2f, k++)
+            {
+                Ui.Dot(new Rect(x - rad, y - rad, rad * 2f, rad * 2f), CrtStyle.Danger);
+                Ui.Dot(new Rect(x - rad * 0.45f, y - rad * 0.45f, rad * 0.9f, rad * 0.9f), new Color(1f, 0.85f, 0.85f));
+                if (k % 6 == 3)  // a chevron the way it runs
+                    Chevron(new Vector2(x + dir * rad * 3.4f, y), dir, CrtStyle.Danger.WithAlpha(0.7f));
+            }
+        }
+
         /// The drill card, top left: name, what to do now, the pips, the clock and the medal you're on course for.
         void DrawDrillCard(DrillRunner d)
         {
@@ -86,12 +110,14 @@ namespace Arena
                 Ui.Fill(new Rect(r.x, r.y, 3f, r.height), TrainColor.WithAlpha(0.85f));
             HudCrt(new Rect(r.x + 14f, r.y + 6f, 220f, 16f), "TRAINING  ·  DRILL " + (game.Drill + 1).ToString("00"), 15, CrtStyle.Dim);
             DkTitle(new Rect(r.x + 14f, r.y + 24f, r.width - 28f, 24f), dr.Name.ToUpperInvariant(), 20, TrainColor);
-            string line = d.Done ? "Done!" : Training.MoveShootStep(d.Step) ? "Aim at the target on beacon " + (d.Step + 1) + " and bring it down."
+            bool dodge = dr.Key == "dodge";
+            string line = d.Done ? "Done!" : dodge ? "Dodge (" + Keybinds.KeyName(Keybinds.Get(KeyAction.Dodge)) + ") through wall " + (d.Step + 1) + " just as it reaches you."
+                : Training.MoveShootStep(d.Step) ? "Aim at the target on beacon " + (d.Step + 1) + " and bring it down."
                 : "Walk onto beacon " + (d.Step + 1) + ".";
             Ui.Label(new Rect(r.x + 14f, r.y + 50f, r.width - 28f, 32f), line, 12, CrtStyle.Desc, TextAnchor.UpperLeft, false, true);
             // Pips: one per beacon.
             float px = r.x + 14f, py = r.y + 88f;
-            for (int i = 0; i < Training.MoveSteps; i++)
+            for (int i = 0; i < dr.Steps; i++)
             {
                 var pr = new Rect(px + i * 22f, py, 16f, 16f);
                 bool done = i < d.Step;
@@ -103,6 +129,8 @@ namespace Arena
             Ui.Label(new Rect(r.xMax - 120f, py - 6f, 106f, 28f), DrillClock(d.Time), 22, Color.white, TextAnchor.MiddleRight, true);
             string next = medal == 3 ? "GOLD UNDER " + ModeClock(dr.Gold) : medal == 2 ? "SILVER UNDER " + ModeClock(dr.Silver) : "BRONZE: FINISH IT";
             LobbyKit.Spaced(new Rect(r.x + 14f, r.y + 112f, r.width - 28f, 12f), next, 9, MedalCol(medal).WithAlpha(0.85f), TextAnchor.MiddleLeft, 1.4f);
+            if (dodge && d.Hits > 0)
+                LobbyKit.Spaced(new Rect(r.x + 14f, r.y + 112f, r.width - 28f, 12f), "HIT x" + d.Hits, 9, CrtStyle.Danger.WithAlpha(d.HitT < 0.6f ? 1f : 0.75f), TextAnchor.MiddleRight, 1.4f);
         }
 
         static string DrillClock(float s) => (int)(s / 60f) + ":" + (s % 60f).ToString("00.0");
@@ -124,7 +152,8 @@ namespace Arena
             LobbyKit.Spaced(new Rect(r.center.x - 60f, r.y + 78f, 160f, 16f), MedalName(medal), 13, MedalCol(medal), TextAnchor.MiddleLeft, 2f);
             Ui.Label(new Rect(r.center.x - 60f, r.y + 94f, 180f, 26f), DrillClock(d.Time), 24, Color.white, TextAnchor.MiddleLeft, true);
             bool newBest = best > 0f && Mathf.Abs(best - d.Time) < 0.01f;
-            Ui.Label(new Rect(r.x, r.y + 130f, r.width, 18f), newBest ? "NEW BEST" : "BEST  " + DrillClock(best), 12, newBest ? CrtStyle.Gold : CrtStyle.Dim, TextAnchor.MiddleCenter, true);
+            string extra = dr.Key == "dodge" ? (d.Hits == 0 ? "  ·  NO HITS" : "  ·  HIT x" + d.Hits) : "";
+            Ui.Label(new Rect(r.x, r.y + 130f, r.width, 18f), (newBest ? "NEW BEST" : "BEST  " + DrillClock(best)) + extra, 12, newBest ? CrtStyle.Gold : CrtStyle.Dim, TextAnchor.MiddleCenter, true);
             float y = r.y + 158f;
             if (others > 0)
             {
@@ -135,7 +164,7 @@ namespace Arena
                     if (o.PlayerId == game.MyId || !game.Players.TryGetValue(o.PlayerId, out var op))
                         continue;
                     Ui.Label(new Rect(r.x + 24f, y, 200f, 20f), op.Name, 12, CrtStyle.Ink, TextAnchor.MiddleLeft, true);
-                    Ui.Label(new Rect(r.xMax - 184f, y, 160f, 20f), o.Done ? DrillClock(o.Time) + "  " + MedalName(Training.Medal(dr, o.Time)) : o.Step + " / " + Training.MoveSteps,
+                    Ui.Label(new Rect(r.xMax - 184f, y, 160f, 20f), o.Done ? DrillClock(o.Time) + "  " + MedalName(Training.Medal(dr, o.Time)) : o.Step + " / " + dr.Steps,
                         12, o.Done ? MedalCol(Training.Medal(dr, o.Time)) : CrtStyle.Dim, TextAnchor.MiddleRight, true);
                     y += 22f;
                 }

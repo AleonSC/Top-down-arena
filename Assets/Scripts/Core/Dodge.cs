@@ -78,7 +78,10 @@ namespace Arena
             SprintT = 0f;
             me.InvulnT = Math.Max(me.InvulnT, DodgeInvuln);
             if (IsHost)
+            {
                 me.GhostT = me.Stats.GhostTime;  // Ghost Step (the host resolves damage; a client's comes in OnDodge)
+                DrillDodged(me.Id);  // the Dodge drill (DrillGame.cs)
+            }
             AddFx(FxKind.Ring, me.Pos, new Rgba(0.75f, 0.85f, 1f), 22f, 0.25f);
             Sounds.Add(Sfx.DodgeSwish);  // your own screen only
             if (IsHost)
@@ -132,6 +135,7 @@ namespace Arena
             hostDodgeAt[peer] = hostClock;
             p.InvulnT = Math.Max(p.InvulnT, DodgeInvuln);
             p.GhostT = p.Stats.GhostTime;  // Ghost Step
+            DrillDodged(p.Id);  // the Dodge drill (DrillGame.cs)
         }
     }
 }
