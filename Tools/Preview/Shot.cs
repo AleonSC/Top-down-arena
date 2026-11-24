@@ -274,6 +274,14 @@ static partial class Shot {
       sp[a1].Pos = new V2(float.Parse(at[0]), float.Parse(at[1])); sp[a1].T = 0.7f; sp[a1].Alive = 2;
       sp[a2].Pos = sp[a1].Pos + new V2(170f, 40f); sp[a2].Alive = 3;
     }
+    if (Environment.GetEnvironmentVariable("HANGOUTPADS") != null)  // the Hangout's spawners (HangoutSpawnerLook.cs): three on, you standing on the top-left one (its tag)
+    {
+      host.Game.HangoutOn = true;
+      typeof(Game).GetMethod("ResetSpawners", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(host.Game, null);
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear();
+      foreach (int k in new[] { 0, 3, 9 }) host.Game.Spawners[k].On = true;
+      me.Pos = me.Disp = host.Game.Spawners[0].Pos + new V2(0f, 10f);
+    }
     if (Environment.GetEnvironmentVariable("GOLD") != null) me.Gold = int.Parse(Environment.GetEnvironmentVariable("GOLD"));  // the Bazaar's gold on the HUD
     set = (n, v) => typeof(ArenaApp).GetField(n, f2).SetValue(app, v);
     if (Environment.GetEnvironmentVariable("RANDOM") == null) set("juiceRng", new System.Random(1));  // (Juice.cs rolls its own)

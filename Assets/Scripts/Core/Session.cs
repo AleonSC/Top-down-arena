@@ -75,6 +75,8 @@ namespace Arena
         DevTraps,     // host -> all: the Dev Kit's hand-placed traps, the whole list (count byte; each: kind byte, x, y, half width, half height floats) (DevTraps.cs)
         Graze,        // host -> all: (player id, where the shot passed) an enemy shot skimmed past a player: everyone draws the streak, that player's own game takes the ultimate's share off (Graze.cs)
         HangoutOpen,  // client -> host: open the Hangout (the hidden mode that sits in the between-waves state; HangoutGame.cs). The host answers with a Start whose Hangout flag is set
+        HangoutSpawner,   // client -> host: a press on a Hangout spawner (byte index, sbyte 0 on/off, +1/-1 its enemy; HangoutSpawners.cs)
+        HangoutSpawners,  // host -> all: every Hangout spawner (count byte; each: enemy index byte, on bool)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -139,7 +141,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 472;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 473;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -691,6 +693,9 @@ namespace Arena
                     break;
                 case Msg.RoleRequest:
                     { int v = r.ReadByte(); if (!Game.Running) SetRole(peer, v); }  // (a late lobby request mid-run is ignored)
+                    break;
+                case Msg.HangoutSpawner:
+                    Game.OnHangoutSpawner(peer, r);  // HangoutSpawners.cs
                     break;
                 case Msg.HangoutOpen:
                     if (!Game.Running && Screen == AppScreen.Lobby)

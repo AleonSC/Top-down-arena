@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 473: the Hangout's spawners: `Msg.HangoutSpawner` (client -> host press) and `Msg.HangoutSpawners` (host -> all, every pad's enemy and switch)
 - 472: room turrets sit in walls: a map turret's place (its key in `Msg.TrapHit` and the wrecks in `Msg.ExpandState`) moved onto the wall beside its slot; floor slots no longer roll turrets
 - 471: One-way pieces: a door into a mini-boss room or a dead end stays both ways (host and client build doors from the same rule)
 - 470: Ironhide (the Tank role passive): the player snapshot gains `IronLost` and `IronWait` (floats, after `MomentumT`)

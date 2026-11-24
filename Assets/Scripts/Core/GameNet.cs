@@ -233,6 +233,9 @@ namespace Arena
                         ApplyCooldownCut(Me, ab, share);
                     break;
                 }
+                case Msg.HangoutSpawners:  // HangoutSpawners.cs
+                    ReadSpawners(r);
+                    break;
                 case Msg.Graze:  // an enemy shot skimmed past someone (Graze.cs)
                 {
                     int id = r.ReadInt32();
