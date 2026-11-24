@@ -40,7 +40,7 @@
 # QUEENHOLD=swell,<0-1>|lay,<s>|dive,<s> (with FLANKERS=1: the Brood Mother swelling before her eggs, laying them, in a royal dive).
 # QUEENSTAGE=<0-3> (with FLANKERS=1: the Hive Queen's Brood Mother body in Swarm, Honeycomb, Frenzy, Last Stand; ZOOM=2.6 CAMAT=800,215, mode hud 3 1 1).
 # WWARD=<s into the scene> (Water Ward: a cast every 3 s from 0.2 s; grunts walk in from WWENEMY s (default 6.5, -1 none); WWSHOOT=1 shots from above from 7 s; ShotWaterWard.cs).
-# BOWFOCUS=rest|bar|focus|miss|swing|scatter,<s> (the Mender's Bow: Focus bar, Focus arrow, the arrow swung from the quiver, Scatter; mode hud, 1 player, ZOOM=2; ShotBowFocus.cs).
+# BOWFOCUS=rest|draw|bar|focus|miss|swing|scatter,<s> (the Mender's Bow: Focus bar, Focus arrow, the arrow swung from the quiver, Scatter; mode hud, 1 player, ZOOM=2; ShotBowFocus.cs).
 # GUSTGATE=<s into the scene> (Gust Gate: the ring cast at 0.2 s, an ally running through it from 0.5 s, a grunt inside pushed out; mode hud, 2 players, ZOOM=2.2; ShotGustGate.cs).
 # ENGINEER=pylon|breach|real|bots ENGT=<s> (the Engineer mockup in the real arena; breach needs EXPANDMAP=0, BREACHSHAPE=stash|cross|..., BREACHLOOT=0|1|4; ENGMODEL=0-2 the Engineer look; ShotEngineer.cs). Mode englook: ENGSHEET=0 looks, 1 kit (EngineerModel.cs).
 # ARCANIST=tank|healer|dps (the Arcanist's kit drawn by the game: shards, Kinetic Grasp and Grand Sigil; Glyph Stylus and Sanctum Sigil; Dancing Blades, Runic Array and Telekinetic Crush; ShotArcanist.cs).

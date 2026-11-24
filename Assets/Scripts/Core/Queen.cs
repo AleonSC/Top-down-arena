@@ -61,7 +61,8 @@ namespace Arena
         public const float FlankOut = 300f, FlankTurn = 4.5f, FlankDiveTurn = 7f, FlankDive = 1.15f, FlankArrive = 70f, FlankMaxOut = 3f;  // turns in after FlankMaxOut s whatever
         // Honeycomb: eggs, sealing cells, nectar spray.
         const int EggCount = 4, DronesPerEgg = 2;
-        const float EggFlight = 0.6f, EggHatch = 6f;
+        public const float EggFlight = 0.6f;
+        const float EggHatch = 6f;
         public const float HiveCell = 70f;  // the hex cells' size (centre to corner)
         public const float CellWarn = 0.9f, CellLife = 1.4f;
         const float CellEvery = 1.5f, CellDamage = 18f, CellShare = 0.26f;
@@ -73,7 +74,8 @@ namespace Arena
         public const float BeeRadius = 5f;
         const float CloudSpeed = 170f, CloudHomeSpeed = 320f, CloudTime = 6f, BeeDamage = 8f;
         public const float DiveRadius = 110f;
-        const float DiveTime = 2f, DiveLand = 1.3f, DiveTrack = 0.5f, DiveDamage = 25f;
+        public const float DiveLand = 1.3f;
+        const float DiveTime = 2f, DiveTrack = 0.5f, DiveDamage = 25f;
         const int Dives = 3;
 
         static readonly QueenTurn[][] QueenTurns =
