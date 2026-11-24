@@ -375,7 +375,7 @@ namespace Arena
                 y += 20f;
                 foreach (var a in Keybinds.Groups[g])
                 {
-                    Ui.Label(new Rect(4f, y + 4f, w - 180f, 22f), Keybinds.Title(a), 12, CrtStyle.Ink, TextAnchor.MiddleLeft, true);
+                    Ui.Label(new Rect(4f, y + 4f, w - 210f, 22f), Keybinds.Title(a), 12, CrtStyle.Ink, TextAnchor.MiddleLeft, true);
                     for (int slot = 1; slot >= 0; slot--)
                     {
                         var k = Keybinds.Get(a, slot);
@@ -383,12 +383,20 @@ namespace Arena
                             continue;
                         bool listening = Keybinds.Listening == (int)a && Keybinds.ListeningSlot == slot;
                         string label = listening ? (Mathf.FloorToInt(Time.unscaledTime * 4f) % 2 == 0 ? "…" : " ") : k == KeyCode.None ? "—" : Keybinds.KeyName(k);
-                        var r = new Rect(w - 84f - (slot == 1 ? 88f : 0f), y + 3f, 84f, 24f);
+                        var r = new Rect(w - 114f - (slot == 1 ? 88f : 0f), y + 3f, 84f, 24f);
                         if (DkKey(r, label, listening, calm, size: 10, rawSize: true, accent: listening ? DriveAmber : (Color?)null) && live)
                         {
                             Keybinds.Listening = listening ? -1 : (int)a;
                             Keybinds.ListeningSlot = slot;
                         }
+                    }
+                    // The X: no key at all for this action (e.g. so Reroll can't be pressed by mistake).
+                    if (Keybinds.Bound(a) && DkKey(new Rect(w - 24f, y + 3f, 24f, 24f), "×", false, calm, size: 12, rawSize: true, accent: CrtStyle.Danger) && live)
+                    {
+                        if (Keybinds.Listening == (int)a)
+                            Keybinds.Listening = -1;
+                        Keybinds.Unbind(a);
+                        SetSaved();
                     }
                     y = SetRule(y + 30f, w);
                 }

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Settings → Keybinds: every changeable control as a name and a digital key. Click a key, then press the new one; "+ ADD" sets a second key, right click clears it (a mouse
+    /// Settings → Keybinds: every changeable control as a name and a digital key. Click a key, then press the new one; "+ ADD" sets a second key, right click clears it, the X clears both (a mouse
     /// side or middle button works too; the key reads "PRESS KEY_" meanwhile); Esc cancels. A key another action uses swaps
     /// over. Saved at once (Keybinds.cs). Drawn in the Settings window (CrtWindows.cs).
     public partial class ArenaApp
@@ -11,7 +11,7 @@ namespace Arena
 
         void DrawKeybindsSection(Color col, float t, float k)
         {
-            OpenSectionPanel("KEYBINDS", col, "Click a key, then press the new one; + ADD sets a second key, right click clears it", k);
+            OpenSectionPanel("KEYBINDS", col, "Click a key, then press the new one; + ADD sets a second key, right click clears it, × unbinds", k);
             float px = DrawerPanel.x + 28f, pw = DrawerPanel.width - 56f;
             Keybinds.Listening = Mathf.Clamp(Keybinds.Listening, -1, Keybinds.All.Length - 1);
 
@@ -115,19 +115,29 @@ namespace Arena
         }
 
         /// One action: its name, its main key and its optional second key, each a digital key you click ("PRESS KEY_" while it
-        /// listens). Right click on the second key clears it. Returns the slot (0 or 1) that was clicked, or -1.
+        /// listens). Right click on a key clears it; the X clears both. Returns the slot (0 or 1) that was clicked, or -1.
         int KeybindRow(Rect r, KeyAction a, Color col, float t)
         {
             bool listen = Keybinds.Listening == (int)a;
             bool changed = !Keybinds.IsDefault(a);
-            Ui.Label(new Rect(r.x + 4f, r.y, r.width - 200f, r.height), Keybinds.Title(a), 14, listen ? CrtStyle.Ink : CabSoft, TextAnchor.MiddleLeft, true);
-            var cap2 = new Rect(r.xMax - 88f, r.y + 2f, 84f, r.height - 4f);
+            Ui.Label(new Rect(r.x + 4f, r.y, r.width - 230f, r.height), Keybinds.Title(a), 14, listen ? CrtStyle.Ink : CabSoft, TextAnchor.MiddleLeft, true);
+            var clear = new Rect(r.xMax - 26f, r.y + 2f, 24f, r.height - 4f);
+            var cap2 = new Rect(clear.x - 88f, r.y + 2f, 84f, r.height - 4f);
             var cap1 = new Rect(cap2.x - 90f, cap2.y, 86f, cap2.height);
             if (changed && !listen)
             {
                 var undo = new Rect(cap1.x - 30f, cap1.y, 26f, cap1.height);
                 if (DkKey(undo, "↺", false, FxCalm, size: 15, accent: CrtStyle.Dim))
                     Keybinds.Reset(a);
+            }
+            // The X: no key at all for this action (e.g. so Reroll can't be pressed by mistake).
+            if (Keybinds.Bound(a) && DkKey(clear, "×", false, FxCalm, size: 15, accent: CrtStyle.Danger))
+            {
+                if (listen)
+                    Keybinds.Listening = -1;
+                Keybinds.Unbind(a);
+                Keybinds.Notice = Keybinds.Title(a) + " has no key now";
+                Keybinds.NoticeAt = Time.unscaledTime;
             }
             int clicked = -1;
             for (int slot = 0; slot < 2; slot++)
@@ -140,10 +150,10 @@ namespace Arena
                 bool diff = slot == 0 ? k != Keybinds.DefaultKey(a) : k != KeyCode.None;
                 Color? accent = k == KeyCode.None && !listening ? CrtStyle.Dim : diff && !listening ? CabWarm : (Color?)null;
                 var ev = Event.current;
-                if ((slot == 1 || Keybinds.Unbindable(a)) && k != KeyCode.None && ev.type == EventType.MouseDown && ev.button == 1 && cap.Contains(ev.mousePosition))
+                if (k != KeyCode.None && ev.type == EventType.MouseDown && ev.button == 1 && cap.Contains(ev.mousePosition))
                 {
                     if (slot == 1) Keybinds.Clear2(a);  // (WinKey only answers the left button)
-                    else Keybinds.Clear(a);  // (Mute may have no key at all)
+                    else Keybinds.Clear(a);
                     ev.Use();
                 }
                 if (DkKey(cap, text, listening, FxCalm, size: 13, accent: accent))
