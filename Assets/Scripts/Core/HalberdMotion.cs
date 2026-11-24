@@ -99,6 +99,8 @@ namespace Arena
         public const float ChopRaise = 0.2f, ChopDrop = 0.07f, ChopHold = 0.12f, ChopK = 1.2f, ChopLift = 2.2f;
         public const float WheelWind = 0.08f, WheelSpin = 0.34f, WheelK = 0.85f, WheelTurn = MathX.Tau + 0.5f;
         public const float ChopHit = ChopRaise + ChopDrop;
+        //   5 Pike Lunge     (not a chain step: Set the Pike let go) the pike, held level, driven out to LungeK of the reach, held, recovered
+        public const float LungeOut = 0.09f, LungeHold = 0.12f, LungeFrom = 0.99f, LungeK = 1.3f;
 
         /// How long step `step` (1-4) plays from its click to back at the ready.
         public static float StepTotal(int step)
@@ -108,6 +110,7 @@ namespace Arena
                 case 2: return Total(true) - End1;
                 case 3: return ChopHit + ChopHold + Recover;
                 case 4: return WheelWind + WheelSpin + Follow + Recover;
+                case 5: return LungeOut + LungeHold + Recover;
                 default: return Total(false);
             }
         }
@@ -122,6 +125,22 @@ namespace Arena
             var o = new Pose { A = RestA, K = RestK, Roll = 0f, Lift = 0.5f };
             if (c <= 0f || c >= StepTotal(step))
                 return o;
+            if (step == 5)
+            {
+                o.A = 0f; o.Lift = 0.12f;
+                if (c < LungeOut)
+                {
+                    o.K = MathX.Lerp(LungeFrom, LungeK, Eo(c / LungeOut)); o.Pass = 1;
+                }
+                else if (c < LungeOut + LungeHold)
+                    o.K = LungeK;
+                else
+                {
+                    float u = Eio((c - LungeOut - LungeHold) / Recover);
+                    o.A = MathX.Lerp(0f, RestA, u); o.K = MathX.Lerp(LungeK, RestK, u); o.Lift = MathX.Lerp(0.12f, 0.5f, u);
+                }
+                return o;
+            }
             if (step == 3)
             {
                 const float Edge = MathX.Pi / 3f;  // the head turned toward edge-down for the chop (still readable from above)
@@ -178,6 +197,7 @@ namespace Arena
             {
                 case 2: return CrossTime(Math.Max(-Sweep, Math.Min(Sweep, rel)), 2) - End1;
                 case 3: return ChopHit;
+                case 5: return LungeOut;
                 case 4:
                 {
                     float d = rel - WindA;

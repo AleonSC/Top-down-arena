@@ -1984,15 +1984,15 @@ static partial class Shot {
           break;
         }
         case WeaponId.Kusarigama: gm.Effects.Add(new Effect { Kind = FxKind.Slash, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.MeleeReach(me, Game.KusariCutReach), Color = col, Radius = Game.KusariCutArc * MathX.Pi / 360f, T = st, Dur = 0.16f }); break;  // the sickle cut
-        case WeaponId.Halberd:  // HALBERDSTEP=1..4 Sweep, Return Sweep, Overhead Chop, Reaping Wheel (SWING = seconds after the click); PIKE=1: Set the Pike, turned to the nearest enemy (POKE=<s since a poke>, its jab)
+        case WeaponId.Halberd:  // HALBERDSTEP=1..5 Sweep, Return Sweep, Overhead Chop, Reaping Wheel, Pike Lunge (SWING = seconds after the click); PIKE=1: Set the Pike, turned to the nearest enemy (POKE=<s since a poke>, its jab)
         {
           int hs = int.Parse(Environment.GetEnvironmentVariable("HALBERDSTEP") ?? "1");
           bool pike = Environment.GetEnvironmentVariable("PIKE") == "1";
           int j = 0;
           foreach (var en in gm.Enemies.Values) {
             if (en.Def.IsBoss) continue;
-            float a = pike ? me.Aim + 0.5f + j * 0.7f : hs == 3 ? me.Aim + (j - 1) * 0.06f : me.Aim + (j - 1) * 0.55f + (hs == 4 && j == 2 ? 2.4f : 0f);
-            float dd = pike ? 205f + 60f * j : hs == 3 ? 95f + 65f * j : 140f + 20f * (j % 2);
+            float a = pike ? me.Aim + 0.5f + j * 0.7f : hs == 3 || hs == 5 ? me.Aim + (j - 1) * 0.06f : me.Aim + (j - 1) * 0.55f + (hs == 4 && j == 2 ? 2.4f : 0f);
+            float dd = pike ? 205f + 60f * j : hs == 3 ? 95f + 65f * j : hs == 5 ? 150f + 55f * j : 140f + 20f * (j % 2);
             en.Pos = en.Disp = me.Pos + V2.FromAngle(a) * dd;
             if (++j >= 3) break;
           }
