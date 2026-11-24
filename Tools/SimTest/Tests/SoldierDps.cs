@@ -101,7 +101,7 @@ static partial class Program
         Check(me.TwinNades == 0 && me.TwinCharge == 0, "putting the rifle away empties the tubes");
         host.Leave(""); client.Leave("");
         // The lobby's loadout preview presses Alt for it (ShowcaseAlt.cs): grenades fly with no hits needed, and not while idle.
-        var show = new Showcase();
+        var show = new Showcase { AltFire = true };
         show.Show(Role.Dps, Kit.Soldier, 0, Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0), false);
         int nades = 0;
         for (int i = 0; i < 60 * 6; i++) { show.Step(dt); nades = Math.Max(nades, show.Game.Bullets.Values.Count(b => b.Kind == Defs.GrenadeShot)); }

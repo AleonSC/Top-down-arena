@@ -12,14 +12,17 @@ namespace Arena
     ///   2.90 s  Drop: the menu's case falls out from under the monitor, lands with a squash, a bounce, a neon flare, the monitor jolting
     ///           and dust off its feet (3.35 s; MenuMachine.cs)
     ///   3.75 s  Power on: POWER, DISK, the key lamps one by one, the profile screen switching on (to 4.45 s); the shutter rattles (4.4 s)
-    /// Nothing can be clicked meanwhile (the menu counts as still in its intro), and any key skips to the end (with the channel flip,
-    /// SkipStatic.cs). Reduced effects or Visual effects off: no move, the screens just change (and the menu's short fade plays).
+    /// Nothing can be clicked meanwhile (the menu counts as still in its intro), and any key fast-forwards the rest of it, silently, in
+    /// 0.5 s (the other intro skips use the channel flip, SkipStatic.cs). Reduced effects or Visual effects off: no move, the screens
+    /// just change (and the menu's short fade plays).
     public partial class ArenaApp
     {
         const float ProfTrLen = MachEnd;
 
         bool profTr;               // the move is playing
         float profTrT, profTrPrev, profTrAge;
+        float profTrFf;            // skipped: the clock's speed while it fast-forwards to the end (0: playing normally)
+        const float ProfTrFfLen = 0.5f;  // a skip plays whatever is left in this long
         int profTrSlot;            // the profile whose disk goes in (or comes out): its place in whoList
 
         bool ProfTrFull => fxOn && !fxReduced;
@@ -40,6 +43,7 @@ namespace Arena
             profTrT = 0f;
             profTrPrev = -0.0001f;
             profTrAge = 0f;
+            profTrFf = 0f;
             profTrSlot = slot;
             whoCarPos = whoCarTarget = slot;  // the picked disk is the one in the middle
             menuIntroDone = true;  // this is the menu's intro now
@@ -57,12 +61,10 @@ namespace Arena
                 return;
             }
             profTrAge += dt;
-            if (Input.anyKeyDown && profTrAge > 0.25f)
-            {
-                profTrT = ProfTrLen;  // skipped: straight to the end, silently
-                if (!MenuIntroBuilt)
-                    StartSkipStatic();  // under the channel flip (SkipStatic.cs), unless the menu is already powered on
-            }
+            if (profTrFf <= 0f && Input.anyKeyDown && profTrAge > 0.25f)
+                profTrFf = Mathf.Max(1f, (ProfTrLen - profTrT) / ProfTrFfLen);  // skipped: fast-forward the rest
+            if (profTrFf > 0f)
+                profTrT = Mathf.Min(ProfTrLen, profTrT + dt * profTrFf);  // silently
             else
             {
                 profTrT = Mathf.Min(ProfTrLen, profTrT + dt);

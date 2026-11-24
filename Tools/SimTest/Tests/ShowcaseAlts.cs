@@ -58,11 +58,11 @@ static partial class Program
                     var id = Defs.Weapon(role, kit, w).Id;
                     if (!ShowcaseAlt.Has(id) || id == WeaponId.SpiritChalk)
                         continue;
-                    var on = new Showcase();
+                    var on = new Showcase { AltFire = true };
                     on.Show(role, kit, w, Upgrades.FirstAbility(role, kit, 0), false);
                     var a = run(true, id, on);
                     on.Stop();
-                    var off = new Showcase();
+                    var off = new Showcase { AltFire = true };
                     off.Show(role, kit, w, Upgrades.FirstAbility(role, kit, 0), false);
                     var b = run(false, id, off);
                     off.Stop();

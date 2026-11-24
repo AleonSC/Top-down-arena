@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// "Who's playing?" (Docs/Mockups/whos-playing-carousel.html, Docs/Profiles.md): the monitor with its drive at the top, and one big
-    /// floppy disk per profile on an endless side-scrolling carousel: the middle disk large, two either side smaller and fainter, wrapping
+    /// floppy disk per profile on an endless side-scrolling carousel: the middle disk large, two either side smaller and fainter (fading out at the edges), wrapping
     /// round (up to ProfileStore.MaxProfiles, 50). Scroll with the ‹ › keys, the arrow keys, the mouse wheel or a drag; click a side disk to
     /// bring it to the middle; click the middle one (or press Enter) to load it, which plays the disk boot sequence (ProfileTransition.cs).
     /// Under it: PROFILE n OF m (dots while there are 12 or fewer), then Manage profiles (Rename and Delete under the middle disk; Delete
@@ -11,7 +11,9 @@ namespace Arena
     public partial class ArenaApp
     {
         const float CarCx = W / 2f, CarCy = 392f, CarSize = 260f;   // the middle disk's centre and size
-        static readonly float[] CarX = { 0f, 265f, 440f, 560f, 640f }, CarS = { 1f, 0.6f, 0.4f, 0.28f, 0.2f }, CarA = { 1f, 0.85f, 0.45f, 0f, 0f };
+        static readonly float[] CarX = { 0f, 265f, 440f, 560f, 640f }, CarS = { 1f, 0.6f, 0.4f, 0.28f, 0.2f }, CarA = { 1f, 0.9f, 0.7f, 0.3f, 0f };
+        const float CarReach = 3.2f;                                  // disks farther from the middle than this aren't drawn
+        const float CarFadeFrom = 400f, CarFadeTo = 600f, CarFadeStrip = 6f;  // the edge fade: px from the centre where it starts and ends
         static readonly Rect CarLeftKey = new Rect(440f, 548f, 54f, 54f), CarRightKey = new Rect(786f, 548f, 54f, 54f);
         static readonly Rect WhoManageKey = new Rect(380f, 628f, 250f, 58f), WhoNewKey = new Rect(650f, 628f, 250f, 58f);
 
@@ -205,19 +207,26 @@ namespace Arena
             int n = CarCount;
             if (n == 0)
                 return;
-            var order = new System.Collections.Generic.List<int>();
+            // The reel repeats endlessly, so each disk is drawn at every place it holds within reach (with 2 or 3 profiles a disk can be
+            // on both sides at once): one rolling out of the middle keeps going the way it went instead of jumping across.
+            var order = new System.Collections.Generic.List<Vector2>();  // (disk, its offset from the middle)
             for (int i = 0; i < n; i++)
-                if (Mathf.Abs(CarOffset(i)) < 3.2f)
-                    order.Add(i);
-            order.Sort((a, b) => Mathf.Abs(CarOffset(b)).CompareTo(Mathf.Abs(CarOffset(a))));
-            int mid = CarMiddle;
-            foreach (int i in order)
             {
-                float off = CarOffset(i);
+                float d = CarOffset(i);
+                for (int k = -3; k <= 3; k++)
+                    if ((k == 0 || n > 1) && Mathf.Abs(d + k * n) < CarReach)
+                        order.Add(new Vector2(i, d + k * n));
+            }
+            order.Sort((a, b) => Mathf.Abs(b.y).CompareTo(Mathf.Abs(a.y)));
+            int mid = CarMiddle;
+            foreach (var o in order)
+            {
+                int i = (int)o.x;
+                float off = o.y;
                 var r = CarRect(off, out float a);
                 if (a <= 0.01f)
                     continue;
-                WithAlpha(a, () => DrawCarDisk(r, i));
+                DrawCarFaded(r, a, rr => DrawCarDisk(rr, i));
                 if (Mathf.Abs(off) > 0.5f && Mathf.Abs(off) < 2.5f && live && whoEdit == null && Ui.HitArea(r) && !carDragged)
                 {
                     whoCarTarget = Mathf.Round(whoCarTarget) + Mathf.Round(off);
@@ -232,6 +241,46 @@ namespace Arena
                 DrawManageChips(mr, p);
             else if (live && whoEdit == null && Ui.HitArea(mr) && !carDragged)
                 ChooseProfile(p.Id);
+        }
+
+        /// Draws a disk at alpha a, fading out toward the carousel's left and right edges: a disk inside the fade band is drawn in thin
+        /// vertical strips (each clipped by a GUI group), each strip as faint as its distance from the middle says.
+        static void DrawCarFaded(Rect r, float a, System.Action<Rect> draw)
+        {
+            float near = Mathf.Min(Mathf.Abs(r.x - CarCx), Mathf.Abs(r.xMax - CarCx));
+            if (r.x < CarCx && r.xMax > CarCx)
+                near = 0f;
+            float far = Mathf.Max(Mathf.Abs(r.x - CarCx), Mathf.Abs(r.xMax - CarCx));
+            if (far <= CarFadeFrom)
+            {
+                WithAlphaS(a, () => draw(r));
+                return;
+            }
+            if (near >= CarFadeTo)
+                return;
+            for (float x = r.x; x < r.xMax; x += CarFadeStrip)
+            {
+                float w = Mathf.Min(CarFadeStrip, r.xMax - x), f = CarEdgeFade(Mathf.Abs(x + w / 2f - CarCx));
+                if (f * a <= 0.01f)
+                    continue;
+                GUI.BeginGroup(new Rect(x, r.y - 20f, w, r.height + 40f));  // (20 px spare above and below for the drop shadow)
+                WithAlphaS(a * f, () => draw(new Rect(r.x - x, 20f, r.width, r.height)));
+                GUI.EndGroup();
+            }
+        }
+
+        /// 1 near the middle, easing to 0 at the carousel's edges.
+        static float CarEdgeFade(float dist) => 1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((dist - CarFadeFrom) / (CarFadeTo - CarFadeFrom)));
+
+        static void WithAlphaS(float a, System.Action draw)
+        {
+            var old = GUI.color;
+            float oldA = Ui.Alpha;
+            Ui.Alpha = oldA * a;
+            GUI.color = old.ScaleAlpha(a);
+            draw();
+            Ui.Alpha = oldA;
+            GUI.color = old;
         }
 
         /// Disk i: a profile's disk, or the blank one being named.
