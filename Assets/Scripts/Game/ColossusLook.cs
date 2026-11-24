@@ -4,7 +4,7 @@ namespace Arena
 {
     /// How the Colossus's fight looks (Colossus.cs): its stomp rings (push blocks like the Warden's gates, spreading
     /// out), the shadows of boulders, meteors and falling pillars, fissures, the charge line, fallen plates, pillars,
-    /// and its body breaking down phase by phase.
+    /// and the glow under its body (the body itself: ColossusBodyLook.cs).
     public partial class ArenaApp
     {
         static readonly Rgba Stone = new Rgba(0.78f, 0.62f, 0.45f), Magma = new Rgba(1f, 0.48f, 0.23f);
@@ -45,6 +45,7 @@ namespace Arena
             }
             foreach (var s in c.Slabs)
                 DrawSlab(s);
+            DrawColossusPlatesFlying(boss, c, t, false);  // shadows of its plates coming off (ColossusBodyLook.cs)
             foreach (var p in c.Pillars)
             {
                 Circle(p.Pos + new V2(0f, 6f), Game.PillarR + 4f, new Rgba(0f, 0f, 0f, 0.4f), 20);
@@ -62,6 +63,7 @@ namespace Arena
             var c = ColossusOf(game, out boss);
             if (c == null)
                 return;
+            DrawColossusPlatesFlying(boss, c, t, true);  // its plates flying off to become cover (ColossusBodyLook.cs)
             foreach (var d in c.Drops)
             {
                 float k = Mathf.Clamp01(d.T / d.Dur);
@@ -187,43 +189,6 @@ namespace Arena
                 Circle(pos, r + 26f + 4f * Mathf.Sin(t * 5f), Magma.WithAlpha(0.18f + 0.08f * Mathf.Sin(t * 5f)), 32);
             if (c.DazeT > 0f)
                 Arc(pos, r + 8f, 4f, new Rgba(1f, 0.86f, 0.35f, 0.6f + 0.4f * Mathf.Sin(t * 20f)), 32);
-        }
-
-        /// On its body: armour plates (Awakening), then cracks that glow molten from phase 3, a glowing core, the
-        /// eyes on its target, and dizzy stars while it's dazed.
-        void DrawColossusDetails(Enemy e, V2 pos, float r, float t)
-        {
-            var c = e.Colossus;
-            var stage = c != null ? c.Stage : ColStage.Awakening;
-            float rot = e.Facing + MathX.Pi / 6f;
-            if (stage == ColStage.Awakening)
-                for (int k = 0; k < 6; k++)  // its armour: an inner hexagon of plate seams
-                {
-                    V2 a = pos + V2.FromAngle(rot + MathX.Tau * k / 6f) * (r - 14f), b = pos + V2.FromAngle(rot + MathX.Tau * (k + 1) / 6f) * (r - 14f);
-                    Line(a, b, 3f, new Rgba(0.24f, 0.17f, 0.12f, 0.9f));
-                }
-            else
-            {
-                bool molten = stage >= ColStage.MoltenCore;
-                var crack = molten ? new Rgba(1f, 0.5f + 0.25f * Mathf.Sin(t * 6f), 0.2f, 0.95f) : new Rgba(0.12f, 0.08f, 0.05f, 0.9f);
-                for (int k = 0; k < (molten ? 5 : 3); k++)
-                {
-                    float a = rot + k * 1.3f;
-                    V2 p1 = pos + V2.FromAngle(a) * 8f, p2 = pos + V2.FromAngle(a + 0.25f) * r * 0.55f, p3 = pos + V2.FromAngle(a - 0.1f) * r * 0.95f;
-                    Line(p1, p2, molten ? 4f : 3f, crack);
-                    Line(p2, p3, molten ? 4f : 3f, crack);
-                }
-                if (molten)
-                    Circle(pos, 13f + 2f * Mathf.Sin(t * 6f), new Rgba(1f, 0.75f, 0.35f, 0.9f), 16);
-            }
-            for (int k = -1; k <= 1; k += 2)  // eyes on its target
-                Circle(pos + V2.FromAngle(e.Facing + k * 0.35f) * r * 0.55f, 5f, stage >= ColStage.MoltenCore ? new Rgba(1f, 0.82f, 0.48f) : new Rgba(1f, 0.92f, 0.72f), 8);
-            if (c != null && c.DazeT > 0f)
-                for (int k = 0; k < 3; k++)  // dizzy stars circling its head
-                {
-                    V2 at = pos + new V2(Mathf.Cos(t * 5f + k * 2.1f) * 30f, -r - 14f + Mathf.Sin(t * 5f + k * 2.1f) * 8f);
-                    Polygon(at, 6f, 5, t * 4f, new Rgba(1f, 0.85f, 0.35f));
-                }
         }
     }
 }

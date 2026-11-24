@@ -623,12 +623,16 @@ namespace Arena
                 DrawGuardBody(e, pos, r, col, t);  // WardenLook.cs: the corrections officer and its nightstick swing
             else if (e.Type == EnemyType.Warden)
                 DrawWardenBody(e, pos, r, col, spawning, t);  // WardenBodyLook.cs: the Chief Warden, posed for each move
+            else if (e.Type == EnemyType.Colossus)
+                DrawColossusBody(e, pos, r, t);  // ColossusBodyLook.cs: the Quarry Golem, posed for each move
             else if (e.Type == EnemyType.Lich)
                 DrawLichBody(e, pos, r, col, t);  // LichBodyLook.cs: the Hooded Sorcerer, the Wraith in the Final Rite
             else if (e.Type == EnemyType.Phylactery)
                 DrawPhylactery(e, pos, r, col, t);  // LichBodyLook.cs: a soul jar
             else if (Game.IsNonShooter(e.Type))
                 DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
+            else if (e.Type == EnemyType.Eclipse)
+                DrawEclipseBody(e, pos, r, col, t);  // EclipseLook.cs: the sun, the moon crossing it a step each phase
             else if (Game.IsTwin(e.Type))
                 DrawTwinBody(e, pos, r, col, t);  // ReaperBodyLook.cs: a Hooded Reaper
             else if (e.Type == EnemyType.DualReaper)
@@ -777,7 +781,7 @@ namespace Arena
                 case EnemyType.ReaperOfDusk:
                 case EnemyType.ReaperOfDawn:
                     DrawTwinShell(e, pos, r, t);
-                    DrawStageShiftBoss(e, pos, r, t);  // changing phase (StageShiftLook.cs)
+                    DrawReaperShiftOn(e, pos, r, t);  // fusing or splitting (ReaperShiftLook.cs)
                     break;
                 case EnemyType.DualReaper:
                     DrawDualUnderlay(e, pos, r, t);  // ReaperLook.cs
@@ -1001,9 +1005,6 @@ namespace Arena
                 case EnemyType.Decoy:
                     DrawDuelistBlade(e, pos, r, t);  // DuelistLook.cs
                     break;
-                case EnemyType.Colossus:
-                    DrawColossusDetails(e, pos, r, t);  // ColossusLook.cs
-                    break;
                 case EnemyType.Brute:
                     DrawBruteFace(e, pos, r, col);
                     break;
@@ -1051,9 +1052,6 @@ namespace Arena
                     break;
                 case EnemyType.Morsel:
                     DrawMorsel(e, pos, r, t);  // DevourerLook.cs
-                    break;
-                case EnemyType.Eclipse:
-                    Circle(pos, r * 0.8f, new Rgba(0.02f, 0.02f, 0.04f, 1f), 32);
                     break;
                 case EnemyType.BallLightning:
                     DrawBallLightning(e, pos, r, t);  // HeraldLook.cs
