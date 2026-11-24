@@ -62,6 +62,8 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Arc Lightning | Dps | 0.25 s | 16 | - | - | 116 | Primary Fire: Hold to tag up to 10 enemies, let go to chain lightning through them and stun.  Alternative Fire: Three forked bolts at the enemies nearest your cursor. |
 | Ice Shards | Dps | 0.3 s | 7 | 520 x 1 s | - | 70 | Primary Fire: Ice shards orbit you, then launch homing at nearby enemies. |
 | Stonespear | Dps | 0.18 s | 24 | 900 x 0.6 s | - | 60 | Primary Fire: Slam the ground, then throw the earth spears that rise from it, one per click.  Alternative Fire: Hurl every spear at once. |
+| Water Gun (variant) | Tank | 0.07 s | 5 | 640 x 0.55 s | - | 60 | Primary Fire: A long spray of water that splashes the enemy it hits and those near it: wet enemies are slowed. |
+| Gale Gun (variant) | Tank | 0.06 s | 2.5 | 560 x 0.4 s | - | 82 | Primary Fire: A blast of cutting wind that passes through enemies: it slices them (they bleed) and slows them. |
 | Waterball (variant) | Dps | 0.5 s | 28 | 430 x 1.4 s | - | 56 | Primary Fire: A big, slow water ball that soaks everything it rolls through: wet enemies are slowed. |
 | Earthball (variant) | Dps | 0.6 s | 48 | 360 x 1.4 s | - | 82 | Primary Fire: A heavy rock ball that stuns the first enemy it hits, then shatters into rubble. |
 
@@ -169,6 +171,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Bulldoze | Tank | 1st, choice 3 | 9 s | - | Erases enemy bullets along the charge. | Charge forward, damaging and knocking back everything in your path. |
 | Fortress | Tank | ultimate | 70 s | - | Lasts 14 s. | A dome only players and their bullets can cross. |
 | Juggernaut Suit | Tank | ultimate | 75 s | - | 450 armour, and each shard does 18. | Heavy armour draws every enemy and throws flak back at shooters. |
+| A Literal Tank | Tank | ultimate | 80 s | - | 550 armour, and the shells blast 30% wider. | Drive an actual tank for 15 s: heavy armour, big explosive shells, and it runs enemies over. |
 | Deployable Cover | Tank | 1st, choice 5 | 12 s (+1 charges) | - | Covers take 600 damage, and each charge comes back 25% sooner. | Plant steel cover that stops enemy bullets while your team shoots through. |
 | Shockwave | Tank | card | 14 s | - | The wave runs out 300 px. | A shockwave erases bullets and shoves enemies back. |
 | Overdrive | Tank | card | 18 s | - | +1 extra projectile while it lasts. | Double your fire rate for a few seconds. |
@@ -200,6 +203,8 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Flame Wall | Tank | 1st, choice 3 | 14 s | - | The fire also slows enemies by 40%. | A wall of fire at your cursor that burns enemies and blocks bullets. |
 | Glacial Tomb | Tank | ultimate | 75 s | - | Enemies stay frozen for 6 s and bosses take 500. | Erase every enemy bullet and freeze every enemy. |
 | Lightning Rod | Tank | ultimate | 70 s | - | Lasts 8 s and each bolt arcs to 3 enemies. | You draw every enemy while taking much less damage, and lightning strikes whoever hits you. |
+| Stone Colossus | Tank | ultimate | 80 s | - | Lasts 18 s and slams reach 25% wider. | Become a huge earth golem: stomp what you walk over and slam the ground with both fists. |
+| Vortex | Tank | ultimate | 80 s | - | 300 px across instead of 240, and 55 damage a second. | A huge whirlwind round you drags enemies with it, shreds them and sweeps their shots away, then flings them out. |
 | Flood | Tank | 1st, choice 5 | 16 s | - | Deluge: the flood is 30% wider and lasts 9 s. | Flood the ground around you: it throws enemies back, slows them and soaks them. |
 | Healing Rain | Healer | 1st, choice 1 | 16 s | - | Lasts 10 s, and downed allies inside revive twice as fast. | A rain at your cursor that heals allies and slows enemies. |
 | Gust Gate | Healer | 1st, choice 2 | 14 s | - | The ring is 40% wider and pushes enemies twice as hard. | A wind ring that gives anyone passing through a speed boost. |
