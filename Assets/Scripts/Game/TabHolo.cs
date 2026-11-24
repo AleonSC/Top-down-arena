@@ -83,6 +83,7 @@ namespace Arena
             }
             DrawHoloGlass(r, now);
             draw();
+            LobbyKit.Corners(r, 18f);  // the bracket corners the other menu boxes have
             if (sy < 1f)
             {
                 float flare = 1f - k;  // brightest as it opens
