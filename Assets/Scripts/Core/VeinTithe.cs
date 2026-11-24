@@ -38,7 +38,7 @@ namespace Arena
             foreach (int id in p.Tithed)
             {
                 Enemy e;
-                if (Enemies.TryGetValue(id, out e) && e.Hp > 0f)
+                if (TryFoe(id, out e) && e.Hp > 0f)
                     rate += TitheCost * (e.Def.IsBoss ? TitheBossMult : 1f);
             }
             return rate * (Mastered(p, AbilityId.VeinTithe) ? TitheMasteredCost : 1f);
@@ -77,7 +77,7 @@ namespace Arena
                 foreach (int id in p.Tithed)
                 {
                     Enemy e;
-                    if (Enemies.TryGetValue(id, out e) && e.Hp > 0f)
+                    if (TryFoe(id, out e) && e.Hp > 0f)
                         BroadcastFx(FxKind.TitheSnap, p.Pos, e.Pos, new Rgba(0.85f, 0.12f, 0.2f, e.Def.IsBoss ? 1f : 0.5f), e.Radius, TitheReachTime + 0.2f, Sfx.None);
                 }
             p.TitheClock = 0f;
@@ -98,7 +98,7 @@ namespace Arena
                     continue;
                 }
                 p.TitheClock += dt;
-                p.Tithed.RemoveAll(id => { Enemy d; return !Enemies.TryGetValue(id, out d) || d.Hp <= 0f; });
+                p.Tithed.RemoveAll(id => { Enemy d; return !TryFoe(id, out d) || d.Hp <= 0f; });
                 foreach (var e in Enemies.Values)
                     if (Targetable(e) && p.Tithed.Count < 255 && e.Pos.DistanceTo(p.Pos) <= TitheRadius && !p.Tithed.Contains(e.Id))
                         p.Tithed.Add(e.Id);

@@ -150,10 +150,8 @@ namespace Arena
             bool tick = wallContactAcc >= WallContactTick;
             if (tick)
                 wallContactAcc -= WallContactTick;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes())
             {
-                if (!Targetable(e))
-                    continue;
                 Zone touched = null;
                 foreach (var z in wallNodes)
                 {

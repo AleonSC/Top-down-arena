@@ -67,6 +67,7 @@ namespace Arena
             }
             TickDummies(dt);
             TickSpawners(dt);  // HangoutSpawners.cs
+            TickPvp(dt);  // what other players' attacks left on each player's stand-in (Pvp.cs)
             TickHangoutBeams(dt);
             Orbs.Clear();
             foreach (var p in Players.Values)

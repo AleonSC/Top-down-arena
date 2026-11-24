@@ -63,10 +63,8 @@ namespace Arena
             {
                 V2 at = k == 0 ? centre : ClampToArena(centre + V2.FromAngle(MathX.Tau * k / Math.Max(1, extra) + Rand(0f, 1f)) * (NimbusSpread * AreaMult(p)), 10f);
                 BroadcastFx(FxKind.NimbusStrike, at, at, NimbusBoltColor, radius, NimbusStrikeFxTime, Sfx.SpellZap);
-                foreach (var e in Enemies.Values)
+                foreach (var e in FoesInCircle(at, radius, by: p.Id))
                 {
-                    if (!Targetable(e) || e.Pos.FartherThan(at, radius + e.Radius))
-                        continue;
                     anyHit = true;
                     HurtEnemy(e, dmg, p.Id);
                     WetArcs(e.Pos, e, dmg, p.Id);  // Tsunami.cs
@@ -150,10 +148,8 @@ namespace Arena
             float age = NimbusStormTime - p.NimbusStormT, R = NimbusStormRadiusOf(p) * Math.Min(1f, age / NimbusStormSpinUp + 0.25f);
             float dmg = NimbusStormDps * p.Stats.DmgMult * dt;
             Soak(m.Pos, R);
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
             {
-                if (!Targetable(e))
-                    continue;
                 V2 rel = m.Pos - e.Pos;
                 float d = rel.Length;
                 if (d > R + e.Radius)

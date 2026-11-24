@@ -247,7 +247,7 @@ namespace Arena
                 return;
             float r = MeleeReach(p, KatanaBurstRadius) * (1f + 0.25f * extra);
             int hit = 0;
-            var snap3 = SnapEnemies();
+            var snap3 = SnapFoes(p.Id);
             foreach (var e in snap3)
             {
                 if (IsSpawning(e) || e.Hp <= 0f)
@@ -278,7 +278,7 @@ namespace Arena
             {
                 if (c.Owner != p.Id || c.Mode != 1)
                     continue;
-                var t = NearestEnemy(c.B.Pos);
+                var t = NearestEnemy(c.B.Pos, by: p.Id);
                 if (t == null)
                     break;
                 c.Mode = 2;
@@ -362,9 +362,9 @@ namespace Arena
                 else if (c.Mode == 2)
                 {
                     Enemy t;
-                    if (!Enemies.TryGetValue(c.Target, out t) || t.Hp <= 0f)
+                    if (!TryFoe(c.Target, out t) || t.Hp <= 0f)
                     {
-                        t = NearestEnemy(c.B.Pos);
+                        t = NearestEnemy(c.B.Pos, by: c.Owner);
                         if (t == null)
                         {
                             c.B.Life = 0f;

@@ -27,6 +27,17 @@ namespace Arena
             return l;
         }
 
+        /// SnapEnemies for a player's attack: with PvP on, the other players' stand-ins too (Pvp.cs). Give it back with `Free`.
+        List<Enemy> SnapFoes(int by)
+        {
+            var l = SnapEnemies();
+            if (by > 0 && PvpOn)
+                foreach (var q in Players.Values)
+                    if (q.Id != by && !q.Downed && q.WarpT <= 0f)
+                        l.Add(StandOf(q));
+            return l;
+        }
+
         /// A copy of a dictionary's keys. Give it back with `Free`.
         List<int> SnapKeys<V>(IDictionary<int, V> d)
         {

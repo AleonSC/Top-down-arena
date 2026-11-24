@@ -19,9 +19,9 @@ namespace Arena
         /// Host: the slam, then the Burrower at the cursor (at most BurrowerReach from you).
         void CastEarthquake(Player p, V2 target, bool cap, float dmg)
         {
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
             {
-                if (e.SpawnT > 0f || e.Pos.FartherOrAt(p.Pos, QuakeSlamRadius + e.Radius))
+                if (e.Pos.FartherOrAt(p.Pos, QuakeSlamRadius + e.Radius))
                     continue;
                 HurtEnemy(e, QuakeSlamDamage * dmg, p.Id);
                 Slow(e, QuakeSlamSlow, 0.5f);
@@ -86,9 +86,9 @@ namespace Arena
                 m.Aim += Math.Max(-BurrowerTurn * dt, Math.Min(BurrowerTurn * dt, da));
             }
             m.Pos = ClampToArena(m.Pos + V2.FromAngle(m.Aim) * d.Speed * dt, 30f);
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: owner.Id))
             {
-                if (!Targetable(e) || m.Burrowed.Contains(e.Id) || e.Pos.FartherOrAt(m.Pos, d.Range + e.Radius))
+                if (m.Burrowed.Contains(e.Id) || e.Pos.FartherOrAt(m.Pos, d.Range + e.Radius))
                     continue;
                 m.Burrowed.Add(e.Id);
                 HurtEnemy(e, dmg, owner.Id);

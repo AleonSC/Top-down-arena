@@ -144,7 +144,7 @@ namespace Arena
 
         bool AmmoCloseEnemy(Player p, float cone)
         {
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
                 if (Targetable(e) && AmmoInCone(p, e, cone, AmmoReach))
                     return true;
             return false;
@@ -156,7 +156,7 @@ namespace Arena
             bool clap = m == 3;
             float dmg = AmmoMotion.Damage[m] * p.Stats.DmgMult * (1f + 0.5f * ExtraShots(p));
             V2 fwd = V2.FromAngle(p.Aim);
-            var snap4 = SnapEnemies();
+            var snap4 = SnapFoes(p.Id);
             foreach (var e in snap4)
             {
                 if (!Targetable(e))
@@ -180,7 +180,7 @@ namespace Arena
             float dmg = AmmoMotion.KDamage[k] * p.Stats.DmgMult * (1f + 0.5f * ExtraShots(p));
             V2 fwd = V2.FromAngle(p.Aim);
             bool hitAny = false;
-            var snap5 = SnapEnemies();
+            var snap5 = SnapFoes(p.Id);
             foreach (var e in snap5)
             {
                 if (!Targetable(e) || !AmmoInCone(p, e, AmmoMotion.KCone[k], AmmoMotion.KReach[k]))
@@ -263,7 +263,7 @@ namespace Arena
                 return;
             p.AmmoTick += AmmoSpinTick;
             float dmg = AmmoSpinDamage * p.Stats.DmgMult * (1f + 0.5f * ExtraShots(p));
-            var snap6 = SnapEnemies();
+            var snap6 = SnapFoes(p.Id);
             foreach (var e in snap6)
             {
                 if (!Targetable(e) || e.Pos.DistanceTo(p.Pos) - e.Radius > AmmoSpinRadius)

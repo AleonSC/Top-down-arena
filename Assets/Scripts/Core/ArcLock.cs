@@ -79,7 +79,7 @@ namespace Arena
             for (int i = p.ArcTags.Count - 1; i >= 0; i--)  // the dead come off
             {
                 Enemy t;
-                if (!Enemies.TryGetValue(p.ArcTags[i], out t) || !Targetable(t))
+                if (!TryFoe(p.ArcTags[i], out t) || !Targetable(t))
                     p.ArcTags.RemoveAt(i);
             }
             if (p.DrawT <= 0f)
@@ -93,7 +93,7 @@ namespace Arena
                 return;
             Enemy best = null;
             float bestD = float.MaxValue;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
             {
                 if (!Targetable(e) || p.ArcTags.Contains(e.Id) || !InArcCone(p, p.Aim, e.Pos, e.Radius))
                     continue;
@@ -148,7 +148,7 @@ namespace Arena
                 }
                 p.ArcHits.RemoveAt(i--);
                 Enemy e;
-                bool alive = Enemies.TryGetValue(h.Enemy, out e) && Targetable(e);
+                bool alive = TryFoe(h.Enemy, out e) && Targetable(e);
                 V2 from = h.Fork ? ArcStaff(p, (h.To - p.Pos).Length > 1f ? (h.To - p.Pos).Angle : p.Aim) : p.ArcFrom;
                 if (!alive)
                 {
@@ -188,7 +188,7 @@ namespace Arena
             float aim = toward.Length > 1f ? toward.Angle : p.Aim;
             V2 side = V2.FromAngle(aim).Orthogonal();
             forkPick.Clear();
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
                 if (Targetable(e) && e.Pos.DistanceTo(aimAt) <= ForkPick + e.Radius && e.Pos.DistanceTo(p.Pos) <= ForkRange)
                     forkPick.Add(e);
             forkPick.Sort((a, b) => a.Pos.DistanceTo(aimAt).CompareTo(b.Pos.DistanceTo(aimAt)));

@@ -64,10 +64,8 @@ namespace Arena
                 return;
             z.Bursts = false;
             Sounds.Add(Sfx.BossSlam);
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: z.Owner))
             {
-                if (!Targetable(e))
-                    continue;
                 V2 l = BridgeLocal(z, e.Pos);
                 if (l.X < 0f || l.X > BridgeLength)
                     continue;

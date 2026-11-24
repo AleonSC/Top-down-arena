@@ -131,7 +131,7 @@ namespace Arena
                 tbHits.RemoveAt(i);
                 Player p;
                 Enemy e;
-                if (!Players.TryGetValue(h.Owner, out p) || !Enemies.TryGetValue(h.Target, out e) || !Targetable(e))
+                if (!Players.TryGetValue(h.Owner, out p) || !TryFoe(h.Target, out e) || !Targetable(e))
                     continue;
                 HurtEnemy(e, h.Dmg, p.Id);
                 if (h.Needle)

@@ -236,9 +236,9 @@ namespace Arena
             p.FangAt = r.Pos;
             float dmg = p.Weapon.Damage * p.Stats.DmgMult * WheelMult * p.Stats.WheelDmgMult;  // (Lunar Arc: harder)
             int cut = 0;
-            foreach (var e in Enemies.Values)
+            foreach (var e in FoesInCircle(r.Pos, WheelHitR, by: p.Id))
             {
-                if (!Targetable(e) || e.Pos.FartherThan(r.Pos, e.Radius + WheelHitR) || r.Hit.ContainsKey(e.Id))
+                if (r.Hit.ContainsKey(e.Id))
                     continue;
                 r.Hit[e.Id] = r.T;  // once a leg
                 FangHurt(p, e, dmg, r.Pos);

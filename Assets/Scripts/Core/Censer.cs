@@ -137,10 +137,8 @@ namespace Arena
         {
             int n = Math.Max(1, r.Embers);
             float dmg = CastBurstPerEmber * n * p.Stats.DmgMult;
-            foreach (var e in Enemies.Values)
+            foreach (var e in FoesInCircle(r.To, CastBurstR, by: p.Id))
             {
-                if (!Targetable(e) || e.Pos.FartherThan(r.To, e.Radius + CastBurstR))
-                    continue;
                 V2 dir = e.Pos - r.To;
                 HurtEnemy(e, dmg, p.Id);
                 ModHit(e, p.Id, dmg, Defs.KnightSlash, dir.IsZero ? new V2(1f, 0f) : dir.Normalized());

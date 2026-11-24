@@ -1018,7 +1018,10 @@ namespace Arena
             foreach (var p in Players.Values)
                 p.StunT = Math.Max(0f, p.StunT - dt);
             foreach (var p in Players.Values)
+            {
                 p.WarpT = Math.Max(0f, p.WarpT - dt);  // (BossBeam.cs)
+                p.PvpSlowT = Math.Max(0f, p.PvpSlowT - dt);  // (Pvp.cs)
+            }
             float k = 1f - (float)Math.Exp(-18.0 * dt);
             foreach (var p in Players.Values)
                 // Snap instead of sliding across the screen when the player wraps around an edge.

@@ -44,10 +44,8 @@ namespace Arena
             p.FireCd = RadiantTick / FireRate(p);
             float r = RadiantSize(p), dmg = p.Weapon.Damage * p.Stats.DmgMult;
             bool hit = false, touched = false;
-            foreach (var e in Enemies.Values)
+            foreach (var e in FoesInCircle(p.RadiantPos, r, by: p.Id))
             {
-                if (!Targetable(e) || e.Pos.FartherThan(p.RadiantPos, r + e.Radius))
-                    continue;
                 hit = touched = true;
                 HurtEnemy(e, dmg, p.Id);
                 ModHit(e, p.Id, dmg, Defs.HolyShot, (e.Pos - p.RadiantPos).Normalized());  // weapon mods ride it

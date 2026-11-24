@@ -107,7 +107,7 @@ namespace Arena
         Enemy MoveGuard(Minion m, Player owner, float speed, float dt)
         {
             Enemy target = null;
-            target = NearestInLeash(m.Pos, owner.Pos, GuardLeash);
+            target = NearestInLeash(m.Pos, owner.Pos, GuardLeash, by: owner.Id);
             V2 goal = target != null ? target.Pos : BesideOwner(owner, 45f, m.Ang);
             V2 to = goal - m.Pos;
             float stop = target != null ? target.Radius + m.Def.Radius : 4f;

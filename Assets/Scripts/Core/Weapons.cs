@@ -101,12 +101,11 @@ namespace Arena
         /// A Flak Cannon shell reached the end of its flight: the airburst.
         void FlakAirburst(Bullet b)
         {
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.CloserThan(b.Pos, b.Splash + e.Radius) && !BlocksShot(e, b.Pos))
-                {
-                    HurtEnemy(e, b.Dmg, b.Owner);
-                    OnBulletHit(b, e);
-                }
+            foreach (var e in FoesInCircle(b.Pos, b.Splash, b.Pos, by: b.Owner))
+            {
+                HurtEnemy(e, b.Dmg, b.Owner);
+                OnBulletHit(b, e);
+            }
             var shot = flakScratch;
             shot.Clear();
             foreach (var o in Bullets.Values)

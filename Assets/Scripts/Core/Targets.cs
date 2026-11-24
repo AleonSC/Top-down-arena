@@ -54,17 +54,16 @@ namespace Arena
             return target == null || target.Downed ? FirstAlive() : target;
         }
 
-        /// Host: the nearest Targetable enemy to `at` within `range` (null: none).
-        Enemy NearestEnemy(V2 at, float range = float.MaxValue)
+        /// Host: the nearest Targetable enemy to `at` within `range` (null: none). `by`: the player it's for (a summon's owner): with PvP
+        /// on, the other players count too, as their stand-ins (Pvp.cs).
+        Enemy NearestEnemy(V2 at, float range = float.MaxValue, int by = 0)
         {
             Enemy best = null;
             if (range <= 0f)
                 return null;
             float bestD = range < float.MaxValue ? range * range : float.MaxValue;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: by))
             {
-                if (!Targetable(e))
-                    continue;
                 float d = e.Pos.DistanceSq(at);
                 if (d < bestD)
                 {
@@ -77,11 +76,11 @@ namespace Arena
 
         /// Host: the nearest Targetable enemy to `to` that reaches within `leash` of `anchor` (its edge counts): a minion
         /// that goes for enemies near its owner but never strays far (guards, thralls, bots).
-        Enemy NearestInLeash(V2 to, V2 anchor, float leash)
+        Enemy NearestInLeash(V2 to, V2 anchor, float leash, int by = 0)
         {
             Enemy best = null;
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.CloserThan(anchor, leash + e.Radius) && (best == null || e.Pos.DistanceSq(to) < best.Pos.DistanceSq(to)))
+            foreach (var e in AllFoes(by: by))
+                if (e.Pos.CloserThan(anchor, leash + e.Radius) && (best == null || e.Pos.DistanceSq(to) < best.Pos.DistanceSq(to)))
                     best = e;
             return best;
         }
