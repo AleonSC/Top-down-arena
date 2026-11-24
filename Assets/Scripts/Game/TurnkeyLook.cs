@@ -4,14 +4,14 @@ namespace Arena
 {
     /// The Turnkey (Core/Turnkey.cs), in the Warden's smooth officer style (OfficerLook.cs): a prison janitor in mustard
     /// coveralls and a dark beanie, a ring of brass keys swinging at its belt. Working, it crouches over its trap or hammers
-    /// at its door, and a ring round it fills as the work nears done (the window to catch it). Its Cell Door is a barred
-    /// steel gate (the cell's orange light behind; it swings open as a Rioter steps out; jammed: chained and padlocked),
-    /// its Floor Mine a dark disc with an amber light, its Shackle Trap a pair of toothed steel jaws on a staked chain, and
-    /// its Mop Slick (PatchKind.Slick) a grey-blue wet floor with a yellow sign. Timers come from the snapshot (PhaseT, T2).
+    /// at its door, and a ring round it fills as the work nears done (the window to catch it). Its Cell Door is drawn in
+    /// CellDoorLook.cs; its Floor Mine is an olive disc with a pressure plate, a red light ticking round it and its trigger
+    /// zone dashed on the floor; its Shackle Trap a bear trap (serrated jaws, hinges, a linked chain to a stake); and its
+    /// Mop Slick (PatchKind.Slick) a grey-blue wet floor with a yellow sign. Timers come from the snapshot (PhaseT, T2).
     public partial class ArenaApp
     {
         static readonly Rgba TurnkeyOveralls = new Rgba(0.72f, 0.6f, 0.3f), TurnkeyBeanie = new Rgba(0.2f, 0.22f, 0.26f),
-            KeyBrass = new Rgba(1f, 0.82f, 0.36f), DoorSteel = new Rgba(0.56f, 0.62f, 0.7f), CellGlow = new Rgba(1f, 0.55f, 0.2f),
+            KeyBrass = new Rgba(1f, 0.82f, 0.36f), CellGlow = new Rgba(1f, 0.55f, 0.2f),
             TrapSteel = new Rgba(0.78f, 0.8f, 0.86f), SlickBlue = new Rgba(0.3f, 0.58f, 0.95f), SignYellow = new Rgba(1f, 0.84f, 0.2f);
 
         /// Behind the body: a mine's blast ring as it beeps, a door's cell light.
@@ -30,7 +30,7 @@ namespace Arena
             switch (e.Type)
             {
                 case EnemyType.Turnkey: DrawTurnkey(e, pos, r, t); break;
-                case EnemyType.CellDoor: DrawCellDoor(e, pos, r, t); break;
+                case EnemyType.CellDoor: DrawCellDoorFloor(e, pos, t); break;  // (the door itself: DrawCellDoorsOver, CellDoorLook.cs)
                 case EnemyType.FloorMine: DrawFloorMine(e, pos, r, t); break;
                 case EnemyType.ShackleTrap: DrawShackle(e, pos, r, t); break;
             }
@@ -73,12 +73,7 @@ namespace Arena
                 OfficerArm(body - s * r * 0.85f, body - s * r * 0.6f + f * r * 0.9f, 4.2f, TurnkeyOveralls, glove);
                 GuardStick(grip, head, 2.6f, new Rgba(0.55f, 0.4f, 0.22f));
                 Cap(head - V2.FromAngle(e.Facing + 0.6f - 1.1f * lift).Orthogonal() * 4f, head + V2.FromAngle(e.Facing + 0.6f - 1.1f * lift).Orthogonal() * 4f, 5f, new Rgba(0.35f, 0.37f, 0.42f));
-                // the cell going up in front of it: its outline, filling in
-                V2 door = pos + f * (r + 18f);
-                var ghost = DoorSteel.WithAlpha(0.2f + 0.5f * work);
-                for (int k = 0; k < 6; k++)
-                    if (k < 1 + (int)(work * 6f))
-                        Cap(door - s * 14f + s * (28f * k / 6f), door - s * 14f + s * (28f * (k + 0.6f) / 6f), 3f, ghost);
+                // (the door going up on the wall: its outline, CellDoorLook.cs DrawDoorBlueprint)
             }
             else
             {
@@ -95,103 +90,79 @@ namespace Arena
                 Arc(pos, r + 7f, 2.5f, KeyBrass.WithAlpha(0.9f), 32, -MathX.Pi / 2f, MathX.Tau * work);  // the work, filling: catch it now
         }
 
-        /// A cell seen from above: a dark box with bars across it, the barred gate on the side facing you. While its Turnkey
-        /// works it the cell glows orange and the gate swings open as a Rioter comes out; jammed, a chain crosses it, padlocked.
-        void DrawCellDoor(Enemy e, V2 pos, float r, float t)
-        {
-            V2.Axes(e.Facing, out V2 f, out V2 s);
-            float w = r * 1.05f, d = r * 0.8f;
-            bool jammed = e.Phase == 2;
-            V2 fl = pos + f * d - s * w, fr = pos + f * d + s * w, bl = pos - f * d - s * w, br = pos - f * d + s * w;
-            float ink = OffInk + 1f;
-            Quad(fl + (f - s) * ink, fr + (f + s) * ink, br + (s - f) * ink, bl - (f + s) * ink, GuardInk);
-            Quad(fl, fr, br, bl, new Rgba(0.1f, 0.11f, 0.14f));
-            if (!jammed)
-            {
-                float swing = Mathf.Clamp01(e.PhaseT / Game.DoorSwing), a = 0.3f + 0.4f * swing + 0.06f * Mathf.Sin(t * 3f + e.Id);
-                Circle(pos, w * 0.75f, CellGlow.WithAlpha(a), 20);  // the light inside
-            }
-            for (int k = 1; k <= 4; k++)  // the bars over the top
-            {
-                V2 o = s * (w * (-1f + 2f * k / 5f));
-                Cap(pos - f * d + o, pos + f * d + o, 1.8f, DoorSteel.Darkened(0.2f));
-            }
-            Cap(bl, br, 3f, DoorSteel.Darkened(0.3f));  // the back wall
-            // the gate: hinged at the front-left corner, swung open toward you while a Rioter comes out
-            float open = jammed ? 0f : Mathf.Sin(Mathf.Clamp01(e.PhaseT / Game.DoorSwing) * MathX.Pi) * 1.2f;
-            V2 along = V2.FromAngle(s.Angle + open);
-            V2 end = fl + along * (w * 2f);
-            Cap(fl, end, 5.2f + 2f, GuardInk);
-            Cap(fl, end, 5.2f, DoorSteel);
-            for (int k = 1; k <= 5; k++)  // its bars' tops, studs along it
-                Circle(fl + along * (w * 2f * k / 6f), 1.5f, new Rgba(0.92f, 0.95f, 1f, 0.8f), 8);
-            Circle(fl + along * (w * 1.65f) + V2.FromAngle(along.Angle - MathX.Pi / 2f) * 4.5f, 2.6f, KeyBrass, 12);  // the lock plate
-            if (jammed)
-            {
-                // a chain across the cell, corner to corner, and a red padlock on the gate
-                for (int k = 0; k <= 6; k++)
-                {
-                    Circle(fl + (br - fl) * (k / 6f), 2.4f, new Rgba(0.75f, 0.77f, 0.82f), 10);
-                    Circle(fr + (bl - fr) * (k / 6f), 2.4f, new Rgba(0.75f, 0.77f, 0.82f), 10);
-                }
-                V2 lk = pos + f * (d + 6f);
-                Arc(lk + f * 2.5f, 3f, 1.4f, new Rgba(0.75f, 0.77f, 0.82f), 12, e.Facing - MathX.Pi / 2f, MathX.Pi);
-                Circle(lk, 4.2f + OffInk, GuardInk, 12);
-                Circle(lk, 4.2f, new Rgba(0.88f, 0.26f, 0.2f), 12);
-            }
-            if (e.Flash > 0f || JuiceFlash(e))
-                Quad(fl, fr, br, bl, Rgba.White.WithAlpha(0.7f * HitFlashMix(e)));
-        }
-
+        /// The mine: a squat olive disc with a raised pressure plate and a red LED ring that ticks round when armed; its
+        /// blast circle drawn faint and dashed under it, so you see the zone before you step in.
         void DrawFloorMine(Enemy e, V2 pos, float r, float t)
         {
             float arm = Mathf.Clamp01(e.T2 / Game.FloorMineArm);
             bool armed = e.Phase >= 1, beep = e.Phase == 2, blink = Mathf.Sin(t * 60f) > 0f;
-            Circle(pos, r + OffInk, GuardInk, 20);
-            Circle(pos, r, new Rgba(0.3f, 0.31f, 0.28f), 20);
-            for (int k = 0; k < 4; k++)  // its four prongs
-            {
-                V2 d = V2.FromAngle(MathX.Pi / 4f + k * MathX.Pi / 2f);
-                Circle(pos + d * (r * 0.72f), 1.3f, new Rgba(0.6f, 0.62f, 0.6f), 6);
-            }
-            float pulse = 0.5f + 0.5f * Mathf.Sin(t * 5f + e.Id);
-            var light = armed && (!beep || blink) ? (beep ? Rgba.White : e.Def.Color) : new Rgba(0.3f, 0.12f, 0.08f);
-            Circle(pos, r * 0.38f, light, 10);
             if (armed && !beep)
-                Circle(pos, r * 0.8f, e.Def.Color.WithAlpha(0.18f * pulse), 14);
+                for (int k = 0; k < 16; k++)  // the trigger zone, dashed
+                    Arc(pos, Game.FloorMineTrigger, 1.2f, AlarmRed.WithAlpha(0.28f), 4, k * MathX.Tau / 16f + t * 0.3f, MathX.Tau / 32f);
+            Circle(pos + new V2(1.5f, 2f), r + 1.5f, new Rgba(0f, 0f, 0f, 0.35f), 20);  // its shadow
+            Circle(pos, r + OffInk, GuardInk, 20);
+            Circle(pos, r, new Rgba(0.33f, 0.36f, 0.27f), 20);
+            Arc(pos, r * 0.8f, 1.2f, new Rgba(0.22f, 0.24f, 0.18f), 20);
+            Circle(pos, r * 0.5f, new Rgba(0.42f, 0.45f, 0.36f), 14);  // the plate
+            Circle(pos - new V2(r * 0.15f, r * 0.15f), r * 0.25f, new Rgba(0.55f, 0.58f, 0.48f), 10);
+            for (int k = 0; k < 8; k++)  // its LED ring
+            {
+                float ang = k * MathX.Tau / 8f;
+                bool lit = armed && (beep ? blink : (int)MathX.Fmod(t * 6f, 8f) == k);
+                var c = lit ? (beep ? Rgba.White : AlarmRed) : armed ? new Rgba(0.45f, 0.08f, 0.06f) : new Rgba(0.2f, 0.1f, 0.08f);
+                Circle(pos + V2.FromAngle(ang) * (r * 0.74f), 1.1f, c, 6);
+                if (lit)
+                    Circle(pos + V2.FromAngle(ang) * (r * 0.74f), 3.2f, AlarmRed.WithAlpha(0.3f), 8);
+            }
             if (!armed)
-                Arc(pos, r + (1f - arm) * 14f, 1.4f, e.Def.Color.WithAlpha(0.55f), 20);
+                Arc(pos, r + 3f, 1.6f, AlarmRed.WithAlpha(0.6f), 20, -MathX.Pi / 2f, MathX.Tau * arm);  // arming
             if (beep)
-                Circle(pos, r * 2.2f, FuseDanger.WithAlpha(blink ? 0.5f : 0.15f), 16);
+                Circle(pos, r * 2.2f, AlarmRed.WithAlpha(blink ? 0.5f : 0.15f), 16);
         }
 
+        /// The shackle: a bear trap seen from above, two serrated jaws open on a round frame round a red plate, staked by
+        /// a chain; snapped, the jaws meet with a white crack.
         void DrawShackle(Enemy e, V2 pos, float r, float t)
         {
             bool armed = e.Phase >= 1, shut = e.Phase == 2;
             float arm = Mathf.Clamp01(e.T2 / Game.SnareArm);
-            // the chain to its stake
-            V2 stake = pos + new V2(r * 1.3f, r * 0.9f);
-            for (int k = 1; k <= 3; k++)
-                Arc(pos + (stake - pos) * (k / 4f), 1.8f, 1f, TrapSteel.WithAlpha(0.8f), 8);
-            Circle(stake, 2.6f, new Rgba(0.35f, 0.3f, 0.25f), 10);
-            // the jaws: two half-rings, open flat or snapped shut on an ankle
-            float gap = shut ? r * 0.15f : r * 0.85f;
+            V2 stake = pos + new V2(r * 1.6f, r * 1.1f);
+            for (int k = 1; k <= 4; k++)  // the chain: alternating links
+            {
+                V2 c = pos + (stake - pos) * (k / 5f);
+                float ang = (stake - pos).Angle + (k % 2 == 0 ? MathX.Pi / 2f : 0f);
+                Arc(c, 2f, 1f, TrapSteel.WithAlpha(0.85f), 8);
+                Cap(c - V2.FromAngle(ang) * 1.5f, c + V2.FromAngle(ang) * 1.5f, 1f, TrapSteel.Darkened(0.3f));
+            }
+            Circle(stake, 3.2f + OffInk, GuardInk, 10);
+            Circle(stake, 3.2f, new Rgba(0.4f, 0.34f, 0.26f), 10);
+            Circle(stake, 1.3f, TrapSteel, 6);
+            Circle(pos + new V2(1.5f, 2f), r + 2f, new Rgba(0f, 0f, 0f, 0.35f), 20);
             var steel = armed ? TrapSteel : TrapSteel.Darkened(0.4f);
+            Arc(pos, r * 0.95f, 2.2f + OffInk, GuardInk, 24);
+            Arc(pos, r * 0.95f, 2.2f, steel.Darkened(0.25f), 24);  // the frame
+            float open = shut ? 0.12f : 1f;
             for (int k = -1; k <= 1; k += 2)
             {
-                V2 c = pos + new V2(0f, k * gap * 0.5f);
+                // each jaw: an arc from hinge to hinge (left and right), laid open outward or closed to the middle
+                V2 c = pos + new V2(0f, k * r * 0.45f * open);
                 float start = k < 0 ? MathX.Pi : 0f;
-                Arc(c, r * 0.8f, 2.6f + OffInk, GuardInk, 16, start, MathX.Pi);
-                Arc(c, r * 0.8f, 2.6f, steel, 16, start, MathX.Pi);
-                for (int j = 1; j <= 3; j++)  // teeth
+                Arc(c, r * 0.85f, 2.6f + OffInk, GuardInk, 16, start, MathX.Pi);
+                Arc(c, r * 0.85f, 2.6f, steel, 16, start, MathX.Pi);
+                for (int j = 1; j <= 5; j++)  // serrated teeth
                 {
-                    V2 d = V2.FromAngle(start + MathX.Pi * j / 4f);
-                    Line(c + d * (r * 0.8f), c + d * (r * 0.45f), 1.4f, steel);
+                    V2 d = V2.FromAngle(start + MathX.Pi * j / 6f);
+                    Tri3(c + d * (r * 0.85f) + d.Orthogonal() * 1.6f, c + d * (r * 0.85f) - d.Orthogonal() * 1.6f, c + d * (r * 0.5f), steel);
                 }
             }
-            Circle(pos, 2.4f, armed ? new Rgba(0.85f, 0.25f, 0.2f) : new Rgba(0.35f, 0.2f, 0.2f), 8);  // the plate you step on
+            Circle(pos - new V2(r, 0f), 2f, steel.Darkened(0.3f), 8);  // the hinges
+            Circle(pos + new V2(r, 0f), 2f, steel.Darkened(0.3f), 8);
+            float pulse = 0.5f + 0.5f * Mathf.Sin(t * 4f + e.Id);
+            Circle(pos, 3.4f, armed ? AlarmRed : new Rgba(0.35f, 0.2f, 0.2f), 10);  // the plate you step on
+            if (armed && !shut)
+                Circle(pos, 6f, AlarmRed.WithAlpha(0.2f * pulse), 12);
             if (!armed)
-                Arc(pos, r + (1f - arm) * 14f, 1.4f, TrapSteel.WithAlpha(0.5f), 20);
+                Arc(pos, r + 4f, 1.6f, TrapSteel.WithAlpha(0.6f), 20, -MathX.Pi / 2f, MathX.Tau * arm);
             if (shut)
                 Arc(pos, r * 1.5f, 2f, Rgba.White.WithAlpha(Mathf.Clamp01(e.PhaseT / Game.SnareLinger)), 20);
         }

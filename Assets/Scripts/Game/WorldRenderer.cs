@@ -92,6 +92,7 @@ namespace Arena
             DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon, over the arena's contents (DragonsDogmaLook.cs)
             DrawEngineerMock(t);  // Tools/Preview only: the Engineer mockup (EngineerLook.cs)
             GlowPass();        // the additive glow
+            DrawCellDoorsOver(t);  // the Turnkey's Cell Doors, cut into the walls (CellDoorLook.cs)
             DrawEnemyShots(t);  // enemy bullets on top of every effect, spark and glow, so a busy fight never hides what you must dodge
             DrawEndingWorld();  // a run ending: the victory's rays and sparks (RunEnding.cs)
             DrawArenaRules(t);  // Narrow Pass's walls and Fogbound's mist (PathsUi.cs)
@@ -342,7 +343,8 @@ namespace Arena
                 DrawNodIdle(p, t);  // the Nodachi at the ready or mid-step (NodachiLook.cs)
                 DrawVgIdle(p, t);  // the Vowguard's sword and shield at the ready or mid-step (VowguardLook.cs)
                 DrawKnucklePrompt(p, t);  // the Arc Knuckles' dash chain: Fire now (ArcKnucklesLook.cs)
-                DrawKnuckleLock(p, t);  // the Arc Knuckles' lock-on reticle (ArcKnucklesLook.cs)
+                DrawKnuckleLock(p, t);  // the Arc Knuckles' target reticle (ArcKnucklesLook.cs)
+                DrawKnuckleWheel(p, t);  // your own Arc Knuckles' click wheel (ArcKnucklesWheel.cs)
                 DrawLightIdle(p, t);  // the Lightbringer held at the ready (LightbringerLook.cs)
                 DrawLanceIdle(p, t);  // the Lance and shield held at the ready (LanceLook.cs)
                 DrawFrostLanceHeld(p, t);  // the Frost Lance held and swung, its chain pips (FrostLanceLook.cs)

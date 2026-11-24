@@ -328,7 +328,7 @@ static partial class Program
         Test("repulsion", "the Repulsion Cannon", () => RepulsionTest(Dt)),
         Test("quarterstaff", "the Quarterstaff", () => { QuarterstaffTest(Dt); QuarterstaffStacksTest(Dt); }),
         Test("greatsword", "the Greatsword's ten-step chain and Moonwheel", () => GreatswordTest(Dt)),
-        Test("knuckles", "the Arc Knuckles: the Knight DPS's fourth weapon, its chain, parry cancel and Counter Hammer", () => ArcKnucklesTest(Dt)),
+        Test("knuckles", "the Arc Knuckles: the Brawl stance and its click wheel, Wall Slam, parry reset, Counter Hammer, the Rocket stance", () => ArcKnucklesTest(Dt)),
         Test("tankknight", "the Warhammer's charged slam, the Halberd's Reaper's Wheel and Set the Pike", () => TankKnightTest(Dt)),
         Test("revolver", "the Revolver", () => RevolverReloadTest(Dt)),
         Test("bow", "the Mender's Bow", () => BowTest(Dt)),

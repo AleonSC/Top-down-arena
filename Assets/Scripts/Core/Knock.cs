@@ -65,6 +65,8 @@ namespace Arena
             }
             if (lost > 0.01f && len - step + lost >= WallSlamMin)
             {
+                if (e.KnuckleSlamBy > 0)
+                    KnuckleWallSlam(e);  // a Drive Punch sent it: the Arc Knuckles' Wall Slam (ArcKnucklesBrawl.cs)
                 e.ImpactBy = 0;
                 // Slammed into the arena wall: the push that's left is spent as damage, and the slide stops.
                 float dmg = Math.Min(WallSlamMax, WallSlamBase + WallSlamPerPx * (len - step + lost));
@@ -80,6 +82,7 @@ namespace Arena
                 e.KnockSpeed = 0f;
                 e.ImpactBy = 0;
                 e.ImpactLast = -1;
+                e.KnuckleSlamBy = 0;
             }
             else
             {

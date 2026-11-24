@@ -625,12 +625,16 @@ namespace Arena
                 DrawWardenBody(e, pos, r, col, spawning, t);  // WardenBodyLook.cs: the Chief Warden, posed for each move
             else if (e.Type == EnemyType.StormHerald && !spawning)
                 DrawHeraldBody(e, pos, r, col, t);  // HeraldBodyLook.cs: the Tempest Herald
+            else if (e.Type == EnemyType.Colossus)
+                DrawColossusBody(e, pos, r, t);  // ColossusBodyLook.cs: the Quarry Golem, posed for each move
             else if (e.Type == EnemyType.Lich)
                 DrawLichBody(e, pos, r, col, t);  // LichBodyLook.cs: the Hooded Sorcerer, the Wraith in the Final Rite
             else if (e.Type == EnemyType.Phylactery)
                 DrawPhylactery(e, pos, r, col, t);  // LichBodyLook.cs: a soul jar
             else if (Game.IsNonShooter(e.Type))
                 DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
+            else if (e.Type == EnemyType.Eclipse)
+                DrawEclipseBody(e, pos, r, col, t);  // EclipseLook.cs: the sun, the moon crossing it a step each phase
             else if (Game.IsTwin(e.Type))
                 DrawTwinBody(e, pos, r, col, t);  // ReaperBodyLook.cs: a Hooded Reaper
             else if (e.Type == EnemyType.DualReaper)
@@ -1003,9 +1007,6 @@ namespace Arena
                 case EnemyType.Decoy:
                     DrawDuelistBlade(e, pos, r, t);  // DuelistLook.cs
                     break;
-                case EnemyType.Colossus:
-                    DrawColossusDetails(e, pos, r, t);  // ColossusLook.cs
-                    break;
                 case EnemyType.Brute:
                     DrawBruteFace(e, pos, r, col);
                     break;
@@ -1053,9 +1054,6 @@ namespace Arena
                     break;
                 case EnemyType.Morsel:
                     DrawMorsel(e, pos, r, t);  // DevourerLook.cs
-                    break;
-                case EnemyType.Eclipse:
-                    Circle(pos, r * 0.8f, new Rgba(0.02f, 0.02f, 0.04f, 1f), 32);
                     break;
                 case EnemyType.BallLightning:
                     DrawBallLightning(e, pos, r, t);  // HeraldLook.cs

@@ -3,24 +3,23 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Arc Knuckles' dash chain (Docs/ArcKnuckles.md step 3; Docs/Mockups/gauntlets.html, "Full dash chain"). A Rocket Dash that
-    /// hits something opens a window: press Fire within KnuckleChainWindowTime and the next move follows, each one opening the next
-    /// window as it lands:
+    /// The Arc Knuckles' Rocket stance (Docs/ArcKnuckles.md; Docs/Mockups/gauntlets.html, "Full dash chain"). Fire's first click is the
+    /// Rocket Dash (ArcKnuckles.cs); one that hits something opens the chain, and each click is its next move (no timing: the chain
+    /// waits KnuckleRocketIdle for the click, then it's back to the dash):
     ///   1. Flurry, where you landed: eight alternating jabs, then a straight. You're rooted while it runs.
     ///   2. Grab & Throw: grab the Flurry's target (not a boss, and it must be close), swing it round once and throw it along your aim.
     ///      It flies until it hits another enemy (both are hurt, the other one shoved and stunned) or runs out of distance.
     ///   3. Rocket Punch: the lead fist fires off on its chain down a line, hitting everything on it, then reels back.
     /// Player.KnuckleChain holds the stage (replicated: your own game roots you and shows the Fire prompt from it): 0 none, 1 the
     /// Flurry's window, 2 the Flurry, 3 the grab's window, 4 the grab and throw, 5 the Rocket Punch's window, 6 the Rocket Punch.
-    /// Missing a window, a press that can't follow (a boss, the target gone), raising the parry or putting the weapon away ends it.
+    /// A click that can't follow (a boss, the target gone), the wait running out, raising the parry or swapping stance ends it.
     /// Each move is one effect (FxKind.KnuckleChain, Radius = id * 10 + move: 1 Flurry, 2 Grab & Throw, 3 Rocket Punch), drawn from
     /// its age (Game/ArcKnucklesLook.cs); the grabbed enemy is carried by the host along KnuckleGrabFist, which the look shares.
     public partial class Game
     {
-        public const float KnuckleChainWindowTime = 0.35f;
         public const int FlurryJabs = 8;
         public const float FlurryStart = 0.09f, FlurryGap = 0.085f, FlurryStraightAt = 0.79f, FlurryDur = 1.05f;
-        public const float FlurryJabMult = 0.5f, FlurryStraightMult = 20f / 12f, FlurryReach = 76f, FlurryWidth = 30f, FlurryStraightReach = 90f, FlurryStraightKnock = 12f;
+        public const float FlurryJabMult = 0.5f, FlurryStraightMult = 20f / 12f, FlurryReach = 76f, FlurryWidth = 30f, FlurryStraightReach = 90f, FlurryStraightWidth = 30f, FlurryStraightKnock = 12f;
         public const float GrabRange = 110f, GrabLatch = 0.10f, GrabPull = 0.22f, GrabRelease = 0.74f, GrabDur = 1.15f, GrabHold = 14f;
         public const float KnuckleThrowSpeed = 520f, KnuckleThrowRange = 260f, KnuckleThrowMult = 20f / 12f, KnuckleThrowHitMult = 26f / 12f, KnuckleThrowKnock = 42f, KnuckleThrowStun = 0.5f;
         public const float RocketPunchReach = 210f, RocketPunchWidth = 28f, RocketPunchAt = 0.26f, RocketPunchMult = 28f / 12f, RocketPunchKnock = 18f, RocketPunchDur = 0.9f, RocketPunchMaxReach = 300f, RocketPunchPast = 80f;
@@ -92,7 +91,7 @@ namespace Arena
                         s.NoKnock = true;  // the jabs hold the target in reach for the straight (MeleeHit.cs)
                     }
                     var st = KnuckleSwing(p, aim, FlurryStraightReach, 0f, w.Damage * dmg * FlurryStraightMult, FlurryStraightAt, 10);
-                    st.HalfWidth = KnuckleUpperWidth;
+                    st.HalfWidth = FlurryStraightWidth;
                     st.Thrust = true;
                     st.Heavy = true;
                     st.Knock = FlurryStraightKnock;
@@ -166,8 +165,8 @@ namespace Arena
                 case 1:
                 case 3:
                 case 5:
-                    if (p.KnuckleChainT > KnuckleChainWindowTime + (p.KnuckleChain == 1 ? Math.Max(0f, p.FireCd) : 0f))
-                        EndKnuckleChain(p);  // (the Flurry's window counts from when you can press: the dash's flight)
+                    if (p.KnuckleChainT > KnuckleRocketIdle + (p.KnuckleChain == 1 ? Math.Max(0f, p.FireCd) : 0f))
+                        EndKnuckleChain(p);  // too long without a click: back to the dash (counted from when you can click: after the dash's flight)
                     break;
                 case 2:
                     if (p.KnuckleChainT >= FlurryStraightAt)
