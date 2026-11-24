@@ -53,7 +53,8 @@ namespace Arena
 
         const float FuseAt = 0.65f, SplitAt = 0.3f;
         public const float FuseTime = 4.5f, SplitTime = 2.5f;
-        const float FuseMerge = 1.6f, BlastsAt = 2f, BlastWarn = 1.6f, BlastRadius = 120f, BlastDamage = 40f;
+        public const float FuseMerge = 1.6f, SplitBurst = 1.2f;  // the fusion merges this far in; the split bursts apart this far in
+        const float BlastsAt = 2f, BlastWarn = 1.6f, BlastRadius = 120f, BlastDamage = 40f;
         // Twilight's tether sweep: the pair spins round a point that follows its target.
         const float SweepFollow = 110f, SweepSpin = 0.7f, SweepRadius = 280f, SweepWarm = 0.6f;
         // The Dual Reaper.
@@ -328,7 +329,7 @@ namespace Arena
                 return;
             }
             // The split: it shakes and cracks, then bursts back into Dusk and Dawn, who fly apart.
-            if (t >= 1.2f && R.Fused && d != null)
+            if (t >= SplitBurst && R.Fused && d != null)
             {
                 R.Fused = false;
                 float hp = d.Hp, share = R.MaxA / Math.Max(1f, R.MaxA + R.MaxB);

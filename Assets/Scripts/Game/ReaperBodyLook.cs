@@ -20,19 +20,28 @@ namespace Arena
             bool reaping = rp != null && R.Stage == ReaperStage.Sundered && rp.Phase > 0;
             float facing = reaping ? rp.A : e.Facing, hand = dusk ? 1f : -1f;
             V2.Axes(facing, out V2 f, out V2 sd);
-            var eye = e.Phase == 1 ? new Rgba(1f, 0.3f, 0.22f) : e.Phase == 2 ? new Rgba(0.92f, 0.94f, 1f) : col.Mix(Rgba.White, 0.3f);  // enraged red, Soul Bond pale
+            bool fusing = R != null && R.Trans == 1, bursting = R != null && R.Trans == 2 && R.TransT >= Game.SplitBurst && R.TransT < Game.SplitBurst + 0.6f;
+            if (fusing)
+                facing = (Game.ArenaMid - pos).Angle;  // facing the other one, across the middle
+            var eye = bursting ? Rgba.White : e.Phase == 1 ? new Rgba(1f, 0.3f, 0.22f) : e.Phase == 2 ? new Rgba(0.92f, 0.94f, 1f) : col.Mix(Rgba.White, 0.3f);  // enraged red, Soul Bond pale
             Ellipse(pos + new V2(0f, r * 0.55f), r * 1.05f, r * 0.4f, new Rgba(0f, 0f, 0f, 0.35f));  // shadow
             // The cloak: short in front, long and torn behind, swaying (faster while it dashes).
-            float sway = reaping && rp.Phase == 2 ? 14f : 5f;
+            float sway = reaping && rp.Phase == 2 || fusing || bursting ? 14f : 5f;
             RaggedCloak(pos, r, facing, t, sway, col.Darkened(0.72f), col.WithAlpha(0.9f));
             DrawReaperSigil(pos - f * r * 0.5f, r * 0.24f, dusk, col.WithAlpha(0.8f), t);
             // The scythe: held across the front at rest, drawn back when its reap is marked, leading the dash, then swung.
             float aim = facing - 0.35f * hand;
             if (reaping)
                 aim = rp.Phase == 1 ? facing + 1.3f * hand : rp.Phase == 2 ? facing - 0.2f * hand : facing + hand * (1.3f - 2.6f * Mathf.Clamp01(rp.T / 0.25f));
+            float glint = reaping && rp.Phase == 1 ? 0.5f + 0.5f * Mathf.Sin(t * 14f) : 0f;
+            if (fusing)  // raised toward the middle, to join the other's, lit brighter as they close
+            {
+                aim = facing + 0.25f * hand;
+                glint = Mathf.Clamp01(R.TransT / Game.FuseMerge);
+            }
             V2 grip = pos + sd * r * 0.75f * hand + f * r * 0.1f;
             Circle(grip, r * 0.16f, ReaperBone.Darkened(0.2f), 8);  // the bony hand
-            DrawReaperScythe(grip, aim, r * 2.3f, -hand, col.Mix(Rgba.White, 0.3f), reaping && rp.Phase == 1 ? 0.5f + 0.5f * Mathf.Sin(t * 14f) : 0f);
+            DrawReaperScythe(grip, aim, r * 2.3f, -hand, col.Mix(Rgba.White, 0.3f), glint);
             DrawReaperHood(pos + f * r * 0.22f, r * 0.52f, facing, col, eye);
         }
 
@@ -41,6 +50,10 @@ namespace Arena
         {
             var R = game.Reapers;
             float facing = R != null && R.Turn == ReaperTurn.Lasers ? R.Laser : R != null && R.Turn == ReaperTurn.Chase ? R.Heading : t * 0.4f;
+            float birth = DualBirth(), crack = R != null && R.Trans == 2 ? Mathf.Clamp01(R.TransT / Game.SplitBurst) : 0f;
+            r *= 0.35f + 0.65f * EaseOutBack(birth);  // unfurling out of the merge (ReaperShiftLook.cs)
+            if (crack > 0f)  // shaking harder and harder before it splits
+                pos += new V2(Mathf.Sin(t * 61f), Mathf.Cos(t * 53f)) * 5f * crack;
             V2.Axes(facing, out V2 f, out V2 sd);
             var tint = e.Flash > 0f || JuiceFlash(e) ? HitFlashMix(e) : 0f;
             Rgba dawn = DawnCol.Mix(Rgba.White, tint), dusk = DuskCol.Mix(Rgba.White, tint);
@@ -54,7 +67,9 @@ namespace Arena
                 for (int i = 0; i < 10; i++)
                     Tri(pos, pos + V2.FromAngle(from + MathX.Pi * i / 10f) * r * 0.86f, pos + V2.FromAngle(from + MathX.Pi * (i + 1) / 10f) * r * 0.86f);
             }
-            Line(pos - sd * r, pos + sd * r, 3f, new Rgba(1f, 0.94f, 0.78f, 0.9f));  // the gold seam
+            Line(pos - sd * r, pos + sd * r, 3f + 9f * crack, new Rgba(1f, 0.94f, 0.78f, 0.9f).Mix(Rgba.White, crack));  // the gold seam, burning white as it splits
+            if (crack > 0f)
+                Line(pos - sd * r * 1.2f, pos + sd * r * 1.2f, 20f * crack, new Rgba(1f, 1f, 1f, 0.25f * crack));
             // Two arms, a scythe each, held like a pinwheel: Dawn's forward on one side, Dusk's back on the other.
             float warn = R != null && R.Turn == ReaperTurn.Chase && !R.Trapped && R.Leap <= 0f && R.SwingT <= Game.SwingWarn ? 1f : 0f;
             for (int k = 0; k < 2; k++)
@@ -67,7 +82,10 @@ namespace Arena
             {
                 var c = h == 0 ? dawn : dusk;
                 float a = facing + (h == 0 ? 0f : MathX.Pi);
-                DrawReaperHood(pos + V2.FromAngle(a) * r * 0.4f, r * 0.36f, a, c, R != null && R.Trapped && R.ShieldFrac <= 0f ? new Rgba(1f, 0.3f, 0.22f) : c.Mix(Rgba.White, 0.3f));
+                var eyes = R != null && R.Trapped && R.ShieldFrac <= 0f || crack > 0.5f ? new Rgba(1f, 0.3f, 0.22f) : c.Mix(Rgba.White, 0.3f);
+                if (birth < 0.85f)
+                    eyes = eyes.WithAlpha(0.15f);  // they light once it's whole
+                DrawReaperHood(pos + V2.FromAngle(a) * r * 0.4f, r * 0.36f, a, c, eyes);
             }
         }
 

@@ -15,30 +15,51 @@ namespace Arena
         /// Spins faster during the Pull; `col`'s alpha fades it in as it spawns, and a hit whitens the band.
         void DrawSingularityCore(Enemy e, V2 pos, float r, Rgba col, float t)
         {
-            int heat = e.Sing == null || e.Sing.Stage == SingStage.EventHorizon ? 0 : e.Sing.Stage == SingStage.Accretion ? 1 : 2;
-            Rgba mid = heat == 0 ? HorizonGlow : heat == 1 ? SingGold : SingRed;
-            float fade = col.A, flash = e.Flash > 0f || JuiceFlash(e) ? HitFlashMix(e) : 0f;
-            Rgba hot = SingHot.Mix(Rgba.White, flash);
-            float tilt = 0.35f * Mathf.Sin(t * 0.25f) - 0.25f, squash = 0.3f, spin = t * (e.Phase == Game.SingPull ? 2.2f : 0.7f);
+            int heat = SingHeat(e);
+            float spin = t * (e.Phase == Game.SingPull ? 2.2f : 0.7f);
+            GlowDisc(pos, r * 3.4f, SingHeatCol(heat), (0.22f + 0.05f * heat) * col.A);
+            DrawLensedHole(pos, r, heat, col.A, e.Flash > 0f || JuiceFlash(e) ? HitFlashMix(e) : 0f, spin, 0.35f * Mathf.Sin(t * 0.25f) - 0.25f, 7);
+            if (heat == 2)  // torn: a streamer pulled off the band
+                for (int k = 0; k < 10; k++)
+                    Circle(pos + V2.FromAngle(t * 1.3f + k * 0.18f) * (r * 2.15f + k * 4f), 2.6f - k * 0.2f, SingRed.WithAlpha((0.6f - k * 0.05f) * col.A), 6);
+        }
+
+        /// A shard of the Split: a small lensed black hole in the core's heat, its band tilted its own way and spinning
+        /// fast, a hot pip trailing it (drawn over DrawSingularityShardUnderlay's tether and glow).
+        void DrawSingularityShard(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            Enemy core;
+            int heat = game.Enemies.TryGetValue(e.ParentId, out core) ? SingHeat(core) : 2;
+            float flash = e.Flash > 0f || JuiceFlash(e) ? HitFlashMix(e) : 0f;
+            DrawLensedHole(pos, r * 0.8f, heat, col.A, flash, t * 1.8f + e.Id, e.Ang * 1.1f + 0.4f * Mathf.Sin(t * 0.6f + e.Id), 3);
+        }
+
+        /// The phase's heat for the band: 0 Event Horizon, 1 Accretion, 2 Spaghettify and the last stand.
+        static int SingHeat(Enemy e) => e.Sing == null || e.Sing.Stage == SingStage.EventHorizon ? 0 : e.Sing.Stage == SingStage.Accretion ? 1 : 2;
+
+        static Rgba SingHeatCol(int heat) => heat == 0 ? HorizonGlow : heat == 1 ? SingGold : SingRed;
+
+        /// A lensed black hole of shadow radius r: the far half of its band, lensed over the top, the shadow and photon
+        /// ring, then the near half in front and `clumps` hot clumps riding it. `fade` scales every alpha; `flash` whitens.
+        void DrawLensedHole(V2 pos, float r, int heat, float fade, float flash, float spin, float tilt, int clumps)
+        {
+            Rgba mid = SingHeatCol(heat), hot = SingHot.Mix(Rgba.White, flash);
+            const float squash = 0.3f;
             float outR = r * (heat == 0 ? 2f : heat == 1 ? 2.35f : 2.15f);
-            GlowDisc(pos, r * 3.4f, mid, (0.22f + 0.05f * heat) * fade);
             SingBand(pos, r * 1.05f, outR, squash, tilt, MathX.Pi, MathX.Tau, hot.WithAlpha(0.85f * fade), mid.WithAlpha(0f), 28, spin);  // the far half
             SingBand(pos, r * 0.98f, r * 1.32f, 1f, tilt, MathX.Pi + 0.15f, MathX.Tau - 0.15f, hot.WithAlpha(0.7f * fade), mid.WithAlpha(0f), 20, spin);  // ...lensed up over the top
             Circle(pos, r * 0.95f, new Rgba(0f, 0f, 0f, fade), 36);  // the shadow
-            Arc(pos, r * 0.97f, 2.2f, hot.WithAlpha(0.9f * fade), 40);  // the photon ring
+            Arc(pos, r * 0.97f, Mathf.Min(2.2f, r * 0.12f), hot.WithAlpha(0.9f * fade), 40);  // the photon ring
             Arc(pos, r * 1.06f, 1.2f, mid.WithAlpha(0.5f * fade), 40);
             SingBand(pos, r * 1.05f, outR, squash, tilt, 0f, MathX.Pi, hot.WithAlpha(0.95f * fade), mid.WithAlpha(0f), 28, spin);  // the near half, in front
             V2.Axes(tilt, out V2 ax, out V2 ay);
-            for (int k = 0; k < 7; k++)  // hot clumps riding the band (hidden behind the shadow on the far side)
+            for (int k = 0; k < clumps; k++)  // hot clumps riding the band (hidden behind the shadow on the far side)
             {
-                float a = spin * 1.6f + k * 0.9f, rr = r * (1.2f + 0.12f * (k % 3));
+                float a = spin * 1.6f + k * MathX.Tau / clumps * 0.9f, rr = r * (1.2f + 0.12f * (k % 3));
                 V2 at = pos + ax * (Mathf.Cos(a) * rr) + ay * (Mathf.Sin(a) * rr * squash);
                 if (Mathf.Sin(a) > 0f || (at - pos).Length > r)
-                    Circle(at, 2.2f, hot.WithAlpha(0.8f * fade), 6);
+                    Circle(at, Mathf.Min(2.2f, r * 0.13f), hot.WithAlpha(0.8f * fade), 6);
             }
-            if (heat == 2)  // torn: a streamer pulled off the band
-                for (int k = 0; k < 10; k++)
-                    Circle(pos + V2.FromAngle(t * 1.3f + k * 0.18f) * (outR + k * 4f), 2.6f - k * 0.2f, SingRed.WithAlpha((0.6f - k * 0.05f) * fade), 6);
         }
 
         /// Part of the core's band from r0 to r1, squashed to an ellipse across `tilt`, between angles a0 and a1, fading
@@ -123,13 +144,15 @@ namespace Arena
                     Arc(pos, edge + 14f, 2f, Rgba.White.WithAlpha(0.5f), 6, k * MathX.Tau / 16f + t * 0.5f, MathX.Tau / 32f);
         }
 
-        /// A shard of the Split: a small black hole with the core's color, tied to it by a faint line.
+        /// Under a shard of the Split: a faint tether to the core and a pulsing glow in the core's heat.
         void DrawSingularityShardUnderlay(Enemy e, V2 pos, float r, Rgba col, float t)
         {
             Enemy core;
-            if (game.Enemies.TryGetValue(e.ParentId, out core))
-                Line(core.Disp, pos, 1.5f, col.WithAlpha(0.25f));
-            Circle(pos, r + 14f, col.WithAlpha(0.15f + 0.08f * Mathf.Sin(t * 6f + e.Id)), 24);
+            bool has = game.Enemies.TryGetValue(e.ParentId, out core);
+            Rgba heat = SingHeatCol(has ? SingHeat(core) : 2);
+            if (has)
+                Line(core.Disp, pos, 1.5f, heat.WithAlpha(0.25f * col.A));
+            GlowDisc(pos, r * 2.6f, heat, (0.2f + 0.08f * Mathf.Sin(t * 6f + e.Id)) * col.A);
         }
     }
 }

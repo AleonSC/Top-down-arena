@@ -631,6 +631,8 @@ namespace Arena
                 DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
             else if (e.Type == EnemyType.Singularity)
                 DrawSingularityCore(e, pos, r, col, t);  // SingularityLook.cs: a lensed black hole
+            else if (e.Type == EnemyType.SingularityShard)
+                DrawSingularityShard(e, pos, r, col, t);  // SingularityLook.cs: a small one
             else if (Game.IsTwin(e.Type))
                 DrawTwinBody(e, pos, r, col, t);  // ReaperBodyLook.cs: a Hooded Reaper
             else if (e.Type == EnemyType.DualReaper)
@@ -779,7 +781,7 @@ namespace Arena
                 case EnemyType.ReaperOfDusk:
                 case EnemyType.ReaperOfDawn:
                     DrawTwinShell(e, pos, r, t);
-                    DrawStageShiftBoss(e, pos, r, t);  // changing phase (StageShiftLook.cs)
+                    DrawReaperShiftOn(e, pos, r, t);  // fusing or splitting (ReaperShiftLook.cs)
                     break;
                 case EnemyType.DualReaper:
                     DrawDualUnderlay(e, pos, r, t);  // ReaperLook.cs
@@ -1058,7 +1060,6 @@ namespace Arena
                     break;
                 case EnemyType.GravityWell:  // a spinning black hole
                 case EnemyType.CageWell:
-                case EnemyType.SingularityShard:
                     Circle(pos, r * 0.6f, new Rgba(0f, 0f, 0f, 1f), 16);
                     Arc(pos, r * 0.6f, 1.5f, Rgba.White.WithAlpha(0.7f), 16, t * 6f, MathX.Pi * 1.2f);
                     break;
