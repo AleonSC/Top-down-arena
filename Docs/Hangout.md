@@ -1,7 +1,9 @@
 # Lobby Hangout
 
 > **Status: the Hangout key opens the full-match `GameMode.Hangout`** (`Core/HangoutGame.cs`, below; `LobbyUi.DrawLobbyTabs` calls
-> `Session.StartHangout`): the whole party in the real match held between waves, on three dummies, god mode, no cooldowns (`TickSlots`).
+> `Session.StartHangout`): the whole party in the real match held between waves, on three dummies, no cooldowns (`TickSlots`), no god mode: at 0 health a beam respawn (`HangoutRespawn`, the boss wave's `FxKind.BossBeam`), and twelve
+> enemy spawners round the edges (`Core/HangoutSpawners.cs`, `Game/HangoutSpawnerLook.cs`; F on/off, B or the wheel changes the enemy; protocol 473). `Game.Battle` is on in the
+> Hangout, so its enemies, turrets and summons fight.
 > PLAY on the loadout preview window's top bar is the solo version: you drive the character in the mini window
 > (`Showcase.Control`/`Play`, `LobbyUi.ShowcasePlayInput`; no cooldowns: `Game.ShowcasePlay`). The room described in the rest of this file (a lobby tab with
 > its own light shots, `LobbyCombat.cs`, `LobbyRoom.cs`) is no longer reachable from the lobby; its code is kept until the owner

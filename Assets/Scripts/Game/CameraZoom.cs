@@ -61,7 +61,11 @@ namespace Arena
             }
             if (game.Paused)
                 return;  // (the picture holds still behind a pause menu, and the wheel is the menu's)
-            if (scrollZoom && !EndingOn && !devMenuOpen && !ShopScreenUp(me) && !InventoryUp)  // (the Tab screen's Inventory page: the wheel scrolls its lists, InventoryUi.cs)  // (the shop and Black Market cover the screen: no zoom behind them)
+            int pad = game.SpawnerNear(me.Pos);
+            float padWheel = Input.mouseScrollDelta.y;
+            if (pad >= 0 && (padWheel > 0.01f || padWheel < -0.01f) && GUIUtility.keyboardControl == 0 && !devMenuOpen && !InventoryUp)
+                game.UseSpawner(pad, padWheel > 0f ? -1 : 1);  // on a Hangout spawner the wheel changes its enemy instead of zooming (HangoutSpawners.cs)
+            else if (scrollZoom && !EndingOn && !devMenuOpen && !ShopScreenUp(me) && !InventoryUp)  // (the Tab screen's Inventory page: the wheel scrolls its lists, InventoryUi.cs)  // (the shop and Black Market cover the screen: no zoom behind them)
             {
                 float wheel = Input.mouseScrollDelta.y;
                 if (wheel > 0.01f || wheel < -0.01f)
