@@ -623,9 +623,14 @@ Arc Lightning, Wisp Lantern, Imp Caller, and the Fireball, which already rolls t
 per stack instead.
 A piercing shot can't hit the same enemy twice in a row, even inside two overlapping enemies.
 
-**Slows** don't add up: an enemy moves at its strongest slow until that one ends, then at the next-strongest one
-still running. A freeze (Frost Nova, Cryo's frozen solid) ends on time even while a weaker slow (Wet, ink, a slow
-zone) keeps being renewed.
+**Slowed and Chilled** are two statuses. **Slowed** is any slow (wind, honey, gas, ink, Graviton, ice...): it only slows
+and never builds to a freeze. **Chilled** is ice only: every ice attack (Frost Lance, Frost Nova, Blizzard, Cryo Rounds,
+Ice Shards at 25% for 1.5 s, Wind Chill) slows the enemy *and* adds a chill (steady ice: Blizzard, Cryo Rounds and Ice
+Shards add one a second at most). Chill wears off 3 s after the last one; the third freezes it (2.4 s, heavies 1.2 s),
+and the freeze lifts its slows, since the ice holds it still. Bosses are only slowed. Frozen means real ice only (can't
+move or shoot); Frost Nova's and Cryo's deep 0.1x slows show as chilled. **Slows** don't add up: an enemy moves at its
+strongest slow until that one ends, then at the next-strongest one still running. A deep slow (Frost Nova, Cryo's
+"frozen solid") ends on time even while a weaker slow (Wet, ink, a slow zone) keeps being renewed.
 
 **Virulence** (rare, two stacks, with Poison Dart; it took Phase Step's place with the old Dash): the venom deals 30% more and spreads 60 px further.
 
@@ -643,8 +648,8 @@ Rarer cards show up a bit more often as you level. All the numbers live in
   Enemies and bullets don't wrap, so the edges make a good escape route.
 - **Melee grace:** when a melee swing hits something, bodies you're touching can't hurt you for 0.3 s (contact damage only, not bullets or boss attacks). It keeps a melee build from being punished for standing close to land its hits.
 - Your hitbox is the small coloured dot ringed in white in the middle of your character, not the whole circle.
-- **Status effects** show as a tint on the enemy plus an icon above it: **snowflake** = frozen (encased in ice, can't
-  move or shoot), **blue double arrow** = slowed, **blue drop over a wave** = wet (a blue bar
+- **Status effects** show as a tint on the enemy plus an icon above it: **white snowflake in a block of ice** = frozen (encased in ice, can't
+  move or shoot), **blue snowflake** = chilled (ice; its stacks are pips under it), **grey-white double arrow** = slowed (anything), **blue drop over a wave** = wet (a blue bar
   over its health bar drains as it dries), **flame** = burning (flames rise off it), **blood drop** = bleeding
   (drops fall off it), **red crosshair** = marked (takes extra damage), **yellow zigzag bolt** = charged (small arcs
   crawl over it).

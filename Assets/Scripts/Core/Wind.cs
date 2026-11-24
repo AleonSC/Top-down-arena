@@ -41,17 +41,8 @@ namespace Arena
 
         void WindChill(Enemy e)
         {
-            Slow(e, FlChillHold, 1f - FlChillSlow);
-            e.FrostChillT = FlChillHold;
-            if (e.Def.IsBoss)
-                return;
-            e.FrostChill = (byte)Math.Min(FlFreezeAt, e.FrostChill + 1);
-            if (e.FrostChill < FlFreezeAt)
-                return;
-            e.FrostChill = 0;
-            e.FrozenT = Math.Max(e.FrozenT, e.Def.Heavy ? FlHeavyFreeze : FlFreezeTime);
-            e.WindChillImmuneT = WindChillImmune;
-            BroadcastFx(FxKind.FrostBurst, e.Pos, FlColor, 0f, 2.4f, Sfx.FrostFreeze);
+            if (Chill(e, 1, FlChillHold, 1f - FlChillSlow))  // Chill.cs
+                e.WindChillImmuneT = WindChillImmune;
         }
 
         void FanFlames(Enemy e, V2 dir)

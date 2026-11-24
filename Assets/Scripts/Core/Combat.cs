@@ -1227,6 +1227,8 @@ namespace Arena
             Player p;
             if (!Players.TryGetValue(b.Owner, out p))
                 return;
+            if (b.Kind == Defs.ArcaneShot && p.Weapon.Id == WeaponId.IceShards && !Heavy(e))
+                Chill(e, 1, IceShardChillTime, 1f - IceShardSlow, gated: true);  // an ice shard: slowed and chilled, a stack a second (Chill.cs)
             if (p.Stats.SplitShots > 0 && b.Kind != Defs.SwarmShot)
                 splits.Add(new Bullet { Pos = b.Pos, Owner = b.Owner, Dmg = b.Dmg * 0.4f, Pierce = p.Stats.SplitShots, LastHit = e.Id });
             if (p.Stats.ImpactSplash > 0f && b.Kind != Defs.SwarmShot)
@@ -1250,10 +1252,10 @@ namespace Arena
             }
             if (s.CryoSlow > 0f && !Heavy(e))
             {
-                Slow(e, 2f, 1f - s.CryoSlow);
+                Chill(e, 1, 2f, 1f - s.CryoSlow, gated: true);  // ice: slowed and chilled, a stack a second at most (Chill.cs)
                 if (!e.Def.IsBoss && rng.NextDouble() < s.FreezeChance)
                 {
-                    Slow(e, 1f, 0.1f);  // frozen solid
+                    Chill(e, 1, 1f, 0.1f);  // a deep chill: nearly still, and a stack past the gate
                     BroadcastFx(FxKind.Spark, e.Pos, Defs.BulletColor(Defs.FrostShot), e.Radius + 12f, 0.35f, Sfx.None);
                 }
             }

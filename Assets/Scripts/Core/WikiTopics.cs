@@ -40,11 +40,11 @@ namespace Arena
         /// Status effects on enemies (Enemy's timers in Entities.cs; the replicated flags are what the eyedropper's tag lists).
         public static readonly Topic[] Statuses =
         {
-            new Topic("Slowed", "Moves slower for a while. Only the strongest slow counts; the next-strongest takes over when it ends. Heavy enemies and bosses are too heavy to slow down. On you: honey puddles and some attacks slow you too."),
+            new Topic("Slowed", "Moves slower for a while, from anything that slows (wind, honey, gas, ink, ice...). Only the strongest slow counts; the next-strongest takes over when it ends. It never builds to a freeze. Heavy enemies and bosses are too heavy to slow down. On you: honey puddles and some attacks slow you too."),
             new Topic("Burning", "On fire (the Flamethrower, Incendiary Rounds, burning ground): takes damage every second until it burns out."),
             new Topic("Bleeding", "The shared bleed (claws, Sanguine Orb, Blood Bolts, Vein Rush, Arterial Spray): damage over time. Bleed stacks go up to five from any source; a Blood Bolt that fills them bursts it. On you: a Rioter's bottle cut bleeds you for a while."),
-            new Topic("Chilled", "Slowed by frost but not frozen. Frost Lance chill builds up to two; a third freezes it."),
-            new Topic("Frozen", "Encased in ice (Glacial Tomb, a third Frost Lance chill): can't move or shoot."),
+            new Topic("Chilled", "Ice only. Every ice attack (Frost Lance, Frost Nova, Blizzard, Cryo Rounds, Ice Shards, Wind Chill) slows it and adds a chill; steady ice adds one a second at most. The third chill freezes it, and the freeze lifts the slow. Bosses are only slowed."),
+            new Topic("Frozen", "Encased in ice (Glacial Tomb, Blood Freeze, a third chill): can't move or shoot. It melts into 6 s of wet."),
             new Topic("Wet", "Soaked by Tsunami: slowed, and lightning arcs to it."),
             new Topic("Charged", "Hit by lightning (Arc Lightning, Storm Hammer, Static Shock, the Nimbus, Arc Knuckles, EMP, Shock Grenades...): charged for 4 s. Alone it does nothing; wet and charged, it shorts out: constant damage, and every 2.5 s an arc to the three enemies nearest it."),
             new Topic("Stunned", "Held in place, with stars over its head: can't move or shoot until it wears off. On you: a Taser Guard's Fork Bolt stops you moving for a moment."),

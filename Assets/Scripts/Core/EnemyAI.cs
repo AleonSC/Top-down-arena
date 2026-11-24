@@ -515,6 +515,7 @@ namespace Arena
                 TickBurn(e, dt);
                 TickSteam(e, dt);  // Steam.cs: wet and burning at once turns to steam
                 TickWind(e, dt);   // Wind.cs
+                TickChill(e, dt);  // Chill.cs
                 TickBleed(e, dt);  // KitWeapons.cs
                 TickBoneCage(e, dt);  // KitWeapons.cs
                 TickPoison(e, dt);  // Ninja.cs
