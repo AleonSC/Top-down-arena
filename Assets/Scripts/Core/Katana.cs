@@ -481,6 +481,11 @@ namespace Arena
                 ResetLanceChain(p);  // Lance.cs
                 return;
             }
+            if (p.Weapon.Id == WeaponId.Halberd)
+            {
+                ResetHalberdChain(p);  // Halberd.cs
+                return;
+            }
             if (p.Weapon.Id == WeaponId.BulwarkBarrier)
             {
                 ResetBulwarkChain(p);  // BulwarkBarrier.cs

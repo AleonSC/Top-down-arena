@@ -1,0 +1,408 @@
+<title>Halberd Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one looping arena stage with variant chips (3 combos, 3 Alts), a step strip under it, then a card per variant,
+   a side-by-side table and a recommendation. Page tokens match the earlier Halberd / Bo Staff mockups; the canvas uses
+   the Halberd's own mint on a night-blue arena, enemies brick red, bullets amber. */
+:root{
+  --bg:#ecefea; --fg:#1b221a; --muted:#566255; --panel:#f8faf6; --line:#cdd5ca; --chip:#dfe5da; --chip-on:#1b221a; --chip-on-fg:#f3f6ef; --accent:#1c8a62; --gold:#9a6a00;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#8ff0c7; --gold:#f2c35a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1311; --fg:#e6ece2; --muted:#92a090; --panel:#171d19; --line:#2b352e; --chip:#232c26; --chip-on:#e6ece2; --chip-on-fg:#0f1311; --accent:#8ff0c7; --gold:#f2c35a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+header h1{font:700 clamp(34px,6vw,58px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 12px;text-wrap:balance}
+header p{margin:0;max-width:68ch;color:var(--muted)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px;text-wrap:balance}
+.stage{display:flex;flex-direction:column;gap:12px;min-width:0}
+.bar{display:flex;gap:10px 22px;align-items:center;flex-wrap:wrap}
+.group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.group>span{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+button{font:600 14px var(--body);padding:7px 12px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#0c1118;max-width:100%}
+canvas{display:block;width:100%;aspect-ratio:720/420;max-width:100%}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.step{font:500 13px var(--mono);padding:5px 10px;border-radius:4px;border:1px solid var(--line);color:var(--muted);font-variant-numeric:tabular-nums}
+.step.on{color:var(--fg);border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent)}
+.hint{margin:0;color:var(--muted);font-size:14px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.card[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.card .k{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.card h3{font:700 24px/1 var(--display);text-transform:uppercase;margin:0;letter-spacing:.02em}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.card ol,.card ul{margin:0;padding-left:20px;font-size:15px}
+.card li{margin:2px 0}
+.num{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:15px}
+th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pick{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+.pick ul{margin:0;padding-left:20px}
+.pick li{margin:4px 0}
+b.g{color:var(--gold)}
+</style>
+
+<main>
+<header>
+  <h1>Halberd Rework</h1>
+  <p>Three combo chains and three Alt moves (weapon-action key). Pick one of each. Today the Halberd is one 80° sweep (30) with no Alt. Approximate browser mockup, not the game's draw code.</p>
+</header>
+
+<section class="stage" aria-label="Live preview">
+  <div class="bar">
+    <div class="group" id="gCombo"><span>Combo</span></div>
+    <div class="group" id="gAlt"><span>Alt</span></div>
+    <div class="group" id="gSpeed"><span>Speed</span></div>
+    <button type="button" id="pause">Pause</button>
+  </div>
+  <div class="frame"><canvas id="cv" width="720" height="420"></canvas></div>
+  <div class="steps" id="steps"></div>
+  <p class="hint" id="blurb"></p>
+</section>
+
+<section>
+  <h2>Combos (Fire)</h2>
+  <div class="cards" id="cCombo"></div>
+</section>
+
+<section>
+  <h2>Alt (weapon-action key)</h2>
+  <div class="cards" id="cAlt"></div>
+</section>
+
+<section>
+  <h2>Side by side</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Variant</th><th>Plays like</th><th>Best hit</th><th>Control</th><th>Overlaps</th></tr></thead>
+    <tbody id="tbl"></tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>My pick</h2>
+  <div class="pick"><ul>
+    <li><b>Combo A, Reaper's Wheel + Alt 3, Hook &amp; Trip.</b> Wide arcs stay the Halberd's identity; Trip sets up a <b class="g">×1.5</b> sweep and the Wheel's spin.</li>
+    <li>B leans on thrusts and hooks, which the Lance's Breach and Hook &amp; Haul already own.</li>
+    <li>Set the Pike is the strongest tank fantasy; it fits if the Halberd should hold a lane instead of clearing a crowd.</li>
+  </ul></div>
+</section>
+</main>
+
+<script>
+(function(){
+const TAU=Math.PI*2, W=720, H=420;
+const MINT=[143,240,199], SAND=[240,208,143], GOLD='#f2c35a', RED='#d9574a', STEEL='#dce6ee';
+const rgba=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v, lerp=(a,b,k)=>a+(b-a)*k;
+const eio=t=>{t=clamp(t,0,1);return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2}, eo=t=>{t=1-clamp(t,0,1);return 1-t*t*t};
+
+/* ---------- variants ---------- */
+const SW={kind:'sweep',a0:-.75,a1:.75,reach:200,dmg:30,dur:.42,s:.22,e:.75,cut:true};
+const V={
+ A:{group:'combo',key:'A',name:"Reaper's Wheel",tag:'Wide arcs that end in a full spin',
+   blurb:"Four steps; the chain starts over 0.9 s after the last one. Every step cuts small bullets; the Wheel cuts them all round you.",
+   lines:['<b>Sweep</b> <span class="num">80° · 200 px · 30</span>','<b>Return Sweep</b> <span class="num">80° back · 24</span>','<b>Overhead Chop</b> <span class="num">240×40 px line · 44 · stun 0.6 s</span>','<b>Reaping Wheel</b> <span class="num">360° · 170 px · 28 · shove 60</span>'],
+   row:['Crowd clearer','44 chop','Stun on 3, shove on 4','None'],
+   moves:[ {...SW,name:'Sweep',num:'30'},
+     {...SW,name:'Return Sweep',num:'24',a0:.75,a1:-.75,dmg:24,dur:.38,s:.12,e:.7},
+     {kind:'chop',name:'Overhead Chop',num:'44',len:240,width:40,dmg:44,fx:{stun:.6},dur:.62,s:.55,e:.72},
+     {kind:'sweep',name:'Reaping Wheel',num:'28',a0:-.4,a1:TAU-.2,reach:170,dmg:28,fx:{push:60},cut:true,dur:.75,s:.2,e:.85} ],
+   layout:S=>({p:[230,210],foes:[[360,150],[395,212],[372,280],[318,104],[300,318],[150,165],[160,272]],
+     bullets:ring(S,3,[200,160,-150,120,-120],[230,210],.55)})},
+ B:{group:'combo',key:'B',name:'Pike & Hook',tag:'Push, pull, punish',
+   blurb:"The beak hooks enemies back to you on step 3, and the Cleave stuns anything still hooked. Strong at lining enemies up for the team.",
+   lines:['<b>Sweep</b> <span class="num">80° · 200 px · 30</span>','<b>Pike Thrust</b> <span class="num">260×30 px · 34 · shove 40, pierces</span>','<b>Hook Back</b> <span class="num">120–230 px band · 16 · pulls 90 px</span>','<b>Cleave</b> <span class="num">120° · 190 px · 42 · stuns hooked 0.5 s</span>'],
+   row:['Lane control','42 cleave','Pull + stun','Lance (thrust, hook)'],
+   moves:[ {...SW,name:'Sweep',num:'30'},
+     {kind:'thrust',name:'Pike Thrust',num:'34',len:260,width:30,dmg:34,fx:{push:40},cut:true,dur:.45,s:.35,e:.6},
+     {kind:'sweep',name:'Hook Back',num:'16',a0:.95,a1:-.6,reach:232,minR:118,dmg:16,fx:{pull:90,hook:1.6},dur:.5,s:.25,e:.8,style:'hook'},
+     {kind:'sweep',name:'Cleave',num:'42',a0:-1.05,a1:1.05,reach:190,dmg:42,bonusHook:{stun:.5},cut:true,dur:.5,s:.3,e:.8} ],
+   layout:S=>({p:[210,210],foes:[[330,160],[430,210],[400,130],[408,290],[455,250],[330,265]],bullets:[]})},
+ C:{group:'combo',key:'C',name:'Building Arc',tag:'Every swing bigger than the last',
+   blurb:"No fixed steps: each sweep within 0.8 s of the last swings back the other way and grows. The 4th is a Whirlwind, then it starts over. Pips under you show the build.",
+   lines:['<b>Sweep 1</b> <span class="num">80° · 200 px · 30</span>','<b>Sweep 2</b> <span class="num">110° · 220 px · 34</span>','<b>Sweep 3</b> <span class="num">140° · 240 px · 38</span>','<b>Whirlwind</b> <span class="num">360° · 230 px · 46 · shove 80</span>'],
+   row:['Rhythm, rewards staying in','46 whirl','Shove on 4','None'],
+   moves:[ {...SW,name:'Sweep 1',num:'30',stack:1},
+     {...SW,name:'Sweep 2',num:'34',a0:.96,a1:-.96,reach:220,dmg:34,dur:.4,s:.14,e:.72,stack:2},
+     {...SW,name:'Sweep 3',num:'38',a0:-1.22,a1:1.22,reach:240,dmg:38,dur:.42,s:.14,e:.74,stack:3},
+     {kind:'sweep',name:'Whirlwind',num:'46',a0:1.2,a1:1.2-TAU-.4,reach:230,dmg:46,fx:{push:80},cut:true,dur:.75,s:.15,e:.85,stack:0} ],
+   layout:S=>({p:[230,210],foes:[[370,180],[392,250],[330,120],[350,320],[450,206],[150,150],[160,280]],
+     bullets:ring(S,3,[180,140,-140,90,-90],[230,210],.5)})},
+ 1:{group:'alt',key:'1',name:'Set the Pike',tag:'Hold to brace, release to lunge',
+   blurb:"Hold Alt: plant the point forward and creep at 30% speed; the point turns after your aim. Enemies that run onto it are impaled. Let go to lunge.",
+   lines:['<b>Hold</b> <span class="num">point 230 px out · 30% speed</span>','<b>Impale</b> <span class="num">50 · held 1 s, then thrown back 50 px</span>','<b>Release: Pike Lunge</b> <span class="num">260×30 px · 40</span>','<span class="num">6 s cooldown after an impale</span>'],
+   row:['Hold a lane','50 impale','Hard stop on chargers','Bulwark Brace (hold)'],
+   moves:[ {kind:'set',name:'Set the Pike (hold)',num:'50',len:230,dmg:50,dur:3.1,s:.12,e:1},
+     {kind:'thrust',name:'Pike Lunge (release)',num:'40',len:260,width:30,dmg:40,fx:{push:50},dur:.45,s:.3,e:.6} ],
+   layout:S=>({p:[190,215],foes:[[520,214,70],[545,72,72],[565,375,64]],bullets:[]})},
+ 2:{group:'alt',key:'2',name:'Vault',tag:'Pole-vault in, chop on landing',
+   blurb:"Plant the butt and vault 220 px along your aim, untouchable in the air; the landing chops a 120° arc ahead. Gets the tank into the pack.",
+   lines:['<b>Vault</b> <span class="num">220 px · 0.5 s · untouchable</span>','<b>Landing Chop</b> <span class="num">120° · 180 px · 40 · stun 0.5 s</span>','<span class="num">7 s cooldown</span>'],
+   row:['Engage / escape','40 landing','Stun on landing','Leap Slam (ability)'],
+   moves:[ {kind:'vault',name:'Vault',num:'220 px',dist:220,dur:.72,s:.15,e:.92},
+     {kind:'sweep',name:'Landing Chop',num:'40',a0:-1.05,a1:1.05,reach:180,dmg:40,fx:{stun:.5},cut:true,dur:.34,s:0,e:.7},
+     {...SW,name:'Sweep',num:'30'} ],
+   layout:S=>{const m=S[0],tm=m.t0+m.dur*(m.s+m.e)/2;return {p:[150,210],foes:[[480,205],[505,150],[512,268],[555,212,0,1],[455,320]],
+     bullets:[{from:[260,-10],to:[260,430],at:tm,spd:520},{from:[300,430],to:[300,-10],at:tm+.05,spd:520}]}}},
+ 3:{group:'alt',key:'3',name:'Hook & Trip',tag:'Sweep their legs, then cut them down',
+   blurb:"A low sweep at ankle height knocks enemies down 1.4 s (they can't move or shoot). Your next sweep deals ×1.5 to anyone down. Heavies only stagger; bosses shrug it off.",
+   lines:['<b>Trip</b> <span class="num">140° · 180 px · 10 · prone 1.4 s</span>','<b>Next sweep vs prone</b> <span class="num">×1.5 (30 → 45)</span>','<b>Heavies</b> <span class="num">stagger 0.4 s · bosses immune</span>','<span class="num">5 s cooldown</span>'],
+   row:['Setup for burst','45 follow-up','Prone (no shots)','None'],
+   moves:[ {kind:'sweep',name:'Trip',num:'10',a0:-1.22,a1:1.22,reach:180,dmg:10,fx:{prone:1.4},dur:.42,s:.2,e:.8,style:'low'},
+     {...SW,name:'Sweep vs prone',num:'45',bonusProne:1.5} ],
+   layout:S=>({p:[230,212],foes:[[360,160],[390,222],[322,302],[300,110],[250,345],[385,272,0,1]],
+     bullets:[{from:[720,40],to:[230,212],at:S[0].t0+.2,spd:150,owner:0},{from:[720,400],to:[230,212],at:S[0].t0+.4,spd:150,owner:4}]})}
+};
+function ring(S,mi,angs,p,lead){const m=S[mi],mid=m.t0+m.dur*(m.s+(m.e-m.s)*lead);return angs.map(a=>{const r=a*Math.PI/180,d=330,spd=210;
+  return {from:[p[0]+Math.cos(r)*d,p[1]+Math.sin(r)*d],to:p,at:mid-(d-125)/spd,spd}})}
+
+/* ---------- state ---------- */
+let cur='A', speed=1, paused=matchMedia('(prefers-reduced-motion: reduce)').matches, st, last=0;
+function sched(v){let t=.35;return v.moves.map(m=>{const o={...m,t0:t};t+=m.dur+(m.gap!=null?m.gap:(m.kind==='vault'?0:.22));return o})}
+function reset(){
+  const v=V[cur], S=sched(v), L=v.layout(S);
+  st={v,S,t:0,end:S[S.length-1].t0+S[S.length-1].dur+1.3,aim:0,p:{x:L.p[0],y:L.p[1]},p0:{x:L.p[0],y:L.p[1]},z:0,air:false,
+    foes:L.foes.map(f=>({x:f[0],y:f[1],vx:0,vy:0,walk:f[2]||0,heavy:!!f[3],flash:0,stun:0,prone:0,hook:0,pin:0,hit:new Set(),dead:0})),
+    bullets:(L.bullets||[]).map(b=>{const dx=b.to[0]-b.from[0],dy=b.to[1]-b.from[1],d=Math.hypot(dx,dy);return {x:b.from[0],y:b.from[1],vx:dx/d*b.spd,vy:dy/d*b.spd,at:b.at-((b.spd*0)),live:true,dodged:0,owner:b.owner}}),
+    pop:[],trail:[],shake:0,dust:[],mi:-1,pose:{a:-.55,len:150,lift:0,side:1},prevA:null,stack:0,thrust:null,crack:null};
+  st.bullets.forEach(b=>{b.x-=b.vx*0;}); // bullets enter from their start at their time
+  st.bullets.forEach(b=>{b.t0=b.at;b.x0=b.x;b.y0=b.y});
+}
+function pop(x,y,txt,col){st.pop.push({x,y,txt,col,t:0})}
+function rel(f){return Math.atan2(f.y-st.p.y,f.x-st.p.x)-st.aim}
+function between(r,a,b,pad){const lo=Math.min(a,b)-pad,hi=Math.max(a,b)+pad;for(let k=-2;k<=2;k++){const q=r+k*TAU;if(q>=lo&&q<=hi)return true}return false}
+
+function hitFoe(m,f){
+  let d=m.dmg,col='#ffffff',big=false;
+  if(m.bonusProne&&f.prone>0){d=Math.round(d*m.bonusProne);col=GOLD;big=true}
+  pop(f.x,f.y-16,String(d),col);
+  f.flash=.18;
+  const dx=f.x-st.p.x,dy=f.y-st.p.y,dd=Math.hypot(dx,dy)||1,ux=dx/dd,uy=dy/dd,hv=f.heavy?.35:1;
+  const fx=m.fx||{};
+  if(fx.push){f.vx+=ux*fx.push*6*hv;f.vy+=uy*fx.push*6*hv}
+  if(fx.pull){const pl=Math.min(fx.pull,dd-34)*hv;f.vx-=ux*pl*6;f.vy-=uy*pl*6}
+  if(fx.hook)f.hook=fx.hook;
+  if(fx.stun){f.stun=Math.max(f.stun,fx.stun);pop(f.x,f.y-30,'STUN',GOLD)}
+  if(fx.prone){if(f.heavy){f.stun=.4;pop(f.x,f.y-32,'STAGGER',GOLD)}else{f.prone=fx.prone;pop(f.x,f.y-32,'DOWN',GOLD)}}
+  if(m.bonusHook&&f.hook>0){f.stun=Math.max(f.stun,m.bonusHook.stun);pop(f.x,f.y-32,'STUN',GOLD);f.hook=0}
+  if(big)st.shake=Math.max(st.shake,4);
+}
+function cutBullet(b){b.live=false;spark(b.x,b.y)}
+function spark(x,y){for(let i=0;i<7;i++){const a=Math.random()*TAU,s=60+Math.random()*120;st.dust.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:0,life:.3,c:[255,226,150],r:1.6})}}
+function dust(x,y,n,c){for(let i=0;i<n;i++){const a=Math.random()*TAU,s=20+Math.random()*90;st.dust.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:0,life:.5+Math.random()*.3,c:c||[150,160,170],r:2+Math.random()*2.5})}}
+
+/* ---------- one move's pose and hits ---------- */
+function step(dt){
+  st.t+=dt; const t=st.t;
+  let mi=-1; st.S.forEach((m,i)=>{if(t>=m.t0)mi=i});
+  if(mi!==st.mi){st.mi=mi;st.prevA=null;if(mi>=0){st.from={...st.pose};const m=st.S[mi];if(m.stack!=null)st.stack=m.stack;if(m.kind==='vault')st.vfrom={...st.p};}}
+  const P=st.pose;
+  if(mi<0){P.a=lerp(P.a,-.55,.1)}
+  else{
+    const m=st.S[mi],lt=t-m.t0,u=clamp(lt/m.dur,0,1.5),F=st.from;
+    if(m.kind==='sweep'){
+      const sg=Math.sign(m.a1-m.a0);
+      if(u<m.s){const k=eio(u/m.s);P.a=lerp(F.a,m.a0-sg*.25,k);P.len=lerp(F.len,m.reach,k);P.trail=false;P.lift=lerp(F.lift,0,k)}
+      else if(u<m.e){const k=eio((u-m.s)/(m.e-m.s));P.a=lerp(m.a0-sg*.25,m.a1,k);P.len=m.reach;P.trail=true}
+      else{P.a=m.a1+sg*.08*eo((u-m.e)/(1-m.e));P.trail=false}
+      P.side=sg;P.style=m.style;
+      if(P.trail){
+        const a1=P.a,a0=st.prevA==null?a1:st.prevA;
+        const minR=m.minR||28;
+        st.foes.forEach((f,i)=>{if(f.hit.has(mi))return;const d=Math.hypot(f.x-st.p.x,f.y-st.p.y);
+          if(d>=minR-8&&d<=m.reach+(f.heavy?16:11)&&between(rel(f),a0,a1,.16)){f.hit.add(mi);hitFoe(m,f)}});
+        if(m.cut)st.bullets.forEach(b=>{if(!b.live||t<b.t0)return;const d=Math.hypot(b.x-st.p.x,b.y-st.p.y);
+          if(d<=m.reach+6&&d>=20&&between(Math.atan2(b.y-st.p.y,b.x-st.p.x)-st.aim,a0,a1,.18))cutBullet(b)});
+        st.prevA=a1;
+      }
+    } else if(m.kind==='thrust'){
+      P.side=1;P.style=null;P.trail=false;
+      if(u<m.s){const k=eio(u/m.s);P.a=lerp(F.a,0,k);P.len=lerp(F.len,m.len*.5,k)}
+      else if(u<m.e){const k=eo((u-m.s)/(m.e-m.s));P.a=0;P.len=lerp(m.len*.5,m.len,k);st.thrust={t:t,len:P.len,w:m.width};
+        const ux=Math.cos(st.aim),uy=Math.sin(st.aim);
+        st.foes.forEach(f=>{if(f.hit.has(mi))return;const dx=f.x-st.p.x,dy=f.y-st.p.y,al=dx*ux+dy*uy,la=Math.abs(-dx*uy+dy*ux);
+          if(al>0&&al<=P.len+11&&la<=m.width/2+11){f.hit.add(mi);hitFoe(m,f)}});
+        if(m.cut)st.bullets.forEach(b=>{if(!b.live||t<b.t0)return;const dx=b.x-st.p.x,dy=b.y-st.p.y,al=dx*ux+dy*uy,la=Math.abs(-dx*uy+dy*ux);if(al>0&&al<=P.len&&la<m.width/2+6)cutBullet(b)})}
+      else{P.len=lerp(m.len,m.len*.8,eo((u-m.e)/(1-m.e)))}
+    } else if(m.kind==='chop'){
+      P.side=1;P.trail=false;P.style=null;
+      if(u<m.s){const k=eio(u/m.s);P.a=lerp(F.a,0,k);P.len=lerp(F.len,70,k);P.lift=k}
+      else if(u<m.e){const k=(u-m.s)/(m.e-m.s);P.a=0;P.len=lerp(70,m.len,k*k);P.lift=1-k*k}
+      else{P.a=0;P.len=m.len;P.lift=0;
+        if(!st.chopped||st.chopped!==mi){st.chopped=mi;st.shake=7;st.crack={t:t,len:m.len,w:m.width};
+          const ux=Math.cos(st.aim),uy=Math.sin(st.aim);
+          for(let i=0;i<5;i++){const d=60+i*45;dust(st.p.x+ux*d,st.p.y+uy*d,5)}
+          st.foes.forEach(f=>{const dx=f.x-st.p.x,dy=f.y-st.p.y,al=dx*ux+dy*uy,la=Math.abs(-dx*uy+dy*ux);
+            if(al>0&&al<=m.len+11&&la<=m.width/2+11)hitFoe(m,f)})}}
+    } else if(m.kind==='set'){
+      P.side=1;P.trail=false;P.style=null;
+      if(u<m.s){const k=eio(u/m.s);P.a=lerp(F.a,0,k);P.len=lerp(F.len,m.len,k)}
+      else if(u<1){P.a=0;P.len=m.len;
+        // creep forward, turn the point after the nearest charger (1.7 rad/s)
+        let best=null,bd=1e9;st.foes.forEach(f=>{if(!f.walk||f.pin||f.done)return;const d=Math.hypot(f.x-st.p.x,f.y-st.p.y);if(d<bd){bd=d;best=f}});
+        if(best){let want=Math.atan2(best.y-st.p.y,best.x-st.p.x),da=want-st.aim;while(da>Math.PI)da-=TAU;while(da<-Math.PI)da+=TAU;st.aim+=clamp(da,-1.7*dt,1.7*dt)}
+        st.p.x+=Math.cos(st.aim)*18*dt;st.p.y+=Math.sin(st.aim)*18*dt;
+        const ux=Math.cos(st.aim),uy=Math.sin(st.aim);
+        st.foes.forEach(f=>{if(f.done||f.pin)return;const dx=f.x-st.p.x,dy=f.y-st.p.y,al=dx*ux+dy*uy,la=Math.abs(-dx*uy+dy*ux);
+          if(al>m.len-46&&al<m.len+14&&la<24){f.pin=1;f.done=1;f.pinAl=al;hitFoe(m,f);pop(f.x,f.y-32,'IMPALED',GOLD);st.shake=5;spark(f.x,f.y)}})}
+    } else if(m.kind==='vault'){
+      P.side=1;P.trail=false;P.style=null;
+      const ux=Math.cos(st.aim),uy=Math.sin(st.aim),V0=st.vfrom;
+      if(u<m.s){const k=eio(u/m.s);P.a=lerp(F.a,.35,k);P.len=lerp(F.len,120,k)}
+      else if(u<m.e){const k=(u-m.s)/(m.e-m.s),ke=eio(k);st.p.x=V0.x+ux*m.dist*ke;st.p.y=V0.y+uy*m.dist*ke;st.z=Math.sin(Math.PI*k);st.air=true;P.a=lerp(.35,-1.2,ke);P.len=lerp(120,150,k);
+        if(!st.vdust){st.vdust=1;dust(V0.x,V0.y,10)}}
+      else{if(st.air){st.air=false;st.z=0;st.shake=5;dust(st.p.x,st.p.y,14)}P.a=-1.2;P.len=150}
+    }
+  }
+  if(mi>=0&&st.S[mi].kind!=='sweep')st.prevA=null;
+  // trail history
+  st.trail.push({t,a:st.aim+P.a,len:P.len,x:st.p.x,y:st.p.y,on:!!P.trail,low:P.style==='low',hook:P.style==='hook'});
+  while(st.trail.length&&t-st.trail[0].t>.16)st.trail.shift();
+  // foes
+  st.foes.forEach(f=>{
+    const k=Math.exp(-6*dt);f.x+=f.vx*(1-k)/6;f.y+=f.vy*(1-k)/6;f.vx*=k;f.vy*=k;
+    f.flash=Math.max(0,f.flash-dt);f.hook=Math.max(0,f.hook-dt);f.stun=Math.max(0,f.stun-dt);f.prone=Math.max(0,f.prone-dt);
+    if(f.pin){f.pin+=dt;const ux=Math.cos(st.aim),uy=Math.sin(st.aim);f.x=st.p.x+ux*f.pinAl;f.y=st.p.y+uy*f.pinAl;
+      const m=st.S[st.mi];if(f.pin>1.0||(m&&m.kind!=='set')){f.pin=0;f.vx+=ux*50*6;f.vy+=uy*50*6;f.stun=.4}}
+    else if(f.walk&&!f.stun&&!f.prone){const dx=st.p.x-f.x,dy=st.p.y-f.y,d=Math.hypot(dx,dy);if(d>30){f.x+=dx/d*f.walk*dt;f.y+=dy/d*f.walk*dt}}
+  });
+  // bullets
+  st.bullets.forEach(b=>{if(!b.live||t<b.t0)return;b.x+=b.vx*dt;b.y+=b.vy*dt;
+    if(b.owner!=null&&st.foes[b.owner].prone>0&&t-b.t0<.05)b.live=false;
+    const d=Math.hypot(b.x-st.p.x,b.y-st.p.y);
+    if(d<15){if(st.air){if(!b.dodged){b.dodged=1;pop(st.p.x,st.p.y-40,'UNTOUCHABLE',[143,240,199])}}else{b.live=false;st.hurt=.25}}
+    if(b.x<-40||b.x>W+40||b.y<-40||b.y>H+40)b.live=false});
+  st.hurt=Math.max(0,(st.hurt||0)-dt);
+  st.pop.forEach(p=>p.t+=dt);st.pop=st.pop.filter(p=>p.t<.9);
+  st.dust.forEach(d=>{d.t+=dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.vx*=.92;d.vy*=.92});st.dust=st.dust.filter(d=>d.t<d.life);
+  st.shake=Math.max(0,st.shake-dt*30);
+  if(t>st.end)reset();
+}
+
+/* ---------- drawing ---------- */
+const cv=document.getElementById('cv'),x=cv.getContext('2d');
+function fit(){const d=Math.min(window.devicePixelRatio||1,2),w=cv.clientWidth||720;cv.width=Math.round(w*d);cv.height=Math.round(w*420/720*d);x.setTransform(cv.width/W,0,0,cv.height/H,0,0)}
+addEventListener('resize',fit);
+function L2W(px,py,a,u,v){const c=Math.cos(a),s=Math.sin(a);return [px+c*u-s*v,py+s*u+c*v]}
+function halberd(px,py,a,len,side,lift,alpha){
+  x.save();x.globalAlpha=alpha==null?1:alpha;
+  const hs=1+lift*.45, sd=side||1;
+  const b=L2W(px,py,a,-30,0),tip=L2W(px,py,a,len,0);
+  x.lineCap='round';x.strokeStyle='#2a1d12';x.lineWidth=6;x.beginPath();x.moveTo(b[0],b[1]);x.lineTo(tip[0],tip[1]);x.stroke();
+  x.strokeStyle='#8a6440';x.lineWidth=3.6;x.beginPath();x.moveTo(b[0],b[1]);x.lineTo(tip[0],tip[1]);x.stroke();
+  const P=(u,v)=>L2W(px,py,a,len+u*hs,v*hs*sd);
+  const poly=(pts,fill,stroke)=>{x.beginPath();pts.forEach((q,i)=>{const w=P(q[0],q[1]);i?x.lineTo(w[0],w[1]):x.moveTo(w[0],w[1])});x.closePath();x.fillStyle=fill;x.fill();if(stroke){x.strokeStyle=stroke;x.lineWidth=1.2;x.stroke()}};
+  poly([[-36,3],[-44,22],[-34,31],[-18,30],[-8,22],[-12,3]],STEEL,'#5d6b77');            // axe blade
+  x.strokeStyle=rgba(MINT,.95);x.lineWidth=2;x.beginPath();[[-44,22],[-34,31],[-18,30],[-8,22]].forEach((q,i)=>{const w=P(q[0],q[1]);i?x.lineTo(w[0],w[1]):x.moveTo(w[0],w[1])});x.stroke();
+  poly([[-30,-3],[-42,-17],[-20,-3]],'#b8c4ce','#5d6b77');                                  // beak
+  poly([[-6,-4.5],[16,0],[-6,4.5]],STEEL,'#5d6b77');                                        // spear point
+  x.restore();
+}
+function knight(px,py,a,z,hurt){
+  const s=1+z*.35;
+  x.fillStyle='rgba(0,0,0,.35)';x.beginPath();x.ellipse(px-z*6,py+z*24+14*(1-z*.2),16*(1-z*.3),7*(1-z*.3),0,0,TAU);x.fill();
+  const yy=py-z*22;
+  x.save();x.translate(px,yy);x.scale(s,s);x.rotate(a);
+  x.fillStyle='#46525e';x.beginPath();x.ellipse(-2,0,12,17,0,0,TAU);x.fill();
+  x.fillStyle=hurt?'#ffb4a8':'#a9b6c2';x.beginPath();x.arc(0,0,12,0,TAU);x.fill();
+  x.strokeStyle='#2b343c';x.lineWidth=2;x.stroke();
+  x.strokeStyle='#2b343c';x.lineWidth=3;x.beginPath();x.moveTo(6,-5);x.lineTo(6,5);x.stroke();
+  x.restore();
+  return yy;
+}
+function foeDraw(f){
+  x.save();
+  const r=f.heavy?16:11;
+  x.fillStyle='rgba(0,0,0,.3)';x.beginPath();x.ellipse(f.x,f.y+r*.9,r,r*.4,0,0,TAU);x.fill();
+  if(f.prone>0){x.fillStyle=f.flash>0?'#fff':'#a8443a';x.beginPath();x.ellipse(f.x,f.y+4,r*1.25,r*.55,.3,0,TAU);x.fill();x.strokeStyle='#4a1a14';x.lineWidth=1.5;x.stroke();
+    const k=f.prone/1.4;x.strokeStyle=GOLD;x.lineWidth=2;x.beginPath();x.arc(f.x,f.y+4,r+7,-Math.PI/2,-Math.PI/2+TAU*k);x.stroke()}
+  else{x.fillStyle=f.flash>0?'#fff':RED;x.beginPath();x.arc(f.x,f.y,r,0,TAU);x.fill();x.strokeStyle='#4a1a14';x.lineWidth=2;x.stroke();
+    x.fillStyle='#2a0d0a';x.beginPath();x.arc(f.x+(st.p.x<f.x?-4:4),f.y-2,2.4,0,TAU);x.fill()}
+  if(f.stun>0&&!f.pin){for(let i=0;i<3;i++){const a=st.t*6+i*TAU/3;x.fillStyle=GOLD;x.beginPath();x.arc(f.x+Math.cos(a)*(r+4),f.y-r-6+Math.sin(a)*3,2.2,0,TAU);x.fill()}}
+  if(f.hook>0){x.strokeStyle=rgba(MINT,.35+.4*f.hook/1.6);x.setLineDash([4,4]);x.lineWidth=1.5;x.beginPath();x.moveTo(st.p.x,st.p.y);x.lineTo(f.x,f.y);x.stroke();x.setLineDash([]);
+    x.strokeStyle=rgba(MINT,.9);x.lineWidth=2;x.beginPath();x.arc(f.x,f.y,r+5,0,TAU);x.stroke()}
+  if(f.pin){x.strokeStyle=GOLD;x.lineWidth=2;x.beginPath();x.arc(f.x,f.y,r+6,0,TAU);x.stroke()}
+  x.restore();
+}
+function draw(){
+  x.save();
+  x.fillStyle='#0c1118';x.fillRect(0,0,W,H);
+  if(st.shake>0)x.translate((Math.random()-.5)*st.shake,(Math.random()-.5)*st.shake);
+  x.strokeStyle='rgba(120,150,180,.07)';x.lineWidth=1;for(let i=0;i<=W;i+=40){x.beginPath();x.moveTo(i,0);x.lineTo(i,H);x.stroke()}for(let j=0;j<=H;j+=40){x.beginPath();x.moveTo(0,j);x.lineTo(W,j);x.stroke()}
+  const m=st.mi>=0?st.S[st.mi]:st.S[0];
+  // telegraphs
+  if(m.kind==='chop'&&st.t-m.t0<m.dur*m.e){const ux=Math.cos(st.aim),uy=Math.sin(st.aim);x.save();x.translate(st.p.x,st.p.y);x.rotate(st.aim);x.fillStyle=rgba(MINT,.08);x.fillRect(20,-m.width/2,m.len-20,m.width);x.strokeStyle=rgba(MINT,.35);x.setLineDash([6,5]);x.strokeRect(20,-m.width/2,m.len-20,m.width);x.restore();x.setLineDash([])}
+  if(st.crack&&st.t-st.crack.t<.8){const k=(st.t-st.crack.t)/.8;x.save();x.translate(st.p.x,st.p.y);x.rotate(st.aim);x.globalAlpha=1-k;
+    x.fillStyle=rgba(MINT,.25);x.fillRect(20,-st.crack.w/2,st.crack.len-20,st.crack.w);
+    x.strokeStyle='#e9fff5';x.lineWidth=2.5;x.beginPath();x.moveTo(24,0);for(let i=1;i<=10;i++)x.lineTo(24+(st.crack.len-24)*i/10,(i%2?1:-1)*(3+i*.6));x.stroke();x.restore()}
+  if(m.kind==='set'&&st.t>=m.t0&&st.t<m.t0+m.dur){x.save();x.translate(st.p.x,st.p.y);x.rotate(st.aim);x.fillStyle=rgba(SAND,.12);x.fillRect(m.len-46,-24,60,48);x.strokeStyle=rgba(SAND,.5);x.setLineDash([4,4]);x.strokeRect(m.len-46,-24,60,48);x.restore();x.setLineDash([])}
+  if(m.kind==='vault'&&st.t<m.t0+m.dur*m.e){const V0=st.vfrom||st.p0;x.save();x.strokeStyle=rgba(MINT,.35);x.setLineDash([5,6]);x.lineWidth=1.5;const ux=Math.cos(st.aim),uy=Math.sin(st.aim),ex=V0.x+ux*m.dist,ey=V0.y+uy*m.dist;
+    x.beginPath();x.moveTo(V0.x,V0.y);x.quadraticCurveTo((V0.x+ex)/2,(V0.y+ey)/2-60,ex,ey);x.stroke();x.setLineDash([]);x.beginPath();x.arc(ex,ey,18,0,TAU);x.stroke();x.restore()}
+  // dust under
+  st.dust.forEach(d=>{const k=d.t/d.life;x.fillStyle=rgba(d.c,(1-k)*.7);x.beginPath();x.arc(d.x,d.y,d.r*(1+k),0,TAU);x.fill()});
+  st.foes.forEach(foeDraw);
+  // sweep trail
+  const tr=st.trail;
+  for(let i=1;i<tr.length;i++){const A=tr[i-1],B=tr[i];if(!A.on||!B.on)continue;const age=st.t-B.t,al=Math.max(0,1-age/.16);
+    const col=B.low?SAND:MINT, inner=B.low?.62:.5;
+    const p1=L2W(A.x,A.y,A.a,A.len*inner,0),p2=L2W(A.x,A.y,A.a,A.len+14,0),p3=L2W(B.x,B.y,B.a,B.len+14,0),p4=L2W(B.x,B.y,B.a,B.len*inner,0);
+    x.fillStyle=rgba(col,.5*al);x.beginPath();x.moveTo(p1[0],p1[1]);x.lineTo(p2[0],p2[1]);x.lineTo(p3[0],p3[1]);x.lineTo(p4[0],p4[1]);x.closePath();x.fill()}
+  if(st.thrust&&st.t-st.thrust.t<.18){const k=(st.t-st.thrust.t)/.18;x.save();x.translate(st.p.x,st.p.y);x.rotate(st.aim);x.globalAlpha=1-k;
+    const g=x.createLinearGradient(20,0,st.thrust.len,0);g.addColorStop(0,rgba(MINT,0));g.addColorStop(1,rgba(MINT,.55));x.fillStyle=g;x.fillRect(20,-st.thrust.w/2,st.thrust.len,st.thrust.w);x.restore()}
+  // bullets
+  st.bullets.forEach(b=>{if(!b.live||st.t<b.t0)return;x.fillStyle='#ffb347';x.beginPath();x.arc(b.x,b.y,5,0,TAU);x.fill();x.fillStyle='#fff1cf';x.beginPath();x.arc(b.x,b.y,2.2,0,TAU);x.fill()});
+  // knight + halberd
+  const P=st.pose, yy=st.p.y-st.z*22;
+  if(st.z>0)halberd(st.p.x,st.p.y,st.aim+P.a,P.len,P.side,P.lift,.25);
+  knight(st.p.x,st.p.y,st.aim,st.z,st.hurt>0);
+  halberd(st.p.x,yy,st.aim+P.a,P.len,P.side,P.lift);
+  // stack pips (Building Arc)
+  if(st.v.key==='C'){for(let i=0;i<3;i++){const on=i<st.stack;x.fillStyle=on?rgba(MINT,.95):'rgba(143,240,199,.18)';x.beginPath();x.moveTo(st.p.x-18+i*18,st.p.y+24);x.lineTo(st.p.x-13+i*18,st.p.y+30);x.lineTo(st.p.x-18+i*18,st.p.y+36);x.lineTo(st.p.x-23+i*18,st.p.y+30);x.closePath();x.fill()}}
+  // pops
+  st.pop.forEach(p=>{const k=p.t/.9;x.globalAlpha=1-k*k;x.font=`600 ${p.txt.length>3?11:15}px "IBM Plex Mono",ui-monospace,monospace`;x.textAlign='center';x.fillStyle=Array.isArray(p.col)?rgba(p.col,1):p.col;x.fillText(p.txt,p.x,p.y-k*26);x.globalAlpha=1});
+  x.restore();
+  // label
+  x.font='600 13px "IBM Plex Mono",ui-monospace,monospace';x.textAlign='left';x.fillStyle='rgba(230,240,235,.85)';
+  x.fillText((st.v.group==='combo'?'COMBO ':'ALT ')+st.v.key+' · '+st.v.name.toUpperCase(),16,26);
+  if(st.mi>=0){x.fillStyle=rgba(MINT,1);x.fillText(st.S[st.mi].name,16,46)}
+}
+
+/* ---------- UI ---------- */
+const $=id=>document.getElementById(id);
+function chip(parent,label,on,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.setAttribute('aria-pressed',String(on));b.addEventListener('click',fn);parent.appendChild(b);return b}
+function select(k){cur=k;reset();
+  document.querySelectorAll('[data-v]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===k)));
+  const v=V[k];$('blurb').textContent=v.blurb;
+  $('steps').innerHTML=v.moves.map((m,i)=>`<span class="step" data-i="${i}">${i+1}. ${m.name} · ${m.num}</span>`).join('');
+  if(paused){st.t=0;for(let i=0;i<90;i++)step(1/60);draw()}}
+['A','B','C'].forEach(k=>{chip($('gCombo'),k+' · '+V[k].name,k===cur,()=>select(k)).dataset.v=k});
+['1','2','3'].forEach(k=>{chip($('gAlt'),k+' · '+V[k].name,false,()=>select(k)).dataset.v=k});
+[[1,'1×'],[.5,'½×'],[.25,'¼×']].forEach(([s,l])=>{const b=chip($('gSpeed'),l,s===speed,()=>{speed=s;[...$('gSpeed').querySelectorAll('button')].forEach(q=>q.setAttribute('aria-pressed',String(q===b)))})});
+$('pause').addEventListener('click',function(){paused=!paused;this.textContent=paused?'Play':'Pause'});
+function cards(el,keys){keys.forEach(k=>{const v=V[k],b=document.createElement('button');b.type='button';b.className='card';b.dataset.v=k;b.setAttribute('aria-pressed',String(k===cur));
+  b.innerHTML=`<span class="k">${v.group==='combo'?'Combo':'Alt'} ${k}</span><h3>${v.name}</h3><p>${v.tag}</p><ol>${v.lines.map(l=>'<li>'+l+'</li>').join('')}</ol>`;
+  b.addEventListener('click',()=>{select(k);$('cv').scrollIntoView({behavior:'smooth',block:'center'})});el.appendChild(b)})}
+cards($('cCombo'),['A','B','C']);cards($('cAlt'),['1','2','3']);
+$('tbl').innerHTML=['A','B','C','1','2','3'].map(k=>{const v=V[k];return `<tr><td><b>${v.group==='combo'?'Combo':'Alt'} ${k}</b> ${v.name}</td><td>${v.row[0]}</td><td class="n">${v.row[1]}</td><td>${v.row[2]}</td><td>${v.row[3]}</td></tr>`}).join('');
+if(paused)$('pause').textContent='Play';
+window.__step=T=>{reset();for(let i=0;i<T*60;i++)step(1/60);draw()};
+fit();select('A');
+function frame(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;
+  if(!paused){step(dt*speed);draw()}
+  document.querySelectorAll('#steps .step').forEach(s=>s.classList.toggle('on',+s.dataset.i===st.mi));
+  requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+})();
+</script>

@@ -1,0 +1,311 @@
+<title>Vortex</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: house mockup look (steel and parchment neutrals, gold for ultimates). Title, then the live arena demo with its
+   timeline and the option switches, then the numbers. The arena is a game screen: always dark. Approximate: browser
+   canvas, not the game's Ui.cs draw code. */
+:root{
+  --bg:#eceae4; --fg:#1d1f22; --muted:#5d6168; --panel:#f8f7f3; --line:#d3d0c6; --chip:#e1ded4;
+  --acc:#9a6608; --wind:#2f8d93;
+  --arena:#121418;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101215; --fg:#e8e9ea; --muted:#9a9fa7; --panel:#171a1f; --line:#2b3037; --chip:#21252b;
+  --acc:#f0bd54; --wind:#8fe3e0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101215; --fg:#e8e9ea; --muted:#9a9fa7; --panel:#171a1f; --line:#2b3037; --chip:#21252b;
+  --acc:#f0bd54; --wind:#8fe3e0; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font:800 clamp(44px,8vw,84px)/.9 var(--display);text-transform:uppercase;margin:0}
+h1 span{color:var(--wind)}
+.lede{margin:12px 0 0;max-width:68ch;color:var(--muted);font-size:17px}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.04em;margin:0 0 12px}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:18px;align-items:start}
+@media (max-width:820px){.stage{grid-template-columns:minmax(0,1fr)}}
+.frame{position:relative;border-radius:8px;overflow:hidden;background:var(--arena);box-shadow:0 18px 40px -24px rgba(0,0,0,.6)}
+#arena{display:block;width:100%;height:auto;aspect-ratio:16/9;max-width:100%}
+.hudtag{position:absolute;left:12px;top:10px;font:500 11px var(--mono);color:#cfd5dc;opacity:.85;pointer-events:none;letter-spacing:.04em;text-shadow:0 1px 2px #000}
+.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.timeline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;font-size:14px}
+.timeline li{display:grid;grid-template-columns:52px 1fr;gap:10px;padding:6px 10px;border-radius:6px;color:var(--muted);transition:background .2s,color .2s}
+.timeline li b{font:500 12px var(--mono);font-variant-numeric:tabular-nums;padding-top:2px}
+.timeline li.on{background:var(--chip);color:var(--fg)}
+.timeline li.on b{color:var(--wind)}
+.ctl{display:flex;flex-direction:column;gap:10px}
+.lbl{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button,.btn{font:600 14px var(--body);border:1px solid var(--line);background:var(--panel);color:var(--fg);padding:6px 10px;border-radius:6px;cursor:pointer}
+.seg button[aria-pressed="true"]{border-color:var(--wind);color:var(--wind);box-shadow:inset 0 0 0 1px var(--wind)}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.btn{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.note{font-size:13px;color:var(--muted);margin:0}
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px}
+td,th{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 12px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);width:30%}
+td b{font-variant-numeric:tabular-nums;color:var(--acc)}
+</style>
+
+<main>
+  <header>
+    <p class="eyebrow">Tank · Elementalist · Ultimate · mockup</p>
+    <h1><span>Vortex</span></h1>
+    <p class="lede">A huge wind vortex spins up around you for 5 s and follows you. Every enemy inside is dragged round with it and torn at by the wind for heavy damage. You stand in the calm eye.</p>
+  </header>
+
+  <section class="stage">
+    <div class="frame">
+      <canvas id="arena" width="960" height="540"></canvas>
+      <div class="hudtag" id="hud">VORTEX</div>
+    </div>
+    <div class="side">
+      <ol class="timeline" id="tl">
+        <li data-p="0"><b>0.0 s</b><span>Enemies close in</span></li>
+        <li data-p="1"><b>Q</b><span>Wind-up: a ring of dust sucks inward (0.4 s)</span></li>
+        <li data-p="2"><b>5.0 s</b><span>Vortex: swirl, pull, 45 dmg a second</span></li>
+        <li data-p="3"><b>end</b><span>The ending you pick below</span></li>
+      </ol>
+      <div class="ctl">
+        <span class="lbl">Ending</span>
+        <div class="seg" id="endSeg">
+          <button type="button" data-v="fling" aria-pressed="true">Fling out</button>
+          <button type="button" data-v="implode" aria-pressed="false">Implode</button>
+          <button type="button" data-v="drop" aria-pressed="false">Just stop</button>
+        </div>
+        <span class="lbl">Enemy shots in the vortex</span>
+        <div class="seg" id="shotSeg">
+          <button type="button" data-v="catch" aria-pressed="true">Swept away</button>
+          <button type="button" data-v="pass" aria-pressed="false">Pass through</button>
+        </div>
+        <span class="lbl">Speed</span>
+        <div class="seg" id="spdSeg">
+          <button type="button" data-v="1" aria-pressed="true">1×</button>
+          <button type="button" data-v="0.4" aria-pressed="false">Slow-mo</button>
+        </div>
+        <div><button type="button" class="btn" id="replay">Replay</button></div>
+        <p class="note">Approximate: a browser canvas, not the game's draw code.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Numbers (proposed)</h2>
+    <div class="tblwrap"><table>
+      <tr><th>Cooldown</th><td><b>80 s</b> (like A Literal Tank)</td></tr>
+      <tr><th>Duration</th><td><b>5 s</b>, follows you; you move at full speed</td></tr>
+      <tr><th>Size</th><td><b>240 px</b> radius, calm eye <b>60 px</b>; enemies within 60 px of the edge get drawn in</td></tr>
+      <tr><th>Damage</th><td><b>9 every 0.2 s</b> (45 a second, × your damage multiplier) to everything inside: <b>225</b> over the whole storm. A Grunt (60) lasts 1.3 s, a Spinner (150) 3.3 s</td></tr>
+      <tr><th>Movement</th><td>Swept round at <b>280 px/s</b> and pulled in <b>50 px/s</b>; heavies at 40%; bosses not moved but take the full damage</td></tr>
+      <tr><th>Enemy shots</th><td>Swept-away option: a shot entering the vortex is spun off and fades harmlessly</td></tr>
+      <tr><th>Ending</th><td>Fling: everyone inside thrown 160 px outward for 30. Implode: sucked to the eye for a 60 burst. Just stop: none</td></tr>
+      <tr><th>Mastered</th><td><b>300 px</b> radius and 55 a second</td></tr>
+      <tr><th>Bots</th><td>Cast it with 5 or more enemies within 260 px</td></tr>
+    </table></div>
+  </section>
+</main>
+
+<script>
+(()=>{
+const cv=document.getElementById('arena'),cx=cv.getContext('2d'),W=960,H=540;
+const hud=document.getElementById('hud'),tlItems=[...document.querySelectorAll('#tl li')];
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const opt={end:'fling',shots:'catch',spd:1};
+function seg(id,key,num){const el=document.getElementById(id);el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));opt[key]=num?+b.dataset.v:b.dataset.v;if(key!=='spd')reset();});}
+seg('endSeg','end');seg('shotSeg','shots');seg('spdSeg','spd',true);
+document.getElementById('replay').onclick=reset;
+
+const R=240,EYE=60,SWIRL=280,PULL=50,FRINGE=60,TICK=0.2,TDMG=9;
+const T_CAST=1.2,T_UP=0.4,T_STORM=5,T_LOOP=T_CAST+T_UP+T_STORM+2.6;
+const TYPES={grunt:{r:14,hp:60,c:'#d4554a',sp:70,heavy:false},spinner:{r:18,hp:150,c:'#9b6bd6',sp:35,heavy:true},shard:{r:8,hp:25,c:'#e39a3b',sp:120,heavy:false}};
+let t,P,en,bul,parts,nums,streaks,tickAcc,ended,stats,spawnAcc;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+
+function spawn(type,x,y){const d=TYPES[type];en.push({type,x,y,vx:0,vy:0,kx:0,ky:0,hp:d.hp,max:d.hp,r:d.r,c:d.c,sp:d.sp,heavy:d.heavy,fire:rnd(0.5,2),flash:0});}
+function spawnEdge(){const a=rnd(0,Math.PI*2),d=rnd(330,420);const x=P.x+Math.cos(a)*d,y=P.y+Math.sin(a)*d;
+  spawn(Math.random()<.75?'grunt':'shard',Math.max(20,Math.min(W-20,x)),Math.max(20,Math.min(H-20,y)));}
+function reset(){
+  t=0;P={x:W/2,y:H/2+10,aim:0};en=[];bul=[];parts=[];nums=[];tickAcc=0;ended=false;spawnAcc=0;stats={dmg:0,kills:0};
+  const list=[...Array(12).fill('grunt'),...Array(3).fill('spinner'),...Array(4).fill('shard')];
+  list.forEach((ty,i)=>{const a=i/list.length*Math.PI*2+rnd(-.15,.15),d=rnd(190,330);
+    spawn(ty,Math.max(24,Math.min(W-24,P.x+Math.cos(a)*d*1.4)),Math.max(24,Math.min(H-24,P.y+Math.sin(a)*d)));});
+  streaks=Array.from({length:150},()=>({r:rnd(EYE,R+20),a:rnd(0,Math.PI*2),len:rnd(.25,.7),w:rnd(.8,2.4),al:rnd(.15,.55)}));
+}
+reset();
+
+function strength(){ // 0..1 vortex power
+  const s=t-T_CAST-T_UP;
+  if(t<T_CAST+T_UP)return 0;
+  if(s<0.4)return s/0.4;
+  if(s<T_STORM-0.3)return 1;
+  if(s<T_STORM)return (T_STORM-s)/0.3;
+  return 0;
+}
+function phase(){if(t<T_CAST)return 0;if(t<T_CAST+T_UP)return 1;if(t<T_CAST+T_UP+T_STORM)return 2;return 3;}
+
+function hit(e,d,col){e.hp-=d;e.flash=.08;stats.dmg+=d;nums.push({x:e.x+rnd(-8,8),y:e.y-e.r-4,v:d,life:.6,c:col||'#cff7f4'});}
+function burst(x,y,c,n){for(let i=0;i<n;i++){const a=rnd(0,6.28),s=rnd(60,220);parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.3,.6),c});}}
+
+function update(dt){
+  t+=dt;if(t>T_LOOP){reset();return;}
+  const ph=phase(),S=strength(),stormOn=ph===2;
+  // tank drifts so the vortex visibly follows
+  if(t>T_CAST+T_UP)P.x=W/2+Math.sin((t-T_CAST-T_UP)*.7)*90;
+  const near=en.reduce((b,e)=>{const d=Math.hypot(e.x-P.x,e.y-P.y);return d<b.d?{d,e}:b},{d:1e9,e:null});
+  if(near.e)P.aim=Math.atan2(near.e.y-P.y,near.e.x-P.x);
+  // stragglers walk in during the storm
+  if(stormOn){spawnAcc+=dt;if(spawnAcc>.55){spawnAcc=0;spawnEdge();}}
+  // damage ticks
+  if(stormOn&&S>.5){tickAcc+=dt;while(tickAcc>=TICK){tickAcc-=TICK;
+    for(const e of en){if(Math.hypot(e.x-P.x,e.y-P.y)<R+e.r)hit(e,TDMG);}}}
+  // ending
+  if(ph===3&&!ended){ended=true;
+    for(const e of en){const dx=e.x-P.x,dy=e.y-P.y,d=Math.hypot(dx,dy)||1;if(d>R+e.r)continue;
+      if(opt.end==='fling'){const k=e.heavy?.4:1;e.kx=dx/d*480*k;e.ky=dy/d*480*k;hit(e,30,'#ffd28a');}
+      if(opt.end==='implode'){e.x=P.x+dx/d*(EYE+e.r);e.y=P.y+dy/d*(EYE+e.r);hit(e,60,'#ffd28a');}}
+    if(opt.end!=='drop')parts.push({ring:true,x:P.x,y:P.y,life:.45,max:.45,out:opt.end==='fling'});
+  }
+  // enemies
+  for(const e of en){
+    e.flash=Math.max(0,e.flash-dt);
+    const dx=e.x-P.x,dy=e.y-P.y,d=Math.hypot(dx,dy)||1;
+    let swept=false;
+    if(S>0&&d<R+FRINGE){
+      const k=(e.heavy?.4:1)*S;
+      if(d<R+e.r){ // inside: swirl + pull
+        swept=true;
+        const a=Math.atan2(dy,dx)+SWIRL*k/d*dt;
+        const nd=Math.max(EYE+e.r,d-PULL*k*dt);
+        e.x=P.x+Math.cos(a)*nd;e.y=P.y+Math.sin(a)*nd;
+      }else{ // fringe: drawn in
+        e.x-=dx/d*140*k*dt;e.y-=dy/d*140*k*dt;
+      }
+    }
+    if(!swept){ // walk toward tank to ~150px and shoot
+      if(d>150){e.x-=dx/d*e.sp*dt;e.y-=dy/d*e.sp*dt;}
+      e.fire-=dt;
+      if(e.fire<=0&&e.type!=='shard'){e.fire=rnd(1.2,2.2);const a=Math.atan2(-dy,-dx);
+        const n=e.type==='spinner'?6:3;for(let i=0;i<n;i++){const aa=e.type==='spinner'?a+i*Math.PI/3:a+(i-1)*.18;
+          bul.push({x:e.x,y:e.y,vx:Math.cos(aa)*210,vy:Math.sin(aa)*210,caught:0});}}
+    }
+    e.x+=e.kx*dt;e.y+=e.ky*dt;e.kx*=Math.pow(.02,dt);e.ky*=Math.pow(.02,dt);
+    e.x=Math.max(e.r,Math.min(W-e.r,e.x));e.y=Math.max(e.r,Math.min(H-e.r,e.y));
+  }
+  en=en.filter(e=>{if(e.hp>0)return true;stats.kills++;burst(e.x,e.y,e.c,14);burst(e.x,e.y,'#cff7f4',8);return false;});
+  // bullets
+  for(const b of bul){
+    const dx=b.x-P.x,dy=b.y-P.y,d=Math.hypot(dx,dy)||1;
+    if(opt.shots==='catch'&&S>.3&&d<R){ b.caught+=dt;
+      const a=Math.atan2(dy,dx)+SWIRL*1.4/d*dt;const nd=d+40*dt;b.x=P.x+Math.cos(a)*nd;b.y=P.y+Math.sin(a)*nd;
+    }else{b.x+=b.vx*dt;b.y+=b.vy*dt;}
+  }
+  bul=bul.filter(b=>b.caught<.7&&b.x>-10&&b.x<W+10&&b.y>-10&&b.y<H+10&&Math.hypot(b.x-P.x,b.y-P.y)>16);
+  // fx
+  for(const p of parts){p.life-=dt;if(!p.ring){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.92;p.vy*=.92;}}
+  parts=parts.filter(p=>p.life>0);
+  for(const n of nums){n.life-=dt;n.y-=28*dt;}nums=nums.filter(n=>n.life>0);
+  for(const s of streaks){s.a+=SWIRL*1.25/s.r*dt*(S||0)+.05*dt;}
+  tlItems.forEach((li,i)=>li.classList.toggle('on',i===ph));
+  hud.textContent=`VORTEX  ${ph===2?(T_CAST+T_UP+T_STORM-t).toFixed(1)+' s':ph===1?'WIND-UP':ph===3?'DONE':'READY'}   DMG ${stats.dmg}   KILLS ${stats.kills}`;
+}
+
+function drawFloor(){
+  cx.fillStyle='#121418';cx.fillRect(0,0,W,H);
+  cx.strokeStyle='rgba(255,255,255,.035)';cx.lineWidth=1;
+  for(let x=0;x<=W;x+=40){cx.beginPath();cx.moveTo(x+.5,0);cx.lineTo(x+.5,H);cx.stroke();}
+  for(let y=0;y<=H;y+=40){cx.beginPath();cx.moveTo(0,y+.5);cx.lineTo(W,y+.5);cx.stroke();}
+}
+function drawVortex(){
+  const S=strength(),ph=phase();
+  if(ph===1){ // wind-up: ring collapsing inward
+    const k=(t-T_CAST)/T_UP,r=R*1.5-(R*1.5-R)*k;
+    cx.strokeStyle=`rgba(190,240,236,${.15+.5*k})`;cx.lineWidth=3;cx.setLineDash([10,14]);cx.lineDashOffset=-t*120;
+    cx.beginPath();cx.arc(P.x,P.y,r,0,6.283);cx.stroke();cx.setLineDash([]);
+    for(let i=0;i<24;i++){const a=i/24*6.283+t*3,rr=r*(1-.15*Math.sin(i));cx.fillStyle=`rgba(200,190,160,${.5*k})`;cx.fillRect(P.x+Math.cos(a)*rr-1.5,P.y+Math.sin(a)*rr-1.5,3,3);}
+    return;
+  }
+  if(S<=0)return;
+  const rot=t*2.4;
+  // body
+  const g=cx.createRadialGradient(P.x,P.y,EYE*.6,P.x,P.y,R+10);
+  g.addColorStop(0,'rgba(140,220,215,0)');g.addColorStop(.25,`rgba(120,200,200,${.06*S})`);
+  g.addColorStop(.85,`rgba(150,225,220,${.14*S})`);g.addColorStop(1,'rgba(150,225,220,0)');
+  cx.fillStyle=g;cx.beginPath();cx.arc(P.x,P.y,R+10,0,6.283);cx.fill();
+  // spiral arms
+  cx.lineCap='round';
+  for(let k=0;k<6;k++){
+    let px=null,py=null;
+    for(let r=EYE;r<=R;r+=6){
+      const a=rot+k*6.283/6+r*.013;
+      const x=P.x+Math.cos(a)*r,y=P.y+Math.sin(a)*r;
+      if(px!==null){const f=Math.sin(Math.PI*(r-EYE)/(R-EYE));
+        cx.strokeStyle=`rgba(215,250,246,${.22*f*S})`;cx.lineWidth=1+5*f;
+        cx.beginPath();cx.moveTo(px,py);cx.lineTo(x,y);cx.stroke();}
+      px=x;py=y;
+    }
+  }
+  // streaks (wind lines)
+  for(const s of streaks){
+    if(s.r>R+15)continue;
+    cx.strokeStyle=`rgba(230,252,250,${s.al*S})`;cx.lineWidth=s.w;
+    cx.beginPath();cx.arc(P.x,P.y,s.r,s.a-s.len,s.a);cx.stroke();
+  }
+  // debris
+  for(let i=0;i<36;i++){
+    const r=R*.55+((i*37)%100)/100*R*.5,a=t*SWIRL*1.1/r+i*1.7;
+    const x=P.x+Math.cos(a)*r,y=P.y+Math.sin(a)*r;
+    cx.save();cx.translate(x,y);cx.rotate(t*6+i);cx.fillStyle=i%3?`rgba(170,160,135,${.7*S})`:`rgba(120,150,90,${.7*S})`;
+    cx.fillRect(-2.5,-1.5,5,3);cx.restore();
+  }
+  // edge
+  cx.strokeStyle=`rgba(200,245,240,${.45*S})`;cx.lineWidth=2;cx.setLineDash([22,10,6,10]);cx.lineDashOffset=-t*90;
+  cx.beginPath();cx.arc(P.x,P.y,R,0,6.283);cx.stroke();cx.setLineDash([]);
+  // calm eye
+  cx.strokeStyle=`rgba(200,245,240,${.18*S})`;cx.lineWidth=1;cx.beginPath();cx.arc(P.x,P.y,EYE,0,6.283);cx.stroke();
+}
+function drawTank(){
+  cx.fillStyle='rgba(0,0,0,.35)';cx.beginPath();cx.ellipse(P.x,P.y+14,18,6,0,0,6.283);cx.fill();
+  cx.fillStyle='#3d5f78';cx.beginPath();cx.arc(P.x,P.y,17,0,6.283);cx.fill();
+  cx.strokeStyle='#d9b45a';cx.lineWidth=2.5;cx.stroke();
+  cx.fillStyle='#e8eef2';cx.beginPath();cx.arc(P.x+Math.cos(P.aim)*7,P.y+Math.sin(P.aim)*7,5,0,6.283);cx.fill();
+  if(phase()===2){cx.strokeStyle=`rgba(143,227,224,${.5+.3*Math.sin(t*10)})`;cx.lineWidth=1.5;cx.beginPath();cx.arc(P.x,P.y,23,0,6.283);cx.stroke();}
+}
+function drawEnemies(){
+  for(const e of en){
+    cx.fillStyle='rgba(0,0,0,.3)';cx.beginPath();cx.ellipse(e.x,e.y+e.r*.8,e.r,e.r*.35,0,0,6.283);cx.fill();
+    cx.fillStyle=e.flash>0?'#ffffff':e.c;cx.beginPath();cx.arc(e.x,e.y,e.r,0,6.283);cx.fill();
+    cx.strokeStyle='rgba(0,0,0,.4)';cx.lineWidth=2;cx.stroke();
+    if(e.hp<e.max){const w=e.r*2;cx.fillStyle='rgba(0,0,0,.6)';cx.fillRect(e.x-w/2,e.y-e.r-8,w,3);
+      cx.fillStyle='#e24a3c';cx.fillRect(e.x-w/2,e.y-e.r-8,w*e.hp/e.max,3);}
+  }
+}
+function drawBullets(){
+  for(const b of bul){const a=b.caught>0?1-b.caught/.7:1;
+    cx.fillStyle=b.caught>0?`rgba(220,250,248,${a})`:'#ff6b5a';cx.beginPath();cx.arc(b.x,b.y,4,0,6.283);cx.fill();}
+}
+function drawFx(){
+  for(const p of parts){
+    if(p.ring){const k=1-p.life/p.max,r=p.out?R*(1+k*.7):R*(1-k*.75);
+      cx.strokeStyle=`rgba(255,215,140,${1-k})`;cx.lineWidth=6*(1-k)+1;cx.beginPath();cx.arc(p.x,p.y,r,0,6.283);cx.stroke();continue;}
+    cx.globalAlpha=Math.min(1,p.life*2);cx.fillStyle=p.c;cx.fillRect(p.x-2,p.y-2,4,4);cx.globalAlpha=1;
+  }
+  cx.font='600 13px "IBM Plex Mono",monospace';cx.textAlign='center';
+  for(const n of nums){cx.globalAlpha=Math.min(1,n.life*2.5);cx.fillStyle='#000';cx.fillText(n.v,n.x+1,n.y+1);cx.fillStyle=n.c;cx.fillText(n.v,n.x,n.y);}
+  cx.globalAlpha=1;
+}
+function draw(){drawFloor();drawVortex();drawEnemies();drawBullets();drawTank();drawFx();}
+
+let last=performance.now();
+function frame(now){const dt=Math.min(.05,(now-last)/1000)*opt.spd;last=now;update(dt);draw();requestAnimationFrame(frame);}
+if(reduce){ // still frame mid-storm
+  for(let i=0;i<150;i++)update(1/60*1.0);opt.spd=0.25;
+}
+requestAnimationFrame(frame);
+})();
+</script>

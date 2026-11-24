@@ -2,9 +2,9 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// How the Twin Reapers' fight looks (Reapers.cs): the tether (dark, or lit for its sweep, or winding tight as
-    /// they fuse), the Dual Reaper (half Dusk, half Dawn, a face on each side), its lasers, the pull before it blows,
-    /// its pillars and the holes they leave, its shield in a hole, and the reaps' marks in Sundered.
+    /// How the Twin Reapers' fight looks (Reapers.cs): the tether (a chain: slack and dark, or pulled tight and lit
+    /// for its sweep, or thickening as they fuse), the Dual Reaper's split cracks (bodies: ReaperBodyLook.cs), its lasers, the pull before it blows,
+    /// its pillars (gravestones) and the holes they leave, its shield in a hole, and the reaps' marks in Sundered.
     public partial class ArenaApp
     {
         static readonly Rgba DuskCol = new Rgba(1f, 0.35f, 0.6f), DawnCol = new Rgba(0.45f, 0.55f, 1f), DualGold = new Rgba(1f, 0.8f, 0.35f);
@@ -24,26 +24,33 @@ namespace Arena
             V2 from = a.Disp, to = b.Disp, n = (to - from).Normalized().Orthogonal();
             bool fusing = R != null && R.Trans == 1;
             bool lit = fusing || (R != null && R.Turn == ReaperTurn.Sweep && R.TurnT > 0.6f);
-            if (!lit)
+            bool warm = R != null && R.Turn == ReaperTurn.Sweep;
+            float thick = fusing ? 1f + 2f * Mathf.Clamp01(R.TransT / 1.6f) : 1f, len = from.DistanceTo(to);
+            V2 d = (to - from).Normalized();
+            // A chain of soul links, Dusk's pink fading into Dawn's blue: slack and faint while dark (it doesn't
+            // hurt), blinking white as the sweep is about to start, pulled tight and glowing when it's lit.
+            int links = Mathf.Max(4, (int)(len / 22f));
+            for (int k = 0; k < links; k++)
             {
-                // Dark: a faint dashed thread (it doesn't hurt); blinking white as the sweep is about to start.
-                bool warm = R != null && R.Turn == ReaperTurn.Sweep;
-                var c = warm ? new Rgba(1f, 1f, 1f, ((int)(t * 12f) & 1) == 0 ? 0.6f : 0.3f) : new Rgba(0.7f, 0.67f, 0.86f, 0.22f);
-                float len = from.DistanceTo(to);
-                for (float d = 0f; d < len; d += 12f)
-                    Line(V2.Lerp(from, to, d / len), V2.Lerp(from, to, Mathf.Min(1f, (d + 5f) / len)), 2f, c);
-                return;
+                float u = (k + 0.5f) / links;
+                V2 c = V2.Lerp(from, to, u) + (lit ? V2.Zero : n * 10f * Mathf.Sin(u * MathX.Pi));
+                var col = DuskCol.Mix(DawnCol, u);
+                if (!lit)
+                    col = warm ? new Rgba(1f, 1f, 1f, ((int)(t * 12f) & 1) == 0 ? 0.6f : 0.3f) : col.WithAlpha(0.3f);
+                V2 axis = (k & 1) == 0 ? d : n;  // links alternate: one along the chain, one across
+                float w = (k & 1) == 0 ? 11f : 6f;
+                if (lit)
+                    Line(c - axis * w, c + axis * w, 10f * thick, col.WithAlpha(0.3f));
+                Line(c - axis * w, c + axis * w, (lit ? 4f : 2f) * thick, col);
             }
-            float thick = fusing ? 1f + 2f * Mathf.Clamp01(R.TransT / 1.6f) : 1f;
-            Line(from, to, (Game.TetherWidth + 14f) * thick, new Rgba(1f, 0.9f, 1f, 0.16f));
-            // Dusk's pink fading into Dawn's blue.
-            for (int k = 0; k < 8; k++)
-                Line(V2.Lerp(from, to, k / 8f), V2.Lerp(from, to, (k + 1) / 8f), Game.TetherWidth * thick, DuskCol.Mix(DawnCol, (k + 0.5f) / 8f).WithAlpha(0.9f));
+            if (!lit)
+                return;
+            Line(from, to, (Game.TetherWidth + 14f) * thick, new Rgba(1f, 0.9f, 1f, 0.1f));  // its reach
             V2 prev = from;
             for (int k = 1; k <= 16; k++)  // a jagged white core, so it reads as dangerous
             {
-                V2 pt = k == 16 ? to : V2.Lerp(from, to, k / 16f) + n * (3f * thick * Mathf.Sin(t * 30f + k * 1.7f));
-                Line(prev, pt, 2f, new Rgba(1f, 0.95f, 1f, 0.9f));
+                V2 pt = k == 16 ? to : V2.Lerp(from, to, k / 16f) + n * (2f * thick * Mathf.Sin(t * 30f + k * 1.7f));
+                Line(prev, pt, 1.5f, new Rgba(1f, 0.95f, 1f, 0.85f));
                 prev = pt;
             }
         }
@@ -153,57 +160,45 @@ namespace Arena
                 Arc(pos, r + 12f, 3f, new Rgba(1f, 0.35f, 0.35f, 0.6f + 0.4f * Mathf.Sin(t * 16f)), 40);
         }
 
-        /// The Dual Reaper itself: half Dusk, half Dawn, joined by a bright seam, with a hooded face on each side
-        /// (where the lasers come from). Cracks glow across it as it splits apart.
+        /// Over the Dual Reaper's body (ReaperBodyLook.cs): cracks glowing across it as it splits apart.
         void DrawDualDetails(Enemy e, V2 pos, float r, float t)
         {
             var R = game.Reapers;
-            float facing = R != null && R.Turn == ReaperTurn.Lasers ? R.Laser : R != null && R.Turn == ReaperTurn.Chase ? R.Heading : t * 0.4f;
-            V2.Axes(facing, out V2 f, out V2 side);
-            for (int k = 0; k < 2; k++)
+            if (R == null || R.Trans != 2)
+                return;
+            float k = Mathf.Clamp01(R.TransT / 1.2f);
+            for (int i = 0; i < 5; i++)
             {
-                var col = k == 0 ? DawnCol : DuskCol;
-                float from = facing + (k == 0 ? -MathX.Pi / 2f : MathX.Pi / 2f);
-                SetColor(col.Darkened(0.55f));
-                for (int i = 0; i < 8; i++)
-                    Tri(pos, pos + V2.FromAngle(from + MathX.Pi * i / 8f) * (r - 3f), pos + V2.FromAngle(from + MathX.Pi * (i + 1) / 8f) * (r - 3f));
-                Arc(pos, r - 2f, 3f, col, 16, from, MathX.Pi);
-            }
-            Line(pos - side * r, pos + side * r, 2f, new Rgba(1f, 0.94f, 0.78f, 0.85f));  // the seam
-            DrawReaperFace(pos + f * r * 0.45f, 0.9f, DawnCol);
-            DrawReaperFace(pos - f * r * 0.45f, 0.9f, DuskCol);
-            if (R != null && R.Trans == 2)
-            {
-                float k = Mathf.Clamp01(R.TransT / 1.2f);
-                for (int i = 0; i < 5; i++)
-                {
-                    float a = i * 1.26f + 0.3f;
-                    Line(pos, pos + V2.FromAngle(a) * r * k, 3f, new Rgba(1f, 0.95f, 0.8f, k));
-                }
+                float a = i * 1.26f + 0.3f;
+                Line(pos, pos + V2.FromAngle(a) * r * k, 3f, new Rgba(1f, 0.95f, 0.8f, k));
             }
         }
 
-        void DrawReaperFace(V2 c, float s, Rgba col)
-        {
-            Circle(c, 12f * s, new Rgba(0f, 0f, 0f, 0.6f), 14);
-            Circle(c + new V2(-4f * s, 2f * s), 2.2f * s, col, 6);
-            Circle(c + new V2(4f * s, 2f * s), 2.2f * s, col, 6);
-        }
-
-        /// A pillar: a stone column with a glowing gem; during the lasers a faint line runs from it to the Reaper.
+        /// A pillar: a gravestone carved with Dusk's moon and Dawn's sun, a gold soul flame on top; during the
+        /// lasers a faint line runs from the flame to the Reaper.
         void DrawPillarDetails(Enemy e, V2 pos, float r, float t)
         {
-            float h = 64f;
-            FillRect(pos.X - 20f, pos.Y - h, 40f, h, new Rgba(0.28f, 0.24f, 0.37f));
-            FillRect(pos.X - 20f, pos.Y - h, 40f, 8f, new Rgba(0.45f, 0.4f, 0.6f));
-            Circle(pos + new V2(0f, -h * 0.55f), 7f, DualGold.WithAlpha(0.6f + 0.3f * Mathf.Sin(t * 5f + pos.X)), 10);
+            float h = 56f, w = 40f;
+            var stone = new Rgba(0.28f, 0.24f, 0.37f);
+            V2 top = pos + new V2(0f, -h);
+            Circle(top, w * 0.5f, stone, 18);
+            FillRect(pos.X - w * 0.5f, pos.Y - h, w, h, stone);
+            Arc(top, w * 0.5f, 2.5f, new Rgba(0.5f, 0.45f, 0.66f), 18, MathX.Pi, MathX.Pi);  // the lit rim
+            FillRect(pos.X - w * 0.5f - 4f, pos.Y - 6f, w + 8f, 6f, new Rgba(0.2f, 0.17f, 0.27f));  // the plinth
+            DrawReaperSigil(pos + new V2(-8f, -h * 0.45f), 6f, true, DuskCol.WithAlpha(0.7f), t);
+            DrawReaperSigil(pos + new V2(8f, -h * 0.45f), 6f, false, DawnCol.WithAlpha(0.7f), t);
+            V2 flame = top + new V2(0f, -w * 0.5f - 6f);
+            float fl = 0.8f + 0.2f * Mathf.Sin(t * 9f + pos.X);
+            Circle(flame, 11f, DualGold.WithAlpha(0.2f * fl), 12);
+            Tri3(flame + new V2(-6f, 4f), flame + new V2(6f, 4f), flame + new V2(Mathf.Sin(t * 7f + pos.Y) * 2f, -14f * fl), DualGold);
+            Circle(flame + new V2(0f, 1f), 3f, new Rgba(1f, 0.97f, 0.85f), 8);
             var R = game.Reapers;
             if (R == null || R.Turn != ReaperTurn.Lasers || R.Suck > 0f)
                 return;
             foreach (var o in game.Enemies.Values)
                 if (o.Type == EnemyType.DualReaper)
                     for (float d = 0f; d < 1f; d += 0.06f)
-                        Line(V2.Lerp(pos + new V2(0f, -h * 0.55f), o.Disp, d), V2.Lerp(pos + new V2(0f, -h * 0.55f), o.Disp, d + 0.025f), 2f, DualGold.WithAlpha(0.25f));
+                        Line(V2.Lerp(flame, o.Disp, d), V2.Lerp(flame, o.Disp, d + 0.025f), 2f, DualGold.WithAlpha(0.25f));
         }
     }
 }

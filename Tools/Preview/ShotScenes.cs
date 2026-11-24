@@ -819,6 +819,36 @@ static partial class Shot {
         gm.Effects.Add(new Effect { Kind = FxKind.JuggShard, Pos = hit, Pos2 = at, Color = new Rgba(1f, 0.82f, 0.45f), Radius = me.Id, Dur = Game.JuggShardFx, T = 0.03f + 0.045f * i });
       }
     }
+    if (Environment.GetEnvironmentVariable("VORTEX") != null) {
+      // A Tank Elementalist's Vortex (VortexLook.cs): VORTEX=<seconds since the cast> (the wind-up runs to 0.4 s; use 0.2, 2 or 5.2),
+      // VXMASTERED=1 for 300 px; grunts swept round inside, one drawn in from past the edge, a few enemy shots swept away. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Elementalist; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Slots[Upgrades.UltSlot].Id = AbilityId.Vortex;
+      V2 from = new V2(640f, 440f);
+      me.Pos = me.Disp = from; me.Aim = -0.3f; me.AimAt = from + new V2(300f, -90f); me.Hp = me.MaxHp * 0.85f;
+      me.BarrierT = 0f; me.AegisT = 0f; me.OverdriveT = 0f; me.ShieldHp = 0f;
+      float vt = float.Parse(Environment.GetEnvironmentVariable("VORTEX"));
+      me.VortexAge = vt; me.VortexT = Math.Max(0.05f, Game.VortexWindup + Game.VortexTime - vt); me.UltT = me.VortexT;
+      me.VortexR = Environment.GetEnvironmentVariable("VXMASTERED") == "1" ? Game.VortexRadiusMastered : Game.VortexRadius;
+      var rnd = new System.Random(7);
+      for (int i = 0; i < 11; i++) {
+        bool outside = i >= 9;
+        float ang = i * 0.61f + (float)rnd.NextDouble() * 0.3f;
+        float rr = outside ? me.VortexR + 30f + 60f * (i - 9) : 95f + (float)rnd.NextDouble() * (me.VortexR - 110f);
+        V2 at = from + V2.FromAngle(ang) * rr;
+        var type = i == 3 ? EnemyType.Spinner : i == 6 ? EnemyType.Shard : EnemyType.Grunt;
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { type, at, 0f, 0, false });
+        en.SpawnT = 0f; en.Pos = en.Disp = at;
+        en.MaxHp = 1000f; en.Hp = outside ? 1000f : 1000f * (0.35f + 0.5f * (float)rnd.NextDouble());
+      }
+      if (vt >= Game.VortexWindup)
+        for (int i = 0; i < 4; i++) {
+          V2 at = from + V2.FromAngle(2.2f + i * 1.3f) * (me.VortexR - 30f - 25f * i);
+          gm.Effects.Add(new Effect { Kind = FxKind.VortexWisp, Pos = at, Pos2 = from, Color = Defs.BulletColor(Defs.SmallShot), Radius = 5f, Dur = Game.VortexWispTime, T = 0.08f + 0.1f * i });
+        }
+    }
     if (Environment.GetEnvironmentVariable("COLOSSUS") != null) {
       // A Tank Elementalist's Stone Colossus (StoneColossusLook.cs): COLOSSUS=<seconds since the cast> (the rise runs to 1 s; use 0.5 or 4),
       // COLWIND=<the slam, 0-1> (0.3: fists up, 0.7: down), COLEND=1: the crumble (rubble and boulders COLEND s in); with enemies round
@@ -1021,6 +1051,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
   }
   static void ArenaScenes() {
+    DuelistSheetScene();  // DUELSHEET=<1-8>|all (ShotDuelist.cs)
     HoldingCellScene();  // HOLDCELL=<s> [HOLDCELLS=2], HOLDLOCK=1, HOLDNET=<s> (ShotHoldingCell.cs)
     ShockwaveScene();  // SHOCK=<s since the cast> [SHOCKCAP=1] [FXOFF=1] (ShotShockwave.cs)
     CereScene();  // CERE=<plates>,<s since the last cast>[,1 hurt] (ShotCeremonial.cs)
@@ -1816,7 +1847,7 @@ static partial class Shot {
     }
     // SWING=<seconds>: your melee weapon's attack that far in (with KNIGHT=, NINJA= or BLOOD=; MeleeLooks.cs draws it
     // with Visual effects on). Built like the game's own effects: Slash with the weapon's half arc (negative: a
-    // thrust), the Halberd's whole swing (SWING = seconds after the click, HALBERDUP=1 for the return sweep), Jab boxes for the Lance and the Warhammer.
+    // thrust), a Halberd step (SWING = seconds after the click, HALBERDSTEP=1..4, PIKE=1 the pike set), Jab boxes for the Lance and the Warhammer.
     // PERFECTPARRY=<s since the catch>: your shield up and a perfect parry's flash, with its needle flying back (ParryLook.cs).
     if (Environment.GetEnvironmentVariable("PERFECTPARRY") != null) {
       float pt = float.Parse(Environment.GetEnvironmentVariable("PERFECTPARRY"), System.Globalization.CultureInfo.InvariantCulture);
@@ -1952,7 +1983,26 @@ static partial class Shot {
           break;
         }
         case WeaponId.Kusarigama: gm.Effects.Add(new Effect { Kind = FxKind.Slash, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * Game.MeleeReach(me, Game.KusariCutReach), Color = col, Radius = Game.KusariCutArc * MathX.Pi / 360f, T = st, Dur = 0.16f }); break;  // the sickle cut
-        case WeaponId.Halberd: { bool hup = Environment.GetEnvironmentVariable("HALBERDUP") == "1"; fx(FxKind.Slash, to, 0.7f + 18f * MathX.Pi / 360f, 0f, HalberdMotion.Total(hup)); break; }  // one effect from the click (HalberdMotion.cs); HALBERDUP=1: with the return sweep
+        case WeaponId.Halberd:  // HALBERDSTEP=1..5 Sweep, Return Sweep, Overhead Chop, Reaping Wheel, Pike Lunge (SWING = seconds after the click); PIKE=1: Set the Pike, turned to the nearest enemy (POKE=<s since a poke>, its jab)
+        {
+          int hs = int.Parse(Environment.GetEnvironmentVariable("HALBERDSTEP") ?? "1");
+          bool pike = Environment.GetEnvironmentVariable("PIKE") == "1";
+          int j = 0;
+          foreach (var en in gm.Enemies.Values) {
+            if (en.Def.IsBoss) continue;
+            float a = pike ? me.Aim + 0.5f + j * 0.7f : hs == 3 || hs == 5 ? me.Aim + (j - 1) * 0.06f : me.Aim + (j - 1) * 0.55f + (hs == 4 && j == 2 ? 2.4f : 0f);
+            float dd = pike ? 205f + 60f * j : hs == 3 ? 95f + 65f * j : hs == 5 ? 150f + 55f * j : 140f + 20f * (j % 2);
+            en.Pos = en.Disp = me.Pos + V2.FromAngle(a) * dd;
+            if (++j >= 3) break;
+          }
+          if (pike) {
+            me.HbSet = true; me.HbPikeA = me.Aim + 0.5f;
+            string pk = Environment.GetEnvironmentVariable("POKE");
+            if (pk != null) gm.Effects.Add(new Effect { Kind = FxKind.HalberdPoke, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.HbPikeA) * Game.PikeReach(me, 0), Color = Game.HbGlow, Radius = me.Id, T = float.Parse(pk, System.Globalization.CultureInfo.InvariantCulture), Dur = Game.PikeFxTime });
+          }
+          else fx(FxKind.HalberdStep, to, me.Id * 10 + hs, 0f, HalberdMotion.StepTotal(hs));
+          break;
+        }
         case WeaponId.BearTotem:  // two claw swipes (left hand across, right hand back), a Bear beside you and the three enemies bleeding (BLEEDHITS=<stacks>, default 3)
         {
           foreach (int sd in new[] { 1, -1 })

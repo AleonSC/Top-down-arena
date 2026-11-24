@@ -34,6 +34,7 @@ button:hover{border-color:var(--arc)}
 button.rk:hover{border-color:var(--ember)}
 button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
 button:focus-visible{outline:2px solid var(--arc);outline-offset:2px}
+.seglab{font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:4px}
 .keys{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
 kbd{font:600 11px/1 var(--mono);color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;padding:3px 5px}
 section{display:flex;flex-direction:column;gap:14px}
@@ -64,7 +65,14 @@ li strong{color:var(--ink)}
 
 <div class="stage">
   <div class="frame"><canvas id="arena" width="960" height="560" aria-label="Playable Arc Knuckles arena"></canvas></div>
+  <div class="bar seg" role="group" aria-label="Brawl steering">
+    <span class="seglab">Brawl steering</span>
+    <button type="button" id="st-keys" aria-pressed="true">Movement keys</button>
+    <button type="button" id="st-wheel" aria-pressed="false">Click wheel (new)</button>
+    <button type="button" id="wfollow" aria-pressed="false">Wheel: stays put</button>
+  </div>
   <div class="bar">
+    <button type="button" id="d-wheel">Demo: wheel combo</button>
     <button type="button" id="d-brawl">Demo: full Brawl combo</button>
     <button type="button" id="d-wall">Demo: punch into the wall</button>
     <button type="button" id="d-rocket" class="rk">Demo: Rocket chain</button>
@@ -73,7 +81,8 @@ li strong{color:var(--ink)}
     <button type="button" id="slam" aria-pressed="true">Wall slam bonus: on</button>
   </div>
   <div class="keys">
-    <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move and steer</span>
+    <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move (and steer, in keys mode)</span>
+    <span>Wheel mode: click a side of the wheel to steer</span>
     <span><kbd>Click</kbd> an enemy: next move</span>
     <span><kbd>Hold</kbd> on move 7: charge</span>
     <span><kbd>Q</kbd> swap stance (Alt in the game)</span>
@@ -98,6 +107,19 @@ li strong{color:var(--ink)}
     </tbody>
   </table></div>
   <p class="note">Full combo: about ×10.5 to the main target in roughly 4 s. The punches need a target to count; a whiff throws the punch but keeps your place in the combo. 1.6 s idle returns to move 1.</p>
+</section>
+
+<section>
+  <h2><span class="tag b">Option</span>Wheel steering</h2>
+  <p class="note">Switch with <strong>Brawl steering</strong> above the arena to compare. Movement keys only move you; the mouse steers.</p>
+  <ul>
+    <li><strong>Pull Punch</strong> (new move 1): click an enemy up to 230 px away; it pulls you in and punches (×0.8, a short stun so the group stays put).</li>
+    <li>A <strong>four-way wheel</strong> opens where the cursor was. Each later click steers by which side of the wheel it lands on (anywhere on screen counts, by angle); the centre means "no direction".</li>
+    <li>Click right, then right again at once: the Drive Punch sends them right and the Slip Dash follows. Clicks during a move are buffered for 0.3 s.</li>
+    <li>Moves after the pull: Drive Punch, Slip Dash, Drive Punch, Slip Dash, Pin Punch, Barrage, Quake Punch (8 in all). Punches hit the enemy nearest you. Hovering a side previews the arrow.</li>
+    <li>Try <strong>Wheel: stays put</strong> (where it opened) against <strong>moves with you</strong> (keeps its offset from you as you move and dash).</li>
+    <li>The wheel closes when the combo ends, on 1.6 s idle, on a parry or a stance swap.</li>
+  </ul>
 </section>
 
 <section>
@@ -131,7 +153,11 @@ li strong{color:var(--ink)}
 const C=document.getElementById('arena'), g=C.getContext('2d');
 const W=960,H=560,WALL=22,DMG=22;
 const COL={arc:'#7ad4ff',band:'#a2e4ff',hi:'#eefaff',ember:'#ff9a4a',gold:'#ffd14a',danger:'#ff5a6a',plate:'#34445c',plateD:'#212b3a',ink:'#e1e9f6',muted:'#8c9ab4'};
-const BRAWL=['Drive Punch','Slip Dash','Drive Punch','Slip Dash','Pin Punch','Barrage','Quake Punch'];
+const KEY_MOVES=['drive','dash','drive2','dash','pin','barrage','quake'], WHEEL_MOVES=['pull','drive','dash','drive2','dash','pin','barrage','quake'];
+const MOVE_NAME={pull:'Pull Punch',drive:'Drive Punch',drive2:'Drive Punch',dash:'Slip Dash',pin:'Pin Punch',barrage:'Barrage',quake:'Quake Punch'};
+let steerMode='keys';
+const moves=()=>steerMode==='wheel'?WHEEL_MOVES:KEY_MOVES, curMove=()=>moves()[S.step];
+const wheelOn=()=>steerMode==='wheel'&&S.stance===0&&S.wheel&&S.step>0;
 const ROCKET=['Rocket Dash','Flurry','Grab & Throw','Rocket Punch'];
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 function fit(){const d=Math.min(2,devicePixelRatio||1);C.width=W*d;C.height=H*d;g.setTransform(d,0,0,d,0,0)}
@@ -145,6 +171,7 @@ function reset(layout){
   P={x:300,y:280,aim:0,busy:0,inv:0,dash:null,root:0,charge:0,charging:false,parry:0,fist:[{t:0,d:0,to:null},{t:0,d:0,to:null}],side:0,rope:null};
   E=[];FX=[];jobs=[];S={stance:0,step:0,stage:0,last:0,ct:null,buffer:0,swapT:0};
   if(layout==='wall'){P.x=740;P.y=280;group(830,280,4,30)}
+  else if(layout==='pull'){P.x=170;P.y=380;group(370,380,4,30);group(820,150,3,34)}
   else if(layout==='rocket'){P.x=260;group(560,250,3,34);group(640,400,2,30)}
   else{P.x=190;P.y=400;group(262,400,4,30);group(820,470,3,34)}
 }
@@ -155,7 +182,11 @@ function mk(x,y){return{x,y,r:13,hp:240,max:240,vx:0,vy:0,stun:0,flash:0,dead:0,
 function held(){let x=0,y=0;if(keys.has('w')||keys.has('arrowup'))y--;if(keys.has('s')||keys.has('arrowdown'))y++;if(keys.has('a')||keys.has('arrowleft'))x--;if(keys.has('d')||keys.has('arrowright'))x++;return(x||y)?nrm(x,y):null}
 function toCanvas(e){const r=C.getBoundingClientRect();return v((e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height)}
 C.addEventListener('pointermove',e=>{if(!demo)mouse=toCanvas(e)});
-C.addEventListener('pointerdown',e=>{stopDemo();mouse=toCanvas(e);C.focus?.();if(e.button===2){parry();return}press()});
+C.addEventListener('pointerdown',e=>{stopDemo();const p=toCanvas(e);C.focus?.();if(e.button===2){mouse=p;parry();return}click(p)});
+let wheelFollow=false;
+function wpos(){const w=S.wheel;return wheelFollow?v(clamp(P.x+w.ox,WALL+80,W-WALL-80),clamp(P.y+w.oy,WALL+80,H-WALL-110)):v(w.x,w.y)}
+function quad(p){const w=wpos(),dx=p.x-w.x,dy=p.y-w.y;if(len(dx,dy)<16)return null;return Math.abs(dx)>Math.abs(dy)?v(Math.sign(dx),0):v(0,Math.sign(dy))}
+function click(p){mouse=p;if(wheelOn()){S.wdir=quad(p);S.wflash={d:S.wdir,t:.25}}press()}
 addEventListener('pointerup',e=>{if(e.button!==2&&!demo)release()});
 C.addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();
@@ -165,7 +196,7 @@ addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
 addEventListener('blur',()=>keys.clear());
 
 function press(){
-  if(S.stance===0&&S.step===6){if(P.busy>0){S.buffer=.3;S.bufCharge=true;return}P.charging=true;P.charge=0;return}
+  if(S.stance===0&&curMove()==='quake'){if(P.busy>0){S.buffer=.3;S.bufCharge=true;return}P.charging=true;P.charge=0;return}
   fire();
 }
 function release(){if(P.charging){P.charging=false;quake(P.charge)}S.bufCharge=false}
@@ -175,31 +206,43 @@ function target(reach,lock){let best=null,bd=lock;for(const e of E){if(e.dead||e
 function aimVec(){return nrm(mouse.x-P.x,mouse.y-P.y)}
 
 // ---- Brawl ----
+function nearestTo(reach){let b=null,bd=reach;for(const e of E){if(e.dead||e.grab)continue;const d=len(e.x-P.x,e.y-P.y);if(d<=bd){bd=d;b=e}}return b}
+function brawlTarget(reach,lock){return steerMode==='wheel'?nearestTo(reach):target(reach,lock)}
+function steer(){return steerMode==='wheel'?S.wdir:held()}
 function brawl(){
-  const st=S.step; S.last=now;
-  if(st===0||st===2||st===4){
-    const t=target(150,60);
+  const id=curMove(); S.last=now;
+  if(id==='pull'){
+    const t=target(230,60);if(!t){whiff();return}
+    const to=nrm(t.x-P.x,t.y-P.y),d=len(t.x-P.x,t.y-P.y);
+    if(d>34)P.dash={fx:P.x,fy:P.y,tx:t.x-to.x*32,ty:t.y-to.y*32,t:0,dur:.13,inv:false,pull:true};
+    punchAnim(t.x,t.y,.2);
+    jobs.push({t:.13,tag:'move',fn:()=>{for(const e of near(t.x,t.y,50)){hit(e,DMG*.8,COL.arc);e.vx=e.vy=0;e.stun=Math.max(e.stun,.5)}ring(t.x,t.y,46,COL.arc,.25,2);shake=3}});
+    S.wheel={x:clamp(mouse.x,WALL+80,W-WALL-80),y:clamp(mouse.y,WALL+80,H-WALL-110),t:0};S.wheel.ox=S.wheel.x-(P.dash?P.dash.tx:P.x);S.wheel.oy=S.wheel.y-(P.dash?P.dash.ty:P.y);
+    P.busy=.2;S.step++;return;
+  }
+  if(id==='drive'||id==='drive2'||id==='pin'){
+    const t=brawlTarget(150,60);
     if(!t){whiff();return}
     const to=nrm(t.x-P.x,t.y-P.y), d=len(t.x-P.x,t.y-P.y);
     if(d>40)P.dash={fx:P.x,fy:P.y,tx:t.x-to.x*34,ty:t.y-to.y*34,t:0,dur:.08,inv:false};
-    const dir=held()||to; punchAnim(t.x,t.y,.22);
-    if(st===4){
+    const dir=steer()||to; punchAnim(t.x,t.y,.22);
+    if(id==='pin'){
       jobs.push({t:.06,tag:'move',fn:()=>{for(const e of near(t.x,t.y,85)){hit(e,DMG*1.6,COL.gold);e.stun=1.8;e.vx=e.vy=0}
         ring(t.x,t.y,85,COL.gold,.45,4);text(t.x,t.y-30,'PINNED',COL.gold);shake=7}});
       P.busy=.42;
     }else{
-      const m=st===0?1:1.15;
+      const m=id==='drive'?1:1.15;
       jobs.push({t:.06,tag:'move',fn:()=>{for(const e of near(t.x,t.y,60)){hit(e,DMG*m,COL.arc);e.vx=dir.x*1500;e.vy=dir.y*1500;e.stun=Math.max(e.stun,.25)}
         ring(t.x,t.y,60,COL.arc,.3,2);streak(t.x,t.y,dir,COL.band);shake=4}});
       P.busy=.28;
     }
     S.step++;
-  }else if(st===1||st===3){
-    const dir=held()||aimVec();
+  }else if(id==='dash'){
+    const dir=steer()||aimVec();
     P.dash={fx:P.x,fy:P.y,tx:clamp(P.x+dir.x*130,WALL+16,W-WALL-16),ty:clamp(P.y+dir.y*130,WALL+16,H-WALL-16),t:0,dur:.15,inv:true};
     P.busy=.2;S.step++;
-  }else if(st===5){
-    const t=target(150,90); const c=t?v(t.x,t.y):v(P.x+aimVec().x*50,P.y+aimVec().y*50);
+  }else if(id==='barrage'){
+    const t=brawlTarget(150,90); const c=t?v(t.x,t.y):v(P.x+aimVec().x*50,P.y+aimVec().y*50);
     P.root=.8;P.busy=.82;
     for(let i=0;i<10;i++)jobs.push({t:.04+i*.075,tag:'move',fn:()=>{const j=v(c.x+(Math.random()-.5)*36,c.y+(Math.random()-.5)*36);punchAnim(j.x,j.y,.07);
       for(const e of near(c.x,c.y,75)){hit(e,DMG*.35,COL.band,true);if(e.stun>0)e.stun=Math.max(e.stun,.45)}spark(j.x,j.y,COL.hi,5)}});
@@ -213,7 +256,7 @@ function quake(ch){
   for(const e of near(P.x,P.y,R)){const d=nrm(e.x-P.x,e.y-P.y),f=700+900*c;hit(e,DMG*(1.4+1.6*c),c>.95?COL.gold:COL.arc);e.vx=d.x*f;e.vy=d.y*f}
   ring(P.x,P.y,R,c>.95?COL.gold:COL.arc,.5,5);ring(P.x,P.y,R*.6,COL.hi,.35,2);
   for(let i=0;i<14;i++){const a=i/14*Math.PI*2;FX.push({k:'crack',x:P.x,y:P.y,a,l:R*(.5+Math.random()*.45),t:0,life:.7})}
-  text(P.x,P.y-36,c>.95?'FULL QUAKE':'QUAKE',c>.95?COL.gold:COL.band);shake=6+8*c;P.busy=.45;P.charge=0;S.step=0;
+  text(P.x,P.y-36,c>.95?'FULL QUAKE':'QUAKE',c>.95?COL.gold:COL.band);shake=6+8*c;P.busy=.45;P.charge=0;S.step=0;S.wheel=null;
 }
 function whiff(){const a=aimVec();punchAnim(P.x+a.x*60,P.y+a.y*60,.18);text(P.x+a.x*50,P.y+a.y*50-14,'no target',COL.muted,.6);P.busy=.18}
 
@@ -251,10 +294,10 @@ function rocket(){
 function parry(){
   P.parry=.3;jobs=jobs.filter(j=>j.tag!=='move');P.charging=false;P.charge=0;P.root=0;P.busy=.15;
   if(P.rope){P.rope.t.grab=false;P.rope=null}
-  const was=S.stance===0?S.step:S.stage;S.step=0;S.stage=0;S.ct=null;S.buffer=0;
+  const was=S.stance===0?S.step:S.stage;S.step=0;S.wheel=null;S.stage=0;S.ct=null;S.buffer=0;
   ring(P.x,P.y,30,COL.hi,.3,3);text(P.x,P.y-34,was?'PARRY · combo reset':'PARRY',COL.hi);
 }
-function swap(){S.stance^=1;S.step=0;S.stage=0;S.ct=null;P.charging=false;P.charge=0;S.swapT=.6;jobs=jobs.filter(j=>j.tag!=='move');
+function swap(){S.stance^=1;S.step=0;S.wheel=null;S.stage=0;S.ct=null;P.charging=false;P.charge=0;S.swapT=.6;jobs=jobs.filter(j=>j.tag!=='move');
   ring(P.x,P.y,26,S.stance?COL.ember:COL.arc,.35,3);text(P.x,P.y-34,S.stance?'ROCKET STANCE':'BRAWL STANCE',S.stance?COL.ember:COL.arc)}
 function near(x,y,r){return E.filter(e=>!e.dead&&!e.grab&&len(e.x-x,e.y-y)<=r+e.r)}
 function hit(e,a,c,small){e.hp-=a;e.flash=.12;if(!small)spark(e.x,e.y,c,7);FX.push({k:'num',x:e.x+(Math.random()-.5)*10,y:e.y-16,s:Math.round(a),c,t:0,life:.7});if(e.hp<=0&&!e.dead){e.dead=.5;spark(e.x,e.y,COL.danger,14)}}
@@ -268,7 +311,19 @@ function text(x,y,s,c,life){FX.push({k:'text',x,y,s,c,t:0,life:life||.9})}
 const near1=()=>{let b=null,bd=1e9;for(const e of E){if(e.dead||e.grab)continue;const d=len(e.x-P.x,e.y-P.y);if(d<bd){bd=d;b=e}}return b};
 function aimAt(e){if(e)mouse=v(e.x,e.y)}
 function setDir(s){keys.clear();for(const k of s)keys.add(k)}
+function wclick(d){if(!S.wheel){click(mouse);return}const w=wpos();if(!w){click(mouse);return}const o={r:v(44,0),l:v(-44,0),u:v(0,-44),d:v(0,44),c:v(0,0)}[d];click(v(w.x+o.x,w.y+o.y))}
 const DEMOS={
+  wheel:{layout:'pull',steer:'wheel',label:'Wheel combo',steps:[
+    [.6,()=>{aimAt(near1());click(mouse)},'1 Pull Punch · click an enemy: it pulls you in, the wheel opens'],
+    [1.3,()=>wclick('r'),'2 Drive Punch · click the right side: they fly right'],
+    [1.45,()=>wclick('r'),'3 Slip Dash · click right again at once: you follow'],
+    [2.1,()=>wclick('u'),'4 Drive Punch · up'],
+    [2.25,()=>wclick('u'),'5 Slip Dash · up'],
+    [2.9,()=>wclick('c'),'6 Pin Punch · the centre: no direction'],
+    [3.5,()=>wclick('c'),'7 Barrage'],
+    [4.5,()=>wclick('c'),'8 Quake Punch · hold…'],
+    [5.7,()=>release(),'…release'],
+    [6.8,()=>{},'']]},
   brawl:{layout:'default',label:'Full Brawl combo',steps:[
     [.5,()=>{setDir('d');aimAt(near1());press()},'1 Drive Punch · holding D: sends the group right'],
     [1.1,()=>{setDir('d');press()},'2 Slip Dash · D: follow them'],
@@ -299,12 +354,17 @@ const DEMOS={
     [2.3,()=>{aimAt(near1());press()},'1 Rocket Dash again'],
     [3.0,()=>{},'']]},
 };
-function runDemo(name){reset(DEMOS[name].layout);demo={...DEMOS[name],t:0,i:0,cap:''}}
+function runDemo(name){setSteer(DEMOS[name].steer||'keys');reset(DEMOS[name].layout);demo={...DEMOS[name],t:0,i:0,cap:''}}
 function stopDemo(){if(demo){demo=null;keys.clear()}}
 document.getElementById('d-brawl').onclick=()=>runDemo('brawl');
 document.getElementById('d-wall').onclick=()=>runDemo('wall');
 document.getElementById('d-rocket').onclick=()=>runDemo('rocket');
 document.getElementById('d-parry').onclick=()=>runDemo('parry');
+document.getElementById('d-wheel').onclick=()=>runDemo('wheel');
+const stK=document.getElementById('st-keys'),stW=document.getElementById('st-wheel');
+function setSteer(m){if(steerMode!==m&&S){S.step=0;S.wheel=null}steerMode=m;stK.setAttribute('aria-pressed',m==='keys');stW.setAttribute('aria-pressed',m==='wheel')}
+const wfB=document.getElementById('wfollow');wfB.onclick=()=>{wheelFollow=!wheelFollow;wfB.setAttribute('aria-pressed',wheelFollow);wfB.textContent='Wheel: '+(wheelFollow?'moves with you':'stays put')};
+stK.onclick=()=>{stopDemo();setSteer('keys')};stW.onclick=()=>{stopDemo();setSteer('wheel')};
 document.getElementById('d-reset').onclick=()=>{stopDemo();reset()};
 const slamB=document.getElementById('slam');
 slamB.onclick=()=>{slamOn=!slamOn;slamB.setAttribute('aria-pressed',slamOn);slamB.textContent='Wall slam bonus: '+(slamOn?'on':'off')};
@@ -318,7 +378,8 @@ function update(dt){
   P.busy=Math.max(0,P.busy-dt);P.root=Math.max(0,P.root-dt);P.parry=Math.max(0,P.parry-dt);S.swapT=Math.max(0,S.swapT-dt);
   if(S.buffer>0){S.buffer-=dt;if(P.busy<=0&&!P.charging){if(S.bufCharge){S.bufCharge=false;S.buffer=0;P.charging=true;P.charge=0}else fire()}}
   if(P.charging)P.charge=Math.min(1.2,P.charge+dt);
-  if(!P.charging&&P.busy<=0&&now-S.last>(S.stance?4:1.6)){S.step=0;if(S.stage){S.stage=0;S.ct=null}}
+  if(S.wheel)S.wheel.t+=dt;if(S.wflash){S.wflash.t-=dt;if(S.wflash.t<=0)S.wflash=null}
+  if(!P.charging&&P.busy<=0&&now-S.last>(S.stance?4:1.6)){S.step=0;S.wheel=null;if(S.stage){S.stage=0;S.ct=null}}
   // movement
   if(P.dash){const d=P.dash;d.t+=dt;const k=Math.min(1,d.t/d.dur),e=1-Math.pow(1-k,3);P.x=d.fx+(d.tx-d.fx)*e;P.y=d.fy+(d.ty-d.fy)*e;
     if(Math.random()<.8)FX.push({k:'ghost',x:P.x,y:P.y,c:d.rocket?COL.ember:COL.arc,t:0,life:.22});if(k>=1)P.dash=null}
@@ -371,7 +432,7 @@ function draw(){
   }
   // lock reticle
   const reachB=S.stance===0?150:300,lockR=S.stance===0?60:80;
-  let tg=null;if(!(S.stance===0&&(S.step===1||S.step===3||S.step===6))){tg=target(reachB,lockR)}
+  let tg=null;if(S.stance===1)tg=target(reachB,lockR);else{const id=curMove();if(id!=='dash'&&id!=='quake')tg=id==='pull'?target(230,60):brawlTarget(150,60)}
   if(tg){const c=S.stance?COL.ember:COL.arc;g.strokeStyle=c;g.lineWidth=2;const r=tg.r+7,t=now*3;
     for(let i=0;i<4;i++){const a=t+i*Math.PI/2;g.beginPath();g.arc(tg.x,tg.y,r,a,a+.6);g.stroke()}}
   // charge preview
@@ -391,6 +452,7 @@ function draw(){
   if(P.rope){const t=P.rope.t;g.strokeStyle=COL.ember;g.lineWidth=3;g.beginPath();g.moveTo(P.x,P.y);g.lineTo(t.x,t.y);g.stroke()}
   // player
   drawPlayer();
+  drawWheel();
   // fx over
   for(const f of FX){const k=f.t/f.life;
     if(f.k==='ring'){g.strokeStyle=hexA(f.c,1-k);g.lineWidth=f.w*(1-k)+1;g.beginPath();g.arc(f.x,f.y,f.r*(.55+.45*Math.sqrt(k)),0,7);g.stroke()}
@@ -406,13 +468,33 @@ function draw(){
   g.restore();
   hud();
 }
+function drawWheel(){
+  if(!wheelOn())return;
+  const w0=S.wheel,w=wpos(),R=64,r0=16,o=Math.min(1,w0.t/.12),id=curMove(),hq=quad(mouse);
+  // direction preview
+  if(hq&&(id==='drive'||id==='drive2'||id==='dash')){const t=id==='dash'?P:brawlTarget(150,60);if(t){const L=id==='dash'?130:120;
+    g.strokeStyle=hexA(COL.band,.5);g.setLineDash([6,5]);g.lineWidth=2;g.beginPath();g.moveTo(t.x,t.y);g.lineTo(t.x+hq.x*L,t.y+hq.y*L);g.stroke();g.setLineDash([]);
+    const hx=t.x+hq.x*L,hy=t.y+hq.y*L;g.fillStyle=hexA(COL.band,.6);g.beginPath();g.moveTo(hx+hq.x*10,hy+hq.y*10);g.lineTo(hx-hq.y*7,hy+hq.x*7);g.lineTo(hx+hq.y*7,hy-hq.x*7);g.fill()}}
+  g.save();g.translate(w.x,w.y);const sc=.75+.25*o;g.scale(sc,sc);g.globalAlpha=o;
+  const dirs=[[1,0],[0,1],[-1,0],[0,-1]];
+  for(const[dx,dy]of dirs){const a=Math.atan2(dy,dx),hov=hq&&hq.x===dx&&hq.y===dy,fl=S.wflash&&S.wflash.d&&S.wflash.d.x===dx&&S.wflash.d.y===dy;
+    g.beginPath();g.arc(0,0,R,a-Math.PI/4+.05,a+Math.PI/4-.05);g.arc(0,0,r0+4,a+Math.PI/4-.12,a-Math.PI/4+.12,true);g.closePath();
+    g.fillStyle=fl?hexA(COL.gold,.45):hov?hexA(COL.arc,.3):'rgba(13,20,36,.5)';g.fill();g.strokeStyle=hov||fl?(fl?COL.gold:COL.arc):hexA(COL.arc,.35);g.lineWidth=1.5;g.stroke();
+    const cx=Math.cos(a)*(R+r0)/2,cy=Math.sin(a)*(R+r0)/2;g.save();g.translate(cx,cy);g.rotate(a);g.fillStyle=hov?COL.hi:hexA(COL.band,.75);
+    g.beginPath();g.moveTo(9,0);g.lineTo(-5,-8);g.lineTo(-1,0);g.lineTo(-5,8);g.fill();g.restore()}
+  const cfl=S.wflash&&!S.wflash.d;g.beginPath();g.arc(0,0,r0,0,7);g.fillStyle=cfl?hexA(COL.gold,.45):'rgba(7,11,20,.9)';g.fill();g.strokeStyle=hexA(COL.arc,.6);g.stroke();
+  g.fillStyle=COL.ink;g.font='600 11px JetBrains Mono, monospace';g.textAlign='center';g.fillText(String(S.step+1),0,4);
+  g.font='700 13px Chakra Petch, sans-serif';const nm=MOVE_NAME[id]+(id==='quake'?' · hold':''),tw=g.measureText(nm).width+14;
+  g.fillStyle='rgba(7,11,20,.85)';g.fillRect(-tw/2,R+6,tw,20);g.fillStyle=id==='dash'?COL.hi:COL.band;g.fillText(nm,0,R+21);
+  g.restore();
+}
 function drawPlayer(){
   const c=S.stance?COL.ember:COL.arc;
   if(P.parry>0){g.strokeStyle=hexA(COL.hi,P.parry/.3);g.lineWidth=4;g.beginPath();g.arc(P.x,P.y,26,P.aim-1.2,P.aim+1.2);g.stroke()}
   g.fillStyle='rgba(0,0,0,.4)';g.beginPath();g.ellipse(P.x,P.y+12,15,6,0,0,7);g.fill();
   // steer chevron
   const h=held();
-  if(S.stance===0){if(h){const x=P.x+h.x*34,y=P.y+h.y*34,a=Math.atan2(h.y,h.x);g.save();g.translate(x,y);g.rotate(a);g.fillStyle=hexA(COL.band,.9);g.beginPath();g.moveTo(8,0);g.lineTo(-5,-7);g.lineTo(-1,0);g.lineTo(-5,7);g.fill();g.restore()}
+  if(S.stance===0&&steerMode==='keys'){if(h){const x=P.x+h.x*34,y=P.y+h.y*34,a=Math.atan2(h.y,h.x);g.save();g.translate(x,y);g.rotate(a);g.fillStyle=hexA(COL.band,.9);g.beginPath();g.moveTo(8,0);g.lineTo(-5,-7);g.lineTo(-1,0);g.lineTo(-5,7);g.fill();g.restore()}
     else{g.strokeStyle=hexA(COL.band,.15);g.lineWidth=1;g.beginPath();g.arc(P.x,P.y,34,0,7);g.stroke()}}
   g.fillStyle=COL.plateD;g.strokeStyle=c;g.lineWidth=2.5;g.beginPath();g.arc(P.x,P.y,14,0,7);g.fill();g.stroke();
   g.fillStyle=COL.plate;g.beginPath();g.arc(P.x+Math.cos(P.aim)*3,P.y+Math.sin(P.aim)*3,8,0,7);g.fill();
@@ -437,7 +519,7 @@ function hud(){
     g.strokeStyle=on?c:'#1f2b45';g.lineWidth=1.5;g.strokeRect(x+.5,WALL+10.5,w-1,23);g.fillStyle=on?c:COL.muted;g.fillText(n,x+10,WALL+27);x+=w+6});
   g.font='600 11px JetBrains Mono, monospace';g.fillStyle=COL.muted;g.fillText('Q swap',x+4,WALL+26);
   // pips
-  const list=S.stance?ROCKET:BRAWL,cur=S.stance?S.stage:S.step,c=S.stance?COL.ember:COL.arc,pw=S.stance?110:96,gap=6,tot=list.length*pw+(list.length-1)*gap;
+  const list=S.stance?ROCKET:moves().map(m=>MOVE_NAME[m]),cur=S.stance?S.stage:S.step,c=S.stance?COL.ember:COL.arc,pw=S.stance?110:list.length>7?92:96,gap=6,tot=list.length*pw+(list.length-1)*gap;
   let px=W/2-tot/2,py=H-WALL-44;
   list.forEach((n,i)=>{const on=i===cur,done=i<cur;g.fillStyle=on?hexA(c,.22):done?hexA(c,.08):'rgba(13,20,36,.85)';g.fillRect(px,py,pw,30);
     g.strokeStyle=on?c:done?hexA(c,.45):'#1f2b45';g.lineWidth=on?2:1;g.strokeRect(px+.5,py+.5,pw-1,29);
@@ -446,7 +528,7 @@ function hud(){
   // demo caption
   if(demo){g.font='600 11px JetBrains Mono, monospace';g.textAlign='right';g.fillStyle=COL.gold;g.fillText('DEMO · '+demo.label.toUpperCase()+' · press any key or click to take over',W-WALL-12,WALL+26);
     if(demo.cap){g.font='700 16px Chakra Petch, sans-serif';g.textAlign='center';const tw=g.measureText(demo.cap).width+28;g.fillStyle='rgba(7,11,20,.82)';g.fillRect(W/2-tw/2,WALL+46,tw,28);g.fillStyle=COL.ink;g.fillText(demo.cap,W/2,WALL+65)}}
-  else if(now<6){g.font='600 11px JetBrains Mono, monospace';g.textAlign='right';g.fillStyle=COL.muted;g.fillText('WASD steer · click an enemy · Q stance · Space parry',W-WALL-12,WALL+26)}
+  else if(now<6){g.font='600 11px JetBrains Mono, monospace';g.textAlign='right';g.fillStyle=COL.muted;g.fillText(steerMode==='wheel'?'WHEEL · click an enemy to pull in, then click the wheel':'WASD steer · click an enemy · Q stance · Space parry',W-WALL-12,WALL+26)}
 }
 
 let last=performance.now();

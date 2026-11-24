@@ -113,6 +113,12 @@ Damage is a multiple of the weapon's 22.
 | 3 | Grab & Throw (not bosses) | ×0.9 to it, ×1.2 to what it hits |
 | 4 | Rocket Punch (210 px line) | ×1.3 each |
 
+**Option under test: wheel steering** (same mockup, "Brawl steering" switch). Movement keys only move; the mouse steers. A new move 1,
+**Pull Punch** (click an enemy up to 230 px away: pulls you in, ×0.8, 0.5 s stun), opens a four-way wheel where the cursor was. Each
+later click steers by its side of the wheel (by angle, anywhere on screen; the centre is "no direction"); clicks buffer 0.3 s, so
+right-right is punch right then dash after them. 8 moves; punches take the enemy nearest you. The wheel either stays put or moves
+with you (both in the mockup). Not decided yet.
+
 **Build steps:** 1. stance state on the player (`Player.KnuckleStance`), the swap on the weapon-action key, HUD pips per stance;
 2. Rocket stance: move the chain to Fire, drop the windows, 4 s idle; 3. Brawl moves 1–4 (steer input from the move keys, the
 group knockback, wall slam); 4. moves 5–7 (Pin stun, Barrage hold, Quake charge); 5. look, sounds, `knuckles` suite, README,
