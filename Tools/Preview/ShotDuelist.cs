@@ -2,14 +2,13 @@ using System;
 using System.Reflection;
 using Arena;
 
-// The Duelist's body looks (Game/DuelistBodyLook.cs). DUELLOOK=0-3: 0 today's look, 1 Maestro, 2 Masked Duke, 3 Phantom.
+// The Duelist's body, the Maestro (Game/DuelistBodyLook.cs), posed.
 // DUELSHEET=<1-8>: one Duelist in the middle in that pose: 1 walking, 2 showing its lunge line, 3 lunging, 4 on guard,
 // 5 saluting (To the Death), 6 staggered, 7 a Masquerade decoy, 8 last stand (battle-worn). DUELSHEET=all: all eight.
-// e.g. DUELLOOK=1 DUELSHEET=2 ZOOM=2.6 NINJA=0 Tools/Preview/shot.sh x hud 3 1 1
+// e.g. DUELSHEET=2 ZOOM=3 KNIGHT=1 CAMAT=800,450 Tools/Preview/shot.sh x hud 3 1 1
 static partial class Shot {
   static void DuelistSheetScene() {
     string sheet = Environment.GetEnvironmentVariable("DUELSHEET");
-    ArenaApp.DuelistLookVariant = int.Parse(Environment.GetEnvironmentVariable("DUELLOOK") ?? "0");
     if (sheet == null) return;
     var gm = host.Game; gm.Bot = false;
     gm.Enemies.Clear(); gm.Bullets.Clear(); gm.Effects.Clear();
