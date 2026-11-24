@@ -1548,6 +1548,7 @@ namespace Arena
             TickTwinBlades(dt);  // TwinBlades.cs: the chain forgetting its place, Twin Fang's sabres flying
             TickLightbringer(dt);  // Lightbringer.cs: Mercy's wards fading, Sunlances flying
             TickVowguard(dt);  // Vowguard.cs: steps, timed heals, Aegis Domes, Cover Ally
+            TickHalberd(dt);  // Halberd.cs: the set pike turning and poking
             TickBulwark(dt);  // BulwarkBarrier.cs: the Brace held or dropped, Ram draining, a full bash's shards
             TickLance(dt);  // Lance.cs: Hook & Haul's cooldown and hooks landing
             TickCenser(dt);      // Censer.cs: the rite forgetting its place, Censer Cast landing
@@ -1593,6 +1594,7 @@ namespace Arena
             }
             KeepOutOfDomes();  // Fortress's dome (Dome.cs)
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
+            TickVortex(dt);  // the Vortex ultimate: its clock, swirl, damage, swept shots and fling (Vortex.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
             KeepOffBridges(dt);    // the Drawbridge (Drawbridge.cs)
             KeepOffBloodWalls(dt);  // Blood Wall (BloodWall.cs): pushes enemies back, bleeds those against it
@@ -1784,10 +1786,10 @@ namespace Arena
                 else if (IsBotWeapon(p.Weapon.Id))
                     TickBotWeapon(p, dt);  // summon the robot, send it, the basic attack (EngineerBots.cs)
                 else if (p.Weapon.Id == WeaponId.TwinRifleAuto)
-                    TickTwinAuto(p, dt);
+                    TickTwinAuto(p, dt);  // the guns aim and fire on their own, no trigger (TwinAuto.cs)
                 else if (p.Weapon.Id == WeaponId.ArcKnuckles)
-                    TickKnuckleFire(p, dt);  // a click is a move, held repeats, the Quake Punch charges while held (ArcKnucklesBrawl.cs)  // the guns aim and fire on their own, no trigger (TwinAuto.cs)
-                else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Weapon.Id != WeaponId.StaticShock && !InGreatStar(p) && p.Firing && !p.ParryActive && !p.RapierGuard && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
+                    TickKnuckleFire(p, dt);  // a click is a move, held repeats, the Quake Punch charges while held (ArcKnucklesBrawl.cs)
+                else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Weapon.Id != WeaponId.StaticShock && !InGreatStar(p) && p.Firing && !p.ParryActive && !p.RapierGuard && !p.HbSet && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);
                     FirePlayer(p);

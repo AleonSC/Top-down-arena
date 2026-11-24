@@ -4,7 +4,11 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 492: Arc Knuckles stance rework: `Msg.Input` ends with the click wheel's steer byte; the player snapshot gains `KnuckleStance`, `KnuckleMove`, `KnuckleRooted`, `KnuckleCharge`; WeaponDash kind 25 swaps stance (was the Rocket Dash).
+- 496: Arc Knuckles stance rework: `Msg.Input` ends with the click wheel's steer byte; the player snapshot gains `KnuckleStance`, `KnuckleMove`, `KnuckleRooted`, `KnuckleCharge`; WeaponDash kind 25 swaps stance (was the Rocket Dash).
+- 495: the Turnkey's Cell Door gains phase 3 (being built, PhaseT the work left) and is built into an outer wall facing in (`Game.DoorSpot`); its body stands `DoorIn` from the wall's face.
+- 494: Vortex (the Tank Elementalist's fourth ultimate, key 3): `Player.VortexT`, `VortexAge`, `VortexR` in the player snapshot after `RodT`; `AbilityId.Vortex`; `FxKind.VortexWisp` (at the end).
+- 493: `FxKind.HalberdStep` step 5 is the Pike Lunge (Radius = id x 10 + 5), drawn by older screens as a Reaping Wheel (Halberd.cs)
+- 492: new `FxKind.HalberdStep`, `HalberdPoke` (at the end); a player's snapshot gains `HbSet` (bool) and `HbPikeA` (float) after the Bulwark Barrier's `BbBashTo`; `Msg.WeaponDash` kinds 58-59 (Set the Pike on/off; Halberd.cs)
 - 491: Stone Colossus (the Tank Elementalist's third ultimate): `Player.ColT`, `ColAge`, `ColWind` in the player snapshot; `AbilityId.StoneColossus`; earth kinds of `FxKind.TitanSlam`.
 - 490: A Literal Tank's sounds `Sfx.LitTankEngine`, `LitTankCannon`, `LitTankFall`, `LitTankLand`, `LitTankWarn`, `LitTankHatch` added at the end (only `LitTankFall` is sent, with the cast's ring; LitTankSoundBank.cs)
 - 489: new `AbilityId.LiteralTank` (at the end) and bullet kind `TankShell` (79); a player's snapshot gains `TankT`, `TankArmor`, `TankMax` after the Juggernaut Suit's (LiteralTank.cs)

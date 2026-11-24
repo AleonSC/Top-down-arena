@@ -45,7 +45,7 @@ namespace Arena
         }
 
         /// Alts that are held down rather than tapped (the parry stays down while one is held: it would let go of it).
-        static bool HoldAlt(WeaponId w) => w == WeaponId.Kusarigama || w == WeaponId.BulwarkBarrier || w == WeaponId.HoneybeeStaff
+        static bool HoldAlt(WeaponId w) => w == WeaponId.Kusarigama || w == WeaponId.BulwarkBarrier || w == WeaponId.Halberd || w == WeaponId.HoneybeeStaff
             || w == WeaponId.RepulsionCannon || w == WeaponId.BloodLash || w == WeaponId.Quarterstaff;
 
         /// A press: down for one tick when `want` and the bot's own cooldown allow, then up (the key reads edges).
@@ -348,6 +348,10 @@ namespace Arena
                         if (!IsSpawning(en) && en.Hp > 0f && EnemiesNear(en.Pos, 90f) >= 2 && EsNear(me, en.Pos, 90f))
                             return Tap(true, 1f);
                     return false;
+                case WeaponId.Halberd:  // set the pike while a pack closes in; lift it once they've been kept off or it has held a while
+                    if (botAltWas)
+                        return botAltHoldT < 3.5f && EnemiesNear(me.Pos, PikeScan) >= 1 && (v.Near >= 2 || botAltHoldT < 1f);
+                    return Tap(v.Near >= 3 || EnemiesNear(me.Pos, 150f) >= 2, 1.2f);
                 case WeaponId.BulwarkBarrier:  // Brace into a barrage; bash with it once Ram has built
                     if (botAltWas)
                     {

@@ -1,6 +1,6 @@
 # Arc Knuckles: the Knight DPS's fourth weapon (design)
 
-Rework status: **built** (Nov 2026, protocol 492): two stances, Brawl steered by the click wheel; see [Stance rework](#stance-rework-built) at the end. The five-punch combo and the Alt Rocket Dash below are the old design, replaced.
+Rework status: **built** (Nov 2026, protocol 496): two stances, Brawl steered by the click wheel; see [Stance rework](#stance-rework-built) at the end. The five-punch combo and the Alt Rocket Dash below are the old design, replaced.
 
 Status: **built** (Nov 2026, protocol 272): all four steps, then the lock-on and hit feel. The weapon's damage went from 12 to 22 in step 4 (about 88 a second, with the other DPS Knight weapons); every number below is the step-1 design at 12, scaled by 22/12 in the game.
 (https://claude.ai/artifact/Rqn2WEDWUQL1RTJaxvPf8Y), version 5. The **Arc Coil** look, the **Full combo**, **Parry cancel**

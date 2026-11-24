@@ -91,6 +91,123 @@ namespace Arena
             return (pass == 1 ? Start1 : Start2) + s;
         }
 
+        // --- Reaper's Wheel: the four steps of the chain (Halberd.cs) -------------------------------------------------
+        //   1 Sweep          the first sweep above, alone (At(c, false))
+        //   2 Return Sweep   the return sweep above, from where the first one ends (At(c + End1, true)): the head turns over first
+        //   3 Overhead Chop  raised overhead (the head edge-down), dropped along the aim out to ChopK of the reach, held, recovered
+        //   4 Reaping Wheel  wound back, then a full turn and a bit round you at WheelK of the reach, follow-through, recovered
+        public const float ChopRaise = 0.2f, ChopDrop = 0.07f, ChopHold = 0.12f, ChopK = 1.2f, ChopLift = 2.2f;
+        public const float WheelWind = 0.08f, WheelSpin = 0.34f, WheelK = 0.85f, WheelTurn = MathX.Tau + 0.5f;
+        public const float ChopHit = ChopRaise + ChopDrop;
+        //   5 Pike Lunge     (not a chain step: Set the Pike let go) the pike, held level, driven out to LungeK of the reach, held, recovered
+        public const float LungeOut = 0.09f, LungeHold = 0.12f, LungeFrom = 0.99f, LungeK = 1.3f;
+
+        /// How long step `step` (1-4) plays from its click to back at the ready.
+        public static float StepTotal(int step)
+        {
+            switch (step)
+            {
+                case 2: return Total(true) - End1;
+                case 3: return ChopHit + ChopHold + Recover;
+                case 4: return WheelWind + WheelSpin + Follow + Recover;
+                case 5: return LungeOut + LungeHold + Recover;
+                default: return Total(false);
+            }
+        }
+
+        /// The pose `c` s into step `step` of the chain.
+        public static Pose StepAt(int step, float c)
+        {
+            if (step <= 1)
+                return At(c, false);
+            if (step == 2)
+                return c <= 0f ? At(End1, true) : At(c + End1, true);
+            var o = new Pose { A = RestA, K = RestK, Roll = 0f, Lift = 0.5f };
+            if (c <= 0f || c >= StepTotal(step))
+                return o;
+            if (step == 5)
+            {
+                o.A = 0f; o.Lift = 0.12f;
+                if (c < LungeOut)
+                {
+                    o.K = MathX.Lerp(LungeFrom, LungeK, Eo(c / LungeOut)); o.Pass = 1;
+                }
+                else if (c < LungeOut + LungeHold)
+                    o.K = LungeK;
+                else
+                {
+                    float u = Eio((c - LungeOut - LungeHold) / Recover);
+                    o.A = MathX.Lerp(0f, RestA, u); o.K = MathX.Lerp(LungeK, RestK, u); o.Lift = MathX.Lerp(0.12f, 0.5f, u);
+                }
+                return o;
+            }
+            if (step == 3)
+            {
+                const float Edge = MathX.Pi / 3f;  // the head turned toward edge-down for the chop (still readable from above)
+                if (c < ChopRaise)
+                {
+                    float u = Eio(c / ChopRaise);
+                    o.A = MathX.Lerp(RestA, 0f, u); o.K = MathX.Lerp(RestK, 0.42f, u); o.Lift = MathX.Lerp(0.5f, ChopLift, u); o.Roll = Edge * u;
+                }
+                else if (c < ChopHit)
+                {
+                    float u = (c - ChopRaise) / ChopDrop;
+                    u *= u;  // falling faster and faster
+                    o.A = 0f; o.K = MathX.Lerp(0.42f, ChopK, u); o.Lift = MathX.Lerp(ChopLift, 0f, u); o.Roll = Edge; o.Pass = 1;
+                }
+                else if (c < ChopHit + ChopHold)
+                {
+                    o.A = 0f; o.K = ChopK; o.Lift = 0f; o.Roll = Edge;
+                }
+                else
+                {
+                    float u = Eio((c - ChopHit - ChopHold) / Recover);
+                    o.A = MathX.Lerp(0f, RestA, u); o.K = MathX.Lerp(ChopK, RestK, u); o.Lift = MathX.Lerp(0f, 0.5f, u); o.Roll = Edge * (1f - u);
+                }
+                return o;
+            }
+            float end = WheelWind + WheelSpin, a1 = WindA + WheelTurn;
+            if (c < WheelWind)
+            {
+                float u = Eio(c / WheelWind);
+                o.A = MathX.Lerp(RestA, WindA, u); o.K = MathX.Lerp(RestK, WheelK, u); o.Lift = MathX.Lerp(0.5f, 0.25f, u);
+            }
+            else if (c < end)
+            {
+                o.A = WindA + WheelTurn * (c - WheelWind) / WheelSpin; o.K = WheelK; o.Lift = 0.25f; o.Pass = 1;
+            }
+            else if (c < end + Follow)
+            {
+                float u = (c - end) / Follow;
+                o.A = a1 + FollowA * Eo(u); o.K = MathX.Lerp(WheelK, 0.9f, u); o.Lift = MathX.Lerp(0.25f, 0.45f, u);
+            }
+            else
+            {
+                float u = Eio((c - end - Follow) / Recover);
+                o.A = MathX.Lerp(a1 + FollowA, RestA + MathX.Tau, u); o.K = MathX.Lerp(0.9f, RestK, u); o.Lift = MathX.Lerp(0.45f, 0.5f, u);
+            }
+            return o;
+        }
+
+        /// Seconds into step `step` when its edge reaches the bearing `rel` (radians off the aim): the sweeps' crossing, the
+        /// chop's fall (any bearing: the look and the host check the box), the wheel's first pass over it.
+        public static float StepCross(int step, float rel)
+        {
+            switch (step)
+            {
+                case 2: return CrossTime(Math.Max(-Sweep, Math.Min(Sweep, rel)), 2) - End1;
+                case 3: return ChopHit;
+                case 5: return LungeOut;
+                case 4:
+                {
+                    float d = rel - WindA;
+                    d -= MathX.Tau * (float)Math.Floor(d / MathX.Tau);  // 0 .. Tau: how far round from where it starts
+                    return WheelWind + WheelSpin * d / WheelTurn;
+                }
+                default: return CrossTime(Math.Max(-Sweep, Math.Min(Sweep, rel)), 1);
+            }
+        }
+
         /// When step `i` (0..5) of a sweep lands: the edge reaches its bearing. pass 1 sweeps up, 2 back down.
         public static float StepTime(int pass, int i, int steps)
         {

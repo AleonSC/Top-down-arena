@@ -499,7 +499,7 @@ namespace Arena
             new EnemyDef { Name = "Turnkey", Hp = 70f, Radius = 13f, Speed = 160f, Score = 12, Xp = 16, Sides = 8, Color = new Rgba(0.95f, 0.78f, 0.3f), Melee = true, Contact = 6f,
                 Picker = PickerGroup.Ranged, Blurb = "A prison janitor with a ring of keys. Runs from you, stops to plant mines, shackle traps and wet floors, and builds Cell Doors that let Rioters out. Corner it while it works." },
             new EnemyDef { Name = "Cell Door", Hp = 90f, Radius = 16f, Speed = 0f, Score = 4, Xp = 5, Sides = 4, Color = new Rgba(0.6f, 0.66f, 0.74f), Melee = true, Heavy = true,
-                Picker = PickerGroup.Hidden, Blurb = "A Turnkey's cell door: lets a Rioter out every few seconds. It jams shut when its Turnkey dies." },
+                Picker = PickerGroup.Hidden, Blurb = "A Turnkey's cell door, built into the arena's outer wall: its red beacon spins faster as a Rioter is due, then the gate slides open to let it out. It jams shut when its Turnkey dies." },
             new EnemyDef { Name = "Floor Mine", Hp = 1f, Radius = 8f, Speed = 0f, Score = 0, Xp = 0, Sides = 8, Color = new Rgba(1f, 0.45f, 0.3f), Melee = true, Heavy = true,
                 Picker = PickerGroup.Hidden, Blurb = "A Turnkey's mine: arms, then beeps and blows when you step close. Shoot it to blow it on enemies." },
             new EnemyDef { Name = "Shackle Trap", Hp = 1f, Radius = 9f, Speed = 0f, Score = 0, Xp = 0, Sides = 8, Color = new Rgba(0.75f, 0.78f, 0.85f), Melee = true, Heavy = true,

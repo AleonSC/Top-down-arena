@@ -55,6 +55,7 @@ namespace Arena
         public byte CenserStep;       // a Censer step (1-3; Censer.cs): its hits light Embers, and it leaves incense as it lands
         public byte LanceKind;        // a Lance step (1-4; Lance.cs): its hits are cued and spark, and what it shoves can Impact; Hook & Haul takes back one still winding up
         public float LanceAcross;     // the Lance's Wide Sweep: the way its swing bats what it hits (LanceKnockDir)
+        public byte Halberd;          // a Reaper's Wheel step (1-4) or the Pike Lunge (5; Halberd.cs): the parry takes back one still winding up
         public byte Bulwark;          // a Bulwark Barrier hit (1-3 the chain, 4 the Shield Bash; BulwarkBarrier.cs): the parry takes back a chain step still winding up
         public byte Knuckle;          // an Arc Knuckles hit (its KnuckleHitCue kind; ArcKnuckles.cs): the parry takes back one still winding up
         public V2 KnuckleKnock;       // a Drive Punch: what it hits is sent this far this way (ArcKnucklesBrawl.cs)
@@ -88,7 +89,7 @@ namespace Arena
 
         const float HammerKnockMin = 30f, HammerKnockMax = 55f;  // the slam's shockwave push, px, by charge (it radiates from the slam's centre)
         const float HammerTap = 0.25f, HammerStunMin = 0.25f, HammerStunMax = 0.9f;
-        // The Halberd: a thin 18-degree cone swept across 80 degrees in six steps.
+        // The Halberd's sweeps (Reaper's Wheel steps 1 and 2; Halberd.cs): a thin 18-degree cone swept across 80 degrees in six steps.
         public const int HalberdSteps = 6;
         const float HalberdSweep = 0.7f, HalberdConeDeg = 18f;
         public const float HalberdStepTime = 0.035f;
@@ -150,32 +151,8 @@ namespace Arena
                     FireBulwark(p, aim, dmg, extra);  // the Shield Chain's next step, or the Shield Bash while braced (BulwarkBarrier.cs)
                     break;
                 case WeaponId.Halberd:
-                {
-                    // A long, thin cone that sweeps across in front of you; each enemy is hit once a sweep.
-                    // An extra projectile sweeps it back again (60% damage). The swing is one motion timed from the click
-                    // (HalberdMotion.cs: a 0.05 s pull back, then the sweep): its effect is sent now and plays the whole
-                    // thing, and each step lands when the edge reaches it.
-                    float reach = (w.Reach + w.Grow * extra) * p.Stats.HalberdReachMult;  // Long Haft: farther, and wider below
-                    float sweep = HalberdSweep + p.Stats.HalberdSweepBonus;
-                    bool back = extra > 0;
-                    BroadcastFx(FxKind.Slash, p.Pos, p.Pos + V2.FromAngle(aim) * MeleeReach(p, reach), Defs.BulletColor(Defs.KnightSlash),
-                        sweep + HalberdConeDeg * MathX.Pi / 360f, HalberdMotion.Total(back), Sfx.None);
-                    for (int pass = 0; pass <= Math.Min(1, extra); pass++)
-                    {
-                        int group = ++sweepCount;
-                        for (int i = 0; i < HalberdSteps; i++)
-                        {
-                            float f = (float)i / (HalberdSteps - 1) * 2f - 1f;
-                            var h = NewSwing(p, aim + (pass == 0 ? f : -f) * sweep, reach, HalberdConeDeg, w.Damage * dmg * (pass == 0 ? 1f : 0.6f));
-                            h.Sweep = group;
-                            h.Delay = HalberdMotion.StepTime(pass + 1, i, HalberdSteps);
-                            h.Silent = i > 0;  // one whoosh a sweep, as the first step lands
-                            h.NoFx = true;     // the click's effect draws it all
-                            QueueSwing(h);
-                        }
-                    }
+                    FireHalberd(p, aim, dmg, extra);  // Reaper's Wheel's next step (Halberd.cs)
                     break;
-                }
                 case WeaponId.Quarterstaff:
                 {
                     // The Quarterstaff: a wide swipe that knocks enemies back and parries bullets as it goes. Every enemy it
@@ -707,7 +684,7 @@ namespace Arena
                 Desc = "Primary Fire: Hold to charge, let go to slam the ground: longer charges hit harder and stun longer." },
             new WeaponDef { Id = WeaponId.Lance, Kit = Kit.Knight, Role = Role.Tank, Choice = 1, Damage = 14f, Reach = 178f, Grow = 30f, Melee = true, ExtraDesc = "The Breaching Thrust: +30 px reach, 24 px wider and +60 px knockback", Name = "Lance", FireInterval = 0.24f,
                 Desc = "Primary Fire: A four-step lance combo that ends in a thrust that shoves and stuns.\n\nAlternative Fire: Hook the nearest enemy and haul it in." },
-            new WeaponDef { Id = WeaponId.Halberd, Kit = Kit.Knight, Role = Role.Tank, Choice = 2, Damage = 30f, Reach = 200f, Grow = 30f, Melee = true, ExtraDesc = "+30 px reach and a return sweep (60% damage)", Name = "Halberd", FireInterval = 0.6f,
+            new WeaponDef { Id = WeaponId.Halberd, Kit = Kit.Knight, Role = Role.Tank, Choice = 2, Damage = 30f, Reach = 200f, Grow = 30f, Melee = true, ExtraDesc = "+30 px reach and +10% damage on every step and poke", Name = "Halberd", FireInterval = 0.6f,
                 Desc = "Primary Fire: A long, thin sweep that hits each enemy once." },
             new WeaponDef { Id = WeaponId.BulwarkBarrier, Kit = Kit.Knight, Role = Role.Tank, Choice = 3, Damage = 12f, Reach = 80f, Grow = 15f, Melee = true, ExtraDesc = "+15 px reach and +10% damage on the chain, and +20% Shield Bash damage", Name = "Bulwark Barrier", FireInterval = 0.3f,
                 Desc = "Primary Fire: A shield that stops every shot at your front, plus a three-hit combo that ends in a stun.\n\nAlternative Fire: Hold to brace, then bash with a dash." },

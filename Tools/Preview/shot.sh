@@ -65,7 +65,8 @@
 # RIOTERS=1 (a pack of Rioters with a Guard and a Thug; mode hud, ZOOM=3 for a close look).
 # THUGRAGE=1 (four Thugs at full, 2/3, 1/3 and 5% health: the red halo growing; NINJA=0 ZOOM=3).
 # PRISONERS=1 (Thugs and Shivs, both Shiv kinds walking, winding up and lunging; mode hud, ZOOM=3).
-# TURNKEY=1 (the Turnkey running, planting, building; Cell Doors working and jammed; Floor Mines, Shackle Traps, a Mop Slick; NINJA=0 ZOOM=2.2; TurnkeyLook.cs).
+# TURNKEY=1 (the Turnkey running, planting, building; Floor Mines, Shackle Traps, a Mop Slick; NINJA=0 ZOOM=2.2; TurnkeyLook.cs).
+# TKDOORS=1 [TKT=<s>] [TKCYCLE=1] [TKCLOSE=1] [TKBEEP=1] (Cell Doors in the outer wall: calm, due, opening, jammed, being built; the traps; EXPANDMAP=0 MAPVIEW=2,2,1 NINJA=0 ZOOM=2 shot.sh x hud 3; ShotCellDoor.cs).
 # WARDENCREW=1 (Guard, Riot Shield, Gas Grenadier, Taser Guard, Security Guard in a row; WARDENCREW=2 mid-move; NINJA=0 ZOOM=3.2; OfficerLook.cs).
 # GUARD=1 (the riot Guard walking, drawing back and swinging forehand, then backhand; mode hud, KNIGHT=1 ZOOM=2.6; GuardSwing.cs). GUARD=2: four Guards walking in at 200/150/110/70 px (the ready tell; ZOOM=2.2).
 # THUG=1 (the Thug walking, early and late in its punch wind-up, then mid-jab; mode hud, KNIGHT=1 ZOOM=2.6; ThugPunch.cs).
@@ -98,6 +99,7 @@
 # UNDERTOW=<meter>,<s held> (the Repulsion Cannon's Undertow meter, and its pull held that long on a pack of grunts; mode hud).
 # TWINNADES=<loaded>,<next tube 0/1>,<charge> (the Twin Rifle's grenade tubes and pips; with CAST=Airstrike CASTT=<s> for the Airstrike).
 # JUGG=<s since cast> JUGGARMOR=<0-1> (the Tank Soldier's Juggernaut Suit: plates, armour bar, flak tracers; mode hud).
+# VORTEX=<s since cast> VXMASTERED=1 (the Tank Elementalist's Vortex: wind-up, storm, grunts swept round, shots swept away; mode hud; VortexLook.cs).
 # COLOSSUS=<s since cast> COLWIND=<0-1> COLEND=<s> (the Tank Elementalist's Stone Colossus: rising, standing, slamming, crumbling; mode hud; StoneColossusLook.cs).
 # BLOODBATH=<s since the cast> (the Tank Hemomancer's Bloodbath pool, wading enemies and heal numbers; BATHMASTERED=1 for 220 px; mode hud, 2 players).
 # BLOODWALL=<s> BWCLOCK=<s> (the tank Hemomancer laying a Blood Wall, ShotBloodWall.cs; mode hud, 2 players).
