@@ -305,6 +305,27 @@ static partial class Shot {
       int pk = 0; foreach (var wp in host.Game.Players.Values) { wp.Pos = wp.Disp = new V2(Game.Width / 2f + (pk++ == 0 ? -140f : 140f), Game.Height / 2f + 260f); wp.Aim = -MathX.Pi / 2f; }
       set("wardenIntroFrom", wi);
     }
+    // WARDENTRANS=<to 1-3>,<s into the change>: the Warden's 5 s phase change (1 Lockdown, 2 Riot, 3 Last Stand) in the middle,
+    // two players nearby (WardenBodyLook.cs WardenShiftPose). A negative time: in that phase, not changing. WARDENHP=<health>[,<armor>]
+    // sets its health (and last-stand armor) fractions, for the Cell Blocks bar (HudBossBars.cs). Use with KNIGHT=1 ZOOM=2.6 CAMAT=800,470 shot.sh x hud 3 1 1.
+    var wtr = Environment.GetEnvironmentVariable("WARDENTRANS");
+    if (wtr != null)
+    {
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear();
+      var wspT = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var parts = wtr.Split(',');
+      int to = int.Parse(parts[0]); float into = float.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture);
+      var at = new V2(Game.Width / 2f, Game.Height / 2f);
+      var we = (Enemy)wspT.Invoke(host.Game, new object[] { EnemyType.Warden, at, 0f, 0, false });
+      we.Spawning = false; we.SpawnT = 0f; we.Disp = we.Pos = at; we.Facing = MathX.Pi / 2f;
+      we.Hp = we.MaxHp * (to == 1 ? 0.645f : to == 2 ? 0.295f : 0.095f);
+      we.Warden = into < 0f ? new WardenState { Stage = (WardenStage)to, Turn = WardenTurn.Rest }
+        : new WardenState { Stage = (WardenStage)(to - 1), TransTo = (WardenStage)to, TransT = Math.Max(0.001f, Game.WardenTransTime - into) };
+      var whp = Environment.GetEnvironmentVariable("WARDENHP");  // WARDENHP=<health fraction>[,<armor fraction>]
+      if (whp != null) { var hp = whp.Split(','); we.Hp = we.MaxHp * float.Parse(hp[0], System.Globalization.CultureInfo.InvariantCulture);
+        if (hp.Length > 1) { we.Warden.ArmorMax = we.MaxHp * Game.WardenArmorFrac; we.Warden.Armor = we.Warden.ArmorMax * float.Parse(hp[1], System.Globalization.CultureInfo.InvariantCulture); } }
+      int pk2 = 0; foreach (var wp in host.Game.Players.Values) { wp.Pos = wp.Disp = new V2(Game.Width / 2f + (pk2++ == 0 ? -150f : 150f), Game.Height / 2f + 190f); wp.Aim = -MathX.Pi / 2f; }
+    }
     // WARDENSHEET=all: fifteen Wardens in a grid, one per pose (WardenBodyLook.cs), left to right, top to bottom: walking, fan (just fired),
     // fan (racking), spiral, radio, exposed, cross (baton slam), cross (dash), gas throw, riot shield, charge wind-up, charging, armoring up,
     // last stand, stunned. Use with NINJA=0 ZOOM=0.75 shot.sh x hud 3 1 1. WARDENSHEET=<1-15>: only that pose, in the middle (ZOOM=3).
@@ -1025,6 +1046,7 @@ static partial class Shot {
       typeof(Game).GetMethod("OpenShop", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(xg, null);
     }
     if (Environment.GetEnvironmentVariable("PATHOFFER") != null || Environment.GetEnvironmentVariable("PATHON") != null || Environment.GetEnvironmentVariable("EXPANDVOTE") != null || Environment.GetEnvironmentVariable("EXPANDSHOP") != null) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }
+    if (Environment.GetEnvironmentVariable("WARDENTRANS") != null) set("hudT", 1f);  // the boss bar shown (a short scene starts with the HUD faded out)
     if (Environment.GetEnvironmentVariable("HUDT") != null) { float ht = float.Parse(Environment.GetEnvironmentVariable("HUDT")); set("miniT", ht); }  // (the corner HUD easing in; the full console is retired)
     if (Environment.GetEnvironmentVariable("HUDMODE") != null) { int hm = int.Parse(Environment.GetEnvironmentVariable("HUDMODE")); set("hudMode", hm); set("miniT", hm < 2 ? 1f : 0f); }  // HUDMODE=0 corner (default), 1 on the player, 2 hidden
     var vtxBy = new System.Collections.Generic.Dictionary<string, int>();  // VTXTRACE=1: the frame's top vertex sources, printed (GL.Trace in Stubs.cs)

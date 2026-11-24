@@ -1,6 +1,6 @@
 # Targeting: one way to ask "what does this hit?"
 
-> **Status: steps 1-7 done.** `Core/FoeQuery.cs` answers every player attack loop but three; PvP is on in the Hangout (`Core/Pvp.cs`):
+> **Status: steps 1-7 done**, plus the lobby's PVP switch (`Session.HangoutPvp`, protocol 478). `Core/FoeQuery.cs` answers every player attack loop but three; PvP is on in the Hangout (`Core/Pvp.cs`):
 > 89 of 91 weapons hit players in the `pvp` test (the other two only miss its close range), and every ability's query does. Status
 > effects reach players too (step 5).
 

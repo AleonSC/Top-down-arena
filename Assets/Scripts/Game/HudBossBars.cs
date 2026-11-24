@@ -201,7 +201,7 @@ namespace Arena
         }
 
         /// The Warden's phase under its health bar, and what to watch for.
-        string WardenNote(WardenState w, ref Color c)
+        string WardenNote(WardenState w, float frac, ref Color c)
         {
             if (w.TransT > 0f && w.TransTo == WardenStage.LastStand)
             {
@@ -245,8 +245,70 @@ namespace Arena
                 c = new Color(1f, 0.4f, 0.35f);
                 return WardenStageName(w.Stage) + " — SPOTTED!";
             }
-            c = w.Stage == WardenStage.Count ? new Color(1f, 0.92f, 0.65f) : w.Stage == WardenStage.Lockdown ? new Color(0.7f, 0.8f, 1f) : new Color(1f, 0.55f, 0.3f);
+            int st = (int)w.Stage;
+            if (st < 3 && frac - WardenCellAt[st + 1] < WardenCellNear)  // the next gate is close
+            {
+                c = WardenCellCol[st + 1];
+                return WardenStageName(w.Stage) + " — " + WardenStageName((WardenStage)(st + 1)) + " IN " + Mathf.Max(1, Mathf.CeilToInt((frac - WardenCellAt[st + 1]) * 100f)) + "%";
+            }
+            c = WardenCellCol[st];
             return WardenStageName(w.Stage);
+        }
+
+        // The Warden's bar as Cell Blocks: a block per phase, sized to it, in its colour, with a barred gate and a padlock at
+        // each phase's start (Game.LockdownAt, RiotAt, LastStandAt). The gate ahead shakes when you're close, and a gate
+        // flashes while the Warden changes phase through it.
+        static readonly float[] WardenCellAt = { 1f, Game.LockdownAt, Game.RiotAt, Game.LastStandAt, 0f };
+        static readonly Color[] WardenCellCol = { new Color(1f, 0.92f, 0.65f), new Color(0.7f, 0.8f, 1f), new Color(1f, 0.55f, 0.3f), new Color(1f, 0.32f, 0.3f) };
+        const float WardenCellNear = 0.04f;
+        public const float WardenCellExtra = 20f;  // room for the padlocks over it and the row of phase names under it
+
+        void DrawWardenCells(Rect bar, Enemy e, float frac)
+        {
+            var w = e.Warden;
+            int st = (int)(w.TransT > 0f ? w.TransTo : w.Stage);
+            float g = fxOn ? Ghost(EnemyKey(e.Id) | 1L << 40, frac) : frac, t = Time.unscaledTime;
+            Ui.Fill(bar, new Color(0f, 0f, 0f, 0.55f));
+            for (int k = 0; k < 4; k++)
+            {
+                float lo = WardenCellAt[k + 1], hi = WardenCellAt[k];
+                float x0 = bar.x + bar.width * lo + (k < 3 ? 2f : 0f), x1 = bar.x + bar.width * hi - (k > 0 ? 2f : 0f);
+                var col = WardenCellCol[k];
+                Ui.Fill(new Rect(x0, bar.y, x1 - x0, bar.height), col.WithAlpha(0.1f));
+                float gEnd = Mathf.Min(g, hi), fEnd = Mathf.Min(frac, hi);
+                if (gEnd > lo + 1e-4f)
+                    Ui.Fill(new Rect(x0, bar.y, Mathf.Min(x1, bar.x + bar.width * gEnd) - x0, bar.height), new Color(1f, 1f, 1f, 0.5f));
+                if (fEnd > lo + 1e-4f)
+                {
+                    float fw = Mathf.Min(x1, bar.x + bar.width * fEnd) - x0;
+                    Ui.Fill(new Rect(x0, bar.y, fw, bar.height), k == st ? col : col.WithAlpha(0.42f));
+                    if (k == st)
+                        Ui.Fill(new Rect(x0, bar.y, fw, 3f), new Color(1f, 1f, 1f, 0.28f));
+                }
+                // Its name under it: lit for this phase, struck through once it's over.
+                var r = new Rect(x0, bar.yMax + 1f, x1 - x0, 12f);
+                Color lc = k == st ? col : k < st ? new Color(0.36f, 0.43f, 0.6f, 0.6f) : col.WithAlpha(0.55f);
+                Ui.Label(r, WardenStageName((WardenStage)k), 9, lc, TextAnchor.MiddleCenter, k == st);
+                if (k < st)
+                    Ui.Fill(new Rect(r.center.x - WardenStageName((WardenStage)k).Length * 2.8f, r.center.y, WardenStageName((WardenStage)k).Length * 5.6f, 1f), lc);
+            }
+            for (int k = 1; k < 4; k++)
+            {
+                float gx = bar.x + bar.width * WardenCellAt[k];
+                bool crossed = st >= k, near = !crossed && k == st + 1 && frac - WardenCellAt[k] < WardenCellNear;
+                bool shifting = w.TransT > 0f && (int)w.TransTo == k;
+                float shake = near ? Mathf.Sin(t * 40f) * 1.3f : 0f, flash = shifting ? 0.5f + 0.5f * Mathf.Sin(t * 12f) : 0f;
+                Color gc = shifting ? Color.Lerp(WardenCellCol[k], Color.white, flash) : crossed ? new Color(0.36f, 0.43f, 0.6f, 0.7f) : new Color(0.81f, 0.85f, 0.94f);
+                for (int side = -1; side <= 1; side += 2)  // the bars of the gate
+                    Ui.Fill(new Rect(gx + side * 1.5f - 0.5f + shake, bar.y - 3f, 1f, bar.height + 6f), gc);
+                // The padlock over it: open once you're through.
+                Color lk = shifting ? gc : crossed ? gc : near ? WardenCellCol[k] : gc;
+                float px = gx + shake, py = bar.y - 8f;
+                Ui.Fill(new Rect(px - 3.5f, py, 7f, 5f), lk);
+                Ui.Fill(new Rect(px - 2.5f, py - 4f, 1.2f, crossed ? 2f : 4f), lk);
+                Ui.Fill(new Rect(px + 1.3f, py - (crossed ? 6f : 4f), 1.2f, 4f), lk);
+                Ui.Fill(new Rect(px - 2.5f, py - (crossed ? 6f : 4f) - 1f, crossed ? 3.8f : 5f, 1.2f), lk);
+            }
         }
 
         /// The Hive Queen's phase under her health bar, and what to watch for.
@@ -303,6 +365,8 @@ namespace Arena
 
         static string WardenStageName(WardenStage s) =>
             s == WardenStage.Count ? "COUNT" : s == WardenStage.Lockdown ? "LOCKDOWN" : s == WardenStage.Riot ? "RIOT" : "LAST STAND";
+
+        float bossBarsBottom;
 
         void DrawBossBars()
         {
@@ -382,7 +446,7 @@ namespace Arena
                 else if (e.Type == EnemyType.Eclipse && e.Eclipse != null)
                     note = EclipseNote(e.Eclipse, ref noteColor);
                 else if (e.Type == EnemyType.Warden && e.Warden != null)
-                    note = WardenNote(e.Warden, ref noteColor);
+                    note = WardenNote(e.Warden, Mathf.Clamp01(e.Hp / e.MaxHp), ref noteColor);
                 else if (Game.IsReaper(e.Type) && game.Reapers != null)
                     note = ReaperNote(e, game.Reapers, ref noteColor);
                 else if (e.Type == EnemyType.Gatekeeper)
@@ -391,8 +455,8 @@ namespace Arena
                     note = CaptainNote(e, ref noteColor);  // RiotCaptainLook.cs
                 // The Warden's last-stand armor: a blue bar above its health, as long as it, that wears down first.
                 bool armored = e.Type == EnemyType.Warden && e.Warden != null && e.Warden.Armor > 0f && e.Warden.ArmorMax > 0f;
-                float armorH = armored ? 9f : 0f;
-                float h = (note != null ? 62f : 46f) + armorH;
+                float armorH = armored ? 9f : 0f, cells = e.Type == EnemyType.Warden && e.Warden != null ? WardenCellExtra : 0f;
+                float h = (note != null ? 62f : 46f) + armorH + cells;
                 var panel = new Rect(x0, y, panelW, h);
                 DkHud(panel, col);
                 float frac = Mathf.Clamp01(e.Hp / e.MaxHp);
@@ -403,14 +467,20 @@ namespace Arena
                 if (armored)
                     GhostBar(new Rect(panel.x + 14f, panel.y + 26f, panelW - 28f, 6f), Mathf.Clamp01(e.Warden.Armor / e.Warden.ArmorMax),
                         new Color(0.45f, 0.65f, 1f), EnemyKey(e.Id) | 2L << 40);
-                var bar = new Rect(panel.x + 14f, panel.y + 27f + armorH, panelW - 28f, 12f);
-                GhostBar(bar, frac, col, EnemyKey(e.Id) | 1L << 40);  // with its damage ghost (HealthBars.cs)
-                for (int k = 1; k < 10; k++)  // tick marks every 10%
-                    Ui.Fill(new Rect(bar.x + bar.width * k / 10f, bar.y + 2f, 1f, bar.height - 4f), new Color(0f, 0f, 0f, 0.35f));
+                var bar = new Rect(panel.x + 14f, panel.y + 27f + armorH + (cells > 0f ? 8f : 0f), panelW - 28f, 12f);
+                if (cells > 0f)
+                    DrawWardenCells(bar, e, frac);  // a block per phase
+                else
+                {
+                    GhostBar(bar, frac, col, EnemyKey(e.Id) | 1L << 40);  // with its damage ghost (HealthBars.cs)
+                    for (int k = 1; k < 10; k++)  // tick marks every 10%
+                        Ui.Fill(new Rect(bar.x + bar.width * k / 10f, bar.y + 2f, 1f, bar.height - 4f), new Color(0f, 0f, 0f, 0.35f));
+                }
                 if (note != null)
-                    Ui.Label(new Rect(panel.x, panel.y + 41f + armorH, panelW, 18f), note, 12, noteColor, TextAnchor.MiddleCenter, true);
+                    Ui.Label(new Rect(panel.x, panel.y + 41f + armorH + cells, panelW, 18f), note, 12, noteColor, TextAnchor.MiddleCenter, true);
                 y += h + 6f;
             }
+            bossBarsBottom = y - 6f;  // where the bars end, for the objective line under them (ApproachUi.cs)
             string warning = null;
             if (game.TwinReviveT > 0f)
                 warning = "Kill the other Reaper in " + game.TwinReviveT.ToString("0.0") + "s or its twin revives!";

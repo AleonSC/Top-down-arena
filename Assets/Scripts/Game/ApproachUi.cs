@@ -29,7 +29,7 @@ namespace Arena
             float hw = head != null ? CrtUi.TitleWidth(head, size) : 0f, cg = head != null ? 10f : 0f;
             float cw = count != null ? CrtUi.TitleWidth(count, size) : 0f;
             float tw = tag != null ? CrtUi.TitleWidth(tag, tagSize) + 14f : 0f, gap = head != null && tag != null ? 14f : 0f;
-            float x = W / 2f - (hw + cg + cw + gap + tw) / 2f, y = BossUp() ? HudObjectiveUnderBossY : HudObjectiveY;  // (HudLayout.cs)
+            float x = W / 2f - (hw + cg + cw + gap + tw) / 2f, y = BossUp() ? Mathf.Max(HudObjectiveUnderBossY, bossBarsBottom + 4f) : HudObjectiveY;  // (HudLayout.cs; below a tall boss bar)
             if (head != null)
             {
                 CrtUi.Title(new Rect(x, y, hw + 4f, 22f), head, size, CrtStyle.Ink, TextAnchor.MiddleLeft, calm);

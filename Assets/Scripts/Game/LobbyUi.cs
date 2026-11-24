@@ -346,6 +346,16 @@ namespace Arena
         /// alone at the right end. A second click on an open tab goes back to the loadout.
         void DrawLobbyTabs()
         {
+            // The PVP switch, in the gap before the Hangout: whether players hurt each other there (host only; Pvp.cs).
+            {
+                bool was = GUI.enabled;
+                GUI.enabled = was && session.IsHost;
+                var pr = new Rect(LobbyHangoutKey.x - 88f, LobbyTabY + 2f, 80f, LobbyTabH - 4f);
+                bool on = DkSwitch(pr, session.HangoutPvp, "PVP");
+                if (on != session.HangoutPvp)
+                    session.SetHangoutPvp(on);
+                GUI.enabled = was;
+            }
             int mods = Modifiers.Count(session.Modifiers);
             var rects = new[] { LobbyDiffKey, LobbyModsKey, LobbyHangoutKey };
             string[] names = { "DIFFICULTY", mods > 0 ? "MODIFIERS  (" + mods + ")" : "MODIFIERS", "HANGOUT" };
