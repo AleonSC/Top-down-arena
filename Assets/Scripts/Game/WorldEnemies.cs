@@ -625,6 +625,10 @@ namespace Arena
                 DrawWardenBody(e, pos, r, col, spawning, t);  // WardenBodyLook.cs: the Chief Warden, posed for each move
             else if (Game.IsNonShooter(e.Type))
                 DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
+            else if (Game.IsTwin(e.Type))
+                DrawTwinBody(e, pos, r, col, t);  // ReaperBodyLook.cs: a Hooded Reaper
+            else if (e.Type == EnemyType.DualReaper)
+                DrawDualBody(e, pos, r, col, t);  // ReaperBodyLook.cs
             else
                 Polygon(pos, r, e.Def.Sides, EnemyRotation(e, t), col);
             if (e.Frozen && !LeapCaged(e))  // (a Leap Slam's stun draws its own cage: LeapSlamLook.cs)
