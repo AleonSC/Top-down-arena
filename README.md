@@ -1595,7 +1595,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 | Alternative fire (Kunai blink, Twin Fang, Sunlance, Hook & Haul, Shuriken's Great Star stance, Bo Staff shove, Kusarigama whirl) | Left Alt |
 | Ultimate | Q |
 | Interact: take your chest item (standing on it; B discards it), open a mystery door, shut a gate, open a room shop again | F |
-| Gadget: tap to switch on / off, hold and let go to throw it where you aim | X |
+| Gadget: tap to switch on / off, hold and let go to throw it where you aim (right click while holding cancels) | X |
 | Gadget wheel: hold to open, let go on a gadget to swap it into your hand | C |
 | Wiki: tap to look anything up (pauses a solo run; in co-op only on your screen); hold and click anything on screen (text, an enemy, a player) to open its page | I |
 | Rotate camera left / right: swing the view a quarter turn anticlockwise / clockwise (see Zoom in / out below) | [ ] |
