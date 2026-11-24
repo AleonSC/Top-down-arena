@@ -2,48 +2,27 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// MOCKUP: three candidate bodies for the Colossus boss, one per look (ColLook 1-3; 0 = today's hexagon), each drawn
-    /// per phase: Awakening (armoured), Crumbling (its four plates gone: they are the cover slabs), Molten Core (charred
-    /// shell, lava seams) and Last Stand (kneeling, about to blow). Drawn facing e.Facing, in units where the body is r.
-    ///   1 Quarry Golem: a hulking giant seen from above, two huge fists, slab plates bolted on.
-    ///   2 Monolith: today's hexagon kept as a carved core, its armour shards orbiting it.
-    ///   3 Mountain: a stone tortoise carrying a mountain whose peak becomes a volcano.
+    /// The Colossus's body (Colossus.cs), look A of Docs/Mockups (the Quarry Golem): a sandstone giant seen from above, two
+    /// huge fists, four slab plates bolted on (they come off at Crumbling: they're the cover slabs), charred with lava
+    /// seams and a core in its chest from Molten Core, kneeling with its fists in the ground for the Last Stand.
+    /// Every pose comes from what the snapshot already carries: a stomp ring winding up at its feet (fists up, then the
+    /// slam), the charge's warning and run (ChargeWarn, ChargeLeft, ChargeDir), a boulder or meteor just thrown (its
+    /// drop's From and T), the daze (DazeT) and the phase change (TransT).
     public partial class ArenaApp
     {
-        public static int ColLook;
-
         static readonly Rgba SandBase = new Rgba(0.7f, 0.56f, 0.4f), SandLite = new Rgba(0.88f, 0.76f, 0.58f), SandDark = new Rgba(0.33f, 0.24f, 0.17f),
             CharBase = new Rgba(0.3f, 0.22f, 0.18f), CharLite = new Rgba(0.46f, 0.34f, 0.27f), CharDark = new Rgba(0.12f, 0.08f, 0.06f),
             LavaHot = new Rgba(1f, 0.55f, 0.2f), LavaCore = new Rgba(1f, 0.86f, 0.5f), PlateEdge = new Rgba(0.78f, 0.62f, 0.45f);
+        const float ColUnit = 60f;  // drawing units per body radius (the fists reach about 1.6 radii out)
+        const float ColSlamShow = 45f;  // how far a fresh ring spreads while the fists still show the slam
 
-        /// Paints TitanStone in the Colossus's colours: sandstone, or charred once molten; restores the Titan's after.
-        void ColPaint(bool charred)
+        /// Paints TitanStone (TitanLook.cs) in the Colossus's colours: sandstone, or charred once molten.
+        static void ColPaint(bool charred)
         {
             TitanBase = charred ? CharBase : SandBase;
             TitanLite = charred ? CharLite : SandLite;
             TitanDark = charred ? CharDark : SandDark;
             TitanGlow = LavaHot;
-        }
-
-        void ColPolyFill(V2[] p, Rgba c)
-        {
-            SetColor(c);
-            for (int i = 1; i < p.Length - 1; i++)
-                Tri(p[0], p[i], p[i + 1]);
-        }
-
-        void ColEllipse(V2 c, float rx, float ry, float ang, Rgba col, int n = 24)
-        {
-            V2.Axes(ang, out V2 X, out V2 Y);
-            SetColor(col);
-            V2 prev = c + X * rx;
-            for (int i = 1; i <= n; i++)
-            {
-                float a = MathX.Tau * i / n;
-                V2 p = c + X * (Mathf.Cos(a) * rx) + Y * (Mathf.Sin(a) * ry);
-                Tri(c, prev, p);
-                prev = p;
-            }
         }
 
         /// A glowing seam: a soft wide line under a hot thin one.
@@ -53,7 +32,7 @@ namespace Arena
             Line(a, b, w, LavaHot.Mix(LavaCore, 0.3f).WithAlpha(0.95f * k));
         }
 
-        /// One armour plate: the cover slab's look (DrawSlab), turned and bolted.
+        /// One armour plate: the cover slab's look (DrawSlab), turned and bolted on.
         void ColPlate(V2 c, float w, float h, float ang)
         {
             V2.Axes(ang, out V2 X, out V2 Y);
@@ -71,261 +50,178 @@ namespace Arena
                     Circle(P(sx * (w / 2f - 6f), sy * (h / 2f - 6f)), 2.2f, new Rgba(0.25f, 0.19f, 0.14f), 6);
         }
 
-        void DrawColossusBodyLook(Enemy e, V2 pos, float r, float t)
+        /// Its newest stomp ring still at its feet: winding up (Warn left), or just slammed (how far it has spread).
+        static StompRing ColFreshRing(ColossusState c, Enemy e)
+        {
+            StompRing best = null;
+            foreach (var ring in c.Rings)
+                if ((ring.Center - e.Disp).Length < e.Radius && ring.Radius - e.Radius - 6f < ColSlamShow && (best == null || ring.Radius < best.Radius))
+                    best = ring;
+            return best;
+        }
+
+        /// A rock it threw a moment ago (its arm still out), or null.
+        static ColDrop ColFreshThrow(ColossusState c, Enemy e)
+        {
+            foreach (var d in c.Drops)
+                if (d.Kind != ColDrop.Pillar && d.T < 0.3f && (d.From - e.Disp).Length < e.Radius * 1.5f)
+                    return d;
+            return null;
+        }
+
+        void DrawColossusBody(Enemy e, V2 pos, float r, float t)
         {
             var c = e.Colossus;
-            var stage = c != null ? c.Stage : ColStage.Awakening;
-            ColPaint(stage >= ColStage.MoltenCore);
+            var st = c != null ? c.Stage : ColStage.Awakening;
+            bool kneel = st == ColStage.LastStand, molten = st >= ColStage.MoltenCore;
+            bool charging = c != null && c.ChargeLeft > 0f, bracing = c != null && c.ChargeWarn > 0f && !charging;
+            bool dazed = c != null && c.DazeT > 0f, roaring = c != null && c.TransT > 0f;
+            var ring = c != null ? ColFreshRing(c, e) : null;
+            var thrown = c != null && !charging ? ColFreshThrow(c, e) : null;
+            float s = r / ColUnit, ang = charging || bracing ? c.ChargeDir : e.Facing;
+            if (roaring || bracing)  // it shakes as it roars or braces
+                pos += new V2(Mathf.Sin(t * 53f), Mathf.Cos(t * 47f)) * (roaring ? 2.5f : 1.5f) * s;
+            V2.Axes(ang, out V2 fx, out V2 fy);
+            System.Func<float, float, V2> L = (x, y) => pos + (fx * x + fy * y) * s;
+            float wk = kneel || dazed || roaring ? 0f : Mathf.Sin(t * (charging ? 12f : 3f));
+            float glow = molten ? 0.75f + 0.25f * Mathf.Sin(t * 5f) : 0f;
+            float lean = charging ? 8f : bracing ? -6f * Mathf.Clamp01(1f - c.ChargeWarn / Game.ColChargeWarn) : kneel ? -8f : 0f;
+
+            ColPaint(molten);
             try
             {
-                if (ColLook == 1) ColGolem(e, pos, r, t, stage);
-                else if (ColLook == 2) ColMonolith(e, pos, r, t, stage);
-                else ColMountain(e, pos, r, t, stage);
+                Circle(pos + new V2(5f, 9f) * s, 64f * s, new Rgba(0f, 0f, 0f, 0.35f), 28);
+                if (charging)  // dust kicked up behind
+                    for (int k = 0; k < 5; k++)
+                    {
+                        float d = ((t * 3f + k * 0.2f) % 1f);
+                        Circle(L(-40f - d * 50f, (TH(k + Mathf.Floor(t * 3f)) - 0.5f) * 60f), (8f + d * 10f) * s, TitanDust.Mix(SandLite, 0.3f).WithAlpha(0.35f * (1f - d)), 10);
+                    }
+                if (!kneel)  // feet, behind
+                {
+                    TitanStone(L(-26f + wk * 8f, -22f), 15f * s, 11f, 5, 0f, 1f);
+                    TitanStone(L(-26f - wk * 8f, 22f), 15f * s, 12f, 5, 0f, 1f);
+                }
+                for (int sd = -1; sd <= 1; sd += 2)
+                    ColArm(c, e, L, fx, fy, s, sd, t, ang, st, wk, glow, lean, charging, bracing, dazed, roaring, ring, thrown);
+                ColTorso(L, fx, fy, s, t, ang, st, glow, lean);
+                // the head, sunk between the shoulders; bowed when kneeling, lolling when dazed
+                V2 head = L((kneel ? 22f : 36f) + lean, dazed ? Mathf.Sin(t * 4f) * 7f : 0f);
+                Circle(head + fx * 3f * s, 17f * s, new Rgba(0f, 0f, 0f, 0.3f), 14);
+                TitanStone(head, 16f * s, 41f, 6, 0f, 1f);
+                Line(head + (fx * 6f - fy * 10f) * s, head + (fx * 6f + fy * 10f) * s, 4f * s, TitanDark);  // the brow
+                var eye = molten || roaring || bracing ? LavaCore : new Rgba(1f, 0.92f, 0.72f);
+                float eyeA = dazed ? 0.35f : 1f;
+                for (int sd = -1; sd <= 1; sd += 2)
+                {
+                    V2 at = head + (fx * 10f + fy * (sd * 6f)) * s;
+                    Circle(at, (roaring ? 9f : 6f) * s, eye.WithAlpha(0.3f * eyeA), 10);
+                    Circle(at, 2.6f * s, eye.WithAlpha(eyeA), 8);
+                }
+                if (dazed)
+                    for (int k = 0; k < 3; k++)  // dizzy stars circling its head
+                    {
+                        V2 at = head + new V2(Mathf.Cos(t * 5f + k * 2.1f) * 28f, Mathf.Sin(t * 5f + k * 2.1f) * 9f - 22f) * s;
+                        Polygon(at, 6f * s, 5, t * 4f, new Rgba(1f, 0.85f, 0.35f));
+                    }
             }
             finally { TitanPaint(false); }
         }
 
-        // ---- 1: Quarry Golem ------------------------------------------------------------------------------------------
-
-        void ColGolem(Enemy e, V2 pos, float r, float t, ColStage st)
+        /// One arm and fist (sd: -1 left, 1 right), posed for what it's doing.
+        void ColArm(ColossusState c, Enemy e, System.Func<float, float, V2> L, V2 fx, V2 fy, float s, int sd, float t, float ang, ColStage st,
+            float wk, float glow, float lean, bool charging, bool bracing, bool dazed, bool roaring, StompRing ring, ColDrop thrown)
         {
-            float s = r / 54f, ang = e.Facing;
             bool kneel = st == ColStage.LastStand, molten = st >= ColStage.MoltenCore;
-            V2.Axes(ang, out V2 fx, out V2 fy);
-            System.Func<float, float, V2> L = (x, y) => pos + (fx * x + fy * y) * s;
-            float wk = kneel ? 0f : Mathf.Sin(t * 3f);
-            float glow = molten ? 0.75f + 0.25f * Mathf.Sin(t * 5f) : 0f;
-            Circle(pos + new V2(5f, 9f) * s, 64f * s, new Rgba(0f, 0f, 0f, 0.35f), 28);
-            if (!kneel)  // feet behind
+            V2 rest = kneel ? new V2(50f, sd * 36f) : new V2(30f + wk * sd * 6f, sd * 68f), at = rest;
+            float lift = 0f, slam = 0f;
+            if (ring != null && ring.Warn > 0f)  // a stomp winding up: both fists rise over its head
             {
-                TitanStone(L(-26f + wk * 8f, -22f), 15f * s, 11f, 5, 0f, 1f);
-                TitanStone(L(-26f - wk * 8f, 22f), 15f * s, 12f, 5, 0f, 1f);
+                lift = TEase(1f - ring.Warn / Game.RingWarn);
+                at = V2.Lerp(rest, new V2(8f, sd * 44f), lift);
             }
-            for (int sd = -1; sd <= 1; sd += 2)  // arms and fists: forward at its sides, planted ahead when kneeling
+            else if (ring != null)  // the slam: fists down in front, the ground cracked under them
             {
-                V2 sh = L(-6f, sd * 40f);
-                V2 fp = kneel ? L(50f, sd * 36f) : L(30f + wk * sd * 6f, sd * 68f);
-                Line(sh, fp, 22f * s, TitanDark);
-                Line(sh, fp, 15f * s, TitanBase);
-                Line(sh - fy * (sd * 4f * s), fp - fy * (sd * 4f * s), 3f * s, TitanLite.WithAlpha(0.5f));
-                if (kneel)  // fists in the ground: a cracked ring under each
-                    for (int k = 0; k < 5; k++)
-                        ColSeam(fp + V2.FromAngle(ang + k * 1.25f + sd) * 18f * s, fp + V2.FromAngle(ang + k * 1.25f + sd + 0.2f) * 34f * s, 2f * s, 0.8f);
-                TitanStone(fp, 24f * s, sd > 0 ? 21f : 22f, 7, glow, 1f);
-                if (!molten)
-                    for (int k = 0; k < 3; k++)  // knuckles
-                        Circle(fp + (fx * 15f + fy * ((k - 1) * 9f)) * s, 4f * s, TitanDark.WithAlpha(0.7f), 6);
+                slam = 1f - (ring.Radius - e.Radius - 6f) / ColSlamShow;
+                at = new V2(46f, sd * 40f);
             }
-            float back = kneel ? -8f : 0f;
-            TitanStone(L(-6f + back, 0f), 40f * s, 31f, 9, 0f, 1f);  // the torso
-            TitanStone(L(-6f + back, -40f), 22f * s, 32f, 7, glow * 0.5f, 1f);  // shoulders
-            TitanStone(L(-6f + back, 40f), 22f * s, 33f, 7, glow * 0.5f, 1f);
-            if (st == ColStage.Awakening)  // four plates: two pauldrons and a back plate pair (they fall as the cover slabs)
+            else if (charging)
+                at = new V2(56f, sd * 26f);  // fists forward together, a battering ram
+            else if (bracing)
+                at = V2.Lerp(rest, new V2(-12f, sd * 72f), TEase(1f - c.ChargeWarn / Game.ColChargeWarn));  // drawn back to brace
+            else if (dazed)
+                at = new V2(8f + Mathf.Sin(t * 3f + sd) * 4f, sd * 80f);  // hanging limp at its sides
+            else if (roaring)
             {
-                ColPlate(L(-8f, -42f), 30f * s, 22f * s, ang + 0.15f);
-                ColPlate(L(-8f, 42f), 30f * s, 22f * s, ang - 0.15f);
-                ColPlate(L(-22f, -13f), 26f * s, 24f * s, ang);
-                ColPlate(L(-22f, 13f), 26f * s, 24f * s, ang);
+                at = new V2(-2f, sd * 82f);  // flung wide, up
+                lift = 0.7f;
             }
-            else
+            else if (thrown != null && (Mathf.Sin((thrown.Pos - thrown.From).Angle - ang) <= 0f) == (sd == 1))  // the arm on the throw's side, still out toward where the rock is going
             {
-                for (int k = 0; k < 4; k++)  // the bare sockets where the plates were
+                float k = thrown.T / 0.3f;
+                float rel = (thrown.Pos - thrown.From).Angle - ang;
+                at = V2.Lerp(new V2(Mathf.Cos(rel), -Mathf.Sin(rel)) * 84f, rest, k);  // (local y is the -90 degree side)
+                lift = 0.5f * (1f - k);
+            }
+            V2 sh = L(-6f + lean, sd * 40f), fp = L(at.X + lean * 0.5f, at.Y);
+            float fs = 1f + 0.35f * lift;
+            Line(sh, fp, 22f * s, TitanDark);
+            Line(sh, fp, 15f * s, TitanBase);
+            Line(sh - fy * (sd * 4f * s), fp - fy * (sd * 4f * s), 3f * s, TitanLite.WithAlpha(0.5f));
+            if (lift > 0.05f)  // its shadow, falling away below a raised fist
+                Circle(fp + new V2(14f, 16f) * (lift * s), 22f * s, new Rgba(0f, 0f, 0f, 0.3f * lift), 16);
+            if (kneel || slam > 0f)  // fists in the ground: the floor cracked round each
+            {
+                float k = kneel ? 0.8f : slam;
+                for (int i = 0; i < 5; i++)
                 {
-                    V2 at = k < 2 ? L(-8f, (k == 0 ? -1 : 1) * 42f) : L(-22f, (k == 2 ? -1 : 1) * 13f);
-                    Circle(at, 7f * s, TitanDark.WithAlpha(0.85f), 8);
+                    float a = ang + i * 1.25f + sd;
+                    if (molten) ColSeam(fp + V2.FromAngle(a) * 18f * s, fp + V2.FromAngle(a + 0.2f) * 34f * s, 2f * s, k);
+                    else Line(fp + V2.FromAngle(a) * 18f * s, fp + V2.FromAngle(a + 0.2f) * 34f * s, 3f * s, SandDark.WithAlpha(0.8f * k));
                 }
-                var crack = molten ? LavaHot : new Rgba(0.12f, 0.08f, 0.05f, 0.9f);
-                for (int k = 0; k < (molten ? 6 : 4); k++)  // fractures across the torso
-                {
-                    float a = k * 1.1f + 0.4f;
-                    V2 p1 = L(-6f + back, 0f), p2 = p1 + V2.FromAngle(ang + a) * 20f * s + fy * (TH(k) - 0.5f) * 8f * s, p3 = p1 + V2.FromAngle(ang + a - 0.25f) * 38f * s;
-                    if (molten) { ColSeam(p1, p2, 3f * s, glow); ColSeam(p2, p3, 2.5f * s, glow); }
-                    else { Line(p1, p2, 3f * s, crack); Line(p2, p3, 2.5f * s, crack); }
-                }
-                if (molten)  // the core in its chest
-                {
-                    float cr = (kneel ? 15f : 11f) + 2f * Mathf.Sin(t * 6f);
-                    Circle(L(-6f + back, 0f), cr * 2.2f * s, LavaHot.WithAlpha(0.25f), 18);
-                    Circle(L(-6f + back, 0f), cr * s, LavaCore, 16);
-                }
+                if (slam > 0f)
+                    Arc(fp, (24f + 20f * (1f - slam)) * s, 3f * s, SandLite.WithAlpha(0.6f * slam), 16);
             }
-            // the head, sunk between the shoulders; bowed when kneeling
-            V2 head = L(kneel ? 22f : 36f, 0f);
-            Circle(head + fx * 3f * s, 17f * s, new Rgba(0f, 0f, 0f, 0.3f), 14);
-            TitanStone(head, 16f * s, 41f, 6, 0f, 1f);
-            Line(head + (fx * 6f - fy * 10f) * s, head + (fx * 6f + fy * 10f) * s, 4f * s, TitanDark);  // the brow
-            var eye = molten ? LavaCore : new Rgba(1f, 0.92f, 0.72f);
-            for (int sd = -1; sd <= 1; sd += 2)
-            {
-                Circle(head + (fx * 10f + fy * (sd * 6f)) * s, 6f * s, eye.WithAlpha(0.3f), 10);
-                Circle(head + (fx * 10f + fy * (sd * 6f)) * s, 2.6f * s, eye, 8);
-            }
-        }
-
-        // ---- 2: Monolith ----------------------------------------------------------------------------------------------
-
-        void ColMonolith(Enemy e, V2 pos, float r, float t, ColStage st)
-        {
-            float s = r / 54f, ang = e.Facing;
-            bool molten = st >= ColStage.MoltenCore, kneel = st == ColStage.LastStand;
-            float glow = molten ? 0.75f + 0.25f * Mathf.Sin(t * 5f) : 0f;
-            Circle(pos + new V2(4f, 8f) * s, 60f * s, new Rgba(0f, 0f, 0f, 0.32f), 28);
-            int shards = st == ColStage.Awakening ? 6 : st == ColStage.Crumbling ? 2 : kneel ? 6 : 3;
-            float orbit = (kneel ? 44f : 66f) * s, spin = t * (kneel ? 2.4f : 0.6f);
-            for (int i = 0; i < shards; i++)  // its armour: wedge shards circling it (four fall as the cover slabs)
-            {
-                float a = spin + MathX.Tau * i / shards;
-                V2 at = pos + V2.FromAngle(a) * orbit;
-                V2.Axes(a, out V2 X, out V2 Y);
-                float w0 = 20f * s, w1 = 13f * s, d = 12f * s;
-                var pts = new[] { at - X * d - Y * w0, at + X * d - Y * w1, at + X * d + Y * w1, at - X * d + Y * w0 };
-                Circle(at + new V2(3f, 6f) * s, 15f * s, new Rgba(0f, 0f, 0f, 0.3f), 10);
-                ColPolyFill(pts, molten ? CharDark : SandDark);
-                var inner = new[] { V2.Lerp(at, pts[0], 0.75f), V2.Lerp(at, pts[1], 0.75f), V2.Lerp(at, pts[2], 0.75f), V2.Lerp(at, pts[3], 0.75f) };
-                ColPolyFill(inner, molten ? CharBase : SandBase);
-                Line(pts[1], pts[2], 2.5f, molten ? LavaHot.WithAlpha(0.8f * glow) : PlateEdge);
-                if (!molten)
-                    TitanRune(at, 8f * s, a, i, 1.6f * s, SandDark.WithAlpha(0.8f));
-            }
-            float core = (kneel ? 46f : 44f) * s, rot = ang + MathX.Pi / 6f;
-            var hex = new V2[6];
-            for (int i = 0; i < 6; i++)
-                hex[i] = pos + V2.FromAngle(rot + MathX.Tau * i / 6f) * core;
+            TitanStone(fp, 24f * fs * s, sd > 0 ? 21f : 22f, 7, glow, 1f);
             if (!molten)
-            {
-                ColPolyFill(hex, SandDark);
-                var inner = new V2[6];
-                for (int i = 0; i < 6; i++) inner[i] = V2.Lerp(pos, hex[i], 0.86f);
-                ColPolyFill(inner, SandBase);
-                var top = new V2[6];
-                for (int i = 0; i < 6; i++) top[i] = V2.Lerp(pos + new V2(-4f, -5f) * s, hex[i], 0.5f);
-                ColPolyFill(top, SandLite.WithAlpha(0.7f));
-                for (int i = 0; i < 6; i++) Line(hex[i], hex[(i + 1) % 6], 3f, SandDark);
-                if (st == ColStage.Awakening)
-                    for (int i = 0; i < 6; i++)  // carved rune band
-                        TitanRune(V2.Lerp(pos, V2.Lerp(hex[i], hex[(i + 1) % 6], 0.5f), 0.68f), 7f * s, rot + MathX.Tau * (i + 0.5f) / 6f + MathX.Pi / 2f, i, 1.6f * s, SandDark);
-                else
-                    for (int k = 0; k < 4; k++)  // cracked across
-                    {
-                        float ca = rot + k * 1.57f + 0.5f;
-                        V2 p2 = pos + V2.FromAngle(ca + 0.2f) * core * 0.45f, p3 = pos + V2.FromAngle(ca - 0.08f) * core * 0.92f;
-                        Line(pos, p2, 3f * s, new Rgba(0.12f, 0.08f, 0.05f, 0.9f));
-                        Line(p2, p3, 2.5f * s, new Rgba(0.12f, 0.08f, 0.05f, 0.9f));
-                    }
-            }
-            else
-            {
-                // the shell split into three charred pieces round a molten orb
-                float gap = kneel ? 10f * s : 6f * s;
-                float orb = (kneel ? 26f : 20f) * s + 2f * s * Mathf.Sin(t * 6f);
-                GlowDisc(pos, orb * 3f, LavaHot, 0.5f * glow);
-                Circle(pos, orb * 1.35f, LavaHot.WithAlpha(0.6f), 20);
-                Circle(pos, orb, LavaCore, 20);
-                for (int k = 0; k < 3; k++)
-                {
-                    V2 off = V2.FromAngle(rot + MathX.Tau * (k * 2 + 1) / 6f) * gap;
-                    var piece = new[] { pos + off + V2.FromAngle(rot + MathX.Tau * (k * 2) / 6f) * core * 0.45f, hex[k * 2] + off, hex[k * 2 + 1] + off, hex[(k * 2 + 2) % 6] + off, pos + off + V2.FromAngle(rot + MathX.Tau * (k * 2 + 2) / 6f) * core * 0.45f };
-                    ColPolyFill(piece, CharDark);
-                    var inner = new V2[5];
-                    V2 mid = (piece[1] + piece[2] + piece[3]) / 3f;
-                    for (int i = 0; i < 5; i++) inner[i] = V2.Lerp(mid, piece[i], 0.8f);
-                    ColPolyFill(inner, CharBase);
-                    ColSeam(piece[0], piece[4], 2f * s, glow);
-                }
-            }
-            var eye = molten ? LavaCore : new Rgba(1f, 0.92f, 0.72f);  // its eyes, on its target
-            for (int k = -1; k <= 1; k += 2)
-            {
-                V2 at = pos + V2.FromAngle(ang + k * 0.32f) * core * 0.72f;
-                Circle(at, 7f * s, eye.WithAlpha(0.3f), 10);
-                Circle(at, 3.5f * s, eye, 8);
-            }
+                for (int k = 0; k < 3; k++)  // knuckles
+                    Circle(fp + (fx * 15f + fy * ((k - 1) * 9f)) * fs * s, 4f * s, TitanDark.WithAlpha(0.7f), 6);
         }
 
-        // ---- 3: Mountain ----------------------------------------------------------------------------------------------
-
-        void ColMountain(Enemy e, V2 pos, float r, float t, ColStage st)
+        /// Its torso and shoulders: plates on (Awakening), then bare sockets and fractures, then lava seams and a core.
+        void ColTorso(System.Func<float, float, V2> L, V2 fx, V2 fy, float s, float t, float ang, ColStage st, float glow, float lean)
         {
-            float s = r / 54f, ang = e.Facing;
-            bool molten = st >= ColStage.MoltenCore, kneel = st == ColStage.LastStand;
-            float glow = molten ? 0.75f + 0.25f * Mathf.Sin(t * 5f) : 0f;
-            V2.Axes(ang, out V2 fx, out V2 fy);
-            System.Func<float, float, V2> L = (x, y) => pos + (fx * x + fy * y) * s;
-            ColEllipse(pos + new V2(5f, 9f) * s, 66f * s, 56f * s, ang, new Rgba(0f, 0f, 0f, 0.35f));
-            float wk = kneel ? 0f : Mathf.Sin(t * 3f);
-            if (!kneel)
-                for (int i = 0; i < 4; i++)  // four stumpy legs at the corners
-                {
-                    float lx = i < 2 ? 30f : -30f, ly = i % 2 == 0 ? -46f : 46f, sw = (i == 0 || i == 3 ? 1f : -1f) * wk * 7f;
-                    TitanStone(L(lx + sw, ly), 15f * s, 50f + i, 6, glow * 0.6f, 1f);
-                }
-            // the head: low and wide, two tusks
-            V2 head = L(kneel ? 46f : 60f, 0f);
-            for (int sd = -1; sd <= 1; sd += 2)
+            bool kneel = st == ColStage.LastStand, molten = st >= ColStage.MoltenCore;
+            float b = -6f + lean;
+            TitanStone(L(b, 0f), 40f * s, 31f, 9, 0f, 1f);
+            TitanStone(L(b, -40f), 22f * s, 32f, 7, glow * 0.5f, 1f);
+            TitanStone(L(b, 40f), 22f * s, 33f, 7, glow * 0.5f, 1f);
+            if (st == ColStage.Awakening)  // two pauldrons and a pair of back plates
             {
-                V2 tb = head + (fx * 6f + fy * (sd * 12f)) * s, tt = head + (fx * 24f + fy * (sd * 20f)) * s;
-                Line(tb, tt, 6f * s, SandLite.Mix(Rgba.White, 0.2f));
-                Line(tb, tt, 2f * s, SandDark.WithAlpha(0.5f));
+                ColPlate(L(b - 2f, -42f), 30f * s, 22f * s, ang + 0.15f);
+                ColPlate(L(b - 2f, 42f), 30f * s, 22f * s, ang - 0.15f);
+                ColPlate(L(b - 16f, -13f), 26f * s, 24f * s, ang);
+                ColPlate(L(b - 16f, 13f), 26f * s, 24f * s, ang);
+                return;
             }
-            TitanStone(head, 18f * s, 61f, 7, 0f, 1f);
-            var eye = molten ? LavaCore : new Rgba(1f, 0.92f, 0.72f);
-            for (int sd = -1; sd <= 1; sd += 2)
+            for (int k = 0; k < 4; k++)  // the bare sockets where the plates were
             {
-                Circle(head + (fx * 9f + fy * (sd * 8f)) * s, 5.5f * s, eye.WithAlpha(0.3f), 10);
-                Circle(head + (fx * 9f + fy * (sd * 8f)) * s, 2.5f * s, eye, 8);
+                V2 at = k < 2 ? L(b - 2f, (k == 0 ? -1 : 1) * 42f) : L(b - 16f, (k == 2 ? -1 : 1) * 13f);
+                Circle(at, 7f * s, TitanDark.WithAlpha(0.85f), 8);
             }
-            // the shell: an oval of rock plates rising to a peak
-            float rx = 52f * s, ry = 46f * s;
-            ColEllipse(pos, rx, ry, ang, TitanDark);
-            ColEllipse(pos + new V2(-2f, -2f) * s, rx - 4f * s, ry - 4f * s, ang, TitanBase);
-            for (int ring = 0; ring < 2; ring++)  // two rings of scutes
+            var crack = new Rgba(0.12f, 0.08f, 0.05f, 0.9f);
+            for (int k = 0; k < (molten ? 6 : 4); k++)  // fractures across the torso
             {
-                int n = ring == 0 ? 10 : 6;
-                float rr = ring == 0 ? 0.78f : 0.45f;
-                for (int i = 0; i < n; i++)
-                {
-                    float a = MathX.Tau * (i + ring * 0.5f) / n;
-                    V2 at = pos + fx * (Mathf.Cos(a) * rx * rr) + fy * (Mathf.Sin(a) * ry * rr);
-                    if (molten && ring == 1)
-                        continue;
-                    bool lost = st == ColStage.Crumbling && ring == 0 && i % 3 == 1;
-                    if (lost) { Circle(at, 9f * s, TitanDark.WithAlpha(0.9f), 8); continue; }
-                    TitanStone(at, (ring == 0 ? 12f : 13f) * s, 70f + ring * 20f + i, 6, molten ? glow * 0.5f : 0f, 1f);
-                }
+                float a = k * 1.1f + 0.4f;
+                V2 p1 = L(b, 0f), p2 = p1 + V2.FromAngle(ang + a) * 20f * s + fy * (TH(k) - 0.5f) * 8f * s, p3 = p1 + V2.FromAngle(ang + a - 0.25f) * 38f * s;
+                if (molten) { ColSeam(p1, p2, 3f * s, glow); ColSeam(p2, p3, 2.5f * s, glow); }
+                else { Line(p1, p2, 3f * s, crack); Line(p2, p3, 2.5f * s, crack); }
             }
-            if (st == ColStage.Awakening)  // the four plates, strapped on its flanks (they fall as the cover slabs)
+            if (molten)  // the core in its chest
             {
-                ColPlate(L(8f, -36f), 34f * s, 18f * s, ang);
-                ColPlate(L(8f, 36f), 34f * s, 18f * s, ang);
-                ColPlate(L(-30f, -24f), 18f * s, 30f * s, ang + 0.5f);
-                ColPlate(L(-30f, 24f), 18f * s, 30f * s, ang - 0.5f);
-            }
-            if (!molten)  // the peak
-            {
-                TitanStone(L(-4f, 0f), 20f * s, 91f, 7, 0f, 1f);
-                TitanStone(L(-1f, -2f), 11f * s, 92f, 5, 0f, 1f);
-                if (st == ColStage.Crumbling)
-                    for (int k = 0; k < 3; k++)
-                        Line(L(-4f, 0f), L(-4f, 0f) + V2.FromAngle(ang + k * 2.1f + 0.5f) * 40f * s, 3f * s, new Rgba(0.12f, 0.08f, 0.05f, 0.9f));
-            }
-            else  // the peak has blown: a crater of lava, seams running down the shell
-            {
-                for (int k = 0; k < 6; k++)
-                {
-                    V2 a0 = L(-4f, 0f) + V2.FromAngle(ang + k * 1.05f + 0.2f) * 18f * s, a1 = L(-4f, 0f) + V2.FromAngle(ang + k * 1.05f + 0.35f) * 46f * s;
-                    ColSeam(a0, a1, 2.5f * s, glow);
-                }
-                float cr = (kneel ? 24f : 18f) * s;
-                Circle(L(-4f, 0f), cr + 7f * s, CharDark, 18);
-                GlowDisc(L(-4f, 0f), cr * 2.4f, LavaHot, 0.45f * glow);
-                Circle(L(-4f, 0f), cr, LavaHot, 18);
-                Circle(L(-4f, 0f), cr * 0.55f + 2f * s * Mathf.Sin(t * 6f), LavaCore, 14);
-                if (kneel)
-                    for (int k = 0; k < 7; k++)  // erupting: embers thrown up
-                    {
-                        float a = TH(k * 3.3f) * MathX.Tau, d = (0.4f + ((t * 0.8f + TH(k)) % 1f)) * 44f * s;
-                        Circle(L(-4f, 0f) + V2.FromAngle(a) * d, 3f * s, LavaCore.WithAlpha(0.9f), 6);
-                    }
+                float cr = (kneel ? 15f : 11f) + 2f * Mathf.Sin(t * 6f);
+                Circle(L(b, 0f), cr * 2.2f * s, LavaHot.WithAlpha(0.25f), 18);
+                Circle(L(b, 0f), cr * s, LavaCore, 16);
             }
         }
     }

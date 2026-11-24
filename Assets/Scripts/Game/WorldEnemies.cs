@@ -620,9 +620,9 @@ namespace Arena
             else if (e.Type == EnemyType.Guard)
                 DrawGuardBody(e, pos, r, col, t);  // WardenLook.cs: the corrections officer and its nightstick swing
             else if (e.Type == EnemyType.Warden)
-                DrawWardenBody(e, pos, r, col, spawning, t);
-            else if (e.Type == EnemyType.Colossus && ColLook > 0)
-                DrawColossusBodyLook(e, pos, r, t);  // ColossusBodyLook.cs (mockup)  // WardenBodyLook.cs: the Chief Warden, posed for each move
+                DrawWardenBody(e, pos, r, col, spawning, t);  // WardenBodyLook.cs: the Chief Warden, posed for each move
+            else if (e.Type == EnemyType.Colossus)
+                DrawColossusBody(e, pos, r, t);  // ColossusBodyLook.cs: the Quarry Golem, posed for each move
             else if (Game.IsNonShooter(e.Type))
                 DrawNonShooterBody(e, pos, r, col, t);  // NonShooterLooks.cs
             else
@@ -992,10 +992,6 @@ namespace Arena
                 case EnemyType.Duelist:
                 case EnemyType.Decoy:
                     DrawDuelistBlade(e, pos, r, t);  // DuelistLook.cs
-                    break;
-                case EnemyType.Colossus:
-                    if (ColLook == 0)
-                        DrawColossusDetails(e, pos, r, t);  // ColossusLook.cs
                     break;
                 case EnemyType.Brute:
                     DrawBruteFace(e, pos, r, col);
