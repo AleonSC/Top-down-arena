@@ -140,9 +140,9 @@ namespace Arena
         /// Host: the HE burst (from ExplodeGrenade): full damage at the middle, GlEdge of it at the rim, a small shove outward.
         void GlBlast(Bullet b)
         {
-            foreach (var e in Enemies.Values)
+            foreach (var e in FoesInCircle(b.Pos, b.Splash))
             {
-                if (e.SpawnT > 0f || e.Pos.FartherThan(b.Pos, b.Splash + e.Radius) || BlocksShot(e, b.Pos))
+                if (BlocksShot(e, b.Pos))
                     continue;
                 float d = e.Pos.DistanceTo(b.Pos), k = Math.Min(1f, d / Math.Max(1f, b.Splash));
                 HurtEnemy(e, b.Dmg * (1f - (1f - GlEdge) * k), b.Owner);

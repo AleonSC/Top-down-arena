@@ -52,10 +52,8 @@ namespace Arena
             float radius = (cap ? FloodRadiusMastered : FloodRadius) * s.FloodRadiusMult;
             float time = (cap ? FloodTimeMastered : FloodTime) * pw + s.FloodBonusTime;
             AddZone(ZoneKind.Flood, p, p.Pos, radius, time + FloodDrain);
-            foreach (var e in Enemies.Values)  // the stamp: a splash that throws back what's touching you
+            foreach (var e in FoesInCircle(p.Pos, FloodSurgeReach))  // the stamp: a splash that throws back what's touching you
             {
-                if (!Targetable(e) || e.Pos.FartherThan(p.Pos, FloodSurgeReach + e.Radius))
-                    continue;
                 HurtEnemy(e, FloodSurgeDamage * s.DmgMult * pw, p.Id);
                 castHits++;
                 if (Heavy(e))

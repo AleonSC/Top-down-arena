@@ -302,8 +302,8 @@ namespace Arena
             if (owner.Downed)
                 return;
             V2 dir = V2.FromAngle(m.Aim);
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && !hits.Contains(e.Id) && e.Pos.CloserThan(m.Pos, e.Radius + reach))
+            foreach (var e in AllFoes())
+                if (!hits.Contains(e.Id) && e.Pos.CloserThan(m.Pos, e.Radius + reach))
                 {
                     hits.Add(e.Id);
                     WeaponHurt(e, dmg, owner.Id);
@@ -319,13 +319,12 @@ namespace Arena
             if (owner.Downed)
                 return;
             bool any = false;
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.CloserThan(m.Pos, e.Radius + BladeSlashR))
-                {
-                    WeaponHurt(e, dmg, owner.Id);
-                    ModHit(e, owner.Id, dmg, Defs.ArcaneShot, (e.Pos - m.Pos).Normalized());
-                    any = true;
-                }
+            foreach (var e in FoesInCircle(m.Pos, BladeSlashR))
+            {
+                WeaponHurt(e, dmg, owner.Id);
+                ModHit(e, owner.Id, dmg, Defs.ArcaneShot, (e.Pos - m.Pos).Normalized());
+                any = true;
+            }
             if (any)
                 owner.Run.ShotsHit++;
             float a = m.Aim;
@@ -741,16 +740,15 @@ namespace Arena
                 if (touch == null)
                     continue;
                 left &= ~(1 << k);
-                foreach (var e in Enemies.Values)
-                    if (Targetable(e) && e.Pos.CloserThan(at, e.Radius + SanctumBurst))
+                foreach (var e in FoesInCircle(at, SanctumBurst))
+                {
+                    HurtEnemy(e, SanctumBurstDmg * z.DmgMult, z.Owner);
+                    if (!Heavy(e))
                     {
-                        HurtEnemy(e, SanctumBurstDmg * z.DmgMult, z.Owner);
-                        if (!Heavy(e))
-                        {
-                            V2 away = e.Pos - at;
-                            KnockEnemy(e, (away.Length > 1f ? away.Normalized() : (at - z.Pos).Normalized()) * 60f);
-                        }
+                        V2 away = e.Pos - at;
+                        KnockEnemy(e, (away.Length > 1f ? away.Normalized() : (at - z.Pos).Normalized()) * 60f);
                     }
+                }
                 BroadcastFx(FxKind.Boom, at, z.Def.Color, SanctumBurst, 0.35f, Sfx.SpellHoly);
             }
             z.Aim = left;
@@ -769,13 +767,12 @@ namespace Arena
                 return;
             }
             float dmg = (CrushDmg + CrushPer * Math.Min(CrushPerMax, caught - 1)) * z.DmgMult;
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius))
-                {
-                    HurtEnemy(e, dmg, z.Owner);
-                    if (!e.Def.IsBoss)
-                        Stun(e, CrushStun);
-                }
+            foreach (var e in FoesInCircle(z.Pos, z.Radius))
+            {
+                HurtEnemy(e, dmg, z.Owner);
+                if (!e.Def.IsBoss)
+                    Stun(e, CrushStun);
+            }
             BroadcastFx(FxKind.Boom, z.Pos, z.Def.Color, z.Radius * 0.6f, 0.4f, Sfx.BigExplode);
         }
 

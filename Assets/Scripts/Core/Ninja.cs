@@ -241,10 +241,10 @@ namespace Arena
             {
                 V2 b = OrbitBlade(p, i);
                 EraseEnemyBullets(b, OrbitBladeR + 6f);
-                foreach (var e in Enemies.Values)
+                foreach (var e in FoesInCircle(b, OrbitBladeR))
                 {
                     float last;
-                    if (e.SpawnT > 0f || b.FartherThan(e.Pos, e.Radius + OrbitBladeR) || (p.OrbitCut.TryGetValue(e.Id, out last) && p.OrbitClock - last < OrbitCutGap))
+                    if ((p.OrbitCut.TryGetValue(e.Id, out last) && p.OrbitClock - last < OrbitCutGap))
                         continue;
                     p.OrbitCut[e.Id] = p.OrbitClock;
                     float dmg = FanDamage * p.Stats.DmgMult * NinjaHitMult(p.Id, Defs.KunaiShot, e);
@@ -782,12 +782,11 @@ namespace Arena
             var wardOwner = PlayerOrNull(z.Owner);
             float r = WardBurst * (wardOwner != null ? AreaMult(wardOwner) * wardOwner.Stats.CharmBurstMult : 1f);  // (Blessed Paper: wider)
             float dmg = Defs.WeaponOf(WeaponId.Ofuda).Damage * z.DmgMult;
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.CloserThan(z.Pos, r + e.Radius))
-                {
-                    WeaponHurt(e, dmg, z.Owner);
-                    ModHit(e, z.Owner, dmg, Defs.OfudaShot, default(V2));  // weapon mods ride the burst
-                }
+            foreach (var e in FoesInCircle(z.Pos, r))
+            {
+                WeaponHurt(e, dmg, z.Owner);
+                ModHit(e, z.Owner, dmg, Defs.OfudaShot, default(V2));  // weapon mods ride the burst
+            }
             foreach (var q in Players.Values)
                 if (!q.Downed && q.Pos.DistanceTo(z.Pos) < WardHealReach * (wardOwner != null ? wardOwner.Stats.CharmBurstMult : 1f))
                     Heal(q, WardHeal * (wardOwner != null ? wardOwner.Stats.CharmHealMult : 1f), wardOwner);
@@ -1647,9 +1646,8 @@ namespace Arena
                 Player owner;
                 if (!Players.TryGetValue(m.Owner, out owner))
                     continue;
-                foreach (var e in Enemies.Values)
-                    if (e.SpawnT <= 0f && e.Pos.CloserThan(m.Pos, CloneBurstRadius + e.Radius))
-                        HurtEnemy(e, CloneBurst * m.Power, m.Owner);
+                foreach (var e in FoesInCircle(m.Pos, CloneBurstRadius))
+                    HurtEnemy(e, CloneBurst * m.Power, m.Owner);
                 BroadcastFx(FxKind.Boom, m.Pos, Kits.Get(MinionKind.Clone).Color, CloneBurstRadius, 0.35f, Sfx.Explode);
             }
         }

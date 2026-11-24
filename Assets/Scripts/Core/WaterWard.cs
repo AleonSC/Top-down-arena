@@ -152,9 +152,9 @@ namespace Arena
         {
             var s = p.Stats;
             float r = WwReach(p, WwSplashR), dmg = WwSplashDamage * s.DmgMult * s.WwDmgMult, wet = WwWet + s.WwWetBonus;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes())
             {
-                if (!Targetable(e) || at.FartherThan(e.Pos, r + e.Radius * 0.5f))
+                if (at.FartherThan(e.Pos, r + e.Radius * 0.5f))
                     continue;
                 HurtEnemy(e, dmg, p.Id);
                 e.WetT = Math.Max(e.WetT, wet);

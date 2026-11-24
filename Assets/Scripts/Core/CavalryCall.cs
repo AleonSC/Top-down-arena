@@ -68,9 +68,9 @@ namespace Arena
                     continue;
                 float tip = CavStart + CavReach(c.T) + CavTip;
                 V2 side = c.Dir.Orthogonal();
-                foreach (var e in Enemies.Values)
+                foreach (var e in AllFoes())
                 {
-                    if (!Targetable(e) || c.Hit.Contains(e.Id))
+                    if (c.Hit.Contains(e.Id))
                         continue;
                     V2 rel = e.Pos - c.Origin;
                     float u = Dot(rel, c.Dir), v = Dot(rel, side);

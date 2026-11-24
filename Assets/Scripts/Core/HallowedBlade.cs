@@ -44,10 +44,8 @@ namespace Arena
                     if (at > before && at <= now)
                         Heal(q, HallowedPulseHeal * z.HealMult, owner);
                 }
-                foreach (var e in Enemies.Values)
+                foreach (var e in AllFoes())
                 {
-                    if (e.SpawnT > 0f)
-                        continue;
                     float at = start + HallowedPulseRing * e.Pos.DistanceTo(z.Pos) / reach;
                     if (at > before && at <= now)
                         HurtEnemy(e, HallowedPulseDamage * z.DmgMult, z.Owner);

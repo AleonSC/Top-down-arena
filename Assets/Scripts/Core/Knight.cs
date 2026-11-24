@@ -1018,10 +1018,8 @@ namespace Arena
                 Player p;
                 if (!Players.TryGetValue(sl.Owner, out p) || p.Downed)
                     continue;  // (downed mid-leap: no landing)
-                foreach (var e in Enemies.Values)
+                foreach (var e in FoesInCircle(sl.Pos, sl.Radius))
                 {
-                    if (e.SpawnT > 0f || e.Pos.FartherThan(sl.Pos, sl.Radius + e.Radius))
-                        continue;
                     HurtEnemy(e, SlamDamage * p.Stats.DmgMult * sl.Power, p.Id);
                     if (!e.Def.IsBoss)
                     {

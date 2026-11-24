@@ -110,9 +110,8 @@ namespace Arena
             CereSlot(i, p.PlateN, p.PlateClock, out a, out r);
             BroadcastFx(FxKind.CereBreak, at, at + V2.FromAngle(a), new Rgba(0.76f, 0.21f, 0.17f), p.PlateBurst ? CereBurstRadius : 0f, 0.9f, Sfx.CereBreak);
             if (p.PlateBurst)
-                foreach (var e in Enemies.Values)
-                    if (e.SpawnT <= 0f && e.Pos.CloserThan(at, CereBurstRadius + e.Radius))
-                        HurtEnemy(e, CereBurstDamage * p.Stats.DmgMult, p.Id);
+                foreach (var e in FoesInCircle(at, CereBurstRadius))
+                    HurtEnemy(e, CereBurstDamage * p.Stats.DmgMult, p.Id);
             for (int k = i; k < p.PlateN - 1; k++)
                 p.PlateHp[k] = p.PlateHp[k + 1];
             p.PlateN--;

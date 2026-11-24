@@ -71,9 +71,9 @@ namespace Arena
                     continue;
                 float front = VolFront(vl.T);
                 V2 side = vl.Dir.Orthogonal();
-                foreach (var e in Enemies.Values)
+                foreach (var e in AllFoes())
                 {
-                    if (!Targetable(e) || vl.Hit.Contains(e.Id))
+                    if (vl.Hit.Contains(e.Id))
                         continue;
                     V2 rel = e.Pos - vl.Origin;
                     float u = Dot(rel, vl.Dir), v = Dot(rel, side);

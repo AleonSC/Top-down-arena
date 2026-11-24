@@ -122,9 +122,9 @@ namespace Arena
                     continue;
                 }
                 bool any = false;
-                foreach (var e in Enemies.Values)
+                foreach (var e in AllFoes())
                 {
-                    if (!Targetable(e) || w.Hit.Contains(e.Id))
+                    if (w.Hit.Contains(e.Id))
                         continue;
                     V2 rel = e.Pos - w.O;
                     float d = rel.Length;
@@ -235,10 +235,8 @@ namespace Arena
                 p.WcTempestTick += TempestTick;
                 float dmg = p.Weapon.Damage * TempestDmg * p.Stats.DmgMult * (1f + 0.2f * ExtraShots(p));
                 bool any = false;
-                foreach (var e in Enemies.Values)
+                foreach (var e in FoesInCircle(p.Pos, R))
                 {
-                    if (!Targetable(e) || e.Pos.FartherThan(p.Pos, R + e.Radius))
-                        continue;
                     any = true;
                     WeaponHurt(e, dmg, p.Id);
                     V2 rel = e.Pos - p.Pos;

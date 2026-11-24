@@ -128,9 +128,9 @@ namespace Arena
         {
             p.RapierLungeEl += dt;
             float u = Math.Min(1f, p.RapierLungeEl / p.RapierLungeDur), len = p.RapierLungeLen * u;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes())
             {
-                if (!Targetable(e) || p.RapierLungeHit.Contains(e.Id))
+                if (p.RapierLungeHit.Contains(e.Id))
                     continue;
                 float along = Math.Max(0f, Math.Min(len, (e.Pos - p.RapierLungeFrom).Dot(p.RapierLungeDir)));
                 if (e.Pos.FartherThan(p.RapierLungeFrom + p.RapierLungeDir * along, e.Radius + RapierLungeWidth))

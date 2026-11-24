@@ -152,9 +152,8 @@ namespace Arena
             if (!Players.TryGetValue(z.Owner, out p))
                 return;
             float dmg = DtBlastDamage * z.DmgMult * (z.Cap ? 2f : 1f);
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.CloserThan(z.Pos, DtBlast + e.Radius))
-                    HurtEnemy(e, dmg, p.Id);
+            foreach (var e in FoesInCircle(z.Pos, DtBlast))
+                HurtEnemy(e, dmg, p.Id);
         }
     }
 }

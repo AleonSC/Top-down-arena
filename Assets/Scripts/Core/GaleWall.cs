@@ -94,9 +94,9 @@ namespace Arena
                 return;
             int charge = p.GaleDots.Count;
             float face = p.Aim, D = GaleDamage(charge, p.GalePerShot) * p.Stats.DmgMult;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes())
             {
-                if (!Targetable(e) || !InCone(p.Pos, face, GaleConeHalf, GaleReach, e.Pos, e.Radius))
+                if (!InCone(p.Pos, face, GaleConeHalf, GaleReach, e.Pos, e.Radius))
                     continue;
                 if (!e.Def.IsBoss)
                 {

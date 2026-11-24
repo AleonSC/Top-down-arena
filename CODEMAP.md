@@ -269,6 +269,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
   `Devourer.cs` 90 (45), `Eclipse.cs` 100 (50); `LateGame.cs` is the shared
   late-boss logic
 - `Targets.cs`: shared targeting helpers: `FirstAlive`, `AlivePlayersList`, `NearestPlayer`, `RandomLivingPlayer`,
+- `FoeQuery.cs`: **what an attack hits** (Docs/Targeting.md): `FoesInCircle`, `FoesInBox`, `FoesInCone`, `AllFoes` (allocation-free struct queries over the Targetable enemies, optional `cover` = BlocksShot); every player attack loop uses them; test suite `foequery`
   `BossTarget(e)` (its target while up, else the first player up) and `Targetable(e)` (host: spawned in and alive)
 - `BossLab.cs`, `BotBrain.cs`: Boss Lab sessions, the "smart" bot (the Warden's gates: `ReadWardenGates` picks the next gate's door and walks to it in time, `GateDanger` with `Warden.GateFrontIn`; test suite `botgate`)
 - `BotParry.cs`: the smart bot's parry (`BotParry`, `WantParry`, `FirstHit`: the soonest shot or sword cut it can't dodge, timed for a perfect parry; `ParrySkill` per bot skill; `BotParries` counter); test suite `botweapon` (`Tools/SimTest/Tests/BotWeapon.cs`)
@@ -537,6 +538,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 | Task | Files |
 |---|---|
 | Add or change a weapon | `Defs.cs` (weapon def) or the class's file (`Knight.cs`, `Ninja.cs`, `KitWeapons.cs`...), `Weapons.cs`, `Combat.cs`, look in `ShotLooks.cs`/`WorldShots.cs` |
+| Make an attack hit things (area, lane, cone) | `FoeQuery.cs` (`FoesInCircle`, `FoesInBox`, `FoesInCone`, `AllFoes`), `Combat.cs` (`HurtEnemy`), Docs/Targeting.md |
 | Add or change an ability | the class's file; registry in `Upgrades.cs` (`AbilityDef`); `Abilities.cs` for Soldier; feedback in `AbilityLooks.cs` |
 | Add a new class | `HANDOFF.md` "Adding a class", `Defs.cs` (`Kit` enum, at the end), `Classes.cs`, `ClassLooks.cs`, `Docs/ClassTemplate` |
 | Tune damage, health, wave numbers | `Balance.cs` (index of where every system's numbers live), `Difficulty.cs`, `Docs/UpgradeBalance.md` |

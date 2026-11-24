@@ -148,10 +148,8 @@ namespace Arena
                     V2 from = p.Pos, path = target - from;
                     float len = Math.Max(1f, path.Length);
                     V2 dir = path / len;
-                    foreach (var e in Enemies.Values)
+                    foreach (var e in AllFoes())
                     {
-                        if (e.SpawnT > 0f)
-                            continue;
                         float along = Math.Max(0f, Math.Min(len, (e.Pos.X - from.X) * dir.X + (e.Pos.Y - from.Y) * dir.Y));
                         V2 closest = from + dir * along;
                         if (e.Pos.FartherThan(closest, e.Radius + 30f))

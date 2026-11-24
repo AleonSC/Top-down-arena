@@ -238,10 +238,8 @@ namespace Arena
             float sweep = KusariOmega * spin * dt, prev = MathX.Fmod(p.KusariAng, MathX.Tau), orbit = KusariOrbit(spin);
             p.KusariAng = MathX.Fmod(prev + sweep, MathX.Tau);
             bool hitAny = false;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes())
             {
-                if (!Targetable(e))
-                    continue;
                 e.KusariCd -= dt;
                 V2 rel = e.Pos - p.Pos;
                 float d = rel.Length;

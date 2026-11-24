@@ -219,9 +219,9 @@ namespace Arena
                 }
                 var hit = back ? th.HitBack : th.HitOut;
                 float dmg = th.Dmg * p.Stats.DmgMult;
-                foreach (var e in Enemies.Values)
+                foreach (var e in FoesInCircle(at, BbThrowHitR))
                 {
-                    if (!Targetable(e) || e.Pos.FartherThan(at, e.Radius + BbThrowHitR) || !hit.Add(e.Id))
+                    if (!hit.Add(e.Id))
                         continue;
                     V2 dir = e.Pos - at;
                     dir = dir.IsZero ? V2.FromAngle(th.Aim) : dir.Normalized();

@@ -160,10 +160,8 @@ namespace Arena
             if (sting)
                 p.RepelTickT += RepelPullTick;
             float dmg = RepelPullDps * RepelPullTick * p.Stats.DmgMult;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes())
             {
-                if (!Targetable(e))
-                    continue;
                 V2 rel = e.Pos - p.Pos;
                 float d = rel.Length;
                 if (d < 1f || d - e.Radius > reach)

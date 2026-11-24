@@ -41,9 +41,9 @@ namespace Arena
         /// A shockwave at `at`: knocks enemies back and, for a slam, hurts them.
         void TitanQuake(Minion m, V2 at, float reach, float dmg, float kind)
         {
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes())
             {
-                if (!Targetable(e) || e.Pos.FartherOrAt(at, reach + e.Radius))
+                if (e.Pos.FartherOrAt(at, reach + e.Radius))
                     continue;
                 V2 away = e.Pos - at;
                 if (!Heavy(e))

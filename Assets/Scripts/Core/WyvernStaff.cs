@@ -160,10 +160,8 @@ namespace Arena
             float len2 = Math.Max(1f, ab.X * ab.X + ab.Y * ab.Y);
             float dmg = p.Weapon.Damage * BreathTick * p.Stats.DmgMult * p.Stats.MinionDmgMult * (1f + 0.25f * ExtraShots(p));
             bool any = false;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes())
             {
-                if (!Targetable(e))
-                    continue;
                 V2 ae = e.Pos - a;
                 float t = Math.Max(0f, Math.Min(1f, (ae.X * ab.X + ae.Y * ab.Y) / len2));
                 if (e.Pos.FartherThan(a + ab * t, BreathWidth + e.Radius))
@@ -190,10 +188,8 @@ namespace Arena
             float dmg = WyvernSlamDmg * p.Stats.DmgMult * p.Stats.MinionDmgMult;
             int back = 0;
             bool any = false;
-            foreach (var e in Enemies.Values)
+            foreach (var e in FoesInCircle(m.Pos, R))
             {
-                if (!Targetable(e) || e.Pos.FartherThan(m.Pos, R + e.Radius))
-                    continue;
                 any = true;
                 WeaponHurt(e, dmg, p.Id);
                 if (e.Hp <= 0f)

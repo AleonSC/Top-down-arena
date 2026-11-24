@@ -841,12 +841,11 @@ namespace Arena
         /// A boulder landed: it crushes every enemy under it (weapon mods apply to each, as on a melee hit).
         void LandBoulder(Bullet b)
         {
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.CloserThan(b.Pos, b.Splash + e.Radius) && !BlocksShot(e, b.Pos))
-                {
-                    HurtEnemy(e, b.Dmg, b.Owner);
-                    OnBulletHit(b, e);
-                }
+            foreach (var e in FoesInCircle(b.Pos, b.Splash, b.Pos))
+            {
+                HurtEnemy(e, b.Dmg, b.Owner);
+                OnBulletHit(b, e);
+            }
             GateLockBlast(b.Pos, b.Splash, b.Owner);  // Warden.cs
             BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.BoulderShot), b.Splash, 0.35f, Sfx.Explode);
             BroadcastFx(FxKind.Ring, b.Pos, new Rgba(0.85f, 0.78f, 0.65f), b.Splash * 1.2f, 0.3f, Sfx.None);

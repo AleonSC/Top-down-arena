@@ -386,9 +386,9 @@ namespace Arena
             HitImplode(p, e, p.Weapon.Damage * mult * p.Stats.ImplodeDmgMult);  // (Event Horizon: harder, and from farther)
             float r = e.Radius + ImplodeSplash * AreaMult(p) * p.Stats.ImplodeReachMult;  // Homing Rounds widen it
             if (splash)
-                foreach (var o in Enemies.Values)
+                foreach (var o in AllFoes())
                 {
-                    if (o == e || IsSpawning(o) || o.Hp <= 0f || o.Pos.FartherOrAt(e.Pos, r + o.Radius))
+                    if (o == e || o.Pos.FartherOrAt(e.Pos, r + o.Radius))
                         continue;
                     imploded.Add(o);
                     HitImplode(p, o, ImplodeSplashDamage * mult);
@@ -583,9 +583,8 @@ namespace Arena
             e.BleedStacks = e.BleedHits = 0;
             e.BleedT = e.BleedDps = 0f;
             float dmg = boltDmg * BleedBurstMult, r = BleedBurstRadius * AreaMult(p) * p.Stats.HemoRadiusMult;
-            foreach (var o in Enemies.Values)
-                if (Targetable(o) && o.Pos.CloserThan(e.Pos, r + o.Radius))
-                    HurtEnemy(o, dmg, p.Id);
+            foreach (var o in FoesInCircle(e.Pos, r))
+                HurtEnemy(o, dmg, p.Id);
             BroadcastFx(FxKind.Implode, e.Pos, new Rgba(0.85f, 0.1f, 0.18f), r, 0.35f, Sfx.Explode);
         }
 
@@ -593,12 +592,11 @@ namespace Arena
         /// and spreads a pool of blood.
         void LandClot(Bullet b)
         {
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.CloserThan(b.Pos, b.Splash + e.Radius) && !BlocksShot(e, b.Pos))
-                {
-                    HurtEnemy(e, b.Dmg, b.Owner);
-                    OnBulletHit(b, e);
-                }
+            foreach (var e in FoesInCircle(b.Pos, b.Splash, b.Pos))
+            {
+                HurtEnemy(e, b.Dmg, b.Owner);
+                OnBulletHit(b, e);
+            }
             GateLockBlast(b.Pos, b.Splash, b.Owner);  // Warden.cs
             Player p;
             if (Players.TryGetValue(b.Owner, out p))

@@ -125,9 +125,9 @@ namespace Arena
         {
             if (ossuaryWalls.Count == 0)
                 return;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes())
             {
-                if (!Targetable(e) || e.Def.IsBoss)
+                if (e.Def.IsBoss)
                     continue;
                 e.WallDartT -= dt;
                 foreach (var z in ossuaryWalls)

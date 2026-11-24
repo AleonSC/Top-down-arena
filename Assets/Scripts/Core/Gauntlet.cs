@@ -142,9 +142,9 @@ namespace Arena
                     V2 at = g.From + (g.To - g.From) * u;
                     V2 path = at - g.From;
                     float len = path.Length;
-                    foreach (var o in Enemies.Values)
+                    foreach (var o in AllFoes())
                     {
-                        if (o.Id == g.Target || !Targetable(o) || g.Bowled.Contains(o.Id))
+                        if (o.Id == g.Target || g.Bowled.Contains(o.Id))
                             continue;
                         V2 off = o.Pos - g.From;
                         float along = Math.Max(0f, Math.Min(len, off.Dot(g.Dir)));

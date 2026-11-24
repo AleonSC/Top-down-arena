@@ -49,9 +49,9 @@ namespace Arena
                 float from = w.Dist;
                 w.Dist = Math.Min(TsunamiRange + TsunamiThick, w.Dist + TsunamiSpeed * dt);
                 V2 side = w.Dir.Orthogonal();
-                foreach (var e in Enemies.Values)
+                foreach (var e in AllFoes())
                 {
-                    if (!Targetable(e) || w.Hit.Contains(e.Id))
+                    if (w.Hit.Contains(e.Id))
                         continue;
                     V2 rel = e.Pos - w.Origin;
                     float along = Dot(rel, w.Dir), across = Dot(rel, side);
