@@ -1,6 +1,6 @@
 # Targeting: one way to ask "what does this hit?"
 
-> **Status: steps 1-5 done.** `Core/FoeQuery.cs` answers every player attack loop but three; PvP is on in the Hangout (`Core/Pvp.cs`):
+> **Status: steps 1-7 done.** `Core/FoeQuery.cs` answers every player attack loop but three; PvP is on in the Hangout (`Core/Pvp.cs`):
 > 89 of 91 weapons hit players in the `pvp` test (the other two only miss its close range), and every ability's query does. Status
 > effects reach players too (step 5).
 
@@ -42,11 +42,16 @@ struct enumerables: no allocation, they nest, and `HurtEnemy` inside one is safe
    it's written) is read back each Hangout tick and becomes the player's own: a freeze, stun or hold is `StunT` (halved, at most
    `PvpStunCap` 1.2 s), a slow is `PvpSlowT`/`PvpSlowMult` (replicated, protocol 476; halved, at most 3 s, never below 45% speed),
    a push is a knockback (`KnockPlayer`, half the distance), and burns, bleeds and poison tick as damage over time from whoever set
-   them (never your own on yourself). A melee daze does nothing to a player (it would be a stun-lock). Marks and other enemy-only
-   states (seeded, wet, charged...) still do nothing on a player.
+   them (never your own on yourself). A melee daze does nothing to a player (it would be a stun-lock).
 6. **Walls** (done): another player's Blood Wall and Ossuary Wall keep you off them (a knockback, `PvpWallPush`, at most every
    0.12 s) and hurt you as they hurt enemies (the Blood Wall's bleed and its mastered slow, the Ossuary Wall's darts). Your own
    walls never push you; the Blood Wall still drains its caster as before.
+7. **Marks and other states** (done): each tick a stand-in runs the same status ticks as an enemy (burns, incendiary pools,
+   bleeds, poison, venom, wet, bone cages, every class's `TickEnemy` hook), so their damage, timers and stacks work as on an
+   enemy. Holds (Leech Tendrils' grasp, a bone cage, the Heart Lift) are a stun; wet is a slow, and a wet player draws
+   Tsunami's arcs; marks (`MarkMult`), a Searchlight and the attacker's damage cards (Blood Price, Vein Tithe, Execute,
+   Graviton Rounds, crits, cast power) raise PvP hits (`PvpHitMult`). After a PvP stun a player can't be stunned again for
+   `PvpStunImmune` (1.5 s past its end).
 
 ## Behaviour notes
 
