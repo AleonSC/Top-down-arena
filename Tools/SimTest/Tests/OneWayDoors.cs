@@ -60,6 +60,28 @@ static partial class Program
             Check(tw.Doors.Where(d => d.Joins(second.Count)).All(d => d.Pass == 0), "a One-way piece built only onto another one: its single door stays both ways");
         }
 
+        // A room beside the piece that a one-way door would trap you in or shut you out of keeps its door both ways (owner Nov 23):
+        // a dead end (its only door into the piece), and a mini-boss room even with a second door.
+        Func<bool, int, List<ExpansionRoom>> nextTo = (gate, nDoors) => Expansion.PlacementsFor(rooms, PieceShape.Mono).Select(o =>
+        {
+            var l = new List<ExpansionRoom>(rooms);
+            l.AddRange(o.Rooms.Select(q => { if (gate) q.Kind = RoomKind.Gatekeeper; return q; }));
+            return l;
+        }).FirstOrDefault(l =>
+        {
+            var tw = Expansion.Build(l, Expansion.GridCoreCuts()); int a = l.Count;
+            var ds = tw.Doors.Where(d => d.Joins(a)).ToList();
+            return ds.Count == nDoors && ds.Any(d => d.Other(a) >= first && d.Other(a) < a);
+        });
+        var dead = nextTo(false, 1);
+        Check(dead != null && Expansion.Build(dead, Expansion.GridCoreCuts()).Doors.Where(d => d.Joins(dead.Count)).All(d => d.Pass == 0), "a dead end beside a One-way piece: its only door stays both ways");
+        var gateRoom = nextTo(true, 2);
+        if (gateRoom != null)
+            Check(Expansion.Build(gateRoom, Expansion.GridCoreCuts()).Doors.Where(d => d.Joins(gateRoom.Count)).All(d => d.Pass == 0), "a mini-boss room beside a One-way piece: its doors stay both ways, so you can walk back out after the duel");
+        var plainTwo = nextTo(false, 2);
+        if (plainTwo != null)
+            Check(Expansion.Build(plainTwo, Expansion.GridCoreCuts()).Doors.Any(d => d.Joins(plainTwo.Count) && d.Pass != 0), "a plain room with two doors still gets the one-way door");
+
         // The geometry: held on the side it can't leave by, through the open way, routes only the open way.
         int k = Array.FindIndex(w.Doors, d => d.Pass != 0);
         var door = w.Doors[k];
