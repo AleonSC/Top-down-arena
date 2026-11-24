@@ -529,6 +529,9 @@ namespace Arena
         public float DrawT;                    // Mender's Bow: how long the current draw has been held (replicated; your own is local)
         public float BowRelease;               // Mender's Bow (host): a release waiting to fire, as its draw time; the shooter measures it
         public float BowShotDraw;              // Mender's Bow (host): the draw of the arrow being fired
+        public bool BowFocus;                  // Mender's Bow (host): the release waiting to fire was timed in the Focus bar's zone (BowFocus.cs)
+        public bool BowShotFocus;              // Mender's Bow (host): the arrow being fired is a Focus shot
+        public float ScatterCd;                // host: the Mender's Bow's Scatter cools down for this long (BowFocus.cs)
         public bool Parrying;                  // holding the parry shield up (replicated)
         public float ParryHp = Game.ParryCapacity;  // damage the shield can still take (replicated)
         public float CounterT;                 // host: Counterstance fire-rate boost time left
@@ -808,6 +811,7 @@ namespace Arena
         public EnemyType? Source; // host only: the enemy that fired it (for the session record)
         public int ShooterId;     // host only: the id of the enemy that fired it (0: not known); Lightning Rod calls its bolt on it
         public V2 ShooterPos;     // host only: where that enemy stood when it fired (the bolt still lands there if it has died)
+        public HashSet<int> Gusted; // host only: a Focus arrow: the enemies its wind has shoved (BowFocus.cs)
         public int HomeOn;        // host only: a Stonespear volley spear: the enemy it curves in on (SteerSpear; Pulled sends its course)
     }
 

@@ -141,6 +141,8 @@ namespace Arena
 
             MEll(1f, 2f, rx + 2f, ry + 1f, new Rgba(0f, 0f, 0f, 0.28f));
             ModelBack(p, kit, role, K, RC, rx, ry, w, t);
+            if (p.Weapon.Id == WeaponId.MendersBow)
+                DrawBowQuiver(p);  // the quiver on the back (BowFocusLook.cs)
             MEll(-1f, 0f, rx, ry, K.Dark); MEll(-1f, 0f, rx - 1.6f, ry - 1.6f, K.Base);
             ModelRoleTrim(role, K, RC, rx, ry, t, !LookDrawsPauldrons(p));
 
@@ -183,6 +185,8 @@ namespace Arena
                 FlHandPose(p, ref rhx, ref rhy, ref lhx, ref lhy);  // both hands on the lance's shaft, wherever it swings (FrostLanceLook.cs)
             float whipRot;
             WhipHandPose(p, ref rhx, ref rhy, out whipRot);  // the Revolver swung round for a Pistol Whip (PistolWhipLook.cs)
+            float bowOx = 0f, bowOy = 0f;
+            bool bowHands = p.Weapon.Id == WeaponId.MendersBow && BowHandPose(p, wk, ref rhx, ref rhy, ref lhx, ref lhy, out bowOx, out bowOy);  // a hand on the string, or fetching an arrow (BowFocusLook.cs)
             rhx -= gKick; lhx -= gKick + gPump * wk;
             mPump = gPump; mHeat = gHeat; mLit = gLit;
             // The Twin Rifle is held out wide, each muzzle where its stream starts, turned toward the crossing; each gun recoils
@@ -218,7 +222,7 @@ namespace Arena
                     ModelArm(K, 1f, -ry * 0.72f, lhx, lhy);
                 }
             }
-            MFrame(rhx, rhy, -twist + climbR + whipRot, wk, false);  // (the climb turns each gun outward)
+            MFrame(bowHands ? bowOx : rhx, bowHands ? bowOy : rhy, -twist + climbR + whipRot, wk, false);  // (the climb turns each gun outward)
             float keepA = mAlpha;
             mAlpha *= p.Weapon.Melee && fxOn ? HeldPhase(p.Id) : 1f;  // a melee weapon phases out for its swing and back in after
             if (mAlpha > 0.01f && !ownArms)
@@ -230,6 +234,8 @@ namespace Arena
             }
             mAlpha = keepA;
             MFrame(0f, 0f, 0f, 1f, false);
+            if (bowHands)
+                DrawBowSwing(p, wk, bowOx, bowOy);  // a fresh arrow swung from the quiver to the string (BowFocusLook.cs)
             if (!ownArms) { MCirc(rhx, rhy, 3.3f, K.Glove); MCirc(lhx, lhy, 3.3f, K.Glove); }
             if (ammo)
                 DrawAmmoKnifeArms(p, K);  // your own arms in front, the knife in the right hand (OutOfAmmoLook.cs)
@@ -651,6 +657,7 @@ namespace Arena
                 DrawBowFlex(p);
                 return;
             }
+            MFrame(mOx, mOy, mAng, mWs * BowScale, mMir);  // drawn 30% bigger (BowFocusLook.cs)
             float draw = p.DrawT > 0f ? MathX.Clamp01(p.DrawT / 1.2f) : 0.35f;
             MArc(2f, 0f, 16f, -1.05f, 1.05f, 2.6f, Hx(0x7a5a3a));
             float nock = 4f - 6f * draw;

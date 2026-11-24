@@ -229,6 +229,16 @@ namespace Arena
                 DrawCrescentShot(b, t);  // EclipseLook.cs
                 return;
             }
+            if (b.Kind == Defs.FocusArrow)
+            {
+                DrawFocusArrow(b, t);  // BowFocusLook.cs
+                return;
+            }
+            if (b.Kind == Defs.ScatterArrow)
+            {
+                DrawScatterArrow(b);  // BowFocusLook.cs
+                return;
+            }
             if (b.Kind == Defs.ArrowShot)  // a Mender's Bow arrow: wooden shaft, steel head, green fletching
             {
                 V2 dir = b.Vel.Normalized(), side = dir.Orthogonal();
@@ -380,12 +390,12 @@ namespace Arena
 
         /// The aim line: a soft glow from your gun along your aim in your role's color, out to your weapon's
         /// range (Game.WeaponRange) with a small cap there, fading with distance, motes drifting outward.
-        /// Mender's Bow: a ring that fills as you draw (gold at full draw, pulsing while a release would be
-        /// perfect), and for your own bow an aim cone that narrows to a line.
+        /// Mender's Bow: a ring that fills as you draw (gold at full draw, pulsing while a release would be a
+        /// Focus shot), and for your own bow an aim cone that narrows to a line (the Focus bar: BowFocusLook.cs).
         void DrawBowDraw(Player p, bool mine, float t)
         {
             float c = game.BowCharge(p, p.DrawT);
-            bool full = c >= 1f, perfect = game.BowPerfect(p, p.DrawT);
+            bool full = c >= 1f, perfect = mine && game.BowInZone(p, p.DrawT);
             float r = p.Def.BodyR + 11f;
             var role = p.Def.Color;
             var gold = new Rgba(1f, 0.82f, 0.3f);
