@@ -98,10 +98,10 @@ namespace Arena
             return n;
         }
 
-        /// Host: a regular wave just built. Timed unless it is a boss, practice, designed or zombie wave.
+        /// Host: a regular wave just built. Timed unless it is a boss or zombie wave.
         void BeginTimedWave()
         {
-            timedWave = TimedWaves.Enabled && ModeRules.Extras && Design == null && !BossNow && !ZombiesOn && QueuedUnits() > 0;
+            timedWave = TimedWaves.Enabled && ModeRules.Extras && !BossNow && !ZombiesOn && QueuedUnits() > 0;
             timedTotal = QueuedUnits();
             timedClock = -spawnTimer;  // (the usual opening delay: 0.5 s, longer while the breaches flicker up)
             ResetPortals();  // SpawnPortals.cs

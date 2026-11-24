@@ -18,7 +18,7 @@ namespace Arena
         LayoutId lastLayout = LayoutId.Open;
         bool layoutFresh;           // host: a new cycle's layout whose crates haven't been placed yet
 
-        /// The floor plan in force right now: none in a challenge room, the Practice Range or the Showcase.
+        /// The floor plan in force right now: none in a challenge room or the Showcase.
         public LayoutDef ActiveLayout
         {
             get

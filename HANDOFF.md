@@ -36,12 +36,11 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
     anywhere; winning unlocks its perk. **Only the Warden has a hunt so far.** Optional **Hunt map** (node choices).
   - **Survival** (`Survival.cs`): no waves, one clock, factions join every 4 min, one big walled room, ends when all
     are down.
-  - **Practice** (Practice Range): build waves of any enemies/bosses, plus Training drills; no XP, respawn on.
 - **Track waves vs shown waves (important):** the Campaign is the old 50-wave track with **each track wave fought
   twice** ("legs", `Game.Leg`). All scaling code reads `Wave` (track, 1-50, a boss after every 5th:
   `CampaignBosses.Every = 5`); the player sees `ShownWave` (1-100). Wave numbers in README and older docs are usually
   **track** waves: double them for what the player sees. XP, gold, chests and vectors per wave are halved to match.
-  Quick Play, Boss Hunts and Practice don't use legs.
+  Quick Play and Boss Hunts don't use legs.
 - **How Campaign waves are filled — Campaign buildup** (default on, `Approaches.Campaign`): every wave is the coming
   boss's faction, growing through its stretch; the last boss's faction fades out over the next waves; older bosses
   stay as a small pool and return as **comeback squads**. Each boss's 10 Campaign waves are a **teaching cycle**
@@ -50,7 +49,7 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
   boss) is what you get with Campaign buildup turned off.
 - **Arena:** Campaign and Quick Play are played on the **Expanding arena**: it starts as a box and grows as the party
   builds rooms between waves with **vectors** (draw a room, vote it in; shops/Black Markets, a free surprise room after each
-  boss). The **Simple Arena** modifier keeps the open arena. Boss Hunts and Practice use the open arena; Survival has its
+  boss). The **Simple Arena** modifier keeps the open arena. Boss Hunts use the open arena; Survival has its
   own 3200 x 1800 room.
 - **Between waves (Campaign):** level-up cards (3 picks, rerolls, or gold instead), room building and gold shops,
   floating mini-boss rooms (a faction's mini-boss, `FactionMinis.cs`), **Data Gates** (an optional challenge once per
@@ -103,7 +102,7 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.
   Menus can draw game models on top of panels: `BeginUiGl()` / `UiModelAt(pos, zoom)` / `EndUiGl()` issue GL
-  during IMGUI's Repaint (used by the lobby and Practice Range tiles).
+  during IMGUI's Repaint (used by the lobby, the dev tools' enemy list and the pause menu).
 - **Loadout preview:** `DrawShowcase` swaps the `Showcase` game into `ArenaApp.game` and calls `DrawArenaContents`
   (the part of `DrawWorld` between the floor and the overlays), clipped with `UiClip` (software clipping in `Tri`,
   so it works the same in Unity and the preview tool).
@@ -124,7 +123,7 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
   and 1 (snapshot, saved); the player sees `ShownWave` (1-100), `ShownStart/ShownEnd(n)` convert a track wave, and
   `NextTrackWave` is the next regular fight's. Everything that scales or unlocks keeps reading `Wave`; per-wave rewards
   multiply by `Pace` (0.5). Show numbers to players with `ShownWave`, never `Wave`. Off (`LongLegs` false) in Hunts,
-  Practice, the Boss Lab, the lobby preview and older saves. Sim tests run the 50-wave track (`Game.LongRunDefault`
+  the Boss Lab, the lobby preview and older saves. Sim tests run the 50-wave track (`Game.LongRunDefault`
   false) except suite `longrun`. Profile records (best wave, unlocks, rank XP) are still on the track's scale.
 - **The boss between waves:** `Game.BossSlot` (`Hunts.cs`) is true while the boss after regular wave `Wave` is fought (and in the box after it); `Wave` itself doesn't move for it. Ask `BossNow` ("a boss fight, or just beaten") and `BossNext` ("the boss starts next") instead of `Wave % 5`; `IsBossWave(n)` only says "a boss follows wave n" (and, in a hunt, "n is the last wave"). `Waves.cs` starts it (`BossStartsNext`), the snapshot and saves carry it (a save from before it counts a multiple of 5 as beaten), and a negative `Session.StartWave` (-10) starts at the boss after that wave (Boss Lab, tests; `DevJumpToWave(n, true)` in the dev dock).
 - **Path state is derived, not sent:** each game eases `NarrowF` / `FogF` from `CurrentPath` + wave, and ages
@@ -211,10 +210,6 @@ The lobby fits about 8 class cards in a row before they get too small.
 - **Setup:** the cloud container may not have mono. Install it with
   `apt-get install -y mono-mcs mono-runtime libmono-system-core4.0-cil` (Pillow for previews is already there).
   Without mono, `check.sh` now fails with a clear message (exit 2); it used to print "OK" anyway.
-- **Designed waves:** `Tools/WaveGen/build.sh` turns `Data/Waves/*.waves` (designed wave sets, edited by hand or in Wave Lab) into
-  `Assets/Scripts/Core/DesignedWaves.Generated.cs` with the game's own parser (`Gen.cs`; `Stub.cs` stands in for the
-  generated file while it builds, so a stale one can't block it). It stops, writing nothing, on any problem. The
-  `wavegen` suite fails if the generated file is out of date.
 - **Cell layouts:** edit them in the game (F1 > LABS > CELL EDITOR); SAVE writes `CellLayoutEdits.txt` (project root in the Editor), which the game loads at start. `python3 Tools/CellEdits/fold.py` writes it into `Core/CellLayouts.cs` (do it before committing, then the `celllayouts` suite). The editor's tabs: CELLS (the 18 cell layouts), ROOM VIEW (a piece's cells together; preview `CEDTAB=1 CEDSHAPE=n`) HUB (the six hub floor plans, folded into `HubLayouts.Generated.cs`) and CORE (the ten core floor plans, folded into `CoreLayouts.cs`; the `corelayouts` suite checks the rules). TEST LAYOUT / TEST builds the cell, piece or hub plan in your current run (start a run first). Dev only: every machine in a game needs the same files.
 - **Per-tick garbage and distance tests:** to walk a copy of the enemies while they change, use `SnapEnemies()` / `SnapKeys(dict)` and `Free(list)` (`Core/Scratch.cs`), not `new List<Enemy>(Enemies.Values)`; for a one-off list, `enemyLists.Rent()` and `Return`. To compare a distance, use `a.CloserThan(b, r)` / `WithinReach` / `FartherThan` / `FartherOrAt` (`MathTypes.cs`) rather than `a.DistanceTo(b) < r` (no square root). Suite `scratch`.
 - **Reference tables:** `Docs/Reference.md` (weapons, abilities, enemies, roles, classes) is generated from the definitions: after a balance or text change run `Tools/SimTest/run.sh 1 1 refdocwrite` and commit it; the `refdoc` suite fails when it is stale.
@@ -225,7 +220,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   `Tools/Preview` sets (by reflection) gets `#pragma warning disable 0649` around it; `check.sh -w` lists them.
 - **Sim tests:** `Tools/SimTest/run.sh <wave> <seconds> [suite]` builds `Program.cs` (shared helpers, the **`Suites`
   table** and `Main`) and `Tests/*.cs` (one file per system: `Match`, `Upgrades`, `Weapons`, `Abilities`, `Parry`,
-  `Knight`, `Ninja`, `Hemomancer`, `Classes`, `Enemies`, `Bosses`, `Paths`, `Practice`, `BossLab`, `Reports`, `Music`,
+  `Knight`, `Ninja`, `Hemomancer`, `Classes`, `Enemies`, `Bosses`, `Paths`, `BossLab`, `Reports`, `Music`,
   `TextEdit`). `run.sh list` prints every suite.
   - **Setup helpers** (`Program.cs`): `HostAs(new Session { ... }, port, bot, name, role, ...)`, `JoinAs(port, bot, name,
     role, ...)`, `WaitForGame(host, client, dt)`, `WaitForLobby(host, client)` and `PollBoth(host, client)`. Use them in
@@ -237,7 +232,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   - `Tools/SimTest/extras.sh [k/n]` = every pass/fail suite the two above skip (`CiExtras` in `Program.cs`, ~6 min here),
     each in its own process, built once; `k/n` runs one shard. CI runs it as two shards beside `core` and `features`.
     **A new suite whose tests aren't in `FeatureTests` goes in `CiExtras`.** `TIMES=1 run.sh ...` prints each test's time.
-  - Single systems: `snapshot` (run snapshots, F6 / F7), `parry`, `aim`, `extra`, `knight`, `ninja`, `blood`, `bloodlash`, `paths`, `bazaar`, `practice`, `bosses`,
+  - Single systems: `snapshot` (run snapshots, F6 / F7), `parry`, `aim`, `extra`, `knight`, `ninja`, `blood`, `bloodlash`, `paths`, `bazaar`, `bosses`,
     `warden`, `singularity`, `mastery`, `longrun` (the 100-wave Campaign), `bossschedule` (the boss schedules match the old formulas), `quickfights` (Quick Play boss fights with bots: each boss's fight length after waves 10/20/30), `quick` (Quick Play: its waves, boss, records, endless, room building with two bots, the tutorial; prints each boss's health after waves 10/20/30), `bossgate` (the boss gate before a boss: holds the wave until everyone is in, bots walk in; the only suite with `Game.GatesOn`), `wardencycle` (its Warden wave lessons), `reapercult` (the Twin Reapers' faction: Bound Wraiths, Scythe Wraith, Lamplighter, Mourner), `checkpoints` (lives and retries), `classcards`, `showcase`, `ultimates`, `mods`, `cardids` (card ids over the network as 2 bytes), `offers` (every card offer reads the weapon), `cardfilters` (class and weapon-list cards), `classcardlists` (each class's card list), `hitfx` (hit flash and blast thinning), `nonshooters` (Fuse Runner, Hookman, Sapper), `turnkey` (the Warden faction's Turnkey: wave-3 debut, running, traps, Cell Doors), `aitrace` (every non-boss enemy alone for 12 s vs `Golden/aitrace.txt`, the enemy behaviour refactor's safety net, Docs/EnemyBehaviours.md; `AITRACE=update` rewrites it), ... Reports (numbers, no pass/fail):
     `ttk`, `lab`, `levels`, `bulletcount`, `perf` (sim ms a frame, host and friend, through a Quick Play breach wave: `run.sh 1 1 perf [secs] [boss] [wave]`), `survperf` (the same for Survival at the 60-enemy cap: `run.sh 1 1 survperf [secs] [start min]`), `wavemix` (each wave's share of shooters, melee and support), `dps`, `ultdps`, `balance` (each damage upgrade's worth per pick and full
     stack in a boss, pack and spread fight; see `Docs/UpgradeBalance.md`), `upgradecov` (which weapon upgrades each
@@ -318,7 +313,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   Arial (Liberation Sans). `SHOTW=<WeaponId>` fires that weapon three times (shots at 0.06 / 0.18 / 0.3 s) for comparing shot looks with
   `Docs/Mockups/projectiles.html`. `LINEAR=1` shows
   how a Linear-colour-space project would draw it (washed out); the game is meant for **Gamma** (see below). Modes: `hud`,
-  `tab`, `picker`, `dev`, `labsetup`, `labpanel`, `lobby`, `lobbypr`, `practicehud`, `menu`, `bg` (with
+  `tab`, `picker`, `dev`, `labsetup`, `labpanel`, `lobby`, `menu`, `bg` (with
   `BG=0..9`), `pause`, `kitgrid`, `legendary`, ... Path flags: `PATHOFFER=1|2|3|4` (the choice screen with each pair
   of paths), `PATHON=<PathId number>` (in-arena look of that path; 8 = Fogbound, 9 = Narrow Pass), `PATCHES=1` (sample
   fire/pools). Others: `TEXTEDIT=1` (lobby in text-edit mode, outline under `MOUSE`) or `TEXTEDIT=<text>` (its edit

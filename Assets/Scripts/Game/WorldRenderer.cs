@@ -174,6 +174,7 @@ namespace Arena
                     DrawArcLockFlatCharge(p, p.Id == game.MyId, t);  // (Visual effects off; on, the glow pass has it: ArcLockLook.cs)
                 else if (p.Weapon.Id == WeaponId.GoreMortar && p.DrawT > 0f && !p.Downed)
                     DrawClotCharge(p, p.Id == game.MyId, t);  // GoreMortarLook.cs
+            DrawBowFocusUi(t);  // your Mender's Bow: the Focus bar and Scatter's cooldown (BowFocusLook.cs)
 
             if (aimDebug && game.Me != null)
             {

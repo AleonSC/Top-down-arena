@@ -172,7 +172,7 @@ namespace Arena
             ShopT = 0f;
         }
 
-        /// Host, after a boss wave is cleared: offer two paths for the next stretch (not in the Practice Range or
+        /// Host, after a boss wave is cleared: offer two paths for the next stretch (not
         /// after the final wave).
         void OfferPaths()
         {

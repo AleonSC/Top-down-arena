@@ -1,0 +1,539 @@
+<title>Mender's Bow Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same field-manual look as the other bow mockups. Arena drawn at 2x (1 arena px = 2 canvas px). Single dark look: it mirrors the game. */
+:root {
+  --bg: #0a0d10; --panel: #11161b; --panel-2: #161c22; --line: #242d36; --edge: #36424e;
+  --fg: #e7eef3; --muted: #92a1ad; --soft: #cfdae2; --heal: #59ff8c; --amber: #ffb547; --gold: #ffd24d;
+  --font-display: "Oxanium", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 400 16px/1.55 var(--font-body); margin: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 24px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(28px, 5vw, 42px); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+h1 span { color: var(--gold); }
+h2 { font-size: 19px; font-weight: 700; letter-spacing: 0.04em; }
+p { margin: 0; max-width: 72ch; }
+.lead { color: var(--soft); }
+.eyebrow { font: 600 11px var(--font-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+header { display: grid; gap: 8px; }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; display: grid; }
+#arena { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 1280 / 560; background: #070910; touch-action: none; user-select: none; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.group > .label { font: 600 11px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+button { font: 600 14px var(--font-body); color: var(--soft); background: var(--panel-2); border: 1px solid var(--edge); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--muted); color: var(--fg); }
+button:focus-visible { outline: 2px solid var(--heal); outline-offset: 2px; }
+button[aria-pressed="true"] { background: #14291d; border-color: var(--heal); color: var(--fg); }
+.hint { font: 500 12px var(--font-data); color: var(--muted); margin-left: auto; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 11px var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+td:first-child { color: var(--fg); font-weight: 600; white-space: nowrap; }
+td { color: var(--soft); }
+td.new { color: var(--gold); }
+.tbl { overflow-x: auto; }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--soft); font-size: 15px; }
+.note { font-size: 13px; color: var(--muted); }
+@media (max-width: 700px) { .hint { margin-left: 0; width: 100%; } }
+</style>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Mockup · Healer · Soldier · Mender's Bow</div>
+    <h1>Mender's Bow <span>rework</span></h1>
+    <p class="lead">A bigger bow, a fresh arrow swung from the quiver on every shot, a Focus bar you time at full draw for
+      a heavy wind-driven arrow, and Scatter on Alt. Watch a scene or pick <b>Play it</b> and try the timing yourself.</p>
+  </header>
+
+  <section class="stage" aria-label="Live preview">
+    <canvas id="arena" width="1280" height="560"></canvas>
+    <div class="bar">
+      <div class="group" role="group" aria-label="Scene">
+        <span class="label">Scene</span>
+        <button data-scene="nock" aria-pressed="false">Nock &amp; shoot</button>
+        <button data-scene="focus" aria-pressed="true">Focus shot</button>
+        <button data-scene="miss" aria-pressed="false">Missed timing</button>
+        <button data-scene="scatter" aria-pressed="false">Scatter (Alt)</button>
+        <button data-scene="play" aria-pressed="false">Play it</button>
+      </div>
+      <div class="group" role="group" aria-label="Bow look">
+        <span class="label">Bow</span>
+        <button data-look="old" aria-pressed="false">Now</button>
+        <button data-look="new" aria-pressed="true">New</button>
+      </div>
+      <div class="group" role="group" aria-label="Speed">
+        <span class="label">Speed</span>
+        <button data-speed="1" aria-pressed="true">1×</button>
+        <button data-speed="0.3" aria-pressed="false">0.3×</button>
+      </div>
+      <span class="hint" id="hint">Scripted loop</span>
+    </div>
+  </section>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>Proposed numbers</h2>
+      <div class="tbl"><table>
+        <thead><tr><th></th><th>Now</th><th>Proposed</th></tr></thead>
+        <tbody>
+          <tr><td>Tap</td><td>8 dmg, heals 5</td><td>same</td></tr>
+          <tr><td>Full draw</td><td>0.9 s: 40 dmg, pierces 2, heals 20</td><td>same</td></tr>
+          <tr><td>Perfect release</td><td>let go within 0.25 s: +25%</td><td class="new">replaced by the Focus bar</td></tr>
+          <tr><td>Focus bar</td><td>none</td><td class="new">pops up at full draw; the marker sweeps up and down every 0.8 s; the gold zone is 20% of the bar, at a new height each draw</td></tr>
+          <tr><td>Focus shot</td><td>none</td><td class="new">90 dmg, pierces everything, heals 30, 1150 px/s; its wind shoves every enemy within 34 px of the path 70 px (heavies half, bosses not)</td></tr>
+          <tr><td>Missed timing</td><td>none</td><td class="new">a normal full shot (40)</td></tr>
+          <tr><td>Alt: Scatter</td><td>none</td><td class="new">5 arrows in a 40° fan, 12 dmg each, heal 6, reach about 400 px, 3 s cooldown</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h2>What changes on screen</h2>
+      <ul>
+        <li>The bow is 30% bigger, with a dark outline, gold tips and a green grip wrap.</li>
+        <li>A quiver sits on the back. After each shot the hand pulls a new arrow and swings it over the shoulder onto the string in 0.25 s, the bow's existing recovery time.</li>
+        <li>At full draw the bow glows gold and the Focus bar pops out behind you. Hit the zone and the bar bursts, the game pauses for a frame, the screen kicks, and a gold arrow flies off wrapped in two wind ribbons.</li>
+        <li>For Scatter, the bow snaps a wide fan of five small arrows, and a teal arc under you shows the cooldown.</li>
+      </ul>
+      <p class="note">This is an approximate HTML mockup. The canvas glow and fonts here can look softer than <code>Ui.cs</code> draws them in the game.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const easeOut = x => 1 - Math.pow(1 - clamp01(x), 3);
+  const easeInOut = x => { x = clamp01(x); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+  const easeBack = x => { x = clamp01(x); const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const cv = document.getElementById("arena"), c = cv.getContext("2d");
+  const W = 640, H = 280, SC = 2;
+  const GREEN = "#59ff8c", GOLD = "#ffd24d", WIND = "220,245,255";
+
+  // ---- numbers (seconds, px) ----
+  const MIN_DRAW = 0.15, FULL = 0.9, RECOVER = 0.25, PERIOD = 0.8, ZONE = 0.2, SCATTER_CD = 3;
+
+  // ---- drawing helpers ----
+  const line = (x0, y0, x1, y1, col, lw) => { c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.strokeStyle = col; c.lineWidth = lw; c.lineCap = "round"; c.stroke(); };
+  const circ = (x, y, r, fill, stroke, lw) => { c.beginPath(); c.arc(x, y, Math.max(0.01, r), 0, TAU); if (fill) { c.fillStyle = fill; c.fill(); } if (stroke) { c.strokeStyle = stroke; c.lineWidth = lw || 1; c.stroke(); } };
+  const arc = (x, y, r, a0, a1, col, lw) => { c.beginPath(); c.arc(x, y, Math.max(0.01, r), a0, a1); c.strokeStyle = col; c.lineWidth = lw; c.lineCap = "round"; c.stroke(); };
+  const rect = (x, y, w, h, fill) => { c.fillStyle = fill; c.fillRect(x, y, w, h); };
+  const glow = (col, b) => { c.shadowColor = col; c.shadowBlur = b * SC; };
+  const noGlow = () => { c.shadowBlur = 0; c.shadowColor = "transparent"; };
+  const text = (s, x, y, col, size, weight) => { c.font = `${weight || 800} ${size || 12}px Oxanium, sans-serif`; c.textAlign = "center"; c.fillStyle = col; c.fillText(s, x, y); };
+  const star4 = (x, y, r, col) => { c.beginPath(); c.moveTo(x - r, y); c.quadraticCurveTo(x, y, x, y - r); c.quadraticCurveTo(x, y, x + r, y); c.quadraticCurveTo(x, y, x, y + r); c.quadraticCurveTo(x, y, x - r, y); c.closePath(); c.fillStyle = col; c.fill(); };
+
+  // ---- world ----
+  const P = { x: 80, y: 140 };
+  const ally = { x: 215, y: 147, r: 12 };
+  const HOMES = [[380, 140], [445, 92], [455, 190], [545, 142]];
+  let dummies;
+  function resetWorld() {
+    dummies = HOMES.map(([x, y], i) => ({ id: i, hx: x, hy: y, ox: 0, oy: 0, vx: 0, vy: 0, flash: 0, lastPush: -9, hp: 1 }));
+  }
+  let arrows = [], parts = [], floats = [];
+  let look = "new", sceneName = "focus", speed = 1;
+  let time = 0, sceneT = 0, hitStop = 0, shake = 0;
+  let aim = 0, drawT = -1, sinceShot = 9, scatterCd = 0, zone0 = 0.55, bowSnap = 9, lastFocus = false;
+  let barFx = null;          // {t, ok, m}
+  let mouse = { x: 400, y: 140 }, pointerDown = false, spaceDown = false;
+
+  const charge = d => clamp01((d - MIN_DRAW) / (FULL - MIN_DRAW));
+  const markerAt = bt => { const ph = (bt / PERIOD) % 1; return ph < 0.5 ? ph * 2 : 2 - ph * 2; };   // 0 bottom .. 1 top
+  const barOn = () => drawT >= FULL;
+  const inZone = () => { const m = markerAt(drawT - FULL); return m >= zone0 && m <= zone0 + ZONE; };
+  const dpos = d => ({ x: d.hx + d.ox, y: d.hy + d.oy });
+
+  // ---- actions ----
+  function startDraw() {
+    if (drawT >= 0 || sinceShot < RECOVER) return false;
+    drawT = 0; zone0 = 0.2 + Math.random() * 0.55; return true;
+  }
+  function release() {
+    if (drawT < 0) return;
+    const d = drawT; drawT = -1; sinceShot = 0; bowSnap = 0;
+    const dir = { x: Math.cos(aim), y: Math.sin(aim) };
+    const S = look === "new" ? 1.3 : 1;
+    const from = { x: P.x + dir.x * 30 * S, y: P.y + dir.y * 30 * S };
+    if (d >= FULL) {
+      const m = markerAt(d - FULL), ok = m >= zone0 && m <= zone0 + ZONE;
+      barFx = { t: 0, ok, m, z: zone0 };
+      if (ok) {
+        lastFocus = true;
+        hitStop = 0.07; shake = reduce ? 0 : 6;
+        arrows.push({ kind: "focus", x: from.x, y: from.y, dx: dir.x, dy: dir.y, v: 1150, dmg: 90, heal: 30, pierce: 99, hit: new Set(), pushed: new Set(), healed: false, trail: [], life: 0 });
+        for (let i = 0; i < 3; i++) parts.push({ kind: "crescent", x: from.x, y: from.y, a: aim, life: 0, max: 0.35 + i * 0.08, d0: i * 9 });
+        parts.push({ kind: "ring", x: from.x, y: from.y, life: 0, max: 0.4, col: GOLD, r: 44 });
+        floats.push({ s: "FOCUS!", x: P.x, y: P.y - 34, age: 0, col: GOLD, size: 15 });
+        return;
+      }
+      lastFocus = false;
+      arrows.push(mkArrow("full", from, dir, 1));
+      return;
+    }
+    lastFocus = false;
+    arrows.push(mkArrow(d < 0.3 ? "tap" : "part", from, dir, charge(Math.max(MIN_DRAW, d))));
+  }
+  function mkArrow(kind, from, dir, k) {
+    return { kind, x: from.x, y: from.y, dx: dir.x, dy: dir.y, v: lerp(500, 950, k), dmg: Math.round(lerp(8, 40, k)), heal: Math.round(lerp(5, 20, k)),
+      pierce: k >= 1 ? 2 : k >= 0.5 ? 1 : 0, hit: new Set(), healed: false, trail: [], life: 0, k };
+  }
+  function scatter() {
+    if (scatterCd > 0) return;
+    drawT = -1; scatterCd = SCATTER_CD; sinceShot = 0; bowSnap = 0; lastFocus = false;
+    const S = look === "new" ? 1.3 : 1;
+    for (let i = -2; i <= 2; i++) {
+      const a = aim + i * 0.175, dir = { x: Math.cos(a), y: Math.sin(a) };
+      arrows.push({ kind: "scatter", x: P.x + dir.x * 28 * S, y: P.y + dir.y * 28 * S, dx: dir.x, dy: dir.y, v: 820, dmg: 12, heal: 6, pierce: 0, hit: new Set(), healed: false, trail: [], life: 0, maxLife: 0.5 });
+    }
+    parts.push({ kind: "fan", x: P.x, y: P.y, a: aim, life: 0, max: 0.3 });
+  }
+
+  // ---- scenes (scripted input) ----
+  const SCENES = {
+    nock:    { dur: 3.6, ev: [[0.25, "down"], [0.4, "up"], [0.9, "down"], [1.45, "up"], [1.95, "down"], [2.7, "up"]] },
+    focus:   { dur: 3.2, ev: [[0.3, "down"], [1.5, "upIn"]] },
+    miss:    { dur: 3.0, ev: [[0.3, "down"], [1.5, "upOut"]] },
+    scatter: { dur: 3.9, ev: [[0.4, "alt"], [1.0, "altTry"]] },
+    play:    { dur: Infinity, ev: [] },
+  };
+  let evIdx = 0, pending = null;
+  function startScene(n) {
+    sceneName = n; sceneT = 0; evIdx = 0; pending = null; drawT = -1; sinceShot = 9; scatterCd = 0; barFx = null;
+    arrows = []; parts = []; floats = []; resetWorld(); aim = 0; mouse = { x: 400, y: 140 };
+    document.querySelectorAll("[data-scene]").forEach(b => b.setAttribute("aria-pressed", b.dataset.scene === n));
+    document.getElementById("hint").textContent = n === "play" ? "Hold click or Space to draw · right-click or E: Scatter" : "Scripted loop";
+  }
+  function runScript() {
+    const sc = SCENES[sceneName];
+    while (evIdx < sc.ev.length && sceneT >= sc.ev[evIdx][0]) {
+      const e = sc.ev[evIdx][1]; evIdx++;
+      if (e === "down") startDraw();
+      else if (e === "up") release();
+      else if (e === "alt") scatter();
+      else if (e === "altTry") { floats.push({ s: "cooldown", x: P.x, y: P.y - 30, age: 0, col: "#7fe6d8", size: 11 }); }
+      else pending = e;
+    }
+    if (pending && barOn() && drawT - FULL > 0.3) {
+      const m = markerAt(drawT - FULL), mid = zone0 + ZONE / 2;
+      if (pending === "upIn" && Math.abs(m - mid) < 0.03) { release(); pending = null; }
+      if (pending === "upOut" && (m < zone0 - 0.12 || m > zone0 + ZONE + 0.12) && Math.abs(m - mid) > 0.3) { release(); pending = null; }
+    }
+    if (sceneT >= sc.dur) startScene(sceneName);
+  }
+
+  // ---- simulation ----
+  function segDist(px, py, ax, ay, bx, by) {
+    const vx = bx - ax, vy = by - ay, L = vx * vx + vy * vy;
+    const t = L > 0 ? clamp01(((px - ax) * vx + (py - ay) * vy) / L) : 0;
+    return Math.hypot(px - (ax + vx * t), py - (ay + vy * t));
+  }
+  function step(dt) {
+    time += dt; sceneT += dt; sinceShot += dt; bowSnap += dt; scatterCd = Math.max(0, scatterCd - dt);
+    if (sceneName === "play") {
+      aim = Math.atan2(mouse.y - P.y, mouse.x - P.x);
+      const held = pointerDown || spaceDown;
+      if (held && drawT < 0) startDraw();
+      if (!held && drawT >= 0) release();
+    } else runScript();
+    if (drawT >= 0) drawT += dt;
+    if (barFx) { barFx.t += dt; if (barFx.t > 0.6) barFx = null; }
+
+    for (const a of arrows) {
+      const px = a.x, py = a.y;
+      a.x += a.dx * a.v * dt; a.y += a.dy * a.v * dt; a.life += dt;
+      a.trail.unshift({ x: a.x, y: a.y }); if (a.trail.length > 16) a.trail.pop();
+      if (!a.healed && segDist(ally.x, ally.y, px, py, a.x, a.y) <= ally.r + 3) {
+        a.healed = true;
+        floats.push({ s: "+" + a.heal, x: ally.x, y: ally.y, age: 0, col: GREEN, size: a.kind === "focus" ? 14 : 12 });
+        for (let i = 0; i < 6; i++) parts.push({ kind: "plus", x: ally.x + (Math.random() - 0.5) * 20, y: ally.y + (Math.random() - 0.5) * 14, life: 0, max: 0.6 });
+      }
+      for (const d of dummies) {
+        const q = dpos(d);
+        if (a.kind === "focus" && !a.pushed.has(d.id) && segDist(q.x, q.y, px, py, a.x, a.y) <= 34 + 16) {
+          a.pushed.add(d.id);
+          const side = Math.sign((q.x - a.x) * -a.dy + (q.y - a.y) * a.dx) || 1;
+          let nx = a.dx * 0.8 + -a.dy * side * 0.6, ny = a.dy * 0.8 + a.dx * side * 0.6; const L = Math.hypot(nx, ny); nx /= L; ny /= L;
+          d.vx += nx * 700; d.vy += ny * 700; d.lastPush = time;
+          for (let i = 0; i < 7; i++) parts.push({ kind: "dust", x: q.x, y: q.y + 10, vx: -nx * 40 + (Math.random() - 0.5) * 60, vy: -ny * 40 + (Math.random() - 0.5) * 60, life: 0, max: 0.5 + Math.random() * 0.3 });
+        }
+        if (a.dead || a.hit.has(d.id)) continue;
+        if (segDist(q.x, q.y, px, py, a.x, a.y) <= 16 + (a.kind === "focus" ? 4 : 2)) {
+          a.hit.add(d.id); d.flash = 1; d.hp = Math.max(0.15, d.hp - a.dmg / 300);
+          const big = a.kind === "focus";
+          floats.push({ s: String(a.dmg), x: q.x + (Math.random() - 0.5) * 8, y: q.y, age: 0, col: big ? GOLD : "#ffffff", size: big ? 18 : a.kind === "scatter" ? 11 : 13 });
+          parts.push({ kind: "impact", x: q.x - a.dx * 12, y: q.y - a.dy * 12, life: 0, max: big ? 0.35 : 0.2, big });
+          if (!big) { d.vx += a.dx * (a.kind === "scatter" ? 60 : 90); d.vy += a.dy * (a.kind === "scatter" ? 60 : 90); d.lastPush = time; }
+          if (a.hit.size > a.pierce) a.dead = true;
+        }
+      }
+      if (a.kind === "focus" && Math.random() < 0.9) {
+        const s = (Math.random() - 0.5) * 50;
+        parts.push({ kind: "streak", x: a.x - a.dy * s, y: a.y + a.dx * s, vx: a.dx * 260, vy: a.dy * 260, a: Math.atan2(a.dy, a.dx), life: 0, max: 0.25 + Math.random() * 0.15 });
+      }
+      if (a.maxLife && a.life > a.maxLife) a.dead = true;
+      if (a.x < -60 || a.x > W + 60 || a.y < -60 || a.y > H + 60) a.dead = true;
+      if (a.dead && a.kind === "focus") parts.push({ kind: "gust", x: Math.min(W - 20, a.x), y: a.y, a: Math.atan2(a.dy, a.dx), life: 0, max: 0.4 });
+      if (a.dead && a.kind === "scatter" && a.hit.size === 0) parts.push({ kind: "stick", x: a.x, y: a.y, a: Math.atan2(a.dy, a.dx), life: 0, max: 0.7 });
+    }
+    arrows = arrows.filter(a => !a.dead);
+
+    for (const d of dummies) {
+      d.ox += d.vx * dt; d.oy += d.vy * dt;
+      const k = Math.exp(-10 * dt); d.vx *= k; d.vy *= k;
+      if (time - d.lastPush > 0.9) { const r = 1 - Math.exp(-3 * dt); d.ox -= d.ox * r; d.oy -= d.oy * r; d.hp = Math.min(1, d.hp + dt * 0.25); }
+      d.flash = Math.max(0, d.flash - dt * 6);
+    }
+    for (const p of parts) { p.life += dt; if (p.vx != null) { p.x += p.vx * dt; p.y += p.vy * dt; } }
+    parts = parts.filter(p => p.life < p.max);
+    for (const f of floats) f.age += dt;
+    floats = floats.filter(f => f.age < 0.9);
+    shake = Math.max(0, shake - dt * 40);
+  }
+
+  // ---- drawing ----
+  function ground() {
+    c.fillStyle = "#070910"; c.fillRect(0, 0, W, H);
+    c.strokeStyle = "rgba(255,255,255,0.035)"; c.lineWidth = 0.5;
+    for (let x = 0; x <= W; x += 40) line(x, 0, x, H, "rgba(255,255,255,0.035)", 0.5);
+    for (let y = 0; y <= H; y += 40) line(0, y, W, y, "rgba(255,255,255,0.035)", 0.5);
+  }
+  function drawAlly() {
+    circ(ally.x, ally.y, ally.r, "#2f4a63", "#7fb6ff", 2); circ(ally.x, ally.y, 4, "#7fb6ff");
+    c.font = "600 8px Barlow, sans-serif"; c.textAlign = "center"; c.fillStyle = "rgba(160,190,220,0.7)"; c.fillText("ally", ally.x, ally.y + 24);
+  }
+  function drawDummy(d) {
+    const q = dpos(d), f = clamp01(d.flash);
+    circ(q.x, q.y, 16, f > 0 ? `rgba(255,${200 - 100 * f | 0},${160 - 100 * f | 0},1)` : "#3b2f33", "#8a4a55", 2);
+    circ(q.x, q.y, 5, "#8a4a55");
+    rect(q.x - 16, q.y - 26, 32, 3, "#222"); rect(q.x - 16, q.y - 26, 32 * d.hp, 3, "#e0535f");
+  }
+  function arrowShape(len, col, head, lw) {   // tail at 0, pointing +x
+    line(0, 0, len - 5, 0, col, lw || 1.4);
+    c.beginPath(); c.moveTo(len - 5, -2); c.lineTo(len, 0); c.lineTo(len - 5, 2); c.closePath(); c.fillStyle = head; c.fill();
+    line(0, 0, -3, -2.2, "#e8f0e8", 1); line(0, 0, -3, 2.2, "#e8f0e8", 1); line(2, 0, -1, -2.2, "#e8f0e8", 1); line(2, 0, -1, 2.2, "#e8f0e8", 1);
+  }
+  // The bow, in the player's aim frame. k = how far the string is pulled (0.1..1), cg = charge.
+  function drawBow(k, cg, wob, S, nocked, gold) {
+    c.save(); c.scale(S, S);
+    const tipX = 9.9 - 5 * cg, tipY = 13.9 - 1.8 * cg, ctrlX = 2 * (18 - 2 * cg) - tipX;
+    const limb = (col, lw) => { c.beginPath(); c.moveTo(tipX, -tipY); c.quadraticCurveTo(ctrlX, 0, tipX, tipY); c.strokeStyle = col; c.lineWidth = lw; c.lineCap = "round"; c.stroke(); };
+    if (gold > 0) glow(`rgba(255,210,77,${0.9 * gold})`, 10 * gold);
+    if (look === "new") {
+      limb("#2a1d12", 4.2); noGlow(); limb("#8a6a42", 2.8); limb("rgba(214,178,120,0.6)", 0.8);
+      circ(tipX, -tipY, 1.5, GOLD); circ(tipX, tipY, 1.5, GOLD);
+      c.save(); c.translate(18 - 2 * cg - 1.6, 0); rect(-1.6, -3.4, 3.4, 6.8, "#2f6b45"); line(-1.6, -1.5, 1.8, -2.4, GREEN, 0.6); line(-1.6, 1.2, 1.8, 0.3, GREEN, 0.6); c.restore();
+    } else { limb("#7a5a3a", 2.6); noGlow(); }
+    const nock = 4 - 10 * k + wob;
+    const strCol = gold > 0 ? `rgba(255,${235 - 40 * gold | 0},${200 - 110 * gold | 0},1)` : "#eaeaea";
+    line(tipX, -tipY, nock, 0, strCol, 0.8); line(nock, 0, tipX, tipY, strCol, 0.8);
+    if (nocked) {
+      c.save(); c.translate(nock, 0);
+      arrowShape(31 - nock, gold > 0.3 ? "#ffe9a8" : "#cfe9d6", gold > 0.3 ? GOLD : GREEN);
+      c.restore();
+      if (cg > 0.7) { const g = (cg - 0.7) / 0.3; star4(31, 0, 3 + 5 * g, `rgba(255,255,255,${0.4 + 0.6 * g})`); }
+    }
+    if (look === "old") circ(18, 0, 2, GREEN);
+    c.restore();
+  }
+  function drawQuiver() {   // on the back, in the aim frame
+    c.save(); c.translate(-13, -2); c.rotate(-0.45);
+    rect(-3.6, -10, 7.2, 19, "#4a3626"); rect(-3.6, -10, 7.2, 2, "#2a1d12"); rect(-3.6, 5, 7.2, 1.5, "#8a6a42");
+    for (const x of [-2, 0.2, 2.2]) { line(x, -10, x - 0.4, -14, "#e8f0e8", 1.4); line(x, -10, x + 0.6, -13.5, "rgba(89,255,140,0.8)", 0.7); }
+    c.restore();
+  }
+  function drawPlayer() {
+    const S = look === "new" ? 1.3 : 1;
+    const drawing = drawT >= 0, cg = drawing ? charge(drawT) : 0, k = drawing ? 0.15 + 0.85 * cg : 0.1;
+    const wob = bowSnap < 0.5 ? Math.sin(bowSnap * 70) * 4 * Math.exp(-bowSnap * 9) : 0;
+    const gold = barOn() ? Math.min(1, (drawT - FULL) / 0.15) * (0.7 + 0.3 * Math.sin(time * 18)) : 0;
+    const tremble = barOn() ? Math.sin(time * 55) * 0.35 : 0;
+    // nocking: new look swings an arrow from the quiver; the old look just shows it again after 0.3 s
+    const nocking = look === "new" && sinceShot < RECOVER;
+    const nocked = look === "new" ? sinceShot >= RECOVER : sinceShot > 0.3;
+
+    if (scatterCd > 0) arc(P.x, P.y, 21, -Math.PI / 2, -Math.PI / 2 + TAU * (scatterCd / SCATTER_CD), "rgba(127,230,216,0.75)", 1.6);
+    if (gold > 0) { c.globalAlpha = 0.25 * gold; circ(P.x + Math.cos(aim) * 22 * S, P.y + Math.sin(aim) * 22 * S, 26, "rgba(255,210,77,0.35)"); c.globalAlpha = 1; }
+
+    c.save(); c.translate(P.x, P.y + tremble); c.rotate(aim);
+    if (look === "new") drawQuiver();
+    circ(0, 0, 14, "#5b6b52", GREEN, 2); circ(0, 0, 9.5, "#46543e");
+    rect(-3, -13, 5, 26, "#e8f0e8");
+    circ(0, 0, 16.5, null, "rgba(89,255,140,0.5)", 1);
+    rect(-11, -6, 7, 12, "#2d3829");
+    rect(1, -3, 7, 6, "#9fe8b0");
+    drawBow(k, cg, wob, S, nocked, gold);
+    if (nocking) {
+      const u = easeInOut(sinceShot / RECOVER);
+      const x0 = -14, y0 = -12, x1 = -6, y1 = -34, x2 = (4 - 10 * 0.1) * S, y2 = 0;
+      const tail = t => ({ x: (1 - t) * (1 - t) * x0 + 2 * t * (1 - t) * x1 + t * t * x2, y: (1 - t) * (1 - t) * y0 + 2 * t * (1 - t) * y1 + t * t * y2 });
+      const ang = t => lerp(-2.2, 0, easeOut(t));
+      for (let g = 2; g >= 0; g--) {                       // two faint ghosts behind for motion
+        const t = Math.max(0, u - g * 0.1), p = tail(t);
+        c.save(); c.globalAlpha = g === 0 ? 1 : 0.18 / g; c.translate(p.x, p.y); c.rotate(ang(t)); c.scale(S, S);
+        arrowShape(27, lastFocus ? "#ffe9a8" : "#cfe9d6", lastFocus ? GOLD : GREEN);
+        c.restore();
+      }
+      const p = tail(u); circ(p.x, p.y, 3, "#d9b48c", "#7a5a3a", 0.8);   // the hand
+      c.globalAlpha = 1;
+    }
+    c.restore();
+  }
+  function drawArrows() {
+    for (const a of arrows) {
+      const ang = Math.atan2(a.dy, a.dx), tr = a.trail;
+      if (a.kind === "focus") {
+        // two wind ribbons twisting round the path
+        for (const ph of [0, Math.PI]) {
+          c.beginPath();
+          for (let i = 0; i < tr.length; i++) {
+            const amp = 4 + i * 1.3, off = Math.sin(i * 0.8 - time * 40 + ph) * amp;
+            const x = tr[i].x - a.dy * off - a.dx * i * 2, y = tr[i].y + a.dx * off - a.dy * i * 2;
+            i ? c.lineTo(x, y) : c.moveTo(x, y);
+          }
+          c.strokeStyle = `rgba(${WIND},0.55)`; c.lineWidth = 1.6; c.lineCap = "round"; c.stroke();
+        }
+        const L = Math.min(110, a.life * 1150);
+        const g = c.createLinearGradient(a.x, a.y, a.x - a.dx * L, a.y - a.dy * L);
+        g.addColorStop(0, "rgba(255,220,110,0.9)"); g.addColorStop(1, "rgba(255,220,110,0)");
+        line(a.x, a.y, a.x - a.dx * L, a.y - a.dy * L, g, 5);
+        c.save(); c.translate(a.x, a.y); c.rotate(ang); glow("rgba(255,210,77,1)", 9);
+        c.translate(-30, 0); c.scale(1.25, 1.25); arrowShape(26, "#fff3c4", GOLD, 2); noGlow(); c.restore();
+        continue;
+      }
+      const L = Math.min(a.kind === "scatter" ? 26 : 60, a.life * a.v) * (a.kind === "tap" ? 0.5 : 1);
+      const g = c.createLinearGradient(a.x, a.y, a.x - a.dx * L, a.y - a.dy * L);
+      g.addColorStop(0, a.kind === "scatter" ? "rgba(127,230,216,0.7)" : "rgba(89,255,140,0.55)"); g.addColorStop(1, "rgba(89,255,140,0)");
+      line(a.x, a.y, a.x - a.dx * L, a.y - a.dy * L, g, a.kind === "scatter" ? 1.6 : 2.4);
+      c.save(); c.translate(a.x, a.y); c.rotate(ang);
+      if (a.kind === "scatter") { c.translate(-18, 0); c.scale(0.7, 0.7); arrowShape(26, "#cfeee9", "#7fe6d8"); }
+      else { c.translate(-26, 0); arrowShape(26, "#cfe9d6", GREEN); }
+      c.restore();
+    }
+  }
+  function drawParts() {
+    for (const p of parts) {
+      const t = p.life / p.max, a = 1 - t;
+      if (p.kind === "ring") { arc(p.x, p.y, 8 + p.r * easeOut(t), 0, TAU, `rgba(255,210,77,${a})`, 3 * a + 0.5); }
+      else if (p.kind === "crescent") {
+        const tt = clamp01((p.life - p.d0 / 100) / (p.max - p.d0 / 100)); if (tt <= 0) continue;
+        const r = 10 + 46 * easeOut(tt), cx = p.x + Math.cos(p.a) * (r * 0.6 - 4), cy = p.y + Math.sin(p.a) * (r * 0.6 - 4);
+        arc(cx, cy, r * 0.5, p.a - 1.1, p.a + 1.1, `rgba(${WIND},${0.85 * (1 - tt)})`, 2.2 * (1 - tt) + 0.4);
+      }
+      else if (p.kind === "fan") {
+        for (let i = -2; i <= 2; i++) { const aa = p.a + i * 0.175, r = 20 + 40 * easeOut(t); arc(p.x, p.y, r, aa - 0.06, aa + 0.06, `rgba(127,230,216,${a})`, 2); }
+        arc(p.x, p.y, 18 + 30 * easeOut(t), p.a - 0.45, p.a + 0.45, `rgba(255,255,255,${0.5 * a})`, 1.2);
+      }
+      else if (p.kind === "streak") { line(p.x, p.y, p.x - Math.cos(p.a) * 14 * a, p.y - Math.sin(p.a) * 14 * a, `rgba(${WIND},${0.6 * a})`, 1); }
+      else if (p.kind === "dust") { circ(p.x, p.y, 2 + 5 * t, `rgba(170,160,140,${0.35 * a})`); }
+      else if (p.kind === "impact") {
+        star4(p.x, p.y, (p.big ? 16 : 8) * (0.5 + t), `rgba(255,${p.big ? 225 : 255},${p.big ? 120 : 255},${a})`);
+        if (p.big) arc(p.x, p.y, 6 + 26 * easeOut(t), 0, TAU, `rgba(255,210,77,${a})`, 2);
+      }
+      else if (p.kind === "gust") {
+        for (let i = 0; i < 3; i++) { const r = 8 + 30 * easeOut(t) + i * 5; arc(p.x, p.y, r, p.a - 0.9, p.a + 0.9, `rgba(${WIND},${0.5 * a})`, 1.4); }
+      }
+      else if (p.kind === "stick") { c.save(); c.globalAlpha = a; c.translate(p.x, p.y); c.rotate(p.a); c.scale(0.7, 0.7); c.translate(-26, 0); arrowShape(26, "#cfeee9", "#7fe6d8"); c.restore(); }
+      else if (p.kind === "plus") { const y = p.y - 12 * t; line(p.x - 2.5, y, p.x + 2.5, y, `rgba(89,255,140,${a})`, 1.4); line(p.x, y - 2.5, p.x, y + 2.5, `rgba(89,255,140,${a})`, 1.4); }
+    }
+  }
+  function drawFocusBar() {
+    const S = look === "new" ? 1.3 : 1;
+    const bx = P.x - Math.cos(aim) * 40, by = P.y - Math.sin(aim) * 10;
+    const BW = 9, BH = 64;
+    let pop, m, z, state = null;
+    if (barOn()) { pop = easeBack(Math.min(1, (drawT - FULL) / 0.15)); m = markerAt(drawT - FULL); z = zone0; }
+    else if (barFx) { pop = 1; m = barFx.m; z = barFx.z; state = barFx; }
+    else return;
+    c.save(); c.translate(bx, by);
+    if (state && !state.ok) { c.translate(Math.sin(state.t * 90) * 3 * (1 - state.t / 0.6), 0); c.globalAlpha = 1 - state.t / 0.6; }
+    if (state && state.ok) { const s = 1 + 0.6 * easeOut(state.t / 0.35); c.scale(s, s); c.globalAlpha = Math.max(0, 1 - state.t / 0.35); }
+    c.scale(pop, pop);
+    const y = v => BH / 2 - v * BH;  // 0 bottom .. 1 top
+    rect(-BW / 2 - 2, -BH / 2 - 2, BW + 4, BH + 4, "#0b0f13");
+    c.strokeStyle = state && !state.ok ? "#e0535f" : "rgba(255,210,77,0.7)"; c.lineWidth = 1; c.strokeRect(-BW / 2 - 2, -BH / 2 - 2, BW + 4, BH + 4);
+    for (let i = 1; i < 8; i++) line(-BW / 2, -BH / 2 + i * BH / 8, -BW / 2 + 2, -BH / 2 + i * BH / 8, "rgba(255,255,255,0.18)", 0.5);
+    const hot = !state && m >= z && m <= z + ZONE;
+    if (hot) glow("rgba(255,210,77,1)", 8);
+    rect(-BW / 2, y(z + ZONE), BW, ZONE * BH, state && !state.ok ? "rgba(140,140,140,0.5)" : hot ? "#ffe27a" : "rgba(255,210,77,0.55)");
+    noGlow();
+    const my = y(m), mc = state ? (state.ok ? "#ffffff" : "#e0535f") : hot ? "#ffffff" : "#dfe8ef";
+    line(-BW / 2 - 3, my, BW / 2 + 3, my, mc, 1.6);
+    c.beginPath(); c.moveTo(-BW / 2 - 6, my - 3); c.lineTo(-BW / 2 - 2, my); c.lineTo(-BW / 2 - 6, my + 3); c.closePath(); c.fillStyle = mc; c.fill();
+    c.beginPath(); c.moveTo(BW / 2 + 6, my - 3); c.lineTo(BW / 2 + 2, my); c.lineTo(BW / 2 + 6, my + 3); c.closePath(); c.fill();
+    c.restore(); c.globalAlpha = 1;
+    if (state && state.ok && state.t < 0.4) {   // shards
+      for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + 0.3, r = 6 + 40 * easeOut(state.t / 0.4); star4(bx + Math.cos(a) * r, by + Math.sin(a) * r * 1.4, 3 * (1 - state.t / 0.4), "rgba(255,226,122,0.9)"); }
+    }
+  }
+  function drawFloats() {
+    for (const f of floats) {
+      c.globalAlpha = 1 - clamp01((f.age - 0.45) / 0.45);
+      const pop = f.age < 0.12 ? 1 + 0.5 * (1 - f.age / 0.12) : 1;
+      c.save(); c.translate(f.x, f.y - 22 - 24 * easeOut(f.age / 0.9)); c.scale(pop, pop);
+      c.lineWidth = 3; c.strokeStyle = "rgba(0,0,0,0.6)"; c.font = `800 ${f.size}px Oxanium, sans-serif`; c.textAlign = "center"; c.strokeText(f.s, 0, 0);
+      text(f.s, 0, 0, f.col, f.size); c.restore();
+    }
+    c.globalAlpha = 1;
+  }
+  function drawHud() {
+    let s;
+    if (drawT >= 0) s = barOn() ? (inZone() ? "FOCUS ZONE · release!" : "full draw · time the bar") : `drawing ${(charge(drawT) * 100) | 0}%`;
+    else s = scatterCd > 0 ? `Scatter ${scatterCd.toFixed(1)} s` : "";
+    c.font = "500 9px 'IBM Plex Mono', monospace"; c.textAlign = "left"; c.fillStyle = "rgba(207,218,226,0.75)"; c.fillText(s, 10, H - 10);
+    c.textAlign = "right"; c.fillStyle = "rgba(146,161,173,0.7)"; c.fillText(look === "new" ? "new bow" : "bow now", W - 10, H - 10);
+  }
+  function render() {
+    c.setTransform(SC, 0, 0, SC, 0, 0);
+    const sx = shake ? (Math.random() - 0.5) * shake : 0, sy = shake ? (Math.random() - 0.5) * shake : 0;
+    c.translate(sx, sy);
+    ground(); drawAlly(); dummies.forEach(drawDummy);
+    drawParts(); drawPlayer(); drawArrows(); drawFocusBar(); drawFloats();
+    c.setTransform(SC, 0, 0, SC, 0, 0); drawHud();
+  }
+
+  let last = performance.now();
+  function frame(now) {
+    let dt = Math.min(1 / 30, (now - last) / 1000) * speed; last = now;
+    if (hitStop > 0) { hitStop -= dt; dt = 0; }
+    if (dt > 0) step(dt);
+    render();
+    requestAnimationFrame(frame);
+  }
+
+  // ---- input ----
+  const toWorld = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; };
+  cv.addEventListener("contextmenu", e => e.preventDefault());
+  cv.addEventListener("pointermove", e => { mouse = toWorld(e); });
+  cv.addEventListener("pointerdown", e => {
+    if (sceneName !== "play") startScene("play");
+    mouse = toWorld(e);
+    if (e.button === 2) scatter(); else { pointerDown = true; cv.setPointerCapture(e.pointerId); }
+  });
+  cv.addEventListener("pointerup", e => { if (e.button !== 2) pointerDown = false; });
+  window.addEventListener("keydown", e => {
+    if (sceneName !== "play") return;
+    if (e.code === "Space") { spaceDown = true; e.preventDefault(); }
+    if (e.code === "KeyE" || e.code === "KeyQ") scatter();
+  });
+  window.addEventListener("keyup", e => { if (e.code === "Space") spaceDown = false; });
+
+  document.querySelectorAll("[data-scene]").forEach(b => b.addEventListener("click", () => startScene(b.dataset.scene)));
+  document.querySelectorAll("[data-look]").forEach(b => b.addEventListener("click", () => { look = b.dataset.look; document.querySelectorAll("[data-look]").forEach(x => x.setAttribute("aria-pressed", x === b)); }));
+  document.querySelectorAll("[data-speed]").forEach(b => b.addEventListener("click", () => { speed = +b.dataset.speed; document.querySelectorAll("[data-speed]").forEach(x => x.setAttribute("aria-pressed", x === b)); }));
+
+  startScene("focus");
+  requestAnimationFrame(frame);
+})();
+</script>

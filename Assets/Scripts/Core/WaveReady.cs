@@ -65,7 +65,7 @@ namespace Arena
         {
             if (!ModeRules.Extras || WaveReport == null || WaveReport.Wave != Wave)
             {
-                timer -= dt;  // the opening countdown, the Practice Range and a dev jump: no ready-up
+                timer -= dt;  // the opening countdown and a dev jump: no ready-up
                 return true;
             }
             if (AllAutoReady())

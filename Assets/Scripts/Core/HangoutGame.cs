@@ -30,7 +30,7 @@ namespace Arena
         /// The dummies' spots: a row ahead of where the party stands, in the middle of the arena.
         static V2 HangoutDummySpot(int k) => new V2(Width / 2f + k * 230f, Height / 2f - 140f);
 
-        /// Host and clients, as the Start is read: take the Hangout's own setup over from the lobby's pick (a Practice plan or a hunt is
+        /// Host and clients, as the Start is read: take the Hangout's own setup over from the lobby's pick (a hunt is
         /// not part of it).
         void HangoutRead(bool on)
         {
@@ -38,10 +38,8 @@ namespace Arena
             hangoutReady = false;
             if (!on)
                 return;
-            Practice = null;
             Hunt = null;
             HuntMapOn = false;
-            Design = null;
             ResetSpawners();  // HangoutSpawners.cs
             hangoutBeams.Clear();
         }

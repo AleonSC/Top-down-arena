@@ -71,6 +71,7 @@ namespace Arena
             { WeaponId.RiotRepeater, (g, me, t, dt) => Tap(t, dt, 9.5f, 1.5f) },    // tear gas (9 s cooldown)
             { WeaponId.TwinPistols, (g, me, t, dt) => Tap(t, dt, 12.5f, 1.5f) },    // Laser Sights (12 s cooldown)
             { WeaponId.Revolver, (g, me, t, dt) => Tap(t, dt, 4.5f, 1.5f) },        // Pistol Whip (4 s cooldown)
+            { WeaponId.MendersBow, (g, me, t, dt) => Tap(t, dt, 3.5f, 1.5f) },      // Scatter (3 s cooldown)
             // The Repulsion Cannon: Undertow pulls them in while held, with the meter full.
             { WeaponId.RepulsionCannon, (g, me, t, dt) => Fill(Hold(t, 6f, 1.5f, 1.8f), () => me.RepelMeter = 100) },
             // The Double Barrel: both barrels, reloaded in between.

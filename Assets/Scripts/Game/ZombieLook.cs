@@ -10,7 +10,7 @@ namespace Arena
     {
         static readonly Rgba ZombieFloor = new Rgba(0.043f, 0.063f, 0.047f, 0.9f), ZombieGrid = new Rgba(0.55f, 1f, 0.42f, 0.045f), ZombieBorder = new Rgba(0.32f, 0.6f, 0.34f, 0.6f);
 
-        bool ZombieArena => game.Has(RunMod.ZombieInfection) && game.Practice == null;
+        bool ZombieArena => game.Has(RunMod.ZombieInfection);
 
         // Each shape's corners, pointing along +X (scaled by the radius, turned to face where it's going).
         static readonly float[] ShamblerPts = { 1.05f, 0f, -0.75f, 1.05f, -0.75f, -1.05f };

@@ -27,7 +27,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         Check(host.Game.Running && client.Game.Running && host.Game.HangoutOn && client.Game.HangoutOn, "a client's ask opens it on every screen");
         Check(host.Game.Mode == GameMode.Hangout && client.Game.Mode == GameMode.Hangout, "both screens play the Hangout mode");
-        Check(!host.Game.Quick && !client.Game.Quick && host.Game.Practice == null && host.Game.Hunt == null && !host.Game.SurvivalOn, "the lobby's own pick doesn't carry in");
+        Check(!host.Game.Quick && !client.Game.Quick && host.Game.Hunt == null && !host.Game.SurvivalOn, "the lobby's own pick doesn't carry in");
 
         var both = new[] { host, client };
         Run(both, dt, 3f);

@@ -479,7 +479,7 @@ static partial class Shot {
       var sg = host.Game;
       sg.SurvivalOn = true; sg.SurvStarted = true;
       sg.SurvTime = float.Parse(sp[0], System.Globalization.CultureInfo.InvariantCulture); sg.Wave = Survival.WaveAt(sg.SurvTime);
-      sg.Hunt = null; sg.Quick = false; sg.Practice = null;
+      sg.Hunt = null; sg.Quick = false;
       // The big room (SurvivalWorld.cs): up, with its props; SURVPOS=x,y puts you somewhere in it (default: the start).
       sg.RoomsUp = true; sg.Layout = LayoutId.Open; sg.LayoutAge = 99f; sg.PropsOn = true;
       var spos = Environment.GetEnvironmentVariable("SURVPOS") != null ? Array.ConvertAll(Environment.GetEnvironmentVariable("SURVPOS").Split(','), float.Parse) : new[] { 1300f, 700f };
@@ -932,6 +932,7 @@ static partial class Shot {
     PhoenixScene();  // PHOENIX=<s since the cast> (ShotPhoenix.cs)
     SentryNovaScene();  // TURRET=<s> or NOVA=<s> since the cast [ABILCAP=1] [TURRETEND=1] [FXOFF=1] (ShotSentryNova.cs)
     JuiceMomentScene();  // MOMENT=multi|clear|level|lowhp|marks [MOMENTN] [MOMENTT] [MULTISTYLE=1] (ShotJuice.cs)
+    BowFocusScene();  // BOWFOCUS=rest|bar|focus|miss|swing|scatter,<s> (ShotBowFocus.cs)
     LagScene();  // LAG=pill|chart|guest [LAGFROZEN=1] (ShotLag.cs)
     BossGateScene();  // GATE=<fill> [GATEIN=<players in>] [GATEAGE=<s>] (ShotBossGate.cs)
     // NADET=<s>: the Twin Rifle's Rocket assist (TwinNadeLook.cs), a grenade fired from the left tube that long ago (aiming

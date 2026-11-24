@@ -601,7 +601,7 @@ namespace Arena
             return new SquadDef { Name = sq.Name, From = sq.From, Form = sq.Form, Members = members.ToArray() };
         }
 
-        /// Is this type one of a faction's (for the Practice Range)?
+        /// The faction this type belongs to (null: none).
         public static FactionDef Of(EnemyType t) => Array.Find(All, f => Array.Exists(f.Members, m => m.Type == t));
     }
 
@@ -643,7 +643,7 @@ namespace Arena
             return D(DiffKnob.ApproachRamp) >= 0.5f ? share * RampSteps[step - 1] : share;
         }
 
-        /// Is the campaign buildup on (every wave themed, Approaches.Campaign)? Not in a hunt or the Practice Range.
+        /// Is the campaign buildup on (every wave themed, Approaches.Campaign)? Not in a hunt.
         public bool CampaignOn => ModeRules.Legs && D(DiffKnob.Campaign) >= 0.5f;
 
         /// With the ramp on, each approach wave's share of the full share: from 40% up to all of it.

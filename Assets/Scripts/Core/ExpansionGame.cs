@@ -467,7 +467,7 @@ namespace Arena
 
         // --- The building round -------------------------------------------------------------------------------------
 
-        /// Host, when a wave is cleared: a building round opens (not in the Practice Range, a Boss Hunt, after the last wave or on a full map).
+        /// Host, when a wave is cleared: a building round opens (not in a Boss Hunt, after the last wave or on a full map).
         void OpenBuildRound()
         {
             if (!IsHost || !ExpandingOn || !ModeRules.RunEvents || (Wave >= LastWave && !Endless) || Expansion.BoughtCount(Expanded) >= Expansion.MaxRooms)

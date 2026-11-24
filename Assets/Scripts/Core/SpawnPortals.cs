@@ -8,7 +8,7 @@ namespace Arena
     /// Shoot a portal closed before it empties and the rest of its burst is cancelled; it drops coins for each one it still
     /// held (the Expanding arena). Now and then a burst opens behind the party (a flank): it takes longer to open and every
     /// player sees a red arrow pointing at it. Surges (TimedWaves.cs) let more portals open at once.
-    /// Not on breach waves (the breaches are the way in), boss, practice, designed, zombie or room-by-room waves.
+    /// Not on breach waves (the breaches are the way in), boss, zombie or room-by-room waves.
     /// Replicated through the enemy snapshot: Phase (below) and Facing (the way it lets enemies out); the cargo is host only.
     public static class SpawnPortals
     {

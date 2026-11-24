@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Arena
 {
     /// Fixed floor plans for the arena (Docs/Mockups/arena-layouts.html). Each boss cycle (the waves between two
-    /// bosses) gets one at random; boss waves, the Practice Range, challenge rooms and the Showcase use the open arena.
+    /// bosses) gets one at random; boss waves, challenge rooms and the Showcase use the open arena.
     public enum LayoutId : byte { Open, PillarRing, TwinLanes, Cross, Islands, Funnels, Bunker }
 
     /// What the arena's edges do. Open: the arena wraps everywhere and enemies come in anywhere. The others wall the

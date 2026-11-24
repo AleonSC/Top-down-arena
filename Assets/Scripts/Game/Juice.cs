@@ -125,7 +125,7 @@ namespace Arena
             return heat;
         }
 
-        const byte PSpark = 0, PShard = 1, PRing = 2, PFlash = 3, PDust = 4, PFade = 5, PSplash = 6, PTumble = 7;  // 8-10: GunBowLooks.cs
+        const byte PSpark = 0, PShard = 1, PRing = 2, PFlash = 3, PDust = 4, PFade = 5, PSplash = 6, PTumble = 7;  // 8-10: GunBowLooks.cs, 20-25: BowFocusLook.cs
 
         struct Decal { public V2 Pos; public float R, Age; }
         struct Ripple { public V2 Pos; public float T, Power, Life; public Rgba Col; }  // Life 0: RippleLife; a dash's burst is shorter and lights the grid in Col (FloorGridLook.cs)
@@ -344,6 +344,7 @@ namespace Arena
             JuiceMe(me);
 
             UpdateBowLooks();    // GunBowLooks.cs: the string snapping and the ring of light on a release
+            UpdateBowFocusLooks(dt);  // BowFocusLook.cs: the Focus bar's burst, Focus arrows' wind and hits
             UpdateTankGunLooks();  // TankGunLooks.cs: a pumped Scattergun's shell dropping out
             UpdateGrenadeLauncherLooks(dt);  // GrenadeLauncherLook.cs: shots, the drum swap and reload, trails, the smoke
             UpdateTankAltLooks(dt);  // TankAltFx.cs: the Tank Soldier's Alt fires
@@ -652,6 +653,10 @@ namespace Arena
                     OnDpsGunShot(owner, b);
                 else if (fromGun && owner.Weapon.Id == WeaponId.DoubleBarrel && b.Kind == Defs.DpsShot)
                     OnDoubleBarrelShot(owner, b);  // the Double Barrel's flash and smoke (DoubleBarrelLook.cs)  // the Soldier DPS guns' flash, brass and steam (DpsGunLooks.cs)
+                else if (fromGun && b.Kind == Defs.FocusArrow)
+                    OnFocusArrow(owner, b);  // the gold ring, wind crescents and FOCUS! (BowFocusLook.cs)
+                else if (fromGun && b.Kind == Defs.ScatterArrow)
+                    OnScatterArrow(owner, b);  // Scatter's fan of light (BowFocusLook.cs)
                 else if (fromGun && owner.Weapon.Id == WeaponId.TwinRifle && b.Kind == Defs.GrenadeShot)
                     OnTwinNadeShot(owner, b);  // the grenade tube's Rocket assist launch (TwinNadeLook.cs)
                 if (fromGun && (!muzzleT.TryGetValue(b.Owner, out cool) || cool <= juiceClock))
@@ -688,6 +693,8 @@ namespace Arena
                 if (s.Owner == game.MyId)
                     myShotEnds.Add(s.Pos);  // (KillMoments: a kill where your shot ended is yours)
                 BulletEnding(s);
+                if (s.Kind == Defs.FocusArrow || s.Kind == Defs.ScatterArrow)
+                    OnBowArrowGone(s);  // a Focus arrow's last gust, a missed Scatter arrow stuck in the floor (BowFocusLook.cs)
                 shotPool.Push(s);
             }
         }
@@ -1084,6 +1091,9 @@ namespace Arena
                     case PMuzzle: case PCasing: case PSnap:  // the Revolver's flash and brass, the bow's ring (GunBowLooks.cs)
                         DrawGunPart(p, f);
                         break;
+                    case PBowCrescent: case PBowFan: case PBowWind: case PBowGust: case PBowStick: case PBowImpact:  // the Mender's Bow's Focus and Scatter (BowFocusLook.cs)
+                        DrawBowFocusPart(p, f);
+                        break;
                     case PBrass: case PStreak: case PPool:  // the Twin Rifle's bouncing brass, first-frame streak, light on the floor (TwinRifleFx.cs)
                         DrawTwinPart(p, f);
                         break;
@@ -1381,6 +1391,7 @@ namespace Arena
             if (!Juicy)
                 return;
             DrawGlHud();  // the Grenade Launcher's drum names, dry clicks and SLOWED tags (GrenadeLauncherLook.cs)
+            DrawBowFocusHud();  // FOCUS! over a Focus shot (BowFocusLook.cs)
             foreach (var n in numbers)
             {
                 float f = n.T / NumberLife, pop = Mathf.Min(1f, n.T * 12f);

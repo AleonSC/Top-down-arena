@@ -7,7 +7,7 @@ namespace Arena
     /// GET READY band), one CRT key per enemy type the next wave brings that this profile has not met yet: the job's
     /// marker, its name, the job, a gold NEW tag and one line on what to do about it (Game.EnemyNote). A type counts as met
     /// once it has carried its name tag in a fight (EnemyTagLook.cs, Profile.TagSeen), so a chip shows until you have
-    /// seen the enemy. At most three chips; boss waves and the Practice Range show none. Front end only.
+    /// seen the enemy. At most three chips; boss waves show none. Front end only.
     public partial class ArenaApp
     {
         const float ChipW = 320f, ChipH = 80f, ChipGap = 12f;  // (room for a two-line note: the longest are about 70 characters)
@@ -23,7 +23,7 @@ namespace Arena
             {
                 chipWave = key;
                 chipTypes.Clear();
-                if (game.Profile != null && game.Practice == null && !game.BossNext)
+                if (game.Profile != null && !game.BossNext)
                     foreach (var t in Game.NewTypesAt(next))
                     {
                         game.Profile.TagSeen.TryGetValue(t.ToString(), out int met);

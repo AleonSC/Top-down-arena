@@ -40,7 +40,7 @@ namespace Arena
     }
 
     /// This computer's player's records across every run (the local player only: in co-op each player's own game
-    /// keeps their own). Practice Range runs don't count, and neither does a run where dev tools or the bot
+    /// keeps their own). A run where dev tools or the bot does a run where dev tools or the bot
     /// were used. Saved as "key value" lines in Folder/profile.txt.
     public class Profile
     {
@@ -75,7 +75,7 @@ namespace Arena
         public float SurvivalBest(string classKey) { float v; return SurvivalBests.TryGetValue(classKey, out v) ? v : 0f; }
         public int QuickPlays, QuickWins, QuickBestWave, QuickBosses;  // Quick Play's own records (QuickPlay.cs): plays, first bosses beaten, best wave, bosses beaten in all
         public bool TutorialDone;  // the first-run tutorial is over (done, skipped, or a Quick Play recorded; Tutorial.cs)
-        public string LastMode = "";  // the lobby mode the host last picked ("quick", "campaign", "hunt", "practice"; "" a new profile: Quick Play)
+        public string LastMode = "";  // the lobby mode the host last picked ("quick", "campaign", "hunt", "survival"; "" or an unknown one: Quick Play: Quick Play)
         public float PlayTime;  // seconds, across runs
         public int Kills, BossKills, Downs, Revives;
         public float DamageDealt, HealingDone;
@@ -335,7 +335,7 @@ namespace Arena
         }
 
         /// Wildcard unlocks once you have won a run as a Tank, a Healer and a DPS (a co-op win counts). It stays out of the lobby, the
-        /// Practice Range and the loadout pickers until then (Docs/Wildcard.md).
+        /// the loadout pickers until then (Docs/Wildcard.md).
         /// The Engineer (Docs/Engineer.md) is a locked class: it opens once you have won a run (Unlocks "class-engineer").
         /// For now the lobby opens it for everyone (ArenaApp.EngineerUnlockedForTesting).
         public bool EngineerUnlocked => IsUnlocked("class-engineer") || RunsWon > 0;

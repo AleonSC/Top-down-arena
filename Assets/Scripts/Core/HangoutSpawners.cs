@@ -6,7 +6,7 @@ using System.Linq;
 namespace Arena
 {
     /// The Hangout's enemy spawners (Docs/Hangout.md): twelve pads round the room's edges, four along the top and the bottom and two
-    /// down each side. Each holds one of the regular enemies (every type the Practice picker offers but the bosses). Stand on one and
+    /// down each side. Each holds one of the regular enemies (every type the dev tools list but the bosses). Stand on one and
     /// press Interact (F) to turn it on or off; while you stand on it, the mouse wheel or the discard key (B) changes its enemy. While
     /// it's on it trickles its enemy into the room (one every SpawnerEvery, at most SpawnerMax of its own alive), and they fight like
     /// a wave's. Turning it off takes its enemies away. The host runs them; `Msg.HangoutSpawner` is a player's press,
@@ -16,8 +16,8 @@ namespace Arena
         public const int SpawnerCount = 12, SpawnerMax = 5;
         public const float SpawnerEvery = 3f, SpawnerFirst = 0.6f, SpawnerReach = 64f, SpawnerResend = 2f;
 
-        /// What a spawner can hold: the Practice picker's enemies, bosses left out.
-        public static EnemyType[] SpawnerChoices => spawnerChoices ?? (spawnerChoices = PracticePlan.Choices.Where(t => !Defs.Get(t).IsBoss).ToArray());
+        /// What a spawner can hold: the dev tools' enemy list (Defs.Pickable), bosses left out.
+        public static EnemyType[] SpawnerChoices => spawnerChoices ?? (spawnerChoices = Defs.Pickable.Where(t => !Defs.Get(t).IsBoss).ToArray());
         static EnemyType[] spawnerChoices;  // (built on first use: Game's statics come up before Defs')
 
         /// What the twelve hold when the Hangout opens: a mix of melee and ranged (any missing from SpawnerChoices falls back to its slot's).

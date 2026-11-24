@@ -106,13 +106,9 @@ static partial class Program
         hit(me, 20f, "Test shot", false);
         Check(me.Hp == before, "and it blocks again");
 
-        // The host decides who brings what: none where runs aren't recorded (Practice Range, Boss Lab, lobby preview).
+        // The host decides who brings what: none where runs aren't recorded (Boss Lab, lobby preview).
         var entry = host.Lobby[1];
         Check(entry.ChosenPerks.Length == 1 && ((PerkId[])perksFor.Invoke(g, new object[] { entry })).Length == 1, "in a real run the lobby entry's perks are taken in");
-        var oldPlan = g.Practice;
-        g.Practice = new PracticePlan();
-        Check(((PerkId[])perksFor.Invoke(g, new object[] { entry })).Length == 0, "the Practice Range takes the perks off");
-        g.Practice = oldPlan;
         g.Unrecorded = true;
         Check(((PerkId[])perksFor.Invoke(g, new object[] { entry })).Length == 0, "the Boss Lab takes the perks off");
         g.Unrecorded = false;

@@ -79,7 +79,6 @@ namespace Arena
         void DrawRunSoFar(Player me)
         {
             float x = HoloPageX, w = HoloPageR - HoloPageX;
-            bool practice = game.Practice != null;
             int wave = Mathf.Max(0, game.Wave);
             var s = me != null ? me.Run : new RunStats();
 
@@ -87,13 +86,11 @@ namespace Arena
             var head = new Rect(x, HoloTop, w, HoloHeadH);
             HoloPanel(head, holoPageAt, () =>
             {
-                string waveText = practice ? "PRACTICE" : game.Hunt != null ? "HUNT WAVE " + wave : "WAVE " + game.ShownWave;
-                string of = practice ? "" : game.Endless ? " ENDLESS" : " / " + game.ShownLastWave;
+                string waveText = game.Hunt != null ? "HUNT WAVE " + wave : "WAVE " + game.ShownWave;
+                string of = game.Endless ? " ENDLESS" : " / " + game.ShownLastWave;
                 string where;
                 Color whereC = HoloDim;
-                if (practice)
-                    where = "Practice Range";
-                else if (game.BossNow)
+                if (game.BossNow)
                 {
                     where = "Boss fight";
                     whereC = new Color(1f, 0.6f, 0.65f);
@@ -119,15 +116,12 @@ namespace Arena
                     Ui.Label(new Rect(head.x + 18f, head.y + 66f, 520f, 15f), LobbyKit.Truncate("MODIFIERS: " + string.Join(", ", mods.ToArray()).ToUpperInvariant(), 10, 520f), 10, new Color(0.84f, 0.72f, 1f), TextAnchor.MiddleLeft, true);
                 // Tiles from the right: the next boss, the score, the time played.
                 float right = head.xMax - 16f, ty = head.y + 16f;
-                if (!practice)
-                {
-                    int nextBoss = game.NextBossWave(wave, game.State == MatchState.Fighting);
-                    string boss = BossName(game.BossAt(nextBoss));
-                    string bossLine = game.BossNow && game.State == MatchState.Fighting ? "boss now" : "next boss · after wave " + (game.Hunt != null ? nextBoss : game.ShownEnd(nextBoss));
-                    float bw = Mathf.Max(Mathf.Max(130f, CrtUi.TitleWidth(boss, 24) + 24f), Ui.TextWidth(bossLine.ToUpperInvariant(), 10, true) + 16f);  // (wide enough for its caption too)
-                    HoloTile(new Rect(right - bw, ty, bw, 56f), boss, bossLine, new Color(1f, 0.45f, 0.52f), 24, TextAnchor.MiddleCenter);
-                    right -= bw + 8f;
-                }
+                int nextBoss = game.NextBossWave(wave, game.State == MatchState.Fighting);
+                string boss = BossName(game.BossAt(nextBoss));
+                string bossLine = game.BossNow && game.State == MatchState.Fighting ? "boss now" : "next boss · after wave " + (game.Hunt != null ? nextBoss : game.ShownEnd(nextBoss));
+                float bw = Mathf.Max(Mathf.Max(130f, CrtUi.TitleWidth(boss, 24) + 24f), Ui.TextWidth(bossLine.ToUpperInvariant(), 10, true) + 16f);  // (wide enough for its caption too)
+                HoloTile(new Rect(right - bw, ty, bw, 56f), boss, bossLine, new Color(1f, 0.45f, 0.52f), 24, TextAnchor.MiddleCenter);
+                right -= bw + 8f;
                 HoloTile(new Rect(right - 110f, ty, 110f, 56f), game.Score.ToString("N0"), "score", null, 24, TextAnchor.MiddleCenter);
                 right -= 118f;
                 int secs = Mathf.FloorToInt(game.RunTime);
@@ -154,7 +148,7 @@ namespace Arena
             float y = tilesR.yMax + HoloGap, colW = (w - HoloGap) / 2f;
             var routeR = new Rect(x, y, colW, HoloBottom - y);
             var fightR = new Rect(x + colW + HoloGap, y, colW, HoloBottom - y);
-            HoloPanel(routeR, holoPageAt, () => DrawRouteCard(routeR, practice));
+            HoloPanel(routeR, holoPageAt, () => DrawRouteCard(routeR));
             HoloPanel(fightR, holoPageAt, () => DrawFightCard(fightR, s));
         }
 
@@ -226,16 +220,10 @@ namespace Arena
             return rows;
         }
 
-        void DrawRouteCard(Rect card, bool practice)
+        void DrawRouteCard(Rect card)
         {
             bool calm = FxCalm;
             float x = card.x + 16f, w = card.width - 32f;
-            if (practice)
-            {
-                LobbyKit.Heading(x, card.y + 8f, w, "Route", null, calm);
-                Ui.Label(card, "The Practice Range plays your own waves: no route.", 13, HoloDim, TextAnchor.MiddleCenter);
-                return;
-            }
             var rows = BuildRoute();
             int beaten = 0;
             foreach (var r in rows)

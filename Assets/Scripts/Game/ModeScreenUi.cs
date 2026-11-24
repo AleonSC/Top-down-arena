@@ -2,20 +2,19 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The Game Mode screen: the mode carousel and the mode's own page (Quick Play, Campaign, Boss Hunt, Practice and Training,
+    /// The Game Mode screen: the mode carousel and the mode's own page (Quick Play, Campaign, Boss Hunt,
     /// Survival) on a full screen of their own, so they never share the big screen with the loadout. It's a view inside the lobby
     /// (the party, readiness and connection stay as they are): the host lands on it when a lobby opens, CHANGE on the lobby's mode
     /// card comes back to it (VIEW for guests), and Back, Esc or TO THE LOBBY go back to the lobby. Open while `lobbyTab` is one of
-    /// the mode tabs (IsModeTab). Preview: `LOBBYTAB=8 shot.sh x lobby` (Quick Play; 1 Practice with lobbypr, 4 Boss Hunt with HUNT=1).
+    /// the mode tabs (IsModeTab). Preview: `LOBBYTAB=8 shot.sh x lobby` (Quick Play; 4 Boss Hunt with HUNT=1).
     public partial class ArenaApp
     {
         /// The mode screen's pages (the old lobby tabs of each mode).
-        static bool IsModeTab(int tab) => tab == 1 || tab == 4 || tab == TrainingTab || tab == QuickTab || tab == SurvivalTab || tab == CampaignTab;
+        static bool IsModeTab(int tab) => tab == 4 || tab == QuickTab || tab == SurvivalTab || tab == CampaignTab;
 
         /// The page the session's mode opens on.
         int ModeTabNow()
         {
-            if (session.PracticeMode) return 1;
             if (session.HuntMode) return 4;
             if (session.SurvivalMode) return SurvivalTab;
             if (session.QuickMode) return QuickTab;
@@ -56,7 +55,7 @@ namespace Arena
         /// The mode screen itself (drawn by DrawLobbyContent in place of the lobby).
         void DrawModeScreen(float t)
         {
-            bool calm = fxReduced, practice = session.PracticeMode;
+            bool calm = fxReduced;
             int m = (int)session.Mode;
             Color acc = ModeAccent(m) ?? CrtStyle.Ink;
             // Header: Back (to the lobby, never out of it), the title, the carousel in the middle.
@@ -77,25 +76,9 @@ namespace Arena
                     sub: "PARTY " + session.Lobby.Count + "/" + Session.MaxPlayers + "  ·  " + ready + " READY"))
                 LeaveModeScreen();
 
-            // The mode's page; Practice has two (its waves and Training), as folder tabs on the page's top edge.
+            // The mode's page.
             var page = new Rect(PartyX, ModePageTop, W - 2f * PartyX, ModePageBottom - ModePageTop);
-            if (practice)
-            {
-                float tx = page.xMax - 30f - 2f * LobbyLoadoutKeyW - LobbyTabKeyGap;
-                var pr = new Rect(tx, ModePageTop - LobbyTabH, LobbyLoadoutKeyW, LobbyTabH);
-                var tr = new Rect(pr.xMax + LobbyTabKeyGap, pr.y, LobbyLoadoutKeyW, LobbyTabH);
-                LobbyGlowBox(pr);
-                LobbyGlowBox(tr);
-                if (LobbyKit.FolderTab(pr, "PRACTICE  (" + session.Plan.Waves.Count + ")", lobbyTab == 1))
-                    lobbyTab = 1;
-                if (LobbyKit.FolderTab(tr, "TRAINING", lobbyTab == TrainingTab))
-                    lobbyTab = TrainingTab;
-            }
-            if (lobbyTab == 1 && practice)
-                DrawPracticeEditor(page, t);
-            else if (lobbyTab == TrainingTab && practice)
-                DrawTraining(page, t);  // TrainingUi.cs
-            else if (lobbyTab == 4 && session.HuntMode)
+            if (lobbyTab == 4 && session.HuntMode)
                 DrawHuntPicker(page, t);  // HuntUi.cs
             else if (lobbyTab == QuickTab && session.QuickMode)
                 DrawQuickPlayTab(page, t);  // QuickPlayUi.cs

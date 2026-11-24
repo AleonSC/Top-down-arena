@@ -74,7 +74,7 @@ namespace Arena
             var ink = (s.On ? SpawnerRed : HangoutPadOff).ToColor();
             var box = new Rect(at.X - 110f, at.Y - 18f, 220f, 36f);
             Ui.Pill(box, new Color(0f, 0f, 0f, 0.7f));
-            Ui.Label(new Rect(box.x, box.y + 3f, box.width, 15f), PracticeEnemyName(s.Type).ToUpperInvariant() + (s.On ? "  ·  ON" : "  ·  OFF"), 11, ink, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(box.x, box.y + 3f, box.width, 15f), Defs.ListName(s.Type).ToUpperInvariant() + (s.On ? "  ·  ON" : "  ·  OFF"), 11, ink, TextAnchor.MiddleCenter, true);
             string use = Keybinds.KeyName(Keybinds.Get(KeyAction.Interact)).ToUpperInvariant();
             string swap = Keybinds.KeyName(Keybinds.Get(KeyAction.DiscardItem)).ToUpperInvariant();
             Ui.Label(new Rect(box.x, box.y + 18f, box.width, 14f), use + (s.On ? "  TURN OFF" : "  TURN ON") + "   ·   " + swap + " / WHEEL  CHANGE", 9, CrtStyle.Desc, TextAnchor.MiddleCenter, true);

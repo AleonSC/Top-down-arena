@@ -83,7 +83,9 @@ static partial class Program
         me.Weapon = Defs.WeaponOf(WeaponId.MendersBow);
         g.Enemies.Clear(); Step(Game.WhipCd + 0.1f, false, false);
         var bowDummy = Dummy(from + new V2(90f, 0f));
+        int whips = g.Effects.Count(fx => fx.Kind == FxKind.PistolWhip);
         Step(0.3f, true, false);
-        Check(bowDummy.Hp == bowDummy.MaxHp, "the Mender's Bow's Alt isn't a whip");
+        Check(g.Effects.Count(fx => fx.Kind == FxKind.PistolWhip) == whips && g.Bullets.Values.Any(b => b.Kind == Defs.ScatterArrow) | bowDummy.Hp < bowDummy.MaxHp,
+            "the Mender's Bow's Alt isn't a whip (it's Scatter)");
     }
 }

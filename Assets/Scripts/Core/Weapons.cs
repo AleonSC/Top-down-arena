@@ -188,8 +188,7 @@ namespace Arena
 
         public const float BowMinDraw = 0.15f;   // a quick tap still looses a weak arrow (drawn this far)
         public const float BowFullDraw = 0.9f;   // a full draw (fire-rate upgrades shorten it)
-        public const float BowPerfectWindow = 0.25f;  // let go this soon after full draw for a perfect shot
-        const float BowPerfectBonus = 1.25f;
+        public const float BowPerfectWindow = 0.25f;  // the Railgun: let go this soon after full draw for a perfect shot (the bow has the Focus bar: BowFocus.cs)
         public const float BowRecover = 0.25f;   // after a shot, the next draw starts this much later
         public const float BowDrawSlow = 0.85f;  // move speed while drawing
 
@@ -212,7 +211,9 @@ namespace Arena
             if (p.BowRelease <= 0f || State == MatchState.GameOver)
                 return;
             p.BowShotDraw = p.BowRelease;
+            p.BowShotFocus = p.BowFocus && p.Weapon.Id == WeaponId.MendersBow;
             p.BowRelease = 0f;
+            p.BowFocus = false;
             FirePlayer(p);
         }
 
@@ -225,17 +226,23 @@ namespace Arena
         {
             bowCd -= dt;
             float release = 0f;
+            bowFocusOut = false;
             if (!ChargeWeapon(me.Weapon.Id) || me.Downed || me.ParryActive || me.StunShots > 0)
                 bowDraw = -1f;  // the shield (or going down) cancels a draw
             else if (firing)
             {
                 if (bowDraw < 0f && bowCd <= 0f)
+                {
                     bowDraw = 0f;
+                    NewBowZone();  // the Focus bar's gold zone moves each draw (BowFocus.cs)
+                }
                 if (bowDraw >= 0f)
                     bowDraw += dt;
             }
             else if (bowDraw >= 0f)
             {
+                bowFocusOut = BowInZone(me, bowDraw);  // let go in the Focus bar's zone: a Focus shot (BowFocus.cs)
+                NoteBowRelease(me, bowDraw);
                 release = Math.Min(10f, Math.Max(BowMinDraw, bowDraw));
                 bowDraw = -1f;
                 bowCd = BowRecover / FireRate(me);
@@ -376,26 +383,29 @@ namespace Arena
                 }
                 case WeaponId.MendersBow:
                 {
-                    // Draw and release: the longer the draw, the harder, faster and farther the arrow.
+                    // Draw and release: the longer the draw, the harder, faster and farther the arrow. Let go in the
+                    // Focus bar's zone and the first arrow is a Focus arrow instead (BowFocus.cs).
                     float c = BowCharge(p, p.BowShotDraw);
-                    bool perfect = BowPerfect(p, p.BowShotDraw);
-                    float bonus = perfect ? BowPerfectBonus : 1f;
-                    float baseDmg = Lerp(8f, 40f, c) * bonus, speed = Lerp(450f, 950f, c), reach = Lerp(500f, 900f, c);
-                    float heal = Lerp(5f, 20f, c) * bonus;
+                    bool focus = p.BowShotFocus && c >= 1f;
+                    float baseDmg = Lerp(8f, 40f, c), speed = Lerp(450f, 950f, c), reach = Lerp(500f, 900f, c);
+                    float heal = Lerp(5f, 20f, c);
                     // A full draw also looses an extra arrow (half damage) per extra projectile, in a tight fan.
                     int arrows = c >= 1f ? 1 + extra : 1;
                     for (int k = 0; k < arrows; k++)
                     {
                         float a = aim + (k == 0 ? 0f : (k % 2 == 1 ? 1f : -1f) * 0.07f * ((k + 1) / 2));
+                        if (k == 0 && focus)
+                        {
+                            FocusArrow(p, muzzle, a, dmg).Radius = 6f * p.Stats.ShotSizeMult;  // (Magnum Rounds)
+                            continue;
+                        }
                         float d = baseDmg * (k == 0 ? 1f : 0.5f);
                         var b = SpawnBullet(Defs.ArrowShot, muzzle, V2.FromAngle(a) * speed, 0f, reach / speed, d * dmg, p.Id);
                         b.HealAlly = heal * (k == 0 ? 1f : 0.5f) * 9f / d;  // HealAllyHit scales it by Dmg / 9 (so damage upgrades heal more too)
                         b.Pierce += (c >= 1f ? 2 : c >= 0.5f ? 1 : 0) + p.Stats.BowPierceBonus;  // (Steady Draw: one more)
                         b.Bolts = c >= 0.5f;  // a drawn arrow pierces: Ricochet flings bounce bolts off it
-                        if (perfect)
-                            b.Radius = 6f * p.Stats.ShotSizeMult;  // Magnum Rounds
                     }
-                    if (perfect)
+                    if (focus)
                         BroadcastFx(FxKind.Spark, muzzle, new Rgba(1f, 0.85f, 0.35f), 26f, 0.3f, Sfx.Pick);
                     break;
                 }

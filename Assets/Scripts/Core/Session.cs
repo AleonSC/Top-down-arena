@@ -14,8 +14,8 @@ namespace Arena
         // added later; kept at the end so existing values don't shift
         Pick, Upgrades, Reroll, WeaponRequest, AbilityRequest, KitRequest, Pause, BulletSync, RunStats, Steer, ReadyRequest, Ping, Pong,
         DevStats, SetKey, Sound,
-        Practice, PracticeEdit, PracticeWave,
-        PathOffer, PathChosen, PathPatch,  // divergent paths: the two on offer; the one the host took (Paths.cs)  // the lobby's Practice Range setup; a client's edit to it; the practice wave being fought
+        Practice, PracticeEdit, PracticeWave,  // retired (Nov 24, the Practice Range removed): no longer sent or read
+        PathOffer, PathChosen, PathPatch,  // divergent paths: the two on offer; the one the host took (Paths.cs)
         Teleport,  // host -> all: a player is moved (the Ninja's Substitution); only that player's own game applies it
         Shop, ShopGift,  // the Bazaar: a player's shop action (client -> host); gold given to a teammate (host -> all) (Shop.cs)
         WeaponDash,  // client -> host: a weapon moved its player (the Bo Staff's vault, the Kusarigama's whirl; Ninja.cs)
@@ -43,7 +43,7 @@ namespace Arena
         Carry,        // host -> all: (player id, where to, seconds, kind) a Knight ability carries a player (the Gauntlet's charge, Bladed Dive's rush); only that player's own game moves them
         UltRequest,   // client -> host: the key picked on the lobby's Ultimate row (Session.SetUlt; LobbyEntry.Ult)
         NetPings,     // host -> all: every player's round trip to the host, once a second, for the lag chart (LagNet.cs, Game/LagChartUi.cs)
-        Respawn,      // client -> host: Practice Range only: kind 0 = get back up where you fell, 1 = restart the wave (the host's own only) (PracticeRespawn.cs)
+        Respawn,      // retired (Nov 24, the Practice Range removed): no longer sent or read
         ExpandState,  // host -> all: the Expanding arena's rooms bought, the offer on the table and the votes so far (ExpansionGame.cs)
         ExpandVote,   // retired (Nov 18, Team vote building removed): no longer sent or read
         ExpandDraw,   // retired (Nov 18, Free draw removed): no longer sent or read
@@ -141,7 +141,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 473;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 475;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -157,25 +157,17 @@ namespace Arena
         public readonly SortedDictionary<int, LobbyEntry> Lobby = new SortedDictionary<int, LobbyEntry>();
         public readonly Game Game;
 
-        // Lobby mode (host decides; everyone sees it). In Practice Range mode the run plays Plan's waves
-        // instead of a normal run. The host can let the others edit the plan too.
+        // Lobby mode (host decides; everyone sees it).
         public GameMode Mode = GameMode.Campaign;   // the mode picked (GameMode.cs); a resumed run plays the Campaign whatever it says (PlayMode)
-        public PracticePlan Plan = PracticePlan.Default();
-        public bool OthersCanEdit;
         public bool HuntLong = true;                       // the Boss Hunt is the long one (Hunts.LongLength steps, Docs/LongHunt.md), not the ten
         public bool HuntMapMode = true;                    // the Boss Hunt is played as a hunt map (Docs/HuntMap.md): a route of nodes you vote on instead of ten fixed waves
-        /// The mode the next run plays: the one picked, except that continuing a saved run is the Campaign (the Practice Range stays).
-        public GameMode PlayMode => Resume == null || Mode == GameMode.Practice ? Mode : Resume.IsHunt ? GameMode.Hunt : GameMode.Campaign;
-        public bool PracticeMode => Mode == GameMode.Practice;
+        /// The mode the next run plays: the one picked, except that continuing a saved run is the Campaign.
+        public GameMode PlayMode => Resume == null ? Mode : Resume.IsHunt ? GameMode.Hunt : GameMode.Campaign;
         public bool HuntMode => PlayMode == GameMode.Hunt;            // a Boss Hunt (Hunts.cs): HuntBoss's
         public bool QuickMode => PlayMode == GameMode.Quick;          // Quick Play (QuickPlay.cs): the lobby's first mode, a new player's default
         public bool SurvivalMode => PlayMode == GameMode.Survival;    // Survival (Survival.cs, Docs/Survival.md): one clock, no waves
         public static bool QuickDefault = true;     // a new host starts on Quick Play unless its profile last picked another mode (the sim tests turn it off)
-        public WaveSet DesignTest;                  // host: designed waves to play in the Practice Range (Wave Lab's test)
         public EnemyType HuntBoss = EnemyType.Warden;
-        public string PlanEditor = "";  // who made the last change
-        public int PlanEditorSel;       // the wave they were working on
-        public int PlanRevision;        // bumps on every change (the UI uses it to notice edits)
         public RunMod Modifiers;        // run modifiers (the lobby's Modifiers tab; the host picks)
         public Difficulty Diff = new Difficulty();  // the run's difficulty (the lobby's Difficulty tab; the host picks)
         public RunSave Resume;          // continuing a saved run: the host's save (clients get its seats in the lobby message)
@@ -283,13 +275,9 @@ namespace Arena
         public void Leave(string status)
         {
             Game.Stop();
-            Game.Practice = null;
             Game.Hunt = null;
             Game.Quick = false;
             Mode = GameMode.Campaign;
-            DesignTest = null;
-            Game.Design = null;
-            OthersCanEdit = false;
             Modifiers = RunMod.None;
             Diff = new Difficulty();
             Resume = null;
@@ -605,7 +593,6 @@ namespace Arena
                     w.Write(peer);
                     Net.Send(peer, Proto.End(w));
                     BroadcastLobby();
-                    BroadcastPractice();
                     if (AutoStart > 0 && Lobby.Count >= AutoStart)
                         StartMatch();
                     break;
@@ -639,9 +626,6 @@ namespace Arena
                     break;
                 case Msg.SetKey:
                     Game.OnSetKey(peer, r);
-                    break;
-                case Msg.Respawn:
-                    Game.OnRespawn(peer, r);
                     break;
                 case Msg.Dodge:
                     Game.OnDodge(peer, r);
@@ -786,22 +770,6 @@ namespace Arena
                 case Msg.Reroll:
                     Game.HostReroll(peer);
                     break;
-                case Msg.PracticeEdit:
-                {
-                    string text = r.ReadString();
-                    int sel = r.ReadInt32();
-                    LobbyEntry who;
-                    if (!OthersCanEdit || Game.Running || !Lobby.TryGetValue(peer, out who))
-                    {
-                        BroadcastPractice();  // put their copy back the way it is
-                        break;
-                    }
-                    List<string> problems;
-                    var plan = PracticePlan.Parse(text, out problems);
-                    if (plan.Waves.Count > 0)
-                        ApplyPractice(plan, who.Name, sel);
-                    break;
-                }
                 case Msg.Ping:  // echo it straight back so the client can time the round trip
                 {
                     var w = Proto.Begin(Msg.Pong);
@@ -1281,18 +1249,13 @@ namespace Arena
             Broadcast(Proto.End(w));
         }
 
-        // --- Practice Range (lobby) ----------------------------------------------
-
-        /// Host: switch the lobby between a normal run and the Practice Range.
-        public void SetPracticeMode(bool on) => SetMode(on ? GameMode.Practice : GameMode.Campaign);
+        // --- Lobby mode ------------------------------------------------------------
 
         /// Host: the lobby's mode (GameMode.cs).
         public void SetMode(GameMode mode)
         {
             if (!IsHost || Game.Running || mode == GameMode.None || mode == GameMode.Hangout)  // (the Hangout is hidden: HangoutGame.cs opens it, the carousel never picks it)
                 return;
-            if (mode != GameMode.Practice)
-                DesignTest = null;
             Mode = mode;
             if (Game.Profile != null && Resume == null && QuickDefault)
             {
@@ -1302,7 +1265,6 @@ namespace Arena
             foreach (var e in Lobby.Values)
                 e.Ready = false;  // what you're readying up for changed
             BroadcastLobby();
-            BroadcastPractice();
         }
 
         /// Host: which boss the Boss Hunt is for (only one the host has unlocked).
@@ -1342,11 +1304,9 @@ namespace Arena
         /// The lobby's settings into the match about to start, the same on the host (StartMatch) and on a client (Msg.Start).
         void ApplyMatchSetup()
         {
-            Game.Practice = PracticeMode ? Plan.Copy() : null;  // a copy, so edits don't change a run in progress (a client's: for the HUD)
-            Game.Hunt = PracticeMode ? null : LobbyHunt;  // Hunts.cs
+            Game.Hunt = LobbyHunt;  // Hunts.cs
             Game.HuntMapOn = Game.Hunt != null && HuntMapMode;  // HuntMapGame.cs
             Game.HuntLength = HuntLong ? Hunts.LongLength : Hunts.Length;
-            Game.Design = PracticeMode && IsHost ? DesignTest : null;  // the designed waves being tested (WaveDesign.cs; the host plays them)
             Game.Mods = Modifiers;
             Game.Diff = Diff.Copy();
         }
@@ -1397,63 +1357,6 @@ namespace Arena
             foreach (var e in Lobby.Values)
                 e.Ready = false;
             BroadcastLobby();
-        }
-
-        /// Host: whether the other players can edit the practice waves.
-        public void SetOthersCanEdit(bool on)
-        {
-            if (!IsHost)
-                return;
-            OthersCanEdit = on;
-            BroadcastPractice();
-        }
-
-        /// Can this player change the practice waves right now?
-        public bool CanEditPractice => !Game.Running && (IsHost || OthersCanEdit);
-
-        /// You changed the practice plan (Plan, edited in place): the host shares it; a client sends it to the
-        /// host, who shares it with everyone (or puts it back if editing isn't allowed).
-        public void PracticeEdited(int sel)
-        {
-            if (!CanEditPractice)
-                return;
-            LobbyEntry me;
-            string name = Lobby.TryGetValue(MyId, out me) ? me.Name : "";
-            if (IsHost)
-            {
-                ApplyPractice(Plan, name, sel);
-                return;
-            }
-            PlanEditor = name;
-            PlanEditorSel = sel;
-            PlanRevision++;
-            var w = Proto.Begin(Msg.PracticeEdit);
-            w.Write(Plan.ToText());
-            w.Write(sel);
-            SendToHost(Proto.End(w));
-        }
-
-        /// Host: replace the plan (a load, or a client's edit) and share it.
-        public void ApplyPractice(PracticePlan plan, string editor, int sel)
-        {
-            if (!IsHost)
-                return;
-            DesignTest = null;  // the practice waves were edited: they're what plays now, not a designed set
-            Plan = plan;
-            PlanEditor = editor;
-            PlanEditorSel = sel;
-            PlanRevision++;
-            BroadcastPractice();
-        }
-
-        void BroadcastPractice()
-        {
-            var w = Proto.Begin(Msg.Practice);
-            w.Write(OthersCanEdit);
-            w.Write(Plan.ToText());
-            w.Write(PlanEditor ?? "");
-            w.Write(PlanEditorSel);
-            Broadcast(Proto.End(w));
         }
 
         /// From the lobby the run only starts once everyone is ready ("Play again" after
@@ -1512,7 +1415,6 @@ namespace Arena
                 return;
             Broadcast(Proto.End(Proto.Begin(Msg.ToLobby)));
             Game.Stop();
-            Game.Practice = null;
             Game.Hunt = null;
             Game.Quick = false;
             Screen = AppScreen.Lobby;
@@ -1756,23 +1658,12 @@ namespace Arena
                     break;
                 case Msg.ToLobby:
                     Game.Stop();
-                    Game.Practice = null;
-                    Game.Hunt = null;
+                            Game.Hunt = null;
                     Game.Quick = false;
             Game.Quick = false;
                     Screen = AppScreen.Lobby;
                     ShareCosmetics();  // the run may have raised the rank
                     break;
-                case Msg.Practice:
-                {
-                    OthersCanEdit = r.ReadBoolean();
-                    List<string> problems;
-                    Plan = PracticePlan.Parse(r.ReadString(), out problems);
-                    PlanEditor = r.ReadString();
-                    PlanEditorSel = r.ReadInt32();
-                    PlanRevision++;
-                    break;
-                }
                 case Msg.Start:
                     ApplyMatchSetup();
                     Game.OnHostMessage(type, r);
