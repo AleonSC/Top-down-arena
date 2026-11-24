@@ -296,7 +296,7 @@ namespace Arena
                     V2 pa = s.Rods[a.A].Pos, pb = s.Rods[a.B].Pos;
                     BroadcastFx(FxKind.Bolt, pa, pb, new Rgba(0.8f, 0.92f, 1f), 0f, ArcLive, Sfx.SpellZap);
                     foreach (var p in Players.Values)
-                        if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceToSegment(pa, pb) < RodArcWidth / 2f + p.Def.HitR)
+                        if (Hittable(p) && p.Pos.DistanceToSegment(pa, pb) < RodArcWidth / 2f + p.Def.HitR)
                             Damage(p, ArcDamage, "Storm Herald (lightning rods)");
                 }
             }
@@ -400,7 +400,7 @@ namespace Arena
                     if (a.FartherOrAt(c, BallArcRange))
                         continue;
                     foreach (var p in Players.Values)
-                        if (!p.Downed && p.InvulnT <= 0f && p.Pos.DistanceToSegment(a, c) < BallArcWidth / 2f + p.Def.HitR)
+                        if (Hittable(p) && p.Pos.DistanceToSegment(a, c) < BallArcWidth / 2f + p.Def.HitR)
                             Damage(p, 20f, HeraldBall(balls[i]) ? "Storm Herald (ball lightning)" : "Ball Lightning (arc)");
                 }
             enemyLists.Return(balls);
@@ -411,7 +411,7 @@ namespace Arena
             if (s.Stage == HeraldStage.LastStand && s.TransT <= 0f)
                 foreach (var p in Players.Values)
                 {
-                    if (p.Downed || p.InvulnT > 0f)
+                    if (!Hittable(p))
                         continue;
                     for (int k = 0; k < 4; k++)
                     {

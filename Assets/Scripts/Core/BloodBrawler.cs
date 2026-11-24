@@ -119,9 +119,7 @@ namespace Arena
         /// A move's blow landing on `e` (the marked enemy, or one bound to it by Sympathy).
         void LandBsMove(Player p, Enemy e, BsHit h)
         {
-            V2 away = (e.Pos - p.Pos).Normalized();
-            if (away.IsZero)
-                away = V2.FromAngle(p.Aim);
+            V2 away = AwayFrom(e.Pos, p.Pos, V2.FromAngle(p.Aim));
             bool moves = !Heavy(e);
             switch (h.Step)
             {

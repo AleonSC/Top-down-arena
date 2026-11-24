@@ -104,7 +104,7 @@ namespace Arena
                 {
                     if (!Targetable(e) || e.Def.IsBoss || b.Gusted.Contains(e.Id))
                         continue;
-                    if (SegDistance(e.Pos, from, b.Pos) > BowWindR + e.Radius)
+                    if (e.Pos.DistanceToSegment(from, b.Pos) > BowWindR + e.Radius)
                         continue;
                     b.Gusted.Add(e.Id);
                     V2 rel = e.Pos - b.Pos, across = new V2(-fwd.Y, fwd.X);
@@ -116,13 +116,6 @@ namespace Arena
             }
         }
 
-        static float SegDistance(V2 pt, V2 a, V2 b)
-        {
-            V2 ab = b - a;
-            float len2 = ab.X * ab.X + ab.Y * ab.Y;
-            float t = len2 > 0f ? MathX.Clamp01(((pt.X - a.X) * ab.X + (pt.Y - a.Y) * ab.Y) / len2) : 0f;
-            return pt.DistanceTo(a + ab * t);
-        }
 
         // --- Scatter (the weapon-action key) -----------------------------------------------------------------------
 

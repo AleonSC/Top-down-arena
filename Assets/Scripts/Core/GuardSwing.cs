@@ -48,7 +48,7 @@ namespace Arena
                 e.LarderStage = (byte)(st + 1);
                 e.LarderT = BatonFlash;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.SwallowT <= 0f && InCone(e.Pos, e.Facing, BatonHalf, BatonReach, p.Pos, p.Def.HitR))
+                    if (Hittable(p) && p.SwallowT <= 0f && InCone(e.Pos, e.Facing, BatonHalf, BatonReach, p.Pos, p.Def.HitR))
                         Damage(p, BatonDamage, "Guard");
                 BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (e.Radius + 14f), new Rgba(1f, 0.9f, 0.7f), 16f, 0.14f, Sfx.SwingLight);
                 return;

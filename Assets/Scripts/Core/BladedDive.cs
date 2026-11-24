@@ -83,7 +83,7 @@ namespace Arena
                     hit.Add(e);
             foreach (var e in hit)
             {
-                V2 dir = (e.Pos - at).IsZero ? V2.FromAngle(p.Aim) : (e.Pos - at).Normalized();
+                V2 dir = AwayFrom(e.Pos, at, V2.FromAngle(p.Aim));
                 HurtEnemy(e, dmg, p.Id);
                 any = true;
                 BroadcastFx(FxKind.DiveHit, e.Pos, dir, e.Def.Color, e.Radius, BladedHitFx, Sfx.None);

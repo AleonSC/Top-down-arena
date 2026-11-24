@@ -407,7 +407,7 @@ namespace Arena
             {
                 marshalHurt.TryGetValue(p.Id, out float wait);
                 wait -= dt;
-                if (wait <= 0f && !p.Downed && p.InvulnT <= 0f)
+                if (wait <= 0f && Hittable(p))
                     foreach (var pt in Patches.Values)
                     {
                         if (pt.Kind != PatchKind.DuelCircle || !pt.Active)

@@ -33,14 +33,13 @@ namespace Arena
         const byte DashTempest = 38;
 
         public static float WcEase(float x) { x = Math.Max(0f, Math.Min(1f, x)); return 1f - (1f - x) * (1f - x) * (1f - x); }
-        static float Clamp01(float x) => Math.Max(0f, Math.Min(1f, x));
 
         public static float WcDur(int step) => step < 2 ? WcArcDur : step == 2 ? WcLanceDur : WcRingDur;
 
         /// A crescent `age` into its life (scale: its size): its radius, how far it has swept (0-1) and its strength (fades out).
         public static void WcArc(float age, float scale, out float r, out float sweep, out float alpha)
         {
-            float p = Clamp01(age / WcArcDur);
+            float p = MathX.Clamp01(age / WcArcDur);
             sweep = WcEase(p / 0.3f);
             r = WcArcR0 + (WcArcR1 * scale - WcArcR0) * WcEase(p);
             alpha = p < 0.6f ? 1f : 1f - (p - 0.6f) / 0.4f;
@@ -57,7 +56,7 @@ namespace Arena
         /// The Gale Lance `age` into its life: its head and tail along the aim, and its strength.
         public static void WcLance(float age, float scale, out float head, out float tail, out float alpha)
         {
-            float p = Clamp01(age / WcLanceDur), len = WcLanceLen * scale, q = Clamp01((p - 0.3f) / 0.7f);
+            float p = MathX.Clamp01(age / WcLanceDur), len = WcLanceLen * scale, q = MathX.Clamp01((p - 0.3f) / 0.7f);
             head = len * WcEase(p / 0.5f);
             tail = len * q * q * 0.92f;
             alpha = p < 0.7f ? 1f : 1f - (p - 0.7f) / 0.3f;
@@ -66,7 +65,7 @@ namespace Arena
         /// The Clash Ring `age` into its life: its radius and strength.
         public static void WcRing(float age, float scale, out float r, out float alpha)
         {
-            float p = Clamp01(age / WcRingDur);
+            float p = MathX.Clamp01(age / WcRingDur);
             r = WcRingR0 + (WcRingR1 * scale - WcRingR0) * WcEase(p);
             alpha = p < 0.5f ? 1f : 1f - (p - 0.5f) / 0.5f;
         }

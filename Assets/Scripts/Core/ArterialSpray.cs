@@ -77,8 +77,7 @@ namespace Arena
                 Slow(e, 0.3f, 1f - SpraySlow);
                 if (!Heavy(e))
                 {
-                    V2 away = (e.Pos - from).Normalized();
-                    e.Pos = ClampToArena(e.Pos + (away.IsZero ? dir : away) * SprayPush * SprayTickTime, e.Radius);
+                    e.Pos = ClampToArena(e.Pos + AwayFrom(e.Pos, from, dir) * SprayPush * SprayTickTime, e.Radius);
                 }
             }
             if (p.SprayMastered)

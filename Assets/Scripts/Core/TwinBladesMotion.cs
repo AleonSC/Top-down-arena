@@ -74,11 +74,10 @@ namespace Arena
 
         internal static Pose Wrap(Pose p)
         {
-            p.Sp = (float)(Math.IEEERemainder(p.Sp, MathX.Tau));
+            p.Sp = MathX.WrapPi(p.Sp);
             return p;
         }
 
-        static float Lerp(float a, float b, float t) => a + (b - a) * t;
         static float C01(float v) => v < 0f ? 0f : (v > 1f ? 1f : v);
         static float Ease(byte e, float t)
         {
@@ -91,8 +90,8 @@ namespace Arena
 
         public static Pose Mix(Pose a, Pose b, float t) => new Pose
         {
-            Ra = Lerp(a.Ra, b.Ra, t), Rr = Lerp(a.Rr, b.Rr, t), Rb = Lerp(a.Rb, b.Rb, t),
-            La = Lerp(a.La, b.La, t), Lr = Lerp(a.Lr, b.Lr, t), Lb = Lerp(a.Lb, b.Lb, t), Tw = Lerp(a.Tw, b.Tw, t), Sp = Lerp(a.Sp, b.Sp, t)
+            Ra = MathX.Lerp(a.Ra, b.Ra, t), Rr = MathX.Lerp(a.Rr, b.Rr, t), Rb = MathX.Lerp(a.Rb, b.Rb, t),
+            La = MathX.Lerp(a.La, b.La, t), Lr = MathX.Lerp(a.Lr, b.Lr, t), Lb = MathX.Lerp(a.Lb, b.Lb, t), Tw = MathX.Lerp(a.Tw, b.Tw, t), Sp = MathX.Lerp(a.Sp, b.Sp, t)
         };
 
         /// The pose `c` seconds into a move: its keys, then back to the guard over Recover once it ends.

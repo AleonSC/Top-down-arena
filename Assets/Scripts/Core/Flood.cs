@@ -58,8 +58,7 @@ namespace Arena
                 castHits++;
                 if (Heavy(e))
                     continue;
-                V2 away = (e.Pos - p.Pos).Normalized();
-                KnockEnemy(e, (away.IsZero ? RandDir() : away) * FloodSurgePush);  // slides (Knock.cs)
+                ShoveFrom(e, p.Pos, FloodSurgePush);  // slides (Knock.cs)
             }
             BroadcastFx(FxKind.Ring, p.Pos, Kits.Get(ZoneKind.Flood).Color, FloodSurgeReach, 0.4f, Sfx.None);  // (its sounds play from the pool: FloodLook.cs UpdateFloodSound)
         }

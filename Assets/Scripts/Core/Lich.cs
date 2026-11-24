@@ -476,14 +476,14 @@ namespace Arena
                     }
                 }
                 foreach (var p in Players.Values)
-                    if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(sp.Pos, SpiritR + p.Def.HitR))
+                    if (Hittable(p) && p.Pos.CloserThan(sp.Pos, SpiritR + p.Def.HitR))
                         Damage(p, dmg, "The Lich (wailing spirit)");
             }
             s.Spirits.RemoveAll(sp => sp.Delay <= -90f);
             // The soul sweep and the phylacteries' beams.
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.InvulnT > 0f)
+                if (!Hittable(p))
                     continue;
                 if (s.SweepOn == 2 && OnSegment(e.Pos, e.Pos + V2.FromAngle(s.SweepA) * LichSweepLen, p.Pos, LichSweepWidth + p.Def.HitR))
                 {
@@ -526,7 +526,7 @@ namespace Arena
         {
             float dmg = 25f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
             foreach (var p in Players.Values)
-                if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(h.Pos, h.Radius))
+                if (Hittable(p) && p.Pos.CloserThan(h.Pos, h.Radius))
                     Damage(p, dmg, "The Lich (dead hand)");
             float off = RandAngle();
             for (int k = 0; k < 8; k++)

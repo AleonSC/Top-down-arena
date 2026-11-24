@@ -335,12 +335,15 @@ static partial class Shot {
       var car = Environment.GetEnvironmentVariable("CAROUSEL");  // CAROUSEL=row,first: a loadout carousel row (0 class, 1 weapon, 2 ability, 3 ultimate; 4-6 the Modifiers tab's Easier, Risky, Harder) scrolled to that key
       if (car != null) { var cq = car.Split(','); var cf = typeof(ArenaApp).GetField("carFirst", f2); var cp = typeof(ArenaApp).GetField("carPos", f2); var cs = typeof(ArenaApp).GetField("carSeen", f2);
         int crow = int.Parse(cq[0]), cfirst = int.Parse(cq[1]); ((int[])cf.GetValue(app))[crow] = cfirst; ((float[])cp.GetValue(app))[crow] = cfirst; ((int[])cs.GetValue(app))[crow] = -1; }
+      // SHOWCASEKEYS=1: the mouse over the preview (its zoom bar and MAIN FIRE | ALT FIRE keys up); SHOWCASEALT=1: ALT FIRE picked.
+      if (Environment.GetEnvironmentVariable("SHOWCASEKEYS") != null) set("showcaseZoomA", 1f);
+      if (Environment.GetEnvironmentVariable("SHOWCASEALT") != null) set("showcaseAlt", true);
       var ab = Environment.GetEnvironmentVariable("ABILITY");
       if (ab != null) { host.Lobby[host.MyId].Ability = byte.Parse(ab); set("detailSel", 1); }
       {
         var le = host.Lobby[host.MyId];
         int shown = ab != null ? int.Parse(ab) : le.Ability;
-        var sc = new Showcase();
+        var sc = new Showcase { AltFire = Environment.GetEnvironmentVariable("SHOWCASEALT") != null && ab == null && Environment.GetEnvironmentVariable("ULTDEMO") == null };
         bool ultDemo = Environment.GetEnvironmentVariable("ULTDEMO") != null;  // ULTDEMO=1: the ultimate is being previewed
         if (ultDemo) set("detailSel", 2);  // (the ultimate's detail box, and the preview casting it)
         sc.Show(le.Role, le.Kit, le.Weapon, Upgrades.FirstAbility(le.Role, le.Kit, shown), ab != null || ultDemo, ultDemo, le.Ult);

@@ -30,6 +30,23 @@ namespace Arena
             }
         }
 
+        /// The unit direction from `from` to `at`, or `fallback` when they're on the same spot.
+        static V2 AwayFrom(V2 at, V2 from, V2 fallback)
+        {
+            V2 away = (at - from).Normalized();
+            return away.IsZero ? fallback : away;
+        }
+
+        /// Knock `e` `dist` px straight away from `from` (towards `fallback` if it's standing on that spot).
+        void ShoveFrom(Enemy e, V2 from, float dist, V2 fallback) => KnockEnemy(e, AwayFrom(e.Pos, from, fallback) * dist);
+
+        /// Knock `e` `dist` px straight away from `from` (a random way if it's standing on that spot).
+        void ShoveFrom(Enemy e, V2 from, float dist)
+        {
+            V2 away = (e.Pos - from).Normalized();
+            KnockEnemy(e, (away.IsZero ? RandDir() : away) * dist);
+        }
+
         /// Each tick, for each enemy: travel some of a push still to go.
         void TickKnock(Enemy e, float dt)
         {

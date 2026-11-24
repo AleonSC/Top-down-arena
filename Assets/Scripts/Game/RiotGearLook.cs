@@ -17,13 +17,6 @@ namespace Arena
         readonly Dictionary<int, float> riotPrevT = new Dictionary<int, float>();   // per player: RiotT last frame
         readonly Dictionary<int, float> riotBackAt = new Dictionary<int, float>();  // per player: when the shield last came back
 
-        static float AngleDiff(float from, float to)
-        {
-            float d = to - from;
-            while (d > Mathf.PI) d -= MathX.Tau;
-            while (d < -Mathf.PI) d += MathX.Tau;
-            return d;
-        }
 
         void DrawRiotGear(Player p, float t)
         {
@@ -51,9 +44,9 @@ namespace Arena
             if (!riotAngle.TryGetValue(p.Id, out cur))
                 cur = want;
             if (ready)
-                cur += AngleDiff(cur, want) * Mathf.Min(1f, Time.deltaTime * 9f);
+                cur += MathX.WrapPi(want - cur) * Mathf.Min(1f, Time.deltaTime * 9f);
             else
-                cur += AngleDiff(cur, idle) * Mathf.Min(1f, Time.deltaTime * 4f);  // resting
+                cur += MathX.WrapPi(idle - cur) * Mathf.Min(1f, Time.deltaTime * 4f);  // resting
             riotAngle[p.Id] = cur;
             V2 c = p.Disp;
 

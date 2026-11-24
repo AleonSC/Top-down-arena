@@ -274,7 +274,7 @@ namespace Arena
                         e.Phase = PylonFiring;
                         e.PhaseT = PylonLive;
                         foreach (var p in Players.Values)
-                            if (!p.Downed && p.InvulnT <= 0f && PylonLineDistance(e, o, p.Pos) < PylonWidth / 2f + p.Def.HitR)
+                            if (Hittable(p) && PylonLineDistance(e, o, p.Pos) < PylonWidth / 2f + p.Def.HitR)
                                 Damage(p, PylonDamage, "Pylon (arc)");
                         BroadcastFx(FxKind.Bolt, e.Pos, o.Pos, new Rgba(0.56f, 0.82f, 1f), 0f, PylonLive, Sfx.SpellZap);
                     }
@@ -392,7 +392,7 @@ namespace Arena
         {
             string who = h.Kind == HazardDownburst ? "Thunderhead (downburst)" : "Stormcaller (lightning)";
             foreach (var p in Players.Values)
-                if (!p.Downed && p.InvulnT <= 0f && p.Pos.CloserThan(h.Pos, h.Radius))
+                if (Hittable(p) && p.Pos.CloserThan(h.Pos, h.Radius))
                     Damage(p, CallerDamage, who);
             var color = new Rgba(1f, 0.85f, 0.5f);
             BroadcastFx(FxKind.Bolt, new V2(h.Pos.X + Rand(-40f, 40f), h.Pos.Y - 260f), h.Pos, color, 0f, 0.22f, Sfx.SpellZap);

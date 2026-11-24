@@ -201,12 +201,11 @@ namespace Arena
         }
 
         /// The shortest turn from a to b.
-        public static float Wrap(float a) => (float)Math.IEEERemainder(a, MathX.Tau);
 
         /// Between two poses (`turn`: the angle the shortest way round; otherwise as given, so a spin keeps spinning).
         public static Pose Mix(Pose a, Pose b, float k, bool turn = true) => new Pose
         {
-            Th = a.Th + (turn ? Wrap(b.Th - a.Th) : b.Th - a.Th) * k,
+            Th = a.Th + (turn ? MathX.WrapPi(b.Th - a.Th) : b.Th - a.Th) * k,
             Ext = a.Ext + (b.Ext - a.Ext) * k,
             Fwd = a.Fwd + (b.Fwd - a.Fwd) * k,
             Len = a.Len + (b.Len - a.Len) * k,
