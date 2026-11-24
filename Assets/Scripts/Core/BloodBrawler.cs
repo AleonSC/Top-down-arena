@@ -79,7 +79,7 @@ namespace Arena
                 foreach (int id in p.SympBound)
                 {
                     Enemy o;
-                    if (Enemies.TryGetValue(id, out o) && Targetable(o))
+                    if (TryFoe(id, out o) && Targetable(o))
                     {
                         QueueBsMove(p, o, step, d * SympMult, true);
                         BroadcastFx(FxKind.BsBlow, o.Pos, new V2(o.Id, p.Id), BsRed, step + 10, BsFxDur(step), Sfx.None);
@@ -88,7 +88,7 @@ namespace Arena
             if (extra > 0)  // each extra projectile: the move lands on one more enemy near the mark too, at SympMult (as Sympathy, but the nearest each time)
             {
                 var near = new List<Enemy>();
-                foreach (var o in Enemies.Values)
+                foreach (var o in AllFoes(by: p.Id))
                     if (o != e && Targetable(o) && o.Pos.CloserThan(e.Pos, SympRange + o.Radius) && !(p.SympT > 0f && p.SympSrc == e.Id && p.SympBound.Contains(o.Id)))
                         near.Add(o);
                 near.Sort((a, b) => a.Pos.DistanceSq(e.Pos).CompareTo(b.Pos.DistanceSq(e.Pos)));
@@ -186,11 +186,11 @@ namespace Arena
         {
             Enemy t;
             if (p.Weapon.Id != WeaponId.BloodBrawler || p.Downed || p.SympCd > 0f || State == MatchState.GameOver
-                || p.BsTarget == 0 || !Enemies.TryGetValue(p.BsTarget, out t) || !Targetable(t))
+                || p.BsTarget == 0 || !TryFoe(p.BsTarget, out t) || !Targetable(t))
                 return;
             int max = SympMax + p.Stats.SympBonus;  // (Marrow: one more)
             var near = new List<Enemy>();
-            foreach (var o in Enemies.Values)
+            foreach (var o in AllFoes(by: p.Id))
                 if (o != t && Targetable(o) && o.Pos.CloserThan(t.Pos, SympRange + o.Radius))
                     near.Add(o);
             if (near.Count == 0)
@@ -244,7 +244,7 @@ namespace Arena
                 if (BsStepOf(p.Combo) != 0 && (p.ComboT -= dt) <= 0f)
                     p.Combo &= ~7;  // back to the Pulse (the step count stays)
                 Enemy t;
-                if (p.BsTarget != 0 && ((p.BsT -= dt) <= 0f || !Enemies.TryGetValue(p.BsTarget, out t) || t.Hp <= 0f))
+                if (p.BsTarget != 0 && ((p.BsT -= dt) <= 0f || !TryFoe(p.BsTarget, out t) || t.Hp <= 0f))
                 {
                     p.BsTarget = 0;
                     p.BsT = 0f;
@@ -252,8 +252,8 @@ namespace Arena
                 }
                 if (p.SympT > 0f)
                 {
-                    p.SympBound.RemoveAll(id => { Enemy o; return !Enemies.TryGetValue(id, out o) || o.Hp <= 0f; });
-                    if ((p.SympT -= dt) <= 0f || p.SympBound.Count == 0 || !Enemies.TryGetValue(p.SympSrc, out t) || t.Hp <= 0f)
+                    p.SympBound.RemoveAll(id => { Enemy o; return !TryFoe(id, out o) || o.Hp <= 0f; });
+                    if ((p.SympT -= dt) <= 0f || p.SympBound.Count == 0 || !TryFoe(p.SympSrc, out t) || t.Hp <= 0f)
                         EndSympathy(p);
                 }
             }
@@ -268,7 +268,7 @@ namespace Arena
                 bsHits.RemoveAt(i);
                 Player p;
                 Enemy e;
-                if (Players.TryGetValue(h.Owner, out p) && !p.Downed && Enemies.TryGetValue(h.Target, out e) && Targetable(e))
+                if (Players.TryGetValue(h.Owner, out p) && !p.Downed && TryFoe(h.Target, out e) && Targetable(e))
                     LandBsMove(p, e, h);
             }
         }

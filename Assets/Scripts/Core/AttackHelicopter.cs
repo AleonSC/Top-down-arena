@@ -78,7 +78,7 @@ namespace Arena
         void HeliGun(Player p, float dt, ref int tgt, ref float lockT, ref float cd, int other)
         {
             Enemy e;
-            if (tgt == 0 || !Enemies.TryGetValue(tgt, out e) || !Targetable(e) || !e.Pos.CloserThan(p.Pos, HeliLeash + 40f))
+            if (tgt == 0 || !TryFoe(tgt, out e) || !Targetable(e) || !e.Pos.CloserThan(p.Pos, HeliLeash + 40f))
             {
                 e = HeliPick(p, other);
                 tgt = e != null ? e.Id : 0;

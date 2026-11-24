@@ -112,7 +112,7 @@ namespace Arena
                     {
                         t.Ticks++;
                         Enemy e;
-                        if (Enemies.TryGetValue(t.Enemy, out e) && e.Hp > 0f)
+                        if (TryFoe(t.Enemy, out e) && e.Hp > 0f)
                             HurtEnemy(e, HarvestRipDmg / HarvestTicks * p.Stats.DmgMult, p.Id);
                         p.HarvestBlood += t.Weight * give / HarvestTicks;  // an enemy that died mid-rip still gives its blood
                     }

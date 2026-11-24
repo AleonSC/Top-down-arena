@@ -94,7 +94,7 @@ namespace Arena
                     gauntlets.RemoveAt(i);
                     continue;
                 }
-                bool alive = Enemies.TryGetValue(g.Target, out e) && e.Hp > 0f;
+                bool alive = TryFoe(g.Target, out e) && e.Hp > 0f;
                 if (g.Phase == 0)
                 {
                     g.T -= dt;

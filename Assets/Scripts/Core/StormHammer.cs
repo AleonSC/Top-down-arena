@@ -114,7 +114,7 @@ namespace Arena
                 run.Age += dt;
                 float front = run.Age * HammerSlamSpeed;
                 bool any = false;
-                var snap8 = SnapEnemies();
+                var snap8 = SnapFoes(p.Id);
                 foreach (var e in snap8)
                 {
                     if (!Targetable(e) || run.Hit.Contains(e.Id))

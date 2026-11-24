@@ -147,7 +147,7 @@ namespace Arena
             p.FumaRevCd = FumaRevCooldown;
             p.FumaCut.Clear();
             float dmg = p.Weapon.Damage * p.Stats.DmgMult * FumaRevMult;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
             {
                 if (!Targetable(e))
                     continue;
@@ -186,8 +186,8 @@ namespace Arena
             {
                 V2 from = p.Pos + FumaMiniPose(p, p.FumaClock, i);
                 Enemy e;
-                if (!Enemies.TryGetValue(p.FumaMiniFrom[i], out e) || !Targetable(e))
-                    e = NearestEnemy(from);
+                if (!TryFoe(p.FumaMiniFrom[i], out e) || !Targetable(e))
+                    e = NearestEnemy(from, by: p.Id);
                 V2 dir = e != null ? (e.Pos - from).Normalized() : V2.FromAngle(p.Aim);
                 var b = SpawnBullet(Defs.StarShot, from, dir * FumaStealSpeed, 0f, 1.1f, p.Weapon.Damage * p.Stats.DmgMult * FumaStealMult, p.Id);
                 b.Pierce = 0;
@@ -256,7 +256,7 @@ namespace Arena
                     if (Bullets.Count < before)
                         BroadcastFx(FxKind.Spark, at, FumaHot, 10f, 0.15f, Sfx.None);
                     bool moving = p.FumaMove != 0 && (i == 0 || p.FumaMove == 3);
-                    foreach (var e in Enemies.Values)
+                    foreach (var e in AllFoes(by: p.Id))
                     {
                         if (!Targetable(e))
                             continue;

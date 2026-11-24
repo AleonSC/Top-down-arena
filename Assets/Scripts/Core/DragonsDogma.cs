@@ -116,7 +116,7 @@ namespace Arena
                 }
                 else
                 {
-                    if (p.DogmaTgt == 0 || !Enemies.TryGetValue(p.DogmaTgt, out tgt) || !Targetable(tgt) || dogmaBit.ContainsKey(p.Id * 100000 + tgt.Id))
+                    if (p.DogmaTgt == 0 || !TryFoe(p.DogmaTgt, out tgt) || !Targetable(tgt) || dogmaBit.ContainsKey(p.Id * 100000 + tgt.Id))
                         tgt = DogmaPick(p);
                     p.DogmaTgt = tgt != null ? tgt.Id : 0;
                     goal = tgt != null ? tgt.Pos : p.Pos + V2.FromAngle(p.DogmaAge * 2.2f) * 170f;  // nobody about: circle the Ninja

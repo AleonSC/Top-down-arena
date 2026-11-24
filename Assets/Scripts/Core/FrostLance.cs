@@ -150,7 +150,7 @@ namespace Arena
             float c = (float)Math.Cos(-s.Aim), sn = (float)Math.Sin(-s.Aim);
             bool any = false;
             V2 from = s.Step == 4 ? s.O + V2.FromAngle(s.Aim) * (FlSlamAt * s.Scale) : s.O;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: owner.Id))
             {
                 if (!Targetable(e))
                     continue;
@@ -291,7 +291,7 @@ namespace Arena
             BroadcastFx(FxKind.FrostBurst, p.FlZeroAt, FlColor, mark, 0.6f, sound);
             bool any = false;
             var hit = new List<Enemy>();
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
                 if (Targetable(e) && e.Pos.WithinReach(p.FlZeroAt, R + e.Radius))
                     hit.Add(e);
             foreach (var e in hit)

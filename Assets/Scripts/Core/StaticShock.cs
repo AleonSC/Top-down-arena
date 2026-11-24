@@ -110,7 +110,7 @@ namespace Arena
             // Enemies out of every cone for a while start over.
             staticGone.Clear();
             foreach (var kv in staticSeen)
-                if (staticClock - kv.Value > StaticForget || !Enemies.ContainsKey(kv.Key))
+                if (staticClock - kv.Value > StaticForget || !FoeExists(kv.Key))
                     staticGone.Add(kv.Key);
             foreach (int id in staticGone)
             {

@@ -173,7 +173,7 @@ namespace Arena
         void SendBot(Player p, Minion m, V2 at)
         {
             Enemy pick = null;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
                 if (Targetable(e) && e.Pos.CloserThan(at, BotPick + e.Radius) && (pick == null || e.Pos.DistanceSq(at) < pick.Pos.DistanceSq(at)))
                     pick = e;
             if (pick == null || pick.Id == m.GoalEnemy)
@@ -220,14 +220,14 @@ namespace Arena
             if (m.GoalEnemy != 0)
             {
                 Enemy locked;
-                if (Enemies.TryGetValue(m.GoalEnemy, out locked) && Targetable(locked))
+                if (TryFoe(m.GoalEnemy, out locked) && Targetable(locked))
                     target = locked;
                 else
                     m.GoalEnemy = 0;
             }
             bool sent = target != null;
             if (target == null && Battle)
-                target = NearestInLeash(m.Pos, owner.Pos, BotLeash);
+                target = NearestInLeash(m.Pos, owner.Pos, BotLeash, by: owner.Id);
             V2 goal;
             float stop;
             if (target != null)

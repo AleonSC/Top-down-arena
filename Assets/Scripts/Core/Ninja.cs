@@ -509,7 +509,7 @@ namespace Arena
                 {
                     // The player's own game moved them behind the enemy (LocalControl); strike whoever is right there.
                     Enemy best = null;
-                    foreach (var e in Enemies.Values)
+                    foreach (var e in AllFoes(by: p.Id))
                         if (e.SpawnT <= 0f && e.Pos.CloserThan(target, e.Radius + p.Def.BodyR + 60f) && (best == null || e.Pos.DistanceSq(target) < best.Pos.DistanceSq(target)))
                             best = e;
                     if (best != null)
@@ -560,7 +560,7 @@ namespace Arena
                 case AbilityId.DeathLotus:
                 {
                     var marks = new List<Enemy>();
-                    foreach (var e in Enemies.Values)
+                    foreach (var e in AllFoes(by: p.Id))
                         if (e.SpawnT <= 0f && e.Pos.CloserThan(target, LotusRange))
                             marks.Add(e);
                     marks.Sort((a, b) => a.Pos.DistanceSq(target).CompareTo(b.Pos.DistanceSq(target)));
@@ -830,7 +830,7 @@ namespace Arena
             {
                 var st = stuckStars[i];
                 Enemy e;
-                if (!Enemies.TryGetValue(st.Enemy, out e) || e.Hp <= 0f)
+                if (!TryFoe(st.Enemy, out e) || e.Hp <= 0f)
                 {
                     stuckStars.RemoveAt(i);
                     continue;
@@ -860,7 +860,7 @@ namespace Arena
                     continue;
                 stuckStars.RemoveAt(i);
                 Enemy e;
-                if (!Enemies.TryGetValue(st.Enemy, out e) || e.Hp <= 0f)
+                if (!TryFoe(st.Enemy, out e) || e.Hp <= 0f)
                     continue;
                 ReturnStar(st, e, p);
                 n++;

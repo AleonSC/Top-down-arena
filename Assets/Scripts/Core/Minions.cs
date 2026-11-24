@@ -456,7 +456,7 @@ namespace Arena
                             m.Aim = (m.Pos - before).Angle;
                             break;
                         }
-                        target = (m.Kind == MinionKind.Wolf ? Prey(owner) : null) ?? NearestEnemy(m.Pos, MinionChaseRange);  // wolves hunt the Wolf Whistle's prey
+                        target = (m.Kind == MinionKind.Wolf ? Prey(owner) : null) ?? NearestEnemy(m.Pos, MinionChaseRange, by: owner.Id);  // wolves hunt the Wolf Whistle's prey
                         V2 goal = target != null ? target.Pos : owner.Pos + V2.FromAngle(m.Id) * 50f;
                         V2 to = goal - m.Pos;
                         float stop = target != null ? target.Radius + d.Radius * m.Scale : 10f;
@@ -502,7 +502,7 @@ namespace Arena
                 {
                     case MinionAttack.Shoot:
                     {
-                        var e = NearestEnemy(m.Pos, d.Range);
+                        var e = NearestEnemy(m.Pos, d.Range, by: owner.Id);
                         if (e == null)
                             break;
                         float shotAim = (e.Pos - m.Pos).Angle;
@@ -531,7 +531,7 @@ namespace Arena
                             }
                             break;
                         }
-                        var e = target ?? NearestEnemy(m.Pos, d.Radius * m.Scale + 40f);
+                        var e = target ?? NearestEnemy(m.Pos, d.Radius * m.Scale + 40f, by: owner.Id);
                         if (e != null && m.Cd <= 0f && e.Pos.CloserThan(m.Pos, e.Radius + d.Radius * m.Scale + 6f))
                         {
                             m.Cd = d.Interval;
@@ -571,7 +571,7 @@ namespace Arena
                     case MinionAttack.Slam:
                         if (m.Kind == MinionKind.Treant)
                             TickTreantSeeds(m, owner, rate, dt);  // KitWeapons.cs
-                        if (m.Cd <= 0f && NearestEnemy(m.Pos, reach) != null)
+                        if (m.Cd <= 0f && NearestEnemy(m.Pos, reach, by: owner.Id) != null)
                         {
                             m.Cd = d.Interval;
                             foreach (var e in FoesInCircle(m.Pos, reach, by: m.Owner))

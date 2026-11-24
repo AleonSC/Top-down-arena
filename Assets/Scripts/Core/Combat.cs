@@ -912,7 +912,7 @@ namespace Arena
             foreach (var sp in splits)
             {
                 Enemy hit;
-                if (Enemies.TryGetValue(sp.LastHit, out hit) && hit.Hp > 0f && BounceTarget(sp.Pos, sp.LastHit, SwarmAloneReach) == null)
+                if (TryFoe(sp.LastHit, out hit) && hit.Hp > 0f && BounceTarget(sp.Pos, sp.LastHit, SwarmAloneReach) == null)
                 {
                     HurtEnemy(hit, sp.Dmg * sp.Pierce * SwarmAloneShare, sp.Owner);  // alone (a boss): the splinters bite the enemy hit
                     continue;
@@ -1329,6 +1329,11 @@ namespace Arena
         /// Damage over time (burning, bleeding), credited to whoever caused it.
         void DotDamage(Enemy e, float dmg, int by)
         {
+            if (e.Stand != null)
+            {
+                PvpHurt(e.Stand, dmg, by, true);  // a player's stand-in: PvP (Pvp.cs)
+                return;
+            }
             // The same immunities as a hit: a boss changing phase or guarded takes none, and bubbles soak it first.
             if (SoulBound(e) || Hungry(e) || BossImmune(e) || SingImmune(e))
                 return;

@@ -115,7 +115,7 @@ namespace Arena
             }
             m.SentT += dt;
             Enemy e;
-            if (!Enemies.TryGetValue(m.GoalEnemy, out e) || !Targetable(e))
+            if (!TryFoe(m.GoalEnemy, out e) || !Targetable(e))
             {
                 e = m.SentT < DroneGiveUp ? BounceTarget(m.Pos, m.GoalEnemy, 200f) : null;  // its target died: the next one near, if any
                 if (e == null)
@@ -188,9 +188,9 @@ namespace Arena
         bool MoveBomber(Minion m, float dt)
         {
             Enemy e;
-            if (!Enemies.TryGetValue(m.GoalEnemy, out e) || !Targetable(e))
+            if (!TryFoe(m.GoalEnemy, out e) || !Targetable(e))
             {
-                e = NearestEnemy(m.Pos, 300f);
+                e = NearestEnemy(m.Pos, 300f, by: m.Owner);
                 if (e != null)
                     m.GoalEnemy = e.Id;
             }

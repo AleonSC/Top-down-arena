@@ -1,7 +1,8 @@
 # Targeting: one way to ask "what does this hit?"
 
-> **Status: steps 1-3 done.** `Core/FoeQuery.cs` answers every player attack loop but three; PvP is on in the Hangout (`Core/Pvp.cs`):
-> 58 of 91 weapons and every ability's query hits players. Step 4 (summons, lock-ons and beams) is next.
+> **Status: steps 1-4 done.** `Core/FoeQuery.cs` answers every player attack loop but three; PvP is on in the Hangout (`Core/Pvp.cs`):
+> 89 of 91 weapons hit players in the `pvp` test (the other two only miss its close range), and every ability's query does. Status
+> effects on players (slows, stuns, knockback, bleeds) are the open step.
 
 ## Why
 
@@ -31,10 +32,14 @@ struct enumerables: no allocation, they nest, and `HurtEnemy` inside one is safe
    player through `Damage`, at `PvpDamage` (35%), never to the attacker, never through a dodge's i-frames or a respawn beam. Melee
    swings (`LandSwing`) and player bullets (`PlayerShotHits`) use the same queries. Status effects land on the stand-in and do
    nothing yet. Left out: Blood Wall and Ossuary Wall (several owners per loop) and enemies' death blasts credited to a player.
-4. **Summons, lock-ons and beams** (next): 33 weapons pick targets another way and don't hit players yet: summons go for the
-   nearest enemy (`NearestEnemy`, `NearestInLeash`), lock-ons, tethers and beams keep enemy ids (Vein Tether, Leech Tendrils, Arc
-   Lightning, Implosion, Frost Lance, Kusarigama...). Healer weapons that heal teammates (Chain Light, Ofuda, Sanguine Orb, Censer,
-   Quarterstaff) heal other players instead, as before. Test suite `pvp` lists the ones that don't land yet.
+4. **Summons, lock-ons and beams** (done): `NearestEnemy` and `NearestInLeash` take the owner (`by`), so summons, turrets and
+   homing go for other players too; weapons that keep a target's id look it up with `TryFoe` / `FoeExists` (a stand-in's id is
+   `StandBase - player id`, clear of the 0 and -1 that mean "none"); target-choosing loops use `AllFoes(by:)`; copied lists use
+   `SnapFoes(by)`; `DotDamage` (burns, ink) routes stand-ins too, as damage over time; other players' Spirit Chalk ink burns you.
+   The `pvp` test lists any weapon that doesn't land: Gore Mortar (its lob lands 160 px out at least) and Fuma Shuriken (it needs
+   its orbit stance) only miss the test's close range.
+5. **Status effects on players** (open): slows, stuns, freezes, knockback, marks and bleeds land on the stand-in and do nothing.
+   Each needs mapping to its player version (Player.SlowT, StunT, a knock), one effect at a time.
 
 ## Behaviour notes
 

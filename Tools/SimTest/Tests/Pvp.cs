@@ -31,7 +31,7 @@ static partial class Program
         Action place = () =>
         {
             me.Pos = me.Disp = new V2(500f, 450f);
-            them.Pos = them.Disp = new V2(640f, 450f);
+            them.Pos = them.Disp = new V2(600f, 450f);
             client.Game.Me.Pos = client.Game.Me.Disp = them.Pos;
         };
         // The host's own gun on the client: it hurts them, at PvpDamage, and never the shooter.
@@ -59,11 +59,11 @@ static partial class Program
             float before = them.Hp, beams = 0f;
             try
             {
-                for (int f = 0; f < 70; f++)
+                for (int f = 0; f < 150; f++)
                 {
                     place();
                     them.InvulnT = 0f;
-                    host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = f < 50, WeaponAction = f % 20 == 5, AimAt = them.Pos }); g.Update(dt);
+                    host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = f % 60 < 45, WeaponAction = f % 30 == 5, AimAt = them.Pos }); g.Update(dt);
                     Step(client, dt);
                     beams = Math.Max(beams, them.WarpT);
                 }

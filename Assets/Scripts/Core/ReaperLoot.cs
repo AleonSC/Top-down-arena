@@ -54,7 +54,7 @@ namespace Arena
             m.Cd -= dt;
             if (!m.Sent && m.Cd <= 0f && !owner.Downed)
             {
-                var prey = NearestEnemy(owner.Pos, ScytheSweepReach);
+                var prey = NearestEnemy(owner.Pos, ScytheSweepReach, by: owner.Id);
                 if (prey != null)
                 {
                     m.Sent = true;
@@ -67,7 +67,7 @@ namespace Arena
             {
                 m.SentT += dt;
                 Enemy prey;
-                bool alive = Enemies.TryGetValue(m.GoalEnemy, out prey) && Targetable(prey);
+                bool alive = TryFoe(m.GoalEnemy, out prey) && Targetable(prey);
                 V2 goal = !m.Returning && alive ? prey.Pos : slot;
                 V2 to = goal - m.Pos;
                 m.Aim = to.Angle;

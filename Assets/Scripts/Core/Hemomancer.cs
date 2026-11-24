@@ -134,11 +134,11 @@ namespace Arena
         /// Where a beam from `from` along `aim` stops: at the first enemy it can't pass (a shield, or the last it
         /// pierces), else at its full range. Fills `hits` (if given) with the enemies it touches, nearest first.
         /// The host uses real positions; screens pass `drawn` to use where enemies are drawn.
-        public V2 BeamEnd(V2 from, float aim, float range, int pierce, List<Enemy> hits, bool drawn = false, float halfWidth = VeinBeamHalfWidth)
+        public V2 BeamEnd(V2 from, float aim, float range, int pierce, List<Enemy> hits, bool drawn = false, int by = 0, float halfWidth = VeinBeamHalfWidth)
         {
             V2.Axes(aim, out V2 dir, out V2 side);
             beamOrder.Clear();
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: by))
             {
                 if (!Targetable(e))
                     continue;
@@ -206,14 +206,14 @@ namespace Arena
                 int max = GraspTendrils + gr.Extra + p.Stats.Fan;
                 Enemy e;
                 for (int i = p.Grasp.Count - 1; i >= 0; i--)  // (a loop, not RemoveAll: no closure every tick)
-                    if (!Enemies.TryGetValue(p.Grasp[i], out e) || IsSpawning(e) || e.Hp <= 0f || e.Pos.DistanceTo(p.Pos) - e.Radius > reach * GraspLetGo)
+                    if (!TryFoe(p.Grasp[i], out e) || IsSpawning(e) || e.Hp <= 0f || e.Pos.DistanceTo(p.Pos) - e.Radius > reach * GraspLetGo)
                         DropGrasp(p, i);  // slipped free: its build-up is lost
                 if (p.Grasp.Count > max)
                     while (p.Grasp.Count > max)
                         DropGrasp(p, p.Grasp.Count - 1);
                 // Free tendrils reach for the nearest enemies in the arc (shields turn them away).
                 graspNew.Clear();
-                foreach (var o in Enemies.Values)
+                foreach (var o in AllFoes(by: p.Id))
                     if (!IsSpawning(o) && o.Hp > 0f && !p.Grasp.Contains(o.Id) && o.Pos.DistanceTo(p.Pos) - o.Radius <= reach
                         && InGraspArc(p.Pos, gr.Aim, o.Pos, o.Radius, GraspArcFor(p)) && !BlocksShot(o, p.Pos))
                         graspNew.Add(o);
@@ -261,7 +261,7 @@ namespace Arena
             for (int i = p.Grasp.Count - 1; i >= 0; i--)
             {
                 Enemy e;
-                if (!Enemies.TryGetValue(p.Grasp[i], out e) || e.Hp <= 0f)
+                if (!TryFoe(p.Grasp[i], out e) || e.Hp <= 0f)
                 {
                     DropGrasp(p, i);
                     continue;
@@ -286,7 +286,7 @@ namespace Arena
                 for (int i = 0; i < held && i < p.GraspCharge.Count; i++)
                 {
                     Enemy e;
-                    if (!Enemies.TryGetValue(p.Grasp[i], out e) || e.Hp <= 0f)
+                    if (!TryFoe(p.Grasp[i], out e) || e.Hp <= 0f)
                         continue;  // killed by another blast's on-hit effects
                     float frac = p.GraspCharge[i];
                     V2 dir = (e.Pos - p.Pos).Normalized();
@@ -327,7 +327,7 @@ namespace Arena
             float reach = WeaponRange(p);
             Enemy best = null;
             float bestGap = ImplodeGrab;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
             {
                 if (IsSpawning(e) || e.Hp <= 0f)
                     continue;
@@ -355,7 +355,7 @@ namespace Arena
             {
                 Player p;
                 Enemy e;
-                if (!Players.TryGetValue(im.Owner, out p) || p.Downed || !Enemies.TryGetValue(im.Target, out e) || e.Hp <= 0f)
+                if (!Players.TryGetValue(im.Owner, out p) || p.Downed || !TryFoe(im.Target, out e) || e.Hp <= 0f)
                     continue;
                 p.Run.ShotsFired++;
                 p.Run.ShotsHit++;
@@ -364,7 +364,7 @@ namespace Arena
                 for (int k = 0; k < im.Extra; k++)
                 {
                     Enemy next = null;
-                    foreach (var o in Enemies.Values)
+                    foreach (var o in AllFoes(by: p.Id))
                         if (!imploded.Contains(o) && !IsSpawning(o) && o.Hp > 0f && o.Pos.CloserThan(e.Pos, ImplodeChain + o.Radius)
                             && (next == null || o.Pos.DistanceSq(e.Pos) < next.Pos.DistanceSq(e.Pos)))
                             next = o;
@@ -422,7 +422,7 @@ namespace Arena
                 if (!Players.TryGetValue(beam.Owner, out p) || p.Downed)
                     continue;
                 V2 dir = V2.FromAngle(beam.Aim), from = p.Pos + dir * p.Def.BodyR;  // from your edge, like shots (so it ends where the aim line does)
-                BeamEnd(from, beam.Aim, beam.Range, beam.Pierce, beamHits, false, beam.HalfWidth);
+                BeamEnd(from, beam.Aim, beam.Range, beam.Pierce, beamHits, false, p.Id, beam.HalfWidth);
                 GateLockStrike(q =>  // a Warden gate's lock on the beam's line takes a hit too (Warden.cs)
                 {
                     V2 rel = q - from;
@@ -547,7 +547,7 @@ namespace Arena
                 coatings.RemoveAt(i);
                 Enemy e;
                 Player p;
-                if (!Enemies.TryGetValue(c.Enemy, out e) || e.Hp <= 0f)
+                if (!TryFoe(c.Enemy, out e) || e.Hp <= 0f)
                     continue;
                 WeaponHurt(e, c.Dmg, c.Owner);
                 ApplyBleed(e, c.Dmg * SanguineBleed, c.Owner);  // KitWeapons.cs: each coat is another stack
@@ -608,7 +608,7 @@ namespace Arena
         void CongealPool(Zone z)
         {
             z.Congealed = true;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: z.Owner))
                 if (Targetable(e) && !e.Def.IsBoss && e.Pos.WithinReach(z.Pos, z.Radius + e.Radius))
                 {
                     Hold(e, PoolStuck);

@@ -79,7 +79,7 @@ namespace Arena
                 m.SlamT = -1f;
                 return;
             }
-            Enemy target = NearestEnemy(m.Pos, MinionChaseRange);
+            Enemy target = NearestEnemy(m.Pos, MinionChaseRange, by: owner.Id);
             V2 goal = target != null ? target.Pos : owner.Pos + V2.FromAngle(owner.Aim) * (m.Kind == MinionKind.Golem ? 70f : 140f);
             V2 to = goal - m.Pos;
             if (to.Length > 8f)

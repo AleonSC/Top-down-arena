@@ -270,7 +270,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
   late-boss logic
 - `Targets.cs`: shared targeting helpers: `FirstAlive`, `AlivePlayersList`, `NearestPlayer`, `RandomLivingPlayer`,
 - `FoeQuery.cs`: **what an attack hits** (Docs/Targeting.md): `FoesInCircle`, `FoesInBox`, `FoesInCone`, `AllFoes` (allocation-free struct queries over the Targetable enemies, optional `cover` = BlocksShot); every player attack loop uses them; test suite `foequery`
-- `Pvp.cs`: **PvP in the Hangout** (Docs/Targeting.md step 3): `PvpOn`, `PvpDamage`, `StandOf` (a player's stand-in `Enemy`, `Enemy.Stand`), `PvpHurt` (HurtEnemy sends a stand-in's hit here); queries take the attacker as `by`; test suite `pvp`
+- `Pvp.cs`: **PvP in the Hangout** (Docs/Targeting.md step 3): `PvpOn`, `PvpDamage`, `StandOf` (a player's stand-in `Enemy`, `Enemy.Stand`), `PvpHurt` (HurtEnemy and DotDamage send a stand-in's hit here), `TryFoe`/`FoeExists` (an id that may be a stand-in's), `StandBase`; queries, `NearestEnemy`, `NearestInLeash` and `SnapFoes` take the attacker as `by`; test suite `pvp`
   `BossTarget(e)` (its target while up, else the first player up) and `Targetable(e)` (host: spawned in and alive)
 - `BossLab.cs`, `BotBrain.cs`: Boss Lab sessions, the "smart" bot (the Warden's gates: `ReadWardenGates` picks the next gate's door and walks to it in time, `GateDanger` with `Warden.GateFrontIn`; test suite `botgate`)
 - `BotParry.cs`: the smart bot's parry (`BotParry`, `WantParry`, `FirstHit`: the soonest shot or sword cut it can't dodge, timed for a perfect parry; `ParrySkill` per bot skill; `BotParries` counter); test suite `botweapon` (`Tools/SimTest/Tests/BotWeapon.cs`)

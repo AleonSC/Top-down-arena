@@ -66,7 +66,7 @@ namespace Arena
             V2.Axes(aim, out V2 dir, out V2 side);
             Enemy first = null;
             float firstAlong = float.MaxValue;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
             {
                 if (!Targetable(e))
                     continue;
@@ -175,7 +175,7 @@ namespace Arena
             if (before < KusariImpactAt && t >= KusariImpactAt)
                 KusariImpact(p);
             Enemy e;
-            if (!p.KusariHit || t < KusariDragFrom || t >= KusariDragTo || !Enemies.TryGetValue(p.HookId, out e) || e.Hp <= 0f)
+            if (!p.KusariHit || t < KusariDragFrom || t >= KusariDragTo || !TryFoe(p.HookId, out e) || e.Hp <= 0f)
                 return;
             if (Heavy(e))
                 return;  // a boss takes the bite but doesn't come
@@ -194,7 +194,7 @@ namespace Arena
         {
             Enemy e;
             V2 dir = V2.FromAngle(p.KusariAim);
-            if (p.HookId == 0 || !Enemies.TryGetValue(p.HookId, out e) || e.Hp <= 0f)
+            if (p.HookId == 0 || !TryFoe(p.HookId, out e) || e.Hp <= 0f)
             {
                 p.HookId = 0;
                 BroadcastFx(FxKind.Spark, p.Pos + dir * KusariReachOf(p), Steel, 10f, 0.2f, Sfx.None);

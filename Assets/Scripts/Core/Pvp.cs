@@ -17,6 +17,30 @@ namespace Arena
 
         readonly Dictionary<int, Enemy> stands = new Dictionary<int, Enemy>();
 
+        /// A stand-in's id: StandBase - the player's id (well clear of 0 and -1, which code uses for "none").
+        public const int StandBase = -1000;
+
+        /// Host: the foe with this id: an enemy, or with PvP on a player's stand-in (an attack that keeps its target's id: a lock-on,
+        /// a tether, a beam, a summon's prey). Use it instead of Enemies.TryGetValue in a player's attack.
+        bool TryFoe(int id, out Enemy e)
+        {
+            if (Enemies.TryGetValue(id, out e))
+                return true;
+            e = null;
+            Player q;
+            if (id > StandBase || !PvpOn || !Players.TryGetValue(StandBase - id, out q) || q.Downed || q.WarpT > 0f)
+                return false;
+            e = StandOf(q);
+            return true;
+        }
+
+        /// Host: TryFoe without the enemy.
+        bool FoeExists(int id)
+        {
+            Enemy e;
+            return TryFoe(id, out e);
+        }
+
         /// Player q's stand-in for attack queries: placed on them each time it's asked for, their body's size, never a boss or
         /// heavy, and too tough to die (its health is never what counts: PvpHurt is).
         internal Enemy StandOf(Player q)
@@ -25,7 +49,7 @@ namespace Arena
             if (!stands.TryGetValue(q.Id, out s))
             {
                 var d = Defs.Get(EnemyType.Grunt);
-                stands[q.Id] = s = new Enemy { Id = -q.Id, Type = EnemyType.Grunt, Def = d, Stand = q };
+                stands[q.Id] = s = new Enemy { Id = StandBase - q.Id, Type = EnemyType.Grunt, Def = d, Stand = q };
             }
             s.Pos = s.Disp = q.Pos;
             s.Radius = q.Def.BodyR;
@@ -35,12 +59,17 @@ namespace Arena
         }
 
         /// Host: an attack by player `attacker` landed on player q (through their stand-in).
-        void PvpHurt(Player q, float dmg, int attacker)
+        /// `tick`: damage over time (a burn, a poison, ink), which a hit's grace doesn't stop and which leaves no grace behind.
+        void PvpHurt(Player q, float dmg, int attacker, bool tick = false)
         {
-            if (!PvpOn || attacker <= 0 || attacker == q.Id || q.Downed || q.WarpT > 0f || q.InvulnT > 0f || dmg <= 0f)
+            if (!PvpOn || attacker <= 0 || attacker == q.Id || q.Downed || q.WarpT > 0f || (!tick && q.InvulnT > 0f) || dmg <= 0f)
                 return;
             Player by;
-            Damage(q, dmg * PvpDamage, Players.TryGetValue(attacker, out by) ? "PvP: " + by.Name : "PvP");
+            string src = Players.TryGetValue(attacker, out by) ? "PvP: " + by.Name : "PvP";
+            if (tick)
+                DamageOverTime(q, dmg * PvpDamage, src);
+            else
+                Damage(q, dmg * PvpDamage, src);
         }
     }
 

@@ -12,6 +12,17 @@ namespace Arena
     /// sends Msg.WeaponDash (DashPullOn when you press, DashPullOff when you let go); the host does the rest (TickRepulsion).
     public partial class Game
     {
+        readonly System.Collections.Generic.List<Enemy> repelTargets = new System.Collections.Generic.List<Enemy>();
+
+        /// The foes a Repulsion blast can reach, copied (the blast moves and kills them as it goes).
+        System.Collections.Generic.List<Enemy> RepelTargets(int by)
+        {
+            repelTargets.Clear();
+            foreach (var e in AllFoes(by: by))
+                repelTargets.Add(e);
+            return repelTargets;
+        }
+
         public const float RepulseFxTime = 0.6f;  // how long the blast's effect lives (the smoke); the cone itself is instant
         const float RepelHalfArc = 0.61f;      // 70 degrees across...
         const float RepelArcPerExtra = 0.175f; // ...20 degrees wider per extra projectile
@@ -43,7 +54,7 @@ namespace Arena
             V2 origin = p.Pos;
             BroadcastFx(FxKind.Repulse, origin, origin + V2.FromAngle(aim) * (reach + p.Def.BodyR), new Rgba(0.55f, 0.95f, 1f), half, RepulseFxTime, Sfx.ShotRepulse);
             int hits = 0;
-            foreach (var e in new System.Collections.Generic.List<Enemy>(Enemies.Values))
+            foreach (var e in RepelTargets(p.Id))
             {
                 if (!Targetable(e))
                     continue;

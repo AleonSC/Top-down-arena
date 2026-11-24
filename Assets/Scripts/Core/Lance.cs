@@ -155,7 +155,7 @@ namespace Arena
                 hookRuns.RemoveAt(i);
                 Player p;
                 Enemy e;
-                if (!Players.TryGetValue(r.Owner, out p) || p.Downed || r.Target < 0 || !Enemies.TryGetValue(r.Target, out e) || e.Hp <= 0f)
+                if (!Players.TryGetValue(r.Owner, out p) || p.Downed || r.Target < 0 || !TryFoe(r.Target, out e) || e.Hp <= 0f)
                     continue;
                 LandHook(p, e, r.Dir);
             }

@@ -221,7 +221,7 @@ namespace Arena
             for (int j = 0; j < jumps; j++)
             {
                 Enemy next = null;
-                foreach (var e in Enemies.Values)
+                foreach (var e in AllFoes(by: owner))
                     if (!hit.Contains(e.Id) && Targetable(e) && e.Pos.CloserThan(cur.Pos, reach) &&
                         (next == null || e.Pos.DistanceSq(cur.Pos) < next.Pos.DistanceSq(cur.Pos)))
                         next = e;
@@ -272,7 +272,7 @@ namespace Arena
                 return;
             Enemy next = null;
             float bestD = FireflyReach * FireflyReach;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: b.Owner))
             {
                 if (e.Id == b.LastHit || !Targetable(e) || e.Def.Xp == 0 || e.SeededT > 0f && e.SeededBy == b.Owner)
                     continue;
@@ -315,7 +315,7 @@ namespace Arena
             List<Zone> burst = null;
             foreach (var z in Zones.Values)
                 if (z.Kind == ZoneKind.OfudaWard)
-                    foreach (var e in Enemies.Values)
+                    foreach (var e in AllFoes(by: z.Owner))
                         if (Targetable(e) && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius))
                         {
                             (burst = burst ?? new List<Zone>()).Add(z);
@@ -362,7 +362,7 @@ namespace Arena
                 foreach (var q in Players.Values)
                     if (q != p && !q.Downed && q.Pos.DistanceToSegment(a, b) <= VineWidth + q.Def.BodyR)
                         Heal(q, VineHeal * dt, p);
-                foreach (var e in Enemies.Values)
+                foreach (var e in AllFoes(by: p.Id))
                 {
                     if (!Targetable(e) || e.Pos.DistanceToSegment(a, b) > VineWidth + e.Radius)
                         continue;
@@ -384,7 +384,7 @@ namespace Arena
             m.SeedCd -= dt * rate;
             if (!m.Companion || m.StaggerT > 0f || owner.Weapon.Id != WeaponId.TreantRod || owner.Downed || !Battle || m.SeedCd > 0f)
                 return;
-            var e = NearestEnemy(m.Pos, SeedRange * m.Scale);
+            var e = NearestEnemy(m.Pos, SeedRange * m.Scale, by: owner.Id);
             if (e == null)
                 return;
             m.SeedCd = SeedInterval;
@@ -405,7 +405,7 @@ namespace Arena
         void PickGoal(Player p, Minion m, float reach)
         {
             V2 at = p.Pos + (p.AimAt - p.Pos).LimitLength(reach);
-            var e = NearestEnemy(at, SendPickRange(p));
+            var e = NearestEnemy(at, SendPickRange(p), by: p.Id);
             m.GoalEnemy = e != null ? e.Id : 0;
             m.Goal = at;
             m.Sent = true;
@@ -479,11 +479,11 @@ namespace Arena
             }
             m.SentT += dt;
             Enemy e = null;
-            if (m.GoalEnemy == 0 || !Enemies.TryGetValue(m.GoalEnemy, out e) || e.Hp <= 0f)
+            if (m.GoalEnemy == 0 || !TryFoe(m.GoalEnemy, out e) || e.Hp <= 0f)
                 e = null;  // sent at a point, or its target is gone
             if (e == null && owner.Stats.Homing > 0f && !m.Returning)
             {
-                e = NearestEnemy(m.Pos, HomingRange);  // Homing Rounds: lock onto an enemy close by instead
+                e = NearestEnemy(m.Pos, HomingRange, by: owner.Id);  // Homing Rounds: lock onto an enemy close by instead
                 if (e != null)
                     m.GoalEnemy = e.Id;
             }
@@ -508,7 +508,7 @@ namespace Arena
             m.Pos += to.LimitLength(speed * dt);
             // What it reached: its target, or (on the way, for an imp) any enemy it runs into.
             Enemy hit = null;
-            foreach (var o in Enemies.Values)
+            foreach (var o in AllFoes(by: owner.Id))
                 if (Targetable(o) && o.Pos.CloserThan(m.Pos, o.Radius + d.Radius * m.Scale + 4f) && (imp || o == e))
                 {
                     hit = o;
@@ -554,7 +554,7 @@ namespace Arena
                 }
                 if (p.LaunchCd > 0f || State == MatchState.GameOver)
                     continue;
-                var e = NearestEnemy(p.Pos, LaunchRange * p.Stats.LaunchRangeMult);  // (Frozen Halo: farther)
+                var e = NearestEnemy(p.Pos, LaunchRange * p.Stats.LaunchRangeMult, by: p.Id);  // (Frozen Halo: farther)
                 if (e == null)
                     continue;
                 V2 from = OrbiterPos(p.Pos, p.Orbiters - 1, p.Orbiters, AnimT);
@@ -604,7 +604,7 @@ namespace Arena
                     ionTrails.RemoveAt(i);
                     continue;
                 }
-                foreach (var e in Enemies.Values)
+                foreach (var e in AllFoes(by: tr.Owner))
                 {
                     if (!Targetable(e))
                         continue;
@@ -616,7 +616,7 @@ namespace Arena
                 }
             }
             foreach (var kv in trailOn)
-                if (Enemies.TryGetValue(kv.Key, out Enemy e))
+                if (TryFoe(kv.Key, out Enemy e))
                     WeaponHurt(e, kv.Value.Dps * dt, kv.Value.Owner);
         }
 
@@ -644,7 +644,7 @@ namespace Arena
         Enemy Prey(Player p)
         {
             Enemy e;
-            return p.PreyT > 0f && Enemies.TryGetValue(p.PreyId, out e) && Targetable(e) ? e : null;
+            return p.PreyT > 0f && TryFoe(p.PreyId, out e) && Targetable(e) ? e : null;
         }
 
         /// A pack wolf bit something: if it's the prey and every wolf has now bitten it within PackWindow, a takedown
@@ -729,7 +729,7 @@ namespace Arena
             var hits = new List<Enemy>[n];
             for (int v = 0; v < n; v++)
                 hits[v] = new List<Enemy>();
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
             {
                 if (!Targetable(e))
                     continue;
@@ -882,7 +882,7 @@ namespace Arena
             sh.Pulses--;
             BroadcastFx(FxKind.Spark, from.Pos, Defs.BulletColor(Defs.HammerShot), from.Radius + 14f, 0.3f, Sfx.None);
             var near = new List<Enemy>();
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: sh.Owner))
                 if (e != from && Targetable(e) && e.Pos.CloserThan(from.Pos, sh.Reach + e.Radius))
                     near.Add(e);
             WetArcs(from.Pos, from, sh.Dmg / HammerArcMult * 0.5f, sh.Owner);  // Tsunami.cs: a pulse counts as half a hammer hit (its own arcs are only an eighth)
@@ -901,7 +901,7 @@ namespace Arena
             {
                 var sh = shocks[i];
                 Enemy e;
-                if (!Enemies.TryGetValue(sh.Enemy, out e) || e.Hp <= 0f || sh.Pulses <= 0)
+                if (!TryFoe(sh.Enemy, out e) || e.Hp <= 0f || sh.Pulses <= 0)
                 {
                     shocks.RemoveAt(i);
                     continue;
