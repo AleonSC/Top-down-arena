@@ -339,6 +339,21 @@ namespace Arena
                     break;  // once a tick, however many dots it's on
                 }
             }
+            if (PvpOn)  // PvP: other players' ink burns you too (Pvp.cs)
+                foreach (var q in Players.Values)
+                {
+                    if (q.Downed || q.WarpT > 0f)
+                        continue;
+                    var s = StandOf(q);
+                    foreach (var d in Ink)
+                    {
+                        Player owner;
+                        if (d.Owner == q.Id || !Players.TryGetValue(d.Owner, out owner) || s.Pos.FartherThan(d.Pos, ChalkDotR * InkWidth(owner) + s.Radius))
+                            continue;
+                        DotDamage(s, ChalkBurn * owner.Stats.DmgMult * dt, owner.Id);
+                        break;
+                    }
+                }
             foreach (var q in Players.Values)
             {
                 if (q.Downed)

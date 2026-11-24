@@ -111,9 +111,8 @@ namespace Arena
                 {
                     V2 at = r.From + dir * AirBombAlong(r.Next);
                     r.Next++;
-                    foreach (var e in Enemies.Values)
-                        if (Targetable(e) && e.Pos.CloserThan(at, r.Radius + e.Radius))
-                            HurtEnemy(e, r.Dmg, r.Owner);
+                    foreach (var e in FoesInCircle(at, r.Radius, by: r.Owner))
+                        HurtEnemy(e, r.Dmg, r.Owner);
                     BroadcastFx(FxKind.Boom, at, Defs.BulletColor(Defs.GrenadeShot), r.Radius, 0.35f, r.Next % 2 == 1 ? Sfx.Explode : Sfx.None);
                     PropBlast(at, r.Radius, r.Owner);      // sets barrels off (Props.cs)
                     GateLockBlast(at, r.Radius, r.Owner);  // and cracks a Warden gate's lock (Warden.cs)
@@ -125,10 +124,8 @@ namespace Arena
                     if (r.FireTick <= 0f)
                     {
                         r.FireTick += AirFireTick;
-                        foreach (var e in Enemies.Values)
+                        foreach (var e in AllFoes(by: r.Owner))
                         {
-                            if (!Targetable(e))
-                                continue;
                             V2 rel = e.Pos - r.From;
                             float u = rel.Dot(dir), v = Math.Abs(rel.Dot(dir.Orthogonal()));
                             if (u > -e.Radius && u < len + e.Radius && v < AirFireHalf + e.Radius)

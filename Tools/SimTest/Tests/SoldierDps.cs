@@ -37,6 +37,7 @@ static partial class Program
             for (int f = 0; f < secs / dt; f++)
             {
                 me.Pos = from; queue.Clear();
+                foreach (var id in g.Enemies.Values.Where(e => e.MaxHp < 1e5f).Select(e => e.Id).ToList()) g.Enemies.Remove(id);  // only the test's dummies: the wave's own spawns (portals, squads) would soak rounds, more or fewer by the seed
                 foreach (var e in g.Enemies.Values) e.Pos = aimAt;
                 foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == host ? new PlayerInput { AimAt = aimAt, Fire = fire, WeaponAction = alt && f < 3 } : new PlayerInput()); }
             }

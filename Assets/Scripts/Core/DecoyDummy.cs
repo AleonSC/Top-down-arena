@@ -90,7 +90,7 @@ namespace Arena
             float reach = z.Blast > 0f ? z.Blast : DecoyBlast;
             foreach (var e in Enemies.Values)
             {
-                if (!InReach(e, z.Pos, reach) || e.Def.IsBoss)
+                if (!Targetable(e) || e.Def.IsBoss || e.Pos.FartherThan(z.Pos, reach + e.Radius))
                     continue;
                 Stun(e, DecoyStun);
                 if (!Heavy(e))

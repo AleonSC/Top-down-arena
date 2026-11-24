@@ -94,7 +94,7 @@ namespace Arena
                     gauntlets.RemoveAt(i);
                     continue;
                 }
-                bool alive = Enemies.TryGetValue(g.Target, out e) && e.Hp > 0f;
+                bool alive = TryFoe(g.Target, out e) && e.Hp > 0f;
                 if (g.Phase == 0)
                 {
                     g.T -= dt;
@@ -142,9 +142,9 @@ namespace Arena
                     V2 at = g.From + (g.To - g.From) * u;
                     V2 path = at - g.From;
                     float len = path.Length;
-                    foreach (var o in Enemies.Values)
+                    foreach (var o in AllFoes(by: p.Id))
                     {
-                        if (o.Id == g.Target || !Targetable(o) || g.Bowled.Contains(o.Id))
+                        if (o.Id == g.Target || g.Bowled.Contains(o.Id))
                             continue;
                         V2 off = o.Pos - g.From;
                         float along = Math.Max(0f, Math.Min(len, off.Dot(g.Dir)));

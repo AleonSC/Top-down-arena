@@ -37,7 +37,7 @@ namespace Arena
             // The link: a steady trickle of health (Kindred Spirits doubles it).
             if (!linked.Downed)
                 Heal(linked, LinkHeal * owner.Stats.LinkHealMult * m.Power * dt, owner);
-            var e = NearestEnemy(m.Pos, LanternFlameRange);
+            var e = NearestEnemy(m.Pos, LanternFlameRange, by: owner.Id);
             if (e == null)
                 return true;
             m.Aim = (e.Pos - m.Pos).Angle;

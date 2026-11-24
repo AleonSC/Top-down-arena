@@ -97,7 +97,7 @@ namespace Arena
                     V2 d = WwDrop(p, i);
                     foreach (var e in Enemies.Values)
                     {
-                        if (!InReach(e, d, WwDropR))
+                        if (!Targetable(e) || d.FartherThan(e.Pos, e.Radius + WwDropR))
                             continue;
                         WwSplash(p, d);
                         WwRemove(p, i);
@@ -152,9 +152,9 @@ namespace Arena
         {
             var s = p.Stats;
             float r = WwReach(p, WwSplashR), dmg = WwSplashDamage * s.DmgMult * s.WwDmgMult, wet = WwWet + s.WwWetBonus;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: p.Id))
             {
-                if (!Targetable(e) || at.FartherThan(e.Pos, r + e.Radius * 0.5f))
+                if (at.FartherThan(e.Pos, r + e.Radius * 0.5f))
                     continue;
                 HurtEnemy(e, dmg, p.Id);
                 e.WetT = Math.Max(e.WetT, wet);

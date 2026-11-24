@@ -84,6 +84,8 @@ namespace Arena
                 foreach (var e in game.Enemies.Values)
                     if (!hit.Contains(e.Id) && e.Disp.CloserThan(b.Pos, e.Radius + b.Radius + 4f))
                     {
+                        if (hit.Count == 0 && b.Owner == game.MyId)
+                            FocusHitHold();  // your own Focus arrow's first hit holds a frame or two (ChargeCameraFx.cs)
                         hit.Add(e.Id);
                         AddPart(new Part { Kind = PBowImpact, Pos = e.Disp - dir * 12f, Life = 0.35f, Max = 0.35f, Size = 16f, Col = BowGoldHot });
                     }

@@ -43,7 +43,7 @@ namespace Arena
         void LinkBoneDart(Player p, Enemy e)
         {
             Enemy prev;
-            if (p.BoneLinkT > 0f && p.BoneLastHit != e.Id && Enemies.TryGetValue(p.BoneLastHit, out prev) && Targetable(prev)
+            if (p.BoneLinkT > 0f && p.BoneLastHit != e.Id && TryFoe(p.BoneLastHit, out prev) && Targetable(prev)
                 && !marrowLinks.Exists(l => l.A == prev.Id && l.B == e.Id || l.A == e.Id && l.B == prev.Id))
             {
                 if (marrowLinks.Count >= MarrowCap)
@@ -66,7 +66,7 @@ namespace Arena
                     continue;
                 marrowLinks.RemoveAt(i);
                 Enemy o;
-                if (!Enemies.TryGetValue(other, out o) || !Targetable(o))
+                if (!TryFoe(other, out o) || !Targetable(o))
                     continue;
                 BroadcastFx(FxKind.MarrowLink, caged.Pos, new V2(caged.Id, o.Id), MarrowRed, 1f, Math.Max(MarrowLife, hold), Sfx.None);  // (lives on, unseen after its flash, to hide the spent loose thread)
                 if (o.Def.IsBoss || o.Def.Heavy)
@@ -102,7 +102,7 @@ namespace Arena
             for (int i = marrowLinks.Count - 1; i >= 0; i--)
             {
                 var l = marrowLinks[i];
-                if ((l.T -= dt) <= 0f || !Enemies.ContainsKey(l.A) || !Enemies.ContainsKey(l.B))
+                if ((l.T -= dt) <= 0f || !FoeExists(l.A) || !FoeExists(l.B))
                     marrowLinks.RemoveAt(i);
             }
             ossuaryWalls.Clear();
@@ -125,9 +125,9 @@ namespace Arena
         {
             if (ossuaryWalls.Count == 0)
                 return;
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes())
             {
-                if (!Targetable(e) || e.Def.IsBoss)
+                if (e.Def.IsBoss)
                     continue;
                 e.WallDartT -= dt;
                 foreach (var z in ossuaryWalls)

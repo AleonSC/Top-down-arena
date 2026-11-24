@@ -171,7 +171,7 @@ namespace Arena
             float dmg = atk.Dmg * ThrallDmgMult * owner.Stats.DmgMult * m.Power;
             float leash = atk.Melee ? ThrallLeash : ThrallRangedLeash;
             Enemy target = null;
-            target = NearestInLeash(m.Pos, owner.Pos, leash);
+            target = NearestInLeash(m.Pos, owner.Pos, leash, by: owner.Id);
             V2 home = BesideOwner(owner, 45f, m.Ang);
             V2 goal = home;
             float stop = 4f;

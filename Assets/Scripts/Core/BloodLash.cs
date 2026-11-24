@@ -164,7 +164,7 @@ namespace Arena
             for (int k = p.Chains.Count - 1; k >= 0; k--)
             {
                 Enemy e;
-                if (!Enemies.TryGetValue(p.Chains[k], out e) || !Targetable(e) || e.Pos.DistanceTo(p.Pos) > LashReapRange + e.Radius)
+                if (!TryFoe(p.Chains[k], out e) || !Targetable(e) || e.Pos.DistanceTo(p.Pos) > LashReapRange + e.Radius)
                     continue;
                 int links = p.ChainLinks[k];
                 reapRuns.Add(new ReapRun { Owner = p.Id, Target = e.Id, Links = links, From = e.Pos, Dmg = (LashReapBase + LashReapPer * links) * dmg, Moves = !Heavy(e) });
@@ -216,7 +216,7 @@ namespace Arena
             for (int k = p.Chains.Count - 1; k >= 0; k--)
             {
                 Enemy e;
-                if (!Enemies.TryGetValue(p.Chains[k], out e) || !Targetable(e))
+                if (!TryFoe(p.Chains[k], out e) || !Targetable(e))
                     continue;
                 float d = back * LeashReturn * p.ChainLinks[k] / total * p.Stats.DmgMult;
                 BroadcastFx(FxKind.Drain, p.Pos, e.Pos, LashRed, 2f, 0.25f, Sfx.None);
@@ -250,7 +250,7 @@ namespace Arena
                 for (int k = p.Chains.Count - 1; k >= 0; k--)
                 {
                     Enemy e;
-                    if (!Enemies.TryGetValue(p.Chains[k], out e) || e.Hp <= 0f || e.Pos.DistanceTo(p.Pos) > LashBreak + e.Radius)
+                    if (!TryFoe(p.Chains[k], out e) || e.Hp <= 0f || e.Pos.DistanceTo(p.Pos) > LashBreak + e.Radius)
                     {
                         DropChain(p, k);
                         continue;
@@ -281,7 +281,7 @@ namespace Arena
                 Player p;
                 Enemy e;
                 r.T += dt;
-                if (!Players.TryGetValue(r.Owner, out p) || p.Downed || !Enemies.TryGetValue(r.Target, out e) || e.Hp <= 0f)
+                if (!Players.TryGetValue(r.Owner, out p) || p.Downed || !TryFoe(r.Target, out e) || e.Hp <= 0f)
                 {
                     reapRuns.RemoveAt(i);
                     continue;

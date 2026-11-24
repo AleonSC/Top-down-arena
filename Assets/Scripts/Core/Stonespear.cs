@@ -87,7 +87,7 @@ namespace Arena
         void StoneSlam(Player p)
         {
             float r = SsSlamRadiusOf(p), dmg = p.Weapon.Damage * SsSlamDmg * p.Stats.DmgMult;
-            var snap = SnapEnemies();
+            var snap = SnapFoes(p.Id);
             bool any = false;
             foreach (var e in snap)
             {
@@ -205,7 +205,7 @@ namespace Arena
             var w = p.Weapon;
             V2 from = p.Pos + SlotOffset(p.Aim, k, p.SsSide, AnimT);
             Enemy target;
-            bool locked = p.SsLock != 0 && Enemies.TryGetValue(p.SsLock, out target) && Targetable(target);
+            bool locked = p.SsLock != 0 && TryFoe(p.SsLock, out target) && Targetable(target);
             V2 at = locked ? Enemies[p.SsLock].Pos : p.SsLockAt;
             V2 to = at - from;
             float a = to.Length > 1f ? to.Angle : p.Aim;
@@ -238,7 +238,7 @@ namespace Arena
         void SteerSpear(Bullet b, float dt)
         {
             Enemy e;
-            if (!Enemies.TryGetValue(b.HomeOn, out e) || !Targetable(e))
+            if (!TryFoe(b.HomeOn, out e) || !Targetable(e))
             {
                 e = null;
                 float bestD = float.MaxValue;

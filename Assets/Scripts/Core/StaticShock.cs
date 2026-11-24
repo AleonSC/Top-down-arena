@@ -110,7 +110,7 @@ namespace Arena
             // Enemies out of every cone for a while start over.
             staticGone.Clear();
             foreach (var kv in staticSeen)
-                if (staticClock - kv.Value > StaticForget || !Enemies.ContainsKey(kv.Key))
+                if (staticClock - kv.Value > StaticForget || !FoeExists(kv.Key))
                     staticGone.Add(kv.Key);
             foreach (int id in staticGone)
             {
@@ -286,8 +286,8 @@ namespace Arena
                 V2 at = ArcBallAt(b.From, b.To, b.Age, b.Dur);
                 Player owner;
                 Players.TryGetValue(b.Owner, out owner);
-                foreach (var e in Enemies.Values)
-                    if (Targetable(e) && !b.HitE.Contains(e.Id) && e.Pos.WithinReach(at, CannonBallR + e.Radius))
+                foreach (var e in AllFoes(by: b.Owner))
+                    if (!b.HitE.Contains(e.Id) && e.Pos.WithinReach(at, CannonBallR + e.Radius))
                     {
                         b.HitE.Add(e.Id);
                         WeaponHurt(e, b.Pass, b.Owner);
@@ -314,8 +314,8 @@ namespace Arena
                 arcBalls.RemoveAt(i);
                 bool any = b.HitE.Count > 0;
                 BroadcastFx(FxKind.ArcBurst, b.To, b.To, CannonViolet, b.BurstR, CannonBurstFx, Sfx.Explode);
-                foreach (var e in Enemies.Values)
-                    if (Targetable(e) && e.Pos.WithinReach(b.To, b.BurstR + e.Radius))
+                foreach (var e in AllFoes(by: b.Owner))
+                    if (e.Pos.WithinReach(b.To, b.BurstR + e.Radius))
                     {
                         any = true;
                         WeaponHurt(e, b.Burst, b.Owner);

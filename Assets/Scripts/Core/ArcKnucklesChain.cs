@@ -74,7 +74,7 @@ namespace Arena
         {
             var w = p.Weapon;
             Enemy locked;
-            bool hasLock = Enemies.TryGetValue(p.KnuckleTarget, out locked) && Targetable(locked);
+            bool hasLock = TryFoe(p.KnuckleTarget, out locked) && Targetable(locked);
             if (hasLock && (p.KnuckleChain == 1 || p.KnuckleChain == 5))
                 aim = (locked.Pos - p.Pos).Angle;  // the Flurry and the Rocket Punch turn to the enemy the dash locked onto
             switch (p.KnuckleChain)
@@ -102,7 +102,7 @@ namespace Arena
                 case 3:  // Grab & Throw: the Flurry's target, if it's still there, close and not a boss
                 {
                     Enemy e;
-                    if (!Enemies.TryGetValue(p.KnuckleTarget, out e) || !InReach(e, p.Pos, GrabRange) || e.Def.IsBoss)
+                    if (!TryFoe(p.KnuckleTarget, out e) || !Targetable(e) || e.Def.IsBoss || e.Pos.FartherThan(p.Pos, GrabRange + e.Radius))
                     {
                         EndKnuckleChain(p);
                         return false;  // (the press throws a punch instead)
@@ -191,7 +191,7 @@ namespace Arena
                 var r = grabRuns[i];
                 Player p = null;
                 Enemy e = null;
-                if (r.Done || !Players.TryGetValue(r.Owner, out p) || !Enemies.TryGetValue(r.Target, out e) || e.Hp <= 0f)
+                if (r.Done || !Players.TryGetValue(r.Owner, out p) || !TryFoe(r.Target, out e) || e.Hp <= 0f)
                 {
                     if (p != null && p.KnuckleChain == 4)
                         EndKnuckleChain(p);  // (the enemy died in your hands)

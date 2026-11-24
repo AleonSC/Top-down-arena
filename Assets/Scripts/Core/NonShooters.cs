@@ -88,8 +88,8 @@ namespace Arena
                 Damage(p, playerDamage, e.Def.Name);
             }
             float scaled = enemyDamage * (1f + 0.15f * (Math.Max(1, Wave) - 1));  // keeps up with enemy health (SpawnHp)
-            foreach (var o in Enemies.Values)
-                if (o != e && Targetable(o) && o.Pos.CloserThan(e.Pos, radius + o.Radius))
+            foreach (var o in FoesInCircle(e.Pos, radius))
+                if (o != e)
                     HurtEnemy(o, o.Def.IsBoss ? scaled * 0.25f : scaled, credit);
             BroadcastFx(FxKind.Boom, e.Pos, e.Def.Color, radius, 0.35f, Sfx.Explode);
             PropBlast(e.Pos, radius, credit);

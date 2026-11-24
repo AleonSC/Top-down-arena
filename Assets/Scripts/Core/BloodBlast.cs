@@ -266,9 +266,9 @@ namespace Arena
                 r.T += dt;
                 float R = TideRadius(r.T, r.Reach);
                 string was = CreditTo("weapon");
-                foreach (var e in Enemies.Values)
+                foreach (var e in AllFoes(by: p.Id))
                 {
-                    if (!Targetable(e) || r.Hit.Contains(e.Id) || e.Pos.DistanceTo(r.From) - e.Radius > R)
+                    if (r.Hit.Contains(e.Id) || e.Pos.DistanceTo(r.From) - e.Radius > R)
                         continue;
                     if (AngleTo(r.From, e.Pos, r.Aim) > TideHalf + BodySlack(e.Pos.DistanceTo(r.From), e.Radius))
                         continue;

@@ -253,9 +253,8 @@ namespace Arena
                 GlBlast(b);  // the Grenade Launcher's HE (GrenadeLauncher.cs)
                 return;
             }
-            foreach (var e in Enemies.Values)
-                if (e.SpawnT <= 0f && e.Pos.CloserThan(b.Pos, b.Splash + e.Radius))
-                    HurtEnemy(e, b.Dmg, b.Owner);
+            foreach (var e in FoesInCircle(b.Pos, b.Splash, by: b.Owner))
+                HurtEnemy(e, b.Dmg, b.Owner);
             SpawnRing(Defs.DpsShot, b.Pos, b.Burst, 520f, 0.45f, b.Dmg * 0.12f, b.Owner);
             BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.GrenadeShot), b.Splash, 0.35f, Sfx.Explode);
             PropBlast(b.Pos, b.Splash, b.Owner);  // sets barrels off (Props.cs)
@@ -358,9 +357,8 @@ namespace Arena
                 }
                 if (b.Bomblet)
                 {
-                    foreach (var e in Enemies.Values)
-                        if (e.SpawnT <= 0f && e.Pos.CloserThan(b.Pos, b.Splash + e.Radius) && !BlocksShot(e, b.Pos))
-                            HurtEnemy(e, b.Dmg, b.Owner);
+                    foreach (var e in FoesInCircle(b.Pos, b.Splash, b.Pos, by: b.Owner))
+                        HurtEnemy(e, b.Dmg, b.Owner);
                     BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.FlakShell), b.Splash, 0.25f, Sfx.None);
                     PropBlast(b.Pos, b.Splash, b.Owner);
                     GateLockBlast(b.Pos, b.Splash, b.Owner);
@@ -545,9 +543,9 @@ namespace Arena
                 scratchIds.Add(b.Id);
                 return;
             }
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: b.Owner))  // (with PvP on, the other players too: Pvp.cs)
             {
-                if (!Targetable(e) || e.Id == b.LastHit || e.Id == b.PrevHit || DevourUnder(e) || GutwormUnder(e))
+                if (e.Id == b.LastHit || e.Id == b.PrevHit || DevourUnder(e) || GutwormUnder(e))
                     continue;  // (the Devourer underground: shots pass over it)
                 float r = e.Radius + b.Radius;
                 if (b.Pos.DistanceSq(e.Pos) < r * r)
@@ -914,7 +912,7 @@ namespace Arena
             foreach (var sp in splits)
             {
                 Enemy hit;
-                if (Enemies.TryGetValue(sp.LastHit, out hit) && hit.Hp > 0f && BounceTarget(sp.Pos, sp.LastHit, SwarmAloneReach) == null)
+                if (TryFoe(sp.LastHit, out hit) && hit.Hp > 0f && BounceTarget(sp.Pos, sp.LastHit, SwarmAloneReach) == null)
                 {
                     HurtEnemy(hit, sp.Dmg * sp.Pierce * SwarmAloneShare, sp.Owner);  // alone (a boss): the splinters bite the enemy hit
                     continue;
@@ -925,12 +923,9 @@ namespace Arena
             // Flak shells (and Collapse Rounds) hurt everything near the impact, at 60% damage.
             foreach (var b in splashes)
             {
-                foreach (var e in Enemies.Values)
-                {
-                    if (e.Id == b.LastHit || e.SpawnT > 0f || e.Pos.FartherThan(b.Pos, b.Splash + e.Radius) || BlocksShot(e, b.Pos))
-                        continue;
-                    HurtEnemy(e, b.Dmg * 0.6f, b.Owner);
-                }
+                foreach (var e in FoesInCircle(b.Pos, b.Splash, b.Pos, by: b.Owner))
+                    if (e.Id != b.LastHit)
+                        HurtEnemy(e, b.Dmg * 0.6f, b.Owner);
                 if (b.Kind == Defs.FlakShell || !SplashFxNearby(b))
                     BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(b.Kind), b.Splash, 0.3f, b.Kind == Defs.FlakShell ? Sfx.Explode : Sfx.None);
                 PropBlast(b.Pos, b.Splash, b.Owner);
@@ -1025,6 +1020,11 @@ namespace Arena
 
         void HurtEnemy(Enemy e, float dmg, int attacker)
         {
+            if (e.Stand != null)
+            {
+                PvpHurt(e.Stand, dmg, attacker);  // a player's stand-in: PvP (Pvp.cs)
+                return;
+            }
             if (e.Dormant)
                 WakeDormant(e.Pos);  // a sleeping group hit from the doorway wakes (DormantGroups.cs)
             if (SoulBound(e))
@@ -1329,6 +1329,11 @@ namespace Arena
         /// Damage over time (burning, bleeding), credited to whoever caused it.
         void DotDamage(Enemy e, float dmg, int by)
         {
+            if (e.Stand != null)
+            {
+                PvpHurt(e.Stand, dmg, by, true);  // a player's stand-in: PvP (Pvp.cs)
+                return;
+            }
             // The same immunities as a hit: a boss changing phase or guarded takes none, and bubbles soak it first.
             if (SoulBound(e) || Hungry(e) || BossImmune(e) || SingImmune(e))
                 return;
