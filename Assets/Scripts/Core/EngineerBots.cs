@@ -102,7 +102,7 @@ namespace Arena
             float reach = MeleeReach(p, w.Reach + w.Grow * x), dmg = w.Damage * p.Stats.DmgMult, face = p.Aim;
             bool fist = w.Id == WeaponId.IronFist;
             float half = fist ? FistHalf : BladeHalf;
-            foreach (var e in AllFoes())
+            foreach (var e in AllFoes(by: p.Id))
             {
                 if (!InCone(p.Pos, face, half, reach, e.Pos, e.Radius))
                     continue;
@@ -135,7 +135,7 @@ namespace Arena
             z.Radius = r;
             z.T = 100000f;
             float dps = p.Weapon.Damage * p.Stats.DmgMult;
-            foreach (var e in AllFoes())
+            foreach (var e in AllFoes(by: p.Id))
             {
                 if (e.Pos.FartherThan(at, r + e.Radius * 0.5f))
                     continue;

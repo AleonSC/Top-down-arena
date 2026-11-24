@@ -266,7 +266,7 @@ namespace Arena
                 r.T += dt;
                 float R = TideRadius(r.T, r.Reach);
                 string was = CreditTo("weapon");
-                foreach (var e in AllFoes())
+                foreach (var e in AllFoes(by: p.Id))
                 {
                     if (r.Hit.Contains(e.Id) || e.Pos.DistanceTo(r.From) - e.Radius > R)
                         continue;

@@ -254,7 +254,7 @@ namespace Arena
                 Player p;
                 if (!Players.TryGetValue(dv.Owner, out p))
                     continue;
-                foreach (var e in FoesInCircle(dv.Pos, RoyalDiveRadius))
+                foreach (var e in FoesInCircle(dv.Pos, RoyalDiveRadius, by: p.Id))
                 {
                     HurtEnemy(e, RoyalDiveDamage * p.Stats.DmgMult * dv.Power, p.Id);
                     if (!e.Def.IsBoss && !Heavy(e))

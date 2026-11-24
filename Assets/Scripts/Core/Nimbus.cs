@@ -63,7 +63,7 @@ namespace Arena
             {
                 V2 at = k == 0 ? centre : ClampToArena(centre + V2.FromAngle(MathX.Tau * k / Math.Max(1, extra) + Rand(0f, 1f)) * (NimbusSpread * AreaMult(p)), 10f);
                 BroadcastFx(FxKind.NimbusStrike, at, at, NimbusBoltColor, radius, NimbusStrikeFxTime, Sfx.SpellZap);
-                foreach (var e in FoesInCircle(at, radius))
+                foreach (var e in FoesInCircle(at, radius, by: p.Id))
                 {
                     anyHit = true;
                     HurtEnemy(e, dmg, p.Id);
@@ -148,7 +148,7 @@ namespace Arena
             float age = NimbusStormTime - p.NimbusStormT, R = NimbusStormRadiusOf(p) * Math.Min(1f, age / NimbusStormSpinUp + 0.25f);
             float dmg = NimbusStormDps * p.Stats.DmgMult * dt;
             Soak(m.Pos, R);
-            foreach (var e in AllFoes())
+            foreach (var e in AllFoes(by: p.Id))
             {
                 V2 rel = m.Pos - e.Pos;
                 float d = rel.Length;

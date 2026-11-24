@@ -25,7 +25,7 @@
 - **HUD**: the GET READY / WAVE CLEARED band is replaced by a small HANGOUT chip (`Game/HangoutUi.cs`).
 - **Leaving**: the pause menu's Back to lobby, like any run.
 - Test: `Tools/SimTest/run.sh 1 30 hangoutmode`.
-- **Not built yet**: PvP between players in the real sim, a spawn-an-enemy key, kit swapping inside the Hangout.
+- **Not built yet**: kit swapping inside the Hangout. (PvP is in: `Core/Pvp.cs`, Docs/Targeting.md; spawning enemies is the spawners.)
 
 ## The first build (retired room)
 

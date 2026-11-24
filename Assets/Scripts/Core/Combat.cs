@@ -253,7 +253,7 @@ namespace Arena
                 GlBlast(b);  // the Grenade Launcher's HE (GrenadeLauncher.cs)
                 return;
             }
-            foreach (var e in FoesInCircle(b.Pos, b.Splash))
+            foreach (var e in FoesInCircle(b.Pos, b.Splash, by: b.Owner))
                 HurtEnemy(e, b.Dmg, b.Owner);
             SpawnRing(Defs.DpsShot, b.Pos, b.Burst, 520f, 0.45f, b.Dmg * 0.12f, b.Owner);
             BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.GrenadeShot), b.Splash, 0.35f, Sfx.Explode);
@@ -357,7 +357,7 @@ namespace Arena
                 }
                 if (b.Bomblet)
                 {
-                    foreach (var e in FoesInCircle(b.Pos, b.Splash, b.Pos))
+                    foreach (var e in FoesInCircle(b.Pos, b.Splash, b.Pos, by: b.Owner))
                         HurtEnemy(e, b.Dmg, b.Owner);
                     BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.FlakShell), b.Splash, 0.25f, Sfx.None);
                     PropBlast(b.Pos, b.Splash, b.Owner);
@@ -543,9 +543,9 @@ namespace Arena
                 scratchIds.Add(b.Id);
                 return;
             }
-            foreach (var e in Enemies.Values)
+            foreach (var e in AllFoes(by: b.Owner))  // (with PvP on, the other players too: Pvp.cs)
             {
-                if (!Targetable(e) || e.Id == b.LastHit || e.Id == b.PrevHit || DevourUnder(e) || GutwormUnder(e))
+                if (e.Id == b.LastHit || e.Id == b.PrevHit || DevourUnder(e) || GutwormUnder(e))
                     continue;  // (the Devourer underground: shots pass over it)
                 float r = e.Radius + b.Radius;
                 if (b.Pos.DistanceSq(e.Pos) < r * r)
@@ -923,7 +923,7 @@ namespace Arena
             // Flak shells (and Collapse Rounds) hurt everything near the impact, at 60% damage.
             foreach (var b in splashes)
             {
-                foreach (var e in FoesInCircle(b.Pos, b.Splash, b.Pos))
+                foreach (var e in FoesInCircle(b.Pos, b.Splash, b.Pos, by: b.Owner))
                     if (e.Id != b.LastHit)
                         HurtEnemy(e, b.Dmg * 0.6f, b.Owner);
                 if (b.Kind == Defs.FlakShell || !SplashFxNearby(b))
@@ -1020,6 +1020,11 @@ namespace Arena
 
         void HurtEnemy(Enemy e, float dmg, int attacker)
         {
+            if (e.Stand != null)
+            {
+                PvpHurt(e.Stand, dmg, attacker);  // a player's stand-in: PvP (Pvp.cs)
+                return;
+            }
             if (e.Dormant)
                 WakeDormant(e.Pos);  // a sleeping group hit from the doorway wakes (DormantGroups.cs)
             if (SoulBound(e))

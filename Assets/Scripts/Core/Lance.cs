@@ -234,7 +234,7 @@ namespace Arena
         /// moved), and the one it hits slides on with ImpactCarry of the push, armed in turn. Each pair meets once.
         void LanceBump(Enemy e)
         {
-            foreach (var g in FoesInCircle(e.Pos, e.Radius + 1f))
+            foreach (var g in FoesInCircle(e.Pos, e.Radius + 1f, by: e.ImpactBy - 1))
             {
                 if (g == e || g.Id == e.ImpactLast)
                     continue;

@@ -386,7 +386,7 @@ namespace Arena
             HitImplode(p, e, p.Weapon.Damage * mult * p.Stats.ImplodeDmgMult);  // (Event Horizon: harder, and from farther)
             float r = e.Radius + ImplodeSplash * AreaMult(p) * p.Stats.ImplodeReachMult;  // Homing Rounds widen it
             if (splash)
-                foreach (var o in AllFoes())
+                foreach (var o in AllFoes(by: p.Id))
                 {
                     if (o == e || o.Pos.FartherOrAt(e.Pos, r + o.Radius))
                         continue;
@@ -583,7 +583,7 @@ namespace Arena
             e.BleedStacks = e.BleedHits = 0;
             e.BleedT = e.BleedDps = 0f;
             float dmg = boltDmg * BleedBurstMult, r = BleedBurstRadius * AreaMult(p) * p.Stats.HemoRadiusMult;
-            foreach (var o in FoesInCircle(e.Pos, r))
+            foreach (var o in FoesInCircle(e.Pos, r, by: p.Id))
                 HurtEnemy(o, dmg, p.Id);
             BroadcastFx(FxKind.Implode, e.Pos, new Rgba(0.85f, 0.1f, 0.18f), r, 0.35f, Sfx.Explode);
         }
@@ -592,7 +592,7 @@ namespace Arena
         /// and spreads a pool of blood.
         void LandClot(Bullet b)
         {
-            foreach (var e in FoesInCircle(b.Pos, b.Splash, b.Pos))
+            foreach (var e in FoesInCircle(b.Pos, b.Splash, b.Pos, by: b.Owner))
             {
                 HurtEnemy(e, b.Dmg, b.Owner);
                 OnBulletHit(b, e);

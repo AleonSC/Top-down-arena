@@ -236,7 +236,7 @@ namespace Arena
             p.FangAt = r.Pos;
             float dmg = p.Weapon.Damage * p.Stats.DmgMult * WheelMult * p.Stats.WheelDmgMult;  // (Lunar Arc: harder)
             int cut = 0;
-            foreach (var e in FoesInCircle(r.Pos, WheelHitR))
+            foreach (var e in FoesInCircle(r.Pos, WheelHitR, by: p.Id))
             {
                 if (r.Hit.ContainsKey(e.Id))
                     continue;

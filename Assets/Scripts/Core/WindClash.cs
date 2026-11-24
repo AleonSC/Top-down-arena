@@ -122,7 +122,7 @@ namespace Arena
                     continue;
                 }
                 bool any = false;
-                foreach (var e in AllFoes())
+                foreach (var e in AllFoes(by: w.Owner))
                 {
                     if (w.Hit.Contains(e.Id))
                         continue;
@@ -235,7 +235,7 @@ namespace Arena
                 p.WcTempestTick += TempestTick;
                 float dmg = p.Weapon.Damage * TempestDmg * p.Stats.DmgMult * (1f + 0.2f * ExtraShots(p));
                 bool any = false;
-                foreach (var e in FoesInCircle(p.Pos, R))
+                foreach (var e in FoesInCircle(p.Pos, R, by: p.Id))
                 {
                     any = true;
                     WeaponHurt(e, dmg, p.Id);

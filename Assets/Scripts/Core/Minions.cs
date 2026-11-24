@@ -39,7 +39,7 @@ namespace Arena
                 case AbilityId.FrostNova:
                 {
                     float reach = 220f * s.NovaRangeMult;  // Permafrost: farther, and a longer freeze
-                    foreach (var e in FoesInCircle(p.Pos, reach))
+                    foreach (var e in FoesInCircle(p.Pos, reach, by: p.Id))
                     {
                         HurtEnemy(e, 40f * dmg, p.Id);
                         Slow(e, 3f + s.NovaFreezeBonus, 0.1f);  // nearly frozen
@@ -228,7 +228,7 @@ namespace Arena
         void ExplodeMinionHits(Minion m, float dmg, float radius)
         {
             bool shot = m.Sent && m.Kind == MinionKind.Imp;  // an Imp Caller imp is the weapon's shot: weapon mods ride its blast
-            foreach (var e in FoesInCircle(m.Pos, radius))
+            foreach (var e in FoesInCircle(m.Pos, radius, by: m.Owner))
             {
                 HurtEnemy(e, dmg, m.Owner);
                 if (shot)
@@ -556,7 +556,7 @@ namespace Arena
                             int extraBear = m.Kind == MinionKind.Bear && owner.Weapon.Id == WeaponId.BearTotem ? ExtraShots(owner) : 0;
                             if (extraBear > 0)
                             {
-                                foreach (var o in FoesInCircle(e.Pos, 55f))
+                                foreach (var o in FoesInCircle(e.Pos, 55f, by: m.Owner))
                                     if (o != e)
                                         HurtEnemy(o, dmg * Math.Min(1f, 0.4f * extraBear), m.Owner);
                                 BroadcastFx(FxKind.Ring, e.Pos, d.Color, 55f, 0.25f, Sfx.None);
@@ -574,7 +574,7 @@ namespace Arena
                         if (m.Cd <= 0f && NearestEnemy(m.Pos, reach) != null)
                         {
                             m.Cd = d.Interval;
-                            foreach (var e in FoesInCircle(m.Pos, reach))
+                            foreach (var e in FoesInCircle(m.Pos, reach, by: m.Owner))
                                 HurtEnemy(e, dmg, m.Owner);
                             BroadcastFx(FxKind.Ring, m.Pos, d.Color, reach, 0.3f, Sfx.None);
                         }
@@ -796,7 +796,7 @@ namespace Arena
                     WardEnds(z);  // Ninja.cs
                 if (z.Def.BlastDamage > 0f)  // the meteor lands
                 {
-                    foreach (var e in FoesInCircle(z.Pos, z.Radius))
+                    foreach (var e in FoesInCircle(z.Pos, z.Radius, by: z.Owner))
                         HurtEnemy(e, z.Def.BlastDamage * z.DmgMult, z.Owner);
                     if (z.Kind == ZoneKind.Meteor)
                         BroadcastFx(FxKind.Meteor, z.Pos, z.Def.Color, z.Radius, 2.8f, Sfx.BigExplode);  // flash, ring, sparks and a scorch mark (ElementalistLooks.cs)

@@ -841,7 +841,7 @@ namespace Arena
         /// A boulder landed: it crushes every enemy under it (weapon mods apply to each, as on a melee hit).
         void LandBoulder(Bullet b)
         {
-            foreach (var e in FoesInCircle(b.Pos, b.Splash, b.Pos))
+            foreach (var e in FoesInCircle(b.Pos, b.Splash, b.Pos, by: b.Owner))
             {
                 HurtEnemy(e, b.Dmg, b.Owner);
                 OnBulletHit(b, e);

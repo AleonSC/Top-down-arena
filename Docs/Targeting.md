@@ -1,7 +1,7 @@
 # Targeting: one way to ask "what does this hit?"
 
-> **Status: steps 1-2 done** (`Core/FoeQuery.cs`; every player attack loop but three uses it). Step 3 (PvP damage) is next, when the
-> owner wants it.
+> **Status: steps 1-3 done.** `Core/FoeQuery.cs` answers every player attack loop but three; PvP is on in the Hangout (`Core/Pvp.cs`):
+> 58 of 91 weapons and every ability's query hits players. Step 4 (summons, lock-ons and beams) is next.
 
 ## Why
 
@@ -26,9 +26,15 @@ struct enumerables: no allocation, they nest, and `HurtEnemy` inside one is safe
 2. **Every other attack loop** (weapons, abilities, ultimates, gadgets, loot; ~70 loops in ~55 files). Done. Left on the raw enemy
    list on purpose: Exsanguinate's reel (a hooked enemy, not a pick), the zone tick in `Minions.cs` (squares and lanes) and the
    path hazards in `Paths.cs` (the floor, not a player).
-3. **PvP damage** (not started): the queries also yield other players when PvP is on, and one `Hurt(target, dmg, attacker)` sends
-   damage to an enemy or a player. Status effects (slows, stuns, knockback, marks) write enemy fields at each site, so they stay
-   enemy-only until each is mapped to its player version.
+3. **PvP damage** (done, `Core/Pvp.cs`): every query takes the attacker (`by`); with `PvpOn` (the Hangout) it also yields each
+   other player as a stand-in `Enemy` (never in `Game.Enemies`, `Enemy.Stand` set). `HurtEnemy` sends a stand-in's hit to its
+   player through `Damage`, at `PvpDamage` (35%), never to the attacker, never through a dodge's i-frames or a respawn beam. Melee
+   swings (`LandSwing`) and player bullets (`PlayerShotHits`) use the same queries. Status effects land on the stand-in and do
+   nothing yet. Left out: Blood Wall and Ossuary Wall (several owners per loop) and enemies' death blasts credited to a player.
+4. **Summons, lock-ons and beams** (next): 33 weapons pick targets another way and don't hit players yet: summons go for the
+   nearest enemy (`NearestEnemy`, `NearestInLeash`), lock-ons, tethers and beams keep enemy ids (Vein Tether, Leech Tendrils, Arc
+   Lightning, Implosion, Frost Lance, Kusarigama...). Healer weapons that heal teammates (Chain Light, Ofuda, Sanguine Orb, Censer,
+   Quarterstaff) heal other players instead, as before. Test suite `pvp` lists the ones that don't land yet.
 
 ## Behaviour notes
 

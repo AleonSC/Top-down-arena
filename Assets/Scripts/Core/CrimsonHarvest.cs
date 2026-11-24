@@ -136,7 +136,7 @@ namespace Arena
         void LandHarvest(HarvestShot h)
         {
             float R = HarvestRadius(h.Blood), D = HarvestDamage(h.Blood) * h.Mult;
-            foreach (var e in AllFoes())
+            foreach (var e in AllFoes(by: h.Owner))
             {
                 float d = e.Pos.DistanceTo(h.To);
                 if (d > R + e.Radius)

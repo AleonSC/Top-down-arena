@@ -44,7 +44,7 @@ namespace Arena
                     if (at > before && at <= now)
                         Heal(q, HallowedPulseHeal * z.HealMult, owner);
                 }
-                foreach (var e in AllFoes())
+                foreach (var e in AllFoes(by: z.Owner))
                 {
                     float at = start + HallowedPulseRing * e.Pos.DistanceTo(z.Pos) / reach;
                     if (at > before && at <= now)

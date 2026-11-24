@@ -140,7 +140,7 @@ namespace Arena
         /// Host: the HE burst (from ExplodeGrenade): full damage at the middle, GlEdge of it at the rim, a small shove outward.
         void GlBlast(Bullet b)
         {
-            foreach (var e in FoesInCircle(b.Pos, b.Splash))
+            foreach (var e in FoesInCircle(b.Pos, b.Splash, by: b.Owner))
             {
                 if (BlocksShot(e, b.Pos))
                     continue;

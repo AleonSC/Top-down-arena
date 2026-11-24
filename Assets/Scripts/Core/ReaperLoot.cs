@@ -94,7 +94,7 @@ namespace Arena
             }
             if (owner.Downed)
                 return;
-            foreach (var e in FoesInCircle(m.Pos, ScytheBlade))
+            foreach (var e in FoesInCircle(m.Pos, ScytheBlade, by: owner.Id))
             {
                 long key = ((long)m.Id << 32) | (uint)e.Id;
                 float last;
@@ -227,7 +227,7 @@ namespace Arena
             HashSet<int> cut;
             if (!throwHits.TryGetValue(m.Id, out cut))
                 throwHits[m.Id] = cut = new HashSet<int>();
-            foreach (var e in AllFoes())
+            foreach (var e in AllFoes(by: owner.Id))
                 if (!cut.Contains(e.Id) && e.Pos.CloserThan(m.Pos, e.Radius + ThrowReach))
                 {
                     cut.Add(e.Id);

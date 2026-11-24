@@ -94,7 +94,7 @@ namespace Arena
                 return;
             int charge = p.GaleDots.Count;
             float face = p.Aim, D = GaleDamage(charge, p.GalePerShot) * p.Stats.DmgMult;
-            foreach (var e in AllFoes())
+            foreach (var e in AllFoes(by: p.Id))
             {
                 if (!InCone(p.Pos, face, GaleConeHalf, GaleReach, e.Pos, e.Radius))
                     continue;

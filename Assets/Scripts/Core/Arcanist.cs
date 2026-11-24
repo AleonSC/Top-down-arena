@@ -302,7 +302,7 @@ namespace Arena
             if (owner.Downed)
                 return;
             V2 dir = V2.FromAngle(m.Aim);
-            foreach (var e in AllFoes())
+            foreach (var e in AllFoes(by: owner.Id))
                 if (!hits.Contains(e.Id) && e.Pos.CloserThan(m.Pos, e.Radius + reach))
                 {
                     hits.Add(e.Id);
@@ -319,7 +319,7 @@ namespace Arena
             if (owner.Downed)
                 return;
             bool any = false;
-            foreach (var e in FoesInCircle(m.Pos, BladeSlashR))
+            foreach (var e in FoesInCircle(m.Pos, BladeSlashR, by: owner.Id))
             {
                 WeaponHurt(e, dmg, owner.Id);
                 ModHit(e, owner.Id, dmg, Defs.ArcaneShot, (e.Pos - m.Pos).Normalized());
@@ -740,7 +740,7 @@ namespace Arena
                 if (touch == null)
                     continue;
                 left &= ~(1 << k);
-                foreach (var e in FoesInCircle(at, SanctumBurst))
+                foreach (var e in FoesInCircle(at, SanctumBurst, by: z.Owner))
                 {
                     HurtEnemy(e, SanctumBurstDmg * z.DmgMult, z.Owner);
                     if (!Heavy(e))
@@ -767,7 +767,7 @@ namespace Arena
                 return;
             }
             float dmg = (CrushDmg + CrushPer * Math.Min(CrushPerMax, caught - 1)) * z.DmgMult;
-            foreach (var e in FoesInCircle(z.Pos, z.Radius))
+            foreach (var e in FoesInCircle(z.Pos, z.Radius, by: z.Owner))
             {
                 HurtEnemy(e, dmg, z.Owner);
                 if (!e.Def.IsBoss)

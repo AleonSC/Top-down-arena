@@ -286,7 +286,7 @@ namespace Arena
                 V2 at = ArcBallAt(b.From, b.To, b.Age, b.Dur);
                 Player owner;
                 Players.TryGetValue(b.Owner, out owner);
-                foreach (var e in AllFoes())
+                foreach (var e in AllFoes(by: b.Owner))
                     if (!b.HitE.Contains(e.Id) && e.Pos.WithinReach(at, CannonBallR + e.Radius))
                     {
                         b.HitE.Add(e.Id);
@@ -314,7 +314,7 @@ namespace Arena
                 arcBalls.RemoveAt(i);
                 bool any = b.HitE.Count > 0;
                 BroadcastFx(FxKind.ArcBurst, b.To, b.To, CannonViolet, b.BurstR, CannonBurstFx, Sfx.Explode);
-                foreach (var e in AllFoes())
+                foreach (var e in AllFoes(by: b.Owner))
                     if (e.Pos.WithinReach(b.To, b.BurstR + e.Radius))
                     {
                         any = true;

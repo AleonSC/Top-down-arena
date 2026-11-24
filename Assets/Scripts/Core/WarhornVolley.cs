@@ -71,7 +71,7 @@ namespace Arena
                     continue;
                 float front = VolFront(vl.T);
                 V2 side = vl.Dir.Orthogonal();
-                foreach (var e in AllFoes())
+                foreach (var e in AllFoes(by: vl.Owner))
                 {
                     if (vl.Hit.Contains(e.Id))
                         continue;

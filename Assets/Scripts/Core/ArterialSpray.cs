@@ -68,7 +68,7 @@ namespace Arena
             var s = p.Stats;
             float reach = SprayReachOf(p), dmg = SprayDps * SprayTickTime * s.SprayMult * s.DmgMult * p.SprayPower;
             V2 from = p.Pos, dir = V2.FromAngle(p.Aim);
-            foreach (var e in AllFoes())
+            foreach (var e in AllFoes(by: p.Id))
             {
                 if (!InSpray(from, p.Aim, reach, e.Pos, e.Radius))
                     continue;

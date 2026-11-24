@@ -254,7 +254,7 @@ namespace Arena
             float heat = p.RailHeatF, aim = (target - p.Pos).LengthSq > 1f ? (target - p.Pos).Angle : p.Aim;
             float reach = DumpReach(heat) * AreaMult(p), hit = DumpHit(heat) * p.Stats.DmgMult, burn = DumpBurn(heat) * p.Stats.DmgMult, shove = DumpShove(heat);
             V2 fwd = V2.FromAngle(aim);
-            foreach (var e in AllFoes())
+            foreach (var e in AllFoes(by: p.Id))
             {
                 V2 rel = e.Pos - p.Pos;
                 float d = rel.Length;

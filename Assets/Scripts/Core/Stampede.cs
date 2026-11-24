@@ -124,7 +124,7 @@ namespace Arena
                 return;  // the gate opening, turning or fading: nothing is hit
             V2 dir = V2.FromAngle(heading), perp = new V2(-dir.Y, dir.X);
             float half = z.Radius + StampedeHalfWidth, dmg = StampedeDamage * z.DmgMult * owner.Stats.StampedeDmgMult;
-            foreach (var e in AllFoes())
+            foreach (var e in AllFoes(by: z.Owner))
             {
                 V2 rel = e.Pos - z.Pos;
                 float along = rel.Dot(dir), side = rel.Dot(perp);

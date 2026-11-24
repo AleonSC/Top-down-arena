@@ -634,7 +634,7 @@ namespace Arena
         void ExplodeBarrel(Prop b)
         {
             BroadcastFx(FxKind.Boom, b.Pos, new Rgba(1f, 0.55f, 0.15f), BarrelBlast, 0.5f, Sfx.BigExplode);
-            foreach (var e in FoesInCircle(b.Pos, BarrelBlast))
+            foreach (var e in FoesInCircle(b.Pos, BarrelBlast, by: b.LitBy))
                 HurtEnemy(e, BarrelDamage(Wave), b.LitBy);
             foreach (var pl in Players.Values)
                 if (!pl.Downed && pl.Pos.CloserThan(b.Pos, BarrelBlast + pl.Def.HitR))

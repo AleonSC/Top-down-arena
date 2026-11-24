@@ -145,7 +145,7 @@ namespace Arena
 
                 case AbilityId.GlacialTomb:  // Tank: Elementalist
                     EraseEnemyBullets(p.Pos, 99999f);
-                    foreach (var e in AllFoes())
+                    foreach (var e in AllFoes(by: p.Id))
                     {
                         if (e.Def.IsBoss)
                             HurtEnemy(e, (cap ? 500f : 250f) * dmg, p.Id);

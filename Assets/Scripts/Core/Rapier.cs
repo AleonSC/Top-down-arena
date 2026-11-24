@@ -128,7 +128,7 @@ namespace Arena
         {
             p.RapierLungeEl += dt;
             float u = Math.Min(1f, p.RapierLungeEl / p.RapierLungeDur), len = p.RapierLungeLen * u;
-            foreach (var e in AllFoes())
+            foreach (var e in AllFoes(by: p.Id))
             {
                 if (p.RapierLungeHit.Contains(e.Id))
                     continue;

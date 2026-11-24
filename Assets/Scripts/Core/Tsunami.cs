@@ -49,7 +49,7 @@ namespace Arena
                 float from = w.Dist;
                 w.Dist = Math.Min(TsunamiRange + TsunamiThick, w.Dist + TsunamiSpeed * dt);
                 V2 side = w.Dir.Orthogonal();
-                foreach (var e in AllFoes())
+                foreach (var e in AllFoes(by: w.Owner))
                 {
                     if (w.Hit.Contains(e.Id))
                         continue;

@@ -39,7 +39,7 @@ namespace Arena
             var s = p.Stats;
             float dmg = RushDamage * s.DmgMult * power, refund = p.MaxHp * (RushRefund + s.RushRefund);
             var blood = new Rgba(0.85f, 0.12f, 0.2f);
-            foreach (var e in AllFoes())
+            foreach (var e in AllFoes(by: p.Id))
             {
                 float along = Math.Max(0f, Math.Min(len, (e.Pos.X - from.X) * dir.X + (e.Pos.Y - from.Y) * dir.Y));
                 V2 near = from + dir * along;
@@ -66,7 +66,7 @@ namespace Arena
             if (!z.Bursts || z.Duration - z.T < TrailBurstAt)
                 return;
             z.Bursts = false;
-            foreach (var e in AllFoes())
+            foreach (var e in AllFoes(by: z.Owner))
                 if (e.Pos.CloserThan(z.Pos, z.Radius + e.Radius + 6f))
                     HurtEnemy(e, TrailBurst * z.DmgMult, z.Owner);
             BroadcastFx(FxKind.Boom, z.Pos, z.Def.Color, z.Radius + 8f, 0.3f, Sfx.None);

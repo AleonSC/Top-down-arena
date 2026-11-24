@@ -183,7 +183,7 @@ namespace Arena
                 return;
             V2 dir = d / len, side = dir.Orthogonal();
             float dmg = (LanceBase + LanceDmgPip * pips) * p.Stats.DmgMult;
-            foreach (var e in AllFoes())
+            foreach (var e in AllFoes(by: p.Id))
             {
                 V2 rel = e.Pos - a;
                 float along = Dot(rel, dir), across = Math.Abs(Dot(rel, side));

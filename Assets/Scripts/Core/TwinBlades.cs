@@ -187,7 +187,7 @@ namespace Arena
             // the spinning pair cuts what it passes through: each enemy again every FangRehit, hits don't stop it
             float dmg = p.Weapon.Damage * p.Stats.DmgMult * FangMult * p.Stats.FangDmgMult;  // (Whirling Sabres: harder)
             int cut = 0;
-            foreach (var e in FoesInCircle(r.Pos, FangHitR))
+            foreach (var e in FoesInCircle(r.Pos, FangHitR, by: p.Id))
             {
                 float next;
                 if (r.Hit.TryGetValue(e.Id, out next) && r.T < next)

@@ -137,7 +137,7 @@ namespace Arena
         {
             int n = Math.Max(1, r.Embers);
             float dmg = CastBurstPerEmber * n * p.Stats.DmgMult;
-            foreach (var e in FoesInCircle(r.To, CastBurstR))
+            foreach (var e in FoesInCircle(r.To, CastBurstR, by: p.Id))
             {
                 V2 dir = e.Pos - r.To;
                 HurtEnemy(e, dmg, p.Id);

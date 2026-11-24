@@ -68,7 +68,7 @@ namespace Arena
                     continue;
                 float tip = CavStart + CavReach(c.T) + CavTip;
                 V2 side = c.Dir.Orthogonal();
-                foreach (var e in AllFoes())
+                foreach (var e in AllFoes(by: c.Owner))
                 {
                     if (c.Hit.Contains(e.Id))
                         continue;

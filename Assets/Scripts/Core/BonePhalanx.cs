@@ -178,7 +178,7 @@ namespace Arena
                 z.SpearT[i] += PhalanxSpearEvery / rate;
                 float press = 0f;
                 Enemy struck = null;
-                foreach (var e in AllFoes())
+                foreach (var e in AllFoes(by: z.Owner))
                 {
                     if (!PhalanxAgainst(z, e, i))
                         continue;

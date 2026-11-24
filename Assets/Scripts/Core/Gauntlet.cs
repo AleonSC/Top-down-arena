@@ -142,7 +142,7 @@ namespace Arena
                     V2 at = g.From + (g.To - g.From) * u;
                     V2 path = at - g.From;
                     float len = path.Length;
-                    foreach (var o in AllFoes())
+                    foreach (var o in AllFoes(by: p.Id))
                     {
                         if (o.Id == g.Target || g.Bowled.Contains(o.Id))
                             continue;

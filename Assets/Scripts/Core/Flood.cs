@@ -52,7 +52,7 @@ namespace Arena
             float radius = (cap ? FloodRadiusMastered : FloodRadius) * s.FloodRadiusMult;
             float time = (cap ? FloodTimeMastered : FloodTime) * pw + s.FloodBonusTime;
             AddZone(ZoneKind.Flood, p, p.Pos, radius, time + FloodDrain);
-            foreach (var e in FoesInCircle(p.Pos, FloodSurgeReach))  // the stamp: a splash that throws back what's touching you
+            foreach (var e in FoesInCircle(p.Pos, FloodSurgeReach, by: p.Id))  // the stamp: a splash that throws back what's touching you
             {
                 HurtEnemy(e, FloodSurgeDamage * s.DmgMult * pw, p.Id);
                 castHits++;

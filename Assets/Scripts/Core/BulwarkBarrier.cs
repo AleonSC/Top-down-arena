@@ -219,7 +219,7 @@ namespace Arena
                 }
                 var hit = back ? th.HitBack : th.HitOut;
                 float dmg = th.Dmg * p.Stats.DmgMult;
-                foreach (var e in FoesInCircle(at, BbThrowHitR))
+                foreach (var e in FoesInCircle(at, BbThrowHitR, by: p.Id))
                 {
                     if (!hit.Add(e.Id))
                         continue;

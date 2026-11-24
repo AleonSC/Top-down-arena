@@ -241,7 +241,7 @@ namespace Arena
             {
                 V2 b = OrbitBlade(p, i);
                 EraseEnemyBullets(b, OrbitBladeR + 6f);
-                foreach (var e in FoesInCircle(b, OrbitBladeR))
+                foreach (var e in FoesInCircle(b, OrbitBladeR, by: p.Id))
                 {
                     float last;
                     if ((p.OrbitCut.TryGetValue(e.Id, out last) && p.OrbitClock - last < OrbitCutGap))
@@ -782,7 +782,7 @@ namespace Arena
             var wardOwner = PlayerOrNull(z.Owner);
             float r = WardBurst * (wardOwner != null ? AreaMult(wardOwner) * wardOwner.Stats.CharmBurstMult : 1f);  // (Blessed Paper: wider)
             float dmg = Defs.WeaponOf(WeaponId.Ofuda).Damage * z.DmgMult;
-            foreach (var e in FoesInCircle(z.Pos, r))
+            foreach (var e in FoesInCircle(z.Pos, r, by: z.Owner))
             {
                 WeaponHurt(e, dmg, z.Owner);
                 ModHit(e, z.Owner, dmg, Defs.OfudaShot, default(V2));  // weapon mods ride the burst
@@ -1646,7 +1646,7 @@ namespace Arena
                 Player owner;
                 if (!Players.TryGetValue(m.Owner, out owner))
                     continue;
-                foreach (var e in FoesInCircle(m.Pos, CloneBurstRadius))
+                foreach (var e in FoesInCircle(m.Pos, CloneBurstRadius, by: m.Owner))
                     HurtEnemy(e, CloneBurst * m.Power, m.Owner);
                 BroadcastFx(FxKind.Boom, m.Pos, Kits.Get(MinionKind.Clone).Color, CloneBurstRadius, 0.35f, Sfx.Explode);
             }

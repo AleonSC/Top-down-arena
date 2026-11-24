@@ -44,7 +44,7 @@ namespace Arena
             p.FireCd = RadiantTick / FireRate(p);
             float r = RadiantSize(p), dmg = p.Weapon.Damage * p.Stats.DmgMult;
             bool hit = false, touched = false;
-            foreach (var e in FoesInCircle(p.RadiantPos, r))
+            foreach (var e in FoesInCircle(p.RadiantPos, r, by: p.Id))
             {
                 hit = touched = true;
                 HurtEnemy(e, dmg, p.Id);

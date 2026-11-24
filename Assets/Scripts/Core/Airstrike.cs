@@ -111,7 +111,7 @@ namespace Arena
                 {
                     V2 at = r.From + dir * AirBombAlong(r.Next);
                     r.Next++;
-                    foreach (var e in FoesInCircle(at, r.Radius))
+                    foreach (var e in FoesInCircle(at, r.Radius, by: r.Owner))
                         HurtEnemy(e, r.Dmg, r.Owner);
                     BroadcastFx(FxKind.Boom, at, Defs.BulletColor(Defs.GrenadeShot), r.Radius, 0.35f, r.Next % 2 == 1 ? Sfx.Explode : Sfx.None);
                     PropBlast(at, r.Radius, r.Owner);      // sets barrels off (Props.cs)
@@ -124,7 +124,7 @@ namespace Arena
                     if (r.FireTick <= 0f)
                     {
                         r.FireTick += AirFireTick;
-                        foreach (var e in AllFoes())
+                        foreach (var e in AllFoes(by: r.Owner))
                         {
                             V2 rel = e.Pos - r.From;
                             float u = rel.Dot(dir), v = Math.Abs(rel.Dot(dir.Orthogonal()));

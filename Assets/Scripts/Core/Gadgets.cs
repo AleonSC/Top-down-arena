@@ -455,7 +455,7 @@ namespace Arena
             foreach (int id in shieldWiped)
                 KillBullet(id);
             float dmg = EmpDmg * GadgetPower(p);
-            foreach (var e in FoesInCircle(p.Pos, EmpRadius))
+            foreach (var e in FoesInCircle(p.Pos, EmpRadius, by: p.Id))
             {
                 Stun(e, e.Def.IsBoss || e.Def.Mini ? EmpBossStun : EmpStun);
                 HurtEnemy(e, dmg, p.Id);
@@ -549,7 +549,7 @@ namespace Arena
                     z.Landed = true;
                     BroadcastFx(FxKind.Spark, z.Pos, z.Def.Color, 6f, 0.1f, Sfx.TankGasHiss);
                 }
-                foreach (var e in FoesInCircle(z.Pos, z.Radius))
+                foreach (var e in FoesInCircle(z.Pos, z.Radius, by: z.Owner))
                 {
                     HurtEnemy(e, GadgetGasDps * z.DmgMult * dt, z.Owner);
                     Slow(e, 0.3f, 1f - GadgetGasSlow);

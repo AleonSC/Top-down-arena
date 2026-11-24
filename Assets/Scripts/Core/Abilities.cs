@@ -148,7 +148,7 @@ namespace Arena
                     V2 from = p.Pos, path = target - from;
                     float len = Math.Max(1f, path.Length);
                     V2 dir = path / len;
-                    foreach (var e in AllFoes())
+                    foreach (var e in AllFoes(by: p.Id))
                     {
                         float along = Math.Max(0f, Math.Min(len, (e.Pos.X - from.X) * dir.X + (e.Pos.Y - from.Y) * dir.Y));
                         V2 closest = from + dir * along;
