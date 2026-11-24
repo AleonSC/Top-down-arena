@@ -38,7 +38,6 @@ namespace Arena
 
         readonly Dictionary<Effect, MeleeSeen> meleeSeen = new Dictionary<Effect, MeleeSeen>();
         readonly Dictionary<int, float> meleeFlip = new Dictionary<int, float>();
-        readonly Dictionary<int, float> halberdLast = new Dictionary<int, float>();
         // A weapon the model holds itself (the Kusarigama, the Blood Lash) phases out while the swinging model is out, and back in after
         // (HeldPhase, CharacterModels.cs). Weapons with their own held look go back into it instead (DrawSwingModel, MeleeSwingShowing).
         readonly Dictionary<int, float> swingFrom = new Dictionary<int, float>(), swingTo = new Dictionary<int, float>();
@@ -215,15 +214,6 @@ namespace Arena
             bool alternates = best.Weapon.Id == WeaponId.TwinBlades || best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.Quarterstaff || best.Weapon.Id == WeaponId.Rapier;
             if (alternates && !(thrust && (best.Weapon.Id == WeaponId.Katana || best.Weapon.Id == WeaponId.Quarterstaff || best.Weapon.Id == WeaponId.Rapier)))  // (a Rapier thrust neither: only its Flourish swings go back and forth)  // (a Katana lunge or a Quarterstaff jab is a thrust between swipes: it doesn't turn the next swipe round)  // (the Katana's lunge is a thrust between its swipes: it doesn't turn the next swipe round)
                 meleeFlip[best.Id] = flip = flip > 0f ? -1f : 1f;
-            else if (best.Weapon.Id == WeaponId.Halberd)
-            {
-                // The Halberd sweeps left to right; an extra projectile's second pass (0.29 s later) sweeps back.
-                float last;
-                bool backPass = halberdLast.TryGetValue(best.Id, out last) && Time.unscaledTime - last < 0.4f && flip > 0f;
-                halberdLast[best.Id] = Time.unscaledTime;
-                meleeFlip[best.Id] = flip = backPass ? -1f : 1f;
-                alternates = true;
-            }
             float sign = alternates ? flip : 1f;
             if (best.Weapon.Id == WeaponId.BloodLash)
                 sign = Game.LashStepOf(best.Combo) == 2 ? -1f : 1f;  // the Backhand sweeps back (BloodLash.cs)
@@ -299,6 +289,14 @@ namespace Arena
                 else if (fx.Kind == FxKind.StaffShove)
                     DrawStaffShoveLayer(fx, true);  // BoStaffLook.cs
             }
+            if (fxOn)
+                foreach (var fx in game.Effects)
+                {
+                    if (fx.Kind == FxKind.HalberdStep)
+                        DrawHalberdStepFx(fx, true);  // HalberdLook.cs
+                    else if (fx.Kind == FxKind.HalberdPoke)
+                        DrawHalberdPokeFx(fx, true);
+                }
             DrawKusariInk();  // the Kusarigama's throw line, ensō and splashes (KusarigamaLook.cs)
         }
 
@@ -313,8 +311,6 @@ namespace Arena
             bool thrust = half < 0f;
             if (half >= 0f && half < 0.2f)
                 return false;  // a lunge or a dash streak, not a swing: the old look
-            if (!thrust && IsHalberdFx(fx))
-                return DrawHalberdFx(fx, light);  // HalberdLook.cs: the whole swing from the click
             var seen = MeleeOwnerOf(fx, (thrust ? MeleeThrustTime : HalberdSweepTime) + MeleeTail, thrust, thrust ? MeleeThrustTime + 0.25f : (half >= MathX.Pi - 0.01f ? 0.4f : MeleeSweepTime + 0.28f));
             if (seen == null)
                 return false;
