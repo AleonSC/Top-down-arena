@@ -235,29 +235,31 @@ namespace Arena
         {
             int kind = (int)fx.Pos2.Y, hits = Mathf.Max(1, Mathf.RoundToInt(fx.Radius));
             float more = Mathf.Min(3, hits - 1);
-            bool heavy = kind == 4 || kind >= 5 && kind != 8;
+            bool heavy = Game.KnuckleHeavyHit(kind), tiny = kind == 8 || kind == 15;
             var col = fx.Color;
             if (!fxReduced)
             {
-                Sparks(fx.Pos, col, heavy ? 14 : kind == 8 ? 4 : 8, heavy ? 340f : 240f, heavy ? 0.32f : 0.22f, heavy ? 2.6f : 2f);
+                Sparks(fx.Pos, col, heavy ? 14 : tiny ? 4 : 8, heavy ? 340f : 240f, heavy ? 0.32f : 0.22f, heavy ? 2.6f : 2f);
                 Sparks(fx.Pos, new Rgba(0.93f, 0.98f, 1f), heavy ? 6 : 3, heavy ? 420f : 300f, 0.16f, 1.6f);
-                Ring(fx.Pos, heavy ? 34f : kind == 8 ? 16f : 24f, heavy ? 0.26f : 0.18f, col);
+                Ring(fx.Pos, heavy ? 34f : tiny ? 16f : 24f, heavy ? 0.26f : 0.18f, col);
             }
             if (!mine)
                 return;
             switch (kind)
             {
-                case 1: Hold(0.03f, 0.1f); Shake(0.05f + 0.01f * more); break;                    // jab
-                case 2: Hold(0.035f, 0.1f); Shake(0.07f + 0.01f * more); break;                   // cross
-                case 3: Hold(0.045f, 0.12f); Shake(0.09f + 0.015f * more); break;                 // hook
-                case 4: Hold(0.06f, 0.15f); Shake(0.12f + 0.015f * more); break;                  // uppercut
-                case 5: Hold(0.08f + 0.01f * more, 0.2f); Shake(0.24f + 0.02f * more); break;     // Twin Hammer
                 case 6: Hold(0.1f + 0.01f * more, 0.2f); Shake(0.34f + 0.02f * more); break;      // Counter Hammer
                 case 7: Hold(0.07f, 0.15f); Shake(0.2f); break;                                   // the Rocket Dash's fist
                 case 8: Hold(0.012f, 0.05f); Shake(0.025f); break;                                // a Flurry jab
                 case 9: Hold(0.06f, 0.15f); Shake(0.18f + 0.02f * more); break;                   // the Rocket Punch
                 case 10: Hold(0.06f, 0.12f); Shake(0.15f); break;                                 // the Flurry's straight
                 case 11: Hold(0.08f, 0.15f); Shake(0.22f + 0.03f * more); break;                  // a thrown enemy landing
+                case 12: Hold(0.04f, 0.1f); Shake(0.08f + 0.01f * more); break;                   // the Pull Punch
+                case 13: Hold(0.045f, 0.12f); Shake(0.1f + 0.015f * more); break;                 // a Drive Punch
+                case 14: Hold(0.08f + 0.01f * more, 0.18f); Shake(0.22f + 0.02f * more); break;   // the Pin Punch
+                case 15: Hold(0.012f, 0.05f); Shake(0.025f); break;                               // a Barrage jab
+                case 16: Hold(0.06f, 0.12f); Shake(0.15f); break;                                 // the Barrage's straight
+                case 17: Hold(0.09f + 0.01f * more, 0.2f); Shake(0.28f + 0.02f * more); break;    // the Quake Punch
+                case 18: Hold(0.06f, 0.14f); Shake(0.18f); break;                                 // a Wall Slam
             }
         }
 

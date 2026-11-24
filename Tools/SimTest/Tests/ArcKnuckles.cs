@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// The Arc Knuckles (Core/ArcKnuckles.cs, Docs/ArcKnuckles.md): the Knight DPS's fourth weapon, its five-punch chain, the parry
-// cancel and the perfect parry's Counter Hammer.
+// The Arc Knuckles (Core/ArcKnuckles.cs, ArcKnucklesBrawl.cs, ArcKnucklesChain.cs; Docs/ArcKnuckles.md): the Knight DPS's fourth weapon.
+// The Brawl stance's eight moves steered by the click wheel, the Wall Slam, the parry reset, the Counter Hammer, the stance swap and
+// the Rocket stance's chain with no windows.
 static partial class Program
 {
     static void ArcKnucklesTest(float dt)
@@ -14,6 +15,9 @@ static partial class Program
         Check(Defs.WeaponCount(Role.Healer, Kit.Ninja) == 3 && Defs.Weapon(Role.Healer, Kit.Ninja, 3) == Defs.Weapon(Role.Healer, Kit.Ninja, 0) && Defs.WeaponCount(Role.Healer, Kit.Elementalist) == 4,  // (the Healer Elementalist got Static Shock as its 4th)
             "roles without a 4th weapon keep three (a fourth pick they don't have is their first weapon)");
         Check(Defs.WeaponOf(WeaponId.ArcKnuckles).Name == "Arc Knuckles", "the Arc Knuckles have their definition");
+        V2 sd;
+        bool decodes = Game.KnuckleSteerDir(Game.KnuckleSteerCode(-MathX.Pi / 2f), out sd) && sd.DistanceTo(new V2(0f, -1f)) < 0.03f && !Game.KnuckleSteerDir(0, out sd);
+        Check(decodes, "the click wheel's steer byte carries a direction (0: none)");
 
         var s = StartBuffed(dt, 1, 0);
         s[0].Game.Bot = s[1].Game.Bot = false;
@@ -22,263 +26,255 @@ static partial class Program
         var bf = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", bf);
         var shoot = typeof(Game).GetMethod("SpawnBullet", bf);
+        var clampArena = typeof(Game).GetMethod("ClampToArena", bf);
         var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", bf).GetValue(g);
         var me = g.Players[1];
         me.Weapon = Defs.Weapon(Role.Dps, Kit.Knight, 3);
         me.Hp = me.MaxHp;
-        V2 from = new V2(500f, 450f), aimAt = new V2(800f, 450f);
-        var pinned = new List<KeyValuePair<Enemy, V2>>();
+        float baseDmg = me.Weapon.Damage * me.Stats.DmgMult;
         Func<V2, Enemy> Dummy = at =>
         {
             var d = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, at, 0f, 0, false });
             d.MaxHp = d.Hp = 1e5f; d.Speed = 0f; d.FireT = 99f; d.SpawnT = 0f;
-            pinned.Add(new KeyValuePair<Enemy, V2>(d, at));
             return d;
         };
+        Func<Enemy, float> Took = en => { float t = en.MaxHp - en.Hp; en.Hp = en.MaxHp; return t; };
+        Action Clear = () => { foreach (var en in new List<Enemy>(g.Enemies.Values)) g.Enemies.Remove(en.Id); g.Bullets.Clear(); };
         var heard = new HashSet<Sfx>();
-        bool clientSawPunch = false;
-        Action<int, bool, bool> Step = (frames, fire, parry) =>
-        {
-            for (int f = 0; f < frames; f++)
-            {
-                me.Pos = from; queue.Clear();
-                foreach (var kv in pinned) kv.Key.Pos = kv.Value;
-                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = aimAt, Fire = fire && f < 2, Parry = parry } : new PlayerInput()); }
-                foreach (var c in g.Sounds) heard.Add(c.Sfx);
-                g.Sounds.Clear();
-                foreach (var fx in s[1].Game.Effects)
-                    clientSawPunch |= fx.Kind == FxKind.KnuckleStep && (int)Math.Round(fx.Radius) / 10 == 1;
-            }
-        };
-        queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
-        float baseDmg = me.Weapon.Damage * me.Stats.DmgMult;
-        var dummy = Dummy(new V2(560f, 452f));
-        Func<float> Taken = () => { float t = dummy.MaxHp - dummy.Hp; dummy.Hp = dummy.MaxHp; return t; };
-
-        // The chain: each press throws the next punch, and each lands for its share of the weapon's damage.
-        var got = new float[5];
-        bool stepsOk = true, windups = true;
-        for (int k = 0; k < 5; k++)
-        {
-            Step(2, true, false);
-            windups &= Taken() == 0f;  // (nothing lands in the first frames: every punch winds up)
-            stepsOk &= Game.KnuckleStepOf(me.Combo) == k + 1;
-            Step(28, false, false);
-            got[k] = Taken();
-            if (k == 3)
-                Check(dummy.FrozenT > 0f, "the Uppercut launches what it hits (stunned for a moment)");
-        }
-        Check(stepsOk, "five presses throw Jab, Cross, Hook, Uppercut and Twin Hammer in order");
-        Check(windups, "every punch winds up before it lands");
-        bool dmgOk = true;
-        for (int k = 0; k < 5; k++)
-            dmgOk &= Math.Abs(got[k] - baseDmg * Game.KnuckleMult[k]) < 0.6f;
-        Console.WriteLine("  arc knuckles chain: {0:0} / {1:0} / {2:0} / {3:0} / {4:0}", got[0], got[1], got[2], got[3], got[4]);
-        Check(dmgOk, "each punch lands for its own damage (22, 26, 29, 33, 55 before upgrades)");
-        Check(heard.Contains(Sfx.KnuckleJab) && heard.Contains(Sfx.KnuckleHook) && heard.Contains(Sfx.KnuckleUpper) && heard.Contains(Sfx.KnuckleSlam),
-            "each punch has its sound, and the Twin Hammer slams");
-        Check(clientSawPunch, "the other player sees the punches");
-
-        // The Twin Hammer's shockwave catches a crowd round the point ahead of you.
-        var side = Dummy(new V2(560f, 530f));
-        Step(80, false, false);
-        Check(Game.KnuckleStepOf(me.Combo) == 0, "the chain starts over after 1.2 s without a punch");
-        for (int k = 0; k < 4; k++) { Step(2, true, false); Step(28, false, false); }
-        side.Hp = side.MaxHp;
-        Step(2, true, false);
-        Step(28, false, false);
-        Check(side.Hp < side.MaxHp && side.FrozenT > 0f, "the Twin Hammer's shockwave hits and stuns an enemy off to the side");
-        Check(side.StunT > 0f && !Game.IceFrozen(side) && !Game.IceSlowed(side), "its stun is a stun, not a freeze (stars over its head, no ice or chill)");
-        Taken();
-        Step(80, false, false);
-
-        // The parry cancels a punch still winding up and starts the chain over.
-        Step(2, true, false);
-        Step(28, false, false);
-        Taken();
-        Step(2, true, false);   // the Cross, winding up...
-        Step(10, false, true);  // ...the parry goes up before it lands
-        Step(40, false, false);
-        Check(Taken() == 0f, "raising the parry cancels a punch that hasn't landed");
-        Check(Game.KnuckleStepOf(me.Combo) == 0, "and sends the chain back to the Jab");
-        Step(2, true, false);
-        Step(28, false, false);
-        Check(Game.KnuckleStepOf(me.Combo) == 1 && Math.Abs(Taken() - baseDmg) < 0.6f, "so the next press is the Jab");
-        Step(80, false, false);
-
-        // A perfect parry arms the Counter Hammer: the next press, from any step.
-        Step(2, true, false);
-        Step(28, false, false);
-        Taken();
-        Step(40, false, false);  // (the parry has to have been down a moment)
-        shoot.Invoke(g, new object[] { Defs.SmallShot, from + new V2(50f, 34f), new V2(-330f, -224f), 0f, 2f, 10f, 0, false, 0f });  // (off the dummy's line, so the needle sent back misses it)
-        Step(12, false, true);
-        Check(me.KnuckleArmed, "a perfect parry arms the Counter Hammer");
-        Check(heard.Contains(Sfx.KnuckleArm), "and the coils are heard charging");
-        Step(10, false, false);
-        Check(s[1].Game.Players[1].KnuckleArmed, "the other player sees it armed (the pips go gold)");
-        Step(2, true, false);
-        Check(Game.KnuckleStepOf(me.Combo) == 6 && !me.KnuckleArmed, "the next press is the Counter Hammer");
-        Step(28, false, false);
-        float counter = Taken();
-        Check(Math.Abs(counter - baseDmg * Game.KnuckleMult[5]) < 0.6f && counter > got[4], "it lands harder than the Twin Hammer (" + counter + " vs " + got[4] + ")");
-        Check(heard.Contains(Sfx.KnuckleCounter), "with its own sound");
-        Step(12, false, false);  // (its 0.62 s before the next press counts)
-        Step(2, true, false);
-        Check(Game.KnuckleStepOf(me.Combo) == 1, "and the chain starts again from the Jab");
-        Step(80, false, false);
-
-        // An armed Counter Hammer fades unused.
-        Step(40, false, false);
-        shoot.Invoke(g, new object[] { Defs.SmallShot, from + new V2(50f, 34f), new V2(-330f, -224f), 0f, 2f, 10f, 0, false, 0f });  // (off the dummy's line, so the needle sent back misses it)
-        Step(12, false, true);
-        bool armed = me.KnuckleArmed;
-        Step((int)((Game.KnuckleArmTime + 0.3f) / dt), false, false);
-        Check(armed && !me.KnuckleArmed, "an unused Counter Hammer fades after 3 s");
-
-        // The Rocket Dash (the weapon-action key): it locks onto the enemy nearest your cursor and flies you up to it, untouchable;
-        // that enemy takes the hit and a short shove, even with another in the way. With nothing in reach it flies 130 px along your aim.
-        Step(80, false, false);
-        g.Bullets.Clear();
-        foreach (var kv in pinned) kv.Key.Pos = new V2(150f, 120f);
-        pinned.Clear();
-        var front = Dummy(new V2(600f, 450f));   // in the way along your aim
-        var locked = Dummy(new V2(700f, 470f));  // nearest the cursor
-        pinned.Clear();  // (they move: the shove)
-        V2 lockedAt0 = locked.Pos;
-        V2 start = from;
-        me.Pos = start;
-        bool clientSawDash = false, untouchable = false, clientSawHit = false;
-        V2 cursor = locked.Pos + new V2(10f, 5f);
-        Action<int, bool> Fly = (frames, alt) =>
-        {
-            for (int f = 0; f < frames; f++)
-            {
-                queue.Clear();
-                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = cursor, WeaponAction = alt && f < 2 } : new PlayerInput()); }
-                foreach (var c in g.Sounds) heard.Add(c.Sfx);
-                g.Sounds.Clear();
-                untouchable |= me.InvulnT > 0f;
-                foreach (var fx in s[1].Game.Effects)
-                {
-                    clientSawDash |= fx.Kind == FxKind.KnuckleDash && (int)Math.Round(fx.Radius) == 1;
-                    clientSawHit |= fx.Kind == FxKind.KnuckleHit && (int)fx.Pos2.X == 1 && (int)fx.Pos2.Y == 7;
-                }
-            }
-        };
-        front.Hp = front.MaxHp; locked.Hp = locked.MaxHp;
-        Fly(2, true);
-        Fly(28, false);
-        float frontTook = front.MaxHp - front.Hp, lockedTook = locked.MaxHp - locked.Hp, gap = me.Pos.DistanceTo(locked.Pos);
-        Console.WriteLine("  rocket dash: ended {0:0} px from the locked enemy, it took {1:0}, the one in the way {2:0}", gap, lockedTook, frontTook);
-        Check(me.KnuckleTarget == locked.Id && s[1].Game.Players[1].KnuckleTarget == locked.Id, "the Rocket Dash locks onto the enemy nearest your cursor (the other player's game knows it)");
-        Check(gap < locked.Radius + me.Def.BodyR + Game.KnuckleDashKnock + 20f, "and flies you right up to it (" + gap + " px)");
-        Check(untouchable, "you're untouchable while you fly");
-        Check(Math.Abs(lockedTook - me.Weapon.Damage * Game.KnuckleDashMult * me.Stats.DmgMult) < 0.6f && frontTook == 0f, "the locked enemy takes the hit, the one in the way nothing");
-        Check(locked.Pos.DistanceTo(lockedAt0) > 5f && locked.Pos.DistanceTo(lockedAt0) < Game.KnuckleDashKnock + 10f, "and it's shoved a short way, still in reach");
-        Check(heard.Contains(Sfx.KnuckleRocket) && heard.Contains(Sfx.KnuckleImpactHeavy), "the thruster and the hit are heard");
-        Check(clientSawDash && clientSawHit, "the other player sees the dash and the hit (sparks; your own game holds and shakes)");
-        V2 after = me.Pos;
-        locked.Hp = locked.MaxHp;
-        Fly(2, true);
-        Fly(20, false);
-        Check(me.Pos.DistanceTo(after) < 2f && locked.Hp == locked.MaxHp, "it can't dash again until its 3 s cooldown is up");
-        Fly((int)(Game.KnuckleDashCooldown / dt), false);
-        foreach (var en in new List<Enemy>(g.Enemies.Values)) en.Pos = new V2(150f, 120f);
-        after = me.Pos = new V2(500f, 700f);
-        cursor = me.Pos + new V2(300f, 0f);
-        Fly(2, true);
-        Fly(20, false);
-        float free = me.Pos.DistanceTo(after);
-        Check(Math.Abs(free - Game.KnuckleDashLen) < 12f, "with nothing in reach it flies 130 px along your aim (" + free + "; dashes move in whole 1/60 s frames)");
-
-        // The dash chain: a dash that hits opens a window; Fire throws the Flurry where you landed, then Grab & Throw (the Flurry's
-        // target thrown into the next enemy), then the Rocket Punch down the line.
-        Fly((int)(Game.KnuckleDashCooldown / dt) + 10, false);
-        foreach (var en in new List<Enemy>(g.Enemies.Values)) en.Pos = new V2(150f, 120f);
-        V2 S = new V2(400f, 450f);
-        me.Pos = S;
-        var tgt = Dummy(new V2(S.X + 150f, S.Y));
-        var next = Dummy(new V2(S.X + 300f, S.Y + 4f));
-        pinned.Clear();
-        tgt.Hp = tgt.MaxHp; next.Hp = next.MaxHp;
-        bool movedWhileRooted = false, clientSawChain = false;
-        Action<int, bool, bool, V2> Do = (frames, fire, alt, move) =>
+        bool untouchable = false, movedWhileRooted = false, clientSawPunch = false;
+        // frames of input: Fire held for the first `hold` frames (2: a click), the wheel's steer, the parry, the weapon-action key
+        Action<int, int, V2, byte, bool, bool> Step = (frames, hold, cursor, steer, parry, alt) =>
         {
             for (int f = 0; f < frames; f++)
             {
                 queue.Clear();
                 V2 before = me.Pos;
-                bool rooted = me.KnuckleChain == 2 || me.KnuckleChain == 4;
-                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = alt ? tgt.Pos : me.Pos + new V2(300f, 0f), Fire = fire && f < 2, WeaponAction = alt && f < 2, Move = move } : new PlayerInput()); }  // (the dash's cursor on the target: it locks on)
+                bool rooted = me.KnuckleRooted;
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = cursor, Fire = f < hold, Steer = steer, Parry = parry, WeaponAction = alt && f < 2 } : new PlayerInput()); }
                 foreach (var c in g.Sounds) heard.Add(c.Sfx);
                 g.Sounds.Clear();
-                if (rooted && me.KnuckleChain == (rooted ? me.KnuckleChain : 0) && me.Pos.DistanceTo(before) > 0.5f) movedWhileRooted = true;
+                untouchable |= me.InvulnT > 0f;
+                if (rooted && me.KnuckleRooted && me.Pos.DistanceTo(before) > 0.5f) movedWhileRooted = true;
                 foreach (var fx in s[1].Game.Effects)
-                    clientSawChain |= fx.Kind == FxKind.KnuckleChain && (int)Math.Round(fx.Radius) / 10 == 1;
+                    clientSawPunch |= fx.Kind == FxKind.KnuckleStep && (int)Math.Round(fx.Radius) / 10 == 1;
             }
         };
-        Func<Enemy, float> Took = en => { float t = en.MaxHp - en.Hp; en.Hp = en.MaxHp; return t; };
-        Do(2, false, true, V2.Zero);
-        Do(12, false, false, V2.Zero);
-        Took(tgt);
-        Check(me.KnuckleChain == 1, "a Rocket Dash that hits opens the chain's window (" + me.KnuckleChain + ")");
-        Check(s[1].Game.Players[1].KnuckleChain == 1, "the other player's game knows (the Fire prompt shows)");
-        Do(2, true, false, V2.Zero);
-        Check(me.KnuckleChain == 2, "Fire throws the Flurry");
-        Do(10, false, false, new V2(0f, 1f));  // (trying to walk away)
-        Do(38, false, false, V2.Zero);
-        float flurry = Took(tgt);
-        Check(!movedWhileRooted, "you're rooted while the Flurry runs");
-        Check(Math.Abs(flurry - baseDmg * (Game.FlurryJabs * Game.FlurryJabMult + Game.FlurryStraightMult)) < 1f, "eight jabs and a straight land on the target (" + flurry + ")");
-        Check(me.KnuckleChain == 3, "the straight opens the grab's window");
-        Do(2, true, false, V2.Zero);
-        Check(me.KnuckleChain == 4 && heard.Contains(Sfx.KnuckleGrab), "Fire grabs the Flurry's target");
-        float nearAt = -1f;
-        for (int f = 0; f < 70 && me.KnuckleChain == 4; f++)
-        {
-            Do(1, false, false, V2.Zero);
-            if (f == 25) nearAt = tgt.Pos.DistanceTo(me.Pos);
-        }
-        Check(nearAt > 0f && nearAt < 60f, "it's held right beside you as you swing it round (" + nearAt + " px)");
-        float thrown = Took(tgt), hitBy = Took(next);
-        Check(heard.Contains(Sfx.KnuckleThrow), "the throw is heard");
-        Check(Math.Abs(thrown - baseDmg * Game.KnuckleThrowMult) < 1f && Math.Abs(hitBy - baseDmg * Game.KnuckleThrowHitMult) < 1f,
-            "the thrown enemy takes 20 and the one it hits 26 (" + thrown + ", " + hitBy + ")");
-        Check(next.FrozenT > 0f, "and the one it hits is stunned");
-        Check(me.KnuckleChain == 5, "the landing opens the Rocket Punch's window");
-        Do(2, true, false, V2.Zero);
-        Check(me.KnuckleChain == 6, "Fire throws the Rocket Punch");
-        Do(25, false, false, V2.Zero);
-        float p1 = Took(tgt), p2 = Took(next);
-        Check(Math.Abs(p1 - baseDmg * Game.RocketPunchMult) < 1f && Math.Abs(p2 - baseDmg * Game.RocketPunchMult) < 1f, "the Rocket Punch hits both down the line (" + p1 + ", " + p2 + ")");
-        Do(50, false, false, V2.Zero);
-        Check(me.KnuckleChain == 0, "and the chain is over when the fist is back");
-        Check(clientSawChain, "the other player sees the chain's moves");
+        byte Up = Game.KnuckleSteerCode(-MathX.Pi / 2f), Right = Game.KnuckleSteerCode(0f);
+        queue.Clear(); Clear();
+        Check(me.KnuckleStance == 0 && me.KnuckleMove == 0, "the Arc Knuckles start in the Brawl stance, at the Pull Punch");
 
-        // A window you miss closes, and the parry ends the chain.
-        Do((int)(Game.KnuckleDashCooldown / dt), false, false, V2.Zero);
-        foreach (var en in new List<Enemy>(g.Enemies.Values)) en.Pos = new V2(150f, 120f);
+        // The Pull Punch: a click on an enemy in range pulls you in and punches it; the group round it is stunned a moment.
+        V2 S = new V2(500f, 500f);
         me.Pos = S;
-        tgt.Pos = new V2(S.X + 150f, S.Y);
-        Do(2, false, true, V2.Zero);
-        Do(14, false, false, V2.Zero);
-        bool opened = me.KnuckleChain == 1;
-        Do(40, false, false, V2.Zero);
-        Check(opened && me.KnuckleChain == 0, "a missed window closes the chain");
-        Do((int)(Game.KnuckleDashCooldown / dt), false, false, V2.Zero);
+        var a = Dummy(new V2(S.X + 200f, S.Y));
+        var b = Dummy(new V2(S.X + 200f, S.Y + 34f));
+        Step(2, 2, me.Pos + new V2(400f, -200f), 0, false, false);  // (the cursor on nothing)
+        Step(20, 0, me.Pos + new V2(400f, -200f), 0, false, false);
+        Check(me.KnuckleMove == 0 && Took(a) == 0f, "a click with no enemy under the cursor swings at the air and keeps your place");
+        Step(2, 2, a.Pos, 0, false, false);
+        Check(me.KnuckleMove == 1, "a click on an enemy throws the Pull Punch (the wheel opens: the Drive Punch is next)");
+        Step(30, 0, a.Pos, 0, false, false);
+        float gap = me.Pos.DistanceTo(a.Pos) - a.Radius - me.Def.BodyR, pulled = Took(a);
+        Console.WriteLine("  pull punch: {0:0} px left to the enemy, {1:0} damage", gap, pulled);
+        Check(gap < 20f, "it pulls you right up to the enemy (" + gap + " px)");
+        Check(Math.Abs(pulled - baseDmg * Game.KnucklePullMult) < 0.6f && Took(b) > 0f, "it lands for 80% and hits the one beside it too");
+        Check(a.StunT > 0f && b.StunT > 0f, "the group is stunned a moment");
+        Check(s[1].Game.Players[1].KnuckleMove == 1, "the other player's game knows the move (the pips)");
+
+        // The Drive Punch: steered up on the wheel, the enemy nearest you and the one beside it fly up.
+        V2 a0 = a.Pos, b0 = b.Pos;
+        Step(2, 2, a.Pos, Up, false, false);
+        Step(30, 0, a.Pos, Up, false, false);
+        float dA = a.Pos.Y - a0.Y, dB = b.Pos.Y - b0.Y, drive = Took(a);
+        Console.WriteLine("  drive punch up: {0:0} / {1:0} px, {2:0} damage", dA, dB, drive);
+        Check(dA < -120f && dB < -120f && Math.Abs(a.Pos.X - a0.X) < 40f, "a Drive Punch steered up sends the group up (" + dA + ", " + dB + ")");
+        Check(Math.Abs(drive - baseDmg * Game.KnuckleDriveMult) < 0.6f, "for the weapon's damage");
+        Check(me.KnuckleMove == 2, "a Slip Dash is next");
+
+        // The Slip Dash: steered right, you dash 130 px right, untouchable.
+        untouchable = false;
+        V2 p0 = me.Pos;
+        Step(2, 2, me.Pos + new V2(0f, 300f), Right, false, false);  // (the cursor below: the steer wins)
+        Step(25, 0, me.Pos, 0, false, false);
+        float dx = me.Pos.X - p0.X, dy = me.Pos.Y - p0.Y;
+        Check(Math.Abs(dx - Game.KnuckleSlipLen) < 14f && Math.Abs(dy) < 8f && untouchable, "a Slip Dash steered right moves you 130 px right, untouchable (" + dx + ", " + dy + ")");
+        Check(heard.Contains(Sfx.KnuckleRocket), "with the thruster's sound");
+
+        // With no steer (the wheel's centre) a Drive Punch carries on along you to the enemy; then a dash at the cursor.
+        Clear();
         me.Pos = S;
-        tgt.Pos = new V2(S.X + 150f, S.Y);
-        Do(2, false, true, V2.Zero);
-        Do(14, false, false, V2.Zero);
-        Do(2, true, false, V2.Zero);
-        bool flurrying = me.KnuckleChain == 2;
-        for (int f = 0; f < 6; f++)
+        var c1 = Dummy(new V2(S.X + 70f, S.Y));
+        Step(2, 2, c1.Pos, 0, false, false);  // Drive Punch (the second)
+        Step(30, 0, c1.Pos, 0, false, false);
+        Check(c1.Pos.X - (S.X + 70f) > 120f && Math.Abs(Took(c1) - baseDmg * Game.KnuckleDrive2Mult) < 0.6f, "unsteered, the second Drive Punch sends it on away from you, for 115%");
+        p0 = me.Pos;
+        Step(2, 2, me.Pos + new V2(0f, 300f), 0, false, false);
+        Step(25, 0, me.Pos, 0, false, false);
+        Check(me.Pos.Y - p0.Y > 110f, "unsteered, a Slip Dash goes at the cursor");
+        Check(me.KnuckleMove == 5, "the Pin Punch is next");
+
+        // The Pin Punch stuns the group and stops it dead; the Barrage roots you and keeps the stun up; the Quake Punch charges.
+        Clear();
+        me.Pos = S;
+        var pa = Dummy(new V2(S.X + 70f, S.Y));
+        var pb = Dummy(new V2(S.X + 110f, S.Y + 30f));
+        Step(2, 2, pa.Pos, Right, false, false);
+        Step(16, 0, pa.Pos, 0, false, false);
+        Check(pa.StunT > 1.2f && pb.StunT > 1.2f && pb.Pos.DistanceTo(new V2(S.X + 110f, S.Y + 30f)) < 4f, "the Pin Punch stuns the group for long and leaves it where it is");
+        Check(Math.Abs(Took(pa) - baseDmg * Game.KnucklePinMult) < 0.6f, "for 160%");
+        Took(pb);
+        movedWhileRooted = false;
+        Step(2, 2, pa.Pos, 0, false, false);
+        Step(16, 0, pa.Pos, 0, false, false);  // (clicked during the Pin Punch: it waits, then goes)
+        bool rootedNow = me.KnuckleRooted;
+        bool clientRooted = s[1].Game.Players[1].KnuckleRooted;
+        for (int f = 0; f < 45; f++)
         {
             queue.Clear();
-            foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = me.Pos + new V2(300f, 0f), Parry = true } : new PlayerInput()); }
+            V2 before = me.Pos;
+            bool r = me.KnuckleRooted;
+            foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = pa.Pos, Move = new V2(0f, 1f) } : new PlayerInput()); }
+            if (r && me.KnuckleRooted && me.Pos.DistanceTo(before) > 0.5f) movedWhileRooted = true;
         }
-        Check(flurrying && me.KnuckleChain == 0, "raising the parry ends the chain");
+        float barrage = Took(pa);
+        Console.WriteLine("  barrage: {0:0} damage, the pinned enemy still stunned {1:0.00} s", barrage, pa.StunT);
+        Check(rootedNow && clientRooted && !movedWhileRooted, "the Barrage roots you (the other player's game too)");
+        Check(Math.Abs(barrage - baseDmg * (Game.FlurryJabs * Game.KnuckleBarrageMult + Game.KnuckleBarrageStraight)) < 1f, "eight jabs and a straight land on the pinned group");
+        Check(pa.StunT > 0f, "and the stun is still holding when it ends");
+        Check(me.KnuckleMove == 7, "the Quake Punch is next");
+        Clear();
+        me.Pos = S;
+        var qa = Dummy(new V2(S.X + 150f, S.Y));
+        Step((int)(1.45f / dt), 999, qa.Pos, 0, false, false);
+        Check(me.KnuckleCharging && me.KnuckleCharge == 255, "holding Fire charges the Quake Punch (the ring fills)");
+        V2 q0 = qa.Pos;
+        Step(30, 0, qa.Pos, 0, false, false);
+        float quake = Took(qa);
+        Console.WriteLine("  quake punch (full charge): {0:0} damage, thrown {1:0} px", quake, qa.Pos.DistanceTo(q0));
+        Check(Math.Abs(quake - baseDmg * Game.KnuckleQuakeMult1) < 1f && qa.Pos.DistanceTo(q0) > 100f, "let go at full charge it hits 150 px out for 300% and throws it back");
+        Check(heard.Contains(Sfx.KnuckleSlam), "with the slam's sound");
+        Check(me.KnuckleMove == 0 && !me.KnuckleCharging, "and the combo starts over at the Pull Punch");
+        Check(clientSawPunch, "the other player sees the punches");
+
+        // A Drive Punch into the arena's wall: a Wall Slam on top.
+        Clear();
+        Step(6, 0, S, 0, true, false);  // (the parry: from the Pull Punch)
+        Step(30, 0, S, 0, false, false);
+        float edge = 0f;
+        for (float x = Game.Width / 2f; x < Game.Width * 2f; x += 10f)
+            if (((V2)clampArena.Invoke(g, new object[] { new V2(x, S.Y), 14f })).X < x - 1f) { edge = x; break; }
+        Check(edge > 0f, "the arena has a wall to slam into");
+        me.Pos = new V2(edge - 160f, S.Y);
+        var w1 = Dummy(new V2(edge - 100f, S.Y));
+        Step(2, 2, w1.Pos, 0, false, false);  // Pull Punch
+        Step(30, 0, w1.Pos, 0, false, false);
+        Took(w1);
+        Step(2, 2, w1.Pos, Right, false, false);  // Drive Punch, into the wall
+        Step(30, 0, w1.Pos, 0, false, false);
+        float slammed = Took(w1);
+        Console.WriteLine("  wall slam: {0:0} damage in all (the punch {1:0})", slammed, baseDmg);
+        Check(slammed >= baseDmg * (Game.KnuckleDriveMult + Game.KnuckleSlamMult) - 1f && w1.StunT > 0f, "driven into the wall it takes a Wall Slam too, and is stunned");
+
+        // Too long without a move and the combo starts over; the parry starts it over too.
+        Clear();
+        Step(6, 0, S, 0, true, false);  // (the parry: from the Pull Punch)
+        Step(30, 0, S, 0, false, false);
+        me.Pos = S;
+        var r1 = Dummy(new V2(S.X + 150f, S.Y));
+        Step(2, 2, r1.Pos, 0, false, false);
+        Step(10, 0, r1.Pos, 0, false, false);
+        bool opened = me.KnuckleMove == 1;
+        Step((int)((Game.KnuckleBrawlIdle + 0.4f) / dt), 0, r1.Pos, 0, false, false);
+        Check(opened && me.KnuckleMove == 0, "1.6 s without a move and the combo starts over (the wheel closes)");
+        me.Pos = S;
+        r1.Pos = new V2(S.X + 150f, S.Y);
+        Step(2, 2, r1.Pos, 0, false, false);
+        Step(10, 0, r1.Pos, 0, false, false);
+        Step(6, 0, r1.Pos, 0, true, false);
+        Check(me.KnuckleMove == 0, "raising the parry starts it over");
+        Step(30, 0, r1.Pos, 0, false, false);
+
+        // A perfect parry arms the Counter Hammer: the next click is the gold slam.
+        Clear();
+        V2 from = new V2(500f, 450f);
+        Action<int, bool, bool> Pinned = (frames, fire, parry) =>
+        {
+            for (int f = 0; f < frames; f++)
+            {
+                me.Pos = from; queue.Clear();
+                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = new V2(800f, 450f), Fire = fire && f < 2, Parry = parry } : new PlayerInput()); }
+                foreach (var c in g.Sounds) heard.Add(c.Sfx);
+                g.Sounds.Clear();
+            }
+        };
+        var hd = Dummy(new V2(560f, 452f));
+        Pinned(40, false, false);
+        shoot.Invoke(g, new object[] { Defs.SmallShot, from + new V2(50f, 34f), new V2(-330f, -224f), 0f, 2f, 10f, 0, false, 0f });  // (off the dummy's line)
+        Pinned(12, false, true);
+        Check(me.KnuckleArmed && heard.Contains(Sfx.KnuckleArm), "a perfect parry arms the Counter Hammer (the coils are heard charging)");
+        Pinned(10, false, false);
+        Check(s[1].Game.Players[1].KnuckleArmed, "the other player sees it armed (the pips go gold)");
+        Took(hd);
+        Pinned(2, true, false);
+        Check(!me.KnuckleArmed, "the next click is the Counter Hammer");
+        Pinned(30, false, false);
+        float counter = Took(hd);
+        Check(Math.Abs(counter - baseDmg * Game.KnuckleCounterMult) < 0.6f && heard.Contains(Sfx.KnuckleCounter), "it lands for 317% with its own sound (" + counter + ")");
+        Pinned(40, false, false);
+        shoot.Invoke(g, new object[] { Defs.SmallShot, from + new V2(50f, 34f), new V2(-330f, -224f), 0f, 2f, 10f, 0, false, 0f });
+        Pinned(12, false, true);
+        bool armed = me.KnuckleArmed;
+        Pinned((int)((Game.KnuckleArmTime + 0.3f) / dt), false, false);
+        Check(armed && !me.KnuckleArmed, "an unused Counter Hammer fades after 3 s");
+
+        // The weapon-action key swaps to the Rocket stance: the dash and its chain, a click each, no windows.
+        Clear();
+        me.Pos = S;
+        Step(2, 0, me.Pos + new V2(300f, 0f), 0, false, true);
+        Step(10, 0, me.Pos + new V2(300f, 0f), 0, false, false);
+        Check(me.KnuckleStance == 1 && s[1].Game.Players[1].KnuckleStance == 1, "the weapon-action key swaps to the Rocket stance (the other player's game knows)");
+        var front = Dummy(new V2(S.X + 100f, S.Y));   // in the way along your aim
+        var tgt = Dummy(new V2(S.X + 200f, S.Y + 20f));  // nearest the cursor
+        var next = Dummy(new V2(S.X + 360f, S.Y + 24f));
+        untouchable = false;
+        Step(2, 2, tgt.Pos + new V2(6f, 0f), 0, false, false);
+        Step(20, 0, tgt.Pos, 0, false, false);
+        float tgtTook = Took(tgt), frontTook = Took(front);
+        Check(me.KnuckleTarget == tgt.Id && untouchable && me.Pos.DistanceTo(tgt.Pos) < tgt.Radius + me.Def.BodyR + Game.KnuckleDashKnock + 20f,
+            "a click throws the Rocket Dash: locked onto the enemy nearest the cursor, it flies you up to it, untouchable");
+        Check(Math.Abs(tgtTook - baseDmg * Game.KnuckleDashMult) < 0.6f && frontTook == 0f, "the locked enemy takes the hit, the one in the way nothing");
+        Check(me.KnuckleChain == 1, "and the chain waits for the next click");
+        Step((int)(2.5f / dt), 0, tgt.Pos, 0, false, false);
+        Check(me.KnuckleChain == 1, "with no window to hit: 2.5 s later it's still waiting");
+        movedWhileRooted = false;
+        Step(2, 2, tgt.Pos, 0, false, false);
+        Check(me.KnuckleChain == 2, "the click throws the Flurry");
+        Step(60, 0, tgt.Pos, 0, false, false);
+        float flurry = Took(tgt);
+        Check(Math.Abs(flurry - baseDmg * (Game.FlurryJabs * Game.FlurryJabMult + Game.FlurryStraightMult)) < 1f, "eight jabs and a straight (" + flurry + ")");
+        Step(2, 2, next.Pos, 0, false, false);
+        Check(me.KnuckleChain == 4 && heard.Contains(Sfx.KnuckleGrab), "the next click grabs it");
+        for (int f = 0; f < 90 && me.KnuckleChain == 4; f++)
+            Step(1, 0, next.Pos, 0, false, false);
+        Check(heard.Contains(Sfx.KnuckleThrow) && Took(next) > 0f, "and throws it into the next enemy");
+        Check(me.KnuckleChain == 5, "the Rocket Punch waits for its click");
+        Took(tgt);
+        Step(2, 2, next.Pos, 0, false, false);
+        Step(40, 0, next.Pos, 0, false, false);
+        Check(Took(next) > 0f, "the click fires the Rocket Punch down the line");
+        Step(30, 0, next.Pos, 0, false, false);
+        Check(me.KnuckleChain == 0, "and the chain is over when the fist is back");
+        me.Pos = S;
+        tgt.Pos = new V2(S.X + 150f, S.Y);
+        Step(40, 0, tgt.Pos, 0, false, false);
+        Step(2, 2, tgt.Pos, 0, false, false);
+        Step(20, 0, tgt.Pos, 0, false, false);
+        bool waiting = me.KnuckleChain == 1;
+        Step((int)((Game.KnuckleRocketIdle + 0.5f) / dt), 0, tgt.Pos, 0, false, false);
+        Check(waiting && me.KnuckleChain == 0, "4 s without a click and it's back to the Rocket Dash");
+        Step(2, 0, tgt.Pos, 0, false, true);
+        Step(10, 0, tgt.Pos, 0, false, false);
+        Check(me.KnuckleStance == 0 && me.KnuckleMove == 0, "the key swaps back to Brawl, at the Pull Punch");
 
         // A thrown enemy stops at a wall: carried at throw speed, a frame at a time, it never crosses to the far side.
         g.DevSetLayout(LayoutId.Cross);
