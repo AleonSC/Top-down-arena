@@ -1,0 +1,535 @@
+<title>Vowguard Models</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, one big live stage (pick a look, a move, the motion parts), then the four looks side by side
+   playing the same thing, then one short card per look. Tokens match the other weapon mockups (Barlow family);
+   the canvases are the game's night-blue arena. Valor is gold, Sanctuary is jade. */
+:root{
+  --bg:#efeee8; --fg:#1f1d17; --muted:#5f5b4e; --panel:#faf9f4; --line:#d6d2c4; --chip:#e5e2d6; --chip-on:#1f1d17; --chip-on-fg:#f6f4ec;
+  --valor:#9a6b08; --sanct:#1f7a63;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12110e; --fg:#ebe7da; --muted:#a29c89; --panel:#1a1914; --line:#2f2c23; --chip:#26241c; --chip-on:#ebe7da; --chip-on-fg:#12110e;
+  --valor:#ffd36a; --sanct:#7fe3c0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12110e; --fg:#ebe7da; --muted:#a29c89; --panel:#1a1914; --line:#2f2c23; --chip:#26241c; --chip-on:#ebe7da; --chip-on-fg:#12110e;
+  --valor:#ffd36a; --sanct:#7fe3c0; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+.eyebrow{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font:700 clamp(38px,7vw,62px)/.95 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px}
+h1 span{color:var(--valor)} h1 em{font-style:normal;color:var(--sanct)}
+header p{margin:0;max-width:70ch;color:var(--muted)}
+h2{font:700 26px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 10px}
+.frame{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#151935;max-width:100%}
+canvas{display:block;width:100%;height:auto;max-width:100%}
+#stage{aspect-ratio:960/430}
+.controls{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.row{display:flex;gap:6px 14px;align-items:center;flex-wrap:wrap}
+.row .lab{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-width:72px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:600 14px var(--body);padding:6px 12px;border-radius:6px;border:1px solid var(--line);background:var(--chip);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+.chip:hover{border-color:var(--muted)}
+.chip:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.chip.v{box-shadow:inset 3px 0 0 var(--valor)} .chip.s{box-shadow:inset 3px 0 0 var(--sanct)}
+.note{font:500 12px var(--mono);color:var(--muted);margin:8px 0 0}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:820px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.cell{display:flex;flex-direction:column;gap:6px;min-width:0}
+.cell canvas{aspect-ratio:1/1}
+.cap{font:700 18px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;display:flex;justify-content:space-between;gap:8px}
+.cap small{font:500 11px var(--mono);color:var(--muted);text-transform:none;letter-spacing:0;align-self:end}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:820px){.cards{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
+.card h3{font:700 22px/1 var(--display);text-transform:uppercase;margin:0 0 8px}
+.card ul{margin:0;padding-left:18px;font-size:15px;color:var(--fg)}
+.card li{margin:2px 0}
+.card li b{font-weight:600}
+.motion ul{columns:2;column-gap:28px;margin:0;padding-left:18px;font-size:15px}
+@media (max-width:640px){.motion ul{columns:1}}
+@media (prefers-reduced-motion:reduce){.chip{transition:none}}
+</style>
+
+<main>
+<header>
+  <p class="eyebrow">Healer Knight · Vowguard · model &amp; motion</p>
+  <h1>Vowguard <span>Sword</span> &amp; <em>Shield</em></h1>
+  <p>Three new looks for the arming sword and heater shield, plus a new motion layer. Hits, timing and the attacks' light are unchanged; only the held weapon and how it moves. Move the mouse over the stage to aim.</p>
+</header>
+
+<section>
+  <div class="controls">
+    <div class="row"><span class="lab">Look</span><div class="chips" id="looks"></div></div>
+    <div class="row"><span class="lab">Play</span><div class="chips" id="moves"></div></div>
+    <div class="row"><span class="lab">Motion</span><div class="chips" id="parts"></div></div>
+    <div class="row"><span class="lab">Speed</span><div class="chips" id="speeds"></div></div>
+  </div>
+  <div class="frame"><canvas id="stage" width="960" height="430"></canvas></div>
+  <p class="note">Drawn only with what Ui.cs has: lines, arcs, circles, triangles, polygons and additive glow. No blur. Approximate.</p>
+</section>
+
+<section>
+  <h2>Side by side</h2>
+  <div class="grid" id="grid"></div>
+</section>
+
+<section>
+  <h2>The looks</h2>
+  <div class="cards">
+    <div class="card"><h3>A · Crusader</h3><ul>
+      <li><b>Shield:</b> thick curved plate seen from above, navy field, stance-colour rim stripe, gold boss.</li>
+      <li><b>Sword:</b> broad two-tone bevelled blade, curved gold quillons, wrapped grip.</li>
+      <li><b>Trail:</b> faint white smear.</li>
+      <li>Closest to the Lance's steel. Most grounded.</li></ul></div>
+    <div class="card"><h3>B · Templar</h3><ul>
+      <li><b>Shield:</b> heater silhouette tilted toward the camera, stance-colour cross on navy, gold trim. Tilts more face-on when raised.</li>
+      <li><b>Sword:</b> fuller glows in the stance colour; gem in the guard.</li>
+      <li><b>Trail:</b> stance-colour crescent.</li>
+      <li>Most readable at game zoom.</li></ul></div>
+    <div class="card"><h3>C · Radiant</h3><ul>
+      <li><b>Shield:</b> faceted steel frame round a glowing core; projects a light lattice while guarding.</li>
+      <li><b>Sword:</b> white core with stance-colour edges, winged guard.</li>
+      <li><b>Trail:</b> three afterimages.</li>
+      <li>Most "holy", loudest.</li></ul></div>
+  </div>
+</section>
+
+<section class="motion">
+  <h2>New motion (all three looks)</h2>
+  <ul>
+    <li><b>Anticipation:</b> a short pull back before each strike.</li>
+    <li><b>Follow-through:</b> sword and shield on springs, so they overshoot and settle.</li>
+    <li><b>Hit-stop:</b> 60 ms freeze on contact (90 ms on finishers).</li>
+    <li><b>Body twist:</b> shoulders turn with the swing.</li>
+    <li><b>Trail:</b> the look's smear, crescent or afterimages.</li>
+    <li><b>Stance switch:</b> a sword twirl while the shield swings across.</li>
+    <li><b>Idle:</b> slow breathing sway instead of a frozen pose.</li>
+  </ul>
+</section>
+</main>
+
+<script>
+(()=>{
+const D2R=Math.PI/180;
+const GOLD=[255,207,89], JADE=[128,227,191], NAVY=[36,58,104];
+const rgba=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+const clamp=(x,a,b)=>x<a?a:x>b?b:x;
+const easeQ=x=>x<.5?2*x*x:1-(-2*x+2)*(-2*x+2)/2;
+const easeC=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const easeOutC=x=>1-Math.pow(1-x,3);
+
+// --- the moves (keys copied from Core/VowguardMotion.cs: t, sword, reach, shield, shieldD, dx, dy, shieldS) ---
+const REST=[[35,1,-60,15,0,0,1],[60,.75,0,24,0,0,1.1]];
+const M={
+ EdgeCut:{n:'Edge Cut',st:0,dur:.30,keys:[[.28,100,.95,-70,13,0,0,1],[.62,-65,1.1,-45,15,8,0,1]],hits:[{t:.5,k:'arc',h:55,r:115}]},
+ RimBash:{n:'Rim Bash',st:0,dur:.32,keys:[[.3,50,.9,-25,10,-6,0,1],[.5,45,.9,0,44,10,0,1.1],[.68,40,.9,-10,30,8,0,1]],hits:[{t:.5,k:'arc',h:35,r:80}]},
+ LungeThrust:{n:'Lunge Thrust',st:0,dur:.34,keys:[[.3,20,.6,-55,13,-8,0,1],[.55,2,1.7,-50,14,30,0,1],[.75,4,1.5,-50,14,26,0,1]],hits:[{t:.55,k:'lane',r:165,w:14}]},
+ TwinStrike:{n:'Twin Strike',st:0,dur:.42,keys:[[.2,100,1,-60,13,0,0,1],[.42,-60,1.1,-40,14,6,0,1],[.55,-50,1,-10,20,6,0,1],[.72,-30,1,10,42,12,0,1.1]],hits:[{t:.35,k:'arc',h:60,r:105},{t:.72,k:'arc',h:35,r:85}]},
+ MercySpin:{n:'Mercy Spin',st:0,dur:.40,wrap:-360,keys:[[.15,80,1,-70,14,0,0,1],[.5,-100,1.1,-250,14,0,0,1],[.85,-325,1.1,-425,15,0,0,1]],hits:[{t:.5,k:'ring',r:95}]},
+ JudgmentCleave:{n:'Judgment Cleave',st:0,fin:1,dur:.58,keys:[[.35,170,.55,-30,12,-10,0,1],[.58,0,1.45,-50,14,20,0,1],[.8,5,1.4,-50,14,18,0,1]],hits:[{t:.58,k:'lane',r:360,w:35}]},
+ HallowedSlam:{n:'Hallowed Slam',st:0,fin:1,dur:.62,keys:[[.35,40,.8,0,6,0,0,1.2],[.55,40,.8,0,30,4,0,1.25],[.8,40,.8,0,28,4,0,1.2]],hits:[{t:.56,k:'ring',r:120}]},
+ RaiseGuard:{n:'Raise Guard',st:1,dur:.5,keys:[[.15,70,.7,0,28,0,0,1.35],[.85,70,.7,0,28,0,0,1.35]],hits:[]},
+ GuardedJab:{n:'Guarded Jab',st:1,dur:.26,keys:[[.3,30,.6,0,24,0,0,1.1],[.55,8,1.6,0,24,6,0,1.1]],hits:[{t:.55,k:'lane',r:145,w:10}]},
+ DeflectSweep:{n:'Deflect Sweep',st:1,dur:.34,keys:[[.25,60,.75,-70,30,0,0,1.15],[.6,60,.75,70,30,0,0,1.15]],hits:[{t:.45,k:'arc',h:70,r:85}]},
+ RallyTap:{n:'Rally Tap',st:1,dur:.32,keys:[[.35,-20,.6,0,22,0,0,1.1],[.5,-5,.55,0,20,0,0,1.1]],hits:[]},
+ SanctifiedWard:{n:'Sanctified Ward',st:1,fin:1,dur:.52,keys:[[.3,60,.7,0,16,0,0,1.2],[.5,60,.7,0,26,0,0,1.35]],hits:[]},
+};
+const P=(a)=>({sw:a[0],re:a[1],sh:a[2],sd:a[3],dx:a[4],dy:a[5],ss:a[6]});
+const CH=['sw','re','sh','sd','dx','dy','ss'];
+const lerpP=(a,b,u)=>{const o={};for(const k of CH)o[k]=a[k]+(b[k]-a[k])*u;return o};
+
+// The pose t (0-1) through a move. Old: the game's eased lerp. New: snappier strikes with a pull back first.
+function poseAt(m,t,isNew,antic){
+  const rest=P(REST[m.st]); const end={...rest};
+  if(m.wrap){end.sw+=m.wrap;end.sh+=m.wrap}
+  let pt=0, prev=rest;
+  for(let i=0;i<=m.keys.length;i++){
+    const kt=i<m.keys.length?m.keys[i][0]:1, k=i<m.keys.length?P(m.keys[i].slice(1)):end;
+    if(t<=kt){
+      const u=clamp(kt>pt?(t-pt)/(kt-pt):1,0,1);
+      if(!isNew) return lerpP(prev,k,easeQ(u));
+      const dS=k.sw-prev.sw, strike=Math.abs(dS)>50||Math.abs(k.sd-prev.sd)>14||Math.abs(k.re-prev.re)>.5;
+      if(!strike||!antic) return lerpP(prev,k,isNew?easeC(u):easeQ(u));
+      const e=easeOutC(clamp((u-.28)/.72,0,1));
+      const o=lerpP(prev,k,e);
+      const w=u<.28?Math.sin(Math.PI*u/.28*.5):Math.max(0,1-(u-.28)/.2);  // wind up, then let go
+      const A=Math.min(20,Math.abs(dS)*.16);
+      o.sw-=Math.sign(dS)*A*w;
+      if(k.sd-prev.sd>14) o.sd-=5*w;               // shield draws back before a bash
+      if(k.re-prev.re>.5) o.re-=.25*w;             // the arm cocks before a thrust
+      return o;
+    }
+    prev=k; pt=kt;
+  }
+  return end;
+}
+
+// --- programs ---
+const CHAIN_V=['EdgeCut','RimBash','LungeThrust','TwinStrike','JudgmentCleave'];
+const CHAIN_S=['RaiseGuard','GuardedJab','DeflectSweep','RallyTap','SanctifiedWard'];
+const PROGRAMS={
+  chain:{n:'Full chain',prog:()=>[...CHAIN_V.map(id=>({m:id})),{w:.35},{sw:1},{w:.5},...CHAIN_S.map(id=>({m:id})),{w:.35},{sw:0},{w:.5}]},
+  idleV:{n:'Idle · Valor',cls:'v',prog:()=>[{st:0},{w:2}]},
+  idleS:{n:'Idle · Sanctuary',cls:'s',prog:()=>[{st:1},{w:2}]},
+  switch:{n:'Stance switch',prog:()=>[{st:0},{w:.6},{sw:1},{w:.9},{sw:0},{w:.6}]},
+};
+for(const id of ['EdgeCut','LungeThrust','TwinStrike','MercySpin','JudgmentCleave','HallowedSlam','RimBash','RaiseGuard','DeflectSweep','GuardedJab','SanctifiedWard'])
+  PROGRAMS[id]={n:M[id].n,cls:M[id].st?'s':'v',prog:()=>[{st:M[id].st},{m:id},{w:.55}]};
+
+const LOOKS={cur:'Current',A:'A · Crusader',B:'B · Templar',C:'C · Radiant'};
+const PARTS={antic:'Anticipation',spring:'Follow-through',stop:'Hit-stop',twist:'Body twist',trail:'Trail'};
+const state={look:'B',prog:'chain',speed:1,parts:{antic:1,spring:1,stop:1,twist:1,trail:1}};
+
+// --- one knight ---
+const SPR={sw:[1100,.42],re:[900,.5],sh:[650,.55],sd:[750,.45],dx:[700,.7],dy:[700,.7],ss:[800,.6]};
+class Sim{
+  constructor(look){this.look=look;this.restart()}
+  restart(){
+    this.prog=PROGRAMS[state.prog].prog(); this.pi=-1; this.st=0; this.m=null; this.mt=0; this.wt=0;
+    this.from=P(REST[0]); this.blend=1; this.twirl=-1; this.hs=0; this.fx=[]; this.trail=[]; this.clock=0;
+    this.x=P(REST[0]); this.v={}; for(const k of CH)this.v[k]=0; this.next(); }
+  isNew(){return this.look!=='cur'}
+  next(){
+    this.pi++; if(this.pi>=this.prog.length){this.pi=0}
+    const s=this.prog[this.pi];
+    if(s.st!==undefined){ if(this.st!==s.st){this.st=s.st;this.x=P(REST[s.st]);this.from=P(REST[s.st]);this.blend=1} this.next(); return }
+    if(s.m){ this.m=M[s.m]; this.mt=0; if(this.m.st!==this.st){this.st=this.m.st} return }
+    if(s.w){ this.wt=s.w; return }
+    if(s.sw!==undefined){ this.from=this.restBlend(); this.st=s.sw; this.blend=0; if(this.isNew())this.twirl=0; this.next(); }
+  }
+  restBlend(){const u=this.blend*this.blend*(3-2*this.blend);return lerpP(this.from,P(REST[this.st]),u)}
+  step(dt){
+    this.clock+=dt;
+    for(const f of this.fx)f.a+=dt; this.fx=this.fx.filter(f=>f.a<.5);
+    if(this.hs>0){this.hs-=dt;return}
+    const nw=this.isNew(), pr=state.parts;
+    this.blend=Math.min(1,this.blend+dt/.3);
+    let tgt;
+    if(this.m){
+      const u0=this.mt/this.m.dur; this.mt+=dt; const u=Math.min(1,this.mt/this.m.dur);
+      for(const h of this.m.hits) if(u0<h.t&&u>=h.t){ this.fx.push({h,a:0,st:this.m.st,fin:this.m.fin}); if(nw&&pr.stop)this.hs=this.m.fin?.09:.06 }
+      tgt=poseAt(this.m,u,nw,nw&&pr.antic);
+      if(u>=1){ if(this.m.wrap&&nw&&pr.spring){this.x.sw-=this.m.wrap;this.x.sh-=this.m.wrap} this.m=null; this.from=P(REST[this.st]); this.blend=1; this.next() }
+    } else {
+      tgt=this.restBlend();
+      if(this.twirl>=0){ this.twirl+=dt/.42; const e=easeC(Math.min(1,this.twirl)); tgt.sw-=360*e; if(this.twirl>=1){this.twirl=-1; this.x.sw+=360} }
+      if(nw){ const b=this.clock*2*Math.PI*.55; tgt.sw+=Math.sin(b)*3; tgt.sd+=Math.sin(b+1)*.7; tgt.sh+=Math.sin(b+.5)*2 }
+      if(this.wt>0){ this.wt-=dt; if(this.wt<=0)this.next() }
+    }
+    if(nw&&pr.spring){
+      const n=3,h=dt/n;
+      for(let i=0;i<n;i++)for(const k of CH){const [K,z]=SPR[k];const c=2*z*Math.sqrt(K);const a=K*(tgt[k]-this.x[k])-c*this.v[k];this.v[k]+=a*h;this.x[k]+=this.v[k]*h}
+    } else { this.x=tgt; }
+    // the sword's angle history, for trails
+    this.trail.push({t:this.clock,sw:this.x.sw,re:this.x.re,dx:this.x.dx,dy:this.x.dy});
+    while(this.trail.length&&this.clock-this.trail[0].t>.12)this.trail.shift();
+  }
+}
+
+// --- drawing (game px; the knight at the origin) ---
+let X; // ctx
+const V=(x,y)=>({x,y});
+const add=(a,b)=>V(a.x+b.x,a.y+b.y), sub=(a,b)=>V(a.x-b.x,a.y-b.y), mul=(a,s)=>V(a.x*s,a.y*s);
+const dirA=a=>V(Math.cos(a),Math.sin(a));
+const rot=(v,a)=>V(v.x*Math.cos(a)-v.y*Math.sin(a),v.x*Math.sin(a)+v.y*Math.cos(a));
+function line(a,b,w,c){X.strokeStyle=c;X.lineWidth=w;X.lineCap='round';X.beginPath();X.moveTo(a.x,a.y);X.lineTo(b.x,b.y);X.stroke()}
+function circ(p,r,c){X.fillStyle=c;X.beginPath();X.arc(p.x,p.y,r,0,Math.PI*2);X.fill()}
+function arcS(p,r,w,c,a0,span,cap){X.strokeStyle=c;X.lineWidth=w;X.lineCap=cap||'butt';X.beginPath();X.arc(p.x,p.y,r,a0,a0+span);X.stroke()}
+function poly(pts,c){X.fillStyle=c;X.beginPath();X.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)X.lineTo(pts[i].x,pts[i].y);X.closePath();X.fill()}
+function polyS(pts,w,c){X.strokeStyle=c;X.lineWidth=w;X.lineJoin='round';X.beginPath();X.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)X.lineTo(pts[i].x,pts[i].y);X.closePath();X.stroke()}
+function glow(fn){X.save();X.globalCompositeOperation='lighter';fn();X.restore()}
+const DARK='rgb(13,29,56)', ARM='rgb(75,130,220)', GLOVE='rgb(155,167,184)';
+const STEEL='rgb(237,242,250)', STEEL2='rgb(160,172,192)', EDGE='rgb(38,44,58)', GGOLD='rgb(217,168,61)', GGOLD2='rgb(150,108,30)', GRIP='rgb(92,67,48)';
+
+function knightBody(o,aim,twist,stCol){
+  circ(V(o.x+2,o.y+4),15,'rgba(0,0,0,.25)');
+  circ(o,15.2,DARK);
+  circ(o,13.6,'rgb(196,206,220)');
+  // tabard: healer green over the chest, stance colour stripe
+  X.save();X.translate(o.x,o.y);X.rotate(aim+twist*.6);
+  X.fillStyle='rgb(70,150,110)';X.beginPath();X.arc(0,0,13.6,-.9,.9);X.closePath();X.fill();
+  X.fillStyle=rgba(stCol,.9);X.fillRect(2,-1.4,11,2.8);
+  // helm toward the aim, visor slit
+  X.fillStyle='rgb(222,229,238)';X.beginPath();X.arc(1.5,0,8,0,Math.PI*2);X.fill();
+  X.strokeStyle=DARK;X.lineWidth=1.2;X.stroke();
+  X.fillStyle=DARK;X.fillRect(5,-4,2.2,8);
+  X.fillStyle=rgba(stCol,1);X.beginPath();X.ellipse(-5,0,3.4,1.6,0,0,Math.PI*2);X.fill(); // plume
+  X.restore();
+}
+function lanceArm(o,s,h){
+  const d=sub(h,s), l=Math.max(.001,Math.hypot(d.x,d.y)); let n=V(-d.y/l,d.x/l);
+  if(n.x*(s.x-o.x)+n.y*(s.y-o.y)<0)n=mul(n,-1);
+  const e=add(mul(add(s,h),.5),mul(n,Math.max(0,8-l*.25)));
+  for(const [w,c] of [[8,DARK],[5.4,ARM]]){X.strokeStyle=c;X.lineWidth=w;X.lineCap='round';X.beginPath();X.moveTo(s.x,s.y);X.quadraticCurveTo(e.x,e.y,h.x,h.y);X.stroke()}
+}
+function pauldron(c,a){X.save();X.translate(c.x,c.y);X.rotate(a);X.fillStyle=DARK;X.beginPath();X.ellipse(0,0,6.2,5,0,0,Math.PI*2);X.fill();X.fillStyle='rgb(170,182,200)';X.beginPath();X.ellipse(0,0,4.8,3.7,0,0,Math.PI*2);X.fill();X.fillStyle='rgba(255,255,255,.5)';X.beginPath();X.ellipse(-1,-1,2,1.2,0,0,Math.PI*2);X.fill();X.restore()}
+
+// swords: grip at g, pointing along dir
+function swordCur(g,d){
+  const s=V(-d.y,d.x);
+  circ(sub(g,mul(d,7)),2.6,'rgb(217,168,61)');
+  line(sub(g,mul(d,6)),add(g,mul(d,2)),3.2,GRIP);
+  line(add(add(g,mul(d,3)),mul(s,-6)),add(add(g,mul(d,3)),mul(s,6)),2.6,'rgb(217,168,61)');
+  line(add(g,mul(d,4)),add(g,mul(d,37)),4.6,EDGE);
+  line(add(g,mul(d,4)),add(g,mul(d,36)),3,STEEL);
+  poly([add(add(g,mul(d,36)),mul(s,1.5)),add(add(g,mul(d,36)),mul(s,-1.5)),add(g,mul(d,41))],STEEL);
+  line(add(g,mul(d,6)),add(g,mul(d,30)),.8,'rgb(153,168,191)');
+}
+const at=(g,d,s,u,v)=>add(add(g,mul(d,u)),mul(s,v));
+function bladePts(g,d,s,L,w0,w1){ // a tapered blade from the guard (u=4) to the point
+  return [at(g,d,s,4,-w0),at(g,d,s,L-7,-w1),at(g,d,s,L,0),at(g,d,s,L-7,w1),at(g,d,s,4,w0)];
+}
+function hiltCommon(g,d,s,pom){
+  // grip with wraps, pommel
+  line(sub(g,mul(d,7)),add(g,mul(d,2)),3.8,EDGE);
+  line(sub(g,mul(d,6.5)),add(g,mul(d,1.5)),2.6,GRIP);
+  for(const u of [-4.5,-2,.5]) line(at(g,d,s,u,-1.3),at(g,d,s,u+.9,1.3),.6,'rgba(0,0,0,.45)');
+  circ(sub(g,mul(d,8.6)),3.3,EDGE); circ(sub(g,mul(d,8.6)),2.5,pom); circ(add(sub(g,mul(d,9.2)),mul(s,-.7)),.9,'rgba(255,255,255,.7)');
+}
+function swordA(g,d,st){
+  const s=V(-d.y,d.x), L=46;
+  hiltCommon(g,d,s,GGOLD);
+  const b=bladePts(g,d,s,L,3,2.2);
+  polyS(b,2.2,EDGE);
+  poly([b[0],b[1],b[2],at(g,d,s,L,0),at(g,d,s,4,0)],STEEL);       // lit bevel
+  poly([at(g,d,s,4,0),b[2],b[3],b[4]],STEEL2);                       // shaded bevel
+  line(at(g,d,s,7,0),at(g,d,s,30,0),.9,'rgba(110,124,148,.9)');      // fuller
+  // curved quillons
+  const q=[at(g,d,s,1.5,-8.5),at(g,d,s,3.6,-4),at(g,d,s,4.2,0),at(g,d,s,3.6,4),at(g,d,s,1.5,8.5)];
+  X.lineJoin='round';
+  for(const [w,c] of [[3.6,EDGE],[2.4,GGOLD]]){X.strokeStyle=c;X.lineWidth=w;X.lineCap='round';X.beginPath();X.moveTo(q[0].x,q[0].y);for(const p of q.slice(1))X.lineTo(p.x,p.y);X.stroke()}
+  circ(q[0],1.7,GGOLD); circ(q[4],1.7,GGOLD); circ(at(g,d,s,4.2,0),1.6,GGOLD2);
+}
+function swordB(g,d,st,col){
+  const s=V(-d.y,d.x), L=45;
+  hiltCommon(g,d,s,GGOLD);
+  const b=bladePts(g,d,s,L,2.9,2.1);
+  polyS(b,2.2,EDGE); poly(b,STEEL);
+  poly([at(g,d,s,4,0),b[2],b[3],b[4]],'rgba(170,182,202,1)');
+  line(at(g,d,s,7,0),at(g,d,s,33,0),1.4,rgba(col,1));
+  glow(()=>{line(at(g,d,s,7,0),at(g,d,s,33,0),3.4,rgba(col,.35));});
+  // straight guard with a gem
+  line(at(g,d,s,3,-8),at(g,d,s,3,8),4,EDGE); line(at(g,d,s,3,-7.4),at(g,d,s,3,7.4),2.6,GGOLD);
+  poly([at(g,d,s,3,-9.5),at(g,d,s,1.2,-7.2),at(g,d,s,4.8,-7.2)],GGOLD); poly([at(g,d,s,3,9.5),at(g,d,s,1.2,7.2),at(g,d,s,4.8,7.2)],GGOLD);
+  circ(at(g,d,s,3,0),2.3,EDGE); circ(at(g,d,s,3,0),1.6,rgba(col,1));
+}
+function swordC(g,d,st,col){
+  const s=V(-d.y,d.x), L=47;
+  hiltCommon(g,d,s,'rgb(200,210,225)');
+  const b=bladePts(g,d,s,L,3.2,2.4);
+  glow(()=>{polyS(b,4,rgba(col,.35));});
+  polyS(b,1.6,rgba(col,1)); poly(b,'rgb(250,252,255)');
+  line(at(g,d,s,8,0),at(g,d,s,L-9,0),1,rgba(col,.8));
+  // winged guard
+  poly([at(g,d,s,1,-1.5),at(g,d,s,6,-3),at(g,d,s,0,-10.5)],EDGE); poly([at(g,d,s,1.5,-2),at(g,d,s,5,-3),at(g,d,s,1,-9)],'rgb(215,224,236)');
+  poly([at(g,d,s,1,1.5),at(g,d,s,6,3),at(g,d,s,0,10.5)],EDGE); poly([at(g,d,s,1.5,2),at(g,d,s,5,3),at(g,d,s,1,9)],'rgb(215,224,236)');
+  circ(at(g,d,s,3,0),2.6,EDGE); circ(at(g,d,s,3,0),1.9,rgba(col,1));
+  glow(()=>circ(at(g,d,s,3,0),4,rgba(col,.35)));
+}
+
+// shields: on the left glove h, facing f, size k
+function shieldCur(h,f,k,col){
+  const a=Math.atan2(f.y,f.x), c=sub(h,mul(f,9*k));
+  arcS(c,12.25*k,5.5*k,'rgb(214,219,230)',a-.95,1.9);
+  arcS(c,15*k,1.6,DARK,a-.95,1.9); arcS(c,9.5*k,1.6,DARK,a-.95,1.9);
+  for(const sg of [-1,1]){const d=dirA(a+.95*sg);line(add(c,mul(d,9.5*k)),add(c,mul(d,15*k)),1.6,DARK)}
+  arcS(c,14*k,1.4,rgba(col,1),a-.88,1.76);
+  arcS(c,11.5*k,1,'rgba(255,255,255,.35)',a-.7,.9);
+  circ(add(h,mul(f,3.4)),1.8,'rgb(217,168,61)');
+}
+function shieldA(h,f,k,col){
+  const a=Math.atan2(f.y,f.x), c=sub(h,mul(f,10*k)), span=1.95+(k-1)*1.2, a0=a-span/2;
+  const r0=10*k, r1=17*k;
+  // strap to the glove
+  line(h,add(c,mul(f,r0)),2.2,'rgb(70,52,38)');
+  arcS(c,(r0+r1)/2,(r1-r0)+3,DARK,a0-.05,span+.1,'round');
+  arcS(c,(r0+r1)/2,(r1-r0),rgba(NAVY,1),a0,span);
+  arcS(c,r1-1.6,2.4,rgba(col,1),a0+.02,span-.04);                   // painted rim stripe
+  arcS(c,r0+1,1.2,'rgba(120,140,180,.8)',a0+.05,span-.1);          // inner bevel
+  arcS(c,r1-.4,.9,'rgba(255,255,255,.55)',a-.55,.7);                // catch light
+  const bc=add(c,mul(f,(r0+r1)/2+.5));
+  circ(bc,3.4*k,EDGE); circ(bc,2.6*k,GGOLD); circ(add(bc,V(-.8,-.8)),.9,'rgba(255,255,255,.8)');
+  for(const sg of [-1,1]){const d=dirA(a+sg*(span/2-.18));circ(add(c,mul(d,(r0+r1)/2)),1,'rgba(230,236,245,.9)')} // rivets
+}
+function shieldB(h,f,k,col){
+  const s=V(-f.y,f.x), tilt=clamp(.5+(k-1)*1.3,.45,1);
+  const W=13.5*k, Dp=13*k*tilt, F=7*k;
+  const at2=(x,y)=>add(add(h,mul(f,F-y*Dp)),mul(s,x*W));
+  // the heater outline: top edge, then the two curved sides to the point
+  const pts=[at2(-1,0),at2(1,0)];
+  for(let i=1;i<=10;i++){const u=i/10;pts.push(at2(Math.cos(u*Math.PI/2),.32+Math.sin(u*Math.PI/2)*.93))}
+  for(let i=9;i>=1;i--){const u=i/10;pts.push(at2(-Math.cos(u*Math.PI/2)*1,.32+Math.sin(u*Math.PI/2)*.93))}
+  polyS(pts,3.2,DARK);
+  poly(pts,rgba(NAVY,1));
+  // stance colour cross
+  poly([at2(-.17,.05),at2(.17,.05),at2(.17,1.12),at2(-.17,1.12)],rgba(col,1));
+  poly([at2(-.88,.33),at2(.88,.33),at2(.88,.52),at2(-.88,.52)],rgba(col,1));
+  // gold trim and top-edge light
+  polyS(pts,1,GGOLD);
+  line(at2(-.92,.02),at2(.92,.02),1.6,'rgba(255,255,255,.75)');
+  circ(at2(0,.42),1.8,GGOLD);
+}
+function shieldC(h,f,k,col,guard){
+  const a=Math.atan2(f.y,f.x), c=sub(h,mul(f,10*k)), span=2+(k-1)*1.1, r0=10*k, r1=16.5*k, n=5;
+  const P2=(r,i)=>add(c,mul(dirA(a-span/2+span*i/n),r));
+  const ring=[];for(let i=0;i<=n;i++)ring.push(P2(r1,i));for(let i=n;i>=0;i--)ring.push(P2(r0,i));
+  polyS(ring,3,DARK); poly(ring,'rgb(190,200,216)');
+  const core=[];for(let i=0;i<=n;i++)core.push(P2(r1-2.4,i));for(let i=n;i>=0;i--)core.push(P2(r0+2.4,i));
+  poly(core,rgba(col,.95));
+  glow(()=>{poly(core,rgba(col,.4));});
+  for(let i=1;i<n;i++)line(P2(r0,i),P2(r1,i),1,DARK);
+  line(P2(r1,1),P2(r1,4),.9,'rgba(255,255,255,.6)');
+  const bc=add(c,mul(f,(r0+r1)/2));
+  circ(bc,3*k,DARK); circ(bc,2.2*k,'rgb(255,255,255)'); glow(()=>circ(bc,5*k,rgba(col,.4)));
+  if(guard>0) glow(()=>{ // a light lattice in front
+    const R=r1+7, sp=span+.5;
+    for(let j=0;j<3;j++){const rr=R+j*4;arcS(c,rr,1.2,rgba(col,.32*guard*(1-j*.25)),a-sp/2,sp)}
+    for(let i=0;i<=6;i++){const d=dirA(a-sp/2+sp*i/6);line(add(c,mul(d,R)),add(c,mul(d,R+8)),1,rgba(col,.25*guard))}
+  });
+}
+
+function drawTrail(sim,o,aim,col,twistOn){
+  const look=sim.look, tr=sim.trail; if(tr.length<3)return;
+  const lean=.35;
+  const tip=(e,u)=>{const oo=add(o,rot(V(e.dx*lean,e.dy*lean),aim));const d=dirA(aim+e.sw*D2R);const g=add(oo,mul(d,7+7*e.re));return add(g,mul(d,u))};
+  // only when the blade moves fast
+  const n=tr.length, e0=tr[n-1], e1=tr[Math.max(0,n-4)];
+  const speed=Math.abs(e0.sw-e1.sw)+Math.abs(e0.re-e1.re)*60;
+  if(speed<10)return;
+  const k=clamp((speed-10)/40,0,1);
+  if(look==='C'){
+    glow(()=>{for(const [back,al] of [[2,.45],[4,.28],[6,.15]]){const e=tr[Math.max(0,n-1-back)];const d=dirA(aim+e.sw*D2R);const oo=add(o,rot(V(e.dx*lean,e.dy*lean),aim));const g=add(oo,mul(d,7+7*e.re));const s=V(-d.y,d.x);poly(bladePts(g,d,s,47,3.2,2.4),rgba(col,al*k))}});
+    return;
+  }
+  const inner=look==='A'?20:24, outer=look==='A'?46:48;
+  for(let i=1;i<n;i++){
+    const a=tr[i-1], b=tr[i], age=(sim.clock-b.t)/.1; if(age>1)continue;
+    const al=(1-age)*k*(look==='A'?.32:.5);
+    const q=[tip(a,inner),tip(a,outer),tip(b,outer),tip(b,inner)];
+    if(look==='A') poly(q,`rgba(235,242,255,${al})`);
+    else glow(()=>poly(q,rgba(col,al)));
+  }
+  if(look==='B') glow(()=>{X.strokeStyle=rgba(col,.8*k);X.lineWidth=1.4;X.beginPath();tr.forEach((e,i)=>{const p=tip(e,outer);i?X.lineTo(p.x,p.y):X.moveTo(p.x,p.y)});X.stroke()});
+}
+
+function drawFx(sim,o,aim){
+  for(const f of sim.fx){
+    const col=f.st?JADE:GOLD, u=f.a/.28; if(u>1)continue; const al=(1-u)*(f.fin?.55:.4);
+    glow(()=>{
+      if(f.h.k==='arc') arcS(o,f.h.r*.55+u*f.h.r*.35,f.h.r*.45*(1-u*.6),rgba(col,al*.6),aim-f.h.h*D2R,f.h.h*2*D2R);
+      else if(f.h.k==='lane'){const d=dirA(aim),s=V(-d.y,d.x),w=f.h.w/2+4;poly([add(o,mul(s,-w)),add(add(o,mul(d,f.h.r)),mul(s,-w*.3)),add(add(o,mul(d,f.h.r)),mul(s,w*.3)),add(o,mul(s,w))],rgba(col,al*.55))}
+      else arcS(o,f.h.r*(.3+.7*easeOutC(u)),6*(1-u)+1,rgba(col,al),0,Math.PI*2);
+    });
+  }
+}
+
+function drawKnight(sim,o,aim){
+  const nw=sim.isNew(), p=sim.x, st=sim.st, col=st?JADE:GOLD, pr=state.parts;
+  let twist=0;
+  if(nw&&pr.twist) twist=clamp((p.sw-REST[st][0])*.14,-26,26)*D2R + clamp(p.sd-REST[st][3],-10,20)*.6*D2R;
+  let shake=V(0,0); if(sim.hs>0)shake=V((Math.random()-.5)*1.4,(Math.random()-.5)*1.4);
+  const lean=nw?.35:.25;
+  const oo=add(add(o,rot(V(p.dx*lean,p.dy*lean),aim)),shake);
+  drawFx(sim,o,aim);
+  knightBody(oo,aim,twist,col);
+  const sw=aim+p.sw*D2R, sh=aim+p.sh*D2R, dS=dirA(sw), dL=dirA(sh);
+  const hR=add(oo,mul(dS,7+7*p.re)), hL=add(oo,mul(dL,p.sd*.7+3));
+  const sR=add(oo,rot(V(1,9.5),aim+twist)), sL=add(oo,rot(V(1,-9.5),aim+twist));
+  // the sword's shadow
+  line(add(hR,V(3,4)),add(add(hR,V(3,4)),mul(dS,nw?44:40)),nw?5:4,'rgba(0,0,0,.22)');
+  if(nw&&pr.trail) drawTrail(sim,o,aim,col);
+  lanceArm(oo,sR,hR);
+  if(sim.look==='cur')swordCur(hR,dS); else if(sim.look==='A')swordA(hR,dS,st); else if(sim.look==='B')swordB(hR,dS,st,col); else swordC(hR,dS,st,col);
+  lanceArm(oo,sL,hL);
+  const guard=st===1?1:(sim.m&&(sim.m===M.RimBash||sim.m===M.TwinStrike)?.6:0);
+  if(sim.look==='cur')shieldCur(hL,dL,p.ss,col); else if(sim.look==='A')shieldA(hL,dL,p.ss,col); else if(sim.look==='B')shieldB(hL,dL,p.ss,col); else shieldC(hL,dL,p.ss,col,guard*(p.ss>1.05?1:.4));
+  pauldron(sR,aim+twist); pauldron(sL,aim+twist);
+  circ(hR,4.6,DARK); circ(hR,3.9,GLOVE);
+}
+
+function drawDummies(sim,o,aim,list){
+  for(const dm of list){
+    let push=0, flash=0;
+    for(const f of sim.fx){ const d=sub(dm,o), dist=Math.hypot(d.x,d.y), ang=Math.abs(((Math.atan2(d.y,d.x)-aim+Math.PI*3)%(Math.PI*2))-Math.PI);
+      let hit=false; if(f.h.k==='ring')hit=dist<f.h.r+12; else if(f.h.k==='arc')hit=dist<f.h.r+12&&ang<f.h.h*D2R+.2; else hit=dist<f.h.r&&Math.abs(Math.sin(ang)*dist)<f.h.w/2+12&&ang<Math.PI/2;
+      if(hit){const u=f.a/.3; if(u<1){push=Math.max(push,(1-u)*6); flash=Math.max(flash,1-u*2)}} }
+    const d=sub(dm,o), l=Math.hypot(d.x,d.y)||1, p=add(dm,mul(d,push/l));
+    const r=12, pts=[0,1,2].map(i=>add(p,mul(dirA(Math.PI+i*2*Math.PI/3+Math.atan2(-d.y,-d.x)-Math.PI),r)));
+    poly(pts,'rgba(240,120,150,.18)'); polyS(pts,2,'rgb(240,130,160)');
+    if(flash>0)poly(pts,`rgba(255,255,255,${flash*.8})`);
+  }
+}
+
+function drawArena(c,w,h,Z,ox,oy){
+  X.fillStyle='#151935';X.fillRect(0,0,w,h);
+  X.strokeStyle='rgba(70,90,150,.18)';X.lineWidth=1;
+  const g=60*Z; for(let x=(ox%g+g)%g;x<w;x+=g){X.beginPath();X.moveTo(x,0);X.lineTo(x,h);X.stroke()}
+  for(let y=(oy%g+g)%g;y<h;y+=g){X.beginPath();X.moveTo(0,y);X.lineTo(w,y);X.stroke()}
+}
+
+// --- canvases ---
+const DPR=Math.min(2,window.devicePixelRatio||1);
+const views=[];
+function addView(cv,look,Z,cx,cy,interactive){
+  const v={cv,ctx:cv.getContext('2d'),look,Z,cx,cy,sim:new Sim(look),aim:0,tAim:0};
+  const W=cv.width,H=cv.height; cv.width=W*DPR; cv.height=H*DPR; v.W=W; v.H=H;
+  if(interactive){
+    cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*W, y=(e.clientY-r.top)/r.height*H;v.tAim=Math.atan2(y-cy,x-cx)});
+    cv.addEventListener('pointerleave',()=>{v.tAim=0});
+  }
+  views.push(v); return v;
+}
+const stage=addView(document.getElementById('stage'),state.look,3.6,300,215,true);
+const grid=document.getElementById('grid'); const small=[];
+for(const k of Object.keys(LOOKS)){
+  const cell=document.createElement('div');cell.className='cell';
+  cell.innerHTML=`<div class="cap">${LOOKS[k]}<small>${k==='cur'?'in game now':'new'}</small></div><div class="frame"><canvas width="260" height="260"></canvas></div>`;
+  grid.appendChild(cell); small.push(addView(cell.querySelector('canvas'),k,2.1,96,130,false));
+}
+const DUMMIES=[V(112,-6),V(150,48),V(170,-55)];
+
+function render(v){
+  X=v.ctx; X.setTransform(DPR,0,0,DPR,0,0);
+  drawArena(v.cv,v.W,v.H,v.Z,v.cx,v.cy);
+  X.setTransform(DPR*v.Z,0,0,DPR*v.Z,DPR*v.cx,DPR*v.cy);
+  const o=V(0,0);
+  drawDummies(v.sim,o,v.aim,DUMMIES.map(d=>rot(d,v.aim)));
+  drawKnight(v.sim,o,v.aim);
+  X.setTransform(DPR,0,0,DPR,0,0);
+  if(v===stage){
+    X.font='600 13px "IBM Plex Mono",monospace';X.fillStyle='rgba(220,228,245,.75)';
+    const m=v.sim.m; X.fillText((v.sim.st?'SANCTUARY':'VALOR')+(m?'  ·  '+m.n.toUpperCase():''),16,26);
+    X.fillStyle='rgba(220,228,245,.45)';X.fillText(LOOKS[v.look]+(state.speed<1?'  ·  '+state.speed+'x':''),16,46);
+  }
+}
+let last=performance.now();
+const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame(now){
+  let dt=Math.min(.05,(now-last)/1000); last=now; dt*=state.speed*(reduce?.5:1);
+  for(const v of views){
+    let da=((v.tAim-v.aim+Math.PI*3)%(Math.PI*2))-Math.PI; v.aim+=da*Math.min(1,dt/state.speed*10);
+    const n=2; for(let i=0;i<n;i++)v.sim.step(dt/n);
+    render(v);
+  }
+  requestAnimationFrame(frame);
+}
+// --- controls ---
+function chips(el,items,get,set,cls){
+  const box=document.getElementById(el); box.innerHTML='';
+  for(const [k,label] of items){const b=document.createElement('button');b.className='chip'+(cls&&cls(k)?' '+cls(k):'');b.textContent=label;b.setAttribute('aria-pressed',get(k)?'true':'false');
+    b.onclick=()=>{set(k);chips(el,items,get,set,cls)};box.appendChild(b)}
+}
+const restartAll=()=>views.forEach(v=>v.sim.restart());
+chips('looks',Object.entries(LOOKS),k=>state.look===k,k=>{state.look=k;stage.look=k;stage.sim.look=k;stage.sim.restart()});
+chips('moves',Object.entries(PROGRAMS).map(([k,p])=>[k,p.n]),k=>state.prog===k,k=>{state.prog=k;restartAll()},k=>PROGRAMS[k].cls);
+chips('parts',Object.entries(PARTS),k=>!!state.parts[k],k=>{state.parts[k]=state.parts[k]?0:1});
+chips('speeds',[[1,'1x'],[.5,'0.5x'],[.25,'0.25x']],k=>state.speed==k,k=>{state.speed=+k});
+requestAnimationFrame(frame);
+})();
+</script>

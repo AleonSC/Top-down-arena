@@ -185,6 +185,7 @@ namespace Arena
             ClearDpsGunLooks();  // DpsGunLooks.cs
             ClearAirTrails();  // AirTrailLooks.cs
             trauma = holdT = holdGap = hurtTint = introT = 0f;
+            ClearChargeCam();  // ChargeCameraFx.cs
             wardenIntroT = -1f;
             myHp = -1f; myLevel = -1; myLegendaries = -1;
             heldFrame = false;
@@ -784,6 +785,7 @@ namespace Arena
             }
             trauma = Mathf.Max(0f, trauma - realDt * 1.8f);
             TwinKickStep(realDt);  // the Twin Rifle's screen kick (TwinRifleFx.cs)
+            ChargeCamStep(game.Me, realDt);  // a charge weapon's draw pull-back and release kick (ChargeCameraFx.cs)
             hurtTint = Mathf.Max(0f, hurtTint - realDt * 2.2f);
             introT = Mathf.Max(0f, introT - realDt);
             TickWardenIntro(realDt);  // WardenIntro.cs
@@ -1007,6 +1009,7 @@ namespace Arena
                 shakeY = k * Mathf.Sin(s * 53.7f + 1.3f);
             }
             BeginTwinKick(game.Me);  // the Twin Rifle's push and punch (TwinRifleFx.cs)
+            BeginChargeCam(game.Me); // a charge weapon's pull-back and kick (ChargeCameraFx.cs)
         }
 
         void EndJuiceFrame()
@@ -1171,6 +1174,7 @@ namespace Arena
             DrawWarhornGlow();  // Warhorn Volley's horn, burning arrowheads and fires (WarhornVolleyLook.cs)
             DrawDragonsDogmaGlow();  // Dragon's Dogma's light (DragonsDogmaLook.cs)
             DrawRodGlow();    // Lightning Rod's charge and bolts (LightningRodLook.cs)
+            DrawVgGlow();     // the Vowguard's blade, gem and shield core (VowguardLook.cs)
             DrawLightGlow();  // the Lightbringer's Sundial, Sunrise crescents, Spear, ward plates and marks (LightbringerFxLook.cs)
             foreach (var e in game.Enemies.Values)
                 if (e.Def.IsBoss && !game.IsSpawning(e))

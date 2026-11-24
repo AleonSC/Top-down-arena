@@ -65,6 +65,8 @@ namespace Arena
         public bool BowLastBar { get; private set; }
         public bool BowLastFocus { get; private set; }
         public float BowLastMarker { get; private set; }
+        /// Your own Scatters loosed, counted (Game/ChargeCameraFx.cs kicks the screen on each).
+        public int ScatterLooses { get; private set; }
 
         void NoteBowRelease(Player me, float draw)
         {
@@ -138,6 +140,7 @@ namespace Arena
             if (pressed && scatterLocalCd <= 0f && !me.Downed && me.StunShots <= 0)
             {
                 scatterLocalCd = ScatterCd;
+                ScatterLooses++;
                 bowDraw = -1f;                       // a draw in progress is dropped
                 bowCd = BowRecover / FireRate(me);   // and the next one waits for a fresh arrow
                 if (IsHost)
