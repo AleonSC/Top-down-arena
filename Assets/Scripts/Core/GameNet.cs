@@ -607,6 +607,19 @@ namespace Arena
             s.Float(ref p.VortexR);
             s.Float(ref p.BoltT);  // Living Bolt (LivingBolt.cs)
             s.Float(ref p.BoltAge);
+            s.Float(ref p.RvT);  // Blood Ravager (BloodRavager.cs)
+            if (p.RvT > 0f)
+                s.Float(ref p.RvLen);
+            s.Float(ref p.FpT);  // Forbidden Path (ForbiddenPath.cs)
+            if (p.FpT > 0f)
+            {
+                s.Float(ref p.FpAge);
+                s.Byte(ref p.FpStage);
+                s.Float(ref p.FpStageT);
+                s.Int(ref p.FpTarget);
+                s.Vec(ref p.FpAt);
+                s.Vec(ref p.FpFrom);
+            }
             s.Float(ref p.RmT);  // Rodent Minigun (RodentMinigun.cs)
             if (p.RmT > 0f)
             {
@@ -1084,6 +1097,8 @@ namespace Arena
             s.Byte(ref blastStacks);  // Blood Blast stacks on it, and whose (BloodBlast.cs)
             if (blastStacks > 0)
                 s.Byte(ref blastOwner);
+            int fpBrands = !s.Reading ? e.FpBrands : 0;
+            s.Byte(ref fpBrands);  // Forbidden Path's Blood Brands on it (ForbiddenPath.cs)
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -1103,6 +1118,7 @@ namespace Arena
                 e.Variant = (EnemyVariant)variant;
                 e.FrostChill = (byte)frostChill;
                 e.BlastStacks = (byte)blastStacks;
+                e.FpBrands = (byte)fpBrands;
                 e.BlastOwner = blastStacks > 0 ? blastOwner : 0;
                 e.Spawning = spawning;
                 e.Facing = facing;
@@ -1277,13 +1293,14 @@ namespace Arena
         int SyncOrb(NetSync s, Orb o)
         {
             int id = o != null ? o.Id : 0, owner = o != null ? o.Owner : 0;
-            bool big = o != null && o.Big, tiny = o != null && o.Tiny, med = o != null && o.Med;
+            bool big = o != null && o.Big, tiny = o != null && o.Tiny, med = o != null && o.Med, blood = o != null && o.Blood;
             V2 pos = o != null ? o.Pos : default(V2);
             float life = o != null ? o.Life : 0f;
             s.Int(ref id);
             s.Bool(ref big);
             s.Bool(ref tiny);
             s.Bool(ref med);
+            s.Bool(ref blood);
             s.Int(ref owner);
             s.Vec(ref pos);
             s.Float(ref life);
@@ -1291,7 +1308,7 @@ namespace Arena
             {
                 if (!Orbs.TryGetValue(id, out o))
                 {
-                    o = new Orb { Id = id, Big = big, Tiny = tiny, Med = med, Owner = owner, Pos = pos, Disp = pos };
+                    o = new Orb { Id = id, Big = big, Tiny = tiny, Med = med, Blood = blood, Owner = owner, Pos = pos, Disp = pos };
                     Orbs[id] = o;
                 }
                 o.Pos = pos;

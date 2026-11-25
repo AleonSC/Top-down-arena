@@ -25,7 +25,7 @@ namespace Arena
         public const float NsSlow = 0.5f, NsTick = 0.2f, NsBleedEvery = 0.5f, NsBleedHit = 9f, NsBlockFull = 0.35f;
         public const float NsBurstDmg = 14f, NsBurstSpeed = 900f, NsBurstLife = 0.45f, NsBurstFan = 0.02f, NsBurstCd = 2.5f;
         public static readonly Rgba NsBlood = new Rgba(0.76f, 0.08f, 0.18f);
-        const byte DashNeedles = 61;
+        const byte DashNeedles = 62;
 
         /// How many needles a full swarm holds.
         public int NsMax(Player p) => NsBase + NsPerExtra * ExtraShots(p);

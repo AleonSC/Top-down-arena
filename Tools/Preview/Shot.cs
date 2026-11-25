@@ -985,6 +985,15 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("PACSKIN") != null) Profile.Current.DiskLook = "pac";  // the Pac-Man skin (PacmanLook.cs)
     if (Environment.GetEnvironmentVariable("MXFX") != null) { host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Zones.Clear(); }  // (mastery moments: a clear floor so the keys read)
+    if (Environment.GetEnvironmentVariable("FPV") != null) {  // FPV=<yaw deg>[,<pitch deg>]: the first-person view, looking that way (FirstPerson.cs)
+      var fp = Environment.GetEnvironmentVariable("FPV").Split(',');
+      typeof(ArenaApp).GetField("fpView", f2).SetValue(app, true);
+      float fyaw = 0f;
+      if (fp[0] == "big") { Enemy big = null; foreach (var fe in host.Game.Enemies.Values) if (big == null || fe.Def.Radius > big.Def.Radius) big = fe; if (big != null) fyaw = (big.Disp - me.Disp).Angle; }  // FPV=big: facing the biggest enemy
+      else fyaw = float.Parse(fp[0], System.Globalization.CultureInfo.InvariantCulture) * 0.017453292f;
+      typeof(ArenaApp).GetField("fpYaw", f2).SetValue(app, fyaw);
+      if (fp.Length > 1) typeof(ArenaApp).GetField("fpPitch", f2).SetValue(app, float.Parse(fp[1], System.Globalization.CultureInfo.InvariantCulture) * 0.017453292f);
+    }
     var glMat = typeof(ArenaApp).GetField("glMaterial", f2);
     if (glMat.GetValue(app) == null) glMat.SetValue(app, new Material(null));  // (as OnPostRender makes it: without it, everything after the glow pass, enemy shots included, stayed additive)
     typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
@@ -1131,7 +1140,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("HUDT") != null) { float ht = float.Parse(Environment.GetEnvironmentVariable("HUDT")); set("miniT", ht); }  // (the corner HUD easing in; the full console is retired)
     if (Environment.GetEnvironmentVariable("HUDMODE") != null) { int hm = int.Parse(Environment.GetEnvironmentVariable("HUDMODE")); set("hudMode", hm); set("miniT", hm < 2 ? 1f : 0f); }  // HUDMODE=0 corner (default), 1 on the player, 2 hidden
     var vtxBy = new System.Collections.Generic.Dictionary<string, int>();  // VTXTRACE=1: the frame's top vertex sources, printed (GL.Trace in Stubs.cs)
-    if (Environment.GetEnvironmentVariable("VTXTRACE") != null) GL.Trace = () => { var st = new System.Diagnostics.StackTrace(2, false); string key = ""; for (int fi = 0; fi < Math.Min(5, st.FrameCount); fi++) key += st.GetFrame(fi).GetMethod().Name + " < "; int c0; vtxBy.TryGetValue(key, out c0); vtxBy[key] = c0 + 1; };
+    if (Environment.GetEnvironmentVariable("VTXTRACE") != null) GL.Trace = () => { var st = new System.Diagnostics.StackTrace(2, false); string key = ""; for (int fi = 0; fi < Math.Min(int.Parse(Environment.GetEnvironmentVariable("VTXDEPTH") ?? "5"), st.FrameCount); fi++) key += st.GetFrame(fi).GetMethod().Name + " < "; int c0; vtxBy.TryGetValue(key, out c0); vtxBy[key] = c0 + 1; };
     if (GL.Trace != null) { int keep = GL.Tris.Count; Event.current = new Event { mousePosition = new Vector2 { x = -100, y = -100 } }; typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null); GL.Tris.RemoveRange(keep, GL.Tris.Count - keep); GL.Trace = null; }  // (one world frame traced; the shot itself drawn as usual below)
     // WIKISCREEN=<query>[,<page>]: the wiki as a screen over any mode (WikiPick.cs). WIKIPICK=x,y: the Wiki key held with the pointer
     // there (the eyedropper): a first pass finds the text under it, as the game's frame before does, then is dropped.

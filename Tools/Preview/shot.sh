@@ -27,7 +27,8 @@
 # DEVOURAT=x,y[,deg] (pin the Devourer there facing deg, default 90, and clear shots: its Lamprey body, DevourerBodyLook.cs; with DEVOUR=<health> [DEVOURTURN=<turn>] ZOOM=3 CAMAT=640,345 shot.sh x hud -50 9 1).
 # HERALDSHEET=1 (the Storm Herald's body in its four phases, HeraldBodyLook.cs; ZOOM=1.38 CAMAT=640,360 shot.sh x hud 3 1 1); HERALDSHEET=poses:<1-12> one of its poses (ZOOM=2.2 CAMAT=herald). CAMAT=herald: a zoom centred on the Herald.
 # WARDENSHEET=all|<1-15> (the Warden's poses, WardenBodyLook.cs: all fifteen in a grid, or one in the middle; NINJA=0 ZOOM=2 shot.sh x hud 3 1 1).
-# CROWD=<n> (a Warden mob of n round you, for a crowd's draw cost; NINJA=0, e.g. shot.sh x hud 3 1 2). VTXTRACE=1 (any shot: print the world frame's top vertex sources; run mono shot.exe in out/ to see it).
+# FORBIDDEN=<s since the cast> [FPNEXT=<1-5>] (Forbidden Path, ShotForbiddenPath.cs; ZOOM=2.2 CAMAT=630,460 shot.sh x hud 1 6 1).
+# CROWD=<n> (a Warden mob of n round you, for a crowd's draw cost; NINJA=0, e.g. shot.sh x hud 3 1 2). VTXTRACE=1 (any shot: print the world frame's top vertex sources; run mono shot.exe in out/ to see it). VTXDEPTH=<n>: that many stack frames a source (default 5).
 # PERFRUN=<secs>[,boss] PERFIDLE=<secs> [PERFMAP=<pieces>] (draw cost: a Quick Play breach wave drawn every frame, printing vertices and draw ms; PERFMAP: a grown map; ShotPerf.cs; e.g. shot.sh x hud 7 1 2; with SURVIVAL=840 SURVMARKS=55: Survival's room).
 # SWORD=1 (the Acolyte's sickle cut in each phase: closing in, wind-up, cut, recovery).
 # LUNGE=0.5 (the Lunger, Shiv, Scythe Wraith and Riot Shield part-way through their wind-up: the shared lane).
@@ -78,6 +79,7 @@
 # GASLOB=<s into the wind-up> (the Gas Grenadier's overhand lob: ring, arm, canister; mode hud; GasLobLook.cs).
 # GAUNTLET=<clock s> (with GRIDCORE=1 EXPANDMAP=0: the Relic Gauntlet, RelicGauntlet.cs, at that laser clock; GAUNTLETAT=<0-1800> where you stand, GAUNTLETSPOT=<n>; ZOOM=0.45 sees it whole; clip.sh ... GAUNTLET=0:7:0.1 animates it).
 # ZOOM=1.8 (the scroll-wheel zoom on you, CameraZoom.cs).
+# FPV=<yaw deg>|big[,<pitch deg>] (the first-person view looking that way, FirstPerson.cs; 0 east, 90 south; big: at the biggest enemy).
 # MAPVIEW=<from>,<to>,<t> (the Map key's switch: 0 minimap, 1 full map, 2 off, t of the way; MapView.cs), MAPCYCLE=<s> (a scripted M, M, M for clip.sh); with EXPANDMAP=6 ZOOM=1.5.
 # NADET=<s> (the Twin Rifle's Rocket assist that long after a launch), NADELOAD=<s> (a tube loading; TwinNadeLook.cs);
 #   with RIFLEFIRE=1 (holding fire: the Twin Rifle held wide, Spread arms) and CROSSAT=<px> (the cursor's distance).
@@ -106,6 +108,7 @@
 # TWINNADES=<loaded>,<next tube 0/1>,<charge> (the Twin Rifle's grenade tubes and pips; with CAST=Airstrike CASTT=<s> for the Airstrike).
 # JUGG=<s since cast> JUGGARMOR=<0-1> (the Tank Soldier's Juggernaut Suit: plates, armour bar, flak tracers; mode hud).
 # VORTEX=<s since cast> VXMASTERED=1 (the Tank Elementalist's Vortex: wind-up, storm, grunts swept round, shots swept away; mode hud; VortexLook.cs).
+# RAVAGER=<s since cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (the DPS Hemomancer's Blood Ravager walking right through grunts, clicking over the last 0.4 s; ShotBloodRavager.cs; ZOOM=2.2, mode hud).
 # BOLT=<s since cast> (the DPS Elementalist's Living Bolt: 0.3 the channel, 4 electrified with three dashes' residue, 9.5 the flicker; mode hud; LivingBoltLook.cs).
 # COLOSSUS=<s since cast> COLWIND=<0-1> COLEND=<s> (the Tank Elementalist's Stone Colossus: rising, standing, slamming, crumbling; mode hud; StoneColossusLook.cs).
 # BLOODBATH=<s since the cast> (the Tank Hemomancer's Bloodbath pool, wading enemies and heal numbers; BATHMASTERED=1 for 220 px; mode hud, 2 players).

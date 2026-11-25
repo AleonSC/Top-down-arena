@@ -4,7 +4,7 @@ using Arena;
 
 // Gadgets (Core/Gadgets.cs): the Magnet lies on the floor, a player walks over it, switches it on (every coin on the map flies to
 // them), throws it to a teammate who catches it with the time it had left, switches it on over the network until it's used up;
-// going down drops it. The bag, the Lodestone's uses, the Energy Drink, the Shield Generator, the Defib Kit and the throwables.
+// going down drops it. The bag, the Lodestone's uses, the Energy Drink, the Shield Generator, the Medkit and the throwables.
 static partial class Program
 {
     static void GadgetTest(float dt)
@@ -187,20 +187,33 @@ static partial class Program
         Check(!p1.GadgetOn && g.Bullets.ContainsKey(shot.Id) && p1.GadgetLeft < Game.ShieldGenTime, "switched off: the bullet stays, the rest of its time saved");
         Quiet();
 
-        // The Defib Kit: tap to stand a downed teammate up; go down carrying one and it stands you up after 2 s.
-        Clear(); Hold(p1, GadgetId.DefibKit);
-        p2.Downed = true; p2.Hp = 0f;
-        p2.Pos = p1.Pos + new V2(150f, 0f);
+        // The Medkit: 3 taps, each clears your wound and heals 30% of your max health; it isn't spent while you're whole.
+        Clear(); Hold(p1, GadgetId.Medkit);
+        p1.Hp = p1.MaxHp; p1.Wound = 0f;
         g.UseGadget();
         Run(s, dt, 0.15f, null, Calm);
-        Check(!p2.Downed && p2.Hp > 0f && p1.Gadget == GadgetId.None, "the Defib Kit stands a downed teammate up from range, and it's used up");
-        Hold(p2, GadgetId.Grenade);
-        p2.BagKind[1] = GadgetId.DefibKit; p2.BagUses[1] = 1;
+        Check(p1.GadgetUses == Game.MedkitUses, "the Medkit isn't spent at full health with no wound");
+        p1.Wound = p1.MaxHp * 0.3f; p1.Hp = p1.MaxHp * 0.3f;
+        g.UseGadget();
+        Run(s, dt, 0.15f, null, Calm);
+        Check(p1.Wound == 0f && Math.Abs(p1.Hp - p1.MaxHp * 0.6f) < 1f && p1.GadgetUses == 2, "a Medkit use clears the wound and heals 30% of max health");
+        g.UseGadget();
+        Run(s, dt, 0.15f, null, Calm);
+        Check(p1.GadgetUses == 2, "a double tap doesn't spend two uses");
+        for (int i = 0; i < 2; i++)
+        {
+            p1.Wound = 10f; p1.Hp = 20f;
+            Run(s, dt, 0.7f, null, Calm);
+            g.UseGadget();
+            Run(s, dt, 0.15f, null, Calm);
+        }
+        Check(p1.Gadget == GadgetId.None && p1.Wound == 0f, "the 3rd use spends the Medkit");
+        Hold(p2, GadgetId.Medkit);
         p2.Downed = true; p2.Hp = 0f;
-        Run(s, dt, 1f, null, Calm);
-        Check(p2.Downed && p2.Gadget == GadgetId.DefibKit && p2.GadgetOn && cg.Players[2].Gadget == GadgetId.DefibKit, "going down with a Defib Kit in the bag: it comes into the hand and charges");
-        Run(s, dt, 1.4f, null, Calm);
-        Check(!p2.Downed && p2.Gadget == GadgetId.Grenade && !p2.BagKind.Contains(GadgetId.DefibKit), "after 2 s it stands you up, used up; your other gadget kept");
+        Run(s, dt, 0.3f, null, Calm);
+        Check(p2.Gadget == GadgetId.None, "going down drops a Medkit like any gadget");
+        p2.Downed = false; p2.Hp = p2.MaxHp;
+        Clear();
 
         // Throwables: a tap lobs one of their 3 charges to the cursor; each lands on an enemy there.
         var spawnEnemy = typeof(Game).GetMethod("SpawnEnemyAt", bf);

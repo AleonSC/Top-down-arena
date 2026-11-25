@@ -1239,6 +1239,11 @@ namespace Arena
         {
             float r = p.Def.BodyR, breath = 0.92f + 0.08f * Mathf.Sin(game.AnimT * 2f + p.Id * 1.7f);
             float vis = p.VanishT > 0f ? (p.Id == game.MyId ? 0.5f : 0.2f) : 1f;
+            if (Game.FpOn(p) && p.FpAge >= 0.45f)
+            {
+                GlowDisc(p.Disp, r * 4f, Game.FpRed, 0.1f * breath);  // Forbidden Path's beast: a faint red haze, not the role's glow over its black (ForbiddenPathLook.cs)
+                return;
+            }
             GlowDisc(p.Disp, r * 5.2f, p.Def.Color, 0.3f * breath * vis);
             GlowDisc(p.Disp, r * 2.4f, p.Def.Color, 0.22f * vis);
         }
@@ -1356,6 +1361,11 @@ namespace Arena
 
         void Vtx(Vector3 v)
         {
+            if (fpProject)
+            {
+                FpVtx(v);  // first person: collected, drawn far to near (FirstPerson.cs)
+                return;
+            }
             if (recording)
             {
                 recVerts.Add(v);
@@ -1410,6 +1420,11 @@ namespace Arena
         /// Ends the current GL batch and starts another with the glow material (or back to the normal one).
         void SwitchToGlow(bool on)
         {
+            if (fpProject)
+            {
+                fpGlowNow = on;  // first person: marked on the collected triangles (FirstPerson.cs)
+                return;
+            }
             GL.End();
             (on ? GlowMaterial() : glMaterial)?.SetPass(0);  // (null only in tools that draw without Unity)
             GL.Begin(GL.TRIANGLES);

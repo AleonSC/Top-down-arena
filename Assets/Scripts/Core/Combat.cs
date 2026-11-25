@@ -1417,6 +1417,7 @@ namespace Arena
         {
             if (e.Def.Xp == 0)
                 return;  // decoys and phylacteries
+            DropBloodOrb(e, bossReward);
             if (e.Elite)
             {
                 SpawnOrbEach(e.Pos, rng.NextDouble() < 0.25);  // elites always drop something
@@ -1437,6 +1438,22 @@ namespace Arena
                 SpawnOrbEach(e.Pos, true);
             else if (roll < BigOrbChance + D(DiffKnob.OrbChance))
                 SpawnOrbEach(e.Pos, false);
+        }
+
+        /// Host: a Hemomancer's kill sometimes drops a blood orb, one orb shared by the team (Owner 0): whoever reaches it drinks it.
+        /// Not on a boss's own reward, and not where health orbs are off (Famine, Bloodlust, Blood Moon).
+        void DropBloodOrb(Enemy e, bool bossReward)
+        {
+            var killer = PlayerOrNull(e.LastHitBy);
+            if (killer == null || killer.Kit != Kit.Hemomancer || bossReward)
+                return;
+            if (Has(RunMod.Famine) || Has(RunMod.Bloodlust) || OnPathOf(PathId.BloodMoon) || FloorAt(e.Pos) == PathId.BloodMoon)
+                return;
+            if (rng.NextDouble() >= BloodOrbChance)
+                return;
+            var o = SpawnOrb(e.Pos + new V2(0f, -10f), false);
+            o.Blood = true;
+            o.Life = BloodOrbLife;
         }
 
         Orb SpawnOrb(V2 pos, bool big, bool tiny = false, float boost = 1f, int owner = 0)
@@ -1472,7 +1489,7 @@ namespace Arena
                 }
                 Player nearest = null;
                 foreach (var p in Players.Values)
-                    if (!p.Downed && CanTake(p, o.Owner) && p.Hp < p.HealCap && p.Pos.CloserThan(o.Pos, OrbMagnetRange) && HospLets(o, p) &&
+                    if (!p.Downed && CanTake(p, o.Owner) && p.Hp < p.HealCap && p.Pos.CloserThan(o.Pos, o.Blood ? BloodOrbRange : OrbMagnetRange) && HospLets(o, p) &&
                         (nearest == null || p.Pos.DistanceSq(o.Pos) < nearest.Pos.DistanceSq(o.Pos)))
                         nearest = p;
                 if (nearest == null && o.Med)
@@ -1493,7 +1510,7 @@ namespace Arena
                     float orbHeal = o.Heal * nearest.Stats.OrbHealMult;  // Quartermaster
                     Recorder?.Orb(nearest, Math.Max(0f, Math.Min(orbHeal, nearest.HealCap - nearest.Hp)));
                     nearest.Hp = Math.Max(nearest.Hp, Math.Min(nearest.HealCap, nearest.Hp + orbHeal));
-                    BroadcastFx(FxKind.Ring, o.Pos, new Rgba(0.4f, 1f, 0.5f), o.Big ? 50f : 25f, 0.35f, o.Big ? Sfx.PickupBig : Sfx.Pickup);
+                    BroadcastFx(FxKind.Ring, o.Pos, o.Blood ? new Rgba(0.9f, 0.12f, 0.2f) : new Rgba(0.4f, 1f, 0.5f), o.Big || o.Blood ? 40f : 25f, 0.35f, o.Big ? Sfx.PickupBig : Sfx.Pickup);
                     gone.Add(o.Id);
                 }
             }

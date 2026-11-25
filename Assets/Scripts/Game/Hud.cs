@@ -75,7 +75,7 @@ namespace Arena
                 {
                     var tag = new Rect(at.X - 92f, at.Y + r + 10f, 184f, 34f);
                     DkHud(tag, new Color(1f, 0.35f, 0.35f));
-                    Ui.Label(new Rect(tag.x, tag.y + 3f, tag.width, 14f), p.Gadget == GadgetId.DefibKit && p.GadgetOn ? "DOWNED — defib charging" : "DOWNED — stand close to revive", 10, new Color(1f, 0.7f, 0.7f), TextAnchor.MiddleCenter, true);
+                    Ui.Label(new Rect(tag.x, tag.y + 3f, tag.width, 14f), "DOWNED — stand close to revive", 10, new Color(1f, 0.7f, 0.7f), TextAnchor.MiddleCenter, true);
                     Ui.Bar(new Rect(tag.x + 10f, tag.y + 21f, tag.width - 20f, 6f), p.Revive, Ui.Good);
                 }
             }

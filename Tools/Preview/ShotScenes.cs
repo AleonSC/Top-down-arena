@@ -1137,8 +1137,10 @@ static partial class Shot {
     ThornBloomScene();  // THORNBLOOM=<s since the cast> [THORNCAP=1] (ShotThornBloom.cs)
     BambooGroveScene();  // BAMBOO=<s since the cast> [BAMBOOCAP=1] (ShotBambooGrove.cs)
     FlashFireScene();  // FLASHFIRE=<s since the cast> [FLASHCAP=1] (ShotFlashFire.cs)
+    BloodRavagerScene();  // RAVAGER=<s since the cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (ShotBloodRavager.cs)
     RodentMinigunScene();  // RODENT=<s since the cast> [RODENTAIM=<deg>] (ShotRodentMinigun.cs)
     MammothFallScene();  // MAMMOTH=<s since the cast> (ShotMammothFall.cs)
+    ForbiddenPathScene();  // FORBIDDEN=<s since the cast> (ShotForbiddenPath.cs)
     SpiritAvatarScene();  // SPIRIT=<s since the cast>: the Tank Ninja's Spirit Avatar, Fire held (ShotSpiritAvatar.cs)
     DragonsDogmaScene();  // DOGMA=<s since the cast>: MOCKUP of the Tank Ninja's Dragon's Dogma (ShotDragonsDogma.cs)
     RedShotScene();  // REDSHOT=1: the red boss shots, barbed spears (ShotRedShot.cs)
@@ -2409,6 +2411,16 @@ static partial class Shot {
         me.Vectors = me.VectorCap;
         typeof(ArenaApp).GetField("vecFullNear", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(app, true);
       }
+    }
+    if (Environment.GetEnvironmentVariable("BLOODORB") != null) {
+      // BLOODORB=1: a Hemomancer's blood orbs (Game/OrbLook.cs DrawBloodOrb) beside a small and a big health orb. Mode hud.
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Bot = false; host.Game.Orbs.Clear();
+      me.Pos = me.Disp = new V2(900f, 470f);
+      int oid = 9200;
+      foreach (var q in new[] { new V2(960f, 410f), new V2(1000f, 520f) })
+        { ++oid; host.Game.Orbs[oid] = new Orb { Id = oid, Blood = true, Pos = q, Disp = q, Life = Game.BloodOrbLife }; }
+      host.Game.Orbs[9210] = new Orb { Id = 9210, Pos = new V2(840f, 540f), Disp = new V2(840f, 540f), Life = 10f };
+      host.Game.Orbs[9211] = new Orb { Id = 9211, Big = true, Pos = new V2(820f, 400f), Disp = new V2(820f, 400f), Life = 10f };
     }
     if (Environment.GetEnvironmentVariable("SWEEP") != null) {
       // SWEEP=<seconds>: the floor-loot sweep as a wave starts (Game/LootSweepLook.cs, Docs/RoundFlow.md step 4): your coins streaming in

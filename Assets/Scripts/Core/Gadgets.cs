@@ -6,7 +6,7 @@ namespace Arena
 {
     /// A gadget: a pickup a player carries in one free hand and can use, switch off, or throw to a teammate. New kinds go at the
     /// end, before None.
-    public enum GadgetId : byte { Magnet, Lodestone, EnergyDrink, ShieldGenerator, DefibKit, Grenade, SmokeBomb, GasGrenade, Incendiary, Cloak, OverclockChip, LandMine, Emp, None }
+    public enum GadgetId : byte { Magnet, Lodestone, EnergyDrink, ShieldGenerator, Medkit, Grenade, SmokeBomb, GasGrenade, Incendiary, Cloak, OverclockChip, LandMine, Emp, None }
 
     /// A gadget on the floor or in the air (thrown). It never despawns; a living player with empty hands who walks over it
     /// (or catches it mid-flight) picks it up, keeping the time and uses it has left.
@@ -18,18 +18,18 @@ namespace Arena
         public V2 Pos, Disp, From, To;
         public float FlyT = Game.GadgetFlyTime;  // seconds since thrown (>= GadgetFlyTime: on the floor)
         public float Left;                       // seconds of use left
-        public byte Uses;                        // uses left (the Lodestone, the Defib Kit, the throwables; GadgetUses)
+        public byte Uses;                        // uses left (the Lodestone, the Medkit, the throwables; GadgetUses)
         public bool Flying => FlyT < Game.GadgetFlyTime;
     }
 
     /// Gadgets (README "Gadgets"): rare drops and Gadget chests in the Expanding arena. A player holds one gadget in hand and up to
     /// GadgetBagSize more in a bag; the Gadget wheel key (or holding the Gadget key) opens a wheel to swap (Game/GadgetWheel.cs).
     /// Tap the Gadget key to use the one in hand; hold it to throw it where you aim (a teammate catches it or picks it up with the time
-    /// and uses it has left). Going down drops it (not a Defib Kit: that stands you back up).
+    /// and uses it has left). Going down drops it.
     ///   Timed (switched on and off, a total time spent in bits): the Magnet (every coin and vector pickup on the map flies to you), the
     ///     Energy Drink (EnergySpeed move speed), the Shield Generator (a dome that wipes enemy bullets out, ShieldGenR round you).
     ///   The Lodestone: a LodestoneChannel cast (a hit or a swap breaks it) carries you to the hub's middle; LodestoneUses casts.
-    ///   The Defib Kit: tap to stand the nearest downed teammate up (DefibRange); go down carrying it and it stands you up after DefibSelfTime.
+    ///   The Medkit: MedkitUses taps, each clears your wound and heals MedkitHeal of your max health (UseMedkit).
     ///   More timed ones: the Cloak (enemies can't pick you out: Player.VanishT), the Overclock Chip (OverclockMult fire rate and cooldowns).
     ///   The EMP: EmpUses pulses round you (EmpPulse: wipes enemy bullets, stuns and hurts enemies).
     ///   Throwables (ThrowUses each, ThrowGap apart, lobbed to the cursor): the Land Mine (a Flak Cannon mine lying armed), the Grenade (a blast, Grenade launcher HE), the Smoke Bomb (a
@@ -49,8 +49,9 @@ namespace Arena
         public const float EnergyTime = 60f, EnergySpeed = 1.6f;
         /// The Shield Generator: ShieldGenTime s of a dome ShieldGenR round you that wipes out the enemy bullets coming into it.
         public const float ShieldGenTime = 20f, ShieldGenR = 66f;
-        /// The Defib Kit: stands a downed teammate within DefibRange up (DefibHealth of their health), or you, DefibSelfTime after you go down.
-        public const float DefibRange = 320f, DefibSelfTime = 2f, DefibHealth = 0.5f;
+        /// The Medkit: MedkitUses taps, each clearing your wound and healing MedkitHeal of your max health (owner Nov 25: was the Defib Kit).
+        public const int MedkitUses = 3;
+        public const float MedkitHeal = 0.3f;
         /// Throwables: one every ThrowGap s, ThrowMin to GadgetThrowRange px out.
         public const float ThrowGap = 0.6f, ThrowMin = 60f;
         public const float GadgetNadeDmg = 90f, GadgetNadeRadius = 95f;
@@ -76,7 +77,7 @@ namespace Arena
                 case GadgetId.Lodestone: return "Carries you to the hub's middle after a 3 s cast. 3 uses.";
                 case GadgetId.EnergyDrink: return "You move 60% faster while it's on (60 s in all).";
                 case GadgetId.ShieldGenerator: return "A dome that wipes out enemy bullets round you while it's on (20 s in all).";
-                case GadgetId.DefibKit: return "Stands a downed teammate up, or you 2 s after you go down.";
+                case GadgetId.Medkit: return "3 uses: each clears your wound and heals 30% of your max health.";
                 case GadgetId.Grenade: return "A throwable (3 charges, lobbed at the cursor): bursts for 90 in 95 px with a small shove.";
                 case GadgetId.SmokeBomb: return "A throwable (3 charges): a 115 px smoke cloud for 7 s; enemies in it are slowed and can't attack (bosses are only slowed).";
                 case GadgetId.GasGrenade: return "A throwable (3 charges): a 100 px cloud for 6 s that deals 22 a second and slows 30%.";
@@ -97,7 +98,7 @@ namespace Arena
                 case GadgetId.Lodestone: return "Lodestone";
                 case GadgetId.EnergyDrink: return "Energy Drink";
                 case GadgetId.ShieldGenerator: return "Shield Generator";
-                case GadgetId.DefibKit: return "Defib Kit";
+                case GadgetId.Medkit: return "Medkit";
                 case GadgetId.Grenade: return "Grenade";
                 case GadgetId.SmokeBomb: return "Smoke Bomb";
                 case GadgetId.GasGrenade: return "Gas Grenade";
@@ -114,7 +115,7 @@ namespace Arena
         public static float GadgetTime(GadgetId g) => g == GadgetId.Magnet ? MagnetTime : g == GadgetId.Lodestone ? LodestoneChannel : g == GadgetId.EnergyDrink ? EnergyTime
             : g == GadgetId.ShieldGenerator ? ShieldGenTime : g == GadgetId.Cloak ? CloakTime : g == GadgetId.OverclockChip ? OverclockTime : 0f;
         /// A fresh gadget's uses (0: a timed one).
-        public static byte GadgetUses(GadgetId g) => (byte)(g == GadgetId.Lodestone ? LodestoneUses : g == GadgetId.DefibKit ? 1 : g == GadgetId.Emp ? EmpUses : Throwable(g) ? ThrowUses : 0);
+        public static byte GadgetUses(GadgetId g) => (byte)(g == GadgetId.Lodestone ? LodestoneUses : g == GadgetId.Medkit ? MedkitUses : g == GadgetId.Emp ? EmpUses : Throwable(g) ? ThrowUses : 0);
         /// A gadget that runs down while on and shows its seconds left (the Magnet, the Energy Drink, the Shield Generator).
         public static bool GadgetTimed(GadgetId g) => g == GadgetId.Magnet || g == GadgetId.EnergyDrink || g == GadgetId.ShieldGenerator || g == GadgetId.Cloak || g == GadgetId.OverclockChip;
         /// A gadget the Gadget key lobs a charge of (the Grenade, the Smoke Bomb, the Gas Grenade, the Incendiary).
@@ -249,7 +250,7 @@ namespace Arena
 
         /// What a Gadget chest gives, by weight (the Lodestone the most often).
         static readonly GadgetId[] ChestGadgets = { GadgetId.Lodestone, GadgetId.Lodestone, GadgetId.Lodestone, GadgetId.Magnet, GadgetId.Magnet, GadgetId.EnergyDrink, GadgetId.EnergyDrink,
-            GadgetId.ShieldGenerator, GadgetId.ShieldGenerator, GadgetId.DefibKit, GadgetId.DefibKit, GadgetId.Grenade, GadgetId.Grenade, GadgetId.SmokeBomb, GadgetId.SmokeBomb,
+            GadgetId.ShieldGenerator, GadgetId.ShieldGenerator, GadgetId.Medkit, GadgetId.Medkit, GadgetId.Grenade, GadgetId.Grenade, GadgetId.SmokeBomb, GadgetId.SmokeBomb,
             GadgetId.GasGrenade, GadgetId.GasGrenade, GadgetId.Incendiary, GadgetId.Incendiary, GadgetId.Cloak, GadgetId.Cloak, GadgetId.OverclockChip, GadgetId.OverclockChip,
             GadgetId.LandMine, GadgetId.LandMine, GadgetId.Emp, GadgetId.Emp };
 
@@ -264,7 +265,7 @@ namespace Arena
         }
 
         /// What a kill can drop: every kind but the Lodestone (Gadget chests only).
-        static readonly GadgetId[] KillGadgets = { GadgetId.Magnet, GadgetId.EnergyDrink, GadgetId.ShieldGenerator, GadgetId.DefibKit, GadgetId.Grenade,
+        static readonly GadgetId[] KillGadgets = { GadgetId.Magnet, GadgetId.EnergyDrink, GadgetId.ShieldGenerator, GadgetId.Medkit, GadgetId.Grenade,
             GadgetId.SmokeBomb, GadgetId.GasGrenade, GadgetId.Incendiary, GadgetId.Cloak, GadgetId.OverclockChip, GadgetId.LandMine, GadgetId.Emp };
         readonly List<GadgetId> dropPool = new List<GadgetId>();
 
@@ -303,8 +304,6 @@ namespace Arena
             foreach (var p in Players.Values)
             {
                 p.GadgetCd = Math.Max(0f, p.GadgetCd - dt);
-                if (p.Downed && TickDefibSelf(p, dt))
-                    continue;
                 if (p.Gadget == GadgetId.None)
                 {
                     RefillHand(p);
@@ -394,52 +393,22 @@ namespace Arena
             FinishGadget(p);
         }
 
-        // --- The Defib Kit and the Shield Generator ------------------------------------------------------------------
+        // --- The Medkit and the Shield Generator ---------------------------------------------------------------------
 
-        /// Host, a downed player: a Defib Kit they carry (in hand, or swapped in from the bag) switches on and stands them up after
-        /// DefibSelfTime. False when they carry none (their gadget drops as usual).
-        bool TickDefibSelf(Player p, float dt)
+        public static readonly Rgba MedkitInk = new Rgba(1f, 0.45f, 0.5f);
+
+        /// Host: tap with a Medkit: clear your wound and heal MedkitHeal of your max health. False (no use spent) when you're
+        /// already whole: full health and no wound.
+        bool UseMedkit(Player p)
         {
-            if (p.Gadget != GadgetId.DefibKit)
+            if (p.Wound <= 0f && p.Hp >= p.MaxHp)
             {
-                int slot = Array.IndexOf(p.BagKind, GadgetId.DefibKit);
-                if (slot < 0)
-                    return false;
-                EquipGadgetSlot(p, slot, true);  // (what was in hand goes to the bag, not the floor)
-            }
-            if (!p.GadgetOn)
-            {
-                p.GadgetOn = true;
-                p.GadgetLeft = DefibSelfTime;
-                BroadcastFx(FxKind.Ring, p.Pos, DefibInk, 30f, 0.4f, Sfx.Ability);
-            }
-            p.GadgetLeft -= dt;
-            if (p.GadgetLeft <= 0f)
-            {
-                RevivePlayer(p, DefibHealth, p);
-                BroadcastFx(FxKind.Ring, p.Pos, DefibInk, 70f, 0.5f, Sfx.PickupBig);
-                FinishGadget(p);
-            }
-            return true;
-        }
-
-        public static readonly Rgba DefibInk = new Rgba(1f, 0.45f, 0.5f);
-
-        /// Host: tap with a Defib Kit: stand up the nearest downed teammate within DefibRange. False when there's none.
-        bool UseDefib(Player p)
-        {
-            Player best = null;
-            foreach (var q in Players.Values)
-                if (q != p && q.Downed && q.Pos.CloserThan(p.Pos, DefibRange) && (best == null || q.Pos.DistanceSq(p.Pos) < best.Pos.DistanceSq(p.Pos)))
-                    best = q;
-            if (best == null)
-            {
-                BroadcastFx(FxKind.Ring, p.Pos, DefibInk.WithAlpha(0.5f), 20f, 0.3f, Sfx.Pick);
+                BroadcastFx(FxKind.Ring, p.Pos, MedkitInk.WithAlpha(0.5f), 20f, 0.3f, Sfx.Pick);
                 return false;
             }
-            RevivePlayer(best, DefibHealth, p);
-            BroadcastFx(FxKind.Link, p.Pos, best.Pos, DefibInk, 0f, 0.35f, Sfx.SpellZap);
-            BroadcastFx(FxKind.Ring, best.Pos, DefibInk, 70f, 0.5f, Sfx.PickupBig);
+            p.Wound = 0f;
+            p.Hp = Math.Min(p.HealCap, p.Hp + p.MaxHp * MedkitHeal);
+            BroadcastFx(FxKind.Ring, p.Pos, MedkitInk, 70f, 0.5f, Sfx.PickupBig);
             return true;
         }
 
@@ -644,9 +613,14 @@ namespace Arena
                     FinishGadget(p);
                 return;
             }
-            if (p.Gadget == GadgetId.DefibKit)
+            if (p.Gadget == GadgetId.Medkit)
             {
-                if (UseDefib(p))
+                if (p.GadgetCd > 0f)
+                    return;
+                if (!UseMedkit(p))
+                    return;
+                p.GadgetCd = ThrowGap;  // (a double tap doesn't spend two)
+                if (--p.GadgetUses == 0)
                     FinishGadget(p);
                 return;
             }

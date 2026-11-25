@@ -25,7 +25,7 @@ namespace Arena
             new Topic("Expertise", "A class's 0-10 level from the XP of runs played as it (account-wide, cosmetic); it unlocks the class's weapon skins."),
             new Topic("Companion", "The minion your weapon keeps (Golem, wolves, the Nimbus...)."),
             new Topic("Thrall", "An enemy chained to you by Force Pact: it fights near you, and comes back after it falls."),
-            new Topic("Wound", "20% of every hit you take is a wound: it can't be healed back. Wounds carry across waves but never take more than 30% of your max health; they clear when a boss falls, at a health shrine, with the Medic's heal or at a Boss Hunt Rest."),
+            new Topic("Wound", "20% of every hit you take is a wound: it can't be healed back. Wounds carry across waves but never take more than 30% of your max health; they clear when a boss falls, at a health shrine, with a Medkit gadget, the Medic's heal or at a Boss Hunt Rest."),
             new Topic("Elite", "From wave 12 any enemy can spawn with a gold ring: 2.5x health, bigger, worth 3x XP, always drops an orb, and a trait shown over it (two traits from wave 35)."),
             new Topic("Health shrine", "A map node a room claims; one use per player: full health plus health past max."),
             new Topic("Vectors", "Every player's building budget in the Expanding arena: pieces are free; vectors pay for gates, mystery doors and the Builder Shop's cards."),
@@ -34,7 +34,7 @@ namespace Arena
             new Topic("Steam", "Fire + water: an enemy that is wet and burning at once turns both to steam: a cloud for 3 s that scalds enemies in it and jams their weapons (bosses only take the scald). A freeze melts into 6 s of wet when it ends, so a frozen, burning enemy steams as it thaws."),
             new Topic("Wind Chill", "Wind on a wet enemy chills it (slowed; three chills freeze it). After a wind freeze, wind can't chill it again for 6 s."),
             new Topic("Fan the Flames", "Wind on a burning enemy spreads its fire, at 60%, to up to three enemies close by downwind."),
-            new Topic("Downed", "At 0 health you go down; a teammate can revive you, and a Defib Kit stands you up."),
+            new Topic("Downed", "At 0 health you go down; a teammate can revive you."),
         };
 
         /// Status effects on enemies (Enemy's timers in Entities.cs; the replicated flags are what the eyedropper's tag lists).

@@ -384,8 +384,7 @@ namespace Arena
                 float prog = me.Revive, a = age - BandInTime;
                 var q = RescuerOf(s);
                 string by = q != null ? q.Name.ToUpperInvariant() : "AN ALLY";
-                bool defib = me.Gadget == GadgetId.DefibKit && me.GadgetOn;  // a Defib Kit standing you up (Core/Gadgets.cs)
-                string sub = defib ? "YOUR DEFIB KIT STANDS YOU UP IN " + Mathf.CeilToInt(me.GadgetLeft) + "s" : prog > 0.005f ? by + " IS REVIVING YOU" : "AN ALLY CAN REVIVE YOU";
+                string sub = prog > 0.005f ? by + " IS REVIVING YOU" : "AN ALLY CAN REVIVE YOU";
                 float amp = Mathf.Max(prog * 0.8f, Mathf.Clamp01(1f - a * 0.9f)), speed = 0.3f + prog * 0.5f, noise = prog <= 0.005f && a > 1.1f ? 0.05f : 0f;
                 DrawScanBand("DOWNED", sub, me.Name.ToUpperInvariant() + " · NO PULSE", "HP 0", prog > 0.005f ? prog : -1f, DownRedUi, Mathf.Clamp01(open), false, top, rc =>
                 {

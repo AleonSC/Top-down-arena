@@ -280,6 +280,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Vanish | Dps | 1st, choice 2 | 16 s | - | Erases enemy bullets around you when you vanish. | Enemies lose track of you and your next hit deals double. |
 | Blade Fan | Dps | 1st, choice 3 | 12 s | - | Throws twice as many kunai. | Spinning kunai cut enemies around you, then fly out in a ring. |
 | Death Lotus | Dps | ultimate | 65 s | - | Strikes up to 14 enemies. | A flurry of cuts on up to 8 enemies near your cursor. |
+| Forbidden Path | Dps | ultimate | 75 s | - | The beast lasts 11 s. | Become a shadow beast for 8 s: it locks onto the strongest enemy near and Fire tears through a five-part area combo. Drains your health. |
 | Senbon Seekers | Dps | 1st, choice 5 | 6 s | - | Holds up to 12 needles. | Three poisoned needles circle you and fly at enemies that come close. Stacks to 9. |
 
 ### Hemomancer
@@ -299,6 +300,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Blood Debt | Dps | 1st, choice 2 | 16 s | - | Kills repay 50% more. | Borrow health to heal on hit, and pay it back with kills. |
 | Vein Rush | Dps | 1st, choice 3 | 6 s | 10% of max health | The trail bursts after 1 s for 20 to everything on it. | Rush toward your cursor untouchable, bleeding enemies on the way. |
 | Crimson Harvest | Dps | ultimate | 65 s | - | Hold 8 s, and 25% more blood. | Rip blood from every enemy into a ball, then throw it as a huge blast. |
+| Blood Ravager | Dps | ultimate | 70 s | - | Lasts 12 s. | Eight blood legs burst out of you for 9 s: run fast and trample, and every click lashes a leg at an enemy nearby. |
 | Thorn Bloom | Dps | 1st, choice 5 | 8 s | 12% of max health | Tendrils jump 5 times. | Burst blood needles all round that chain between enemies. |
 
 ### Engineer
