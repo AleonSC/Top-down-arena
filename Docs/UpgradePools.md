@@ -191,7 +191,7 @@ One Rare card per Ninja weapon (`Weapons = { that weapon }`, `MaxStacks = 2`), o
 | Kusarigama | Heavy Weight | The thrown weight flies 25% farther and stuns 0.4 s longer |
 | Bo Staff | Iron Bo | The staff shove knocks 40% farther, and the full spin hits 30% harder |
 | Fuma Shuriken | Long Loop | The thrown loop reaches 20% farther, and the Orbit circle is 20% wider |
-| Medicine Darts | Potent Dose | Each dart's poison and healing stack is 30% stronger |
+| Acupuncture Needles | Potent Dose | Each needle heals 30% more, and Bloodletting bleeds 30% harder |
 | Spirit Fan | Gale Fan | The gust reaches 25% farther and heals 30% more |
 | Ofuda | Blessed Paper | Charm bursts are 25% wider and heal 30% more |
 | Shuriken | Barbed Stars | Stuck stars come back 1.5 s sooner, and their return hit is 40% harder |

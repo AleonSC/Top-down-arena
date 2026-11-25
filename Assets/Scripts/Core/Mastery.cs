@@ -51,7 +51,6 @@ namespace Arena
         bool casting, castMastered;
         float castPower = 1f;
         int castHits;
-        AbilityId castId;      // the ability being cast right now (the session recording credits its hits to it)
         string dmgSrc;         // set around a hit: "weapon" or "shot" (null: not known; Combat.cs). A weapon's swings, beams,
                                // lobbed shots and lasting hits that land after it fired are credited with CreditTo.
 
@@ -78,7 +77,6 @@ namespace Arena
         void BeginCast(Player p, AbilityId id)
         {
             casting = true;
-            castId = id;
             castPower = MasteryPower(p, id);
             castMastered = Mastered(p, id);
             castHits = 0;

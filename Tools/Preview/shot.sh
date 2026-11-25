@@ -13,6 +13,7 @@
 # QUICKMET=<n> (the lobby's Quick Play tab with n bosses beaten; mode lobby).
 # TUTORIAL=<lesson 0-4>,<steps done> (the first-run tutorial prompt; mode hud).
 # RAILGUN=<s> (the Railgun's scripted shot: RAILHOLD=<s> held, default 1.6; RAILAIM=<deg>; RAILHEAT=<0-100>; RAILDUMP=1 Heat Dump instead; mode hud).
+# NEEDLES=<s> (the Healer Ninja's Acupuncture Needles: healing needles through a grunt into a teammate, Bloodletting in two grunts; mode hud, 3 players, ZOOM=2.2).
 # OFUDA=<s> (the Healer Ninja's Ofuda: talismans bending onto a hurt teammate, a Blast Ofuda stuck to a grunt and one on the ground; mode hud, 3 players, ZOOM=1.6).
 # ARCLOCK=<s> (Arc Lightning's lock-on: hold from 0, let go at 1.5 s; ARCFORK=1 the Forked Volley instead; mode hud).
 # OATHPICK=1|0 (Guardian's Oath waiting for the click: cursor on an ally, or off; mode hud, 3 players).

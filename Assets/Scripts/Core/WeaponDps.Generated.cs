@@ -67,7 +67,7 @@ namespace Arena
             { WeaponId.FumaShuriken, 6f },
             { WeaponId.Nodachi, 52f },
             { WeaponId.Vowguard, 74f },
-            { WeaponId.MedicineDarts, 50f },
+            { WeaponId.AcupunctureNeedles, 63f },
             { WeaponId.SpiritFan, 75f },
             { WeaponId.Ofuda, 40f },
             { WeaponId.TwinTessen, 54f },

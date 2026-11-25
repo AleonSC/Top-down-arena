@@ -315,6 +315,8 @@ namespace Arena
                     SteerSpear(b, dt);  // a Stonespear volley spear (host only: Stonespear.cs)
                 else if (b.Talisman)
                     SteerTalisman(b, dt);  // an Ofuda Healing Talisman late in its flight (host only: Ofuda.cs)
+                else if (b.ReturnTo != 0)
+                    SteerReturnNeedle(b, dt);  // a needle flying back to heal (host only: AcupunctureNeedles.cs)
                 if (wellsUp && b.Owner != 0 && !Lobbed(b.Kind))
                     PullIntoWells(b, dt);
                 if (lensUp && b.Owner != 0 && !Lobbed(b.Kind) && !Defs.IsEnemyShot(b.Kind))
@@ -587,7 +589,13 @@ namespace Arena
                     scratchIds.Add(b.Id);  // the Ofuda's charms: a talisman bursts on a teammate or an enemy, a Blast Ofuda sticks (Ofuda.cs)
                 return;
             }
-            if (b.Medicine ? DoseAlly(b) : (b.HealAlly > 0f || b.WardAlly > 0f) && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; DoseAlly: Ninja.cs; CoatAlly: Hemomancer.cs
+            if (b.Medicine)
+            {
+                if (NeedleTouches(b))
+                    scratchIds.Add(b.Id);  // an Acupuncture Needle sticks in a hurt teammate; it flies through enemies (AcupunctureNeedles.cs)
+                return;
+            }
+            if ((b.HealAlly > 0f || b.WardAlly > 0f) && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; CoatAlly: Hemomancer.cs
             {
                 scratchIds.Add(b.Id);
                 return;
@@ -1019,6 +1027,7 @@ namespace Arena
             NonShooterDeath(e);  // a Floor Mine (NonShooters.cs, Turnkey.cs)
             SeededKill(e);  // a Sprite Staff seed in it frees a sprite (KitWeapons.cs)
             SpreadVenom(e);  // Poison Dart's venom jumps to the enemies around it (PoisonDart.cs)
+            ReturnNeedles(e);  // Bloodletting needles in it fly back to heal (AcupunctureNeedles.cs)
             HoneyHarvest(e);  // dying in honey bursts into bees (HoneybeeStaff.cs)
             foreach (var onKill in Classes.KillHooks)  // each class's KitDef.OnKill
                 onKill(this, e);
@@ -1252,7 +1261,7 @@ namespace Arena
             WolfDartHit(b, e);  // the Wolf Whistle's darts mark the pack's prey (KitWeapons.cs)
             SuppressHit(b, e);  // Riot Repeater rounds slow its shooting (Weapons.cs)
             TwinShedHit(b, e);  // Twin Pistols rounds knock health orbs loose (TwinPistols.cs)
-            PoisonHit(b, e);    // Medicine Darts poison it (Ninja.cs)
+            BloodNeedleHit(b, e);  // a Bloodletting needle sticks and bleeds it (AcupunctureNeedles.cs)
             SenbonHit(b, e);    // a Senbon Seekers needle poisons it (SenbonSeekers.cs)
             ShadowKunaiLanded(b, e.Pos);  // a shadow kunai marks where it hit (Ninja.cs)
             StarStuck(b, e);    // a Shuriken star sticks in it (Ninja.cs)

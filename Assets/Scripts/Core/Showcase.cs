@@ -15,6 +15,7 @@ namespace Arena
         const float FirstCast = 1.2f;            // the dummies are up by then (Mark for Death needs a target)
 
         readonly Session session = new Session();
+        const float NeedlesHurtEvery = 4f;
         public bool AltFire;  // the lobby's ALT FIRE key: press the weapon's Alt on a loop (ShowcaseAlt.cs); with no trigger; off (MAIN FIRE) just the trigger. An ability or ultimate demo does neither.
         bool altShown;
         public bool Idle;  // the lobby's IDLE key: the character stands still and holds fire, and the dummies hold their spots
@@ -113,7 +114,8 @@ namespace Arena
                     : shown == AbilityId.DragonsDogma ? Game.DogmaTime + 1.5f  // (it coils back in before the next)
                     : shown == AbilityId.Bloodbath ? Game.BathTime + 1.5f  // (a Bloodbath dries up before the next)
                     : shown == AbilityId.BonePhalanx ? Game.PhalanxLife(Game.PhalanxCount) + 1.2f : UltimateEvery;  // (the line marches and crumbles before the next)
-                allies = TargetsAlly(shown) || ShowcaseAlt.NeedsAlly(Defs.Weapon(role, kit, weapon).Id);
+                allies = TargetsAlly(shown) || ShowcaseAlt.NeedsAlly(Defs.Weapon(role, kit, weapon).Id)
+                    || Defs.Weapon(role, kit, weapon).Id == WeaponId.AcupunctureNeedles && !demo;  // (its Fire heals teammates: AcupunctureNeedles.cs)
                 reviveDemo = allies && (shown == AbilityId.MendPulse || RevivesAlly(shown));
                 prepped = false;
                 castCount = 0;
@@ -174,6 +176,14 @@ namespace Arena
             input.WeaponAction = firing && AltFire && ShowcaseAlt.Held(Game, me, t, dt);
             if (input.WeaponAction && ShowcaseAlt.NeedsAlly(me.Weapon.Id))
                 input.AimAt = Game.ShowcaseAllyPos(0);  // the Sunlance goes through a teammate
+            if (input.Fire && allies && me.Weapon.Id == WeaponId.AcupunctureNeedles)
+            {
+                // The Acupuncture Needles' Fire heals: needles into a hurt teammate, hurt again every few seconds.
+                Game.ShowcaseHoldAllies();
+                if (MathX.Fmod(t, NeedlesHurtEvery) < dt)
+                    Game.ShowcaseHurtAllies(false);
+                input.AimAt = Game.ShowcaseAllyPos(0);
+            }
             if (demoAbility && !ultimate && ability == AbilityId.BladedDive && castT <= 0.1f)
                 Game.ShowcaseWoundDummies();  // Bladed Dive's demo kills them so its reset shows (BladedDive.cs); just before the cast, or your swings finish them first
             if (demoAbility)
