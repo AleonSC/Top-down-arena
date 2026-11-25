@@ -58,6 +58,7 @@ namespace Arena
             drawScale = worldScale;
             BeginEndingWorld();  // a run ending: the camera eased in on the blow, the colour draining (RunEnding.cs)
             BeginLeanFrame();    // the camera lean: the arena slides, the backdrop doesn't (CameraLean.cs)
+            FpBeginWorld();      // first person: the arena drawn through your eyes from here (FirstPerson.cs)
             FillArenaBackdrop(new Rgba(0.05f, 0.06f, 0.09f, ArenaBgDim));
             bool infected = ZombieArena;  // Zombie Infection: the arena goes dark green (ZombieLook.cs)
             if (infected)
@@ -93,6 +94,7 @@ namespace Arena
             DrawEnemyShots(t);  // enemy bullets on top of every effect, spark and glow, so a busy fight never hides what you must dodge
             DrawEndingWorld();  // a run ending: the victory's rays and sparks (RunEnding.cs)
             DrawArenaRules(t);  // Narrow Pass's walls and Fogbound's mist (PathsUi.cs)
+            FpEndWorld();  // first person: the walls raised, everything drawn far to near (FirstPerson.cs)
             bool zoomed = camZoomOn;
             camZoomOn = false;  // the screen overlays below fill the screen, unzoomed (CameraZoom.cs)
             DrawMood(AW, AH);  // tint, red corners when hurt or low
@@ -102,7 +104,8 @@ namespace Arena
                 FillRect(0, 0, AW, AH, new Rgba(0f, 0f, 0f, 0.45f * EndBg));
             camZoomOn = zoomed;
 
-            DrawPlayerOverlays(t, MouseArena(), aimLine);  // the aim line, and each weapon's pips, meters and charges
+            if (!fpView)  // (first person: none of it, FirstPerson.cs)
+                DrawPlayerOverlays(t, MouseArena(), aimLine);  // the aim line, and each weapon's pips, meters and charges
 
             if (aimDebug && game.Me != null)
             {
@@ -119,7 +122,7 @@ namespace Arena
             }
 
             // Crosshair
-            V2 m = MouseArena();
+            V2 m = fpView ? FpScreenMid() : MouseArena();  // (first person: the middle of the screen, FirstPerson.cs)
             StepCursor(m, t, Keybinds.Held(KeyAction.Fire) && !fireBlocked);
             if (!cursorWantPointer)  // (over a menu or the end screen the pointer is drawn on top of the UI instead: DrawMenuCursor)
                 DrawLookMorph(CursorLook(), m, t, cursorFire, cursorMorph, cursorHist);  // CursorLooks.cs: the pointer turning into your crosshair as a run starts
@@ -234,11 +237,16 @@ namespace Arena
             DrawRankTrails(t);  // a rank reward drawn under everyone (RankTrails.cs)
             DrawRavagerStains(t);  // Blood Ravager's footprints (BloodRavagerLook.cs)
             foreach (var p in game.Players.Values)
-                DrawPlayerAuras(p, t);
+                if (!FpHidesMe(p))  // (first person: your own auras would fill the screen, FirstPerson.cs)
+                    DrawPlayerAuras(p, t);
             DrawStoneCracks();  // the Stonespear's slams (StonespearLook.cs)
             foreach (var b in game.Bullets.Values)
                 if (b.Kind < Defs.SmallShot)
+                {
+                    FpStandShot(b);  // (first person, FirstPerson.cs)
                     DrawBigShot(b, t);
+                    FpFloor();
+                }
             DrawPathPatches(t);  // a hazard path's fire and pools (PathsUi.cs)
             DrawWardenYard(t);   // the Warden's searchlight, gates and doors (WardenLook.cs)
             DrawHoldingCells(t);  // the Warden's Holding Cells and their padlocks (HoldingCellLook.cs)
@@ -296,7 +304,11 @@ namespace Arena
             foreach (var p in game.Players.Values)
                 DrawPactTimer(p, t);  // ForcePactLook.cs
             foreach (var minion in game.Minions.Values)
+            {
+                FpStand(minion.Disp, minion.Def.Radius * minion.Scale);  // (first person, FirstPerson.cs)
                 DrawMinion(minion, t);
+                FpFloor();
+            }
             SweepCloneWalls();  // CloneWallLook.cs
             SweepGolemWalls(t);  // GolemWallLook.cs
             DrawFrenzyMinions(t);  // Alpha Call's frenzied minions (AbilityLooks.cs)
@@ -327,7 +339,11 @@ namespace Arena
             segTol = CrowdTol();
             foreach (var e in game.Enemies.Values)
                 if (!Game.DevourUnder(e) && !Game.GutwormUnder(e) && !(game.DrillTargetOf(e, out int drillOwner) && drillOwner != game.MyId) && !(e.Dormant ? game.FogHidesStill(e.Pos) : game.FogHides(e.Pos)))  // (room fog: hidden in an unseen room unless a player is close, RoomFog.cs); the Devourer or a Gutworm underground is just its ripple (DevourerLook.cs, LarderLook.cs)
+                {
+                    FpStand(e.Disp, e.Def.Radius);  // (first person: stood up, FirstPerson.cs)
                     DrawEnemy(e, t);
+                    FpFloor();
+                }
             segTol = SegTol;
             DrawDormantMarks(t);  // sleeping groups in unseen rooms: drifting z's (RoomFogLook.cs)
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
@@ -355,6 +371,7 @@ namespace Arena
                     continue;  // inside the Devourer (DevourerLook.cs shows them in its mouth)
                 if (LaunchHides(p))
                     continue;  // not landed yet, beamed out or mid Shadow Step: the held weapons and their arms go with the body (LaunchIntro.cs, Recall.cs)
+                FpStandPlayer(p);  // first person: stood up, or your view model (FirstPerson.cs)
                 DrawPlayerWrapped(p, t);
                 DrawHeldGadget(p, t);  // GadgetLook.cs
                 DrawHalberdIdle(p, t);  // the Halberd held at the ready (HalberdLook.cs)
@@ -384,12 +401,17 @@ namespace Arena
                 DrawLivingBoltSparks(p, t);  // Living Bolt's arcs on the body (LivingBoltLook.cs)
                 DrawRavagerOver(p, t);  // Blood Ravager's front legs and lash pips (BloodRavagerLook.cs)
                 DrawHeldStunGun(p, t);
+                FpFloor();
             }
             DrawWardenNet(t);  // the Warden's net, thrown and wrapped round someone, over the bodies (HoldingCellLook.cs)
             DrawFlankArrows(t);  // a flank spawn portal behind you (SpawnPortalLook.cs)
             foreach (var b in game.Bullets.Values)
                 if (b.Kind >= Defs.SmallShot && !(enemyShotsLater && Defs.IsEnemyShot(b.Kind)))
+                {
+                    FpStandShot(b);  // (first person, FirstPerson.cs)
                     DrawSmallShot(b, t);
+                    FpFloor();
+                }
             DrawQueenSwarm(t);  // QueenLook.cs
             DrawKnightDpsTop(t);  // Caught Steel's shards, the Gauntlet lying where it hit (KnightDpsLook.cs)
             DrawKatanaMarks(t);  // the enemies a Momentum Burst marked, and its cracks (KatanaLook.cs)
@@ -404,7 +426,11 @@ namespace Arena
         {
             foreach (var b in game.Bullets.Values)
                 if (b.Kind >= Defs.SmallShot && Defs.IsEnemyShot(b.Kind))
+                {
+                    FpStandShot(b);  // (first person, FirstPerson.cs)
                     DrawSmallShot(b, t);
+                    FpFloor();
+                }
         }
 
         /// Under a player: the healer's aura, Barrier, buffs, the parry shield and ultimates' looks.
@@ -746,6 +772,8 @@ namespace Arena
 
         Vector3 Px(V2 p)
         {
+            if (fpProject)
+                return FpPx(p);  // first person: through your eyes (FirstPerson.cs)
             if (camZoomOn)
                 p = ZoomPoint(p);  // the scroll-wheel zoom (CameraZoom.cs)
             var v = CanvasPx(glShift + p * glZoom);
@@ -1001,7 +1029,7 @@ namespace Arena
 
         /// A triangle wholly off one side of the screen (screen pixels): GL would clip it to nothing anyway.
         bool OffScreen(Vector3 a, Vector3 b, Vector3 c) =>
-            cullW > 0f && ((a.x < 0f && b.x < 0f && c.x < 0f) || (a.y < 0f && b.y < 0f && c.y < 0f) ||
+            cullW > 0f && !fpProject && ((a.x < 0f && b.x < 0f && c.x < 0f) || (a.y < 0f && b.y < 0f && c.y < 0f) ||
                            (a.x > cullW && b.x > cullW && c.x > cullW) || (a.y > cullH && b.y > cullH && c.y > cullH));
 
         const float SegTol = 0.35f;  // px: how far a segment's middle may sit inside the true curve
