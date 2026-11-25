@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Arena
@@ -101,26 +102,27 @@ namespace Arena
                         Line(sun, tip, 10f, new Rgba(0.79f, 1f, 0.89f));
                     }
                 }
-            // The Singularity echo: its disk of orbs spinning out.
+            // The Singularity echo: its disk of orbs spinning out, gold embers like its Accretion disk (SingularityLook.cs),
+            // each trailing light back along the spiral it has come out on.
             if (s.DiskT >= 0f)
                 for (int k = 0; k < Game.DiskOrbs; k++)
                 {
-                    V2 o = Game.DiskOrbAt(sun, s.DiskT, k);
-                    Circle(o, Game.EchoDiskOrbR + 11f, new Rgba(0.75f, 0.47f, 1f, 0.2f), 16);
-                    Circle(o, Game.EchoDiskOrbR, new Rgba(0.84f, 0.69f, 1f), 16);
-                    Circle(o, Game.EchoDiskOrbR * 0.45f, new Rgba(0.1f, 0.02f, 0.15f), 10);
+                    for (int j = 4; j >= 1; j--)
+                        if (s.DiskT - j * 0.05f >= 0f)
+                            Circle(Game.DiskOrbAt(sun, s.DiskT - j * 0.05f, k), Game.EchoDiskOrbR * (1f - 0.17f * j), SingGold.WithAlpha(0.4f - 0.08f * j), 12);
+                    DrawEmberOrb(Game.DiskOrbAt(sun, s.DiskT, k), Game.EchoDiskOrbR);
                 }
-            // An echo: the borrowed boss as a faint gold-rimmed ghost above the sun.
-            int sides;
+            // An echo: the borrowed boss as a faint ghost above the sun, drawn with its own body, in a halo of its colour.
+            V2 ghostAt = sun + new V2(0f, -130f);
+            EnemyType echoed;
             Rgba ghost;
-            if (EchoLook(s.Turn, out sides, out ghost))
+            if (s.Turn == EclipseTurn.EchoSingularity)  // its ghost is a lensed black hole, half there (SingularityLook.cs)
             {
-                float a = 0.35f + 0.15f * Mathf.Sin(t * 4f);
-                V2 at = sun + new V2(0f, -130f);
-                Circle(at, 46f, ghost.WithAlpha(0.06f), 24);
-                for (int i = 0; i < sides; i++)
-                    Line(at + V2.FromAngle(t * 0.4f + MathX.Tau * i / sides) * 46f, at + V2.FromAngle(t * 0.4f + MathX.Tau * (i + 1) / sides) * 46f, 2.5f, ghost.WithAlpha(a));
+                GlowDisc(ghostAt, 90f, SingGold, 0.12f);
+                DrawLensedHole(ghostAt, 26f, 1, 0.45f + 0.15f * Mathf.Sin(t * 4f), 0f, t * 1.2f, -0.25f + 0.3f * Mathf.Sin(t * 0.3f), 5);
             }
+            else if (EchoLook(s.Turn, out echoed, out ghost))
+                DrawEchoGhost(echoed, ghost, ghostAt, t);
             // Totality: the shell of fire grows toward the edges as the nova builds.
             if (s.Stage == EclipseStage.Totality)
             {
@@ -130,16 +132,41 @@ namespace Arena
             }
         }
 
-        static bool EchoLook(EclipseTurn turn, out int sides, out Rgba col)
+        /// Which boss an echo turn borrows, and its colour (the ghost's halo).
+        static bool EchoLook(EclipseTurn turn, out EnemyType boss, out Rgba col)
         {
             switch (turn)
             {
-                case EclipseTurn.EchoColossus: sides = 8; col = new Rgba(0.85f, 0.63f, 0.4f); return true;
-                case EclipseTurn.EchoLich: sides = 7; col = new Rgba(0.43f, 1f, 0.69f); return true;
-                case EclipseTurn.EchoHerald: sides = 9; col = new Rgba(0.56f, 0.82f, 1f); return true;
-                case EclipseTurn.EchoSingularity: sides = 12; col = new Rgba(0.71f, 0.55f, 1f); return true;
-                default: sides = 0; col = SunGold; return false;
+                case EclipseTurn.EchoColossus: boss = EnemyType.Colossus; col = new Rgba(0.85f, 0.63f, 0.4f); return true;
+                case EclipseTurn.EchoLich: boss = EnemyType.Lich; col = new Rgba(0.43f, 1f, 0.69f); return true;
+                case EclipseTurn.EchoHerald: boss = EnemyType.StormHerald; col = new Rgba(0.56f, 0.82f, 1f); return true;
+                default: boss = EnemyType.Eclipse; col = SunGold; return false;
             }
+        }
+
+        readonly Dictionary<EnemyType, Enemy> echoGhosts = new Dictionary<EnemyType, Enemy>();
+
+        /// An echo's ghost: the borrowed boss's own body (no state of its own, so in its first phase's look), shrunk,
+        /// see-through and pulsing, bobbing in a soft halo of its colour with a faint gold rim (the Eclipse's light on it).
+        void DrawEchoGhost(EnemyType type, Rgba col, V2 at, float t)
+        {
+            Enemy e;
+            if (!echoGhosts.TryGetValue(type, out e))
+            {
+                var d = Defs.Get(type);
+                echoGhosts[type] = e = new Enemy { Id = 870 + (int)type, Type = type, Def = d, Radius = 30f, Hp = 1f, MaxHp = 1f };
+            }
+            float pulse = 0.5f + 0.5f * Mathf.Sin(t * 4f);
+            e.Disp = e.Pos = at + new V2(0f, Mathf.Sin(t * 1.6f) * 3f);
+            e.Facing = MathX.Pi / 2f;  // looking down at the sun
+            GlowDisc(e.Disp, 80f, col, 0.18f + 0.08f * pulse);
+            Arc(e.Disp, 44f, 1.5f, SunGold.WithAlpha(0.25f + 0.15f * pulse), 40);
+            float keep = glAlpha;
+            glAlpha = keep * (0.4f + 0.15f * pulse);
+            menuPreview = true;
+            DrawEnemy(e, t);
+            menuPreview = false;
+            glAlpha = keep;
         }
 
         /// Over the floor, under the enemies: the moon, in the body's Totality look: the same near-black disc, lit

@@ -13,7 +13,7 @@ namespace Arena
             { WeaponId.RiotRepeater, 60f },
             { WeaponId.GrenadeLauncher, 49f },
             { WeaponId.RepulsionCannon, 9f },
-            { WeaponId.Revolver, 82f },
+            { WeaponId.Revolver, 100f },
             { WeaponId.MendersBow, 40f },
             { WeaponId.TwinPistols, 60f },
             { WeaponId.TwinRifle, 90f },

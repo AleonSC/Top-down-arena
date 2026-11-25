@@ -49,9 +49,8 @@ static partial class Program
         host.Leave("");
     }
 
-    // Revolver, played by the joining player the way people actually shoot it: tapping. Each tap fires a
-    // round with no reload in between until the cylinder is empty; a pause tops it back up a round at a
-    // time; and Multishot's extra rounds really are there to fire.
+    // Revolver, played by the joining player the way people shoot it: clicking. Clicks alternate between firing and pulling
+    // the hammer back, so it shoots as fast as you click (up to the hammer's pull); holding does nothing more; every shot is dead on.
     static void RevolverReloadTest(float dt)
     {
         int port = nextPort++;
@@ -64,87 +63,55 @@ static partial class Program
         host.Game.DevSetGod(hp.Id, true);  // a quiet range: no enemies to down you or eat your rounds
         Action Quiet = () => host.Game.Enemies.Clear();
         var cme = client.Game.Players[client.Game.MyId];
-        Func<int, float, bool, int[]> Tap = (taps, every, untilEmpty) =>
+        bool sawPull = false, sawUncocked = false;
+        // Click (Fire down for `down` frames) every `every` frames for `frames` frames; the rounds fired.
+        Func<int, int, int, bool, List<Bullet>> Click = (frames, every, down, parry) =>
         {
-            // Tap fire (held for 3 frames) every `every` seconds; count rounds fired and reloads started.
             var seen = new HashSet<int>(host.Game.Bullets.Keys);
-            int fired = 0, reloads = 0;
-            bool wasReloading = hp.ReloadT > 0f;
-            int frames = (int)(taps * every * 60);
+            var shots = new List<Bullet>();
             for (int f = 0; f < frames; f++)
             {
-                bool fire = f % (int)(every * 60) < 3;
-                Quiet(); foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == client ? new PlayerInput { AimAt = new V2(1500f, 450f), Fire = fire } : new PlayerInput()); }
-                Thread.Sleep(1);
-                foreach (var b in host.Game.Bullets.Values)
-                    if (b.Owner == hp.Id && seen.Add(b.Id)) fired++;
-                bool reloading = hp.ReloadT > 0f;
-                if (reloading && !wasReloading) reloads++;
-                wasReloading = reloading;
-                if (untilEmpty && reloads > 0) break;
-            }
-            return new[] { fired, reloads };
-        };
-        Action<float> Idle = secs => { for (int f = 0; f < secs * 60; f++) { Quiet(); foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) }); } Thread.Sleep(1); } };
-
-        Idle(1f);
-        var slow = Tap(12, 0.7f, true);  // deliberate taps, slower than the old 0.6 s auto-reload
-        Console.WriteLine("  revolver: tapping every 0.7 s fired {0} rounds before the first reload", slow[0]);
-        Check(slow[0] == 6, "tapping the Revolver slowly fires all six rounds before it reloads");
-        Idle(2f);
-        Tap(3, 0.35f, false);
-        int afterThree = cme.AmmoUsed;
-        Idle(1.6f);  // 0.8 s, then a round every 0.25 s
-        Console.WriteLine("  revolver: after 3 shots the client shows {0} used; after a 1.6 s pause, {1} used", afterThree, cme.AmmoUsed);
-        Check(afterThree == 3 && cme.AmmoUsed == 0 && hp.ReloadT <= 0f, "a pause tops the cylinder back up a round at a time, without locking you out");
-
-        // Tapping fast is capped at the aimed rate (one every 0.45 s), and every tap shot is dead on.
-        Idle(2f);
-        {
-            var seen = new HashSet<int>(host.Game.Bullets.Keys);
-            var shots = new List<Bullet>();
-            for (int f = 0; f < 90; f++)  // 1.5 s of clicking ten times a second
-            {
-                bool fire = f % 6 < 2;
-                Quiet(); foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == client ? new PlayerInput { AimAt = hp.Pos + new V2(400f, 0f), Fire = fire } : new PlayerInput()); }
+                bool fire = every <= 0 || f % every < down;
+                Quiet(); foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == client ? new PlayerInput { AimAt = hp.Pos + new V2(400f, 0f), Fire = fire, Parry = parry } : new PlayerInput()); }
                 Thread.Sleep(1);
                 foreach (var b in host.Game.Bullets.Values) if (b.Owner == hp.Id && seen.Add(b.Id)) shots.Add(b);
+                sawPull |= cme.RevCockT > 0f;
+                sawUncocked |= !cme.RevCocked;
             }
-            float worst = 0f;
-            foreach (var b in shots) worst = Math.Max(worst, Math.Abs(b.Vel.Angle));
-            Console.WriteLine("  revolver: clicking 10x a second for 1.5 s fired {0} aimed rounds, worst {1:0.000} rad off aim", shots.Count, worst);
-            Check(shots.Count >= 3 && shots.Count <= 4 && worst < 0.001f, "tapping fires aimed rounds at the slower tap rate");
-        }
-        // Holding fans the hammer: the whole cylinder goes in a quick burst, spread over a 10 degree arc.
-        Idle(2.5f);
-        {
-            var seen = new HashSet<int>(host.Game.Bullets.Keys);
-            var shots = new List<Bullet>();
-            float t = 0f, lastAt = 0f;
-            for (int f = 0; f < 60; f++)  // hold for a second
-            {
-                t += dt;
-                Quiet(); foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == client ? new PlayerInput { AimAt = hp.Pos + new V2(400f, 0f), Fire = true } : new PlayerInput()); }
-                Thread.Sleep(1);
-                foreach (var b in host.Game.Bullets.Values) if (b.Owner == hp.Id && seen.Add(b.Id)) { shots.Add(b); lastAt = t; }
-            }
-            float lo = 9f, hi = -9f;
-            foreach (var b in shots) { lo = Math.Min(lo, b.Vel.Angle); hi = Math.Max(hi, b.Vel.Angle); }
-            Console.WriteLine("  revolver: holding fired {0} rounds in {1:0.00} s, spread {2:0.0} to {3:0.0} degrees; reloading {4}",
-                shots.Count, lastAt, lo * 180f / MathX.Pi, hi * 180f / MathX.Pi, hp.ReloadT > 0f);
-            Check(shots.Count == 6 && lastAt < 0.7f && lo >= -0.0875f && hi <= 0.0875f && hi - lo > 0.02f,
-                "holding fans the hammer: all six rounds in a quick burst within a 10 degree arc");
-        }
-        Idle(2f);
+            return shots;
+        };
+        Action<float> Idle = secs => Click((int)(secs * 60), 1000000, 0, false);
+
+        Idle(1f);
+        var slow = Click(12 * 24, 24, 3, false);  // 12 deliberate clicks, 0.4 s apart
+        float worst = 0f;
+        foreach (var b in slow) worst = Math.Max(worst, Math.Abs(b.Vel.Angle));
+        Console.WriteLine("  revolver: 12 clicks fired {0} rounds ({1:0} damage each), worst {2:0.000} rad off aim", slow.Count, slow.Count > 0 ? slow[0].Dmg : 0f, worst);
+        Check(slow.Count == 6, "clicks alternate: fire, pull the hammer, fire... (12 clicks, 6 shots)");
+        Check(slow.Count > 0 && slow.All(b => Math.Abs(b.Dmg - Defs.WeaponOf(WeaponId.Revolver).Damage) < 0.01f) && worst < 0.001f, "every shot is a hard, perfectly aimed round");
+        Check(sawPull && sawUncocked, "the other screen sees the hammer go down and come back");
+
+        Idle(0.5f);
+        var held = Click(120, 0, 0, false);  // hold for 2 s
+        Console.WriteLine("  revolver: holding Fire for 2 s fired {0}", held.Count);
+        Check(held.Count <= 1, "holding Fire doesn't keep shooting: every shot is a click");
+
+        Idle(0.5f);
+        var five = Click(120, 12, 3, false);  // five clicks a second for 2 s
+        var twenty = Click(120, 3, 2, false);  // twenty a second
+        Console.WriteLine("  revolver: 5 clicks/s fired {0} in 2 s; 20 clicks/s fired {1}", five.Count, twenty.Count);
+        Check(five.Count >= 4 && five.Count <= 6, "clicking faster shoots faster (5 clicks a second: about 2.5 shots a second)");
+        Check(twenty.Count > five.Count && twenty.Count <= 10, "up to the hammer's pull (about 4 shots a second)");
+
+        Idle(0.5f);
+        var shielded = Click(60, 6, 3, true);
+        Check(shielded.Count == 0, "no shots behind the parry in the Gunslinger stance");
 
         host.Game.GrantUpgrade(hp.Id, Array.FindIndex(Upgrades.All, u => u.Name == "Multishot"));
-        Idle(2f);
-        var multi = Tap(16, 0.35f, true);
-        Console.WriteLine("  revolver + Multishot: {0} rounds before the reload (capacity {1}, client sees {2})", multi[0], host.Game.RevolverCapacity(hp), client.Game.RevolverCapacity(cme));
-        Check(multi[0] == 8 && client.Game.RevolverCapacity(cme) == 8, "with Multishot the Revolver really fires eight rounds per cylinder");
-        Idle(2f);
-        var again = Tap(16, 0.35f, true);
-        Check(again[0] == 8, "and gets all eight back after reloading");
+        Idle(1f);
+        var multi = Click(48, 24, 3, false);
+        Console.WriteLine("  revolver + Multishot: a shot pierces {0}", multi.Count > 0 ? multi[0].Pierce : -1);
+        Check(multi.Count == 1 && multi[0].Pierce >= 1, "with Multishot the shot goes through one more enemy");
         host.Leave(""); client.Leave("");
     }
 

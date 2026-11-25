@@ -1139,7 +1139,7 @@ namespace Arena
             bool parry = input.Parry || HoldParry, weaponAction = input.WeaponAction;  // (the smart bot sets its own: BotBrain.cs)
             bool dodgePress = input.Dodge, dodgeHeld = input.DodgeHeld;  // (and its own dodge: BotDodge.cs)
             me.Parrying = parry && !me.Downed;
-            bool firing = input.Fire && !me.Downed && !me.ParryActive;  // can't shoot behind the shield
+            bool firing = input.Fire && !me.Downed && (!me.ParryActive || FiresBehindShield(me));  // can't shoot behind the shield (but Fan the Hammer can: PistolWhip.cs)
             var held = heldScratch;  // (one array, filled each tick)
             held[0] = input.Ability; held[1] = input.AbilityQ; held[2] = input.AbilityE; held[3] = input.AbilityShift; held[4] = input.Ultimate;
 
@@ -1148,7 +1148,7 @@ namespace Arena
                 botT += dt;
                 SmartBot(me, dt, ref move, ref aimAt, ref firing, held, ref weaponAction, ref parry, ref dodgePress, ref dodgeHeld);  // BotBrain.cs
                 me.Parrying = parry && !me.Downed;
-                if (me.ParryActive)
+                if (me.ParryActive && !FiresBehindShield(me))
                     firing = false;
             }
             else if (Bot)
@@ -1451,6 +1451,8 @@ namespace Arena
             LocalDodge(me, move, dodgePress, dodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
             me.Sprint = (byte)Math.Round(SprintFade * 255f);  // for everyone else's wake (sent in Msg.Input, then the snapshot)
             LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
+            if (LocalLivingBolt(me, firing && !HoldControls, aimAt, dt))
+                firing = false;  // electrified: Fire is the dash (LivingBolt.cs)
             if (LocalGreatStar(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // the Great Star stance: Fire draws the route and throws instead (GreatStar.cs)
             V2 edgeWant = RoomsHold(before, me.Pos, me.Def.BodyR);  // (a room locks behind you: Rooms.cs)
@@ -1557,7 +1559,6 @@ namespace Arena
             TickHammerSlams(dt);    // StormHammer.cs: slams landing and their shockwaves
             TickBoShoves(dt);   // BoStaff.cs: the Bo Staff's shoves landing
             TickStaff(dt);      // Quarterstaff.cs: the jab's cooldown, stacks dropped with the staff
-            TickPistolWhip(dt); // PistolWhip.cs: the Revolver's Alt cooling down
             TickScatter(dt);    // BowFocus.cs: the Mender's Bow's Alt cooling down
             TickBowWind(dt);    // BowFocus.cs: Focus arrows' wind shoving what they pass
             dmgSrc = tickSrc;
@@ -1594,6 +1595,7 @@ namespace Arena
             }
             KeepOutOfDomes();  // Fortress's dome (Dome.cs)
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
+            TickLivingBolt(dt);  // Living Bolt: its clock, the discharge and the residue's damage (LivingBolt.cs)
             TickVortex(dt);  // the Vortex ultimate: its clock, swirl, damage, swept shots and fling (Vortex.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
             KeepOffBridges(dt);    // the Drawbridge (Drawbridge.cs)
@@ -1754,15 +1756,16 @@ namespace Arena
                 }
                 else if (TankOn(p))
                     TickTankGun(p, dt);  // in A Literal Tank: its main gun, not your weapon (LiteralTank.cs)
+                else if (BoltOn(p))
+                {
+                    // electrified: the weapon is put away, Fire is the dash (sent by the player's own game: LivingBolt.cs)
+                }
                 else if (ColOn(p))
                     ColossusTrigger(p);  // the golem: Fire slams, the weapon is put away (StoneColossus.cs)
                 else if (p.StunShots > 0)
                     TickStunGun(p);  // the Stun Gun is out instead of your weapon (Stun.cs)
                 else if (p.Weapon.Id == WeaponId.Revolver)
-                {
-                    TickRevolver(p, dt);
-                    RevolverTrigger(p, dt);
-                }
+                    RevolverTrigger(p, dt);  // a single-action gun, or the Fan stance's whip and fan (Weapons.cs, PistolWhip.cs)
                 else if (p.Weapon.Id == WeaponId.DoubleBarrel)
                     TickDoubleBarrel(p, dt);
                 else if (p.Weapon.Id == WeaponId.GrenadeLauncher)

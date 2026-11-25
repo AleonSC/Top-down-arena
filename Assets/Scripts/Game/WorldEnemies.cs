@@ -259,6 +259,9 @@ namespace Arena
                 case ZoneKind.VeinTrail:
                     DrawVeinTrail(z, t);  // VeinRushLook.cs
                     return;  // no timer ring: it's a trail
+                case ZoneKind.StaticResidue:
+                    DrawStaticResidue(z, t);  // LivingBoltLook.cs
+                    return;  // no timer ring: it's a lane
                 case ZoneKind.Drawbridge:
                     DrawDrawbridge(z, t);  // DrawbridgeLook.cs
                     return;

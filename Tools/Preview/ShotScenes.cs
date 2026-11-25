@@ -819,6 +819,40 @@ static partial class Shot {
         gm.Effects.Add(new Effect { Kind = FxKind.JuggShard, Pos = hit, Pos2 = at, Color = new Rgba(1f, 0.82f, 0.45f), Radius = me.Id, Dur = Game.JuggShardFx, T = 0.03f + 0.045f * i });
       }
     }
+    if (Environment.GetEnvironmentVariable("BOLT") != null) {
+      // A DPS Elementalist's Living Bolt (LivingBoltLook.cs): BOLT=<seconds since the cast> (the channel runs to 0.5 s; use 0.3 or 4,
+      // 9.5 for the flicker); past the channel: three dashes zigzagging in, their residue lanes, the last bolt still lit and two
+      // grunts it shocked. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear(); gm.Zones.Clear();
+      me.Kit = Kit.Elementalist; me.Role = Role.Dps; me.Def = Defs.Get(Role.Dps); me.Slots[Upgrades.UltSlot].Id = AbilityId.LivingBolt;
+      V2 at0 = new V2(330f, 520f), at1 = new V2(520f, 360f), at2 = new V2(600f, 600f), from = new V2(800f, 440f);
+      float bt = float.Parse(Environment.GetEnvironmentVariable("BOLT"));
+      bool charged = bt >= Game.BoltChannel;
+      if (!charged) from = new V2(640f, 440f);
+      me.Pos = me.Disp = from; me.Aim = -0.4f; me.AimAt = from + new V2(240f, -100f); me.Hp = me.MaxHp * 0.9f;
+      me.BarrierT = 0f; me.AegisT = 0f; me.OverdriveT = 0f; me.ShieldHp = 0f;
+      me.BoltAge = bt; me.BoltT = Math.Max(0.05f, Game.BoltChannel + Game.BoltTime - bt); me.UltT = me.BoltT;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var rnd = new System.Random(11);
+      V2[] spots = { new V2(430f, 455f), new V2(700f, 520f), new V2(560f, 470f), new V2(900f, 320f), new V2(380f, 300f), new V2(980f, 560f), new V2(760f, 250f), new V2(260f, 380f) };
+      for (int i = 0; i < spots.Length; i++) {
+        var en = (Enemy)spawnAt.Invoke(gm, new object[] { i == 3 ? EnemyType.Brute : EnemyType.Grunt, spots[i], 0f, 0, false });
+        en.SpawnT = 0f; en.Pos = en.Disp = spots[i]; en.MaxHp = 1000f; en.Hp = 1000f * (0.4f + 0.55f * (float)rnd.NextDouble());
+        if (charged && i < 3) { en.StunT = 0.3f; en.FrozenT = 0.3f; }
+      }
+      if (charged) {
+        V2[] path = { at0, at1, at2, from };
+        float[] left = { 1.1f, 2f, 2.9f };
+        for (int i = 0; i < 3; i++) {
+          V2 a = path[i], b = path[i + 1], d = b - a;
+          gm.Zones[9000 + i] = new Zone { Id = 9000 + i, Kind = ZoneKind.StaticResidue, Owner = me.Id, Pos = a + d * 0.5f, Radius = d.Length * 0.5f, Aim = d.Angle, T = left[i], Duration = Game.ResidueTime };
+        }
+        gm.Effects.Add(new Effect { Kind = FxKind.LivingBolt, Pos = at2, Pos2 = from, Color = Game.BoltCyan, Radius = me.Id, Dur = Game.BoltDashFx, T = 0.05f });
+        gm.Effects.Add(new Effect { Kind = FxKind.RodArc, Pos = new V2(690f, 510f), Pos2 = spots[1], Color = Game.BoltCyan, Radius = 40f, Dur = 0.22f, T = 0.04f });
+      }
+    }
     if (Environment.GetEnvironmentVariable("VORTEX") != null) {
       // A Tank Elementalist's Vortex (VortexLook.cs): VORTEX=<seconds since the cast> (the wind-up runs to 0.4 s; use 0.2, 2 or 5.2),
       // VXMASTERED=1 for 300 px; grunts swept round inside, one drawn in from past the edge, a few enemy shots swept away. Use with mode hud.
@@ -1048,7 +1082,7 @@ static partial class Shot {
       var tn = Environment.GetEnvironmentVariable("TWINNADES").Split(',');
       me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 0); me.TwinNades = byte.Parse(tn[0]); me.TwinNext = byte.Parse(tn[1]); me.TwinCharge = byte.Parse(tn[2]);
     }
-    if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
+    if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.RevCocked = Environment.GetEnvironmentVariable("REVOLVER") != "pull"; me.RevCockT = me.RevCocked ? 0f : 0.07f; me.RevStance = (byte)(Environment.GetEnvironmentVariable("REVOLVER") == "fan" ? 1 : 0); host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); }  // REVOLVER=1 cocked, pull: the hammer coming back, fan: the Fan stance
   }
   // KNWHEEL=r|l|u|d|c: your Arc Knuckles' click wheel open up and to the right of you, the cursor on that side of it (c: its centre).
   static void KnuckleWheelScene() {
@@ -1157,8 +1191,9 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
-    // WHIP=<s>: the Revolver's Pistol Whip (Core/PistolWhip.cs, Game/PistolWhipLook.cs) that long into a fight: grunts in the arc and a
-    // spray of small and big enemy shots flying in, Alt pressed 0.1 s in (WHIPIDLE=1: no press).
+    // WHIP=<s>: the Revolver's Fan stance (Core/PistolWhip.cs, Game/PistolWhipLook.cs) that long into a fight: grunts in the arc and a
+    // spray of small and big enemy shots flying in, a click 0.1 s in (the Pistol Whip; WHIPIDLE=1: no click; WHIPFAN=1: a second
+    // click 0.3 s in, Fan the Hammer).
     if (Environment.GetEnvironmentVariable("WHIP") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
@@ -1171,12 +1206,13 @@ static partial class Shot {
       for (int i = 0; i < 9; i++) {
         float a = -1.3f + 2.6f * i / 8f; V2 from = home + V2.FromAngle(a) * (175f + 20f * (i % 3));
         shoot.Invoke(gm, new object[] { i % 4 == 0 ? Defs.BigShot : Defs.SmallShot, from, (home - from).Normalized() * 160f, 0f, 5f, 10f, -1, false, 0f }); }
-      bool idle = Environment.GetEnvironmentVariable("WHIPIDLE") != null;
+      bool idle = Environment.GetEnvironmentVariable("WHIPIDLE") != null, fanToo = Environment.GetEnvironmentVariable("WHIPFAN") != null;
+      me.RevStance = 1;
       var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
       int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("WHIP"), ci) * 60f));
       for (int f = 0; f < frames; f++) {
         me.Pos = me.Disp = home; me.Aim = 0f; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
-        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(300f, 0f), WeaponAction = !idle && f >= 6 && f < 9 }); gm.Update(1f / 60f);
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(300f, 0f), Fire = !idle && (f >= 6 && f < 9 || fanToo && f >= 18 && f < 21) }); gm.Update(1f / 60f);
         me.Disp = me.Pos = home; me.Aim = 0f; me.Hp = me.MaxHp; foreach (var e in gm.Enemies.Values) e.Disp = e.Pos; draw.Invoke(app, null);
       }
       GL.Tris.Clear(); GUI.Log.Clear();
