@@ -53,6 +53,7 @@ namespace Arena
         Vortex,         // the Tank Elementalist's fourth ultimate (Vortex.cs), key 3 of the lobby's Ultimate row
         LivingBolt,     // the DPS Elementalist's second ultimate (LivingBolt.cs), key 1 of the lobby's Ultimate row
         BambooGrove,    // the Tank Ninja's 4th choice (BambooGrove.cs), the lobby's 4th choice
+        LandShark,      // the DPS Summoner's 4th choice (LandShark.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -133,6 +134,7 @@ namespace Arena
         public float WwDmgMult = 1f, WwWetBonus;                           // Water Ward: Deep Current
         // Summoner abilities
         public float StampedeDmgMult = 1f;                                 // Stampede: Thundering Herd
+        public float LandSharkDmgMult = 1f;                                // Land Shark: Great White
         public float GolemHpMult = 1f;                                     // Golem Wall: Basalt Hide
         public float QuakeBonusTime, QuakeDmgMult = 1f;                    // Earthquake: Deep Tremor
         public float PactHpMult = 1f, PactReturnCut;                       // Force Pact: Kindred Bond

@@ -307,6 +307,9 @@ namespace Arena
                     return;  // no timer ring: it's a wall
                 case ZoneKind.DeployTurret:
                     return;  // drawn over the arena's contents by DrawDeployTurrets (DeployTurretLook.cs)
+                case ZoneKind.LandShark:
+                    DrawLandSharkPuddle(z, t);  // LandSharkLook.cs (the shark is drawn over the enemies: DrawLandSharks)
+                    return;  // no timer ring: the puddle is its own clock
                 case ZoneKind.Stampede:
                     DrawStampede(z, t);  // StampedeLook.cs
                     return;  // no timer ring: the herd is its own clock
