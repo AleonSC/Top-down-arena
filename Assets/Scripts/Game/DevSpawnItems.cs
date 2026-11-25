@@ -71,7 +71,7 @@ namespace Arena
                 Ui.Label(new Rect(cell.x + 31f, cell.y + 4f, cell.width - 33f, 22f), WheelName(g), 11, host ? ink : ink.WithAlpha(0.5f), TextAnchor.MiddleLeft, true);
                 float secs = Game.GadgetTime(g);
                 string blurb = Game.GadgetTimed(g) ? secs.ToString("0") + " s" : g == GadgetId.Lodestone ? Game.LodestoneUses + " casts"
-                    : g == GadgetId.DefibKit ? "1 revive" : g == GadgetId.Emp ? Game.EmpUses + " pulses" : Game.GadgetUses(g) + " charges";
+                    : g == GadgetId.Medkit ? Game.MedkitUses + " heals" : g == GadgetId.Emp ? Game.EmpUses + " pulses" : Game.GadgetUses(g) + " charges";
                 Ui.Label(new Rect(cell.x + 31f, cell.y + 24f, cell.width - 33f, 20f), blurb, 10, CrtStyle.Desc, TextAnchor.MiddleLeft);
                 if (hover)
                     hoverNote = "Drop a full " + Game.GadgetName(g) + " in front of " + whoName + " (only " + (who.Id == game.MyId ? "you see" : "they see") + " it; walk onto it).";
