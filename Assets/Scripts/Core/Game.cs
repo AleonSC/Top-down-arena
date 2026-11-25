@@ -1341,6 +1341,8 @@ namespace Arena
                     continue;  // every drop already out: don't waste the cooldown (WaterWard.cs)
                 if (me.Slots[slot].Id == AbilityId.CeremonialArmor && me.PlateN >= CerePlateMax)
                     continue;  // Ceremonial Armor with all 10 plates up: don't waste the cooldown
+                if (me.Slots[slot].Id == AbilityId.SenbonSeekers && SbFull(me))
+                    continue;  // Senbon Seekers holding all its needles (SenbonSeekers.cs)
                 if ((me.StandOn || Seated(me)) && MovesYou(me.Slots[slot].Id))
                     continue;
                 if (TankOn(me))
