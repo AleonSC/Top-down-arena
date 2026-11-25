@@ -36,7 +36,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Riot Repeater | Tank | 0.18 s | 11 | 600 x 0.8 s | - | 60 | Primary Fire: Steady shots that suppress enemies so they shoot slower.  Alternative Fire: Lob tear gas that slows and suppresses. |
 | Grenade Launcher | Tank | 0.42 s | 34 | 900 x 0.42 s | - | 49 | Primary Fire: Lob a drum of grenades that burst where they land.  Alternative Fire: Swap to smoke that slows enemies and stops them attacking. |
 | Repulsion Cannon | Healer | 0.7 s | 6 | - | 240 | 9 | Primary Fire: Blasts enemies away in a cone and knocks health orbs loose.  Alternative Fire: Hold to pull enemies in. |
-| Revolver | Healer | 0.45 s | 24 | 700 x 1.1 s | - | 82 | Primary Fire: Tap for aimed shots, or hold to fan the hammer for a quick spray.  Alternative Fire: Pistol whip: a wide swing that destroys bullets and shoves enemies. |
+| Revolver | Healer | 0.5 s | 50 | 700 x 1.1 s | - | 100 | Primary Fire: Click to fire a hard, aimed shot, click again to pull the hammer back: it shoots as fast as you click.  Alternative Fire: Fan stance: click to Pistol Whip (stuns what it hits), click again to Fan the Hammer. Hold parry and click to fan any time; parry after a whip to whip again. |
 | Mender's Bow | Healer | 0.9 s | 0 | - | - | 40 | Primary Fire: Hold to draw, release to fire a piercing arrow that heals allies it passes. |
 | Twin Pistols | Healer | 0.16 s | 10 | 780 x 0.8 s | - | 60 | Primary Fire: A pistol in each hand, firing in turn; hits knock health orbs loose.  Alternative Fire: Laser Sights: both guns fire together for harder rounds. |
 | Twin Rifle | Dps | 0.13 s | 4 | 820 x 0.7 s | - | 90 | Primary Fire: Two rifles whose streams cross at your cursor for crossfire damage. |
@@ -98,7 +98,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Twin Blades | Dps | 0.18 s | 16 | - | 90 | 98 | Primary Fire: A five-step sabre combo that carries you forward and ends in a crescent wave.  Alternative Fire: Hurl both sabres to cross at your cursor and fly back. |
 | Greatsword | Dps | 0.5 s | 40 | - | 125 | 87 | Primary Fire: A ten-step sword combo that drags in, stuns, leaps and ends in a golden lance.  Alternative Fire: Throw the sword spinning to your cursor and back. |
 | Rapier | Dps | 0.48 s | 18 | - | 130 | 85 | Primary Fire: Fast thrusts at the nearest enemy that skewer bullets and build Tempo.  Alternative Fire: Spend Tempo on a Flourish: a whipping blade that throws crescent waves. |
-| Arc Knuckles | Dps | 0.24 s | 22 | - | 80 | 88 | Primary Fire: A five-punch combo that ends in a stunning ground slam.  Alternative Fire: Rocket Dash, then chain extra moves. |
+| Arc Knuckles | Dps | 0.24 s | 22 | - | 80 | 88 | Primary Fire: Brawl stance: a Pull Punch opens a click wheel; click its sides to send punches and dashes that way, then pin, barrage and quake.  Alternative Fire: Swap to the Rocket stance: Rocket Dash, Flurry, Grab & Throw, Rocket Punch, one click each. |
 
 ### Ninja
 
@@ -192,6 +192,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Mark for Death | Dps | 1st, choice 3 | 12 s | - | Marks the three enemies nearest your cursor. | Mark an enemy so it takes more damage. |
 | Artillery Assault | Dps | ultimate | 60 s | - | +4 extra projectiles instead of +2. | Fire three times as fast with extra projectiles. |
 | Attack Helicopter | Dps | ultimate | 70 s | - | A second gun on the wing: two targets at once. | A gunship locks enemies one at a time and can't be hit. |
+| Orbital Laser | Dps | ultimate | 90 s | - | The circle is 340 px wide instead of 260, and the beam ploughs 200 px on while it fires. | Call a laser down from orbit on your cursor: after a 1.9 s lock-on it kills every enemy in a huge circle (bosses lose 20%) and leaves the ground burning. |
 | Deployable Turret | Dps | 1st, choice 5 | 45 s | - | Fires 14 s, rounds pierce 4, and the blast does double. | Climb into a heavy turret that spools up to a fast piercing fire. |
 
 ### Elementalist
@@ -215,6 +216,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Blizzard | Dps | 1st, choice 2 | 14 s | - | Lasts 10 s. | A storm at your cursor that slows and damages enemies. |
 | Tsunami | Dps | 1st, choice 3 | 16 s | - | Wet lasts 14 s, and the wave rolls back to you, wetting what it missed. | A wave that soaks enemies, so lightning arcs to every one. |
 | Bullet Rain | Dps | ultimate | 70 s | - | Lasts 9 s. | A downpour of needles that hurts and soaks everything in a big square. |
+| Living Bolt | Dps | ultimate | 80 s | - | Lasts 13 s and the trail stays 5 s. | Become lightning for 10 s: every click blinks you to the cursor, shocking all you pass and leaving a live trail. |
 | Gale Wall | Dps | 1st, choice 5 | 18 s | - | The wall is 40% wider and holds up to 60 charges. | A wind wall that traps enemy shots, then unleashes them as a blast. |
 
 ### Summoner
@@ -263,6 +265,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Ceremonial Armor | Tank | 1st, choice 3 | 2.5 s | - | A plate that breaks bursts for 30 damage to enemies within 60 px. | Armour plates circle you, blocking bullets and shoving enemies. |
 | Thousand Clones | Tank | ultimate | 70 s | - | Twenty clones. | Twelve clones appear all over the map and draw every enemy. |
 | Dragon's Dogma | Tank | ultimate | 70 s | - | Hunts for 7 s, and every enemy it devours heals you 3%. | A spirit dragon hunts across the arena, devouring enemies and their shots. |
+| Bamboo Grove | Tank | 1st, choice 5 | 14 s | - | The bamboo fence lasts 6 s. | Bamboo bursts from the ground around you, stunning enemies, then bleeding them. |
 | Healing Dash | Healer | 1st, choice 1 | 15 s | - | The sprint lasts 4.5 s. | Sprint, leaving footprints that heal you and allies. |
 | Substitution | Healer | 1st, choice 2 | 12 s | - | You and your ally are both invulnerable for 1 s after the swap. | Swap places with an ally and shield them. |
 | Spirit Ward | Healer | 1st, choice 3 | 18 s | - | The ward follows you. | Plant a talisman that absorbs damage for allies, then heals them. |
@@ -435,6 +438,6 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Lineman | Ranged | 60 | 85 | 13 | - | 8 | 11 |  | Hooks a player with a charge. When it runs out it jumps to every ally nearby. The marked player walks away from the team. |
 | Thunderhead | Melee | 220 | 55 | 24 | 20 | 12 | 20 | melee, heavy | A slow, heavy storm cloud. As it rolls at you it drops a row of strikes ahead of it. Sidestep the row. |
 | Turnkey | Ranged | 70 | 160 | 13 | 6 | 12 | 16 | melee | A prison janitor with a ring of keys. Runs from you, stops to plant mines, shackle traps and wet floors, and builds Cell Doors that let Rioters out. Corner it while it works. |
-| Cell Door | Hidden | 90 | 0 | 16 | - | 4 | 5 | melee, heavy | A Turnkey's cell door: lets a Rioter out every few seconds. It jams shut when its Turnkey dies. |
+| Cell Door | Hidden | 90 | 0 | 16 | - | 4 | 5 | melee, heavy | A Turnkey's cell door, built into the arena's outer wall: its red beacon spins faster as a Rioter is due, then the gate slides open to let it out. It jams shut when its Turnkey dies. |
 | Floor Mine | Hidden | 1 | 0 | 8 | - | 0 | 0 | melee, heavy | A Turnkey's mine: arms, then beeps and blows when you step close. Shoot it to blow it on enemies. |
 | Shackle Trap | Hidden | 1 | 0 | 9 | - | 0 | 0 | melee, heavy | A Turnkey's shackle: arms, then snaps shut on the first player over it and holds them a moment. Shoot it to break it. |
