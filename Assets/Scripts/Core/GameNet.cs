@@ -607,6 +607,8 @@ namespace Arena
             s.Float(ref p.VortexR);
             s.Float(ref p.BoltT);  // Living Bolt (LivingBolt.cs)
             s.Float(ref p.BoltAge);
+            s.Float(ref p.ArmT);  // Iron Armadillo (IronArmadillo.cs)
+            s.Float(ref p.ArmAge);
             s.Float(ref p.RvT);  // Blood Ravager (BloodRavager.cs)
             if (p.RvT > 0f)
                 s.Float(ref p.RvLen);
@@ -627,6 +629,15 @@ namespace Arena
                 s.Vec(ref p.ApPos);
             }
             s.Float(ref p.ApLinkT);
+            s.Float(ref p.BubT);  // Static Bubble (StaticBubble.cs)
+            if (p.BubT > 0f)
+            {
+                s.Float(ref p.BubR);
+                s.Float(ref p.BubCharge);
+            }
+            s.Float(ref p.RushT);
+            if (p.RushT > 0f)
+                s.Float(ref p.RushLen);
             s.Float(ref p.RmT);  // Rodent Minigun (RodentMinigun.cs)
             if (p.RmT > 0f)
             {
@@ -915,6 +926,11 @@ namespace Arena
             s.Float(ref p.TpCd);
             s.Bool(ref p.StaticOn);  // Static Shock (StaticShock.cs)
             s.Float(ref p.OverchargeT);
+            s.Bool(ref p.TtCharging);  // the Twin Tessen (TwinTessen.cs)
+            s.Float(ref p.TtCharge);
+            s.Float(ref p.TtGustCd);
+            s.Float(ref p.TtTailT);
+            s.Byte(ref p.TtBreeze);
             s.Float(ref p.SupplyT);  // Supply Drop (SupplyDrop.cs)
             s.Float(ref p.Armor);  // an Armor Drop vest's armor (ArmorDrop.cs)
             for (int k = 0; k < 2; k++)  // the Embolus Spears (EmbolusSpears.cs)

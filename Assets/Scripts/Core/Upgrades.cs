@@ -64,6 +64,8 @@ namespace Arena
         BloodRavager,   // the DPS Hemomancer's second ultimate (BloodRavager.cs), key 1 of the lobby's Ultimate row
         ForbiddenPath,  // the DPS Ninja's second ultimate (ForbiddenPath.cs), key 1 of the lobby's Ultimate row
         AstralProjection,  // the Healer Ninja's second ultimate (AstralProjection.cs), key 1 of the lobby's Ultimate row
+        IronArmadillo,  // the Tank Summoner's third ultimate (IronArmadillo.cs), key 2 of the lobby's Ultimate row
+        StaticBubble,   // the Healer Elementalist's second ultimate (StaticBubble.cs), key 1 of the lobby's Ultimate row
         ArmorDrop,      // the Tank Soldier's fourth ultimate (ArmorDrop.cs), key 3 of the lobby's Ultimate row
         None = 255,
     }
@@ -241,6 +243,7 @@ namespace Arena
         public float EsBlastMult = 1f;                                     // Embolus Spears: Burst Vessels
         public float PylonSizeMult = 1f, PylonSlowBonus;                   // Drag Pylon: Wide Field
         public float NunDiscMult = 1f, NunSwatBonus;                       // Nunchaku: Iron Links
+        public float TtGustReachMult = 1f, TtHealMult = 1f;                // Twin Tessen: Divine Wind (TwinTessen.cs)
         public float NodReachMult = 1f, NodConeBonus;                      // Nodachi: Tamahagane
         public float WcReachMult = 1f, WcShoveMult = 1f;                 // Wind Clash: Gale Force
         public float SwatReachMult = 1f, SwatCdMult = 1f;                  // Out of Ammo: Gun Kata (Docs/UpgradePools.md step 13)
@@ -351,7 +354,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Elementalist, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// Hemomancer.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.RavagerUltimates, Game.FpUltimates, Game.AstralUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.RavagerUltimates, Game.FpUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 

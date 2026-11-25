@@ -1130,6 +1130,7 @@ static partial class Shot {
     HeliScene();  // HELI=<s since the cast> [HELICAP=1] [FXOFF=1] (ShotHeli.cs)
     OrbitalScene();  // ORBITAL=<s since the cast> [ORBCAP=1] [FXOFF=1] (ShotOrbital.cs)
     TankScene();  // TANK=<s since the cast> [TANKCAP=1] [FXOFF=1] (ShotTank.cs)
+    ArmadilloScene();  // ARMADILLO=<s since the cast> [ARMREV=<s>] [FXOFF=1] (ShotArmadillo.cs)
     SupplyScene();  // SUPPLY=<s since the cast> [SUPPLYCAP=1] [FXOFF=1] (ShotSupply.cs)
     ArmorDropScene();  // ARMORDROP=<s since the cast> [ARMORCAP=1] [ARMORHIT=<armor>] [FXOFF=1] (ShotArmorDrop.cs)
     HospitalScene();  // HOSP=pick|<s since the cast> [HOSPTENT=1] (ShotHospital.cs)
@@ -1143,6 +1144,7 @@ static partial class Shot {
     RodentMinigunScene();  // RODENT=<s since the cast> [RODENTAIM=<deg>] (ShotRodentMinigun.cs)
     MammothFallScene();  // MAMMOTH=<s since the cast> (ShotMammothFall.cs)
     ForbiddenPathScene();  // FORBIDDEN=<s since the cast> (ShotForbiddenPath.cs)
+    StaticBubbleScene();  // BUBBLE=<s since the cast> [BUBFILL=<0-1>] [BUBBURST=<s>]: the Healer Elementalist's Static Bubble (ShotStaticBubble.cs)
     AstralScene();  // ASTRAL=<s since the cast>: the Healer Ninja's Astral Projection, Fire held (ShotAstral.cs)
     SpiritAvatarScene();  // SPIRIT=<s since the cast>: the Tank Ninja's Spirit Avatar, Fire held (ShotSpiritAvatar.cs)
     DragonsDogmaScene();  // DOGMA=<s since the cast>: MOCKUP of the Tank Ninja's Dragon's Dogma (ShotDragonsDogma.cs)
@@ -1651,6 +1653,44 @@ static partial class Shot {
         gm.Update(1f / 60f);
         me.Pos = home; me.Hp = me.MaxHp;
         me.Disp = me.Pos; me.Aim = (cursor - me.Pos).Angle; me.AimAt = cursor; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
+    // TESSEN=<s>: the Healer Ninja's Twin Tessen (Core/TwinTessen.cs, Game/TwinTessenLook.cs) that long into the Crane Dance, Fire held
+    // from 0: Left Flick 0, then each step as the last ends (the Crane Bloom about 1.25 s, its wave out by 1.45 s); a hurt teammate in front.
+    // TTALT=<s>: Alt held from 0 for that long instead, then let go (the Kamikaze Gust), enemies shooting; TTBREEZE=100: a Tempest.
+    if (Environment.GetEnvironmentVariable("TESSEN") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Healer; me.Kit = Kit.Ninja; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.Weapon(Role.Healer, Kit.Ninja, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      string altS = Environment.GetEnvironmentVariable("TTALT");
+      bool alt = altS != null;
+      float hold = alt ? float.Parse(altS, ci) : 0f;
+      string brS = Environment.GetEnvironmentVariable("TTBREEZE");
+      if (brS != null) { me.TtBreezeF = float.Parse(brS, ci); me.TtBreeze = (byte)me.TtBreezeF; }
+      V2 home = new V2(500f, 420f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var mates = new System.Collections.Generic.List<Player>();
+      foreach (var q in gm.Players.Values) if (q != me) mates.Add(q);
+      var mateAt = new[] { new V2(95f, 55f), new V2(-60f, -140f) };
+      for (int i = 0; i < mates.Count && i < 2; i++) { mates[i].Pos = mates[i].Disp = home + mateAt[i]; mates[i].Firing = false; mates[i].Hp = mates[i].MaxHp * 0.4f; }
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      var spots = alt ? new[] { new V2(200f, -60f), new V2(260f, 90f), new V2(150f, 20f), new V2(330f, -10f), new V2(230f, 150f) }
+                      : new[] { new V2(80f, -50f), new V2(100f, 30f), new V2(190f, 0f), new V2(60f, -85f), new V2(-70f, 60f) };
+      foreach (var at0 in spots) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = alt ? 0.1f : 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("TESSEN"), ci) * 60f));
+      V2 cursor = home + new V2(300f, 0f);
+      for (int f = 0; f < frames; f++) {
+        foreach (var e in foes) { e.Disp = e.Pos; if (!alt) e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = !alt, WeaponAction = alt && f < hold * 60f });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Disp = me.Pos; me.Aim = 0f; me.AimAt = cursor; me.Hp = me.MaxHp;
+        for (int i = 0; i < mates.Count && i < 2; i++) { mates[i].Pos = mates[i].Disp = home + mateAt[i]; }
+        foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
       }
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;

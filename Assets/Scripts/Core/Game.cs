@@ -1225,6 +1225,8 @@ namespace Arena
                 me.Pos += DashDir * dashSpeed * dt;
                 iceVel = DashDir * me.Speed * Paths.IceTopSpeed;  // on ice you slide out of a dash
             }
+            else if (ArmOn(me))
+                LocalArmRoll(me, move, aimAt, firing && !HoldControls, dt);  // Iron Armadillo: rolling, not walking (IronArmadillo.cs)
             else
             {
                 V2 want = move * me.Speed * SprintMult * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * HoneySlowAt(me.Pos) * CrowdSlow(me) * RelicSpeedAt(me);  // CrowdSlow: Rioters piled on you (RiotBrains.cs)
@@ -1240,6 +1242,10 @@ namespace Arena
                     me.Pos += want * dt;
                 }
             }
+            if (!ArmOn(me))
+                LocalArmRoll(me, move, aimAt, false, dt);  // (resets the roll)
+            else
+                firing = false;  // curled up: Fire revs the roll, the weapon is away
             if (me.Downed)
                 iceVel = V2.Zero;
             if (PullStrength > 0f && !me.Downed && DashT <= 0f)
@@ -1345,8 +1351,8 @@ namespace Arena
                     continue;  // Senbon Seekers holding all its needles (SenbonSeekers.cs)
                 if ((me.StandOn || Seated(me)) && MovesYou(me.Slots[slot].Id))
                     continue;
-                if (TankOn(me))
-                    continue;  // in A Literal Tank: no abilities (LiteralTank.cs)  // planted: nothing that would carry you off (LastStand.cs)
+                if (TankOn(me) || ArmOn(me))
+                    continue;  // curled up in Iron Armadillo (IronArmadillo.cs), or in A Literal Tank: no abilities (LiteralTank.cs)  // planted: nothing that would carry you off (LastStand.cs)
                 bool orbitOut = OrbitRelease(me, slot);  // Blade Fan pressed again: the host throws the kunai (Ninja.cs)
                 bool harvestOut = HarvestPress(me, slot);  // Crimson Harvest pressed again: the host throws the ball (CrimsonHarvest.cs)
                 bool standOut = StandRelease(me, slot);  // Last Stand pressed again: the host brings it down (LastStand.cs)
@@ -1450,7 +1456,7 @@ namespace Arena
 
             LocalDodge(me, move, dodgePress, dodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
             me.Sprint = (byte)Math.Round(SprintFade * 255f);  // for everyone else's wake (sent in Msg.Input, then the snapshot)
-            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
+            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me) && !ArmOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
             if (LocalLivingBolt(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // electrified: Fire is the dash (LivingBolt.cs)
             if (LocalRavager(me, firing && !HoldControls, dt))
@@ -1539,6 +1545,7 @@ namespace Arena
             TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickTanks(dt);      // LiteralTank.cs: the tank's time, running enemies over, getting out
+            TickArmadillo(dt);  // IronArmadillo.cs: the ball's time, its speed and hits, the uncurl slam
             TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders
             TickSpirit(dt);     // SpiritAvatar.cs: the spirit's time, Moon Cleaves and swallowed shots
             TickGaleWalls(dt);  // GaleWall.cs: lenses run down and unleash
@@ -1572,6 +1579,7 @@ namespace Arena
             TickSmokeShells(dt);  // GrenadeLauncher.cs: smoke clouds; the launcher refills when put away
             TickWindWaves(dt);  // WindClash.cs: Wind Clash's waves and Tempests
             TickArcBalls(dt);   // StaticShock.cs: Arc Cannon balls and bursts
+            TickTessenPetals(dt);  // TwinTessen.cs: the Petal Spin's petals landing
             TickBloodBlast(dt);  // BloodBlast.cs: Blood Blast's returning blood
             TickTide(dt);       // BloodBlast.cs: Crimson Tides gathering and rolling out
             TickFrostStrikes(dt);  // FrostLance.cs: the Frost Lance's chain, chill and Absolute Zero
@@ -1604,6 +1612,7 @@ namespace Arena
             TickForbiddenPath(dt);  // Forbidden Path: the beast's clock, drain, lock-on and combo stages (ForbiddenPath.cs)
             TickAstral(dt);  // Astral Projection: the spirit's clock, its host, lean and heal (AstralProjection.cs)
             TickRodentMinigun(dt);  // Rodent Minigun: the portal's clock, its turn after the aim and the rodents it spits (RodentMinigun.cs)
+            TickStaticBubble(dt);  // Static Bubble: its clock, growth, enemies put out, shots eaten, the burst (StaticBubble.cs)
             TickVortex(dt);  // the Vortex ultimate: its clock, swirl, damage, swept shots and fling (Vortex.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
             KeepOffBridges(dt);    // the Drawbridge (Drawbridge.cs)
@@ -1685,6 +1694,7 @@ namespace Arena
                 p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
                 p.AdrenalineT = Math.Max(0f, p.AdrenalineT - dt);
                 p.OverchargeT = Math.Max(0f, p.OverchargeT - dt);  // StaticShock.cs
+                p.RushT = Math.Max(0f, p.RushT - dt);  // Static Rush (StaticBubble.cs)
                 p.SupplyT = Math.Max(0f, p.SupplyT - dt);  // SupplyDrop.cs
                 TickGustTimers(p, dt);  // GustGate.cs
                 p.SurgeT = Math.Max(0f, p.SurgeT - dt);  // Arcane Surge
@@ -1745,6 +1755,7 @@ namespace Arena
                 TickNunchaku(p, dt);  // the Nunchaku's guard: its discs swat shots back (Nunchaku.cs)
                 TickNodachi(p, dt);  // the Nodachi's step clock and the Guard's cone (Nodachi.cs)
                 TickTwinPistols(p, dt);  // Laser Sights running down, its key cooling down (TwinPistols.cs)
+                TickTessen(p, dt);  // the Twin Tessen's gust charge and cooldown, Tailwind (TwinTessen.cs)
                 p.DumpCd = Math.Max(0f, p.DumpCd - dt);  // the Railgun's Heat Dump (RailBeam.cs)
                 if (p.Weapon.Id != WeaponId.StaticShock && p.StaticOn)
                     ClearStaticShock(p);  // (StaticShock.cs)
@@ -1767,7 +1778,11 @@ namespace Arena
                     // sitting in a Deployable Turret: it fires (TickDeployTurret), not your weapon
                 }
                 else if (TankOn(p))
-                    TickTankGun(p, dt);  // in A Literal Tank: its main gun, not your weapon (LiteralTank.cs)
+                    TickTankGun(p, dt);
+                else if (ArmOn(p))
+                {
+                    // curled up in Iron Armadillo: the weapon is away, Fire revs the roll (IronArmadillo.cs)
+                }  // in A Literal Tank: its main gun, not your weapon (LiteralTank.cs)
                 else if (BoltOn(p))
                 {
                     // electrified: the weapon is put away, Fire is the dash (sent by the player's own game: LivingBolt.cs)

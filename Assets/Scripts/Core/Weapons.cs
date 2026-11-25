@@ -7,7 +7,7 @@ namespace Arena
     public partial class Game
     {
         /// Everything that speeds up firing: upgrades, Overdrive (Adrenaline Shot doesn't stack with it: the bigger wins), Artillery Assault, Counterstance.
-        float FireRate(Player p) => p.Stats.FireRateMult * MomentumMult(p) * Math.Max(p.OverdriveT > 0f ? 2f : 1f, p.AdrenalineT > 0f ? AdrenalineFire : 1f) * (Storming(p) ? 3f : 1f) * (p.OverchargeT > 0f ? OverchargeFire : 1f)  // Overcharge (StaticShock.cs)
+        float FireRate(Player p) => p.Stats.FireRateMult * MomentumMult(p) * Math.Max(p.OverdriveT > 0f ? 2f : 1f, p.AdrenalineT > 0f ? AdrenalineFire : 1f) * (Storming(p) ? 3f : 1f) * (p.OverchargeT > 0f ? OverchargeFire : 1f) * (p.RushT > 0f ? StaticRushFire : 1f)  // Overcharge (StaticShock.cs), Static Rush (StaticBubble.cs)
             * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f) * (p.SurgeT > 0f ? 1f + p.Stats.SurgeRate : 1f)  // Arcane Surge
             * (OverclockOn(p) ? OverclockMult : 1f)  // an Overclock Chip (Gadgets.cs)
             * (Supplied(p) ? SupplyFire : 1f);  // a Supply Drop (SupplyDrop.cs)

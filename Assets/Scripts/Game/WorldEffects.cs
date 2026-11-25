@@ -86,7 +86,8 @@ namespace Arena
             d[(int)FxKind.HalberdStep] = (fx, f, t) => DrawHalberdStepFx(fx, false);  // HalberdLook.cs
             d[(int)FxKind.HalberdPoke] = (fx, f, t) => DrawHalberdPokeFx(fx, false);  // HalberdLook.cs
             d[(int)FxKind.VortexWisp] = (fx, f, t) => DrawVortexWispFx(fx);  // VortexLook.cs
-            d[(int)FxKind.LivingBolt] = (fx, f, t) => DrawLivingBoltFx(fx);  // LivingBoltLook.cs
+            d[(int)FxKind.LivingBolt] = (fx, f, t) => DrawLivingBoltFx(fx);
+            d[(int)FxKind.StaticBurst] = (fx, f, t) => DrawStaticBurstFx(fx);  // StaticBubbleLook.cs  // LivingBoltLook.cs
             d[(int)FxKind.ForbiddenPath] = (fx, f, t) => DrawForbiddenFx(fx, t);  // ForbiddenPathLook.cs (the crescents, claw marks and black sun are the floor pass: DrawForbiddenFloor)
             d[(int)FxKind.BambooGrove] = (fx, f, t) => { };  // drawn in the floor and body passes (BambooGroveLook.cs)
             d[(int)FxKind.FlashFire] = (fx, f, t) => { };  // drawn in the floor and body passes (FlashFireLook.cs)
@@ -107,6 +108,9 @@ namespace Arena
             d[(int)FxKind.DecoyPop] = (fx, f, t) => DrawDecoyPopFx(fx);  // DecoyDummyLook.cs
             d[(int)FxKind.DecoyFold] = (fx, f, t) => DrawDecoyFoldFx(fx);  // DecoyDummyLook.cs
             d[(int)FxKind.WindCatch] = (fx, f, t) => DrawWindCatch(fx);  // WindClashLook.cs
+            d[(int)FxKind.TessenStep] = (fx, f, t) => DrawTessenStep(fx);  // TwinTessenLook.cs
+            d[(int)FxKind.TessenPetals] = (fx, f, t) => DrawTessenPetals(fx);
+            d[(int)FxKind.TessenGust] = (fx, f, t) => DrawTessenGust(fx);
             d[(int)FxKind.DoubleBarrel] = (fx, f, t) => DrawDoubleBarrelFx(fx);  // TankAltLook.cs
             d[(int)FxKind.JuggShard] = (fx, f, t) => DrawJuggShardFx(fx);  // JuggernautLook.cs
             d[(int)FxKind.BossBeam] = (fx, f, t) => DrawBossBeamFx(fx);  // BossBeamLook.cs

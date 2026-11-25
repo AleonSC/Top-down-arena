@@ -223,6 +223,7 @@ namespace Arena
             FpWalls();
             fpProject = false;
             FpFlush();
+            FpDrawWeapon();  // your weapon in front of you (FirstPersonWeapon.cs)
         }
 
         /// Stand what's drawn next up round `at` (a body of radius r), its centre `lift` off the floor (default: on the floor).

@@ -80,7 +80,7 @@
 # GASLOB=<s into the wind-up> (the Gas Grenadier's overhand lob: ring, arm, canister; mode hud; GasLobLook.cs).
 # GAUNTLET=<clock s> (with GRIDCORE=1 EXPANDMAP=0: the Relic Gauntlet, RelicGauntlet.cs, at that laser clock; GAUNTLETAT=<0-1800> where you stand, GAUNTLETSPOT=<n>; ZOOM=0.45 sees it whole; clip.sh ... GAUNTLET=0:7:0.1 animates it).
 # ZOOM=1.8 (the scroll-wheel zoom on you, CameraZoom.cs).
-# FPV=<yaw deg>|big[,<pitch deg>] (the first-person view looking that way, FirstPerson.cs; 0 east, 90 south; big: at the biggest enemy).
+# FPV=<yaw deg>|big[,<pitch deg>] (the first-person view looking that way, FirstPerson.cs; 0 east, 90 south; big: at the biggest enemy; FPVKICK=<1-0>[,<swings>] the weapon mid-kick; FPVWEAPON=<WeaponId> hold that weapon).
 # MAPVIEW=<from>,<to>,<t> (the Map key's switch: 0 minimap, 1 full map, 2 off, t of the way; MapView.cs), MAPCYCLE=<s> (a scripted M, M, M for clip.sh); with EXPANDMAP=6 ZOOM=1.5.
 # NADET=<s> (the Twin Rifle's Rocket assist that long after a launch), NADELOAD=<s> (a tube loading; TwinNadeLook.cs);
 #   with RIFLEFIRE=1 (holding fire: the Twin Rifle held wide, Spread arms) and CROSSAT=<px> (the cursor's distance).
@@ -98,6 +98,7 @@
 # FROSTLANCE=<s> (the Tank Elementalist's Frost Lance that long into its chain, Fire held: Shiver Crescent at 0, Backhand Rime 0.34 s, Frost Waltz 0.68 s, Crystal Fan 1.08 s, Avalanche Slam 1.5 s; FLALT=1: Absolute Zero at 0; FLCHILL=<n> chill on the grunts; mode hud; FrostLanceLook.cs).
 # BLOODBLAST=<s> (the Tank Hemomancer's Blood Blast chain that long in; BBSTEP=n start step, BBALT=1 Crimson Tide, BBSTACKS=n BBKILL=<s> the Blood Vortex; mode hud, ZOOM=1.8).
 # WYVERN=<s> (the Tank Summoner's Wyvern Staff that long into a loop: hovering with its gale until 1.0 s, then Fire held; WYALT=1: the Wyrm Slam at 1.0 s instead; mode hud).
+# TESSEN=<s> (the Healer Ninja's Twin Tessen that long into the Crane Dance, Fire held: the Crane Bloom about 1.25 s, its wave out by 1.45 s; TTALT=<s>: Alt held that long then let go, the Kamikaze Gust; TTBREEZE=100: a Typhoon; mode hud; TwinTessenLook.cs).
 # WINDCLASH=<s> (the Tank Elementalist's Wind Clash that long into its combo, Fire held: crescents at 0 and 0.34 s, lance at 0.68 s, ring at 1.12 s; WCALT=1: the Tempest at 0 with enemies shooting; mode hud; WindClashLook.cs).
 # STONESPEAR=<s> (the Elementalist DPS Stonespear that long into the mockup's loop: slam at 0, throws at 1.3 and 1.85 s, Alt volley at 2.6 s; SSMOVE=1 walking down (the spears trail); SSTECT=1 with Tectonic; mode hud; StonespearLook.cs).
 # GRENADE=<s> (the Tank Soldier's Grenade Launcher that long into a fight: fire held at a pack GLAT px ahead; GLSMOKE=1 Alt then smoke canisters from 0.6 s; GLSWAP=1 Alt only; GLIDLE=1; mode hud; GrenadeLauncherLook.cs).
