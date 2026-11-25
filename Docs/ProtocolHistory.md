@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 520: Bumble Remote (DPS Engineer 2nd weapon): `WeaponId.BumbleRemote`, `MinionKind.BumbleBot`, `FxKind.BumbleBurst` (each at the end), `Msg.WeaponDash` kind 67.
 - 519: Blood Boil (DPS Hemomancer third ultimate, key 2): `AbilityId.BloodBoil` (at the end), `FxKind.BoilEnd` (at the end), `Player.BoilT` (+ `BoilLen` while on) in the player sync after `RvT`.
 - 518: Static Bubble (Healer Elementalist second ultimate, key 1): `AbilityId.StaticBubble`, `FxKind.StaticBurst` (each at the end), `Player.BubT` (+ `BubR`/`BubCharge` while on) and `RushT` (+ `RushLen` while on) in the player sync after `ApLinkT`.
 - 517: Iron Armadillo (the Tank Summoner's key-2 ultimate): `AbilityId.IronArmadillo` (at the end), `Player.ArmT` and `ArmAge` in the player sync after `BoltAge`, `Msg.WeaponDash` kind 66 (a wall bash).

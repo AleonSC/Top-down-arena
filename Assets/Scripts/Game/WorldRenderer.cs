@@ -162,7 +162,7 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.OutOfAmmo)
                     DrawAmmoSmears(p, t);  // OutOfAmmoLook.cs
             foreach (var p in game.Players.Values)
-                if (p.Weapon.Id == WeaponId.Scattergun || p.Weapon.Id == WeaponId.FlakCannon || p.Weapon.Id == WeaponId.RiotRepeater || p.Weapon.Id == WeaponId.BoneGuard || p.Weapon.Id == WeaponId.Nimbus)
+                if (p.Weapon.Id == WeaponId.Scattergun || p.Weapon.Id == WeaponId.FlakCannon || p.Weapon.Id == WeaponId.RiotRepeater || p.Weapon.Id == WeaponId.BoneGuard || p.Weapon.Id == WeaponId.Nimbus || p.Weapon.Id == WeaponId.BumbleRemote)
                     DrawTankAltPips(p);  // TankAltLook.cs
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.GrenadeLauncher)

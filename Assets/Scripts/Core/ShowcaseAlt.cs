@@ -83,6 +83,7 @@ namespace Arena
             { WeaponId.BoneGuard, (g, me, t, dt) => Tap(t, dt, 8.5f, 1.5f) },       // an Ossuary Wall (8 s cooldown)
             // The Wolf Whistle: Alt merges the pack into the alpha; kills would grow the pack (10 each), too slow for a preview, so it is topped up first.
             { WeaponId.WolfWhistle, (g, me, t, dt) => Fill(Tap(t, dt, 6f, 2f), () => g.ShowcaseWolves(me, 4)) },
+            { WeaponId.BumbleRemote, (g, me, t, dt) => Tap(t, dt, 6.5f, 1.5f) },    // the Swarm Burst (6 s cooldown)
             { WeaponId.WyvernStaff, (g, me, t, dt) => Tap(t, dt, 7.5f, 1.5f) },     // the Wyrm Slam (7 s cooldown)
             // The Honeybee Staff: the honey spray, held while the meter lasts.
             { WeaponId.HoneybeeStaff, (g, me, t, dt) => Hold(t, 6f, 1.5f, 2f) },

@@ -1833,6 +1833,8 @@ namespace Arena
                     TickOutOfAmmo(p, dt);  // the swats, the knife chain and Alt's spin, no trigger (OutOfAmmo.cs)
                 else if (IsBotWeapon(p.Weapon.Id))
                     TickBotWeapon(p, dt);  // summon the robot, send it, the basic attack (EngineerBots.cs)
+                else if (p.Weapon.Id == WeaponId.BumbleRemote)
+                    TickBumbleRemote(p, dt);  // you never shoot: the Bumble Bot reads Fire (BumbleRemote.cs)
                 else if (p.Weapon.Id == WeaponId.TwinRifleAuto)
                     TickTwinAuto(p, dt);  // the guns aim and fire on their own, no trigger (TwinAuto.cs)
                 else if (p.Weapon.Id == WeaponId.ArcKnuckles)

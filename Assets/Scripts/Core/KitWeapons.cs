@@ -210,6 +210,7 @@ namespace Arena
                 case WeaponId.TreantRod: return w.CompanionCount;
                 case WeaponId.Nimbus: return w.CompanionCount;  // extra projectiles are extra strikes
                 case WeaponId.BearTotem: return w.CompanionCount;  // the bear cleaves instead
+                case WeaponId.BumbleRemote: return w.CompanionCount;  // one Bumble Bot; extra projectiles are more stingers and bees (BumbleRemote.cs)
                 case WeaponId.WyvernStaff: return w.CompanionCount;  // one Wyvern; extra projectiles make its breath, gale and slam stronger (WyvernStaff.cs)
                 case WeaponId.GolemStaff: return Math.Min(3, w.CompanionCount + extra);
                 default: return w.Companion == MinionKind.None ? 0 : w.CompanionCount + extra

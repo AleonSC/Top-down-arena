@@ -965,6 +965,8 @@ namespace Arena
                 return;  // Wind Clash's Tempest (WindClash.cs)
             if (LocalWyvernSlam(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // the Wyvern Staff's Wyrm Slam (WyvernStaff.cs)
+            if (LocalBumbleBurst(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
+                return;  // the Bumble Remote's Swarm Burst (BumbleRemote.cs)
             if (LocalTide(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // the Blood Blast's Crimson Tide (BloodBlast.cs)
             if (LocalZero(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
@@ -1448,6 +1450,11 @@ namespace Arena
             if (kind == DashTempest)
             {
                 HostTempest(p);  // Wind Clash's Alt (WindClash.cs)
+                return;
+            }
+            if (kind == DashBumbleBurst)
+            {
+                HostBumbleBurst(p, target);  // the Bumble Remote's Alt (BumbleRemote.cs)
                 return;
             }
             if (kind == DashWyvernSlam)

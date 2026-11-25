@@ -167,7 +167,7 @@ them), and blink before vanishing after 12 seconds.
 ### The Engineer
 
 A builder whose constructions draw themselves in the cyan ink of the Expanding arena's walls (Docs/Engineer.md). Each
-role has one robot weapon (below), one 1st ability and one ultimate for now; the lobby locks its other keys. It wears navy coveralls,
+role has one robot weapon (below), one 1st ability and one ultimate for now, and the DPS also has the Bumble Remote; the lobby locks its other keys. It wears navy coveralls,
 an orange safety vest and a yellow hard hat with a headlamp, in its role's trim. The DPS kit:
 
 - **Draftsman** (passive): every vector gain is 25% bigger for an Engineer (part-vectors add up across gains).
@@ -213,6 +213,16 @@ Its health grows 8% a wave and it is patched up between waves.
 - **Vector Blade** (DPS): the **Assault Bot** (380 health, draws enemies from 150 px) fires a rapid rivet gun (11, 0.22 s).
   The basic attack is a melee swipe of a cyan blade in front of you (88 px) for 24, every 0.4 s. Each extra projectile: the
   swipe reaches 12 px further.
+
+**Bumble Remote** (the DPS Engineer's 2nd weapon): you can't attack at all, only move. A giant robot bee, the **Bumble Bot**,
+follows your cursor on a springy flight (up to 460 px from you) and does all the fighting; it can't be hurt, and enemies
+ignore it and keep coming for you. While you're down it hovers over you and holds its fire.
+
+- **Stinger Stream**: it shoots stingers (7 each) at the enemy nearest it (within 340 px) every 0.24 s on its own; hold Fire
+  to double the rate (every 0.12 s), and with nothing near, holding Fire sprays them the way it faces.
+- **Swarm Burst** (Alt, 6 s): it dives to your cursor and lands with a shockwave: 30 damage within 95 px, enemies shoved
+  120 px out (heavy ones a third, bosses not at all), and 6 bees burst out of it to sting the enemies nearest them (8 each).
+- Each extra projectile: one more stinger a shot (fanned) and one more bee in the Swarm Burst.
 
 ### The Arcanist
 
