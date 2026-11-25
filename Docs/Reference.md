@@ -218,6 +218,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Tsunami | Dps | 1st, choice 3 | 16 s | - | Wet lasts 14 s, and the wave rolls back to you, wetting what it missed. | A wave that soaks enemies, so lightning arcs to every one. |
 | Bullet Rain | Dps | ultimate | 70 s | - | Lasts 9 s. | A downpour of needles that hurts and soaks everything in a big square. |
 | Living Bolt | Dps | ultimate | 80 s | - | Lasts 13 s and the trail stays 5 s. | Become lightning for 10 s: every click blinks you to the cursor, shocking all you pass and leaving a live trail. |
+| Flash Fire | Dps | ultimate | 80 s | - | The fire burns 11 s. | A ring of fire rolls out around you and the ground burns for 8 s, hurting and slowing enemies; when it goes out they're left burning. |
 | Gale Wall | Dps | 1st, choice 5 | 18 s | - | The wall is 40% wider and holds up to 60 charges. | A wind wall that traps enemy shots, then unleashes them as a blast. |
 
 ### Summoner

@@ -24,7 +24,7 @@ static partial class Program
         Check(Upgrades.Ultimate(Role.Dps, Kit.Elementalist, 1) == AbilityId.LivingBolt && Upgrades.Ultimate(Role.Dps, Kit.Elementalist) == AbilityId.BulletRain
             && Upgrades.Ultimate(Role.Tank, Kit.Elementalist, 1) == AbilityId.LightningRod,
             "key 1 is Living Bolt; Bullet Rain stays the default; the tank's key 1 is still Lightning Rod");
-        Check(Upgrades.ClampUlt(Role.Dps, Kit.Elementalist, 1) == 1 && Upgrades.ClampUlt(Role.Dps, Kit.Elementalist, 2) == 0 && Upgrades.ClampUlt(Role.Healer, Kit.Elementalist, 1) == 0,
+        Check(Upgrades.ClampUlt(Role.Dps, Kit.Elementalist, 1) == 1 && Upgrades.ClampUlt(Role.Dps, Kit.Elementalist, 3) == 0 && Upgrades.ClampUlt(Role.Healer, Kit.Elementalist, 1) == 0,
             "key 1 is the DPS's; other keys and roles fall back to the default");
 
         int port = nextPort++;
