@@ -84,6 +84,7 @@ namespace Arena
             d[(int)FxKind.HalberdPoke] = (fx, f, t) => DrawHalberdPokeFx(fx, false);  // HalberdLook.cs
             d[(int)FxKind.VortexWisp] = (fx, f, t) => DrawVortexWispFx(fx);  // VortexLook.cs
             d[(int)FxKind.LivingBolt] = (fx, f, t) => DrawLivingBoltFx(fx);  // LivingBoltLook.cs
+            d[(int)FxKind.BambooGrove] = (fx, f, t) => { };  // drawn in the floor and body passes (BambooGroveLook.cs)
             d[(int)FxKind.BulwarkStep] = (fx, f, t) => DrawBulwarkStepFx(fx);  // BulwarkBarrierLook.cs
             d[(int)FxKind.BulwarkBash] = (fx, f, t) => DrawBulwarkBashFx(fx, t);  // BulwarkBarrierLook.cs
             d[(int)FxKind.BulwarkBlock] = (fx, f, t) => DrawBulwarkBlockFx(fx);  // BulwarkBarrierLook.cs

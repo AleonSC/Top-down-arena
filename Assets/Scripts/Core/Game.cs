@@ -1601,6 +1601,7 @@ namespace Arena
             KeepOffBridges(dt);    // the Drawbridge (Drawbridge.cs)
             KeepOffBloodWalls(dt);  // Blood Wall (BloodWall.cs): pushes enemies back, bleeds those against it
             KeepOffCovers();  // Deployable Cover (DeployableCover.cs): enemies can't walk through its plates
+            KeepOffGroveFences();  // Bamboo Grove's fence (BambooGrove.cs): enemies stay outside it
             KeepOffOssuaryWalls(dt);  // the Bone Guard's Ossuary Wall (BoneGuard.cs): pushes enemies back, darts those against it
             KeepOffPhalanx();    // the Bone Phalanx's shields (BonePhalanx.cs)
             TickMinions(dt);
