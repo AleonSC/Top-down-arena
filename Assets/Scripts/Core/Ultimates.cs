@@ -178,6 +178,10 @@ namespace Arena
                     CastColossus(p, cap);
                     break;
 
+                case AbilityId.SpiritAvatar:  // Tank: Ninja, the third ultimate (SpiritAvatar.cs)
+                    CastSpirit(p, cap);
+                    break;
+
                 case AbilityId.Vortex:  // Tank: Elementalist, the fourth ultimate (Vortex.cs)
                     CastVortex(p, cap);
                     break;

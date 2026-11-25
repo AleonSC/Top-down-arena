@@ -265,6 +265,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Ceremonial Armor | Tank | 1st, choice 3 | 2.5 s | - | A plate that breaks bursts for 30 damage to enemies within 60 px. | Armour plates circle you, blocking bullets and shoving enemies. |
 | Thousand Clones | Tank | ultimate | 70 s | - | Twenty clones. | Twelve clones appear all over the map and draw every enemy. |
 | Dragon's Dogma | Tank | ultimate | 70 s | - | Hunts for 7 s, and every enemy it devours heals you 3%. | A spirit dragon hunts across the arena, devouring enemies and their shots. |
+| Spirit Avatar | Tank | ultimate | 70 s | - | Lasts 15 s and the cleave reaches 20% further. | A giant ink spirit wraps you: Fire paints a slow, wide Moon Cleave that throws enemies back. |
 | Bamboo Grove | Tank | 1st, choice 5 | 14 s | - | The bamboo fence lasts 6 s. | Bamboo bursts from the ground around you, stunning enemies, then bleeding them. |
 | Healing Dash | Healer | 1st, choice 1 | 15 s | - | The sprint lasts 4.5 s. | Sprint, leaving footprints that heal you and allies. |
 | Substitution | Healer | 1st, choice 2 | 12 s | - | You and your ally are both invulnerable for 1 s after the swap. | Swap places with an ally and shield them. |
