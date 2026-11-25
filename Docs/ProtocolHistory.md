@@ -4,7 +4,8 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 517: Static Bubble (Healer Elementalist second ultimate, key 1): `AbilityId.StaticBubble`, `FxKind.StaticBurst` (each at the end), `Player.BubT` (+ `BubR`/`BubCharge` while on) and `RushT` (+ `RushLen` while on) in the player sync after `ApLinkT`.
+- 518: Static Bubble (Healer Elementalist second ultimate, key 1): `AbilityId.StaticBubble`, `FxKind.StaticBurst` (each at the end), `Player.BubT` (+ `BubR`/`BubCharge` while on) and `RushT` (+ `RushLen` while on) in the player sync after `ApLinkT`.
+- 517: Iron Armadillo (the Tank Summoner's key-2 ultimate): `AbilityId.IronArmadillo` (at the end), `Player.ArmT` and `ArmAge` in the player sync after `BoltAge`, `Msg.WeaponDash` kind 66 (a wall bash).
 - 516: Twin Tessen (Healer Ninja 4th weapon): `WeaponId.TwinTessen`, `FxKind.TessenStep`/`TessenPetals`/`TessenGust` (each at the end), `Player.TtCharging`/`TtCharge`/`TtGustCd`/`TtTailT`/`TtBreeze` in the player sync after `OverchargeT`, `Msg.WeaponDash` kinds 64-65, the Rare card Divine Wind (card ids shift).
 - 515: the Colossus rework (pass 1): `ColossusState.Stagger`/`Break`/`HoldT`/`HoldSide`/`HoldAim`; stomp rings carry `Orbs`, `Rot` and up to four openings (`Gap3`, `Gap4`); fissures carry their `State` and `Wait`; its radius follows its phase (`ColRadius`).
 - 514: Astral Projection (Healer Ninja second ultimate, key 1): `AbilityId.AstralProjection` (at the end), `Defs.AstralBolt` (83), `Player.ApT` (+ `ApHost`/`ApPos` while on) and `ApLinkT` in the player sync before `RmT`, the Rare card Astral Bond (card ids shift).
