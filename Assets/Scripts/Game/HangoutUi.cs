@@ -210,7 +210,6 @@ namespace Arena
                     DrawJuiceFloor();
                 }
                 DrawArenaContents(game.AnimT);
-                DrawFumaWorld(game.AnimT);
                 if (fx)
                 {
                     DrawJuiceParts();
@@ -218,21 +217,8 @@ namespace Arena
                     DrawGlowPass();
                     SwitchToGlow(false);
                 }
-                foreach (var p in game.Players.Values)
-                    if (p.Weapon.Id == WeaponId.Greatsword)
-                    {
-                        DrawGreatWindup(p);
-                        DrawGreatWheel(p);
-                        DrawGreatPips(p);
-                    }
-                foreach (var p in game.Players.Values)
-                    if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
-                        DrawBowDraw(p, true, game.AnimT);
-                    else if (p.Weapon.Id == WeaponId.Warhammer && p.DrawT > 0f && !p.Downed)
-                        DrawHammerCharge(p, true, game.AnimT);
-                    else if (p.Weapon.Id == WeaponId.ArcLightning && p.DrawT > 0f && !p.Downed)
-                        DrawArcLockFlatCharge(p, true, game.AnimT);
                 DrawEnemyShots(game.AnimT);
+                DrawPlayerOverlays(game.AnimT, PracticeMouseWorld(), aimLine && PracticeLive);  // your aim line, and each weapon's pips, meters and charges (WorldRenderer.cs)
                 UiModelAt(V2.Zero, 1f);
                 UiNoClip();
                 var edge = CrtStyle.Head.WithAlpha(0.5f);
@@ -253,6 +239,9 @@ namespace Arena
                 Ui.Label(new Rect(view.x, view.yMax - 30f, view.width, 18f), "MOUSE OVER THE WINDOW TO PLAY", 11, CrtStyle.Dim, TextAnchor.MiddleCenter, true);
         }
 
+        /// The mouse in the Practice arena (the window's point under it).
+        V2 PracticeMouseWorld() => practiceFocus + new V2(practiceMouse.x - practiceView.center.x, practiceMouse.y - practiceView.center.y) / practiceZoom;
+
         /// A world point in the Practice window (UI canvas).
         V2 PracticeToUi(V2 world) => new V2(practiceView.center.x, practiceView.center.y) + (world - practiceFocus) * practiceZoom;
 
@@ -264,7 +253,7 @@ namespace Arena
             V2 aim = me != null ? me.Pos + V2.FromAngle(me.Aim) * 100f : Game.ArenaMid;
             if (!PracticeLive || practiceZoom <= 0f)
                 return new PlayerInput { AimAt = aim };
-            keys.AimAt = practiceFocus + new V2(practiceMouse.x - practiceView.center.x, practiceMouse.y - practiceView.center.y) / practiceZoom;
+            keys.AimAt = PracticeMouseWorld();
             return keys;
         }
     }
