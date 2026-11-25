@@ -522,6 +522,7 @@ static partial class Program
         Check(allAtCursor, "Velocity Rounds don't carry Flak Cannon shells or Ofuda charms past the cursor");
 
         // Incendiary Rounds on a fast weapon (Riot Repeater) and a slow one (Revolver, as a Healer would): 6 s on one enemy.
+        // (Kept out of stuns: on some seeds a wave enemy stuns you, and a stunned Revolver doesn't fire.)
         var gain = new List<float>();
         foreach (var id in new[] { WeaponId.RiotRepeater, WeaponId.Revolver })
         {
@@ -532,7 +533,7 @@ static partial class Program
                 build("Incendiary Rounds", pass);
                 me.Weapon = Defs.Weapons.First(w => w.Id == id);
                 var e = dummy(from + new V2(200f, 0f));
-                for (int f = 0; f < 60 * 6; f++) { e.Pos = from + new V2(200f, 0f); e.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = id != WeaponId.Revolver || f % 12 < 6, AimAt = e.Pos }); }
+                for (int f = 0; f < 60 * 6; f++) { e.Pos = from + new V2(200f, 0f); e.FrozenT = 1f; me.Pos = from; me.StunT = 0f; host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = id != WeaponId.Revolver || f % 12 < 6, AimAt = e.Pos }); }
                 for (int f = 0; f < 60 * 4; f++) { e.Pos = from + new V2(200f, 0f); e.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput()); }  // let it burn out
                 dealt[pass] = e.MaxHp - e.Hp;
             }

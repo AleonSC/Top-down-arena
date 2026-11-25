@@ -998,7 +998,7 @@ static partial class Program
             wetFree, setFree, outside, inside);
         Check(Math.Abs(inside - outside) < 0.01f && outside > 0f, "standing in your own pool doesn't guard you any more");
         // Standing in the pool heals slowly (against your own healing standing outside it).
-        Func<float> gain = () => { me.Hp = me.MaxHp * 0.5f; float h = me.Hp; play(1f, new PlayerInput()); return me.Hp - h; };
+        Func<float> gain = () => { g.Orbs.Clear(); me.Hp = me.MaxHp * 0.5f; float h = me.Hp; play(1f, new PlayerInput()); return me.Hp - h; };  // (no health orbs dropped by earlier kills lying in the pool)
         float healIn = pool != null && g.Zones.ContainsKey(pool.Id) ? gain() : 0f;
         V2 inPool = from; from = new V2(300f, 450f);
         float healOut = gain();

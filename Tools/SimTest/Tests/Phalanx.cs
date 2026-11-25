@@ -20,11 +20,11 @@ static partial class Program
             "Bone Phalanx is an ultimate, 75 s, on key 1 of the Ultimate row, with a capstone");
         Check(Upgrades.Ultimate(Role.Tank, Kit.Summoner) == AbilityId.Titan && Upgrades.Ultimate(Role.Tank, Kit.Summoner, 1) == AbilityId.BonePhalanx
             && Upgrades.AltUltimate(Role.Tank, Kit.Summoner, 2) == AbilityId.None, "the Tank Summoner's Ultimate row: Titan (key 0, the default), then Bone Phalanx, then locked keys");
-        Check(Upgrades.AltUltimate(Role.Healer, Kit.Summoner, 1) == AbilityId.None && Upgrades.AltUltimate(Role.Dps, Kit.Summoner, 1) == AbilityId.None
+        Check(Upgrades.AltUltimate(Role.Healer, Kit.Summoner, 1) == AbilityId.None && Upgrades.AltUltimate(Role.Dps, Kit.Summoner, 1) != AbilityId.BonePhalanx
             && Upgrades.AltUltimate(Role.Tank, Kit.Soldier, 1) != AbilityId.BonePhalanx, "it is only the Tank Summoner's");
-        Check(Upgrades.Ultimate(Role.Wildcard, Kit.Summoner, 1) == Upgrades.Ultimate(Role.Dps, Kit.Summoner)
+        Check(Upgrades.Ultimate(Role.Wildcard, Kit.Summoner, 1) == Upgrades.Ultimate(Role.Dps, Kit.Summoner, 1) && Upgrades.Ultimate(Role.Wildcard, Kit.Summoner, 1) != AbilityId.BonePhalanx
             && Upgrades.ClampUlt(Role.Tank, Kit.Summoner, 7) == 0 && Upgrades.ClampUlt(Role.Tank, Kit.Summoner, 1) == 1 && Upgrades.ClampUlt(Role.Healer, Kit.Summoner, 1) == 0,
-            "a Wildcard ignores the pick; picks the class doesn't have fall back to 0");
+            "a Wildcard takes its class's DPS row, never the Tank's Bone Phalanx; picks the class doesn't have fall back to 0");
 
         // --- The saved run keeps the pick ---
         var save = new RunSave { Wave = 4 };
