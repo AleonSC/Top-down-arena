@@ -477,31 +477,36 @@ namespace Arena
             Arc(land, splash, 2f, col.WithAlpha(0.45f + 0.35f * c), 40);
         }
 
-        /// Revolver: the cylinder as pips in an arc under you (gold = heavy rounds), and a ring while reloading.
-        void DrawCylinder(Player p, float t)
+        static readonly Rgba RevGold = new Rgba(1f, 0.8f, 0.3f), RevFanCol = new Rgba(1f, 0.6f, 0.24f);
+
+        /// Revolver, under you. Gunslinger: the hammer as one pip (gold when cocked: the next click fires; an arc filling while
+        /// it's pulled back; dim when the next click cocks). Fan stance: two diamonds, the whip and the fan, lit by the combo's
+        /// step, and a ring filling while Fan the Hammer reloads.
+        void DrawRevolverPips(Player p, float t)
         {
-            int cap = game.RevolverCapacity(p), heavy = game.RevolverHeavy(p);
-            int left = Math.Max(0, cap - p.AmmoUsed);
             float r = p.Def.BodyR + 13f;
-            var gold = new Rgba(1f, 0.8f, 0.3f);
-            DrawWhipReady(p);  // the Pistol Whip's cooldown over your head (PistolWhipLook.cs)
-            if (p.ReloadT > 0f)
+            V2 at = p.Disp + new V2(0f, r);
+            if (p.RevStance == 0)
             {
-                float f = 1f - MathX.Clamp01(p.ReloadT / Game.RevolverReload);
-                Arc(p.Disp, r, 2.5f, new Rgba(1f, 1f, 1f, 0.15f), 32);
-                Arc(p.Disp, r, 2.5f, gold.WithAlpha(0.85f), 32, -MathX.Pi / 2f, MathX.Tau * f);
+                if (p.RevCockT > 0f)
+                {
+                    float f = 1f - MathX.Clamp01(p.RevCockT / Mathf.Max(0.01f, game.RevCockTime(p)));
+                    Arc(at, 4.5f, 1.6f, new Rgba(1f, 1f, 1f, 0.15f), 16);
+                    Arc(at, 4.5f, 1.6f, RevGold.WithAlpha(0.9f), 16, -MathX.Pi / 2f, MathX.Tau * f);
+                }
+                else
+                    Circle(at, p.RevCocked ? 3.4f : 2.6f, p.RevCocked ? RevGold.WithAlpha(0.95f) : new Rgba(0.85f, 0.95f, 1f, 0.25f), 10);
                 return;
             }
-            // Pips spread across the bottom half, filled from the right as the cylinder empties.
-            float span = Mathf.Min(MathX.Pi * 0.9f, cap * 0.2f);
-            for (int i = 0; i < cap; i++)
+            bool whip = p.RevStep == Game.RevWhip, fan = p.RevStep == Game.RevLinked || p.RevStep == Game.RevFan;
+            bool fanReady = p.RevFanReload <= 0f;
+            Polygon(at + new V2(-6f, 0f), whip ? 4.6f : 3.8f, 4, 0f, whip ? Game.WhipColor.WithAlpha(0.95f) : Game.WhipColor.WithAlpha(0.35f));
+            Polygon(at + new V2(6f, 0f), fan ? 4.6f : 3.8f, 4, 0f, fan ? RevFanCol.WithAlpha(0.95f) : RevFanCol.WithAlpha(fanReady ? 0.35f : 0.12f));
+            if (!fanReady)
             {
-                float a = MathX.Pi / 2f + span / 2f - span * (cap == 1 ? 0.5f : (float)i / (cap - 1));
-                V2 at = p.Disp + V2.FromAngle(a) * r;
-                bool loaded = i < left;
-                bool isHeavy = i < heavy;  // the heavy rounds are the last ones fired
-                var c = isHeavy ? gold : new Rgba(0.85f, 0.95f, 1f);
-                Circle(at, isHeavy ? 3.2f : 2.6f, loaded ? c.WithAlpha(0.95f) : c.WithAlpha(0.15f), 8);
+                float f = 1f - MathX.Clamp01(p.RevFanReload / Game.RevFanReload);
+                Arc(p.Disp, r, 2f, new Rgba(1f, 1f, 1f, 0.12f), 32);
+                Arc(p.Disp, r, 2f, RevFanCol.WithAlpha(0.7f), 32, -MathX.Pi / 2f, MathX.Tau * f);
             }
         }
     }

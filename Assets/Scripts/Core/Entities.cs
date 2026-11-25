@@ -383,7 +383,6 @@ namespace Arena
         public int SwingCount;  // host: Knight weapon state
         public byte StaffStacks;     // Quarterstaff: Jab stacks stored, 0 to 3 plus one per extra projectile (replicated, drawn on the staff and as pips behind you)
         public float StaffJabCd;     // host: the Quarterstaff's jab cools down for this long
-        public float WhipCd;         // host: the Revolver's Pistol Whip cools down for this long (PistolWhip.cs)
         public byte TwinNades;       // Twin Rifle: grenades loaded in the tubes, 0 to 2 (replicated; TwinGrenades.cs)
         public byte TwinNext;        // Twin Rifle: the tube the weapon-action key fires next, 0 left, 1 right (replicated)
         public byte TwinCharge;      // Twin Rifle: hits toward the next grenade, 0 to TwinNadeHits (replicated)
@@ -485,8 +484,14 @@ namespace Arena
         public V2 DomePos;                     // Fortress: where the dome stands (replicated)
         public int EchoLeft;                   // Riot Repeater: rounds still to fire in this burst
         public float EchoT, EchoGap;
-        public int AmmoUsed;                   // Revolver: rounds fired since the last reload (replicated)
-        public float ReloadT, ReloadIdle;      // Revolver: reload time left (replicated); how long since you last fired
+        // The Revolver (Weapons.cs, PistolWhip.cs). Replicated: the stance (0 Gunslinger, 1 Fan), the hammer (cocked, or the pull's
+        // time left), the Fan stance's step (RevWhip... RevFan) and its clock, and the Fan the Hammer's reload left.
+        public byte RevStance, RevStep;
+        public bool RevCocked = true;
+        public float RevCockT, RevT, RevFanReload;
+        public bool RevGuardWas, RevFanByParry;  // host: the parry was up last tick; the fan under way was fired with the parry up
+        public int RevFanLeft;                   // host: fan rounds still to go
+        public float RevFanNext, RevFanAim, RevBotClick;  // host: until the next fan round; the fan's aim; a bot's next click
         public int DbUsed, DbBarrel, DbShot;   // Double Barrel: shells spent, the barrel that fires next, volleys fired (replicated; DoubleBarrel.cs)
         public float DbReload;                 // Double Barrel: reload time left (replicated)
         public byte TpSide;                    // Twin Pistols: the gun that fires next, 0 left, 1 right (replicated; TwinPistols.cs)
@@ -560,8 +565,7 @@ namespace Arena
         public float ArcTagT, ArcIdleT, ForkCdT;  // host only: until the next tag, how long tags have sat with no draw, Forked Volley's cooldown
         public V2 ArcFrom;                     // host only: where the chain's next hop leaves from
         public readonly List<Game.ArcHit> ArcHits = new List<Game.ArcHit>();  // host only: chain and fork hits still to land
-        public bool WasFiring, TapQueued, Fanning;  // Revolver (host): tap vs hold; a click that came too early; fanning the hammer
-        public float HeldT;                    // Revolver (host): how long the trigger has been held
+        public bool WasFiring, TapQueued;      // host: Fire last tick (a click is a new press); a click kept until it can be used (Revolver, Katana, ...)
         public float DrawT;                    // Mender's Bow: how long the current draw has been held (replicated; your own is local)
         public float BowRelease;               // Mender's Bow (host): a release waiting to fire, as its draw time; the shooter measures it
         public float BowShotDraw;              // Mender's Bow (host): the draw of the arrow being fired
@@ -825,6 +829,7 @@ namespace Arena
         public bool Sticks;       // host only: a Shuriken star, which sticks in what it hits (to be recalled)
         public bool Ward;         // host only: an Ofuda charm flying to where it will lie as a ward
         public bool Bolts;        // host only: a piercing shot whose hits fling Ricochet's bounce bolts instead of it bouncing (Combat.cs)
+        public bool FanRound;     // host only: a Revolver's Fan the Hammer round (harder on stunned enemies: PistolWhip.cs)
         public bool Crossfire;    // host only: a Twin Rifle round, double near Cross (where the streams meet)
         public V2 Cross;
         public float HealAlly;    // host only: heals an ally it passes through

@@ -1082,7 +1082,7 @@ static partial class Shot {
       var tn = Environment.GetEnvironmentVariable("TWINNADES").Split(',');
       me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 0); me.TwinNades = byte.Parse(tn[0]); me.TwinNext = byte.Parse(tn[1]); me.TwinCharge = byte.Parse(tn[2]);
     }
-    if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
+    if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.RevCocked = Environment.GetEnvironmentVariable("REVOLVER") != "pull"; me.RevCockT = me.RevCocked ? 0f : 0.07f; me.RevStance = (byte)(Environment.GetEnvironmentVariable("REVOLVER") == "fan" ? 1 : 0); host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); }  // REVOLVER=1 cocked, pull: the hammer coming back, fan: the Fan stance
   }
   // KNWHEEL=r|l|u|d|c: your Arc Knuckles' click wheel open up and to the right of you, the cursor on that side of it (c: its centre).
   static void KnuckleWheelScene() {
@@ -1191,8 +1191,9 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
-    // WHIP=<s>: the Revolver's Pistol Whip (Core/PistolWhip.cs, Game/PistolWhipLook.cs) that long into a fight: grunts in the arc and a
-    // spray of small and big enemy shots flying in, Alt pressed 0.1 s in (WHIPIDLE=1: no press).
+    // WHIP=<s>: the Revolver's Fan stance (Core/PistolWhip.cs, Game/PistolWhipLook.cs) that long into a fight: grunts in the arc and a
+    // spray of small and big enemy shots flying in, a click 0.1 s in (the Pistol Whip; WHIPIDLE=1: no click; WHIPFAN=1: a second
+    // click 0.3 s in, Fan the Hammer).
     if (Environment.GetEnvironmentVariable("WHIP") != null) {
       var ci = System.Globalization.CultureInfo.InvariantCulture;
       var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
@@ -1205,12 +1206,13 @@ static partial class Shot {
       for (int i = 0; i < 9; i++) {
         float a = -1.3f + 2.6f * i / 8f; V2 from = home + V2.FromAngle(a) * (175f + 20f * (i % 3));
         shoot.Invoke(gm, new object[] { i % 4 == 0 ? Defs.BigShot : Defs.SmallShot, from, (home - from).Normalized() * 160f, 0f, 5f, 10f, -1, false, 0f }); }
-      bool idle = Environment.GetEnvironmentVariable("WHIPIDLE") != null;
+      bool idle = Environment.GetEnvironmentVariable("WHIPIDLE") != null, fanToo = Environment.GetEnvironmentVariable("WHIPFAN") != null;
+      me.RevStance = 1;
       var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
       int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("WHIP"), ci) * 60f));
       for (int f = 0; f < frames; f++) {
         me.Pos = me.Disp = home; me.Aim = 0f; Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
-        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(300f, 0f), WeaponAction = !idle && f >= 6 && f < 9 }); gm.Update(1f / 60f);
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(300f, 0f), Fire = !idle && (f >= 6 && f < 9 || fanToo && f >= 18 && f < 21) }); gm.Update(1f / 60f);
         me.Disp = me.Pos = home; me.Aim = 0f; me.Hp = me.MaxHp; foreach (var e in gm.Enemies.Values) e.Disp = e.Pos; draw.Invoke(app, null);
       }
       GL.Tris.Clear(); GUI.Log.Clear();

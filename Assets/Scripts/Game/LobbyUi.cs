@@ -1665,7 +1665,6 @@ namespace Arena
                     DrawJuiceFloor();
                 }
                 DrawArenaContents(sg.AnimT);
-                DrawFumaWorld(sg.AnimT);  // the Fuma's circling stars, and forgetting thrown stars' trails once they land (else they pile up and stay drawn)
                 if (fx)
                 {
                     DrawJuiceParts();
@@ -1673,20 +1672,7 @@ namespace Arena
                     DrawGlowPass();
                     SwitchToGlow(false);
                 }
-                foreach (var p in sg.Players.Values)
-                    if (p.Weapon.Id == WeaponId.Greatsword)
-                    {
-                        DrawGreatWindup(p);  // each step's own pose: the held sword hides while one shows (GreatswordLook.cs)
-                        DrawGreatWheel(p);   // the Moonwheel
-                        DrawGreatPips(p);
-                    }
-                foreach (var p in sg.Players.Values)
-                    if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
-                        DrawBowDraw(p, true, sg.AnimT);
-                    else if (p.Weapon.Id == WeaponId.Warhammer && p.DrawT > 0f && !p.Downed)
-                        DrawHammerCharge(p, true, sg.AnimT);  // the raised hammer and its charge circle
-                    else if (p.Weapon.Id == WeaponId.ArcLightning && p.DrawT > 0f && !p.Downed)
-                        DrawArcLockFlatCharge(p, true, sg.AnimT);  // (with Visual effects on this draws nothing: the glow pass has the charge)
+                DrawPlayerOverlays(sg.AnimT, V2.Zero, false);  // each weapon's pips, meters and charges, as in a run (WorldRenderer.cs; no aim line: the preview aims itself)
             }
             finally
             {

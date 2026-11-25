@@ -195,7 +195,7 @@ namespace Arena
         public float FlakBurstMult = 1f, MineCdCut;                        // Flak Cannon: Wide Burst
         public float SuppressMult = 1f, TearGasMult = 1f;                  // Riot Repeater: Crowd Control
         public float UndertowGainMult = 1f, ShedHealMult = 1f;             // Repulsion Cannon: Undertow Pump
-        public float RevolverReloadMult = 1f, HeavyRoundBonus;             // Revolver: Hot Lead
+        public float RevolverCockMult = 1f, RevolverShotBonus;             // Revolver: Hot Lead (a faster hammer, a harder shot)
         public float BowDrawMult = 1f; public int BowPierceBonus;          // Mender's Bow: Steady Draw
         public float CrossZoneMult = 1f, CrossBonus;                       // Twin Rifle: Kill Zone
         public float RailTrailBonus, RailBurnMult = 1f;                    // Railgun: Supercharge

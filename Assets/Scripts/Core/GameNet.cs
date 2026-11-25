@@ -820,13 +820,17 @@ namespace Arena
             if (s.Reading)
                 p.BloodReserve = reserve;
             s.Float(ref p.CoatT);
-            s.Byte(ref p.AmmoUsed);
+            s.Byte(ref p.RevStance);  // the Revolver (Weapons.cs, PistolWhip.cs)
+            s.Byte(ref p.RevStep);
+            s.Bool(ref p.RevCocked);
+            s.Float(ref p.RevCockT);
+            s.Float(ref p.RevT);
+            s.Float(ref p.RevFanReload);
             s.Byte(ref p.StunShots);
             s.Byte(ref p.PactRez);
             s.Vec(ref p.LightPos);
             s.Bool(ref p.RadiantOn);
             s.Vec(ref p.RadiantPos);
-            s.Float(ref p.ReloadT);
             s.Byte(ref p.DbUsed);
             s.Byte(ref p.DbBarrel);
             s.Byte(ref p.DbShot);

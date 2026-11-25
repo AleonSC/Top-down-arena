@@ -686,10 +686,9 @@ static partial class Program
         var orb = new Orb { Tiny = true, Boost = me.Stats.ShedHealMult };
         Check(near(me.Stats.UndertowGainMult, 1.3f, 0.001f) && near(orb.Heal / Game.TinyOrbHeal, 1.3f, 0.001f), "Undertow Pump: the Undertow fills 30% faster and its orbs heal 30% more");
 
-        Func<int, float> heavyShot = n => { arm(WeaponId.Revolver, "Hot Lead", n); me.AmmoUsed = g.RevolverCapacity(me); me.ReloadT = 0f; var b = fireV(WeaponId.Revolver, "Hot Lead", n); return b.Count > 0 ? b[0].Dmg : 0f; };
-        Func<int, float> plainShot = n => { arm(WeaponId.Revolver, "Hot Lead", n); me.AmmoUsed = 0; var b = fireV(WeaponId.Revolver, "Hot Lead", n); return b.Count > 0 ? b[0].Dmg : 0f; };
-        float hl0 = heavyShot(0) / plainShot(0), hl1 = heavyShot(1) / plainShot(1);
-        Check(near(hl0, 2f, 0.01f) && near(hl1, 3f, 0.01f) && near(me.Stats.RevolverReloadMult, 0.75f, 0.001f), "Hot Lead: the heavy round deals triple (was double), and the reload is 25% faster (" + hl0 + " -> " + hl1 + ")");
+        Func<int, float> revShot = n => { var b = fireV(WeaponId.Revolver, "Hot Lead", n); return b.Count > 0 ? b[0].Dmg : 0f; };
+        float hl0 = revShot(0), hl1 = revShot(1);
+        Check(near(hl1 / hl0, 1.25f, 0.01f) && near(me.Stats.RevolverCockMult, 0.75f, 0.001f), "Hot Lead: the Revolver's shot hits 25% harder and the hammer comes back 25% faster (" + hl0 + " -> " + hl1 + ")");
 
         arm(WeaponId.MendersBow, "Steady Draw", 0); float bf0 = g.BowFull(me);
         me.BowShotDraw = 5f; var ar0 = fireV(WeaponId.MendersBow, "Steady Draw", 0);

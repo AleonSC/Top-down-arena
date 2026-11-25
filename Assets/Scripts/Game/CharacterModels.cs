@@ -648,6 +648,13 @@ namespace Arena
             if (fx)
                 MFrame(mOx - 4f * kick, mOy, mAng - 0.12f * kick, mWs, false);
             MRect(-5f, -2.2f, 7f, 8f, MWood); MRect(0f, -2.6f, 10f, 5.2f, MDark); MLine(8f, 0f, 17f, 0f, 3f, MSteel); MCirc(5f, 0f, 3.6f, Hx(0x6a7685), 10);
+            float ck = p.RevCocked ? 1f : p.RevCockT > 0f ? 1f - Mathf.Clamp01(p.RevCockT / Mathf.Max(0.01f, game.RevCockTime(p))) : 0f;
+            if (ck > 0.05f)  // the hammer pulled back behind the frame (gold-tipped when cocked: the next click fires)
+            {
+                MLine(0.5f, 0f, 0.5f - 4.5f * ck, 0f, 2f, MSteel);
+                if (p.RevCocked)
+                    MCirc(0.5f - 4.5f * ck, 0f, 1.2f, Hx(0xffcc4d), 6);
+            }
             if (fx)
                 for (int i = 0; i < 6; i++)
                     MCirc(5f + Mathf.Cos(spin + i * MathX.Tau / 6f) * 2.1f, Mathf.Sin(spin + i * MathX.Tau / 6f) * 2.1f, 0.8f, Hx(0x1b2026), 6);

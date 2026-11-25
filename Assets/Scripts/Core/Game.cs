@@ -1139,7 +1139,7 @@ namespace Arena
             bool parry = input.Parry || HoldParry, weaponAction = input.WeaponAction;  // (the smart bot sets its own: BotBrain.cs)
             bool dodgePress = input.Dodge, dodgeHeld = input.DodgeHeld;  // (and its own dodge: BotDodge.cs)
             me.Parrying = parry && !me.Downed;
-            bool firing = input.Fire && !me.Downed && !me.ParryActive;  // can't shoot behind the shield
+            bool firing = input.Fire && !me.Downed && (!me.ParryActive || FiresBehindShield(me));  // can't shoot behind the shield (but Fan the Hammer can: PistolWhip.cs)
             var held = heldScratch;  // (one array, filled each tick)
             held[0] = input.Ability; held[1] = input.AbilityQ; held[2] = input.AbilityE; held[3] = input.AbilityShift; held[4] = input.Ultimate;
 
@@ -1148,7 +1148,7 @@ namespace Arena
                 botT += dt;
                 SmartBot(me, dt, ref move, ref aimAt, ref firing, held, ref weaponAction, ref parry, ref dodgePress, ref dodgeHeld);  // BotBrain.cs
                 me.Parrying = parry && !me.Downed;
-                if (me.ParryActive)
+                if (me.ParryActive && !FiresBehindShield(me))
                     firing = false;
             }
             else if (Bot)
@@ -1559,7 +1559,6 @@ namespace Arena
             TickHammerSlams(dt);    // StormHammer.cs: slams landing and their shockwaves
             TickBoShoves(dt);   // BoStaff.cs: the Bo Staff's shoves landing
             TickStaff(dt);      // Quarterstaff.cs: the jab's cooldown, stacks dropped with the staff
-            TickPistolWhip(dt); // PistolWhip.cs: the Revolver's Alt cooling down
             TickScatter(dt);    // BowFocus.cs: the Mender's Bow's Alt cooling down
             TickBowWind(dt);    // BowFocus.cs: Focus arrows' wind shoving what they pass
             dmgSrc = tickSrc;
@@ -1766,10 +1765,7 @@ namespace Arena
                 else if (p.StunShots > 0)
                     TickStunGun(p);  // the Stun Gun is out instead of your weapon (Stun.cs)
                 else if (p.Weapon.Id == WeaponId.Revolver)
-                {
-                    TickRevolver(p, dt);
-                    RevolverTrigger(p, dt);
-                }
+                    RevolverTrigger(p, dt);  // a single-action gun, or the Fan stance's whip and fan (Weapons.cs, PistolWhip.cs)
                 else if (p.Weapon.Id == WeaponId.DoubleBarrel)
                     TickDoubleBarrel(p, dt);
                 else if (p.Weapon.Id == WeaponId.GrenadeLauncher)
