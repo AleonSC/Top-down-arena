@@ -613,6 +613,9 @@ namespace Arena
             s.Float(ref p.RvT);  // Blood Ravager (BloodRavager.cs)
             if (p.RvT > 0f)
                 s.Float(ref p.RvLen);
+            s.Float(ref p.BoilT);  // Blood Boil (BloodBoil.cs)
+            if (p.BoilT > 0f)
+                s.Float(ref p.BoilLen);
             s.Float(ref p.FpT);  // Forbidden Path (ForbiddenPath.cs)
             if (p.FpT > 0f)
             {
