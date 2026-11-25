@@ -52,7 +52,7 @@ static partial class Shot {
       host.Poll(); gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt, Fire = f > 18 }); gm.Update(1f / 60f);
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
       foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
-      if (f >= frames - 60 && f < frames - 1) { int keep = GL.Tris.Count; drawWorld.Invoke(app, null); GL.Tris.RemoveRange(keep, GL.Tris.Count - keep); GL.Additive = false; }
+      if (f >= frames - 60 && f < frames - 1) { int keep = GL.Tris.Count; drawWorld.Invoke(app, null); GL.Tris.RemoveRange(keep, GL.Tris.Count - keep); }
     }
     foreach (var e in mobs) Console.Error.WriteLine("  mob {0} {1} at {2:0},{3:0}", e.Id, e.Type, e.Pos.X, e.Pos.Y);
     Console.Error.WriteLine("  me at {0:0},{1:0} FpAt {2:0},{3:0}", me.Pos.X, me.Pos.Y, me.FpAt.X, me.FpAt.Y);

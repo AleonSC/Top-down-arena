@@ -1153,6 +1153,7 @@ static partial class Shot {
     BowFocusScene();  // BOWFOCUS=rest|draw|bar|focus|miss|swing|scatter,<s> (ShotBowFocus.cs)
     LagScene();  // LAG=pill|chart|guest [LAGFROZEN=1] (ShotLag.cs)
     BossGateScene();  // GATE=<fill> [GATEIN=<players in>] [GATEAGE=<s>] (ShotBossGate.cs)
+    GL.Additive = false;  // a scene that drew the world ahead (its glow pass) leaves the stub's blend additive; the shot itself starts plain, as Unity does
     // NADET=<s>: the Twin Rifle's Rocket assist (TwinNadeLook.cs), a grenade fired from the left tube that long ago (aiming
     // right, the arena otherwise empty). NADELOAD=<s>: instead, the left tube loading that long ago (its breech and shell).
     // RIFLEFIRE=1 holds fire as well (NADET=0.4 RIFLEFIRE=1 shows the rifles mid-burst); CROSSAT=<px> sets the cursor distance.
