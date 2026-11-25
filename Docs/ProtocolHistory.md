@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 498: Spirit Avatar (the Tank Ninja's third ultimate): the player snapshot gains `SpT`, `SpAge`, `SpWind`, `SpAng`; new `FxKind.SpiritInk`, `AbilityId.SpiritAvatar`.
 - 497: Revolver rework: the player snapshot drops `AmmoUsed`/`ReloadT` and gains `RevStance`, `RevStep`, `RevCocked`, `RevCockT`, `RevT`, `RevFanReload`; WeaponDash kind 42 switches the Revolver's stance (was the Pistol Whip).
 - 496: Arc Knuckles stance rework: `Msg.Input` ends with the click wheel's steer byte; the player snapshot gains `KnuckleStance`, `KnuckleMove`, `KnuckleRooted`, `KnuckleCharge`; WeaponDash kind 25 swaps stance (was the Rocket Dash).
 - 495: the Turnkey's Cell Door gains phase 3 (being built, PhaseT the work left) and is built into an outer wall facing in (`Game.DoorSpot`); its body stands `DoorIn` from the wall's face.

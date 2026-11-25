@@ -31,6 +31,7 @@ namespace Arena
                 amount *= Math.Max(0.2f, 1f - RoarReduction - p.Stats.RoarExtraReduction);
             amount *= RodMult(p);  // Lightning Rod's charge (LightningRod.cs)
             amount *= ColMult(p);  // Stone Colossus (StoneColossus.cs)
+            amount *= SpMult(p);  // Spirit Avatar (SpiritAvatar.cs)
             amount *= p.Stats.DamageTaken;
             if (p.GhostT > 0f)
                 amount *= 1f - p.Stats.GhostCut;  // Ghost Step: just after a dodge

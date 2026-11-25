@@ -1,6 +1,6 @@
 # Spirit Avatar (design)
 
-Status: **planned** (Nov 2026). The Tank Ninja's third ultimate (lobby key 2 of the Ultimate row; Thousand Clones stays the
+Status: **built** (Nov 2026, protocol 498). The Tank Ninja's third ultimate (lobby key 2 of the Ultimate row; Thousand Clones stays the
 default, Dragon's Dogma is key 1). The owner chose look **C, Sumi Giant**, and the rules as shown in the mockup.
 Mockup: [`Docs/Mockups/spirit-avatar.html`](Mockups/spirit-avatar.html) (https://claude.ai/artifact/7HCYDiWg8GvaPzgP3heeZj).
 Looks A (Oni Warden) and B (Kitsune Mantle) are in the same mockup and were not picked.
@@ -18,7 +18,17 @@ Looks A (Oni Warden) and B (Kitsune Mantle) are in the same mockup and were not 
 - All damage scales by your damage. **Mastered**: 15 s, the cleave reaches 20% further. Rare card **Kami Vessel** (up to 2):
   +2 s and the wind-up 0.2 s faster, a stack.
 
-## How to build it (steps)
+## How it's built
+- `Core/SpiritAvatar.cs`: the cast, rise, cut, taunt, shot swallowing, the Moon Cleave (`SpiritTrigger`, `TickSpirit`, `SpSweepHits`)
+  and the release; replicated `Player.SpT`, `SpAge`, `SpWind` (0 none, 0..1 wind-up, 1..2 sweep), `SpAng`.
+- `Game/SpiritAvatarLook.cs`: the Sumi Giant and the floor marks (`FxKind.SpiritInk`).
+- Test suite `spiritavatar`; preview `SPIRIT=<s> NINJA=0 Tools/Preview/shot.sh x hud`.
+
+## Not done
+- Its own sounds: it uses the shared `Shockwave` (rise, each cleave) and `BigExplode` (release) sounds for now.
+- Other games always show the base reach on the floor arc (mastery isn't sent).
+
+## The plan it was built from
 1. **Core**: `Core/SpiritAvatar.cs` on the Stone Colossus pattern (`Core/StoneColossus.cs`): `AbilityId.SpiritAvatar` (at the
    end of the enum), the `AbilityDef` with `UltKey = 2`, cast, rise, damage cut and taunt, Fire as the cleave (wind-up, sweep
    hit by angle, push), shot swallowing, release; replicated `Player` fields (time left, age, wind-up 0..1, aim lock); protocol

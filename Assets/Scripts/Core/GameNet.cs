@@ -582,6 +582,10 @@ namespace Arena
             s.Float(ref p.ColT);  // Stone Colossus (StoneColossus.cs)
             s.Float(ref p.ColAge);
             s.Float(ref p.ColWind);
+            s.Float(ref p.SpT);  // Spirit Avatar (SpiritAvatar.cs)
+            s.Float(ref p.SpAge);
+            s.Float(ref p.SpWind);
+            s.Float(ref p.SpAng);
             s.Float(ref p.TitheClock);  // Vein Tithe (VeinTithe.cs)
             int tithed = Math.Min(255, p.Tithed.Count);
             s.Byte(ref tithed);
