@@ -492,6 +492,13 @@ namespace Arena
         public V2 ColLast;                     // host: where you stood last tick (the steps)
         public int ColSide, ColStomps, ColSlams;  // host: the foot that came down last; stomps and slams this run (tests)
         public bool ColSlamHit, ColMastered, ColUp;  // host (ColUp: it stands, so it crumbles when ColT runs out)
+        public float ApT, ApLinkT;            // Astral Projection (AstralProjection.cs), replicated: time left (0 = off); on a host, held up while a tether is on them
+        public int ApHost;                     // ...the player the spirit rides (your own id: your body; replicated)
+        public V2 ApPos;                       // ...the spirit (replicated)
+        public float ApFireCd, ApSwapCd;       // host: until the next bolt, until the next switch
+        public bool ApUp, ApMastered, ApParryWas;  // host (ApParryWas: the parry key was held last tick)
+        public int ApBolts, ApSwaps;           // host: bolts and switches this run (tests)
+        public float ApHealed;                 // host: HP healed this run (tests)
         public float SpT, SpAge, SpWind, SpAng;  // Spirit Avatar (SpiritAvatar.cs), replicated: time left (0 = off), seconds since the cast, the cleave (0 none, 0..1 wind-up, 1..2 sweep), its heading
         public float SpCastT = -1f, SpCd;      // host: the cleave's clock (-1 = none), its cooldown
         public int SpCleaves, SpSwallowed;     // host: cleaves and shots swallowed this run (tests)
@@ -618,7 +625,7 @@ namespace Arena
         public float ParryHeld, ParryDown = 10f;  // host: how long it's been up / down
         public bool ParryPerfect;              // host: raised fresh, so the first moment reflects
         public float ParryBumpT;               // host: a melee hit on the shield counts once per bump
-        public bool ParryActive => Parrying && ParryBroken <= 0f && !Downed;
+        public bool ParryActive => Parrying && ParryBroken <= 0f && !Downed && ApT <= 0f;  // (Astral Projection: the parry key switches teammate instead)
         public float BarrierHp, BarrierMax, AegisHp;  // damage the Barrier / Aegis can still soak (host)
         public bool BarrierReflect;                   // host: a mastered Barrier sends bullets back
         public float AegisReflectMult = 1f;           // host: a mastered Aegis reflects twice as hard
@@ -705,7 +712,7 @@ namespace Arena
         public float RiotT;  // Riot Gear: seconds until the shield is back, 0 = ready (RiotGear.cs)
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
-        public float Speed => Def.Speed * Stats.SpeedMult * Game.MomentumMult(this) * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (OverchargeT > 0f ? Game.OverchargeMove : 1f) * (Game.Supplied(this) ? Game.SupplyMove : 1f) * Game.GustMult(GustT) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (RepelPull ? Game.RepelPullSelfSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (NunGuard ? Game.NunGuardSlow : 1f) * (NodStance == 1 && Weapon.Id == WeaponId.Nodachi ? Game.NodGuardSlow : 1f) * (VgStance == 1 && Weapon.Id == WeaponId.Vowguard ? Game.VgSanctSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f) * Game.ColSpeed(this) * Game.SpSpeed(this) * Game.BoltSpeed(this) * Game.RodentSpeed(this) * Game.RavagerSpeed(this) * (TankT > 0f ? Game.TankSlow : 1f) * (WcTempestT > 0f ? Game.TempestSlow : 1f) * (FlZeroT > Game.ZeroDur - Game.ZeroCharge ? Game.ZeroSlow : 1f) * (TitheClock > 0f ? Game.TitheSlow : 1f) * (BbBrace ? Game.BraceSlow : 1f) * (HbSet ? Game.PikeSlow : 1f) * (ShardGuard ? Game.ShardGuardSlow : 1f) * (TpLaserT > 0f ? Game.TpLaserSlow : 1f) * (Game.EnergyDrinkOn(this) ? Game.EnergySpeed : 1f) * (PvpSlowT > 0f ? PvpSlowMult : 1f) * Game.FpSpeed(this);
+        public float Speed => Def.Speed * Stats.SpeedMult * Game.MomentumMult(this) * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (OverchargeT > 0f ? Game.OverchargeMove : 1f) * (Game.Supplied(this) ? Game.SupplyMove : 1f) * Game.GustMult(GustT) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (RepelPull ? Game.RepelPullSelfSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (NunGuard ? Game.NunGuardSlow : 1f) * (NodStance == 1 && Weapon.Id == WeaponId.Nodachi ? Game.NodGuardSlow : 1f) * (VgStance == 1 && Weapon.Id == WeaponId.Vowguard ? Game.VgSanctSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f) * Game.ColSpeed(this) * Game.SpSpeed(this) * Game.BoltSpeed(this) * Game.RodentSpeed(this) * Game.RavagerSpeed(this) * (TankT > 0f ? Game.TankSlow : 1f) * (WcTempestT > 0f ? Game.TempestSlow : 1f) * (FlZeroT > Game.ZeroDur - Game.ZeroCharge ? Game.ZeroSlow : 1f) * (TitheClock > 0f ? Game.TitheSlow : 1f) * (BbBrace ? Game.BraceSlow : 1f) * (HbSet ? Game.PikeSlow : 1f) * (ShardGuard ? Game.ShardGuardSlow : 1f) * (TpLaserT > 0f ? Game.TpLaserSlow : 1f) * (Game.EnergyDrinkOn(this) ? Game.EnergySpeed : 1f) * (PvpSlowT > 0f ? PvpSlowMult : 1f) * Game.FpSpeed(this) * Game.ApSpeed(this);
         public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
         public float AuraRange => Game.AuraRange * Stats.AuraRangeMult;
     }

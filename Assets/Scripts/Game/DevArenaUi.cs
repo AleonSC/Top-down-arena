@@ -80,7 +80,7 @@ namespace Arena
         V2 CamSubject(Player me)
         {
             var e = session.IsHost && game.DevArena ? game.Possessed : null;
-            return e != null ? e.Disp : me.Disp;
+            return e != null ? e.Disp : Game.ApAway(me) ? me.ApPos : me.Disp;  // (Astral Projection: the camera rides your spirit, AstralProjection.cs)
         }
 
         /// Over the world (Hud.cs): brackets round the enemy you play, its name, and the controls strip.

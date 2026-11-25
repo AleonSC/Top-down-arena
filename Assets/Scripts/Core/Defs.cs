@@ -798,6 +798,7 @@ namespace Arena
             TankShell = 79,    // A Literal Tank's shell: bursts on what it hits, or at the cursor (LiteralTank.cs, Game/LiteralTankLook.cs)
             Senbon = 81,       // a Senbon Seekers needle curving in on an enemy (SenbonSeekers.cs, Game/SenbonSeekersLook.cs)
             RodentShot = 80,   // a Rodent Minigun rodent: a mouse, rat or hamster by its id (Game.RodentOf; RodentMinigun.cs, Game/RodentMinigunLook.cs)
+            AstralBolt = 82,   // Astral Projection's bolt, shot from the spirit (AstralProjection.cs)
             EarthballShot = 72; // the Earthball: stops on the first enemy, stuns it and breaks into rubble (ElementBalls.cs, Game/ElementBallLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark || kind == BottleShot;
@@ -828,6 +829,7 @@ namespace Arena
             Row(table, NovaShot, radius: 6f, color: new Rgba(0.95f, 0.8f, 1f));
             Row(table, FlakShell, radius: 8f, color: new Rgba(0.7f, 0.85f, 1f));
             Row(table, TankShell, radius: 9f, color: new Rgba(1f, 0.62f, 0.25f));
+            Row(table, AstralBolt, radius: 5f, color: new Rgba(0.73f, 0.96f, 1f));  // the spirit's pale cyan (AstralProjection.cs)
             Row(table, Senbon, radius: 4f, color: new Rgba(0.86f, 0.89f, 0.93f));  // steel (the venom tip and ink tail are drawn by SenbonSeekersLook.cs)
             Row(table, RodentShot, radius: 5f, color: new Rgba(0.72f, 0.7f, 0.77f));  // a mouse's grey (rats and hamsters are drawn in their own colours)
             Row(table, RailShot, radius: 3.5f, color: new Rgba(1f, 1f, 0.75f));

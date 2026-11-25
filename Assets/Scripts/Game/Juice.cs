@@ -1239,6 +1239,7 @@ namespace Arena
         {
             float r = p.Def.BodyR, breath = 0.92f + 0.08f * Mathf.Sin(game.AnimT * 2f + p.Id * 1.7f);
             float vis = p.VanishT > 0f ? (p.Id == game.MyId ? 0.5f : 0.2f) : 1f;
+            AstralGlow(p);  // Astral Projection's spirit (AstralProjectionLook.cs)
             if (Game.FpOn(p) && p.FpAge >= 0.45f)
             {
                 GlowDisc(p.Disp, r * 4f, Game.FpRed, 0.1f * breath);  // Forbidden Path's beast: a faint red haze, not the role's glow over its black (ForbiddenPathLook.cs)
