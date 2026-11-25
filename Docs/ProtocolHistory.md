@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 507: Blood Ravager (DPS Hemomancer second ultimate, key 1): `AbilityId.BloodRavager`, `Player.RvT` (and `RvLen` while on) in the player sync, `FxKind.RavagerLash` (a lash: Pos the foot, Pos2 (leg, enemy id), Radius the owner), `Msg.WeaponDash` kind 61 (a click).
 - 506: Claymore (DPS Soldier 3rd choice) takes Mark for Death's place and number (`AbilityId.Claymore`); `ZoneKind.Claymore` (its `Marched` synced like the Decoy Dummy's), `FxKind.ClaymoreBlast` (each at the end); the Rare card Shaped Charge replaces Exploit Weakness.
 - 505: Rodent Minigun (DPS Summoner second ultimate, key 1): `AbilityId.RodentMinigun`, `Defs.RodentShot` (80), `Player.RmT`/`RmAng`/`RmLen` in the player sync, `Sfx.RodentSqueak`/`RodentPortal`, the Rare card Plague Rats (card ids shift).
 - 504: Land Shark (DPS Summoner 4th choice): `AbilityId.LandShark`, `ZoneKind.LandShark`, the Rare card Great White (card ids shift).

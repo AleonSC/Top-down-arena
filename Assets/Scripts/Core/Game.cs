@@ -1451,6 +1451,8 @@ namespace Arena
             LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
             if (LocalLivingBolt(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // electrified: Fire is the dash (LivingBolt.cs)
+            if (LocalRavager(me, firing && !HoldControls, dt))
+                firing = false;  // the blood legs are out: Fire lashes (BloodRavager.cs)
             if (LocalGreatStar(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // the Great Star stance: Fire draws the route and throws instead (GreatStar.cs)
             V2 edgeWant = RoomsHold(before, me.Pos, me.Def.BodyR);  // (a room locks behind you: Rooms.cs)
@@ -1596,6 +1598,7 @@ namespace Arena
             KeepOutOfDomes();  // Fortress's dome (Dome.cs)
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
             TickLivingBolt(dt);  // Living Bolt: its clock, the discharge and the residue's damage (LivingBolt.cs)
+            TickRavager(dt);  // Blood Ravager: its clock, the legs' walk and stomps, the ram and the lashes (BloodRavager.cs)
             TickRodentMinigun(dt);  // Rodent Minigun: the portal's clock, its turn after the aim and the rodents it spits (RodentMinigun.cs)
             TickVortex(dt);  // the Vortex ultimate: its clock, swirl, damage, swept shots and fling (Vortex.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
@@ -1762,6 +1765,10 @@ namespace Arena
                 else if (BoltOn(p))
                 {
                     // electrified: the weapon is put away, Fire is the dash (sent by the player's own game: LivingBolt.cs)
+                }
+                else if (RavagerOn(p))
+                {
+                    // the blood legs are out: the weapon is put away, Fire lashes (sent by the player's own game: BloodRavager.cs)
                 }
                 else if (RodentOn(p))
                 {
