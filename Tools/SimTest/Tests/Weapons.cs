@@ -626,8 +626,7 @@ static partial class Program
             me.FireCd = 0f; me.Combo = 0; me.ComboT = 0f;
             me.Weapon = w;
             me.Stats.ExtraShots = extra;
-            me.AmmoUsed = 0;
-            me.ReloadT = 0f;
+            me.RevCocked = true; me.RevCockT = 0f; me.RevStance = 0; me.TapQueued = false;
             me.Cinder = Game.CinderMax;  // (the Wyvern Staff's meter starts full each trial)
             me.CompanionCd = 0f;
             me.PackStarted = false;  // (the Wolf Whistle's starting wolves come again: WolfPack.cs)
@@ -648,7 +647,7 @@ static partial class Program
                 {
                     x.Poll();
                     // The bow fires when you let go: draw past full (1.25 s), release, repeat.
-                    x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = w.Id == WeaponId.SpiritChalk ? from + V2.FromAngle(f * 0.06f) * 280f : center, Fire = !Game.ChargeWeapon(w.Id) || f % 90 < 75 } : new PlayerInput());
+                    x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = w.Id == WeaponId.SpiritChalk ? from + V2.FromAngle(f * 0.06f) * 280f : center, Fire = w.Id == WeaponId.Revolver ? f % 8 < 2 : !Game.ChargeWeapon(w.Id) || f % 90 < 75 } : new PlayerInput());
                 }
                 foreach (var b in g.Bullets.Values)
                     if (b.Owner == 1 && seen.Add(b.Id)) spawned++;
@@ -703,38 +702,6 @@ static partial class Program
         }
         Check(pass == Defs.Weapons.Length, "every weapon gets its own upgrade from extra projectiles (" + pass + "/" + Defs.Weapons.Length + ")" + (weak.Count > 0 ? ": " + string.Join(", ", weak) : ""));
 
-        // The Revolver: six rounds (the last one heavy), then a reload; two more heavy rounds per extra projectile.
-        {
-            queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
-            me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1);
-            me.Stats.ExtraShots = 0;
-            me.AmmoUsed = 0; me.ReloadT = 0f;
-            var dmgs = new List<float>();
-            var seen = new HashSet<int>(g.Bullets.Keys);
-            bool reloaded = false, clientSawReload = false;
-            float firstGap = 0f, t = 0f, lastShot = -1f;
-            for (int f = 0; f < 4 * 60; f++)
-            {
-                t += dt;
-                foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == s[0] ? new PlayerInput { AimAt = me.Pos + new V2(300f, 0f), Fire = true } : new PlayerInput()); }
-                foreach (var b in g.Bullets.Values)
-                    if (b.Owner == 1 && seen.Add(b.Id))
-                    {
-                        if (lastShot >= 0f && t - lastShot > firstGap) firstGap = t - lastShot;
-                        lastShot = t;
-                        dmgs.Add(b.Dmg);
-                    }
-                reloaded |= me.ReloadT > 0f;
-                clientSawReload |= s[1].Game.Players[1].ReloadT > 0f;
-            }
-            float baseDmg = dmgs.Count > 0 ? dmgs[0] : 0f;
-            Console.WriteLine("  revolver: {0} shots in 4 s, first six {1}, longest gap {2:0.00} s", dmgs.Count, string.Join(" ", dmgs.GetRange(0, Math.Min(7, dmgs.Count)).ConvertAll(x => x.ToString("0"))), firstGap);
-            Check(dmgs.Count >= 7 && dmgs[4] == baseDmg && dmgs[5] == baseDmg * 2f && dmgs[6] == baseDmg && firstGap > 1.1f && reloaded && clientSawReload,
-                "the Revolver fires six rounds (the sixth heavy), then reloads (seen on the client)");
-            me.Stats.ExtraShots = 2;
-            me.AmmoUsed = 0; me.ReloadT = 0f;
-            Check(g.RevolverCapacity(me) == 10 && g.RevolverHeavy(me) == 5, "each extra projectile adds two heavy rounds to the Revolver's cylinder");
-        }
         // Barrage builds the wall: every shot also fires copies fanned out to the sides.
         {
             Func<WeaponDef, int, int, List<Bullet>> FirstVolley = (w, fan, extra) =>
@@ -743,8 +710,7 @@ static partial class Program
                 me.Weapon = w;
                 me.Stats.Fan = fan;
                 me.Stats.ExtraShots = extra;
-                me.AmmoUsed = 0; me.ReloadT = 0f;
-                me.HeldT = 0f; me.Fanning = false; me.WasFiring = false; me.TapQueued = false;  // a fresh trigger pull
+                me.RevCocked = true; me.RevCockT = 0f; me.WasFiring = false; me.TapQueued = false;  // a fresh trigger pull
                 var seen = new HashSet<int>();
                 var shots = new List<Bullet>();
                 for (int f = 0; f < 60 && shots.Count == 0; f++)
@@ -757,14 +723,13 @@ static partial class Program
             var rev = FirstVolley(Defs.Weapon(Role.Healer, Kit.Soldier, 1), 2, 0);
             var angles = rev.ConvertAll(b => (float)Math.Round(b.Vel.Angle, 2));
             angles.Sort();
-            int used = me.AmmoUsed;
             var scatter0 = FirstVolley(Defs.Weapon(Role.Tank, Kit.Soldier, 0), 0, 0);
             var scatter2 = FirstVolley(Defs.Weapon(Role.Tank, Kit.Soldier, 0), 2, 0);
             Func<List<Bullet>, float> Width = bs => { float lo = 9f, hi = -9f; foreach (var b in bs) { lo = Math.Min(lo, b.Vel.Angle); hi = Math.Max(hi, b.Vel.Angle); } return hi - lo; };
-            Console.WriteLine("  barrage: revolver x2 fires at {0} using {1} round(s); scattergun {2} pellets over {3:0.00} rad -> {4} over {5:0.00} rad",
-                string.Join(" ", angles), used, scatter0.Count, Width(scatter0), scatter2.Count, Width(scatter2));
-            Check(rev.Count == 3 && Math.Abs(angles[0] + 0.14f) < 0.011f && Math.Abs(angles[2] - 0.14f) < 0.011f && used == 1,
-                "Barrage fans every shot out to the sides (a Revolver round fans for one round of ammo)");
+            Console.WriteLine("  barrage: revolver x2 fires at {0}; scattergun {1} pellets over {2:0.00} rad -> {3} over {4:0.00} rad",
+                string.Join(" ", angles), scatter0.Count, Width(scatter0), scatter2.Count, Width(scatter2));
+            Check(rev.Count == 3 && Math.Abs(angles[0] + 0.14f) < 0.011f && Math.Abs(angles[2] - 0.14f) < 0.011f,
+                "Barrage fans every shot out to the sides (one Revolver click fires all three)");
             Check(scatter2.Count == 3 * scatter0.Count && Width(scatter2) > Width(scatter0) + 0.25f, "Barrage stacks into a wall: a Scattergun with two copies fires three cones side by side");
             me.Stats.Fan = 0;
         }

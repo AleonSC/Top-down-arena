@@ -1142,7 +1142,7 @@ namespace Arena
             if (LocalSympathy(me, pressed, aimAt))
                 return;  // the Blood Brawler's Sympathy (BloodBrawler.cs)
             if (LocalPistolWhip(me, pressed, aimAt, dt))
-                return;  // the Revolver's Pistol Whip (PistolWhip.cs)
+                return;  // the Revolver's stance switch (PistolWhip.cs)
             if (LocalScatter(me, pressed, aimAt, dt))
                 return;  // the Mender's Bow's Scatter (BowFocus.cs)
             if (LocalTwinLaser(me, pressed, aimAt, dt))
@@ -1373,9 +1373,9 @@ namespace Arena
                 HostTwinLaser(p);  // the Twin Pistols' Alt (TwinPistols.cs)
                 return;
             }
-            if (kind == DashWhip)
+            if (kind == DashRevStance)
             {
-                HostPistolWhip(p, target);  // the Revolver's Alt (PistolWhip.cs)
+                HostRevStance(p);  // the Revolver's Alt: Gunslinger or Fan stance (PistolWhip.cs)
                 return;
             }
             if (kind == DashScatter)
