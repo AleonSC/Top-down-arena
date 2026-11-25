@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 514: Astral Projection (Healer Ninja second ultimate, key 1): `AbilityId.AstralProjection` (at the end), `Defs.AstralBolt` (83), `Player.ApT` (+ `ApHost`/`ApPos` while on) and `ApLinkT` in the player sync before `RmT`, the Rare card Astral Bond (card ids shift).
 - 513: Ofuda rework: `Defs.BlastOfudaShot` (bullet kind 82), `ZoneKind.OfudaWard` renamed `BlastOfuda` (same value) and it syncs `Zone.Side` (the enemy it rides), `Msg.WeaponDash` kind 63 (the Blast Ofuda), `FxKind.TalismanBurst` (at the end).
 - 512: Needle Swarm (DPS Hemomancer weapon, replaces Blood Bolts: `WeaponId.BloodBolts` renamed `NeedleSwarm`, same value): `Player.NsCount`/`NsBurstCd`/`NsTen`/`NsLen`/`NsBound` in the player sync, `FxKind.NeedleSwarm`, `Msg.WeaponDash` kind 62.
 - 511: Forbidden Path (DPS Ninja second ultimate, key 1): `AbilityId.ForbiddenPath`, `FxKind.ForbiddenPath` (each at the end), `Player.FpT` (+ `FpAge`/`FpStage`/`FpStageT`/`FpTarget`/`FpAt`/`FpFrom` while on) in the player sync after `BoltAge`, `Enemy.FpBrands` (a byte after the Blood Blast stacks), the Rare card Forbidden Hunger (card ids shift).

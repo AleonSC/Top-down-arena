@@ -417,6 +417,7 @@ namespace Arena
             DrawKnightDpsTop(t);  // Caught Steel's shards, the Gauntlet lying where it hit (KnightDpsLook.cs)
             DrawKatanaMarks(t);  // the enemies a Momentum Burst marked, and its cracks (KatanaLook.cs)
             DrawForbiddenTop(t);  // Forbidden Path's lock brackets and Blood Brands (ForbiddenPathLook.cs)
+            DrawAstralTop(t);  // Astral Projection's spirits (AstralProjectionLook.cs)
             DrawStonespearLeftovers(t);  // spent Stonespear spears and their dust (StonespearLook.cs)
             foreach (var fx in game.Effects)
                 DrawEffect(fx, t);
@@ -450,6 +451,7 @@ namespace Arena
             DrawRodentPortal(p, t);  // the Rodent Minigun's portal (RodentMinigunLook.cs)
             DrawRavagerUnder(p, t);  // Blood Ravager's glow, reach ring and back legs (BloodRavagerLook.cs)
             DrawForbiddenAura(p, t);  // Forbidden Path's time ring, lock chain, Spiral trail and Gate runes (ForbiddenPathLook.cs)
+            DrawAstralUnder(p, t);  // Astral Projection's ward, silver cord, tether ring and beam (AstralProjectionLook.cs)
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)
             DrawTempest(p, t);  // Wind Clash's Tempest (WindClashLook.cs)
             DrawStaticShockUnder(p, t);  // Overcharge's gold ring; the plain cone (StaticShockLook.cs)

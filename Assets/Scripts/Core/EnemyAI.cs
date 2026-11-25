@@ -418,7 +418,7 @@ namespace Arena
                 return hunted.Id;  // Hunted: everyone goes for the quarry (Modifiers.cs)
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.VanishT > 0f || Jailed(p))  // a vanished Ninja can't be picked out (Ninja.cs); nor someone in a Holding Cell
+                if (p.Downed || p.VanishT > 0f || ApOn(p) || Jailed(p))  // (ApOn: Astral Projection's body is ignored, AstralProjection.cs); a vanished Ninja can't be picked out (Ninja.cs); nor someone in a Holding Cell
                     continue;
                 alive.Add(p.Id);
                 if (p.Role == Role.Tank)
@@ -569,7 +569,7 @@ namespace Arena
                     e.TargetId = cell != null ? cell.PlayerId : 0;
                     Players.TryGetValue(e.TargetId, out target);
                 }
-                else if (e.RetargetT <= 0f || target == null || target.Downed || HoldingCells.Count > 0 && Jailed(target))
+                else if (e.RetargetT <= 0f || target == null || target.Downed || ApAway(target) || HoldingCells.Count > 0 && Jailed(target))
                 {
                     e.TargetId = PickTarget();
                     e.RetargetT = 3f;

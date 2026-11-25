@@ -20,6 +20,8 @@ namespace Arena
                 return;  // inside the Devourer: nothing out here can reach you (Devourer.cs)
             if (InDome(p.Pos, -2f))
                 return;  // inside Fortress's dome nothing hostile reaches you (Dome.cs)
+            if (ApOn(p))
+                return;  // Astral Projection: the body can't be hurt, nor the spirit (AstralProjection.cs)
             if (bladedRuns.Exists(r => r.Owner == p.Id))
                 return;  // mid-rush in Bladed Dive: nothing touches you, whatever checks InvulnT (BladedDive.cs)
             if (!tickDamage && RiotBlocks(p, source))
