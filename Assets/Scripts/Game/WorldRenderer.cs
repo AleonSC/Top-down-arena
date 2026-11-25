@@ -453,6 +453,7 @@ namespace Arena
             DrawRodentPortal(p, t);  // the Rodent Minigun's portal (RodentMinigunLook.cs)
             DrawRavagerUnder(p, t);  // Blood Ravager's glow, reach ring and back legs (BloodRavagerLook.cs)
             DrawForbiddenAura(p, t);  // Forbidden Path's time ring, lock chain, Spiral trail and Gate runes (ForbiddenPathLook.cs)
+            DrawStaticBubble(p, t);  // Static Bubble round its caster, Static Rush on anyone (StaticBubbleLook.cs)
             DrawAstralUnder(p, t);  // Astral Projection's ward, silver cord, tether ring and beam (AstralProjectionLook.cs)
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)
             DrawTempest(p, t);  // Wind Clash's Tempest (WindClashLook.cs)

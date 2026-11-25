@@ -34,7 +34,7 @@ Every weapon, ability, enemy, role and class with its numbers (health, damage, c
 The lobby is one calm blue CRT screen with a 36 px margin and soft, darker edges: the party column is on the left, the big loadout screen on the right washed with a soft gradient in your role's colour (it eases when you pick another role), and the tabs above it are small, faded caps with the open one a lit pill. Every option is a digital key (outlined, inverse video under the mouse or when picked; locked ones are dashed with a padlock), and the colour lives in the party cards, the live preview, the stat bars and the pixel icons. With Visual effects on (and Reduced effects off) it's alive: its pieces **holo-boot** as you come in (a scan line wipes down each, then it flickers), box frames near the cursor light up with a crisp bright line (and a faint echo just outside) where they're closest, the scanlines crawl slowly down, a faint **radar sweep** turns over the loadout preview, and readying sends a small green spark with a short tail from Ready up the gap between the party column and the big screen into that player's card, a thin ring bursts 10 px off it and the card keeps a faint thin green line while ready. Starting the run glitches the lobby (red and blue copies split off, torn bands jump sideways) and switches it off like an old CRT, squashed to a line that shrinks to a point, before the drop-in. In it each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight,
 Ninja, Hemomancer), then one of that combination's three weapons (four for the Soldier, Elementalist, Summoner, Knight, Ninja and Hemomancer DPS and the Soldier, Elementalist, Summoner, Knight, Ninja and Hemomancer Tank, and the Healer Soldier, Elementalist, Summoner, Knight and Ninja: their fourth on the 4th key) and three 1st abilities (four for a few: their fourth on the 4th key). Weapons and abilities are
 unique to their role and class. The **Ultimate** row under them shows the combination's ultimates: key 0 is its default
-ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, and on key 2 A Literal Tank, the Tank Elementalist: Lightning Rod, with Stone Colossus on key 2 and Vortex on key 3, the Tank Summoner: Bone Phalanx, the Tank Ninja: Dragon's Dogma, with Spirit Avatar on key 2, the Tank Hemomancer: **Bloodbath**, the DPS Soldier: Attack Helicopter, and on key 2 Orbital Laser, the DPS Elementalist: **Living Bolt**, and on key 2 **Flash Fire**, the Healer Soldier: Field Hospital, and on key 2 Supply Drop, and the DPS Knight: Warhorn Volley, and the DPS Ninja: **Forbidden Path**, and the Healer Ninja: **Astral Projection**); the
+ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, and on key 2 A Literal Tank, the Tank Elementalist: Lightning Rod, with Stone Colossus on key 2 and Vortex on key 3, the Tank Summoner: Bone Phalanx, and on key 2 **Iron Armadillo**, the Tank Ninja: Dragon's Dogma, with Spirit Avatar on key 2, the Tank Hemomancer: **Bloodbath**, the DPS Soldier: Attack Helicopter, and on key 2 Orbital Laser, the DPS Elementalist: **Living Bolt**, and on key 2 **Flash Fire**, the Healer Soldier: Field Hospital, and on key 2 Supply Drop, and the DPS Knight: Warhorn Volley, and the DPS Ninja: **Forbidden Path**, and the Healer Ninja: **Astral Projection**, and the Healer Elementalist: **Static Bubble**); the
 other keys are locked. Click a key to pick it (inverse video, like the weapon and ability keys): the detail box and the
 preview show it. The pick goes back to the default when you change role or class; bots use the default, a Wildcard's
 row lists its class wheel's class, and a saved run's seats keep theirs.
@@ -404,8 +404,8 @@ Parry upgrades show up like any other card:
 
 **Q** fires your **ultimate**. Each role and class combination has its own default one, and some have others to
 pick instead on the lobby's **Ultimate** row (so far the Tank Soldier: **Juggernaut Suit** and **A Literal Tank** and the Tank Elementalist: **Lightning Rod**, **Stone Colossus** and **Vortex**, below the table; and the DPS Elementalist: **Living Bolt** and **Flash Fire**, below; and the
-Tank Hemomancer: **Bloodbath**, in the Hemomancer table; and the Tank Summoner: **Bone Phalanx**, below the table; and the
-Tank Ninja: **Dragon's Dogma** and, on key 2, **Spirit Avatar**, below; and the DPS Soldier: **Attack Helicopter** and **Orbital Laser**, below; and the Healer Soldier: **Field Hospital** and on key 2 **Supply Drop**, below; and the DPS Knight: **Warhorn Volley**, below; and the DPS Hemomancer: **Blood Ravager**, below; and the DPS Summoner: **Rodent Minigun** and, on key 2, **Mammoth Fall**, below; and the DPS Ninja: **Forbidden Path**, below; and the Healer Ninja: **Astral Projection**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
+Tank Hemomancer: **Bloodbath**, in the Hemomancer table; and the Tank Summoner: **Bone Phalanx** and, on key 2, **Iron Armadillo**, below the table; and the
+Tank Ninja: **Dragon's Dogma** and, on key 2, **Spirit Avatar**, below; and the DPS Soldier: **Attack Helicopter** and **Orbital Laser**, below; and the Healer Soldier: **Field Hospital** and on key 2 **Supply Drop**, below; and the DPS Knight: **Warhorn Volley**, below; and the DPS Hemomancer: **Blood Ravager**, below; and the DPS Summoner: **Rodent Minigun** and, on key 2, **Mammoth Fall**, below; and the DPS Ninja: **Forbidden Path**, below; and the Healer Ninja: **Astral Projection**, below; and the Healer Elementalist: **Static Bubble**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
 that upgrades don't shorten, and start each run half charged. The HUD shows the charge in the gold slot.
 
 **Juggernaut Suit** (Tank Soldier, picked instead of Fortress, 75 s): six steel plates clamp onto you over 0.6 s and
@@ -576,6 +576,17 @@ next stage of a five-stage area combo on the lock; you're rooted while a stage r
 5. **Forbidden Gate** (1.4 s): the beast rises over a rune circle (untouchable), then slams a **black sun** with a red rim
    and cracks on the target: 90 to everything within 260 px; then every **Blood Brand** within 420 px bursts for 10 each.
 
+**Static Bubble** (Healer Elementalist, key 1 of the lobby's Ultimate row, picked instead of Sanctum, 80 s): a crackling
+**44 px bubble of static** wraps you for up to **10 s** and moves with you. Enemies can't be inside it, heavies and bosses
+too: one touching it is put out at its edge and **shoved 60 px**, takes 4 and is stunned 0.35 s (not bosses), and
+**feeds it 3** (once per 0.6 s each). **Enemy shots** touching it are **eaten**, feeding it 1 each. **Allies inside can't
+be hurt.** It **grows to 118 px** as it fills (40 charge), running from cyan to white-violet and crackling harder; a gold
+arc round it shows the charge, a thin grey one the time left. **Full, it bursts**: 70 damage to everything within 190 px,
+a 0.6 s stun (not bosses), a 110 px shove, every enemy shot in reach erased, and **Static Rush** for you and every ally in
+the blast: **6 s of +40% move speed and +60% fire rate** (a gold ring draining round them). If time runs out first it pops
+smaller: its reach, damage and Static Rush scale with how full it was (at least a quarter). Going down or the wave ending
+ends it with no burst. Mastered: the burst reaches 240 px and Static Rush lasts 8 s. Damage is times your damage.
+
 **Astral Projection** (Healer Ninja, key 1 of the lobby's Ultimate row, picked instead of Blossom Storm, 70 s): for **8 s**
 your body stays where it is behind a slowly turning gold hex ward: it **can't be hurt, can't move or dodge, and enemies
 ignore it** (any already after it look for someone else). Your **spirit**, a pale glowing ninja, rides the **nearest
@@ -661,6 +672,21 @@ crumbles; it crumbles early if you go down or the wave ends. Mastered: 10 skelet
 have it cast it at the biggest group in front of them. With Visual effects off it is drawn plainly (a disc, a bar and
 a stick per skeleton).
 
+**Iron Armadillo** (Tank Summoner, the third ultimate, key 2, 75 s): a giant spirit armadillo wraps round you and curls
+into an armoured ball 140 px across (0.6 s, rooted, spirit arcs closing in), then you roll for 10 s. The ball steers toward
+your cursor (or where WASD points) in wide turns and builds speed up to 520 px/s; hold **Fire** to brake and aim (a gold
+dashed arrow and a ring fill over 0.8 s), let go to launch at up to 780 px/s, dropping back to 520 over about half a
+second. Nothing hurts you while you're curled up: enemy shots that reach the shell ricochet off it as your arcane bolts (15
+each), and red aimed shots just stop. Each enemy you roll into takes 20 at rest to 80 at full speed (up to 100 at the
+launch's top speed), times your damage, at most once every 0.4 s: regular enemies are flung, and one flung fast hurts
+what it hits (as a Lance shove); Heavies are stunned 0.6 s and bounce you off, and so do bosses. Hitting a wall or a prop
+faster than 312 px/s bashes it for 50 within 120 px, and you bounce (the plain arena wraps round, so walls are the
+Expanding arena's, Solid Walls' and the like). Your weapon, its Alt, your abilities and the Dodge are locked; your
+minions keep fighting. On time the ball uncurls with a slam: 90 within 180 px, shoving regular enemies back; going down
+or the wave ending uncurls it quietly. Mastered: rolls 13 s and the slam hits for 130. Bots cast it with an enemy within
+420 px. The banded plates roll over the top as it goes, with a teal spirit rim, a dust trail and speed lines (gold while
+launched); a thin bar over it is the time left.
+
 ### Ability mastery
 
 Every ability (role abilities, the extra ones from upgrades, and ultimates) **gains mastery from 1 to 5 as you use
@@ -719,7 +745,7 @@ the key, pops "MASTERY 3" over it and shows a line above the keys with what it g
 | **Orbital Laser** | The circle is 340 px wide instead of 260, and the beam ploughs 200 px on while it fires. | **Mammoth Fall** | Rampages 1.5 s longer (4.5 s). |
 | **Land Shark** | A 30% wider puddle, and the bite hits for 160. | **Senbon Seekers** | Holds up to 12 needles. |
 | **Blood Ravager** | Lasts 12 s. | **Forbidden Path** | The beast lasts 11 s. |
-| **Astral Projection** | Lasts 10 s and heals 40% more. | | |
+| **Astral Projection** | Lasts 10 s and heals 40% more. | **Iron Armadillo** | Rolls 13 s and the uncurl slam hits for 130. |
 
 A popup appears when an ability gains mastery. The **Tab** menu shows each ability's mastery as five pips (the next one
 fills as it earns XP). What mastery 5 unlocks is always written in gold under each ability's description: in the lobby
@@ -729,7 +755,7 @@ with "…"; hover a Tab tile to read it in full.
 
 In the lobby, the loadout screen's **Ultimate** row has four keys. Key 0 is your role and class's default ultimate;
 the next keys hold the others you can pick instead (key 1 is **Juggernaut Suit** for the Tank Soldier, with **A Literal Tank** on key 2, **Lightning Rod**
-for the Tank Elementalist (key 2: **Stone Colossus**, key 3: **Vortex**), **Bloodbath** for the Tank Hemomancer, **Bone Phalanx** for the Tank Summoner, **Dragon's Dogma** for the Tank Ninja, **Attack Helicopter** for the DPS Soldier (key 2: **Orbital Laser**), **Living Bolt** for the DPS Elementalist (key 2: **Flash Fire**), **Field Hospital** (key 2: **Supply Drop**) for the Healer Soldier and **Warhorn Volley** for the DPS Knight, **Forbidden Path** for the DPS Ninja, **Astral Projection** for the Healer Ninja), and the rest
+for the Tank Elementalist (key 2: **Stone Colossus**, key 3: **Vortex**), **Bloodbath** for the Tank Hemomancer, **Bone Phalanx** for the Tank Summoner (key 2: **Iron Armadillo**), **Dragon's Dogma** for the Tank Ninja, **Attack Helicopter** for the DPS Soldier (key 2: **Orbital Laser**), **Living Bolt** for the DPS Elementalist (key 2: **Flash Fire**), **Field Hospital** (key 2: **Supply Drop**) for the Healer Soldier and **Warhorn Volley** for the DPS Knight, **Forbidden Path** for the DPS Ninja, **Astral Projection** for the Healer Ninja), and the rest
 are locked slots for ultimates still to come. Click a key to pick it (the picked one is in inverse video, like the
 weapon and ability keys): it goes to the host and the other players like your other picks, the detail box shows its
 charge time, what it does and what mastering it adds, and the preview casts it. Changing role or class goes back to
@@ -1799,7 +1825,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 | Gadget wheel: hold to open, let go on a gadget to swap it into your hand | C |
 | Wiki: tap to look anything up (pauses a solo run; in co-op only on your screen); hold and click anything on screen (text, an enemy, a player) to open its page | I |
 | Rotate camera left / right: swing the view a quarter turn anticlockwise / clockwise (see Zoom in / out below) | [ ] |
-| First person (experimental): see the run through your own eyes. The arena's floor art becomes the ground, walls and pillars rise, crates, barrels and chests are solid boxes and drums with their look on top, enemies, players and shots stand up as cards with a shadow under each. The mouse turns you (the cursor is locked while no menu is up; speed in Settings → Gameplay → First-person mouse), W walks where you look, and you aim at the crosshair in the middle of the screen (looking down aims at that spot on the floor). Your own body, the aim line and the weapon pips round you aren't drawn. Just your screen: the game, co-op and saves are unchanged. Remembered between launches | F8 |
+| First person (experimental): see the run through your own eyes. The arena's floor art becomes the ground, walls and pillars rise, crates, barrels and chests are solid boxes and drums with their look on top, enemies, players and shots stand up as cards with a shadow under each. The mouse turns you (the cursor is locked while no menu is up; speed in Settings → Gameplay → First-person mouse), W walks where you look, and you aim at the crosshair in the middle of the screen (looking down aims at that spot on the floor). Your weapon is a 3D model low on the right in your role's colour, chosen by your weapon: a gun (recoils with a muzzle flash as you fire), a sword for melee weapons (swings right to left, then back) or a staff for spells, bows and summons (thrusts, its crystal flaring); it bobs as you walk. Your own body, the aim line and the weapon pips round you aren't drawn. Just your screen: the game, co-op and saves are unchanged. Remembered between launches | F8 |
 | 2nd, 3rd and 4th abilities | 2, 3 and 4 (changeable; once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |

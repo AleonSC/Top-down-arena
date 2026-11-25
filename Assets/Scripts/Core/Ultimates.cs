@@ -154,6 +154,10 @@ namespace Arena
                     CastTank(p, cap);
                     break;
 
+                case AbilityId.IronArmadillo:  // Tank: Summoner, the third ultimate (IronArmadillo.cs)
+                    CastArmadillo(p, cap);
+                    break;
+
                 case AbilityId.GlacialTomb:  // Tank: Elementalist
                     EraseEnemyBullets(p.Pos, 99999f);
                     foreach (var e in AllFoes(by: p.Id))
@@ -197,6 +201,9 @@ namespace Arena
                     break;
                 case AbilityId.ForbiddenPath:  // DPS: Ninja, the second ultimate (ForbiddenPath.cs)
                     CastForbiddenPath(p, cap);
+                    break;
+                case AbilityId.StaticBubble:  // Healer: Elementalist, the second ultimate (StaticBubble.cs)
+                    CastStaticBubble(p, cap);
                     break;
                 case AbilityId.AstralProjection:  // Healer: Ninja, the second ultimate (AstralProjection.cs)
                     CastAstral(p, cap);
