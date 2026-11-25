@@ -182,6 +182,10 @@ namespace Arena
                     CastVortex(p, cap);
                     break;
 
+                case AbilityId.LivingBolt:  // DPS: Elementalist, the second ultimate (LivingBolt.cs)
+                    CastLivingBolt(p, cap);
+                    break;
+
                 case AbilityId.DragonsDogma:  // Tank: Ninja, the second ultimate (DragonsDogma.cs)
                     CastDogma(p, cap);
                     break;

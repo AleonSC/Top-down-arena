@@ -354,6 +354,7 @@ namespace Arena
                 DrawHammerIdle(p, t);  // the Warhammer held at the ready (MeleeLooks.cs)
                 DrawStunned(p, t);  // WardenLook.cs
                 DrawRodSparks(p, t);  // Lightning Rod's arcs on the body (LightningRodLook.cs)
+                DrawLivingBoltSparks(p, t);  // Living Bolt's arcs on the body (LivingBoltLook.cs)
                 DrawHeldStunGun(p, t);
             }
             DrawWardenNet(t);  // the Warden's net, thrown and wrapped round someone, over the bodies (HoldingCellLook.cs)
@@ -389,6 +390,7 @@ namespace Arena
             DrawBuffTimers(p, t);  // a shrinking arc under them for each timed buff (AbilityLooks.cs)
             DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
             DrawVortex(p, t);      // the Vortex ultimate's storm (VortexLook.cs)
+            DrawLivingBoltAura(p, t);  // Living Bolt's channel, halo and time ring (LivingBoltLook.cs)
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)
             DrawTempest(p, t);  // Wind Clash's Tempest (WindClashLook.cs)
             DrawStaticShockUnder(p, t);  // Overcharge's gold ring; the plain cone (StaticShockLook.cs)

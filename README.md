@@ -34,7 +34,7 @@ Every weapon, ability, enemy, role and class with its numbers (health, damage, c
 The lobby is one calm blue CRT screen with a 36 px margin and soft, darker edges: the party column is on the left, the big loadout screen on the right washed with a soft gradient in your role's colour (it eases when you pick another role), and the tabs above it are small, faded caps with the open one a lit pill. Every option is a digital key (outlined, inverse video under the mouse or when picked; locked ones are dashed with a padlock), and the colour lives in the party cards, the live preview, the stat bars and the pixel icons. With Visual effects on (and Reduced effects off) it's alive: its pieces **holo-boot** as you come in (a scan line wipes down each, then it flickers), box frames near the cursor light up with a crisp bright line (and a faint echo just outside) where they're closest, the scanlines crawl slowly down, a faint **radar sweep** turns over the loadout preview, and readying sends a small green spark with a short tail from Ready up the gap between the party column and the big screen into that player's card, a thin ring bursts 10 px off it and the card keeps a faint thin green line while ready. Starting the run glitches the lobby (red and blue copies split off, torn bands jump sideways) and switches it off like an old CRT, squashed to a line that shrinks to a point, before the drop-in. In it each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight,
 Ninja, Hemomancer), then one of that combination's three weapons (four for the Soldier, Elementalist, Summoner, Knight, Ninja and Hemomancer DPS and the Soldier, Elementalist, Summoner, Knight, Ninja and Hemomancer Tank, and the Healer Soldier, Elementalist and Knight: their fourth on the 4th key) and three 1st abilities (four for a few: their fourth on the 4th key). Weapons and abilities are
 unique to their role and class. The **Ultimate** row under them shows the combination's ultimates: key 0 is its default
-ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, and on key 2 A Literal Tank, the Tank Elementalist: Lightning Rod, with Stone Colossus on key 2 and Vortex on key 3, the Tank Summoner: Bone Phalanx, the Tank Ninja: Dragon's Dogma, the Tank Hemomancer: **Bloodbath**, the DPS Soldier: Attack Helicopter, the Healer Soldier: Field Hospital, and the DPS Knight: Warhorn Volley); the
+ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, and on key 2 A Literal Tank, the Tank Elementalist: Lightning Rod, with Stone Colossus on key 2 and Vortex on key 3, the Tank Summoner: Bone Phalanx, the Tank Ninja: Dragon's Dogma, the Tank Hemomancer: **Bloodbath**, the DPS Soldier: Attack Helicopter, the DPS Elementalist: **Living Bolt**, the Healer Soldier: Field Hospital, and the DPS Knight: Warhorn Volley); the
 other keys are locked. Click a key to pick it (inverse video, like the weapon and ability keys): the detail box and the
 preview show it. The pick goes back to the default when you change role or class; bots use the default, a Wildcard's
 row lists its class wheel's class, and a saved run's seats keep theirs.
@@ -399,7 +399,7 @@ Parry upgrades show up like any other card:
 ### Ultimates
 
 **Q** fires your **ultimate**. Each role and class combination has its own default one, and some have others to
-pick instead on the lobby's **Ultimate** row (so far the Tank Soldier: **Juggernaut Suit** and **A Literal Tank** and the Tank Elementalist: **Lightning Rod**, **Stone Colossus** and **Vortex**, below the table; and the
+pick instead on the lobby's **Ultimate** row (so far the Tank Soldier: **Juggernaut Suit** and **A Literal Tank** and the Tank Elementalist: **Lightning Rod**, **Stone Colossus** and **Vortex**, below the table; and the DPS Elementalist: **Living Bolt**, below; and the
 Tank Hemomancer: **Bloodbath**, in the Hemomancer table; and the Tank Summoner: **Bone Phalanx**, below the table; and the
 Tank Ninja: **Dragon's Dogma**, below; and the DPS Soldier: **Attack Helicopter**, below; and the Healer Soldier: **Field Hospital**, below; and the DPS Knight: **Warhorn Volley**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
 that upgrades don't shorten, and start each run half charged. The HUD shows the charge in the gold slot.
@@ -512,6 +512,20 @@ with two dashed rings, and the time left draining round the edge. You hear the U
 swirling hum while it blows, and its pop at the fling. Bots cast it with four or more enemies within 260 px. Mastered:
 300 px across and 55 a second. Design: [`Docs/Mockups/vortex.html`](Docs/Mockups/vortex.html).
 
+**Living Bolt** (DPS Elementalist, key 1 of the lobby's Ultimate row, picked instead of Bullet Rain, 80 s): for **0.5 s**
+arcs gather onto you (you can't move or attack), then you're **electrified for 10 s**. Your weapon is put away and Fire is
+the dash: each **click blinks you to the cursor**, up to **260 px** (walls and props stop it short), as often as you like
+with only **0.12 s** between dashes (a click in that gap goes as soon as it ends), and you can't be hurt for the blink.
+Every enemy within 30 px of the path is **shocked**: **40** and a 0.3 s stun (heavies and bosses: the damage only); it's
+lightning, so wet enemies arc on. Each path stays live as **static residue** for **3 s**: **12 a second** to enemies
+touching it (once a tick, however many trails cross). When the 10 s run out you **discharge**: 60 to every enemy within
+130 px. Going down or the wave ending stops it at once, with no discharge. All damage is by your damage. The look: violet
+arcs jumping inward for the channel; then a cyan halo with arcs on your body and the time left draining round you in
+gold, flickering violet over the last 2 s; each dash is a jagged violet-and-white bolt with branches, afterimages along
+it and a ring where you land; the residue is a faint lane with a thin bolt crackling along it. Sounds: a chain-arc
+crackle at the cast, a zap for each dash, a boom for the discharge. Bots cast it with a target within 380 px. Mastered:
+13 s, and the residue stays 5 s.
+
 **Bone Phalanx** (Tank Summoner, the second ultimate, 75 s): a bone gate cracks open in the floor 60 px ahead of you,
 across your aim (0.5 s), and eight skeletons with bone tower shields step out of it, middle first, into a line 25 px
 apart (a 200 px front). Over 6 s the line marches 260 px along the aim it was cast with, even if you turn. The shields
@@ -587,7 +601,7 @@ with "…"; hover a Tab tile to read it in full.
 
 In the lobby, the loadout screen's **Ultimate** row has four keys. Key 0 is your role and class's default ultimate;
 the next keys hold the others you can pick instead (key 1 is **Juggernaut Suit** for the Tank Soldier, with **A Literal Tank** on key 2, **Lightning Rod**
-for the Tank Elementalist (key 2: **Stone Colossus**, key 3: **Vortex**), **Bloodbath** for the Tank Hemomancer, **Bone Phalanx** for the Tank Summoner, **Dragon's Dogma** for the Tank Ninja, **Attack Helicopter** for the DPS Soldier, **Field Hospital** for the Healer Soldier and **Warhorn Volley** for the DPS Knight), and the rest
+for the Tank Elementalist (key 2: **Stone Colossus**, key 3: **Vortex**), **Bloodbath** for the Tank Hemomancer, **Bone Phalanx** for the Tank Summoner, **Dragon's Dogma** for the Tank Ninja, **Attack Helicopter** for the DPS Soldier, **Living Bolt** for the DPS Elementalist, **Field Hospital** for the Healer Soldier and **Warhorn Volley** for the DPS Knight), and the rest
 are locked slots for ultimates still to come. Click a key to pick it (the picked one is in inverse video, like the
 weapon and ability keys): it goes to the host and the other players like your other picks, the detail box shows its
 charge time, what it does and what mastering it adds, and the preview casts it. Changing role or class goes back to
