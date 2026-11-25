@@ -115,7 +115,6 @@ namespace Arena
         const float LinkHeal = 8f;  // Soul Lantern's regeneration a second (SoulLantern.cs)
         const float MedkitCooldown = 14f, MedkitReach = 360f, MedkitFlight = 0.5f, MedkitLife = 6f;  // Medkit.cs
         public const float GrenadeRadius = 110f;  // the Twin Rifle's grenades (TwinGrenades.cs; public: the grenade's flight look draws it, SoldierLooks.cs)
-        const float MarkTime = 6f;
         const float BlinkRange = 300f;
         public const float ShockwaveRange = 230f;  // (Shockwave.cs; public: the preview places its scene by it)
         const float ShockwaveDamage = 60f;

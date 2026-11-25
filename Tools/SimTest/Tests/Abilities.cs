@@ -20,7 +20,7 @@ static partial class Program
                 var client = JoinAs(port, true, "Friend", roles[1], 0, choice);
                 var s = new[] { host, client };
                 WaitForGame(host, client, dt);
-                bool taunt = false, zone = false, grenade = false, marked = false, adrenaline = false;
+                bool taunt = false, zone = false, grenade = false, claymore = false, adrenaline = false;
                 int ghosts = 0, frame = 0;
                 // Mark needs an enemy on screen when the bot presses it, so give it longer.
                 float seconds = roles[0] == Role.Dps && choice == 2 ? 26f : 14f;
@@ -34,8 +34,8 @@ static partial class Program
                     zone |= client.Game.Zones.Count > 0;
                     foreach (var fx in client.Game.Effects)
                         grenade |= fx.Kind == FxKind.Airstrike;
-                    foreach (var e in client.Game.Enemies.Values)
-                        marked |= e.Marked;
+                    foreach (var z in client.Game.Zones.Values)
+                        claymore |= z.Kind == ZoneKind.Claymore;
                     if (++frame % 60 == 0)
                     {
                         for (int k = 0; k < 5; k++) { Thread.Sleep(2); client.Poll(); }
@@ -51,7 +51,7 @@ static partial class Program
                         case AbilityId.Roar: seen = taunt; break;
                         case AbilityId.Adrenaline: seen = adrenaline; break;
                         case AbilityId.Airstrike: seen = grenade; break;
-                        case AbilityId.Mark: seen = marked; break;
+                        case AbilityId.Claymore: seen = claymore; break;
                     }
                     if (Environment.GetEnvironmentVariable("DEBUG") != null)
                         Console.WriteLine("  {0}: seen {1} ghosts {2} wave {3} enemies {4}", ab, seen, ghosts, host.Game.Wave, host.Game.Enemies.Count);

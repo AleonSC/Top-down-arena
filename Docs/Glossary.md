@@ -9,7 +9,7 @@ Status: agreed with the owner (Nov 19 2026). One word per thing, in code comment
   Files and look classes follow the same name (`BloodBrawler.cs`, `BloodBrawlerLook.cs`).
 - Renaming something in game means renaming its id as well. Add the old id to `Core/OldNames.cs` so saves, profiles
   and wave files that use the old name still load. Enum numbers don't change, so the protocol doesn't either.
-- A short id is fine where it's just a shortened name: `Medkit` (Deployable Medkit), `Mark` (Mark for Death),
+- A short id is fine where it's just a shortened name: `Medkit` (Deployable Medkit),
   `Adrenaline` (Adrenaline Shot). `Decoy` and `MummerCopy` show the name of the boss they copy.
 
 ## Players
