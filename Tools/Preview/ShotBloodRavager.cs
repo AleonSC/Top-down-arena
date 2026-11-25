@@ -63,7 +63,6 @@ static partial class Shot {
       foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
       if (f >= frames - 60 && f < frames - 1) { int keep = GL.Tris.Count; drawWorld.Invoke(app, null); GL.Tris.RemoveRange(keep, GL.Tris.Count - keep); }
     }
-    GL.Additive = false;
     Console.Error.WriteLine("ravager: t {0:0.00} lashes {1} hits {2} stomps {3} trampled {4}", me.RvT, me.RvLashCount, me.RvLashHits, me.RvStomps, me.RvTrampled);
   }
 }
