@@ -45,7 +45,7 @@ namespace Arena
             else if (sing != null)
                 laserAngle = sing.Facing;
 
-            var cageCol = Defs.Get(EnemyType.CageWell).Color;
+            var cageCol = SingHeatCol(SingHeatNow());  // the Singularity's phase heat, like its wells (SingularityLook.cs)
             foreach (var c in game.Cages.Values)
             {
                 if (c.Radius < 1f)
@@ -637,6 +637,8 @@ namespace Arena
                 DrawSingularityCore(e, pos, r, col, t);  // SingularityLook.cs: a lensed black hole
             else if (e.Type == EnemyType.SingularityShard)
                 DrawSingularityShard(e, pos, r, col, t);  // SingularityLook.cs: a small one
+            else if (e.Type == EnemyType.GravityWell || e.Type == EnemyType.CageWell)
+                DrawSingularityWell(e, pos, r, col, t);  // SingularityLook.cs: a small one
             else if (e.Type == EnemyType.Eclipse)
                 DrawEclipseBody(e, pos, r, col, t);  // EclipseLook.cs: the sun, the moon crossing it a step each phase
             else if (Game.IsTwin(e.Type))
@@ -817,7 +819,7 @@ namespace Arena
                     break;
                 case EnemyType.GravityWell:
                     if (!spawning)
-                        DrawWellPull(e, pos, r, col, t);
+                        DrawWellPull(e, pos, r, SingHeatCol(SingHeatNow()), t);  // in the Singularity's phase heat (SingularityLook.cs)
                     break;
                 case EnemyType.StormHerald:
                     DrawHeraldUnderlay(e, pos, r, t);  // HeraldLook.cs
@@ -1057,11 +1059,6 @@ namespace Arena
                     break;
                 case EnemyType.BallLightning:
                     DrawBallLightning(e, pos, r, t);  // HeraldLook.cs
-                    break;
-                case EnemyType.GravityWell:  // a spinning black hole
-                case EnemyType.CageWell:
-                    Circle(pos, r * 0.6f, new Rgba(0f, 0f, 0f, 1f), 16);
-                    Arc(pos, r * 0.6f, 1.5f, Rgba.White.WithAlpha(0.7f), 16, t * 6f, MathX.Pi * 1.2f);
                     break;
             }
         }

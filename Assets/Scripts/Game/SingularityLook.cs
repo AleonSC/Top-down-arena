@@ -34,6 +34,26 @@ namespace Arena
             DrawLensedHole(pos, r * 0.8f, heat, col.A, flash, t * 1.8f + e.Id, e.Ang * 1.1f + 0.4f * Mathf.Sin(t * 0.6f + e.Id), 3);
         }
 
+        /// A Gravity Well or a Cage Well: a small lensed black hole in the Singularity's phase heat, each turned its own
+        /// way (Cage Wells smaller and spinning faster), over the well's pull rings (DrawWellPull).
+        void DrawSingularityWell(Enemy e, V2 pos, float r, Rgba col, float t)
+        {
+            bool cage = e.Type == EnemyType.CageWell;
+            float flash = e.Flash > 0f || JuiceFlash(e) ? HitFlashMix(e) : 0f;
+            int heat = SingHeatNow();
+            GlowDisc(pos, r * 2.4f, SingHeatCol(heat), 0.22f * col.A);
+            DrawLensedHole(pos, r * 0.85f, heat, col.A, flash, t * (cage ? 2.6f : 1.4f) + e.Id, e.Id * 1.3f + 0.3f * Mathf.Sin(t * 0.5f + e.Id), cage ? 2 : 3);
+        }
+
+        /// The living Singularity's heat (Event Horizon if there's none, e.g. a well outside the fight).
+        int SingHeatNow()
+        {
+            foreach (var o in game.Enemies.Values)
+                if (o.Type == EnemyType.Singularity)
+                    return SingHeat(o);
+            return 0;
+        }
+
         /// The phase's heat for the band: 0 Event Horizon, 1 Accretion, 2 Spaghettify and the last stand.
         static int SingHeat(Enemy e) => e.Sing == null || e.Sing.Stage == SingStage.EventHorizon ? 0 : e.Sing.Stage == SingStage.Accretion ? 1 : 2;
 
