@@ -253,6 +253,10 @@ namespace Arena
                     CastHeli(p, cap);
                     break;
 
+                case AbilityId.OrbitalLaser:  // DPS: Soldier, the third ultimate (OrbitalLaser.cs)
+                    CastOrbital(p, target, cap);
+                    break;
+
                 case AbilityId.BulletRain:  // DPS: Elementalist
                 {
                     V2 at = ClampToArena(target, BulletRainRadius);
