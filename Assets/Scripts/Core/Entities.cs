@@ -332,7 +332,7 @@ namespace Arena
         public bool GadgetOn;                         // switched on: using up GadgetLeft (replicated)
         public readonly GadgetId[] BagKind = { GadgetId.None, GadgetId.None, GadgetId.None, GadgetId.None };  // gadgets carried besides the one in hand (replicated; Gadgets.cs)
         public readonly float[] BagLeft = new float[4];  // each one's seconds of use left
-        public byte GadgetUses;                       // the gadget in hand's uses left (the Lodestone, the Defib Kit, the throwables; replicated)
+        public byte GadgetUses;                       // the gadget in hand's uses left (the Lodestone, the Medkit, the throwables; replicated)
         public readonly byte[] BagUses = new byte[4];  // each bagged gadget's uses left
         public float GadgetCd;                        // host: until the next throwable charge can go
         public bool SprayOn;                          // Arterial Spray is gushing (replicated; ArterialSpray.cs)

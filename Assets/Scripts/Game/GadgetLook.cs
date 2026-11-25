@@ -236,8 +236,6 @@ namespace Arena
         /// A player's held gadget beside them; switched on, field lines drawing in and a timer ring.
         void DrawHeldGadget(Player p, float t)
         {
-            if (p.Downed)
-                DrawDefibCharge(p, t);  // GadgetShapes.cs
             if (p.Gadget == GadgetId.None || p.Downed)
                 return;
             float r = p.Def.BodyR;
