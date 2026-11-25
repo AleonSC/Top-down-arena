@@ -24,8 +24,8 @@ static partial class Program
         Check(def.Name == "Dragon's Dogma" && def.Cooldown == 70f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Role == Role.Tank && def.Kit == Kit.Ninja && def.Capstone != null,
             "Dragon's Dogma is the Tank Ninja's ultimate on key 1, 70 s");
         Check(Upgrades.Ultimate(Role.Tank, Kit.Ninja) == AbilityId.ThousandClones && Upgrades.Ultimate(Role.Tank, Kit.Ninja, 1) == AbilityId.DragonsDogma
-            && Upgrades.AltUltimate(Role.Tank, Kit.Ninja, 2) == AbilityId.None && Upgrades.Ultimate(Role.Dps, Kit.Ninja, 1) == AbilityId.DeathLotus,
-            "Thousand Clones stays the default; key 1 is Dragon's Dogma; the DPS Ninja is untouched");
+            && Upgrades.AltUltimate(Role.Tank, Kit.Ninja, 2) == AbilityId.SpiritAvatar && Upgrades.Ultimate(Role.Dps, Kit.Ninja, 1) == AbilityId.ForbiddenPath,
+            "Thousand Clones stays the default; key 1 is Dragon's Dogma; key 2 is Spirit Avatar; the DPS Ninja's key 1 is its own (Forbidden Path)");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 9 }, port, false, "Ninja", Role.Tank, 0, 0, Kit.Ninja);

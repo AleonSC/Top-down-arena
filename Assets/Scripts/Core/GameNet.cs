@@ -610,6 +610,16 @@ namespace Arena
             s.Float(ref p.RvT);  // Blood Ravager (BloodRavager.cs)
             if (p.RvT > 0f)
                 s.Float(ref p.RvLen);
+            s.Float(ref p.FpT);  // Forbidden Path (ForbiddenPath.cs)
+            if (p.FpT > 0f)
+            {
+                s.Float(ref p.FpAge);
+                s.Byte(ref p.FpStage);
+                s.Float(ref p.FpStageT);
+                s.Int(ref p.FpTarget);
+                s.Vec(ref p.FpAt);
+                s.Vec(ref p.FpFrom);
+            }
             s.Float(ref p.RmT);  // Rodent Minigun (RodentMinigun.cs)
             if (p.RmT > 0f)
             {
@@ -1079,6 +1089,8 @@ namespace Arena
             s.Byte(ref blastStacks);  // Blood Blast stacks on it, and whose (BloodBlast.cs)
             if (blastStacks > 0)
                 s.Byte(ref blastOwner);
+            int fpBrands = !s.Reading ? e.FpBrands : 0;
+            s.Byte(ref fpBrands);  // Forbidden Path's Blood Brands on it (ForbiddenPath.cs)
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -1098,6 +1110,7 @@ namespace Arena
                 e.Variant = (EnemyVariant)variant;
                 e.FrostChill = (byte)frostChill;
                 e.BlastStacks = (byte)blastStacks;
+                e.FpBrands = (byte)fpBrands;
                 e.BlastOwner = blastStacks > 0 ? blastOwner : 0;
                 e.Spawning = spawning;
                 e.Facing = facing;

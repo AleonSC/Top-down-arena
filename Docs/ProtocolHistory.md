@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 511: Forbidden Path (DPS Ninja second ultimate, key 1): `AbilityId.ForbiddenPath`, `FxKind.ForbiddenPath` (each at the end), `Player.FpT` (+ `FpAge`/`FpStage`/`FpStageT`/`FpTarget`/`FpAt`/`FpFrom` while on) in the player sync after `BoltAge`, `Enemy.FpBrands` (a byte after the Blood Blast stacks), the Rare card Forbidden Hunger (card ids shift).
 - 510: health orbs send a `Blood` flag (a Hemomancer's shared blood orb, Combat.cs `DropBloodOrb`).
 - 509: Blood Ravager (DPS Hemomancer second ultimate, key 1): `AbilityId.BloodRavager`, `Player.RvT` (and `RvLen` while on) in the player sync, `FxKind.RavagerLash` (a lash: Pos the foot, Pos2 (leg, enemy id), Radius the owner), `Msg.WeaponDash` kind 61 (a click).
 - 508: Senbon Seekers (DPS Ninja 4th choice): `AbilityId.SenbonSeekers`, bullet kind `Defs.Senbon`, `Player.SbN`/`SbClock`/`SbNewT`/`SbCap` in the player snapshot, the Rare card Hidden Needles (card ids shift).

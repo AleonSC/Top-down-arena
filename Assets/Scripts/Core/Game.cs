@@ -1601,6 +1601,7 @@ namespace Arena
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
             TickLivingBolt(dt);  // Living Bolt: its clock, the discharge and the residue's damage (LivingBolt.cs)
             TickRavager(dt);  // Blood Ravager: its clock, the legs' walk and stomps, the ram and the lashes (BloodRavager.cs)
+            TickForbiddenPath(dt);  // Forbidden Path: the beast's clock, drain, lock-on and combo stages (ForbiddenPath.cs)
             TickRodentMinigun(dt);  // Rodent Minigun: the portal's clock, its turn after the aim and the rodents it spits (RodentMinigun.cs)
             TickVortex(dt);  // the Vortex ultimate: its clock, swirl, damage, swept shots and fling (Vortex.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
@@ -1772,6 +1773,8 @@ namespace Arena
                 {
                     // the blood legs are out: the weapon is put away, Fire lashes (sent by the player's own game: BloodRavager.cs)
                 }
+                else if (FpOn(p))
+                    FpTrigger(p);  // Forbidden Path: the weapon is put away, Fire runs the combo (ForbiddenPath.cs)
                 else if (RodentOn(p))
                 {
                     // the Rodent Minigun's portal is open: the weapon is put away (RodentMinigun.cs)
