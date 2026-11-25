@@ -471,6 +471,7 @@ namespace Arena
         public float RmT, RmAng, RmLen;  // Rodent Minigun (RodentMinigun.cs), replicated: seconds since the cast (0 = off), the portal's heading, its full-fire time
         public float RmAcc, RmPw;        // host: rodents owed to the next tick, the cast's mastery power
         public int RodentsFired;         // host: rodents fired this run (tests, stats)
+        public int MammothTramples;      // host: enemies a Mammoth Fall trampled this run (tests)
         public int BoltDashes, BoltShocks, BoltResidueHits, BoltDischarged;  // host: dashes, enemies shocked, residue ticks landed, enemies discharged into (tests)
         public int VortexHits, VortexSwept, VortexFlung;  // host: damage ticks landed, shots swept away, enemies flung (tests)
         public float ColT, ColAge, ColWind;    // Stone Colossus (StoneColossus.cs), replicated: time left (0 = off), seconds since the cast, the slam (0..1)
@@ -934,6 +935,7 @@ namespace Arena
         public int Leg = -1;        // host, a Stampede: which charge it is on (0 out, 1 back)
         public float Blast;         // host, a Decoy Dummy: how far its confetti blast reaches when it pops (DecoyDummy.cs)
         public HashSet<int> Trampled, Slammed;  // host, a Stampede: enemy ids already hurt, and already slammed, on this charge
+        public Dictionary<int, float> HitAt;  // host, a Mammoth Fall: when (its age) it last trampled each enemy (MammothFall.cs)
         public float Spool, GunCd; public int Side; public bool Quiet, Cap;  // host, a Deployable Turret: Quiet folded away with no blast, Cap mastered; how far the barrels have spun up (0-1), time to its next round, which barrel fires next (DeployableTurret.cs)
         public ZoneDef Def => Kits.Get(Kind);
     }
