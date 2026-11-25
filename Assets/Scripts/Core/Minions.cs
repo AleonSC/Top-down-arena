@@ -124,6 +124,9 @@ namespace Arena
                 case AbilityId.Stampede:
                     CastStampede(p, target, cap);  // Stampede.cs
                     break;
+                case AbilityId.LandShark:
+                    CastLandShark(p, target, cap);  // LandShark.cs
+                    break;
                 case AbilityId.SpiritSwarm:
                 {
                     int sprites = cap ? 8 : 5;
@@ -775,6 +778,11 @@ namespace Arena
                 {
                     TickStampede(z);  // Stampede.cs
                     continue;  // (not a circle: nothing below applies)
+                }
+                if (z.Kind == ZoneKind.LandShark)
+                {
+                    TickLandShark(z);  // LandShark.cs
+                    continue;  // (its own tick: nothing below applies)
                 }
                 if (z.Kind == ZoneKind.Phalanx)
                 {

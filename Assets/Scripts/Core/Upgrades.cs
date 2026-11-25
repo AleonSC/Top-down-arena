@@ -57,6 +57,7 @@ namespace Arena
         SupplyDrop,     // the Healer Soldier's third ultimate (SupplyDrop.cs), key 2 of the lobby's Ultimate row
         OrbitalLaser,   // the DPS Soldier's third ultimate (OrbitalLaser.cs), key 2 of the lobby's Ultimate row
         FlashFire,      // the DPS Elementalist's third ultimate (FlashFire.cs), key 2 of the lobby's Ultimate row
+        LandShark,      // the DPS Summoner's 4th choice (LandShark.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -139,6 +140,7 @@ namespace Arena
         public float WwDmgMult = 1f, WwWetBonus;                           // Water Ward: Deep Current
         // Summoner abilities
         public float StampedeDmgMult = 1f;                                 // Stampede: Thundering Herd
+        public float LandSharkDmgMult = 1f;                                // Land Shark: Great White
         public float GolemHpMult = 1f;                                     // Golem Wall: Basalt Hide
         public float QuakeBonusTime, QuakeDmgMult = 1f;                    // Earthquake: Deep Tremor
         public float PactHpMult = 1f, PactReturnCut;                       // Force Pact: Kindred Bond

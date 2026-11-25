@@ -998,6 +998,29 @@ static partial class Shot {
         en.Hp = en.MaxHp = 1e6f; en.SpawnT = 0f; en.Pos = en.Disp = at;
       }
     }
+    if (Environment.GetEnvironmentVariable("LANDSHARK") != null) {
+      // A DPS Summoner's Land Shark (LandSharkLook.cs): LANDSHARK=<seconds since the cast> (the puddle spreads to 0.45 s, the fin circles
+      // from 0.3, the shark leaps 0.85 to 1.35 and bites at 1.1, the puddle drains 1.6 to 2.2; use 0.6, 1.0, 1.1, 1.25), with grunts in
+      // and round the puddle. LANDSHARKMASTERED=1: 130 px. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear(); gm.Props.Clear(); gm.Layout = LayoutId.Open;
+      me.Kit = Kit.Summoner; me.Role = Role.Dps; me.Def = Defs.Get(Role.Dps); me.Slots[0].Id = AbilityId.LandShark;
+      V2 from = new V2(420f, 560f), at0 = new V2(720f, 420f);
+      float aim = (at0 - from).Angle;
+      me.Pos = me.Disp = from; me.Aim = aim; me.AimAt = at0;
+      float lt = float.Parse(Environment.GetEnvironmentVariable("LANDSHARK"));
+      bool cap = Environment.GetEnvironmentVariable("LANDSHARKMASTERED") != null;
+      var lz = new Zone { Id = 9103, Kind = ZoneKind.LandShark, Owner = me.Id, Pos = at0, Radius = cap ? Game.LandSharkRadiusMastered : Game.LandSharkRadius, Duration = Game.LandSharkLife, Aim = aim };
+      lz.T = Math.Max(0.01f, Game.LandSharkLife - lt);
+      gm.Zones[lz.Id] = lz;
+      V2[] spots = { new V2(-40f, -30f), new V2(35f, 25f), new V2(10f, -60f), new V2(-55f, 45f), new V2(150f, -40f), new V2(-140f, -110f), new V2(120f, 120f) };
+      for (int i = 0; i < spots.Length; i++) {
+        V2 at = at0 + spots[i];
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.SpawnT = 0f; en.Pos = en.Disp = at;
+      }
+    }
     if (Environment.GetEnvironmentVariable("FLOOD") != null) {
       // A tank Elementalist's Flood (FloodLook.cs): FLOOD=<seconds since the cast> (the crest spreads to 0.5 s, it floods to 6 s, then drains over 0.8;
       // use 0.3, 3 or 6.4), with enemies wading in it and around it, the wading ones wet. FLOODMASTERED=1: 247 px. Use with mode hud.

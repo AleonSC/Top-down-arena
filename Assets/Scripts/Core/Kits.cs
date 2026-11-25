@@ -47,7 +47,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital, Steam, StaticResidue, SupplyDrop }
+    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital, Steam, StaticResidue, SupplyDrop, LandShark }
 
     public class ZoneDef
     {
@@ -182,6 +182,7 @@ namespace Arena
             new ZoneDef { Name = "Steam", Color = new Rgba(0.9f, 0.93f, 0.95f) },  // fire + water (Steam.cs): scalds and jams by its own tick
             new ZoneDef { Name = "Static Residue", Color = new Rgba(0.5f, 0.91f, 1f) },  // a Living Bolt dash's live trail (LivingBolt.cs): a lane, Pos its middle, Aim its heading, Radius half its length; hurts by its own tick
             new ZoneDef { Name = "Supply Drop", Color = new Rgba(0.4f, 1f, 0.55f) },  // the Healer Soldier's third ultimate (SupplyDrop.cs): Pos the crate, Radius the open zone; its timer gives the phase (flare, landing, open, folding)
+            new ZoneDef { Name = "Land Shark", Color = new Rgba(0.36f, 0.62f, 0.92f) },  // the DPS Summoner's 4th choice (LandShark.cs): the puddle, Pos its middle, Radius its size, Aim the leap's heading
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

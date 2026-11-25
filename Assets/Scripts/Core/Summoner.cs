@@ -77,6 +77,8 @@ namespace Arena
                 Apply = s => { s.PactHpMult += 0.5f; s.PactReturnCut += 5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Stampede, MaxStacks = 2, Name = "Thundering Herd", Desc = "Stampede tramples and slams 50% harder",
                 Apply = s => s.StampedeDmgMult += 0.5f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LandShark, MaxStacks = 2, Name = "Great White", Desc = "Land Shark bites 40% harder",
+                Apply = s => s.LandSharkDmgMult += 0.4f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SpiritSwarm, MaxStacks = 2, Name = "Sprite Choir", Desc = "Spirit Swarm's sprites heal 40% more and last 2 s longer",
                 Apply = s => { s.SpriteHealMult += 0.4f; s.SpriteBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Phoenix, MaxStacks = 2, Name = "Rebirth Flame", Desc = "The phoenix stays 4 s longer, and whoever it revives gets 25% more health",
@@ -181,6 +183,13 @@ namespace Arena
                 Id = AbilityId.AlphaCall, Kit = Kit.Summoner, Role = Role.Dps, Choice = 2,
                 Name = "Alpha Call", Cooldown = 14f, Desc = "Your minions bite faster, then lunge for triple damage.",
                 Capstone = "Also summons 3 wolves for 6 s.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.LandShark, Kit = Kit.Summoner, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (LandShark.cs)
+                Name = "Land Shark", Cooldown = LandSharkCooldown, Desc = "A puddle opens at your cursor and a shark leaps out, biting everything in it.",
+                Capstone = "A 30% wider puddle, and the bite hits for 160.",
+                Bot = b => b.HaveTarget && b.TargetD < LandSharkRange,
             },
         };
     }
