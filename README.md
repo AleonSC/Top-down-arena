@@ -1296,6 +1296,8 @@ continuing a saved run (its seats are fixed); **< LOADOUT** or Esc closes the dr
 The **main menu** always shows the **Holo Floor**: a starry red sky over a glowing horizon and a red grid floor rolling toward
 you, light running down its lanes. The **lobby** and the space **behind runs** show your own pick from the Look window >
 Background. Turn on **Override menu background** there to show your pick on the main menu too.
+Bring the pointer to the main menu's **top right corner** and a hue key fades in: click it for a rainbow strip that turns the Holo
+Floor to any colour (kept between sessions; **RESET** brings back its red).
 The picks are quiet and **reactive** (they answer your pointer and clicks gently in the menus), with no lines or grids so they
 never fight the arena floor's grid: **Deep Field** (the free default: three layers of drifting stars the pointer tilts and
 brightens; a click makes the stars it passes flare), **Nebula Drift** (rank 29: slow clouds of blue and violet light that
