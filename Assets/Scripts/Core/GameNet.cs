@@ -916,6 +916,11 @@ namespace Arena
             s.Float(ref p.TpCd);
             s.Bool(ref p.StaticOn);  // Static Shock (StaticShock.cs)
             s.Float(ref p.OverchargeT);
+            s.Bool(ref p.TtCharging);  // the Twin Tessen (TwinTessen.cs)
+            s.Float(ref p.TtCharge);
+            s.Float(ref p.TtGustCd);
+            s.Float(ref p.TtTailT);
+            s.Byte(ref p.TtBreeze);
             s.Float(ref p.ChitinHp);  // the Hive Censer (HiveCenser.cs)
             s.Bool(ref p.HiveOn);
             s.Vec(ref p.HivePour);

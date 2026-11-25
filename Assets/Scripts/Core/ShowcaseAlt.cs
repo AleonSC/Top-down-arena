@@ -86,6 +86,7 @@ namespace Arena
             { WeaponId.WyvernStaff, (g, me, t, dt) => Tap(t, dt, 7.5f, 1.5f) },     // the Wyrm Slam (7 s cooldown)
             // The Honeybee Staff: the honey spray, held while the meter lasts.
             { WeaponId.HoneybeeStaff, (g, me, t, dt) => Hold(t, 6f, 1.5f, 2f) },
+            { WeaponId.TwinTessen, (g, me, t, dt) => Hold(t, 10f, 1.5f, 1.2f) },  // the Kamikaze Gust: held back, let go (9 s cooldown)
             // --- Knight ---
             { WeaponId.Lance, (g, me, t, dt) => Tap(t, dt, 4.5f, 1.5f) },           // Hook & Haul (4 s cooldown)
             // The Lightbringer: the Sunlance through a teammate (stand-ins are there for it), with the light gauge filled.

@@ -456,6 +456,7 @@ namespace Arena
             DrawAstralUnder(p, t);  // Astral Projection's ward, silver cord, tether ring and beam (AstralProjectionLook.cs)
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)
             DrawTempest(p, t);  // Wind Clash's Tempest (WindClashLook.cs)
+            DrawTessenUnder(p, t);  // the Twin Tessen's charging cone, Tailwind and Breeze arc (TwinTessenLook.cs)
             DrawChitin(p, t);  // Hive Censer chitin (HiveCenserLook.cs)
             DrawStaticShockUnder(p, t);  // Overcharge's gold ring; the plain cone (StaticShockLook.cs)
             if (p.CoatT > 0f)

@@ -110,7 +110,7 @@ namespace Arena
                     p.FangOut = 0;  // (a run reset dropped the pair)
                 if (p.Weapon.Id == WeaponId.Censer || p.Weapon.Id == WeaponId.BloodLash || p.Weapon.Id == WeaponId.BloodBrawler || p.Weapon.Id == WeaponId.BloodBlast)
                     continue;  // the Censer, the Blood Lash, the Blood Brawler and the Blood Blast keep their own step in Combo (Censer.cs, BloodLash.cs, BloodBrawler.cs, BloodBlast.cs)
-                if (TwinBladesMotion.StepOf(p.Combo) != 0 && ((p.ComboT -= dt) <= 0f || p.Downed || (p.Weapon.Id != WeaponId.TwinBlades && p.Weapon.Id != WeaponId.Lightbringer && p.Weapon.Id != WeaponId.Lance && p.Weapon.Id != WeaponId.BulwarkBarrier && p.Weapon.Id != WeaponId.Halberd && p.Weapon.Id != WeaponId.ArcKnuckles && p.Weapon.Id != WeaponId.Nunchaku)))  // (the Lightbringer's, the Lance's, the Halberd's and the Arc Knuckles' chains share Combo)
+                if (TwinBladesMotion.StepOf(p.Combo) != 0 && ((p.ComboT -= dt) <= 0f || p.Downed || (p.Weapon.Id != WeaponId.TwinBlades && p.Weapon.Id != WeaponId.Lightbringer && p.Weapon.Id != WeaponId.Lance && p.Weapon.Id != WeaponId.BulwarkBarrier && p.Weapon.Id != WeaponId.Halberd && p.Weapon.Id != WeaponId.ArcKnuckles && p.Weapon.Id != WeaponId.Nunchaku && p.Weapon.Id != WeaponId.TwinTessen)))  // (the Lightbringer's, the Lance's, the Halberd's and the Arc Knuckles' chains share Combo)
                     p.Combo &= ~7;  // back to the first step (the swing count stays)
             }
             for (int i = fangRuns.Count - 1; i >= 0; i--)

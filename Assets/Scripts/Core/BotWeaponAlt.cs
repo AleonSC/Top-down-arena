@@ -45,7 +45,7 @@ namespace Arena
         }
 
         /// Alts that are held down rather than tapped (the parry stays down while one is held: it would let go of it).
-        static bool HoldAlt(WeaponId w) => w == WeaponId.Kusarigama || w == WeaponId.BulwarkBarrier || w == WeaponId.Halberd || w == WeaponId.HoneybeeStaff
+        static bool HoldAlt(WeaponId w) => w == WeaponId.Kusarigama || w == WeaponId.BulwarkBarrier || w == WeaponId.Halberd || w == WeaponId.HoneybeeStaff || w == WeaponId.TwinTessen
             || w == WeaponId.RepulsionCannon || w == WeaponId.BloodLash || w == WeaponId.Quarterstaff;
 
         /// A press: down for one tick when `want` and the bot's own cooldown allow, then up (the key reads edges).
@@ -320,6 +320,10 @@ namespace Arena
             var e = v.ShootAt;
             switch (me.Weapon.Id)
             {
+                case WeaponId.TwinTessen:  // charge the gust into a crowd, a barrage or a hurt teammate in front, let go at full charge
+                    if (botAltWas)
+                        return botAltHoldT < Game.TtChargeFull;
+                    return me.TtGustCd <= 0f && Tap(e != null && v.ShootD < 300f && (EnemiesNear(e.Pos, 140f) >= 3 || v.Incoming >= 3 || e.Def.IsBoss), 1f);
                 case WeaponId.HoneybeeStaff:  // spray a group a little way off while the meter lasts
                     if (botAltWas)
                         return me.HoneyFill > 10f && e != null && v.ShootD < 260f;

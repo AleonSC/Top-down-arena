@@ -108,6 +108,9 @@ namespace Arena
             d[(int)FxKind.DecoyPop] = (fx, f, t) => DrawDecoyPopFx(fx);  // DecoyDummyLook.cs
             d[(int)FxKind.DecoyFold] = (fx, f, t) => DrawDecoyFoldFx(fx);  // DecoyDummyLook.cs
             d[(int)FxKind.WindCatch] = (fx, f, t) => DrawWindCatch(fx);  // WindClashLook.cs
+            d[(int)FxKind.TessenStep] = (fx, f, t) => DrawTessenStep(fx);  // TwinTessenLook.cs
+            d[(int)FxKind.TessenPetals] = (fx, f, t) => DrawTessenPetals(fx);
+            d[(int)FxKind.TessenGust] = (fx, f, t) => DrawTessenGust(fx);
             d[(int)FxKind.DoubleBarrel] = (fx, f, t) => DrawDoubleBarrelFx(fx);  // TankAltLook.cs
             d[(int)FxKind.JuggShard] = (fx, f, t) => DrawJuggShardFx(fx);  // JuggernautLook.cs
             d[(int)FxKind.BossBeam] = (fx, f, t) => DrawBossBeamFx(fx);  // BossBeamLook.cs

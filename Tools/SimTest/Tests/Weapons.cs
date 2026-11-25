@@ -674,6 +674,7 @@ static partial class Program
             {
                 case WeaponId.SpriteStaff: ok = b[2] == a[2] + 2; break;                 // +1 sprite each
                 case WeaponId.SpiritChalk: ok = b[3] > a[3]; break;                      // more ink: a longer line
+                case WeaponId.Ofuda: ok = b[1] >= a[1] * 2.5f; break;                    // the Healing Talisman deals no damage (Ofuda.cs): more talismans
                 case WeaponId.MendersBow: ok = b[1] >= a[1] * 2.5f && ratio > 1.2f; break;  // full draws loose extra arrows
                 case WeaponId.Greatsword: ok = b[1] > a[1] && ratio > 1.05f; break;      // Eclipse's sword waves: only one step in ten has them
                 case WeaponId.TwinBlades: ok = b[1] > a[1] && ratio > 1.1f; break;       // crescents off the Pirouette and the Shear: two steps in five have them
@@ -988,7 +989,7 @@ static partial class Program
                         if (first.Contains(b.Id))
                             far = Math.Max(far, b.Pos.DistanceTo(new V2(120f, 450f)));
                     foreach (var fx in g.Effects)
-                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab || fx.Kind == FxKind.Claw || fx.Kind == FxKind.RootLash || fx.Kind == FxKind.TwinStep || fx.Kind == FxKind.CenserStep || fx.Kind == FxKind.LanceStep || fx.Kind == FxKind.BulwarkStep || fx.Kind == FxKind.KnuckleStep || fx.Kind == FxKind.NunStep || fx.Kind == FxKind.NodStep || fx.Kind == FxKind.VgStep || fx.Kind == FxKind.KatanaDash || fx.Kind == FxKind.BlastCut || fx.Kind == FxKind.HalberdStep)
+                        if (fx.Kind == FxKind.Slash || fx.Kind == FxKind.Jab || fx.Kind == FxKind.Claw || fx.Kind == FxKind.RootLash || fx.Kind == FxKind.TwinStep || fx.Kind == FxKind.CenserStep || fx.Kind == FxKind.LanceStep || fx.Kind == FxKind.BulwarkStep || fx.Kind == FxKind.KnuckleStep || fx.Kind == FxKind.NunStep || fx.Kind == FxKind.NodStep || fx.Kind == FxKind.VgStep || fx.Kind == FxKind.KatanaDash || fx.Kind == FxKind.BlastCut || fx.Kind == FxKind.HalberdStep || fx.Kind == FxKind.TessenStep)
                             far = Math.Max(far, fx.Pos2.DistanceTo(fx.Pos));
                     host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) });
                 }
