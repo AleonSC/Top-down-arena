@@ -19,7 +19,7 @@ static partial class Program
         Check(def.Name == "Deployable Turret" && def.Choice == AbilityDef.Fourth && def.Kit == Kit.Soldier && def.Role == Role.Dps && def.Cooldown == 45f,
             "Deployable Turret: a 45 s DPS Soldier 1st ability on the 4th key");
         Check(Upgrades.AbilityLimit(Role.Dps, Kit.Soldier) == 4 && Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 3) == AbilityId.DeployableTurret
-            && Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0) == AbilityId.PoisonDart && Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 2) == AbilityId.Mark,
+            && Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0) == AbilityId.PoisonDart && Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 2) == AbilityId.Claymore,
             "the DPS Soldier's 4th key is the turret; its first three are unchanged");
         Check(Upgrades.All.Any(u => u.ClassAbility && u.Grants == AbilityId.DeployableTurret) && Upgrades.All.Any(u => u.Name == "Overclocked Barrels" && u.RequiresAbility == AbilityId.DeployableTurret && u.Rarity == Rarity.Rare),
             "the turret is a very rare card for DPS Soldiers who picked another, and Overclocked Barrels a Rare card for it");

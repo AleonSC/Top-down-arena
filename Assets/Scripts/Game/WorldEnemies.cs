@@ -313,6 +313,9 @@ namespace Arena
                 case ZoneKind.Mammoth:
                     DrawMammothFloor(z, t);  // MammothFallLook.cs (the mammoth is drawn over the enemies: DrawMammoths)
                     return;  // no timer ring: it's its own clock
+                case ZoneKind.Claymore:
+                    DrawClaymore(z, t);  // ClaymoreLook.cs
+                    return;  // no timer ring: the mine shows its own state
                 case ZoneKind.LandShark:
                     DrawLandSharkPuddle(z, t);  // LandSharkLook.cs (the shark is drawn over the enemies: DrawLandSharks)
                     return;  // no timer ring: the puddle is its own clock

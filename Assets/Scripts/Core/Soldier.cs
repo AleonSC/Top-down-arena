@@ -86,7 +86,8 @@ namespace Arena
                 Apply = s => { s.VenomMult *= 1.3f; s.VenomReachBonus += 60f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Airstrike, MaxStacks = 2, Name = "Bigger Boom", Desc = "Airstrike's bombs blast 50% wider",
                 Apply = s => s.GrenadeRadiusMult += 0.5f },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Mark, MaxStacks = 2, Name = "Exploit Weakness", Desc = "Marked enemies take an extra 50% damage", Apply = s => s.MarkBonus += 0.5f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Claymore, MaxStacks = 2, Name = "Shaped Charge", Desc = "Claymore's blast deals 40% more damage",
+                Apply = s => s.ClaymoreDmgMult += 0.4f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Medkit, MaxStacks = 2, Name = "Field Surgeon", Desc = "Medkit bursts into 3 more orbs, and each heals 5 more",
                 Apply = s => { s.MedkitExtraOrbs += 3; s.MedkitHealBonus += 5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Soldier, MaxStacks = 2, Name = "Quartermaster", Desc = "Health and medkit orbs you pick up heal 30% more, and your 2nd, 3rd and 4th abilities recharge 10% faster",
@@ -223,10 +224,10 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Mark, Kit = Kit.Soldier, Role = Role.Dps, Choice = 2, Instant = true,
-                Name = "Mark for Death", Cooldown = 12f, Desc = "Mark an enemy so it takes more damage.",
-                Capstone = "Marks the three enemies nearest your cursor.",
-                Bot = b => b.HaveTarget && !b.TargetMarked && b.TargetD < 700f,  // on the boss (or the team's focus), and not again while it's marked
+                Id = AbilityId.Claymore, Kit = Kit.Soldier, Role = Role.Dps, Choice = 2, ExtraCharges = ClaymoreCharges - 1,  // (Claymore.cs)
+                Name = "Claymore", Cooldown = ClaymoreCooldown, Desc = "Plant a mine at your cursor; the first enemy to step into the cone in front of it sets off a wide blast.",
+                Capstone = "Each claymore re-arms once after its first blast: it goes off twice.",
+                Bot = b => b.HaveTarget && b.TargetD < 420f,
             },
             new AbilityDef
             {

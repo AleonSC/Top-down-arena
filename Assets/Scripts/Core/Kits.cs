@@ -47,7 +47,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital, Steam, StaticResidue, SupplyDrop, LandShark, Mammoth }
+    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, OfudaWard, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital, Steam, StaticResidue, SupplyDrop, LandShark, Claymore, Mammoth }
 
     public class ZoneDef
     {
@@ -183,6 +183,7 @@ namespace Arena
             new ZoneDef { Name = "Static Residue", Color = new Rgba(0.5f, 0.91f, 1f) },  // a Living Bolt dash's live trail (LivingBolt.cs): a lane, Pos its middle, Aim its heading, Radius half its length; hurts by its own tick
             new ZoneDef { Name = "Supply Drop", Color = new Rgba(0.4f, 1f, 0.55f) },  // the Healer Soldier's third ultimate (SupplyDrop.cs): Pos the crate, Radius the open zone; its timer gives the phase (flare, landing, open, folding)
             new ZoneDef { Name = "Land Shark", Color = new Rgba(0.36f, 0.62f, 0.92f) },  // the DPS Summoner's 4th choice (LandShark.cs): the puddle, Pos its middle, Radius its size, Aim the leap's heading
+            new ZoneDef { Name = "Claymore", Color = new Rgba(1f, 0.48f, 0.3f) },  // the DPS Soldier's 3rd choice (Claymore.cs): Pos the mine, Aim its facing, Radius the trigger's reach, GuardFrac its state, Marched a mastered spare blast
             new ZoneDef { Name = "Mammoth Fall", Color = new Rgba(0.65f, 0.49f, 1f) },  // the DPS Summoner's third ultimate (MammothFall.cs): Pos the mammoth, Origin where it lands, Radius the shockwave, Aim its heading, Side its prey
         };
 

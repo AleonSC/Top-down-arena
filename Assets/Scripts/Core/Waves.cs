@@ -206,6 +206,7 @@ namespace Arena
             ClearRisers();
             FoldAllCovers();  // Deployable Covers fold away with a look rather than vanishing (DeployableCover.cs)
             FoldAllDecoys();  // and Decoy Dummies deflate (DecoyDummy.cs)
+            FoldAllClaymores();  // and Claymores fold away (Claymore.cs)
             Zones.Clear();
             Hazards.Clear();
             Cages.Clear();

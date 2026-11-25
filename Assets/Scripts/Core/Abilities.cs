@@ -179,26 +179,9 @@ namespace Arena
                 case AbilityId.Airstrike:
                     CastAirstrike(p, target, cap, pw);  // Airstrike.cs
                     break;
-                case AbilityId.Mark:
-                {
-                    // The enemy nearest the cursor (the three nearest once mastered).
-                    var marked = new List<Enemy>();
-                    for (int n = 0; n < (cap ? 3 : 1); n++)
-                    {
-                        Enemy best = null;
-                        foreach (var e in Enemies.Values)
-                            if (e.SpawnT <= 0f && !marked.Contains(e) && (best == null || e.Pos.DistanceSq(target) < best.Pos.DistanceSq(target)))
-                                best = e;
-                        if (best == null)
-                            break;
-                        marked.Add(best);
-                        best.MarkT = MarkTime;
-                        best.MarkMult = 1f + (0.5f + s.MarkBonus) * pw;
-                        castHits++;
-                        BroadcastFx(FxKind.Ring, best.Pos, new Rgba(1f, 0.25f, 0.25f), best.Radius + 30f, 0.5f, Sfx.Ability);
-                    }
+                case AbilityId.Claymore:
+                    CastClaymore(p, target, cap);  // Claymore.cs
                     break;
-                }
                 case AbilityId.PoisonDart:
                     CastPoisonDart(p, target, cap, pw);  // PoisonDart.cs
                     break;
