@@ -263,7 +263,7 @@ namespace Arena
                 float goal = p.NsBound[k] > 0 ? 1f : Mathf.Clamp01(p.NsLen[k] / Game.NsSpan(P, E));
                 float rate = Game.NsGrow / t.D;
                 t.Tip = goal > t.Tip ? Mathf.Min(goal, t.Tip + rate * 1.5f * dt) : Mathf.Max(goal, t.Tip - rate * Game.NsRetract * dt);
-                int want = Mathf.Max(10, Game.NsWrapCap(p.NsCount, outNow));
+                int want = Mathf.Max(Mathf.Max(10, p.NsBound[k]), Game.NsWrapCap(p.NsCount, outNow));
                 d.Recruit[k] += 200f * dt;
                 float ea = to.Angle;
                 while (t.Count < want && d.Recruit[k] >= 1f)

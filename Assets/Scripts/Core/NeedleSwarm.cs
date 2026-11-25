@@ -9,15 +9,16 @@ namespace Arena
     ///     your max health each (PayHealth), never while you're under NsFloor. An enemy shot coming in through the ring stops on a
     ///     needle and breaks it (NsBlocks, in Combat.cs ShieldsStop; red aimed shots go through). Going down loses the swarm.
     ///   Fire, held: a tendril grows (NsGrow px/s) from the ring to the enemy nearest your cursor within NsReach. Let go before it
-    ///     arrives and it pulls back. Once it arrives it wraps the enemy in a spinning ring (Player.NsBound needles, up to NsWrap) for
+    ///     arrives and it pulls back. Once it arrives it wraps the enemy in a spinning ring (Player.NsBound needles, up to NsWrapMax) for
     ///     good: each wrapped needle cuts for the weapon's Damage a second, slows it NsSlow, and every NsBleedEvery adds a bleed stack
     ///     (the stack that fills its bleed bursts it, NeedleBleed). It lets go when the enemy dies or gets NsLetGo x the reach away.
     ///     Holding on, once it has wrapped, the next enemy nearest the cursor gets the next tendril: NsTendrils at once.
     ///   Alt (Msg.WeaponDash, DashNeedles): NsBurst needles leave the ring as a fan of needles at your aim (Defs.BloodShot), NsBurstCd.
-    ///   Extra projectiles: +NsPerExtra needles in the swarm, +4 in the burst.
+    ///   Extra projectiles: +NsPerExtra needles in the swarm, +NsWrapPerExtra wrapped round each enemy, cutting NsCutPerExtra harder, +4 in the burst.
     public partial class Game
     {
-        public const int NsBase = 160, NsPerExtra = 20, NsTendrils = 3, NsWrap = 30, NsBurst = 24;
+        public const int NsBase = 160, NsPerExtra = 20, NsTendrils = 3, NsWrap = 30, NsWrapPerExtra = 5, NsBurst = 24;
+        public const float NsCutPerExtra = 0.1f;  // each extra projectile: wrapped needles cut 10% harder
         public const float NsCost = 0.0014f, NsRate = 32f, NsFloor = 0.15f;      // health per needle (of max), needles a second, no siphon below
         public const float NsInner = 22f, NsOuter = 72f, NsEdge = 46f;          // the ring's band round you; where tendrils leave it
         public const float NsReach = 260f, NsLetGo = 1.5f, NsGrow = 140f, NsRetract = 3f, NsWrapRate = 26f, NsShare = 0.45f;
@@ -33,7 +34,10 @@ namespace Arena
         public static float NsSpan(V2 from, V2 enemy) => Math.Max(1f, from.DistanceTo(enemy) - NsEdge);
 
         /// How many needles tendril k may wrap round its enemy with this many tendrils out.
-        public static int NsWrapCap(int count, int tendrils) => Math.Min(NsWrap, (int)(count * NsShare / Math.Max(1, tendrils)));
+        public static int NsWrapCap(int count, int tendrils, int wrap = NsWrap) => Math.Min(wrap, (int)(count * NsShare / Math.Max(1, tendrils)));
+
+        /// How many needles one tendril wraps round its enemy at most: NsWrap, +NsWrapPerExtra per extra projectile.
+        public int NsWrapMax(Player p) => NsWrap + NsWrapPerExtra * ExtraShots(p);
 
         /// Host, every tick the Needle Swarm is out and you're up: the siphon, the tendrils, the wrapped enemies.
         void TickNeedleSwarm(Player p, float dt)
@@ -149,7 +153,7 @@ namespace Arena
             for (int j = 0; j < NsTendrils; j++)
                 if (p.NsTen[j] != 0)
                     tendrils++;
-            int cap = NsWrapCap(p.NsCount, tendrils);
+            int cap = NsWrapCap(p.NsCount, tendrils, NsWrapMax(p));
             p.NsWrapAcc[k] += NsWrapRate * dt;
             while (p.NsWrapAcc[k] >= 1f && p.NsBound[k] < cap)
             {
@@ -165,7 +169,7 @@ namespace Arena
             if ((p.NsHurtT[k] += dt) >= NsTick)
             {
                 p.NsHurtT[k] -= NsTick;
-                WeaponHurt(e, p.NsBound[k] * p.Weapon.Damage * NsTick * p.Stats.DmgMult, p.Id);
+                WeaponHurt(e, p.NsBound[k] * p.Weapon.Damage * NsTick * p.Stats.DmgMult * (1f + NsCutPerExtra * ExtraShots(p)), p.Id);
                 p.Run.ShotsHit++;
             }
             if ((p.NsBleedT[k] += dt) >= NsBleedEvery && Targetable(e))
