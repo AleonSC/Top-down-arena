@@ -1,6 +1,6 @@
 # Engineer: a vector builder class
 
-Status: **steps 1-6 built** (Nov 19, 2026; protocol 417; step 6 removed the three forges): each role's one weapon is its robot weapon (Vector Blade, Iron Fist, Stasis Gun), and the DPS has a second, the Bumble Remote (Nov 25, protocol 517: `Core/BumbleRemote.cs`, README); Drag Pylon and Breach; the Draftsman passive and the Wide Field card. Steps 1-4 below are history (the forges, Strider, Sentinel and med-drone are gone). Next: the Vector Wall build-mode rework (mockup: https://claude.ai/artifact/5mqoqTQJi4WS6rsJggfQME). Mockup: [`Mockups/engineer-class.html`](Mockups/engineer-class.html)
+Status: **steps 1-6 built** (Nov 19, 2026; protocol 417; step 6 removed the three forges): each role's one weapon is its robot weapon (Vector Blade, Iron Fist, Stasis Gun), and the DPS has a second, the Bumble Remote (Nov 25, protocol 519: `Core/BumbleRemote.cs`, README); Drag Pylon and Breach; the Draftsman passive and the Wide Field card. Steps 1-4 below are history (the forges, Strider, Sentinel and med-drone are gone). Next: the Vector Wall build-mode rework (mockup: https://claude.ai/artifact/5mqoqTQJi4WS6rsJggfQME). Mockup: [`Mockups/engineer-class.html`](Mockups/engineer-class.html)
 (real renders, a playable bench, the kit, a Breach room roller). Numbers are first guesses.
 The look is real draw code: `Game/EngineerLook.cs`, rendered with `ENGINEER=pylon|breach|real|bots ENGT=<s> Tools/Preview/shot.sh x hud`
 (`Tools/Preview/ShotEngineer.cs`); the renders are in `Mockups/engineer/`.

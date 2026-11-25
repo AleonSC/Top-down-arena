@@ -1242,6 +1242,13 @@ namespace Arena
             Player p;
             if (!Players.TryGetValue(id, out p) || p.Downed || TankOn(p))  // (in A Literal Tank: no Alt, LiteralTank.cs)
                 return;
+            if (kind == DashArmBash)
+            {
+                HostArmBash(p, target);  // an Iron Armadillo wall bash (IronArmadillo.cs)
+                return;
+            }
+            if (ArmOn(p))
+                return;  // (curled up: no Alt)
             if (kind == DashRavager)
             {
                 HostRavagerLash(p);  // a Blood Ravager lash (BloodRavager.cs)

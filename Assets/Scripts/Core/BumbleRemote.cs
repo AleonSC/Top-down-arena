@@ -21,7 +21,7 @@ namespace Arena
         public const float BumbleBeeDmg = 8f, BumbleBeeSpeed = 240f;
         public const int BumbleBees = 6;
         public static readonly Rgba BumbleGold = new Rgba(1f, 0.8f, 0.3f);
-        const byte DashBumbleBurst = 66;  // (64-65 are the Twin Tessen's gust)
+        const byte DashBumbleBurst = 67;  // (64-65 the Twin Tessen's gust, 66 Iron Armadillo's bash)
 
         public static float BumbleBurstRadiusOf(Player p) => BumbleBurstR * AreaMult(p);
 
