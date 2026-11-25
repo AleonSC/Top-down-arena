@@ -464,6 +464,11 @@ namespace Arena
         public float VortexT, VortexAge, VortexR;  // Vortex (Vortex.cs), replicated: time left (0 = off), seconds since the cast, its radius
         public float VortexTickT, VortexHumT;  // host: the damage tick's clock, the hum's
         public bool VortexUp, VortexMastered;  // host (VortexUp: it blows, so it flings when it ends)
+        public float ArmT, ArmAge;    // Iron Armadillo (IronArmadillo.cs), replicated: time left (the curl included; 0 = off), seconds since the cast
+        public float ArmSpd, ArmBashCd;  // host: its rolling speed (from how you move), until the next wall bash counts
+        public V2 ArmLast;            // host: where you were last tick
+        public bool ArmMastered;      // host
+        public int ArmHits, ArmBashes, ArmRicochets, ArmSlams;  // host: counts (tests)
         public float BoltT, BoltAge;  // Living Bolt (LivingBolt.cs), replicated: time left (the channel included; 0 = off), seconds since the cast
         public float BoltLockT;       // host: until the next dash is taken
         public bool BoltUp, BoltMastered;  // host (BoltUp: electrified, so it ends with the discharge)

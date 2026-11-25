@@ -1225,6 +1225,8 @@ namespace Arena
                 me.Pos += DashDir * dashSpeed * dt;
                 iceVel = DashDir * me.Speed * Paths.IceTopSpeed;  // on ice you slide out of a dash
             }
+            else if (ArmOn(me))
+                LocalArmRoll(me, move, aimAt, firing && !HoldControls, dt);  // Iron Armadillo: rolling, not walking (IronArmadillo.cs)
             else
             {
                 V2 want = move * me.Speed * SprintMult * (me.ParryActive && !me.Stats.ParryNoSlow ? ParrySlow : 1f) * (bowDraw >= 0f ? BowDrawSlow : 1f) * HoneySlowAt(me.Pos) * CrowdSlow(me) * RelicSpeedAt(me);  // CrowdSlow: Rioters piled on you (RiotBrains.cs)
@@ -1240,6 +1242,10 @@ namespace Arena
                     me.Pos += want * dt;
                 }
             }
+            if (!ArmOn(me))
+                LocalArmRoll(me, move, aimAt, false, dt);  // (resets the roll)
+            else
+                firing = false;  // curled up: Fire revs the roll, the weapon is away
             if (me.Downed)
                 iceVel = V2.Zero;
             if (PullStrength > 0f && !me.Downed && DashT <= 0f)
@@ -1345,8 +1351,8 @@ namespace Arena
                     continue;  // Senbon Seekers holding all its needles (SenbonSeekers.cs)
                 if ((me.StandOn || Seated(me)) && MovesYou(me.Slots[slot].Id))
                     continue;
-                if (TankOn(me))
-                    continue;  // in A Literal Tank: no abilities (LiteralTank.cs)  // planted: nothing that would carry you off (LastStand.cs)
+                if (TankOn(me) || ArmOn(me))
+                    continue;  // curled up in Iron Armadillo (IronArmadillo.cs), or in A Literal Tank: no abilities (LiteralTank.cs)  // planted: nothing that would carry you off (LastStand.cs)
                 bool orbitOut = OrbitRelease(me, slot);  // Blade Fan pressed again: the host throws the kunai (Ninja.cs)
                 bool harvestOut = HarvestPress(me, slot);  // Crimson Harvest pressed again: the host throws the ball (CrimsonHarvest.cs)
                 bool standOut = StandRelease(me, slot);  // Last Stand pressed again: the host brings it down (LastStand.cs)
@@ -1450,7 +1456,7 @@ namespace Arena
 
             LocalDodge(me, move, dodgePress, dodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
             me.Sprint = (byte)Math.Round(SprintFade * 255f);  // for everyone else's wake (sent in Msg.Input, then the snapshot)
-            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
+            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me) && !ArmOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
             if (LocalLivingBolt(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // electrified: Fire is the dash (LivingBolt.cs)
             if (LocalRavager(me, firing && !HoldControls, dt))
@@ -1539,6 +1545,7 @@ namespace Arena
             TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickTanks(dt);      // LiteralTank.cs: the tank's time, running enemies over, getting out
+            TickArmadillo(dt);  // IronArmadillo.cs: the ball's time, its speed and hits, the uncurl slam
             TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders
             TickSpirit(dt);     // SpiritAvatar.cs: the spirit's time, Moon Cleaves and swallowed shots
             TickGaleWalls(dt);  // GaleWall.cs: lenses run down and unleash
@@ -1767,7 +1774,11 @@ namespace Arena
                     // sitting in a Deployable Turret: it fires (TickDeployTurret), not your weapon
                 }
                 else if (TankOn(p))
-                    TickTankGun(p, dt);  // in A Literal Tank: its main gun, not your weapon (LiteralTank.cs)
+                    TickTankGun(p, dt);
+                else if (ArmOn(p))
+                {
+                    // curled up in Iron Armadillo: the weapon is away, Fire revs the roll (IronArmadillo.cs)
+                }  // in A Literal Tank: its main gun, not your weapon (LiteralTank.cs)
                 else if (BoltOn(p))
                 {
                     // electrified: the weapon is put away, Fire is the dash (sent by the player's own game: LivingBolt.cs)
