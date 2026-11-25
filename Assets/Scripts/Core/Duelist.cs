@@ -366,7 +366,6 @@ namespace Arena
                         s.StaggerT = StaggerTime;
                         s.Dash = DuelDash.None;
                         s.Connected = true;
-                        Recorder?.Parry(p, 0f, true, false);
                         BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.8f, 0.35f), 90f, 0.4f, Sfx.Clang);
                         DoLog(p.Name + " parried the " + (e.Type == EnemyType.Gallant ? "Gallant's" : "Duelist's") + " salute");
                         return;

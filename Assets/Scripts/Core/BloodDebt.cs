@@ -27,7 +27,6 @@ namespace Arena
             {
                 took = p.Hp - floor;
                 p.Hp = floor;
-                Recorder?.HealthSpent(p, took, "Blood Debt");
             }
             else
                 took = PayHealth(p, p.MaxHp * DebtMinCost, "Blood Debt");

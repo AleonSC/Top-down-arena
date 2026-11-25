@@ -615,7 +615,6 @@ namespace Arena
                 return 0f;
             float paid = Math.Max(0f, Math.Min(cost, p.Hp - 1f));
             p.Hp -= paid;
-            Recorder?.HealthSpent(p, paid, what);
             return paid;
         }
 

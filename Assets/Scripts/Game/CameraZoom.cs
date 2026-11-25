@@ -48,6 +48,9 @@ namespace Arena
             PlayerPrefs.Save();
         }
 
+        /// What the camera follows: you, or your spirit while it's out (Astral Projection, AstralProjection.cs).
+        static V2 CamSubject(Player me) => Game.ApAway(me) ? me.ApPos : me.Disp;
+
         /// Once a frame (from UpdateCameraLean): read the wheel, ease the zoom and the focus.
         void UpdateCameraZoom(float dt)
         {
@@ -93,7 +96,7 @@ namespace Arena
             if (camZoom < 1f)
                 camZoom = 1f;
 
-            V2 subject = CamSubject(me);  // you, or the enemy you play in the Dev Arena (DevArenaUi.cs)
+            V2 subject = CamSubject(me);
             V2 to = subject - camFocusRaw;
             if (!CamZoomed || to.Length > 200f)
                 camFocusRaw = subject;  // (zoomed out it already follows you; a wrap or a teleport is a cut, not a pan)
