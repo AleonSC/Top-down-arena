@@ -2407,6 +2407,16 @@ static partial class Shot {
         typeof(ArenaApp).GetField("vecFullNear", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(app, true);
       }
     }
+    if (Environment.GetEnvironmentVariable("BLOODORB") != null) {
+      // BLOODORB=1: a Hemomancer's blood orbs (Game/OrbLook.cs DrawBloodOrb) beside a small and a big health orb. Mode hud.
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Bot = false; host.Game.Orbs.Clear();
+      me.Pos = me.Disp = new V2(900f, 470f);
+      int oid = 9200;
+      foreach (var q in new[] { new V2(960f, 410f), new V2(1000f, 520f) })
+        { ++oid; host.Game.Orbs[oid] = new Orb { Id = oid, Blood = true, Pos = q, Disp = q, Life = Game.BloodOrbLife }; }
+      host.Game.Orbs[9210] = new Orb { Id = 9210, Pos = new V2(840f, 540f), Disp = new V2(840f, 540f), Life = 10f };
+      host.Game.Orbs[9211] = new Orb { Id = 9211, Big = true, Pos = new V2(820f, 400f), Disp = new V2(820f, 400f), Life = 10f };
+    }
     if (Environment.GetEnvironmentVariable("SWEEP") != null) {
       // SWEEP=<seconds>: the floor-loot sweep as a wave starts (Game/LootSweepLook.cs, Docs/RoundFlow.md step 4): your coins streaming in
       // from round the arena and "+86 GOLD COLLECTED" over you, that long in (0.3: mid-flight; 0.8: the label). Mode hud.

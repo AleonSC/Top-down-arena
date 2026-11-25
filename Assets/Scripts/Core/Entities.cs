@@ -884,6 +884,7 @@ namespace Arena
         public int Id;
         public int Owner;       // the player this copy is for (an enemy's or a crate's orb, Combat.cs SpawnOrbEach); 0: anyone's
         public bool Big, Tiny;  // Tiny: knocked loose by the Repulsion Cannon
+        public bool Blood;      // a blood orb: a Hemomancer's kill dropped it, and anyone can drink it (Combat.cs DropBloodOrb)
         public bool Med;        // a Deployable Medkit's orb (Medkit.cs), or a Field Hospital's
         public int Supply;      // host: the Supply Drop zone that threw it (SupplyDrop.cs; 0: none), to cap how many lie out
         public int Hosp;        // host: the Field Hospital zone it lies in (FieldHospital.cs; 0: none): it only drifts to players inside
@@ -891,9 +892,9 @@ namespace Arena
         public V2 Pos, Disp;
         public float Life;
 
-        public float Radius => Big ? 11f : Med ? 8f : Tiny ? 4f : 6f;
+        public float Radius => Big ? 11f : Med ? 8f : Blood ? 7f : Tiny ? 4f : 6f;
         public float Boost = 1f; // host: heals this much more (Undertow Pump's tiny orbs)
-        public float Heal => (Med ? MedHeal : Big ? Game.BigOrbHeal : Tiny ? Game.TinyOrbHeal : Game.OrbHeal) * Boost;
+        public float Heal => (Med ? MedHeal : Blood ? Game.BloodOrbHeal : Big ? Game.BigOrbHeal : Tiny ? Game.TinyOrbHeal : Game.OrbHeal) * Boost;
     }
 
     /// An area on the ground: Flame Wall, Blizzard, smoke, pools, wards, a meteor's warning and the like (ZoneKind).

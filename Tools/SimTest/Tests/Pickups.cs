@@ -147,11 +147,53 @@ static partial class Program
         Check(cg.Coins.Count == g.Coins.Count, "a full list puts a client that lost track right within " + (Game.CoinFullEvery * 3 * dt).ToString("0.0") + " s (" + cg.Coins.Count + "/" + g.Coins.Count + ")");
         g.Coins.Clear();
         g.Bot = true;  // (the smart bot plays the host and aims where it likes)
+        BloodOrbChecks(g, cg, s, dt, Quiet, Put);
         Run(s, dt, 0.1f, null, () => { Quiet(); Put(); });
         Check(g.Players[1].IsBot, "a bot's input marks its player as a bot");
         g.Bot = false;
         Run(s, dt, 0.1f, null, () => { Quiet(); Put(); });
         Check(!g.Players[1].IsBot, "a human's input does not");
         s[0].Leave(""); s[1].Leave("");
+    }
+
+    /// Blood orbs (Combat.cs DropBloodOrb): only a Hemomancer's kills drop them, one orb for the team that anyone can drink.
+    static void BloodOrbChecks(Game g, Game cg, Session[] s, float dt, Action Quiet, Action Put)
+    {
+        var host = g.Players[1];
+        Kit was = host.Kit;
+        Func<Kit, int> Kills = kit =>
+        {
+            host.Kit = kit;
+            g.Orbs.Clear();
+            int made = 0; bool shared = true;
+            for (int k = 0; k < 6; k++)
+            {
+                g.DevSpawnEnemy(1, EnemyType.Grunt, 10, false);
+                foreach (var e in g.Enemies.Values) { e.LastHitBy = 1; e.Hp = 0f; }
+                Run(s, dt, dt * 2f, null, null);
+                made += g.Orbs.Values.Count(o => o.Blood);
+                foreach (var o in g.Orbs.Values.Where(o => o.Blood).ToList()) { shared &= o.Owner == 0 && !o.Big && o.Life > Game.OrbLifetime; g.Orbs.Remove(o.Id); }
+            }
+            if (made > 0)
+                Check(shared, "each blood orb is one shared orb that lasts longer");
+            return made;
+        };
+        int hemo = Kills(Kit.Hemomancer), other = Kills(Kit.Soldier);
+        Check(hemo > 0 && hemo < 30, "60 Hemomancer kills drop some blood orbs (" + hemo + ")");
+        Check(other == 0, "kills by another class drop none (" + other + ")");
+        host.Kit = was;
+
+        // Anyone can drink one: it reaches the client, then drifts across the room to the hurt teammate.
+        g.Orbs.Clear();
+        var friend = g.Players[2];
+        friend.Hp = friend.HealCap - 40f; host.Hp = host.HealCap;
+        var at = friend.Pos + new V2(-400f, 0f);
+        g.Orbs[7300] = new Orb { Id = 7300, Blood = true, Pos = at, Disp = at, Life = Game.BloodOrbLife };
+        Run(s, dt, 0.1f, null, () => { Quiet(); Put(); });
+        Check(cg.Orbs.ContainsKey(7300) && cg.Orbs[7300].Blood && cg.MinePickup(cg.Orbs[7300].Owner), "the client sees the blood orb as one it can take");
+        float before = friend.Hp;
+        Run(s, dt, 3f, () => !g.Orbs.ContainsKey(7300), () => { Quiet(); Put(); });
+        Check(!g.Orbs.ContainsKey(7300) && friend.Hp >= before + Game.BloodOrbHeal - 0.5f, "it drifts 400 px to the hurt teammate and heals them (" + before + " -> " + friend.Hp + ")");
+        friend.Hp = friend.HealCap;
     }
 }
