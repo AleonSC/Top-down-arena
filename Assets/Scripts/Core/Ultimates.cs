@@ -189,6 +189,9 @@ namespace Arena
                 case AbilityId.RodentMinigun:  // DPS: Summoner, the second ultimate
                     CastRodentMinigun(p, cap, castPower);  // RodentMinigun.cs
                     break;
+                case AbilityId.MammothFall:  // DPS: Summoner, the third ultimate
+                    CastMammothFall(p, target, cap);  // MammothFall.cs
+                    break;
                 case AbilityId.LivingBolt:  // DPS: Elementalist, the second ultimate (LivingBolt.cs)
                     CastLivingBolt(p, cap);
                     break;
