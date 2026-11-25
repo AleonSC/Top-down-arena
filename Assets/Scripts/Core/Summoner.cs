@@ -77,6 +77,8 @@ namespace Arena
                 Apply = s => { s.PactHpMult += 0.5f; s.PactReturnCut += 5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Stampede, MaxStacks = 2, Name = "Thundering Herd", Desc = "Stampede tramples and slams 50% harder",
                 Apply = s => s.StampedeDmgMult += 0.5f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.RodentMinigun, MaxStacks = 2, Name = "Plague Rats", Desc = "Rodent Minigun fires nearly twice as many rats, and every rat makes what it bites bleed",
+                Apply = s => { s.RatShare += Game.RmPlagueShare; s.RatBleed += Game.RmPlagueBleed; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LandShark, MaxStacks = 2, Name = "Great White", Desc = "Land Shark bites 40% harder",
                 Apply = s => s.LandSharkDmgMult += 0.4f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SpiritSwarm, MaxStacks = 2, Name = "Sprite Choir", Desc = "Spirit Swarm's sprites heal 40% more and last 2 s longer",

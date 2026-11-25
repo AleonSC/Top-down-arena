@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 505: Rodent Minigun (DPS Summoner second ultimate, key 1): `AbilityId.RodentMinigun`, `Defs.RodentShot` (80), `Player.RmT`/`RmAng`/`RmLen` in the player sync, `Sfx.RodentSqueak`/`RodentPortal`, the Rare card Plague Rats (card ids shift).
 - 504: Land Shark (DPS Summoner 4th choice): `AbilityId.LandShark`, `ZoneKind.LandShark`, the Rare card Great White (card ids shift).
 - 503: Flash Fire (the DPS Elementalist's third ultimate, key 2): `AbilityId.FlashFire`, `FxKind.FlashFire`, the Rare card Backdraft (card ids shift).
 - 502: Orbital Laser (the DPS Soldier's third ultimate, key 2): `AbilityId.OrbitalLaser`, `FxKind.OrbitalLaser` and `Sfx.OrbitalLaser` (each at the end).

@@ -796,6 +796,7 @@ namespace Arena
             WaterJet = 77,     // a Water Gun jet: stops on the first enemy and splashes it and those near it wet (ElementGuns.cs, Game/ElementGunLook.cs)
             GaleShot = 78,     // a Gale Gun gust: passes through, slicing (bleed) and slowing (ElementGuns.cs, Game/ElementGunLook.cs)
             TankShell = 79,    // A Literal Tank's shell: bursts on what it hits, or at the cursor (LiteralTank.cs, Game/LiteralTankLook.cs)
+            RodentShot = 80,   // a Rodent Minigun rodent: a mouse, rat or hamster by its id (Game.RodentOf; RodentMinigun.cs, Game/RodentMinigunLook.cs)
             EarthballShot = 72; // the Earthball: stops on the first enemy, stuns it and breaks into rubble (ElementBalls.cs, Game/ElementBallLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark || kind == BottleShot;
@@ -826,6 +827,7 @@ namespace Arena
             Row(table, NovaShot, radius: 6f, color: new Rgba(0.95f, 0.8f, 1f));
             Row(table, FlakShell, radius: 8f, color: new Rgba(0.7f, 0.85f, 1f));
             Row(table, TankShell, radius: 9f, color: new Rgba(1f, 0.62f, 0.25f));
+            Row(table, RodentShot, radius: 5f, color: new Rgba(0.72f, 0.7f, 0.77f));  // a mouse's grey (rats and hamsters are drawn in their own colours)
             Row(table, RailShot, radius: 3.5f, color: new Rgba(1f, 1f, 0.75f));
             Row(table, WispShot, radius: 5f, color: new Rgba(0.4f, 1f, 0.85f));  // no longer fired by any weapon (Twin Wisps became the Pistol)
             Row(table, GrenadeShot, radius: 7f, color: new Rgba(0.75f, 0.85f, 0.4f));

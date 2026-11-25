@@ -168,6 +168,11 @@ namespace Arena
                 DrawTankShell(b, t);  // LiteralTankLook.cs
                 return;
             }
+            if (b.Kind == Defs.RodentShot)
+            {
+                DrawRodentShot(b, t);  // RodentMinigunLook.cs
+                return;
+            }
             if (b.Kind == Defs.GaleShot)
             {
                 DrawGaleShot(b, t);

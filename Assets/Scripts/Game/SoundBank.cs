@@ -326,7 +326,7 @@ namespace Arena
             Sfx.KnuckleRocket, Sfx.KnuckleRocketHit, Sfx.KnuckleGrab, Sfx.KnuckleThrow, Sfx.KnuckleImpact, Sfx.KnuckleImpactHeavy,
                 Sfx.StoneThrow, Sfx.StoneWind, Sfx.StoneSlam, Sfx.ArcTag, Sfx.ArcHop, Sfx.ArcCrack, Sfx.ArcFork, Sfx.ArcFizzle, Sfx.ArcHum,
                 Sfx.ShotFireball, Sfx.ShotFireballBurn, Sfx.NunSnap, Sfx.NunBack, Sfx.NunFig8, Sfx.NunCrush, Sfx.NunCounter, Sfx.NunGuard,
-                Sfx.HeliRotor, Sfx.HeliShot, Sfx.HeliSpin, Sfx.FrostCrescent, Sfx.FrostBackhand, Sfx.FrostWaltz, Sfx.FrostFan, Sfx.FrostSlamWind,
+                Sfx.RodentSqueak, Sfx.HeliRotor, Sfx.HeliShot, Sfx.HeliSpin, Sfx.FrostCrescent, Sfx.FrostBackhand, Sfx.FrostWaltz, Sfx.FrostFan, Sfx.FrostSlamWind,
                 Sfx.FrostSlam, Sfx.FrostBreak, Sfx.BlastSlash, Sfx.BlastFlurry, Sfx.BlastWhirl, Sfx.BlastCleave, Sfx.BlastFlight, Sfx.BlastTideGather, Sfx.BlastTideWave,
                 Sfx.ChickCut1, Sfx.ChickCut2, Sfx.ChickJab, Sfx.ChickSpin, Sfx.ChickShear, Sfx.ChickHit, Sfx.ChickHitHeavy, Sfx.ChickThrow, Sfx.ChickCross,
                 Sfx.NodNuki, Sfx.NodKesa, Sfx.NodMoon, Sfx.NodTenchi, Sfx.NodNagi, Sfx.NodKasumi, Sfx.NodNidan, Sfx.NodSenbon, Sfx.NodTsuka, Sfx.NodHiki,
@@ -421,6 +421,7 @@ namespace Arena
                 BuildBloodBlast();  // BloodBlastSoundBank.cs
                 BuildWarhorn();  // WarhornSoundBank.cs
                 BuildOrbital();  // OrbitalSoundBank.cs
+                BuildRodent();  // RodentSoundBank.cs
                 BuildRioter();  // RioterSoundBank.cs
                 BuildGraze();  // GrazeSoundBank.cs
                 BuildMenuHolo();  // MenuSoundBank.cs (last: it replaces some of the menu's older sounds)
