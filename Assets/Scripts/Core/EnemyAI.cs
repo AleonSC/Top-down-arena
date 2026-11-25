@@ -524,8 +524,8 @@ namespace Arena
                 TickDaze(e, dt);    // Daze.cs
                 foreach (var tick in Classes.EnemyHooks)  // each class's KitDef.TickEnemy
                     tick(this, e, dt);
-                if (e.Hp <= 0f || !StillIn(e))
-                    continue;  // killed by a burn, poison or bleed this tick: it dies before it can move or shoot (KillDeadEnemies)
+                if (!StillIn(e))
+                    continue;  // removed by a class hook this tick
                 e.Suppress = Math.Max(0f, e.Suppress - SuppressFade * dt);
                 e.SmokeT = Math.Max(0f, e.SmokeT - dt);  // a Grenade Launcher smoke cloud's jam wears off out of it (GrenadeLauncher.cs)
                 KeepOutOfDuel(e);  // GatekeeperRoom.cs
@@ -624,7 +624,7 @@ namespace Arena
                             e.FireT = Rand(0.2f, 0.4f);  // not its turn: hold fire and reposition (Readability.cs)
                         else if (!e.Def.IsBoss && !Challenges.Own(e.Type) && !Zombies.Is(e.Type) && enemyShots >= RegularShotBudget())
                             e.FireT = Rand(0.2f, 0.4f);  // the screen is full: hold this volley and try again shortly
-                        else
+                        else if (e.Hp > 0f || e.Def.IsBoss)  // (killed by a burn, poison or bleed this tick: no last volley; a boss at 0 is changing phase)
                             EnemyFire(e, tpos);
                     }
                 }

@@ -76,7 +76,7 @@ Second 3725d5aa9329d322 at (479,433) phase 1 hp 0 shots 30
 Marshal e02f20e42a069c17 at (558,660) phase 0 hp 0 shots 0
 Gallant 635080dcbfc6b668 at (797,630) phase 0 hp 420 shots 0
 Harlequin 08919cb1a281a5d0 at (948,450) phase 0 hp 770 shots 36
-Mummer 8ef65a72dc7127a6 at (787,600) phase 1 hp 497 shots 17
+Mummer 79383c8cd120ea55 at (748,591) phase 0 hp 504 shots 17
 MummerCopy 74c60e8f9bf4a205 at (480,450) phase 0 hp 0 shots 0
 GraveCaller 0bed1bfd5bffb648 at (585,687) phase 0 hp 0 shots 0
 Gnawling a559f2ea42e6397b at (682,458) phase 0 hp 1127 shots 0

@@ -35,7 +35,8 @@ namespace Arena
 
         /// A quiet link sends an empty frame this often, and a peer heard nothing from for PeerTimeout is dropped:
         /// a Wi-Fi drop otherwise leaves a half-open connection holding its lobby seat forever.
-        public const double KeepAliveEvery = 2.0, PeerTimeout = 20.0;
+        public const double KeepAliveEvery = 2.0, PeerTimeout = 30.0;
+        DateTime lastPoll = DateTime.UtcNow;
 
         /// Host: how long a connection may stay without a Hello the game accepted, and the biggest frame it may send meanwhile.
         public const double HelloTimeout = 10.0;
@@ -125,6 +126,8 @@ namespace Arena
             }
 
             var now = DateTime.UtcNow;
+            bool stalled = (now - lastPoll).TotalSeconds > KeepAliveEvery;  // this game didn't poll for a while (a hitch, a long load)
+            lastPoll = now;
             foreach (var c in conns.Values)
             {
                 Read(c);
@@ -132,7 +135,9 @@ namespace Arena
                     c.Dead = true;  // connected but never joined (a half-open or silent connection would hold a seat)
                 if (c.Dead || IsHost && !c.Greeted)
                     continue;
-                if ((now - c.LastIn).TotalSeconds > PeerTimeout)
+                if (stalled)
+                    c.LastIn = now;  // we weren't listening (a long hitch here): their silence doesn't count
+                else if ((now - c.LastIn).TotalSeconds > PeerTimeout)
                     c.Dead = true;  // gone quiet (its keepalives stopped): a dropped link
                 else if ((now - c.LastOut).TotalSeconds > KeepAliveEvery)
                     SendFrame(c, keepAlive, 0);  // an empty frame: "still here" (Read skips it)
