@@ -74,7 +74,8 @@ static partial class Shot {
         if (all && horse != null && horse.T > 0f && !e.Pos.CloserThan(horse.Pos, 70f)) e.Pos += (horse.Pos - e.Pos).Normalized() * 40f / 60f;
         e.Disp = e.Pos;
       }
-      host.Poll(); gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt, Fire = fire }); gm.Update(1f / 60f);
+      host.Poll(); foreach (var c in others) c.Poll();  // (the teammates' games keep their connections)
+      gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt, Fire = fire }); gm.Update(1f / 60f);
       if (!Game.Riding(me)) me.Pos = home;
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
       foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
