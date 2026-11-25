@@ -414,7 +414,7 @@ Parry upgrades show up like any other card:
 **Q** fires your **ultimate**. Each role and class combination has its own default one, and some have others to
 pick instead on the lobby's **Ultimate** row (so far the Tank Soldier: **Juggernaut Suit** and **A Literal Tank** and the Tank Elementalist: **Lightning Rod**, **Stone Colossus** and **Vortex**, below the table; and the DPS Elementalist: **Living Bolt** and **Flash Fire**, below; and the
 Tank Hemomancer: **Bloodbath**, in the Hemomancer table; and the Tank Summoner: **Bone Phalanx** and, on key 2, **Iron Armadillo**, below the table; and the
-Tank Ninja: **Dragon's Dogma** and, on key 2, **Spirit Avatar**, below; and the DPS Soldier: **Attack Helicopter** and **Orbital Laser**, below; and the Healer Soldier: **Field Hospital** and on key 2 **Supply Drop**, below; and the DPS Knight: **Warhorn Volley**, below; and the DPS Hemomancer: **Blood Ravager**, below; and the DPS Summoner: **Rodent Minigun** and, on key 2, **Mammoth Fall**, below; and the DPS Ninja: **Forbidden Path**, below; and the Healer Ninja: **Astral Projection**, below; and the Healer Elementalist: **Static Bubble**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
+Tank Ninja: **Dragon's Dogma** and, on key 2, **Spirit Avatar**, below; and the DPS Soldier: **Attack Helicopter** and **Orbital Laser**, below; and the Healer Soldier: **Field Hospital** and on key 2 **Supply Drop**, below; and the DPS Knight: **Warhorn Volley**, below; and the DPS Hemomancer: **Blood Ravager** and, on key 2, **Blood Boil**, below; and the DPS Summoner: **Rodent Minigun** and, on key 2, **Mammoth Fall**, below; and the DPS Ninja: **Forbidden Path**, below; and the Healer Ninja: **Astral Projection**, below; and the Healer Elementalist: **Static Bubble**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
 that upgrades don't shorten, and start each run half charged. The HUD shows the charge in the gold slot.
 
 **Juggernaut Suit** (Tank Soldier, picked instead of Fortress, 75 s): six steel plates clamp onto you over 0.6 s and
@@ -554,6 +554,17 @@ folds the legs at once. Mastered: lasts 12 s. The look: dark red legs with a wet
 shadow under each foot that shrinks as it lifts, blood stains where feet land, drops falling off the knees and a pulsing red
 glow under you; on your own screen a dashed ring shows the 140 px reach, each enemy inside it gets a ring, and three pips
 under you light for each leg lashing.
+
+**Blood Boil** (DPS Hemomancer, key 2 of the lobby's Ultimate row, picked instead of Crimson Harvest, 70 s): your blood
+boils for **10 s**. It drains **7%** of your max health a second, but never below **5%**, so it can't down you (Bloodthirst
+makes it cheaper). The lower your health, the harder it boils: nothing at full health, fully at **10%**. At full boil you
+move **1.7x** as fast, fire **2x** as fast and hit **60%** harder, on top of Blood Price (so up to 2.24x at 10% health); half
+way (55% health) it's half that. Your hits still heal you 3%, so fighting slows the drain. Press it again to end it early.
+When it ends (time up, pressed again, going down or the wave ending) you keep the health you're at and speed, fire rate and
+damage go straight back to normal. From full health the 10 s take you to 30%. Mastered: up to +90% damage at full boil. The
+look: a hot orange glow and three wobbling heat rings round you that swell on a heartbeat (faster as it boils), bubbles
+rising off you and popping, wisps of steam, boiling blood left where you run, and on your own screen a thin arc of the time
+left; it ends in a burst of steam and a pale ring. Mockup: claude.ai artifact "Blood Boil".
 
 **Mammoth Fall** (DPS Summoner, key 2 of the lobby's Ultimate row, picked instead of Legion, 75 s): a violet rift tears open
 over you and a woolly mammoth forms in it over **1.6 s** (motes spiral in, a glowing outline fills with wool, it rears at
@@ -755,6 +766,7 @@ the key, pops "MASTERY 3" over it and shows a line above the keys with what it g
 | **Land Shark** | A 30% wider puddle, and the bite hits for 160. | **Senbon Seekers** | Holds up to 12 needles. |
 | **Blood Ravager** | Lasts 12 s. | **Forbidden Path** | The beast lasts 11 s. |
 | **Astral Projection** | Lasts 10 s and heals 40% more. | **Iron Armadillo** | Rolls 13 s and the uncurl slam hits for 130. |
+| **Blood Boil** | Up to +90% damage at full boil. | | |
 
 A popup appears when an ability gains mastery. The **Tab** menu shows each ability's mastery as five pips (the next one
 fills as it earns XP). What mastery 5 unlocks is always written in gold under each ability's description: in the lobby
@@ -1306,6 +1318,8 @@ continuing a saved run (its seats are fixed); **< LOADOUT** or Esc closes the dr
 The **main menu** always shows the **Holo Floor**: a starry red sky over a glowing horizon and a red grid floor rolling toward
 you, light running down its lanes. The **lobby** and the space **behind runs** show your own pick from the Look window >
 Background. Turn on **Override menu background** there to show your pick on the main menu too.
+Bring the pointer to the main menu's **top right corner** and a hue key fades in: click it for a rainbow strip that turns the Holo
+Floor to any colour (kept between sessions; **RESET** brings back its red).
 The picks are quiet and **reactive** (they answer your pointer and clicks gently in the menus), with no lines or grids so they
 never fight the arena floor's grid: **Deep Field** (the free default: three layers of drifting stars the pointer tilts and
 brightens; a click makes the stars it passes flare), **Nebula Drift** (rank 29: slow clouds of blue and violet light that

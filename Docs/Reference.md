@@ -305,6 +305,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Vein Rush | Dps | 1st, choice 3 | 6 s | 10% of max health | The trail bursts after 1 s for 20 to everything on it. | Rush toward your cursor untouchable, bleeding enemies on the way. |
 | Crimson Harvest | Dps | ultimate | 65 s | - | Hold 8 s, and 25% more blood. | Rip blood from every enemy into a ball, then throw it as a huge blast. |
 | Blood Ravager | Dps | ultimate | 70 s | - | Lasts 12 s. | Eight blood legs burst out of you for 9 s: run fast and trample, and every click lashes a leg at an enemy nearby. |
+| Blood Boil | Dps | ultimate | 70 s | - | Up to +90% damage at full boil. | Your health drains for 10 s; the lower it gets, the faster you move and fire and the harder you hit. Press again to end it. |
 | Thorn Bloom | Dps | 1st, choice 5 | 8 s | 12% of max health | Tendrils jump 5 times. | Burst blood needles all round that chain between enemies. |
 
 ### Engineer

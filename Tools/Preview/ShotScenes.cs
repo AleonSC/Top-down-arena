@@ -1140,6 +1140,7 @@ static partial class Shot {
     BambooGroveScene();  // BAMBOO=<s since the cast> [BAMBOOCAP=1] (ShotBambooGrove.cs)
     FlashFireScene();  // FLASHFIRE=<s since the cast> [FLASHCAP=1] (ShotFlashFire.cs)
     BloodRavagerScene();  // RAVAGER=<s since the cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (ShotBloodRavager.cs)
+    BloodBoilScene();  // BOIL=<s since the cast> [BOILHP=<0-1>] [BOILEND=1] (ShotBloodBoil.cs)
     RodentMinigunScene();  // RODENT=<s since the cast> [RODENTAIM=<deg>] (ShotRodentMinigun.cs)
     MammothFallScene();  // MAMMOTH=<s since the cast> (ShotMammothFall.cs)
     ForbiddenPathScene();  // FORBIDDEN=<s since the cast> (ShotForbiddenPath.cs)
