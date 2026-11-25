@@ -607,6 +607,8 @@ namespace Arena
             s.Float(ref p.VortexR);
             s.Float(ref p.BoltT);  // Living Bolt (LivingBolt.cs)
             s.Float(ref p.BoltAge);
+            s.Float(ref p.ArmT);  // Iron Armadillo (IronArmadillo.cs)
+            s.Float(ref p.ArmAge);
             s.Float(ref p.RvT);  // Blood Ravager (BloodRavager.cs)
             if (p.RvT > 0f)
                 s.Float(ref p.RvLen);
@@ -627,6 +629,15 @@ namespace Arena
                 s.Vec(ref p.ApPos);
             }
             s.Float(ref p.ApLinkT);
+            s.Float(ref p.BubT);  // Static Bubble (StaticBubble.cs)
+            if (p.BubT > 0f)
+            {
+                s.Float(ref p.BubR);
+                s.Float(ref p.BubCharge);
+            }
+            s.Float(ref p.RushT);
+            if (p.RushT > 0f)
+                s.Float(ref p.RushLen);
             s.Float(ref p.RmT);  // Rodent Minigun (RodentMinigun.cs)
             if (p.RmT > 0f)
             {
