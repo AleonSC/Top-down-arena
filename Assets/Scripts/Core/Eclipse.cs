@@ -39,11 +39,8 @@ namespace Arena
     /// Everything about the Eclipse's fight its body doesn't carry. The host runs it; clients get it in the snapshot
     /// (SyncEclipse) to draw the moon and its shadow, flares, rings, sunspots, the echoes, the burning edge and the
     /// nova timer, and to keep their own player inside the burning edge.
-    public class EclipseState
+    public class EclipseState : BossFight<EclipseStage, EclipseTurn>  // TransT: > 0 changing phase (can't be hurt), counting down
     {
-        public EclipseStage Stage, TransTo;
-        public EclipseTurn Turn;
-        public float TurnT, TransT;     // seconds into the turn; > 0: changing phase (can't be hurt), counting down
         public float MoonA, MoonD;      // the moon's angle round the sun and its distance (0: no moon)
         public float FlashT;            // > 0: the sun is swelling, this long until it flashes
         public int FlashLeft;           // flashes still to come this turn
@@ -59,8 +56,7 @@ namespace Arena
         public readonly List<Sunspot> Spots = new List<Sunspot>();
 
         // Host only.
-        public int Step = -1, Fired;
-        public float TurnLen, ActT, Orbit, SweepT, DrainT, MoonFireT, BurnT;
+        public float Orbit, SweepT, DrainT, MoonFireT, BurnT;
     }
 
     /// The Eclipse (wave 50, the final boss): five phases by its health, then a last stand. A sun and its moon line up
@@ -115,7 +111,7 @@ namespace Arena
             new[] { 999f },
         };
 
-        EclipseState EclipseOf(Enemy e) => e.Eclipse ?? (e.Eclipse = new EclipseState());
+        EclipseState EclipseOf(Enemy e) => BossOf<EclipseState>(e);
 
         public static bool EclipseImmune(Enemy e) => e.Type == EnemyType.Eclipse && e.Eclipse != null && e.Eclipse.TransT > 0f;
 
@@ -694,11 +690,7 @@ namespace Arena
 
         void NextEclipseTurn(Enemy e, EclipseState s)
         {
-            var turns = EclipseTurns[(int)s.Stage];
-            s.Step = (s.Step + 1) % turns.Length;
-            s.Turn = turns[s.Step];
-            s.TurnLen = EclipseTimes[(int)s.Stage][s.Step];
-            s.TurnT = 0f;
+            s.NextTurn(EclipseTurns, EclipseTimes);
             s.ActT = 0.3f;
             s.Fired = 0;
             s.SweepOn = 0;

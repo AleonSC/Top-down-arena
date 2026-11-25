@@ -29,13 +29,9 @@ namespace Arena
 
     /// Everything about the Warden's fight that its body doesn't already carry. The host runs it; clients get it
     /// in the snapshot (WriteWarden / ReadWarden) to draw the searchlight, gates, doors, shield and charge.
-    public class WardenState
+    public class WardenState : BossFight<WardenStage, WardenTurn>  // TransT: > 0 changing phase (can't be hurt), counting down
     {
-        public WardenStage Stage;
-        public WardenTurn Turn;
-        public float TurnT;              // seconds into the current turn
-        public float TransT;             // > 0: changing phase (can't be hurt), counting down
-        public WardenStage TransTo;
+        public WardenState() { Step = 0; }
         public V2 Light, LightDisp;      // the searchlight's pool (LightDisp is smoothed for drawing)
         public WardenLight LightMode;
         public float LightT;             // seconds in the current light mode
@@ -47,9 +43,9 @@ namespace Arena
         public readonly List<WardenGate> Gates = new List<WardenGate>();
 
         // Host only.
-        public int Step, Plant = -1, GatesSent, DoorsOpened;
+        public int Plant = -1, GatesSent, DoorsOpened;
         public bool GuardsCalled;        // the riot: rioters were left at 10 s, so the guards came
-        public float TurnLen, Caught, RingT, GasTickT, ChargeLeft, ExposeHold, ExposeCd;
+        public float Caught, RingT, GasTickT, ChargeLeft, ExposeHold, ExposeCd;
         public float StunShotAt;         // the last stand: when its next stun round fires (TurnT)
         public float Armor, ArmorMax;    // replicated: the armor it puts on for its last stand, which takes hits before its health
         public float RiotShield, RiotShieldMax;  // replicated: the riot shield's strength this riot turn (0 = broken: it's exposed)
@@ -426,13 +422,9 @@ namespace Arena
 
         void NextWardenTurn(Enemy e, WardenState w, Player target)
         {
-            var turns = StageTurns[(int)w.Stage];
-            w.Step = (w.Step + 1) % turns.Length;
             if (w.Turn == WardenTurn.Rioters)
                 ClearRioters();  // whoever's left scatters
-            w.Turn = turns[w.Step];
-            w.TurnLen = StageTimes[(int)w.Stage][w.Step];
-            w.TurnT = 0f;
+            w.NextTurn(StageTurns, StageTimes);
             w.Dashing = false;
             w.Plant = -1;
             w.StunShotAt = 1.5f;  // the last stand's first stun round

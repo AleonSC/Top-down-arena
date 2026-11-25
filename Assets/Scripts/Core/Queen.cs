@@ -21,13 +21,9 @@ namespace Arena
 
     /// Everything about the Hive Queen's fight that her body doesn't already carry. The host runs it; clients get it
     /// in the snapshot (WriteQueen / ReadQueen) to draw the cells, the swarm cloud and the dive.
-    public class QueenState
+    public class QueenState : BossFight<QueenStage, QueenTurn>  // TransT: > 0 changing phase (can't be hurt), counting down
     {
-        public QueenStage Stage;
-        public QueenTurn Turn;
-        public float TurnT;              // seconds into the current turn
-        public float TransT;             // > 0: changing phase (can't be hurt), counting down
-        public QueenStage TransTo;
+        public QueenState() { Step = 0; }
         public float Aux;                // the nectar spray's sweep, 0..1 across its 140 degrees
         public readonly List<QueenCell> Cells = new List<QueenCell>();
         public bool CloudOn, CloudHome;  // the swarm cloud, and whether it's flying back to her
@@ -37,8 +33,8 @@ namespace Arena
         public int Dives;                // dives done this turn
 
         // Host only.
-        public int Step, Wave, Globs, FlankSide = 1;
-        public float TurnLen, WaveT, SprayDir = 1f, BombT;
+        public int Wave, Globs, FlankSide = 1;
+        public float WaveT, SprayDir = 1f, BombT;
         public V2 DiveFrom;
         public bool Landed;
         public readonly HashSet<int> Royal = new HashSet<int>();    // her shield drones from this Drones turn
@@ -379,7 +375,6 @@ namespace Arena
 
         void NextQueenTurn(Enemy e, QueenState q)
         {
-            var turns = QueenTurns[(int)q.Stage];
             if (q.Turn == QueenTurn.Drones)
             {
                 // Whatever's left of her shield flies back into her.
@@ -390,10 +385,7 @@ namespace Arena
             }
             if (q.Turn == QueenTurn.Eggs)
                 HatchEggs(e);
-            q.Step = (q.Step + 1) % turns.Length;
-            q.Turn = turns[q.Step];
-            q.TurnLen = QueenTimes[(int)q.Stage][q.Step];
-            q.TurnT = 0f;
+            q.NextTurn(QueenTurns, QueenTimes);
             q.Wave = 0;
             q.WaveT = 0f;
             q.Dives = 0;
