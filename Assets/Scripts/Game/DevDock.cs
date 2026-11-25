@@ -197,15 +197,6 @@ namespace Arena
             if (DkKey(new Rect(rx, y, 44f, h), "X", CrtStyle.Danger, false, 14))
                 devMenuOpen = false;
             rx -= 76f;
-            bool rec = recordSessions;
-            if (DkKey(new Rect(rx, y, 70f, h), "REC", CrtStyle.Danger, rec, 13))
-            {
-                recordSessions = !recordSessions;
-                PlayerPrefs.SetInt("record_sessions", recordSessions ? 1 : 0);
-                PlayerPrefs.Save();
-                ApplyRecording();
-            }
-            rx -= 76f;
             GUI.enabled = was && inMatch;
             if (DkKey(new Rect(rx, y, 70f, h), "BOT", CrtStyle.Gold, game.Bot, 13))
             {
@@ -221,10 +212,10 @@ namespace Arena
                 var kr = keyRects[devDrawer - 1];
                 switch (devDrawer)
                 {
-                    case 1: DrawDockWave(new Rect(Mathf.Min(kr.x, edge - 400f), 70f, 400f, 340f), host); break;
+                    case 1: DrawDockWave(new Rect(Mathf.Min(kr.x, edge - 400f), 70f, 400f, 228f), host); break;
                     case 2: DrawDockParty(new Rect(Mathf.Min(kr.x, edge - 380f), 70f, 380f, 282f), host); break;
-                    case 3: DrawDockView(new Rect(Mathf.Min(kr.x, edge - 400f), 70f, 400f, 160f), inMatch); break;
-                    default: DrawDockLabs(new Rect(Mathf.Min(kr.x, edge - 340f), 70f, 340f, 258f), inMatch); break;
+                    case 3: DrawDockView(new Rect(Mathf.Min(kr.x, edge - 400f), 70f, 400f, 172f), inMatch); break;
+                    default: DrawDockLabs(new Rect(Mathf.Min(kr.x, edge - 340f), 70f, 340f, 96f)); break;
                 }
             }
             if (devSide && inMatch)
@@ -246,27 +237,6 @@ namespace Arena
             var col = DkStack.Column(inner, 8f);
             bool was = GUI.enabled;
             GUI.enabled = was && host;
-            int max = game.Endless ? 999 : Game.MaxWave;
-            var row = DkStack.Cells(col.Next(34f), 7, 4f);
-            int[] steps = { -10, -5, -1, 0, 1, 5, 10 };
-            for (int i = 0; i < 7; i++)
-            {
-                if (steps[i] == 0)
-                {
-                    DkTitle(row[i], devWave.ToString(), 24, CrtStyle.Gold, TextAnchor.MiddleCenter);
-                    continue;
-                }
-                if (DkKey(row[i], steps[i] > 0 ? "+" + steps[i] : steps[i].ToString(), Ui.Neutral, false, 12))
-                    devWave = Mathf.Clamp(devWave + steps[i], 1, max);
-            }
-            if (DkKey(col.Next(38f), "GO TO WAVE " + devWave, Ui.GoldButton, false, 14))
-                game.DevJumpToWave(devWave);
-            int bossWave = game.Bosses.NextBossWaveFrom(devWave);
-            var boss = game.BossAt(bossWave);
-            Ui.Label(col.Next(18f), "Next boss (after wave " + bossWave + "): " + Defs.ListName(boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : boss),
-                12, CrtStyle.Gold, TextAnchor.MiddleLeft, true);
-            if (DkKey(col.Next(30f), "GO TO THE BOSS AFTER WAVE " + bossWave, Ui.Neutral, false, 12))
-                game.DevJumpToWave(Mathf.Min(bossWave, max), true);
             if (DkKey(col.Next(34f), "SPAWN AN ENEMY…", CrtStyle.Head, false, 14))
             {
                 devSheet = 5;
@@ -342,55 +312,26 @@ namespace Arena
         {
             var inner = DockBox(r, "View and helpers");
             var col = DkStack.Column(inner, 6f);
-            aimDebug = DockSwitch(col.Next(28f), aimDebug, "Aim debug overlay", "F3");
-            devNames = DockSwitch(col.Next(28f), devNames, "Name labels (everyone and every enemy)", "N");
-            DrawDevTrapControls(col, inMatch);
-            bool editText = DockSwitch(col.Next(28f), textEditMode, "Edit any text on screen", "F4");
-            if (editText != textEditMode)
-            {
-                SetTextEditMode(editText);
-                devMenuOpen = !editText;  // out of the way, so you can click the text you want
-            }
+            DrawDevTrapControls(ref col);
             bool was = GUI.enabled;
             GUI.enabled = was && inMatch;
             bool bot = DkSwitch(col.Next(28f), game.Bot, "Bot plays for me");
             if (bot != game.Bot)
             {
                 game.Bot = bot;
-                game.BotLevel = bot ? BotSkill.Good : BotSkill.Off;  // the Boss Lab's smart bot; the sim tests keep the simple one
+                game.BotLevel = bot ? BotSkill.Good : BotSkill.Off;  // the smart bot; the sim tests keep the simple one
             }
             GUI.enabled = was;
         }
 
         // --- LABS ---------------------------------------------------------------------------------------------
 
-        void DrawDockLabs(Rect r, bool inMatch)
+        void DrawDockLabs(Rect r)
         {
             var inner = DockBox(r, "Labs");
             var col = DkStack.Column(inner, 6f);
-            if (DkKey(col.Next(36f), "BOSS LAB", CrtStyle.Gold, false, 14))
-            {
-                devMenuOpen = false;
-                labSetupOpen = true;
-            }
             if (DkKey(col.Next(36f), "CELL EDITOR (ROOM LAYOUTS)", CrtStyle.Gold, false, 13))
                 OpenCellEditor();  // CellEditorUi.cs
-            bool wasArena = GUI.enabled;
-            GUI.enabled = wasArena && (session.IsHost || session.Screen == AppScreen.Menu);
-            if (DkKey(col.Next(36f), game.DevArena ? "LEAVE DEV ARENA" : "DEV ARENA (PLAY AS ENEMIES)", CrtStyle.Gold, game.DevArena, 13))
-                ToggleDevArena();  // DevArenaUi.cs
-            GUI.enabled = wasArena;
-            col.Space(4f);
-            bool on = DkSwitch(col.Next(26f), recordSessions, "Record sessions (when hosting)");
-            if (on != recordSessions)
-            {
-                recordSessions = on;
-                PlayerPrefs.SetInt("record_sessions", on ? 1 : 0);
-                PlayerPrefs.Save();
-                ApplyRecording();
-            }
-            if (DkKey(col.Next(30f), "SESSIONS FOLDER", Ui.Neutral, false, 10))
-                OpenFolder(SessionsFolder);
         }
 
         // --- Stat editor and the big sheets ------------------------------------------------------------------------
@@ -405,7 +346,7 @@ namespace Arena
 
         void DrawDockSheet(Rect r, bool inMatch)
         {
-            string title = devSheet == 6 ? "Run snapshots" : devSheet == 4 ? "Spawn an upgrade" : devSheet == 7 ? "Spawn items: gold, vectors, gadgets, chests, relics" : game.DevArena ? "Dev Arena: spawn or play as an enemy" : "Spawn an enemy";
+            string title = devSheet == 6 ? "Run snapshots" : devSheet == 4 ? "Spawn an upgrade" : devSheet == 7 ? "Spawn items: gold, vectors, gadgets, chests, relics" : "Spawn an enemy";
             var inner = DockBox(r, title);
             if (DkKey(new Rect(r.xMax - 40f, r.y + 6f, 30f, 22f), "x", Ui.Neutral, false, 11))
                 devSheet = 0;
@@ -599,11 +540,6 @@ namespace Arena
             foreach (var t in all)
                 if (f.Length == 0 || Defs.ListName(t).IndexOf(f, StringComparison.OrdinalIgnoreCase) >= 0)
                     list.Add(t);
-            if (game.DevArena)
-            {
-                DrawDevArenaRow(col.Next(32f));  // Spawn / Play as, Let go, Clear, Leave (DevArenaUi.cs)
-                DrawDevArenaDummyRow(col.Next(30f));  // hero dummies, Can't die
-            }
             var area = col.Rest();
             area.height -= 26f;
             DkSub(area);
@@ -620,7 +556,7 @@ namespace Arena
             devEnemyScroll = Mathf.Clamp(devEnemyScroll, 0, Mathf.Max(0, rowsAll - rowsVisible));
             int first = (int)devEnemyScroll * cols;
             var cells = new List<KeyValuePair<EnemyType, Rect>>();
-            bool spawnerMode = devSpawnerMode && !(game.DevArena && devPlayAs);
+            bool spawnerMode = devSpawnerMode;
             bool canSpawn = host && (fighting || spawnerMode && game.State != MatchState.Idle);
             for (int i = first; i < list.Count && i < first + rowsVisible * cols; i++)
             {
@@ -636,14 +572,7 @@ namespace Arena
                 Ui.Label(new Rect(cell.x, cell.yMax - 15f, cell.width, 13f), Defs.ListName(list[i]), 9, canSpawn ? CrtStyle.Body : CrtStyle.Desc, TextAnchor.MiddleCenter);
                 cells.Add(new KeyValuePair<EnemyType, Rect>(list[i], cell));
                 bool hitCell = canSpawn && Ui.HitArea(cell);
-                if (hitCell && game.DevArena && devPlayAs)
-                {
-                    if (game.DevPossess(game.MyId, list[i]))
-                        devMenuOpen = false;  // out of the way: you're it now (DevArenaUi.cs)
-                    else
-                        devEnemyNote = "Couldn't play as it.";
-                }
-                else if (hitCell && spawnerMode)
+                if (hitCell && spawnerMode)
                 {
                     if (boss)
                         devEnemyNote = "Bosses can't have a spawner.";
@@ -669,7 +598,7 @@ namespace Arena
             }
             if (rowsAll > rowsVisible)
                 Ui.Label(new Rect(area.xMax - 110f, area.yMax + 6f, 104f, 16f), "scroll " + ((int)devEnemyScroll + 1) + "/" + (rowsAll - rowsVisible + 1), 10, CrtStyle.Desc, TextAnchor.MiddleRight);
-            string idle = !host ? "Only the host can spawn enemies." : spawnerMode && game.State != MatchState.Idle ? list.Count + " " + (devEnemyTab == 1 ? "bosses (no spawners)" : "enemies") + "  ·  click one to place a spawner of it in front of you" : !fighting ? "Start a wave first: enemies can only be spawned while one is under way." : list.Count + " " + (devEnemyTab == 1 ? "bosses" : "enemies") + (game.DevArena && devPlayAs ? "  ·  click one to play as it" : "  ·  click one to put it in front of you (marks the run as a dev run)");
+            string idle = !host ? "Only the host can spawn enemies." : spawnerMode && game.State != MatchState.Idle ? list.Count + " " + (devEnemyTab == 1 ? "bosses (no spawners)" : "enemies") + "  ·  click one to place a spawner of it in front of you" : !fighting ? "Start a wave first: enemies can only be spawned while one is under way." : list.Count + " " + (devEnemyTab == 1 ? "bosses" : "enemies") + "  ·  click one to put it in front of you (marks the run as a dev run)";
             Ui.Label(new Rect(r.x, r.yMax - 20f, r.width - 120f, 18f), devEnemyNote.Length > 0 && canSpawn ? devEnemyNote : idle, 11, devEnemyNote.Length > 0 && canSpawn ? CrtStyle.Gold : CrtStyle.Desc);
         }
 

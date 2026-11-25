@@ -84,7 +84,6 @@ namespace Arena
             DrawJuiceFloor();  // scorch marks and shot trails (Juice.cs)
             DrawFrostNovaGround();  // Frost Nova's cracks and frosted ground, under everything (FrostNovaLook.cs)
             DrawLighting(t);  // shots, blasts and fire lighting the floor, their shadows cast (LightingLook.cs)
-            DrawHeroDummies(t);  // the Dev Arena's stand-in heroes (DevArenaUi.cs)
             DrawArenaContents(t, true);
             DrawJuiceParts();  // shards, rings and sparks
             DrawArenaOver(t);  // what stands or flies over the arena's contents (also in Practice and the loadout preview)
@@ -106,20 +105,6 @@ namespace Arena
 
             if (!fpView)  // (first person: none of it, FirstPerson.cs)
                 DrawPlayerOverlays(t, MouseArena(), aimLine);  // the aim line, and each weapon's pips, meters and charges
-
-            if (aimDebug && game.Me != null)
-            {
-                // Cyan: from you through the crosshair. Yellow: along your last shot as the host fired it.
-                var me = game.Me;
-                Line(me.Disp, me.Disp + V2.FromAngle(me.Aim) * 1100f, 1.5f, new Rgba(0.3f, 0.9f, 1f, 0.7f));
-                if (game.LastShotId != 0)
-                {
-                    Line(game.LastShotFrom, game.LastShotFrom + V2.FromAngle(game.LastShotAngle) * 1100f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.75f));
-                    Bullet shot;
-                    if (game.Bullets.TryGetValue(game.LastShotId, out shot))
-                        Arc(shot.Pos, shot.Radius + 5f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.9f), 12);
-                }
-            }
 
             // Crosshair
             V2 m = fpView ? FpScreenMid() : MouseArena();  // (first person: the middle of the screen, FirstPerson.cs)
@@ -465,13 +450,8 @@ namespace Arena
             DrawStaticShockUnder(p, t);  // Overcharge's gold ring; the plain cone (StaticShockLook.cs)
             if (p.CoatT > 0f)
                 DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (HemomancerLook.cs)
-            if (p.DoseT > 0f)  // dosed by Medicine Darts: green motes rising off you while it heals
-                for (int k = 0; k < 4; k++)
-                {
-                    float f = MathX.Fmod(t * 1.1f + k * 0.25f + p.Id * 0.3f, 1f);
-                    V2 at = p.Disp + new V2((k - 1.5f) * p.Def.BodyR * 0.45f, p.Def.BodyR * 0.6f - f * p.Def.BodyR * 1.8f);
-                    Circle(at, 2.2f * (1f - f) + 0.8f, new Rgba(0.5f, 1f, 0.6f, 0.85f * (1f - f)), 6);
-                }
+            if (p.NeedleN > 0)
+                DrawNeedlesInPlayer(p, t);  // Acupuncture Needles in you, healing (AcupunctureLook.cs)
             if (p.Weapon.Id == WeaponId.Katana)  // both stances' combo pips over your head (KatanaLook.cs)
                 DrawKatanaHud(p, t);
             if (p.Weapon.Id == WeaponId.BoStaff)  // where you are in the slash, jab, spin chain (BoStaffLook.cs)

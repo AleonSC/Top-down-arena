@@ -259,6 +259,7 @@ static partial class Program
                     {
                         sc.Step(dt);
                         burst |= sc.Game.Effects.Any(fx => fx.Kind == FxKind.TalismanBurst && sc.Game.Enemies.Values.Any(e => e.Pos.WithinReach(fx.Pos, fx.Radius + e.Radius)));
+                        burst |= sc.Game.Players.Values.Any(p => p.NeedleN > 0);  // the Acupuncture Needles' Fire heals a teammate instead (AcupunctureNeedles.cs)
                     }
                     var g = sc.Game;
                     bool hit = g.Score > 0 || g.Enemies.Values.Any(e => e.Hp < e.MaxHp - 0.5f) || burst;

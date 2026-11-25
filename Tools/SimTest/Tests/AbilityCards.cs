@@ -452,16 +452,16 @@ static partial class Program
         Check(near(fu1 / fu0, 1.2f, 0.001f) && near(or1 / Game.FumaOrbitR, 1.2f, 0.001f), "Long Loop: the thrown loop is 20% bigger and the Orbit circle 20% wider");
         g.Bullets.Clear();
 
-        var poison = typeof(Game).GetMethod("PoisonHit", flags);
+        var needleHit = typeof(Game).GetMethod("BloodNeedleHit", flags);
         Func<int, float> dose = n =>
         {
-            arm(WeaponId.MedicineDarts, "Potent Dose", n);
+            arm(WeaponId.AcupunctureNeedles, "Potent Dose", n);
             var e = enemyAt(there);
-            poison.Invoke(g, new object[] { new Bullet { Medicine = true, Owner = me.Id, Dmg = Defs.WeaponOf(WeaponId.MedicineDarts).Damage }, e });
-            return e.PoisonDps;
+            needleHit.Invoke(g, new object[] { new Bullet { Kind = Defs.BloodNeedle, Owner = me.Id, Dmg = Defs.WeaponOf(WeaponId.AcupunctureNeedles).Damage }, e });
+            return e.BleedDps;
         };
         float ds0 = dose(0), ds1 = dose(1);
-        Check(ds0 > 0f && near(ds1 / ds0, 1.3f, 0.001f), "Potent Dose: each dart's poison (and healing) stack is 30% stronger");
+        Check(ds0 > 0f && near(ds1 / ds0, 1.3f, 0.001f), "Potent Dose: each Bloodletting needle's bleed (and each healing needle) is 30% stronger");
 
         Func<int, float[]> fan = n => { arm(WeaponId.SpiritFan, "Gale Fan", n); me.SwingCount = 1; g.Bullets.Clear(); fireN(); var b = g.Bullets.Values.First(x => x.Kind == Defs.GustShot); return new[] { b.HealAlly, b.Life }; };
         var fa0 = fan(0); var fa1 = fan(1);

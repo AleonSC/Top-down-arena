@@ -109,7 +109,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Bo Staff | Tank | 0.47 s | 16 | - | 105 | 48 | Primary Fire: A three-swing staff combo that cuts small bullets.  Alternative Fire: Shove a wall of staff ahead of you. |
 | Fuma Shuriken | Tank | 0.7 s | 30 | - | - | 6 | Primary Fire: A giant star thrown in a loop that cuts everything both ways. |
 | Nodachi | Tank | 0.3 s | 20 | - | 150 | 52 | Primary Fire: A tall katana with two five-step combo stances: wide sweeps, or fast jabs that block.  Alternative Fire: Switch stance. |
-| Medicine Darts | Healer | 0.18 s | 7 | 900 x 0.8 s | - | 50 | Primary Fire: Fast needles that poison enemies and heal allies. |
+| Acupuncture Needles | Healer | 0.18 s | 10 | 900 x 0.8 s | - | 63 | Primary Fire: Fast needles that fly through enemies and stick in hurt teammates, healing over time. Five open the meridian for a burst of healing.  Alternative Fire: Bloodletting, three needles that cut and bleed enemies. Five in one enemy burst at the pressure point; a dying enemy's needles fly back to heal the most hurt teammate. |
 | Spirit Fan | Healer | 0.4 s | 6 | 420 x 0.3 s | - | 75 | Primary Fire: A short gust that heals allies and pushes small bullets back. |
 | Ofuda | Healer | 0.45 s | 45 | 380 x 1.1 s | - | 40 | Primary Fire: Healing Talisman: a paper charm that bends toward a hurt teammate at the end of its flight, heals them and bursts, healing teammates near, shoving enemies back and erasing small bullets.  Alternative Fire: Blast Ofuda: a charm that flies straight, sticks to the enemy it hits and blows up; one that misses lands and blows up a moment later. |
 | Twin Tessen | Healer | 0.2 s | 10 | - | 105 | 54 | Primary Fire: A five-step dance of two war fans that heals the allies it brushes and ends in a petal wave.  Alternative Fire: Hold to pull the fans back, let go for a massive gust that throws enemies back and heals allies. |
@@ -174,6 +174,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Fortress | Tank | ultimate | 70 s | - | Lasts 14 s. | A dome only players and their bullets can cross. |
 | Juggernaut Suit | Tank | ultimate | 75 s | - | 450 armour, and each shard does 18. | Heavy armour draws every enemy and throws flak back at shooters. |
 | A Literal Tank | Tank | ultimate | 80 s | - | 550 armour, and the shells blast 30% wider. | Drive an actual tank for 15 s: heavy armour, big explosive shells, and it runs enemies over. |
+| Armor Drop | Tank | ultimate | 80 s | - | The crate holds a 4th vest. | Call in a crate that hits enemies where it lands, then opens: 3 ballistic vests, 50 armor each. Armor never regenerates. |
 | Deployable Cover | Tank | 1st, choice 5 | 12 s (+1 charges) | - | Covers take 600 damage, and each charge comes back 25% sooner. | Plant steel cover that stops enemy bullets while your team shoots through. |
 | Shockwave | Tank | card | 14 s | - | The wave runs out 300 px. | A shockwave erases bullets and shoves enemies back. |
 | Overdrive | Tank | card | 18 s | - | +1 extra projectile while it lasts. | Double your fire rate for a few seconds. |

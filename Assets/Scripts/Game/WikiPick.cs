@@ -7,7 +7,7 @@ namespace Arena
     /// The wiki everywhere (Docs/Wiki.md steps 3 and 4). The Wiki key (I by default, KeyAction.Wiki): a tap opens the wiki, on the main
     /// menu's bay (BayWiki.cs) or anywhere else as a modal screen over the game (solo, the run pauses while it's open; in co-op it
     /// doesn't, and it's only on your screen); the pause and lobby menus have a WIKI row too. Held, it's the eyedropper: on-screen text
-    /// under the pointer is outlined in gold (Ui.PickText, the same picking as the dev text editor), and in a run the enemy or player
+    /// under the pointer is outlined in gold (Ui.PickText), and in a run the enemy or player
     /// under it counts too; a tag by the pointer names what a click opens, and a click opens its page. Nothing here is sent: no
     /// protocol change.
     public partial class ArenaApp
@@ -63,7 +63,7 @@ namespace Arena
                 OpenScreen(screenWiki);
                 wikiOpenedAt = Time.unscaledTime;
                 GUIUtility.keyboardControl = 0;
-                if (session.Screen == AppScreen.Game && game.Players.Count == 1 && !LabRunning && !game.Paused
+                if (session.Screen == AppScreen.Game && game.Players.Count == 1 && !game.Paused
                     && (game.State == MatchState.Fighting || game.State == MatchState.Intermission))
                 {
                     game.RequestPause(true);
@@ -90,7 +90,7 @@ namespace Arena
         void UpdateWikiKey()
         {
             InitWikiScreen();
-            bool free = GUIUtility.keyboardControl == 0 && !textEditMode && !chatOpen;
+            bool free = GUIUtility.keyboardControl == 0 && !chatOpen;
             if (Keybinds.Down(KeyAction.Wiki) && free && (!ModalScreenOpen || screenWiki.IsOpen))
             {
                 wikiKeyDown = true;
@@ -152,6 +152,16 @@ namespace Arena
         }
 
         /// Start of OnGUI, while the eyedropper is on: a left click opens what's under the pointer (and goes no further).
+        /// Start of OnGUI: note the text under the pointer while the Wiki key is held (Ui.Shown outlines it).
+        void PickBeginGui()
+        {
+            Ui.PickText = wikiPicking;
+            Ui.BeginPick();
+        }
+
+        /// Shot previews: the end of the pick pass.
+        void PickEndGui() => Ui.EndPick();
+
         void WikiPickBeginGui()
         {
             var ev = Event.current;

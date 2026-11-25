@@ -51,7 +51,7 @@ namespace Arena
             new Topic("Dazed", "Dazed by a close-in hit: can't attack for a moment, then can't be dazed again for a while."),
             new Topic("Caged", "Caged by a third Bone Guard dart: can't move or shoot."),
             new Topic("Marked", "Mark for Death: takes extra damage while the mark lasts."),
-            new Topic("Poisoned", "Medicine Darts' poison: damage over time that stacks."),
+            new Topic("Poisoned", "Senbon Seekers' poison: damage over time that stacks."),
             new Topic("Venom", "Poison Dart's venom: damage over time that spreads to enemies nearby when it dies."),
             new Topic("Suppressed", "The Riot Repeater's suppression: it shoots slower while it lasts."),
         };

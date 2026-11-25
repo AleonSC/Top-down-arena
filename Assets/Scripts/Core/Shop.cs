@@ -208,7 +208,6 @@ namespace Arena
                         return;
                     p.Gold -= price;
                     p.ShelfSold |= 1 << arg;
-                    Recorder?.Picked(this, p, (int[])p.Shelf.Clone(), u, "shop");
                     GrantUpgrade(id, u);
                     DoLog(p.Role + " bought " + Upgrades.All[u].Name + " for " + price);
                     break;

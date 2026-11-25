@@ -3,7 +3,7 @@
 # triangles and IMGUI draw calls, and shot.py composites them with Pillow.
 #   Tools/Preview/shot.sh <out-name> <mode> [wave] [seconds] [players]
 # picker: GOLDINSTEAD=1 (on the Bazaar: the "Gold instead" key under the row).
-# Modes (see ShotModes.cs; flags in ShotScenes.cs): hud, dev, bg, lobby, labsetup, labpanel, tab, picker, legendary, ...
+# Modes (see ShotModes.cs; flags in ShotScenes.cs): hud, dev, bg, lobby, tab, picker, legendary, ...
 # Env flags tweak the scene, e.g. KNIGHT=1 (Knights), POSE=1 (fixed pose), THRUST=0.3 (Lance jab frame),
 # DAZE=1 (three enemies dazed round you; mode hud), BOW=0.9, MASTERY=1, BG=3 (background number for 'bg'), MOUSE=x,y (hover for lobby modes), SOLO=1,
 # menu: PLAY=1 (the Play picker; NOSAVES=1, MORE=1 extra saves, OLDER=1 the older runs, PAGE=n), MENUT=<s> (the clock: 3 = rooms built), BG=28 (Holo Floor).
@@ -13,6 +13,7 @@
 # QUICKMET=<n> (the lobby's Quick Play tab with n bosses beaten; mode lobby).
 # TUTORIAL=<lesson 0-4>,<steps done> (the first-run tutorial prompt; mode hud).
 # RAILGUN=<s> (the Railgun's scripted shot: RAILHOLD=<s> held, default 1.6; RAILAIM=<deg>; RAILHEAT=<0-100>; RAILDUMP=1 Heat Dump instead; mode hud).
+# NEEDLES=<s> (the Healer Ninja's Acupuncture Needles: healing needles through a grunt into a teammate, Bloodletting in two grunts; mode hud, 3 players, ZOOM=2.2).
 # OFUDA=<s> (the Healer Ninja's Ofuda: talismans bending onto a hurt teammate, a Blast Ofuda stuck to a grunt and one on the ground; mode hud, 3 players, ZOOM=1.6).
 # ARCLOCK=<s> (Arc Lightning's lock-on: hold from 0, let go at 1.5 s; ARCFORK=1 the Forked Volley instead; mode hud).
 # OATHPICK=1|0 (Guardian's Oath waiting for the click: cursor on an ally, or off; mode hud, 3 players).

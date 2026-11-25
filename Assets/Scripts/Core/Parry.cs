@@ -98,10 +98,8 @@ namespace Arena
                     StartWorldSlow();
                 }
                 BroadcastFx(FxKind.PerfectParry, at, new V2(p.Id, p.Aim), p.Def.Color.WithAlpha(slow ? 1f : 0.5f), HalfArc(p), PerfectFxTime, Sfx.PerfectParry);
-                Recorder?.Parry(p, dmg, true, false);
                 return true;
             }
-            Recorder?.Parry(p, Math.Min(dmg, p.ParryHp), false, p.ParryHp - dmg <= 0f);
             p.ParryHp -= dmg;
             BroadcastFx(FxKind.Spark, at, new Rgba(0.55f, 0.9f, 1f), 9f, 0.15f, Sfx.Hit);
             if (p.ParryHp <= 0f)

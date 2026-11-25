@@ -341,6 +341,9 @@ namespace Arena
             bool hover = SetToggle(ref y, w, "Enemy names on hover", "Point at an enemy for its name and job", hoverNames, live, calm);
             if (hover != hoverNames)
                 SetHoverNames(hover);
+            bool labels = SetToggle(ref y, w, "Name labels", "A name over you and every enemy", nameLabels, live, calm, "N");
+            if (labels != nameLabels)
+                SetNameLabels(labels);
             float mate = mateShotAlpha;
             y = SetBar(y, w, "Teammate shots", "How solid other players' bullets look", ref mate, live, calm, 0.25f);
             if (Mathf.Abs(mate - mateShotAlpha) > 0.0001f)
