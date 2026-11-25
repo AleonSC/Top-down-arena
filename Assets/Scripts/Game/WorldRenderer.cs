@@ -284,6 +284,7 @@ namespace Arena
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
             DrawInk(t);  // Spirit Chalk's lines and loops (ChalkLook.cs)
+            DrawHiveFloor(t);  // the Hive Censer's refill rings and reach; its insects fly here (HiveCenserLook.cs)
             foreach (var h in game.Hazards.Values)
                 DrawHazard(h, t);
             DrawPits(t);  // a pit variant's voids, gold-and-black rims (PitLook.cs)
@@ -354,6 +355,7 @@ namespace Arena
             DrawFlashFireFront(t);  // Flash Fire's near flames, in front of the enemies (FlashFireLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawBloodbathOver(t);  // enemies wading in a Bloodbath: tinted, bleeding drops (BloodbathLook.cs)
+            DrawHiveOver(t);  // the Hive Censer: wrapped enemies darkened, plain insects (HiveCenserLook.cs)
             DrawGlSmokeOver(t);  // the Grenade Launcher's clouds over the enemies, jammed ones greyed (GrenadeLauncherLook.cs)
             DrawWardenOver(t);  // the Warden blinded or stunned (WardenLook.cs)
             DrawWardenIntro(t);  // the Warden's entrance: its Lockdown cell (WardenIntro.cs)
@@ -459,6 +461,7 @@ namespace Arena
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)
             DrawTempest(p, t);  // Wind Clash's Tempest (WindClashLook.cs)
             DrawTessenUnder(p, t);  // the Twin Tessen's charging cone, Tailwind and Breeze arc (TwinTessenLook.cs)
+            DrawChitin(p, t);  // Hive Censer chitin (HiveCenserLook.cs)
             DrawStaticShockUnder(p, t);  // Overcharge's gold ring; the plain cone (StaticShockLook.cs)
             if (p.CoatT > 0f)
                 DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (HemomancerLook.cs)

@@ -78,6 +78,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Sprite Staff | Healer | 0.5 s | 7 | 540 x 1 s | - | 14 | Primary Fire: A firefly that seeds an enemy and hops on; sprites heal whoever is hurt. |
 | Treant Rod | Healer | 0.55 s | 15 | - | 250 | 34 | Primary Fire: A thorny root whips out along your aim; your Treant blocks bullets and heals along its root. |
 | Spirit Chalk | Healer | 0.1 s | 26 | - | 450 | 26 | Primary Fire: Hold and drag to draw ink that burns enemies and heals allies; circle enemies to trap them.  Alternative Fire: Ignite your loops to burn what they hold. |
+| Hive Censer | Healer | 0.1 s | 18 | - | 420 | 83 | Primary Fire: Hold to pour insects from your cursor. They gather into swarms that wrap enemies (damage and slow) and shell allies in chitin, a barrier that wears off and is topped up near a swarm.  Alternative Fire: Hive Call: every swarm rushes to your cursor. |
 | Wolf Whistle | Dps | 0.3 s | 6.5 | 720 x 0.8 s | - | 150 | Primary Fire: Darts mark prey for your wolves; kills grow the pack.  Alternative Fire: Merge the pack into an alpha. |
 | Wisp Lantern | Dps | 0.25 s | 22 | - | - | 84 | Primary Fire: Wisps orbit you; each shot sends one to strike the nearest enemy and return. |
 | Imp Caller | Dps | 0.35 s | 0 | - | - | 77 | Primary Fire: Imps wait by you: tap to send one to explode at your cursor.  Alternative Fire: Hold to merge them into one big imp. |

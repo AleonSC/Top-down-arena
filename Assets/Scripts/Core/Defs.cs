@@ -169,6 +169,8 @@ namespace Arena
         TwinTessen,
         // the DPS Engineer's second (BumbleRemote.cs): a remote steering the Bumble Bot, a robot bee that fights at your cursor
         BumbleRemote,
+        // the Healer Summoner's fourth (HiveCenser.cs): insects poured from the cursor that swarm enemies and shell allies, Hive Call on Alt
+        HiveCenser,
     }
 
     public class WeaponDef

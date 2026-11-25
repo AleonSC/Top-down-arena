@@ -1139,6 +1139,8 @@ namespace Arena
                 return;  // the Ofuda's Blast Ofuda (Ofuda.cs)
             if (LocalArcCannon(me, pressed, aimAt, dt))
                 return;  // Static Shock's Arc Cannon (StaticShock.cs)
+            if (LocalHiveCall(me, pressed, aimAt, dt))
+                return;  // the Hive Censer's Hive Call (HiveCenser.cs)
             if (LocalHammerSlamReady(me, pressed, dt))
             {
                 if (IsHost)
@@ -1375,6 +1377,11 @@ namespace Arena
             if (kind == DashOfuda)
             {
                 HostOfudaBlast(p, target);  // the Ofuda's Alt (Ofuda.cs)
+                return;
+            }
+            if (kind == DashHiveCall)
+            {
+                HostHiveCall(p, target);  // the Hive Censer's Alt (HiveCenser.cs)
                 return;
             }
             if (kind == DashArcCannon)

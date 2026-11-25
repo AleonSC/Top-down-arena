@@ -1324,6 +1324,47 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // HIVECENSER=<s>: the Healer Summoner's Hive Censer (Core/HiveCenser.cs, Game/HiveCenserLook.cs) that long into a scripted pour: Fire
+    // held on a pack of grunts ahead (the cursor sweeping across it) until 1.2 s, then beside a teammate below until 2.0 s (a swarm shells
+    // them in chitin), then back on the pack. HCALT=1: Hive Call (Alt) at 2.4 s toward the second teammate. Run with 3 players
+    // (shot.sh x hud 3 1 3).
+    if (Environment.GetEnvironmentVariable("HIVECENSER") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear(); gm.Orbs.Clear();
+      me.Role = Role.Healer; me.Kit = Kit.Summoner; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.Weapon(Role.Healer, Kit.Summoner, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; q0.ChitinHp = 0f; }
+      bool call = Environment.GetEnvironmentVariable("HCALT") != null;
+      V2 home = new V2(420f, 420f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var mates = new System.Collections.Generic.List<Player>();
+      foreach (var q in gm.Players.Values) if (q != me) mates.Add(q);
+      var mateAt = new[] { new V2(-40f, 230f), new V2(200f, 300f) };
+      for (int i = 0; i < mates.Count && i < 2; i++) { mates[i].Pos = mates[i].Disp = home + mateAt[i]; mates[i].Firing = false; }
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at in new[] { new V2(300f, -70f), new V2(340f, 10f), new V2(290f, 70f), new V2(400f, -30f), new V2(260f, -160f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var keep = new V2[foes.Count];
+      for (int i = 0; i < foes.Count; i++) keep[i] = foes[i].Pos;
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(2, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("HIVECENSER"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        float tt = f / 60f;
+        V2 cursor = tt < 1.2f ? home + new V2(250f + 90f * (float)Math.Sin(tt * 4f), -90f + 120f * tt)
+                  : tt < 2.0f ? home + mateAt[0] + new V2(70f, -20f)
+                  : home + new V2(230f + 40f * (float)Math.Sin(tt * 5f), 40f * (float)Math.Cos(tt * 4f));
+        if (call && tt >= 2.4f) cursor = home + mateAt[1];
+        bool fire = !(call && tt >= 2.4f);
+        me.Pos = me.Disp = home; me.Aim = (cursor - home).Angle; for (int i = 0; i < foes.Count; i++) { foes[i].Pos = foes[i].Disp = keep[i]; foes[i].FireT = 99f; }
+        for (int i = 0; i < mates.Count && i < 2; i++) { mates[i].Pos = mates[i].Disp = home + mateAt[i]; mates[i].Hp = mates[i].MaxHp; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = fire, WeaponAction = call && f >= 144 && f < 147 });
+        gm.Update(1f / 60f);
+        me.Disp = me.Pos = home; me.AimAt = cursor; me.Hp = me.MaxHp; for (int i = 0; i < foes.Count; i++) foes[i].Disp = foes[i].Pos = keep[i];
+        for (int i = 0; i < mates.Count && i < 2; i++) mates[i].Pos = mates[i].Disp = home + mateAt[i];
+        draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // TWINPISTOLS=<s>: the Healer Soldier's Twin Pistols (Core/TwinPistols.cs, Game/TwinPistolsLook.cs) that long into a fight: fire held at a
     // pack of grunts 260 px ahead (TPLASER=1: Alt pressed 0.1 s in, Laser Sights on; TPIDLE=1: not firing).
     if (Environment.GetEnvironmentVariable("TWINPISTOLS") != null) {
