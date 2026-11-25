@@ -5,7 +5,8 @@ using UnityEngine;
 namespace Arena
 {
     /// First-person view (F8, remembered): purely local drawing over the same game, network and rules, like the zoom.
-    ///   eye      the camera sits in your body FpEye arena units up, turned by the mouse (fpYaw, fpPitch; the cursor is locked
+    ///   eye      the camera sits in your body FpEye arena units up, turned by the mouse (fpYaw, fpPitch, at Settings > Gameplay >
+    ///            First-person mouse: SetFpSens; the cursor is locked
     ///            while nothing wants the pointer). W walks where you look (FpMove) and you aim at the crosshair: MouseArena is
     ///            the floor point under it (FpAimPoint), or far ahead when you look up.
     ///   floor    Px (WorldRenderer.cs) sends every arena point through FpPx: the whole top-down picture becomes the floor.
@@ -26,6 +27,7 @@ namespace Arena
         static readonly Rgba FpFog = new Rgba(0.03f, 0.035f, 0.055f, 1f);
 
         bool fpWant, fpLoaded;  // F8 toggled it (PlayerPrefs "first_person")
+        float fpSensV = 0.5f;   // Settings > Gameplay > First-person mouse, 0.05..1 (PlayerPrefs "fp_sens"): 0.5 is the default speed, each end 4x slower / faster
         bool fpView;            // this frame: on, in a run, with you on the field
         bool fpProject;         // while the arena is drawn through the eye (FpBeginWorld .. FpEndWorld)
         bool fpCamReady;        // the camera below was set by a frame drawn in this view
@@ -56,6 +58,63 @@ namespace Arena
         readonly Vector3[] fpPolyV = new Vector3[5], fpClipV = new Vector3[5];
         readonly Color[] fpPolyC = new Color[5], fpClipC = new Color[5];
 
+        /// The First-person mouse setting (0.05..1), loaded the first time it's asked for.
+        float FpSensSetting
+        {
+            get
+            {
+                FpLoad();
+                return fpSensV;
+            }
+        }
+
+        void SetFpSens(float v)
+        {
+            FpLoad();
+            fpSensV = Mathf.Clamp(v, 0.05f, 1f);
+            PlayerPrefs.SetFloat("fp_sens", fpSensV);
+            PlayerPrefs.Save();
+        }
+
+        /// The drawer's compact First-person mouse bar (MenuDrawer.cs): − and + keys, twenty cells, the speed as a multiplier.
+        float FpSensSlider(Rect r, float v)
+        {
+            float cy = r.center.y;
+            var minus = new Rect(r.x, cy - 13f, 26f, 26f);
+            var plus = new Rect(r.xMax - 26f, cy - 13f, 26f, 26f);
+            var val = new Rect(plus.x - 50f, r.y, 46f, r.height);
+            var cells = new Rect(minus.xMax + 8f, cy - 9f, val.x - 6f - (minus.xMax + 8f), 18f);
+            if (DkKey(minus, "-", false, FxCalm, size: 18, accent: null))
+                v = Mathf.Round(v * 20f - 1f) / 20f;
+            if (DkKey(plus, "+", false, FxCalm, size: 18, accent: null))
+                v = Mathf.Round(v * 20f + 1f) / 20f;
+            var e = Event.current;
+            var hit = new Rect(cells.x - 2f, cells.y - 8f, cells.width + 4f, cells.height + 16f);
+            Ui.NoteHover(hit);
+            if (GUI.enabled && e.button == 0 && (e.type == EventType.MouseDown || e.type == EventType.MouseDrag) && hit.Contains(e.mousePosition))
+            {
+                v = Mathf.Round(Mathf.Clamp01((e.mousePosition.x - cells.x) / cells.width) * 20f) / 20f;
+                e.Use();
+            }
+            v = Mathf.Clamp(v, 0.05f, 1f);
+            int lit = Mathf.RoundToInt(v * 20f);
+            float cw = cells.width / 20f;
+            for (int i = 0; i < 20; i++)
+                Ui.Fill(new Rect(cells.x + i * cw, cells.y, cw - 2f, cells.height), i < lit ? CrtStyle.Ink : CrtStyle.Ink.WithAlpha(0.14f));
+            float mult = Mathf.Pow(4f, v * 2f - 1f);
+            Ui.Label(val, mult.ToString(mult < 0.995f ? "0.00" : "0.0", System.Globalization.CultureInfo.InvariantCulture) + "x", 16, CrtStyle.Ink, TextAnchor.MiddleRight, true);
+            return v;
+        }
+
+        void FpLoad()
+        {
+            if (fpLoaded)
+                return;
+            fpLoaded = true;
+            fpWant = PlayerPrefs.GetInt("first_person", 0) == 1;
+            fpSensV = Mathf.Clamp(PlayerPrefs.GetFloat("fp_sens", 0.5f), 0.05f, 1f);
+        }
+
         void SetFirstPerson(bool on)
         {
             fpWant = on;
@@ -66,11 +125,7 @@ namespace Arena
         /// Every frame (end of Update): F8, the mouse look, the cursor lock.
         void UpdateFirstPerson()
         {
-            if (!fpLoaded)
-            {
-                fpLoaded = true;
-                fpWant = PlayerPrefs.GetInt("first_person", 0) == 1;
-            }
+            FpLoad();
             if (Input.GetKeyDown(KeyCode.F8) && !Keybinds.Busy && GUIUtility.keyboardControl == 0)
                 SetFirstPerson(!fpWant);
             var me = game.Me;
@@ -87,15 +142,15 @@ namespace Arena
             Cursor.lockState = look ? CursorLockMode.Locked : CursorLockMode.None;
             if (!look)
                 return;
-            float mx = 0f, my = 0f;
+            float mx = 0f, my = 0f, k = FpSens * Mathf.Pow(4f, fpSensV * 2f - 1f);  // (the setting: 4x slower to 4x faster)
             try
             {
                 mx = Input.GetAxisRaw("Mouse X");
                 my = Input.GetAxisRaw("Mouse Y");
             }
             catch (ArgumentException) { }  // (no mouse axes in the Input Manager: no turning)
-            fpYaw = MathX.Fmod(fpYaw + mx * FpSens + MathX.Pi, MathX.Tau) - MathX.Pi;
-            fpPitch = Mathf.Clamp(fpPitch + my * FpSens, -1.25f, 0.6f);
+            fpYaw = MathX.Fmod(fpYaw + mx * k + MathX.Pi, MathX.Tau) - MathX.Pi;
+            fpPitch = Mathf.Clamp(fpPitch + my * k, -1.25f, 0.6f);
         }
 
         /// The move keys (screen directions, W up) as an arena direction: turned with the camera, or with your look.
