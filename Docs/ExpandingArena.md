@@ -158,7 +158,7 @@ in that layout with a switch; don't delete code.
 ## Step 5 (built, no protocol change): shop and floor rooms
 
 - **Shop room**: no enemy spawns in it (`SpawnWeight` 0). With one on the map, kills drop personal gold (`GrantGold`, like
-  Gold Rush) and `OpenShop` runs when the wave after a boss (wave % 5 == 1) is cleared, since the map is up on regular waves
+  the Bazaar) and `OpenShop` runs when the wave after a boss (wave % 5 == 1) is cleared, since the map is up on regular waves
   only. The shop screen shows only while you stand in a shop room and haven't clicked Done (`ShopScreenUp`); elsewhere a banner
   and a "Skip the shop" key. The shelf's legendary comes from the last boss beaten. A second shop room adds nothing yet.
 - **Floor rooms** (`FloorAt`): the path's rule inside that room only. Enemies spawned there (`ApplyPathToEnemy`): Swarm

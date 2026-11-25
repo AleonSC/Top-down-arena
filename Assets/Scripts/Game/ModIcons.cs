@@ -53,21 +53,6 @@ namespace Arena
                 "....wwww....",
                 "............",
             },
-            ["mod_goldrush"] = new[]
-            {
-                "............",
-                "..wwwwwwww..",
-                ".w........w.",
-                ".wwwwwwwwww.",
-                "..wwwwwwww..",
-                "............",
-                "..wwwwwwww..",
-                ".w........w.",
-                ".wwwwwwwwww.",
-                ".w........w.",
-                ".wwwwwwwwww.",
-                "..wwwwwwww..",
-            },
             ["mod_secondwind"] = new[]
             {
                 "............",
@@ -246,21 +231,6 @@ namespace Arena
                 "..w..ww..w..",
                 ".w...ww...w.",
                 ".....ww.....",
-                "............",
-            },
-            ["mod_solidwalls"] = new[]
-            {
-                "............",
-                "wwwwwwwwwwww",
-                "w.....w....w",
-                "w.....w....w",
-                "wwwwwwwwwwww",
-                "w..w.....w.w",
-                "w..w.....w.w",
-                "wwwwwwwwwwww",
-                "w.....w....w",
-                "w.....w....w",
-                "wwwwwwwwwwww",
                 "............",
             },
             ["mod_zombie"] = new[]
