@@ -36,6 +36,7 @@ namespace Arena
                     Circle(p.Pos + new V2(3f, 5f), hw, new Rgba(0f, 0f, 0f, 0.3f * a), 20);
                 else
                     FillRect(p.Pos.X - hw + 4f, p.Pos.Y - hh + 6f, hw * 2f, hh * 2f, new Rgba(0f, 0f, 0f, 0.3f * a));
+                FpProp(p, at);  // first person: a solid box or drum, this drawing on its top (FirstPerson.cs)
                 switch (p.Kind)
                 {
                     case PropKind.Crate:
@@ -63,6 +64,7 @@ namespace Arena
                     else
                         FillRect(at.X - hw, at.Y - hh, hw * 2f, hh * 2f, flash);
                 }
+                FpFloor();
             }
         }
 
