@@ -4,7 +4,7 @@ namespace Arena
 {
     /// How the Devourer's fight looks (Devourer.cs): a reddening gullet as it starves, the lunge lines, the inhale cone
     /// with air rushing in, the burrow ripple and the eruption mark, the Maw's cone, the Jaws' teeth before they fly,
-    /// the last stand's ring of teeth, morsels, bile pools and shots, and its toothed mouth (with whoever it swallowed).
+    /// the last stand's ring of teeth, morsels, bile pools and shots. Its body and mouth: DevourerBodyLook.cs.
     /// Built from the mockup in Docs/Mockups/devourer-3-phase.html.
     public partial class ArenaApp
     {
@@ -137,32 +137,6 @@ namespace Arena
                 Circle(pos, r + 18f + 6f * Mathf.Sin(t * 10f), new Rgba(1f, 0.2f, 0.6f, 0.25f), 40);
                 Arc(pos, r + 18f + 6f * Mathf.Sin(t * 10f), 4f, new Rgba(1f, 0.2f, 0.6f, 0.45f), 40);
             }
-        }
-
-        /// Its mouth, on the side it faces: dark, ringed with teeth, wider when it feeds, inhales, lunges or starves;
-        /// whoever it swallowed shows faintly inside.
-        void DrawDevourerMouth(Enemy e, V2 pos, float r, float t)
-        {
-            var s = e.Devour;
-            bool wide = e.Phase == 1 || s != null && (s.InhaleT > 0f || s.Stage == DevourStage.Ravenous || s.Turn == DevourTurn.Vomit || s.Lunging && s.LungeWarn <= 0f);
-            float open = s != null && s.SwallowId != 0 ? 0.35f : wide ? 0.6f : 0.38f;
-            // veins
-            for (int k = 0; k < 5; k++)
-            {
-                float a = k * 1.3f + 0.4f;
-                Line(pos + V2.FromAngle(a) * r * 0.45f, pos + V2.FromAngle(a + 0.3f) * r * 0.9f, 2f, new Rgba(1f, 0.55f, 0.63f, 0.25f));
-            }
-            V2 mouth = pos + V2.FromAngle(e.Facing) * r * 0.32f;
-            float mr = r * open;
-            Circle(mouth, mr, new Rgba(0.1f, 0f, 0.03f, 1f), 24);
-            for (int k = 0; k < 10; k++)
-            {
-                float a = e.Facing + MathX.Tau * k / 10f + t * 0.3f;
-                Tooth(mouth + V2.FromAngle(a) * mr, a + MathX.Pi, Mathf.Max(6f, mr * 0.32f));
-            }
-            Player q;
-            if (s != null && s.SwallowId != 0 && game.Players.TryGetValue(s.SwallowId, out q))
-                Circle(mouth, mr * 0.5f, q.Def.Color.WithAlpha(0.4f + 0.3f * Mathf.Sin(t * 8f)), 16);
         }
 
         /// A morsel: a lump of meat that bobs where it landed.
