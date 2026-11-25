@@ -188,7 +188,7 @@ namespace Arena
         public float KusariReachMult = 1f, KusariStunBonus;                // Kusarigama: Heavy Weight
         public float BoKnockMult = 1f, BoSpinDmgMult = 1f;                 // Bo Staff: Iron Bo
         public float FumaLoopMult = 1f, FumaOrbitMult = 1f;                // Fuma Shuriken: Long Loop
-        public float DoseMult = 1f;                                        // Medicine Darts: Potent Dose (poison and healing)
+        public float DoseMult = 1f;                                        // Acupuncture Needles: Potent Dose (needle healing and bleed)
         public float FanReachMult = 1f, FanHealMult = 1f;                  // Spirit Fan: Gale Fan
         public float CharmBurstMult = 1f, CharmHealMult = 1f;              // Ofuda: Blessed Paper
         public float StarStickCut, StarReturnMult = 1f;                    // Shuriken: Barbed Stars
