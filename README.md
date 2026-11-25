@@ -141,6 +141,7 @@ Health is the Hemomancer's resource. It has full health and normal speed, and:
   scales with what you paid is worth nothing. Cooldowns are shorter than other classes' to make up for it.
 - **Blood Price:** you deal more damage the more health you're missing, up to **+40%** at 10% health.
 - **All your hits heal you for 3% of the damage they deal.**
+- **Blood orbs:** 15% of your kills drop a crimson **blood orb** with a white drop on it. Unlike other health orbs it's one orb for the whole team, **anyone can drink it** (25 HP), it lasts 20 s and it drifts to a hurt player from up to 600 px away, so it isn't wasted on a big map. None from a boss's own drop or where health orbs are off (Famine, Bloodlust, Blood Moon).
 
 | | Weapons | 1st abilities (cost) | Ultimate |
 |---|---|---|---|
