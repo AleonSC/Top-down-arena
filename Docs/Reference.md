@@ -190,7 +190,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Decoy Dummy | Healer | 1st, choice 5 | 4 s (+2 charges) | - | Dummies have 50% more health, and the confetti blast reaches 130 px. | Throw an inflatable soldier that enemies shoot at instead of you. |
 | Poison Dart | Dps | 1st, choice 1 | 8 s | - | Spreads to 5 enemies at a time, at full strength. | Poison the nearest enemy; the poison spreads when it dies. |
 | Airstrike | Dps | 1st, choice 2 | 16 s | - | A second wall lands 160 px further out, half a second later. | Call a jet to carpet a line with bombs. |
-| Mark for Death | Dps | 1st, choice 3 | 12 s | - | Marks the three enemies nearest your cursor. | Mark an enemy so it takes more damage. |
+| Claymore | Dps | 1st, choice 3 | 5 s (+1 charges) | - | Each claymore re-arms once after its first blast: it goes off twice. | Plant a mine at your cursor; the first enemy to step into the cone in front of it sets off a wide blast. |
 | Artillery Assault | Dps | ultimate | 60 s | - | +4 extra projectiles instead of +2. | Fire three times as fast with extra projectiles. |
 | Attack Helicopter | Dps | ultimate | 70 s | - | A second gun on the wing: two targets at once. | A gunship locks enemies one at a time and can't be hit. |
 | Orbital Laser | Dps | ultimate | 90 s | - | The circle is 340 px wide instead of 260, and the beam ploughs 200 px on while it fires. | Call a laser down from orbit on your cursor: after a 1.9 s lock-on it kills every enemy in a huge circle (bosses lose 20%) and leaves the ground burning. |
@@ -240,6 +240,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Alpha Call | Dps | 1st, choice 3 | 14 s | - | Also summons 3 wolves for 6 s. | Your minions bite faster, then lunge for triple damage. |
 | Legion | Dps | ultimate | 70 s | - | Summons 7 wolves and 7 bats. | A blood moon: wolves and bats circle you, you run faster and your minions frenzy. |
 | Rodent Minigun | Dps | ultimate | 70 s | - | Fires 2 s longer. | A portal opens in front of you and spins up into a minigun of mice, rats and hamsters, following your aim. |
+| Mammoth Fall | Dps | ultimate | 75 s | - | Rampages 1.5 s longer. | Summon a woolly mammoth in the sky, aim it, and it slams down, stunning everything around, then rampages through enemies. |
 | Land Shark | Dps | 1st, choice 5 | 14 s | - | A 30% wider puddle, and the bite hits for 160. | A puddle opens at your cursor and a shark leaps out, biting everything in it. |
 
 ### Knight

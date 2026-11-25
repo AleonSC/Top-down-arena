@@ -764,6 +764,11 @@ namespace Arena
                     TickCover(z);  // DeployableCover.cs
                     continue;  // (not a circle: nothing below applies)
                 }
+                if (z.Kind == ZoneKind.Claymore)
+                {
+                    TickClaymore(z, dt);  // Claymore.cs
+                    continue;  // (nothing below applies)
+                }
                 if (z.Kind == ZoneKind.DecoyDummy)
                 {
                     TickDecoy(z, dt);  // DecoyDummy.cs
@@ -778,6 +783,11 @@ namespace Arena
                 {
                     TickStampede(z);  // Stampede.cs
                     continue;  // (not a circle: nothing below applies)
+                }
+                if (z.Kind == ZoneKind.Mammoth)
+                {
+                    TickMammoth(z, dt);  // MammothFall.cs
+                    continue;  // (its own tick: nothing below applies)
                 }
                 if (z.Kind == ZoneKind.LandShark)
                 {

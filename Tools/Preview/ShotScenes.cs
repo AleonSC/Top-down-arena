@@ -54,6 +54,7 @@ static partial class Shot {
   static void PlayerScenes() {
     BloodWallScene();  // BLOODWALL=<s> BWCLOCK=<s> (ShotBloodWall.cs)
     CoverScene();  // COVER=<s into the scene> [COVERWEAR=1] [COVERBREAK=<s>] (ShotCover.cs)
+    ClaymoreScene();  // CLAYMORE=<s into the scene> [CLAYTRIP=<s>] [CLAYCAP=1] (ShotClaymore.cs)
     DecoyScene();  // DECOY=<s into the scene> [DECOYWEAR=1] [DECOYPOP=<s>] (ShotDecoy.cs)
     GrazeScene();  // GRAZE=<s into the scene> (ShotGraze.cs)
     GaleWallScene();  // GALEWALL=<s into the scene> [GALEBLAST=<s>] [GALECAP=1] (ShotGaleWall.cs)
@@ -1136,6 +1137,7 @@ static partial class Shot {
     BambooGroveScene();  // BAMBOO=<s since the cast> [BAMBOOCAP=1] (ShotBambooGrove.cs)
     FlashFireScene();  // FLASHFIRE=<s since the cast> [FLASHCAP=1] (ShotFlashFire.cs)
     RodentMinigunScene();  // RODENT=<s since the cast> [RODENTAIM=<deg>] (ShotRodentMinigun.cs)
+    MammothFallScene();  // MAMMOTH=<s since the cast> (ShotMammothFall.cs)
     SpiritAvatarScene();  // SPIRIT=<s since the cast>: the Tank Ninja's Spirit Avatar, Fire held (ShotSpiritAvatar.cs)
     DragonsDogmaScene();  // DOGMA=<s since the cast>: MOCKUP of the Tank Ninja's Dragon's Dogma (ShotDragonsDogma.cs)
     RedShotScene();  // REDSHOT=1: the red boss shots, barbed spears (ShotRedShot.cs)

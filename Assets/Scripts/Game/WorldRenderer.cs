@@ -217,6 +217,7 @@ namespace Arena
             DrawHelis(t);      // the Attack Helicopter, flying over the arena's contents (AttackHelicopterLook.cs)
             DrawDeployTurrets(t);  // the DPS Soldier's Deployable Turret and its rounds (DeployTurretLook.cs)
             DrawLandSharks(t);  // the DPS Summoner's Land Shark mid-leap (LandSharkLook.cs)
+            DrawMammoths(t);  // the DPS Summoner's Mammoth Fall: forming, diving, rampaging, leaving (MammothFallLook.cs)
             DrawWarhornSky();  // Warhorn Volley's horn and the arrows in the air (WarhornVolleyLook.cs)
             DrawOrbitalSky();  // Orbital Laser's lock-on, beam, shockwave and flash (OrbitalLaserLook.cs)
             DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon (DragonsDogmaLook.cs)

@@ -9,7 +9,7 @@ namespace Arena
     public enum AbilityId : byte
     {
         Barrier, MendPulse, PoisonDart, Shockwave, Overdrive, Blink, Starburst, Turret,
-        Roar, Bulldoze, Adrenaline, Medkit, Airstrike, Mark,  // Poison Dart (PoisonDart.cs) took Dash's place (and number); Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
+        Roar, Bulldoze, Adrenaline, Medkit, Airstrike, Claymore,  // Claymore (Claymore.cs) took Mark for Death's place (and number); Poison Dart (PoisonDart.cs) took Dash's place (and number); Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
         // Elementalist
         Aeroaegis, FrostNova, FlameWall, HealingRain, GustGate, LumenWard, Meteor, Blizzard, Tsunami,  // Tsunami (Tsunami.cs) took Arcane Surge's place (and number); Gust Gate (GustGate.cs) took Energy Ward's
         // Summoner
@@ -59,6 +59,7 @@ namespace Arena
         FlashFire,      // the DPS Elementalist's third ultimate (FlashFire.cs), key 2 of the lobby's Ultimate row
         LandShark,      // the DPS Summoner's 4th choice (LandShark.cs), the lobby's 4th choice
         RodentMinigun,  // the DPS Summoner's second ultimate (RodentMinigun.cs), key 1 of the lobby's Ultimate row
+        MammothFall,    // the DPS Summoner's third ultimate (MammothFall.cs), key 2 of the lobby's Ultimate row
         None = 255,
     }
 
@@ -98,7 +99,7 @@ namespace Arena
         public float VenomMult = 1f, VenomReachBonus;  // Virulence (Poison Dart, PoisonDart.cs)
         public float RoarBonusTime, RoarExtraReduction, BulldozeMult = 1f;
         public float AdrenalineBonusTime, LinkHealMult = 1f;
-        public float GrenadeRadiusMult = 1f, MarkBonus;
+        public float GrenadeRadiusMult = 1f, ClaymoreDmgMult = 1f;  // Airstrike: Bigger Boom; Claymore: Shaped Charge
         // Knight abilities
         public float WallCapMult = 1f, WallArcMult = 1f;
         public float SlamRadiusMult = 1f, SlamStunBonus;
@@ -143,6 +144,7 @@ namespace Arena
         public float StampedeDmgMult = 1f;                                 // Stampede: Thundering Herd
         public float LandSharkDmgMult = 1f;                                // Land Shark: Great White
         public float RatShare, RatBleed;                                   // Rodent Minigun: Plague Rats (more rats, and they bleed what they bite)
+        public float MammothWaveMult = 1f, MammothStun;                    // Mammoth Fall: Ice Age (a wider shockwave, a longer stun)
         public float GolemHpMult = 1f;                                     // Golem Wall: Basalt Hide
         public float QuakeBonusTime, QuakeDmgMult = 1f;                    // Earthquake: Deep Tremor
         public float PactHpMult = 1f, PactReturnCut;                       // Force Pact: Kindred Bond
@@ -341,7 +343,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Elementalist, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// Hemomancer.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates, Game.MammothUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 
