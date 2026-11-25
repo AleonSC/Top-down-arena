@@ -174,6 +174,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Fortress | Tank | ultimate | 70 s | - | Lasts 14 s. | A dome only players and their bullets can cross. |
 | Juggernaut Suit | Tank | ultimate | 75 s | - | 450 armour, and each shard does 18. | Heavy armour draws every enemy and throws flak back at shooters. |
 | A Literal Tank | Tank | ultimate | 80 s | - | 550 armour, and the shells blast 30% wider. | Drive an actual tank for 15 s: heavy armour, big explosive shells, and it runs enemies over. |
+| Armor Drop | Tank | ultimate | 80 s | - | The crate holds a 4th vest. | Call in a crate that hits enemies where it lands, then opens: 3 ballistic vests, 50 armor each. Armor never regenerates. |
 | Deployable Cover | Tank | 1st, choice 5 | 12 s (+1 charges) | - | Covers take 600 damage, and each charge comes back 25% sooner. | Plant steel cover that stops enemy bullets while your team shoots through. |
 | Shockwave | Tank | card | 14 s | - | The wave runs out 300 px. | A shockwave erases bullets and shoves enemies back. |
 | Overdrive | Tank | card | 18 s | - | +1 extra projectile while it lasts. | Double your fire rate for a few seconds. |
@@ -264,6 +265,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Caught Steel | Dps | 1st, choice 3 | 16 s | - | Holds up to 18 shards. | Catch passing bullets as steel, then hurl them back. |
 | Drawbridge | Dps | ultimate | 75 s | - | The bridge stands for 8 s. | A drawbridge crushes the lane ahead, then blocks enemies and shots. |
 | Warhorn Volley | Dps | ultimate | 70 s | - | The volley is 40% wider and the fire burns for 8 s. | A volley of fire arrows sweeps the field, burning and pinning enemies. |
+| Ballista | Dps | ultimate | 75 s | - | 10 bolts, and each one pins what it hits. | A giant ballista drops in front of you. Anyone can mount it (Interact) and fire 8 giant bolts that go through everything. |
 
 ### Ninja
 

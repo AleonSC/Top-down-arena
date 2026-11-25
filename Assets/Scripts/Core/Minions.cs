@@ -785,6 +785,11 @@ namespace Arena
                     TickDecoy(z, dt);  // DecoyDummy.cs
                     continue;  // (nothing below applies)
                 }
+                if (z.Kind == ZoneKind.Ballista)
+                {
+                    TickBallista(z, dt);  // Ballista.cs
+                    continue;  // (its own tick: nothing below applies)
+                }
                 if (z.Kind == ZoneKind.DeployTurret)
                 {
                     TickDeployTurret(z, dt);  // DeployableTurret.cs

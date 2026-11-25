@@ -66,6 +66,7 @@ namespace Arena
             amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
             amount = TankSoak(p, amount);  // or A Literal Tank's (LiteralTank.cs)
             amount = TurretSoak(p, amount);  // the Deployable Turret you sit in takes the rest first (DeployableTurret.cs)
+            amount = BallistaSoak(p, amount);  // the Ballista you ride takes a share (Ballista.cs)
             amount = ArmorSoak(p, amount);  // then an Armor Drop vest's ballistic armor (ArmorDrop.cs)
             amount = ChitinSoak(p, amount);  // Hive Censer chitin takes it before any shield (HiveCenser.cs)
             if (p.ShieldHp > 0f)  // shields soak damage next (Guardian's Oath, Substitution, Blood Shell)
@@ -217,7 +218,7 @@ namespace Arena
         /// Shots thrown in an arc (grenades, boulders, Gore Mortar clots, medkits): they fly over what's below and land.
         static bool Lobbed(byte kind) => kind == Defs.GrenadeShot || kind == Defs.BoulderShot || kind == Defs.ClotShot || kind == Defs.MedkitShot || kind == Defs.HoneyGlob;
 
-        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop && kind != Defs.HoneyGlob && kind != Defs.TankShell && kind != Defs.RodentShot && kind != Defs.Senbon;
+        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop && kind != Defs.HoneyGlob && kind != Defs.TankShell && kind != Defs.RodentShot && kind != Defs.Senbon && kind != Defs.BallistaBolt;
 
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false, float homing = 0f)
         {

@@ -1280,7 +1280,7 @@ namespace Arena
             if (s.Reading)
                 z = new Zone();
             else
-                z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell || z.Kind == ZoneKind.Cover || z.Kind == ZoneKind.DecoyDummy || z.Kind == ZoneKind.DeployTurret || z.Kind == ZoneKind.Claymore ? z.GuardFrac  // (a cover's health left: DeployableCover.cs)  // (a smoke canister's flight distance: GrenadeLauncher.cs)
+                z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell || z.Kind == ZoneKind.Cover || z.Kind == ZoneKind.DecoyDummy || z.Kind == ZoneKind.DeployTurret || z.Kind == ZoneKind.Ballista || z.Kind == ZoneKind.Claymore ? z.GuardFrac  // (a cover's health left: DeployableCover.cs)  // (a smoke canister's flight distance: GrenadeLauncher.cs)
                       // a Blood Wall node's place along its wall (BloodWall.cs)
                     : z.Kind == ZoneKind.Smoke ? (z.ExtraSlow > 0f ? 1f : 0f)  // a mastered Smoke Bomb (its slow on enemies), for drawing
                     : z.Kind == ZoneKind.Ward ? (z.SoakMax > 0f ? z.Soak / z.SoakMax : 0f) : z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
@@ -1297,6 +1297,14 @@ namespace Arena
             s.Float(ref z.Aim);
             if (z.Kind == ZoneKind.DecoyDummy || z.Kind == ZoneKind.Claymore)
                 s.Float(ref z.Marched);  // (a Claymore: 1 while a mastered spare blast is left; Claymore.cs)  // how far it was thrown, for the canister's flight (DecoyDummy.cs)
+            if (z.Kind == ZoneKind.Ballista)  // its rider, bolts left and reload (Ballista.cs)
+            {
+                s.Int(ref z.Rider);
+                int bolts = z.BoltsLeft;
+                s.Byte(ref bolts);
+                z.BoltsLeft = bolts;
+                s.Float(ref z.GunCd);
+            }
             if (z.Kind == ZoneKind.Phalanx)  // the line's walk and each skeleton's health (BonePhalanx.cs)
             {
                 s.Float(ref z.Marched);

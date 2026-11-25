@@ -43,11 +43,12 @@ namespace Arena
         public bool Seated(Player p)
         {
             var z = p != null && !p.Downed ? TurretOf(p) : null;
-            return z != null && z.Radius > 0f;  // (a Radius of 0 is an owner who has stepped out: it overheats on its own)
+            return z != null && z.Radius > 0f  // (a Radius of 0 is an owner who has stepped out: it overheats on its own)
+                || OnBallista(p);  // riding a Ballista: rooted on its seat, and the bow fires instead (Ballista.cs)
         }
 
         /// Is this slot the Deployable Turret with you in its seat and its guns still up? Pressing it again steps you out early.
-        public bool TurretPress(Player p, int slot) => p.Slots[slot].Id == AbilityId.DeployableTurret && Seated(p) && DtAge(TurretOf(p)) < DtFireEnd(TurretOf(p));
+        public bool TurretPress(Player p, int slot) => p.Slots[slot].Id == AbilityId.DeployableTurret && !p.Downed && TurretOf(p) != null && TurretOf(p).Radius > 0f && DtAge(TurretOf(p)) < DtFireEnd(TurretOf(p));
 
         /// Host: step out. The guns stop, the overheat starts now, you are free and the seat's cut goes; it still blows when it ends,
         /// so the way out is also a fuse.
@@ -80,8 +81,8 @@ namespace Arena
 
         void CastDeployTurret(Player p, V2 target, bool cap)
         {
-            if (TurretOf(p) != null)
-                return;  // one at a time
+            if (TurretOf(p) != null || OnBallista(p))
+                return;  // one at a time (and not from a Ballista's seat)
             float life = (cap ? DtLifeMastered : DtLife) + p.Stats.DtBonusTime;
             var z = AddZone(ZoneKind.DeployTurret, p, p.Pos, DtSeat, DtDeploy + life + DtDying);
             z.Aim = p.Aim;

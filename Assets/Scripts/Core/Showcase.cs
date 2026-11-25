@@ -108,6 +108,7 @@ namespace Arena
                     : shown == AbilityId.IronArmadillo ? Game.ArmCurl + Game.ArmRoll + 1.5f  // (it uncurls before the next)
                     : shown == AbilityId.LiteralTank ? Game.TankTime + 2f  // (the wreck clears before the next)
                     : shown == AbilityId.SupplyDrop ? Game.SupplyCallIn + Game.SupplyOpen + Game.SupplyTime + Game.SupplyFold + 1f  // (the crate folds away before the next)
+                    : shown == AbilityId.Ballista ? Game.BaFall + 9f  // (it climbs on and empties it, then the next)
                     : shown == AbilityId.ArmorDrop ? Game.ArmorCallIn + Game.ArmorOpen + 4f  // (the vests lie out a while, then the next)
                     : shown == AbilityId.DragonsDogma ? Game.DogmaTime + 1.5f  // (it coils back in before the next)
                     : shown == AbilityId.Bloodbath ? Game.BathTime + 1.5f  // (a Bloodbath dries up before the next)
@@ -167,6 +168,8 @@ namespace Arena
             }
             if (AltFire)
                 input.Fire = false;  // ALT FIRE: only the Alt, never the trigger
+            if (demoAbility && !Game.Seated(me) && Game.BallistaNear(me.Pos) != null)
+                Game.UseBallista();  // the Ballista: climb on (Ballista.cs)
             if (demoAbility && Game.Seated(me))
                 input.Fire = true;  // in the Deployable Turret: hold the trigger so it spools up and fires (DeployableTurret.cs)
             // ALT FIRE: weapons with an Alt press it on a loop (ShowcaseAlt.cs).
