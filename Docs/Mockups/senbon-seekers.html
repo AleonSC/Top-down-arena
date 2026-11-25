@@ -68,19 +68,20 @@ ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
     <section>
       <h3>Proposed numbers</h3>
       <table>
-        <tr><td>Per cast</td><td><b>+3</b> senbon, up to <b>9</b> (3 casts). Cast is greyed out at 9</td></tr>
+        <tr><td>Per cast</td><td><b>+3</b> senbon, up to <b>9</b> held. Cast is greyed out at 9</td></tr>
         <tr><td>Cooldown</td><td><b>6 s</b></td></tr>
-        <tr><td>Lifetime</td><td>No timer: they stay between waves, lost only when you go down</td></tr>
+        <tr><td>Lifetime</td><td>No timer: kept between waves. <b>Used up</b> when it hits an enemy (or when you go down)</td></tr>
         <tr><td>Seek range</td><td><b>170 px</b> round you (faint ring, pulses on a launch)</td></tr>
         <tr><td>Flight</td><td><b>820 px/s</b>, one launch every <b>0.12 s</b> at most, two senbon per enemy at most</td></tr>
-        <tr><td>Hit</td><td><b>8</b> damage</td></tr>
-        <tr><td>Poison</td><td><b>4/s for 4 s</b> a stack, stacks to <b>5</b> (20/s), each hit renews it</td></tr>
-        <tr><td>Return</td><td>Flies back to its slot, then <b>1 s</b> before it can launch again</td></tr>
+        <tr><td>Hit</td><td><b>20</b> damage (up from 8, as each needle is now one shot)</td></tr>
+        <tr><td>Poison</td><td><b>5/s for 4 s</b> a stack, stacks to <b>5</b> (25/s), each hit renews it</td></tr>
+        <tr><td>Per needle</td><td><b>40</b> total (20 hit + 20 poison); a full set of 9 is <b>360</b></td></tr>
+        <tr><td>Lost target</td><td>Picks another in range, else flies back to its slot</td></tr>
         <tr><td>Upgrade idea</td><td>Hidden Needles: <b>12</b> max, poison stacks to <b>7</b></td></tr>
       </table>
     </section>
     <section>
-      <h3>The three takes <small style="font:600 11px var(--mono);color:var(--venom);letter-spacing:.08em">PICKED: C · KOI, NEW 4TH CHOICE, GREYED OUT AT 9</small></h3>
+      <h3>The three takes <small style="font:600 11px var(--mono);color:var(--venom);letter-spacing:.08em">PICKED: C · KOI, NEW 4TH CHOICE, GREYED OUT AT 9, USED UP ON A HIT</small></h3>
       <ul>
         <li><b>A · Halo</b>: one ring that spreads out evenly as it fills (3, 6, 9 round you). Needles fly dead straight. Plainest to read.</li>
         <li><b>B · Tiers</b>: each cast adds its own ring of 3, the rings turning opposite ways. You can count your casts at a glance.</li>
@@ -94,7 +95,7 @@ ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
 <script>
 (() => {
 const W = 480, H = 360, MAX = 9, PER = 3, CD = 6, SEEK = 170, SPEED = 820, BACK = 650, REARM = 1.0, GAP = 0.12;
-const HIT = 8, PDPS = 4, PTIME = 4, PSTACK = 5, EHP = 70;
+const HIT = 20, PDPS = 5, PTIME = 4, PSTACK = 5, EHP = 70;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const opts = { auto: true, slow: reduce };
 const VARIANTS = [
@@ -228,7 +229,8 @@ function step(a, dt) {
         e.ps = Math.min(PSTACK, e.ps + 1); e.pt = PTIME; if (e.ptick <= 0) e.ptick = 0.5;
         num(a, e.x, e.y - 18, HIT, 'white');
         a.fx.push({ kind: 'hit', x: e.x, y: e.y, ang: cur, t: 0, life: 0.3 });
-        n.st = 'back'; n.tgt = null;
+        n.st = 'gone'; n.tgt = null;
+        a.fx.push({ kind: 'cast', x: e.x, y: e.y, t: 0.3, life: 0.5 });
       }
     } else if (n.st === 'back') {
       const dx = s.x - n.x, dy = s.y - n.y, d = Math.hypot(dx, dy);
@@ -238,6 +240,7 @@ function step(a, dt) {
       else { n.x += dx / d * BACK * dt; n.y += dy / d * BACK * dt; }
     }
   }
+  a.needles = a.needles.filter(n => n.st !== 'gone');
   for (const q of a.nums) { q.t += dt; q.y -= 22 * dt; }
   a.nums = a.nums.filter(q => q.t < 0.8);
   for (const f of a.fx) f.t += dt;
