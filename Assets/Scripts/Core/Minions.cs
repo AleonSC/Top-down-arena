@@ -779,6 +779,11 @@ namespace Arena
                     TickStampede(z);  // Stampede.cs
                     continue;  // (not a circle: nothing below applies)
                 }
+                if (z.Kind == ZoneKind.Mammoth)
+                {
+                    TickMammoth(z, dt);  // MammothFall.cs
+                    continue;  // (its own tick: nothing below applies)
+                }
                 if (z.Kind == ZoneKind.LandShark)
                 {
                     TickLandShark(z);  // LandShark.cs
