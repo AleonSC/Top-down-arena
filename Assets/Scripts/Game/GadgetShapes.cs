@@ -2,14 +2,14 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The newer gadgets' looks (Core/Gadgets.cs): the Shield Generator, the Defib Kit, the Cloak, the Overclock Chip, the EMP and the
+    /// The newer gadgets' looks (Core/Gadgets.cs): the Shield Generator, the Medkit, the Cloak, the Overclock Chip, the EMP and the
     /// throwables (the Grenade, the Smoke Bomb, the Gas Grenade, the Incendiary, the Land Mine) as world shapes (on the floor, thrown, held) and HUD glyphs (the wheel and the chip), plus
-    /// the Shield Generator's dome and the Defib Kit's stand-up countdown. DrawGadgetShape picks any kind's shape (GadgetLook.cs has the
+    /// the Shield Generator's dome. DrawGadgetShape picks any kind's shape (GadgetLook.cs has the
     /// Magnet, the Lodestone and the Energy Drink).
     public partial class ArenaApp
     {
         static readonly Rgba ShieldBlue = new Rgba(0.38f, 0.62f, 1f), ShieldDeep = new Rgba(0.06f, 0.14f, 0.34f);
-        static readonly Rgba DefibWhite = new Rgba(0.95f, 0.95f, 0.97f), DefibRed = new Rgba(0.92f, 0.22f, 0.3f), DefibDark = new Rgba(0.25f, 0.27f, 0.32f);
+        static readonly Rgba MedkitWhite = new Rgba(0.95f, 0.95f, 0.97f), MedkitRed = new Rgba(0.92f, 0.22f, 0.3f), MedkitDark = new Rgba(0.25f, 0.27f, 0.32f);
         static readonly Rgba NadeKhaki = new Rgba(0.6f, 0.64f, 0.36f), NadeDark = new Rgba(0.2f, 0.23f, 0.1f);
         static readonly Rgba SmokeTeal = new Rgba(0.37f, 0.83f, 0.74f), SmokeGrey = new Rgba(0.62f, 0.66f, 0.7f), CanDark = new Rgba(0.12f, 0.14f, 0.17f);
         static readonly Rgba GasPurple = new Rgba(0.72f, 0.42f, 1f);
@@ -27,7 +27,7 @@ namespace Arena
                 case GadgetId.Lodestone: return GadgetCyan;
                 case GadgetId.EnergyDrink: return EnergyLime;
                 case GadgetId.ShieldGenerator: return ShieldBlue;
-                case GadgetId.DefibKit: return new Rgba(1f, 0.72f, 0.76f);
+                case GadgetId.Medkit: return new Rgba(1f, 0.72f, 0.76f);
                 case GadgetId.Grenade: return NadeKhaki;
                 case GadgetId.SmokeBomb: return SmokeTeal;
                 case GadgetId.GasGrenade: return GasPurple;
@@ -48,7 +48,7 @@ namespace Arena
                 case GadgetId.Lodestone: DrawLodestoneShape(c, s * 1.3f, 1f, spin); break;
                 case GadgetId.EnergyDrink: DrawEnergyShape(c, s * 0.95f, 1f, Mathf.Sin(spin) * 0.35f, glow); break;
                 case GadgetId.ShieldGenerator: DrawShieldGenShape(c, s, spin, glow); break;
-                case GadgetId.DefibKit: DrawDefibShape(c, s, Mathf.Sin(spin) * 0.3f, glow); break;
+                case GadgetId.Medkit: DrawMedkitCaseShape(c, s, Mathf.Sin(spin) * 0.3f, glow); break;
                 case GadgetId.Grenade: DrawNadeShape(c, s, Mathf.Sin(spin) * 0.6f, glow); break;
                 case GadgetId.SmokeBomb: DrawCanShape(c, s, Mathf.Sin(spin) * 0.5f, SmokeGrey, SmokeTeal, glow); break;
                 case GadgetId.GasGrenade: DrawCanShape(c, s, Mathf.Sin(spin) * 0.5f, GasPurple, BurnYellow, glow); break;
@@ -74,20 +74,20 @@ namespace Arena
             Circle(c, s * 0.26f, new Rgba(0.85f, 0.93f, 1f), 10);
         }
 
-        /// The Defib Kit: a white case with a red cross, its two paddles on the cords.
-        void DrawDefibShape(V2 c, float s, float tilt, bool glow)
+        /// The Medkit: a white case with a red cross and a dark handle.
+        void DrawMedkitCaseShape(V2 c, float s, float tilt, bool glow)
         {
             V2.Axes(tilt, out V2 x, out V2 y);
             if (glow)
-                Circle(c, s * 2.4f, DefibRed.WithAlpha(0.12f), 16);
+                Circle(c, s * 2.4f, MedkitRed.WithAlpha(0.12f), 16);
             float w = s * 1.15f, h = s * 0.8f;
-            Line(c - x * (w + 1f), c + x * (w + 1f), h * 2f + 2f, DefibDark);  // outline
-            Line(c - x * w, c + x * w, h * 2f, DefibWhite);
+            Line(c - x * (w + 1f), c + x * (w + 1f), h * 2f + 2f, MedkitDark);  // outline
+            Line(c - x * w, c + x * w, h * 2f, MedkitWhite);
             Line(c - x * w + y * (h * 0.7f), c + x * w + y * (h * 0.7f), h * 0.35f, new Rgba(0.8f, 0.82f, 0.86f));  // the lid's shadow
             float k = s * 0.5f, bar = Mathf.Max(1.4f, s * 0.26f);
-            Line(c - x * k, c + x * k, bar, DefibRed);
-            Line(c - y * k, c + y * k, bar, DefibRed);
-            Line(c - x * (w * 0.5f) - y * (h + 0.5f), c + x * (w * 0.5f) - y * (h + 0.5f), Mathf.Max(1f, s * 0.2f), DefibDark);  // the handle
+            Line(c - x * k, c + x * k, bar, MedkitRed);
+            Line(c - y * k, c + y * k, bar, MedkitRed);
+            Line(c - x * (w * 0.5f) - y * (h + 0.5f), c + x * (w * 0.5f) - y * (h + 0.5f), Mathf.Max(1f, s * 0.2f), MedkitDark);  // the handle
         }
 
         /// The Grenade: a khaki segmented body, a steel lever and its pin ring.
@@ -262,18 +262,6 @@ namespace Arena
             Arc(p.Disp, p.Def.BodyR + 4f, 2.4f, ShieldBlue.WithAlpha(0.85f), 30, -Mathf.PI / 2f, MathX.Tau * Mathf.Clamp01(p.GadgetLeft / Game.ShieldGenTime));
         }
 
-        /// A downed player's Defib Kit charging: a pink ring filling and a pulse on each beat; it stands them up when it's full.
-        void DrawDefibCharge(Player p, float t)
-        {
-            if (p.Gadget != GadgetId.DefibKit || !p.GadgetOn)
-                return;
-            float r = p.Def.BodyR, prog = 1f - Mathf.Clamp01(p.GadgetLeft / Game.DefibSelfTime);
-            Arc(p.Disp, r + 7f, 3f, DefibRed.WithAlpha(0.9f), 30, -Mathf.PI / 2f, MathX.Tau * prog);
-            float beat = Mathf.Repeat(t * 1.6f, 1f);
-            Arc(p.Disp, r + 7f + beat * 18f, 1.6f, DefibRed.WithAlpha(0.6f * (1f - beat)), 28);
-            DrawDefibShape(p.Disp + new V2(0f, -r - 16f), 6f, 0f, true);
-        }
-
         /// A gadget's HUD glyph for the newer kinds (DrawGadgetGlyph in GadgetWheel.cs handles the others). False when it isn't one of them.
         bool DrawNewGadgetGlyph(GadgetId g, Vector2 c, float r, Color col)
         {
@@ -287,11 +275,11 @@ namespace Arena
                     Ui.Dot(new Rect(c.x - k * 0.3f, c.y - k * 0.3f, k * 0.6f, k * 0.6f), Color.white);
                     Ui.Dot(new Rect(c.x - r * 0.85f, c.y - r * 0.85f, r * 1.7f, r * 1.7f), col, true);
                     return true;
-                case GadgetId.DefibKit:
+                case GadgetId.Medkit:
                     Ui.Fill(new Rect(c.x - k, c.y - k * 0.75f, k * 2f, k * 1.5f), col);
                     Ui.Fill(new Rect(c.x - k * 0.5f, c.y - k * 0.75f - t, k, t), col);  // the handle
-                    Ui.Fill(new Rect(c.x - k * 0.5f, c.y - t * 0.5f, k, t), DefibRed.ToColor());
-                    Ui.Fill(new Rect(c.x - t * 0.5f, c.y - k * 0.5f, t, k), DefibRed.ToColor());
+                    Ui.Fill(new Rect(c.x - k * 0.5f, c.y - t * 0.5f, k, t), MedkitRed.ToColor());
+                    Ui.Fill(new Rect(c.x - t * 0.5f, c.y - k * 0.5f, t, k), MedkitRed.ToColor());
                     return true;
                 case GadgetId.Grenade:
                     Ui.Dot(new Rect(c.x - k * 0.8f, c.y - k * 0.55f, k * 1.6f, k * 1.6f), col);

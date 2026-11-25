@@ -36,14 +36,14 @@ namespace Arena
         }
 
         /// A gadget's name on the wheel's small tiles.
-        static string WheelName(GadgetId g) => g == GadgetId.EnergyDrink ? "ENERGY" : g == GadgetId.ShieldGenerator ? "SHIELD" : g == GadgetId.DefibKit ? "DEFIB"
+        static string WheelName(GadgetId g) => g == GadgetId.EnergyDrink ? "ENERGY" : g == GadgetId.ShieldGenerator ? "SHIELD" : g == GadgetId.Medkit ? "MEDKIT"
             : g == GadgetId.SmokeBomb ? "SMOKE" : g == GadgetId.GasGrenade ? "GAS" : g == GadgetId.OverclockChip ? "OVERCLOCK" : g == GadgetId.LandMine ? "MINE"
             : Game.GadgetName(g).ToUpperInvariant();
 
         /// A gadget's name on the chip and the Inventory page.
         static string ChipName(GadgetId g) => g == GadgetId.ShieldGenerator ? "SHIELD GEN" : g == GadgetId.OverclockChip ? "OVERCLOCK" : Game.GadgetName(g).ToUpperInvariant();
 
-        /// " x3" for a gadget with uses (the Lodestone, the throwables), "" otherwise (a timed one, the Defib Kit's single use).
+        /// " x3" for a gadget with uses (the Lodestone, the Medkit, the throwables), "" otherwise (a timed one).
         static string UsesTag(GadgetId g, byte uses) => Game.GadgetUses(g) > 1 ? " x" + uses : "";
 
         void OpenGadgetWheel(Player me)
