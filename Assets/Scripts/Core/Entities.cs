@@ -242,6 +242,10 @@ namespace Arena
         public float PlateClock, PlateNewT, PlateMax; // ...their turning clock, the newest one's drop-in left, a full plate's health (replicated)
         public readonly float[] PlateHp = new float[Game.CerePlateMax];  // ...each plate's health (replicated as a byte of PlateMax)
         public bool PlateBurst;                       // host: mastered, a breaking plate bursts
+        public int SbN;                               // Ninja: Senbon Seekers' needles held (replicated; SenbonSeekers.cs)
+        public float SbClock, SbNewT;                 // ...their schooling clock, the last cast's flourish left (replicated)
+        public bool SbCap;                            // ...mastered: holds 12 (replicated, for the key's cap)
+        public float SbGapT, SbPw = 1f;               // host: until the next launch; the cast's power
         public V2 VanishFrom;                         // where enemies last saw you before you vanished (replicated since 158: the smoke bank is drawn there)
         public float OrbitT;                          // Ninja: Blade Fan's kunai still orbiting you, seconds left (replicated)
         public int OrbitN;                            // ...and how many there are (replicated)
@@ -887,6 +891,8 @@ namespace Arena
         public int ShooterId;     // host only: the id of the enemy that fired it (0: not known); Lightning Rod calls its bolt on it
         public V2 ShooterPos;     // host only: where that enemy stood when it fired (the bolt still lands there if it has died)
         public HashSet<int> Gusted; // host only: a Focus arrow: the enemies its wind has shoved (BowFocus.cs)
+        public bool Senbon, SbHome;  // host only: a Senbon Seekers needle (SteerSenbon, poisons on a hit), flying back into the ring
+        public float SbAge;       // host only: how long the needle has steered (it turns harder)
         public int HomeOn;        // host only: a Stonespear volley spear: the enemy it curves in on (SteerSpear; Pulled sends its course)
     }
 
