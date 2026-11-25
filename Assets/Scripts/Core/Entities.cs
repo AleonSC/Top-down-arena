@@ -709,6 +709,7 @@ namespace Arena
         public float TtTailT;               // Tailwind from a Twin Tessen: time left (replicated; faster moving)
         public byte TtBreeze;               // Twin Tessen: Breeze, 0-100 (replicated: the meter, a full bar makes the next gust a Tempest)
         public float TtBreezeF;             // host: Breeze unrounded
+        public float Armor;                 // ballistic armor from an Armor Drop's vest (0-ArmorCap): soaks damage, never regenerates, kept between waves (replicated; ArmorDrop.cs)
         public float ChitinHp;              // Hive Censer chitin: a barrier that wears off and takes hits first (replicated; HiveCenser.cs)
         public bool HiveOn;                 // Hive Censer: pouring (replicated)
         public V2 HivePour, HivePourDisp;   // ...where the insects come out (replicated), and where this screen draws it
@@ -948,15 +949,16 @@ namespace Arena
         public bool Big, Tiny;  // Tiny: knocked loose by the Repulsion Cannon
         public bool Blood;      // a blood orb: a Hemomancer's kill dropped it, and anyone can drink it (Combat.cs DropBloodOrb)
         public bool Med;        // a Deployable Medkit's orb (Medkit.cs), or a Field Hospital's
-        public int Supply;      // host: the Supply Drop zone that threw it (SupplyDrop.cs; 0: none), to cap how many lie out
+        public int Supply;      // host: the Supply Drop or Armor Drop zone that threw it (SupplyDrop.cs, ArmorDrop.cs; 0: none)
+        public bool Vest;       // an Armor Drop's ballistic vest (ArmorDrop.cs): heals nothing, lies still, gives armor
         public int Hosp;        // host: the Field Hospital zone it lies in (FieldHospital.cs; 0: none): it only drifts to players inside
         public float MedHeal;   // host: what it heals
         public V2 Pos, Disp;
         public float Life;
 
-        public float Radius => Big ? 11f : Med ? 8f : Blood ? 7f : Tiny ? 4f : 6f;
+        public float Radius => Vest ? Game.ArmorVestR : Big ? 11f : Med ? 8f : Blood ? 7f : Tiny ? 4f : 6f;
         public float Boost = 1f; // host: heals this much more (Undertow Pump's tiny orbs)
-        public float Heal => (Med ? MedHeal : Blood ? Game.BloodOrbHeal : Big ? Game.BigOrbHeal : Tiny ? Game.TinyOrbHeal : Game.OrbHeal) * Boost;
+        public float Heal => Vest ? 0f : (Med ? MedHeal : Blood ? Game.BloodOrbHeal : Big ? Game.BigOrbHeal : Tiny ? Game.TinyOrbHeal : Game.OrbHeal) * Boost;
     }
 
     /// An area on the ground: Flame Wall, Blizzard, smoke, pools, wards, a meteor's warning and the like (ZoneKind).

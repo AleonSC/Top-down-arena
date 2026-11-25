@@ -375,6 +375,8 @@ namespace Arena
                 Ui.Bar(new Rect(hp.x + 1f, hp.yMax - 2f, (hp.width - 2f) * Mathf.Clamp01(Game.Ironhide(p) / Mathf.Max(1f, p.MaxHp)), 2f), 1f, CrtStyle.Steel, new Color(0f, 0f, 0f, 0f));
             if (p.ShieldHp > 0f)
                 Ui.Bar(new Rect(hp.x + 1f, hp.yMax - 2f, (hp.width - 2f) * Mathf.Clamp01(p.ShieldHp / Mathf.Max(1f, p.MaxHp)), 2f), 1f, new Color(0.55f, 0.8f, 1f), new Color(0f, 0f, 0f, 0f));
+            if (Game.Armored(p))  // an Armor Drop vest's armor: a steel bar just over the health bar (ArmorDrop.cs)
+                Ui.Bar(new Rect(hp.x, hp.y - 3f, hp.width * Mathf.Clamp01(p.Armor / Game.ArmorCap), 2f), 1f, CrtStyle.Steel, new Color(0f, 0f, 0f, 0f));
             if (p.OverHp > 0f)  // a health shrine's health past max: a gold stripe along the top (Shrines.cs)
                 Ui.Bar(new Rect(hp.x + 1f, hp.y, (hp.width - 2f) * Mathf.Clamp01(p.OverHp / Mathf.Max(1f, p.MaxHp)), 2f), 1f, CrtStyle.Gold, new Color(0f, 0f, 0f, 0f));
             Ui.Label(new Rect(hp.x, r.y + 2f, hp.width - 36f, 14f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 9, Ui.Muted, TextAnchor.MiddleLeft, true);
@@ -504,6 +506,13 @@ namespace Arena
                     Ui.Bar(new Rect(hpBar.x + 2f, hpBar.yMax - 4f, (hpBar.width - 4f) * Mathf.Clamp01(Game.Ironhide(p) / Mathf.Max(1f, p.MaxHp)), 3f), 1f, CrtStyle.Steel, new Color(0f, 0f, 0f, 0f));
                 if (p.ShieldHp > 0f)  // a shield: a blue stripe along the bottom of the health bar
                     Ui.Bar(new Rect(hpBar.x + 2f, hpBar.yMax - 4f, (hpBar.width - 4f) * Mathf.Clamp01(p.ShieldHp / Mathf.Max(1f, p.MaxHp)), 3f), 1f, new Color(0.55f, 0.8f, 1f), new Color(0f, 0f, 0f, 0f));
+                if (Game.Armored(p))  // an Armor Drop vest's armor: a steel bar just over the health bar, notched every 10 (ArmorDrop.cs)
+                {
+                    var ar = new Rect(hpBar.x, hpBar.y - 5f, hpBar.width, 3f);
+                    Ui.Bar(ar, Mathf.Clamp01(p.Armor / Game.ArmorCap), CrtStyle.Steel, new Color(0f, 0f, 0f, 0.5f));
+                    for (int i = 1; i < 5; i++)
+                        Ui.Bar(new Rect(ar.x + ar.width * i / 5f - 0.5f, ar.y, 1f, ar.height), 1f, new Color(0f, 0f, 0f, 0.7f), new Color(0f, 0f, 0f, 0f));
+                }
                 if (p.OverHp > 0f)  // a health shrine's health past max: a gold stripe along the top (Shrines.cs)
                     Ui.Bar(new Rect(hpBar.x + 2f, hpBar.y + 1f, (hpBar.width - 4f) * Mathf.Clamp01(p.OverHp / Mathf.Max(1f, p.MaxHp)), 3f), 1f, CrtStyle.Gold, new Color(0f, 0f, 0f, 0f));
                 Ui.Shadowed(new Rect(hpBar.x, hpBar.y - 1f, hpBar.width, hpBar.height + 2f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 10, Color.white);

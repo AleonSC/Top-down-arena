@@ -1132,6 +1132,7 @@ static partial class Shot {
     TankScene();  // TANK=<s since the cast> [TANKCAP=1] [FXOFF=1] (ShotTank.cs)
     ArmadilloScene();  // ARMADILLO=<s since the cast> [ARMREV=<s>] [FXOFF=1] (ShotArmadillo.cs)
     SupplyScene();  // SUPPLY=<s since the cast> [SUPPLYCAP=1] [FXOFF=1] (ShotSupply.cs)
+    ArmorDropScene();  // ARMORDROP=<s since the cast> [ARMORCAP=1] [ARMORHIT=<armor>] [FXOFF=1] (ShotArmorDrop.cs)
     HospitalScene();  // HOSP=pick|<s since the cast> [HOSPTENT=1] (ShotHospital.cs)
     DeployTurretScene();  // DEPLOYTURRET=<s since the cast> [FXOFF=1] (ShotDeployTurret.cs)
     NeedleSwarmScene();  // NEEDLESWARM=<s held> [NSALT=<s>] (ShotNeedleSwarm.cs)

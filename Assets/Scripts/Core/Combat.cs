@@ -66,6 +66,7 @@ namespace Arena
             amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
             amount = TankSoak(p, amount);  // or A Literal Tank's (LiteralTank.cs)
             amount = TurretSoak(p, amount);  // the Deployable Turret you sit in takes the rest first (DeployableTurret.cs)
+            amount = ArmorSoak(p, amount);  // then an Armor Drop vest's ballistic armor (ArmorDrop.cs)
             amount = ChitinSoak(p, amount);  // Hive Censer chitin takes it before any shield (HiveCenser.cs)
             if (p.ShieldHp > 0f)  // shields soak damage next (Guardian's Oath, Substitution, Blood Shell)
             {
@@ -1513,6 +1514,12 @@ namespace Arena
                 if (o.Life <= 0f || o.Owner != 0 && !Players.ContainsKey(o.Owner))
                 {
                     gone.Add(o.Id);
+                    continue;
+                }
+                if (o.Vest)
+                {
+                    if (TickVest(o))  // an Armor Drop's vest: lies still, worn by the first player over it (ArmorDrop.cs)
+                        gone.Add(o.Id);
                     continue;
                 }
                 Player nearest = null;
