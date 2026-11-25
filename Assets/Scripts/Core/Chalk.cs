@@ -486,17 +486,17 @@ namespace Arena
                     int owner = 0, stroke = 0, pen = 0;
                     V2 pos = default(V2);
                     float t = 0f;
-                    s.Byte(ref owner); s.Short(ref stroke); s.Short(ref pen); s.Vec(ref pos); s.Float(ref t);
+                    s.Short(ref owner); s.Short(ref stroke); s.Short(ref pen); s.Vec(ref pos); s.Float(ref t);
                     Ink.Add(new InkDot { Owner = owner, Stroke = stroke, Pen = pen & 0x3fff, Lit = (pen & 0x4000) != 0, Pos = pos, T = t });
                 }
             }
             else
                 foreach (var d in Ink)
                 {
-                    int owner = d.Owner & 0xff, stroke = d.Stroke & 0x7fff, pen = (d.Pen & 0x3fff) | (d.Lit ? 0x4000 : 0);
+                    int owner = d.Owner & 0x7fff, stroke = d.Stroke & 0x7fff, pen = (d.Pen & 0x3fff) | (d.Lit ? 0x4000 : 0);
                     V2 pos = d.Pos;
                     float t = d.T;
-                    s.Byte(ref owner); s.Short(ref stroke); s.Short(ref pen); s.Vec(ref pos); s.Float(ref t);
+                    s.Short(ref owner); s.Short(ref stroke); s.Short(ref pen); s.Vec(ref pos); s.Float(ref t);
                 }
             int tips = InkTip.Count;
             s.Byte(ref tips);
@@ -507,16 +507,16 @@ namespace Arena
                 {
                     int owner = 0;
                     V2 pos = default(V2);
-                    s.Byte(ref owner); s.Vec(ref pos);
+                    s.Short(ref owner); s.Vec(ref pos);
                     InkTip[owner] = pos;
                 }
             }
             else
                 foreach (var kv in InkTip)
                 {
-                    int owner = kv.Key & 0xff;
+                    int owner = kv.Key & 0x7fff;
                     V2 pos = kv.Value;
-                    s.Byte(ref owner); s.Vec(ref pos);
+                    s.Short(ref owner); s.Vec(ref pos);
                 }
         }
     }

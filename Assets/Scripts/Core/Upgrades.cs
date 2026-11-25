@@ -951,7 +951,7 @@ namespace Arena
                 offer[i] = pick;
                 used.Add(pick);
             }
-            return offer;
+            return Array.IndexOf(offer, -1) < 0 ? offer : Array.FindAll(offer, id => id >= 0);  // every pool spent: fewer cards, never a -1 (HostPick would index All[-1])
         }
 
         public static Stats Compute(List<int> taken)

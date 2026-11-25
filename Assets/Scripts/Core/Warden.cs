@@ -153,8 +153,8 @@ namespace Arena
         /// The Warden in play, if any (there's only ever one).
         public Enemy TheWarden()
         {
-            foreach (var e in Enemies.Values)
-                if (e.Type == EnemyType.Warden)
+            foreach (var e in EnemiesOf(EnemyType.Warden))  // (EnemyIndex.cs)
+                if (StillIn(e))
                     return e;
             return null;
         }
@@ -1107,8 +1107,8 @@ namespace Arena
             if (TheWarden() == null || InCellZone(e.Pos))  // (in a Holding Cell: straight for its prisoner)
                 return RouteTo(e, goal);  // a boss approach (Approaches.cs): no riot to put down, just you
             float best = float.MaxValue;
-            foreach (var r in Enemies.Values)
-                if (r.Type == EnemyType.Rioter && r.SpawnT <= 0f)
+            foreach (var r in EnemiesOf(EnemyType.Rioter))  // (EnemyIndex.cs)
+                if (r.SpawnT <= 0f && StillIn(r))
                 {
                     float d = r.Pos.DistanceSq(e.Pos);
                     if (d < best)

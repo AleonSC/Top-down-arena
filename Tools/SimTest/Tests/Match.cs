@@ -232,11 +232,12 @@ static partial class Program
             Check(overchargeOk, "Extra Use gives the chosen abilities (2nd, 3rd) a second charge");
             {
                 var h1 = host.Game.Players[1];
+                int baseQ = h1.Slots[1].MaxCharges, baseOther = h1.Slots[2].MaxCharges;  // (some abilities start with two: Deployable Cover)
                 host.Game.GrantUpgrade(1, U("Extra Use"), 2);  // +1 use on the 2nd ability
                 var onQ = h1.CardAbilities[0];
                 host.Game.SetAbilityKey(onQ, 2);  // 2nd <-> 3rd swap
                 int at = Array.FindIndex(h1.Slots, sl => sl.Id == onQ);
-                Check(at == 2 && h1.Slots[at].MaxCharges == 2 && h1.Slots[1].MaxCharges == 1, "an Extra Use follows its ability to the key it moves to");
+                Check(at == 2 && h1.Slots[at].MaxCharges == baseQ + 1 && h1.Slots[1].MaxCharges == baseOther, "an Extra Use follows its ability to the key it moves to");
             }
             Check(!hasTurret || turretsSeen > 0, "turret shows up on the client");
             Check(ghostsAfter == 0, "still in sync while using new abilities");

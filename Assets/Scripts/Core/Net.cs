@@ -30,7 +30,12 @@ namespace Arena
             public bool Dead;
             public bool Greeted;       // host: Session accepted its Hello (Greet); until then only small frames, and not for long
             public DateTime Since = DateTime.UtcNow;
+            public DateTime LastIn = DateTime.UtcNow, LastOut = DateTime.UtcNow;  // the last bytes heard from it and sent to it (keepalive)
         }
+
+        /// A quiet link sends an empty frame this often, and a peer heard nothing from for PeerTimeout is dropped:
+        /// a Wi-Fi drop otherwise leaves a half-open connection holding its lobby seat forever.
+        public const double KeepAliveEvery = 2.0, PeerTimeout = 20.0;
 
         /// Host: how long a connection may stay without a Hello the game accepted, and the biggest frame it may send meanwhile.
         public const double HelloTimeout = 10.0;
@@ -119,13 +124,21 @@ namespace Arena
                 }
             }
 
+            var now = DateTime.UtcNow;
             foreach (var c in conns.Values)
             {
                 Read(c);
-                if (IsHost && !c.Greeted && (DateTime.UtcNow - c.Since).TotalSeconds > HelloTimeout)
+                if (IsHost && !c.Greeted && (now - c.Since).TotalSeconds > HelloTimeout)
                     c.Dead = true;  // connected but never joined (a half-open or silent connection would hold a seat)
+                if (c.Dead || IsHost && !c.Greeted)
+                    continue;
+                if ((now - c.LastIn).TotalSeconds > PeerTimeout)
+                    c.Dead = true;  // gone quiet (its keepalives stopped): a dropped link
+                else if ((now - c.LastOut).TotalSeconds > KeepAliveEvery)
+                    SendFrame(c, keepAlive, 0);  // an empty frame: "still here" (Read skips it)
             }
-            var dead = new List<int>();
+            var dead = deadIds;
+            dead.Clear();
             foreach (var c in conns.Values)
                 if (c.Dead)
                     dead.Add(c.Id);
@@ -172,6 +185,7 @@ namespace Arena
                     }
                     c.Len += n;
                     BytesIn += n;
+                    c.LastIn = DateTime.UtcNow;
                 }
             }
             catch (Exception)
@@ -195,6 +209,11 @@ namespace Arena
                         Array.Resize(ref c.Buf, 4 + size);
                     break;
                 }
+                if (size == 0)
+                {
+                    offset += 4;  // a keepalive: nothing to hand on
+                    continue;
+                }
                 var msg = new byte[size];
                 Buffer.BlockCopy(c.Buf, offset + 4, msg, 0, size);
                 events.Add(new NetEvent { Type = NetEventType.Data, Peer = c.Id, Data = msg });
@@ -207,18 +226,32 @@ namespace Arena
             }
         }
 
+        byte[] sendFrame = new byte[4096];  // reused by SendFrame: the length header and the message, one write
+        static readonly byte[] keepAlive = new byte[0];
+        readonly List<int> deadIds = new List<int>();  // reused by Poll
+
         public void Send(int peer, byte[] data)
         {
             Conn c;
-            if (!conns.TryGetValue(peer, out c) || c.Dead)
-                return;
+            if (conns.TryGetValue(peer, out c) && !c.Dead)
+                SendFrame(c, data, data.Length);
+        }
+
+        void SendFrame(Conn c, byte[] data, int size)
+        {
             try
             {
-                var frame = new byte[data.Length + 4];
-                Buffer.BlockCopy(BitConverter.GetBytes(data.Length), 0, frame, 0, 4);
-                Buffer.BlockCopy(data, 0, frame, 4, data.Length);
-                c.Stream.Write(frame, 0, frame.Length);
-                BytesOut += frame.Length;
+                int len = size + 4;
+                if (sendFrame.Length < len)
+                    sendFrame = new byte[Math.Max(len, sendFrame.Length * 2)];
+                sendFrame[0] = (byte)size;  // (little-endian length, as BitConverter.ToInt32 reads it)
+                sendFrame[1] = (byte)(size >> 8);
+                sendFrame[2] = (byte)(size >> 16);
+                sendFrame[3] = (byte)(size >> 24);
+                Buffer.BlockCopy(data, 0, sendFrame, 4, size);
+                c.Stream.Write(sendFrame, 0, len);
+                BytesOut += len;
+                c.LastOut = DateTime.UtcNow;
             }
             catch (IOException)
             {

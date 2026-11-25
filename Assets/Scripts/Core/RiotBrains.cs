@@ -69,8 +69,8 @@ namespace Arena
 
         float GuardRallySpeed(Enemy e)
         {
-            foreach (var o in Enemies.Values)
-                if (o.Type == EnemyType.Guard && o.SpawnT <= 0f && o.Pos.CloserThan(e.Pos, GuardRallyRadius))
+            foreach (var o in EnemiesOf(EnemyType.Guard))  // (EnemyIndex.cs)
+                if (o.SpawnT <= 0f && o.Pos.CloserThan(e.Pos, GuardRallyRadius) && StillIn(o))
                     return GuardRallySpeedUp;
             return 1f;
         }

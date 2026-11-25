@@ -420,6 +420,8 @@ namespace Arena
         public void OnPeerLeft(int id)
         {
             Players.Remove(id);
+            if (MapVotes.Remove(id) | MapLocked.Remove(id))
+                BroadcastHuntMap();  // a hunt-map vote from someone who left no longer counts (HuntMapGame.cs)
         }
 
         // --- Upgrades ----------------------------------------------------------
@@ -972,6 +974,7 @@ namespace Arena
                 session.SendToHost(Proto.End(pw));
             }
             NoteDuelBetweenWaves();  // GatekeeperRoom.cs (every game: enemies and kits fight in a duel between waves)
+            StaleEnemyIndex();  // EnemyIndex.cs: regather the enemies by type this tick
             if (IsHost)
             {
                 hostClock += dt;  // (every host tick, whatever the state: Dodge.cs times clients' dodges by it)

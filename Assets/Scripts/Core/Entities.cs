@@ -875,6 +875,8 @@ namespace Arena
         public int Id;
         public byte Kind;
         public V2 Pos, Vel;
+        public V2 Prev;           // host only: where it was before this tick's move (Combat.Enters), once HasPrev
+        public bool HasPrev;
         public float AngVel, Life, Radius, Dmg;
         public float Life0;       // its lifetime when fired (for drawing it aging: the Flamethrower's flames)
         public int Owner, Pierce, LastHit;

@@ -76,7 +76,7 @@ Second 3725d5aa9329d322 at (479,433) phase 1 hp 0 shots 30
 Marshal e02f20e42a069c17 at (558,660) phase 0 hp 0 shots 0
 Gallant 635080dcbfc6b668 at (797,630) phase 0 hp 420 shots 0
 Harlequin 08919cb1a281a5d0 at (948,450) phase 0 hp 770 shots 36
-Mummer 79383c8cd120ea55 at (748,591) phase 0 hp 504 shots 17
+Mummer 8ef65a72dc7127a6 at (787,600) phase 1 hp 497 shots 17
 MummerCopy 74c60e8f9bf4a205 at (480,450) phase 0 hp 0 shots 0
 GraveCaller 0bed1bfd5bffb648 at (585,687) phase 0 hp 0 shots 0
 Gnawling a559f2ea42e6397b at (682,458) phase 0 hp 1127 shots 0
@@ -102,7 +102,7 @@ Grounder 0b7ec2e5d3101fdd at (610,450) phase 3 hp 0 shots 28
 Pylon f7670cd32b661f7f at (746,589) phase 1 hp 378 shots 0
 Lineman b7b2f9d28515a21b at (503,491) phase 0 hp 0 shots 16
 Thunderhead 29715ff67d437bd0 at (800,450) phase 0 hp 1505 shots 0
-Turnkey c58ca32c35a08d2a at (681,104) phase 1 hp 0 shots 1
+Turnkey 55367f82c2bbb511 at (609,114) phase 1 hp 0 shots 1
 CellDoor c5fe99cdbcf53ea5 at (480,450) phase 2 hp 0 shots 0
 FloorMine b700376a6a338815 at (480,450) phase 1 hp 0 shots 0
 ShackleTrap b81b70c44e26b4bd at (480,450) phase 1 hp 0 shots 0
