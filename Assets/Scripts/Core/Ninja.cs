@@ -312,7 +312,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Ofuda, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2, Speed = 360f, Life = 1.6f, Damage = 25f, ExtraDesc = "+1 charm, fanned out", Name = "Ofuda", FireInterval = 0.5f,
                 Desc = "Primary Fire: Throw charms that sit as wards and burst when an enemy steps on them.",
                 AreaDesc = "bursts 25% wider, for damage and healing" },
-            new WeaponDef { Id = WeaponId.TwinTessen, Kit = Kit.Ninja, Role = Role.Healer, Choice = 3, Damage = 10f, Reach = 125f, Melee = true, BotRange = 110f, ExtraDesc = "+2 petals a Petal Spin and a 10% wider gust", Name = "Twin Tessen", FireInterval = 0.2f,
+            new WeaponDef { Id = WeaponId.TwinTessen, Kit = Kit.Ninja, Role = Role.Healer, Choice = 3, Damage = 10f, Reach = 105f, Melee = true, BotRange = 110f, ExtraDesc = "+15% damage, +2 petals a Petal Spin and a 10% wider gust", Name = "Twin Tessen", FireInterval = 0.2f,
                 Desc = "Primary Fire: A five-step dance of two war fans that heals the allies it brushes and ends in a petal wave.\n\nAlternative Fire: Hold to pull the fans back, let go for a massive gust that throws enemies back and heals allies.",
                 AreaDesc = "a 25% longer gust" },
             // DPS

@@ -35,6 +35,7 @@ namespace Arena
         public static readonly float[] TtKnock = { 0f, 0f, 0f, 0f, 80f };          // 0: the standard melee shove
         public const float TtBrushHeal = 4f, TtBloomHeal = 18f, TtBloomTail = 2f, TtPetalHeal = 5f, TtPetalRange = 420f, TtPetalFlight = 0.5f;
         public const int TtPetals = 6;
+        public const float TtExtraDmg = 0.15f;  // each extra projectile: +15% to every step
         public const float TtTailSpeed = 1.2f, TtChargeSlow = 0.6f;
         public const float TtBreezeHit = 6f, TtBreezeHeal = 3f, TtBreezeMax = 100f;
         public const float TtGustHalf = 60f * MathX.Pi / 180f, TtTyphoonHalf = 75f * MathX.Pi / 180f, TtGustReach = 460f;
@@ -98,7 +99,7 @@ namespace Arena
             float dur = TtDur[step - 1];
             p.ComboT = dur + TtWindow;
             p.FireCd = dur / FireRate(p);
-            float hit = p.Weapon.Damage * dmg * TtMult[step - 1];
+            float hit = p.Weapon.Damage * dmg * TtMult[step - 1] * (1f + TtExtraDmg * extra);
             var s = TessenSwing(p, aim, step, hit, dur * TtHitAt);
             if (step == 4)
                 TessenSwing(p, aim, 6, hit, dur * TtSpinEcho);  // the twirl's second turn
