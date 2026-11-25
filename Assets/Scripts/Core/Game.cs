@@ -1451,6 +1451,8 @@ namespace Arena
             LocalDodge(me, move, dodgePress, dodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
             me.Sprint = (byte)Math.Round(SprintFade * 255f);  // for everyone else's wake (sent in Msg.Input, then the snapshot)
             LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
+            if (LocalLivingBolt(me, firing && !HoldControls, aimAt, dt))
+                firing = false;  // electrified: Fire is the dash (LivingBolt.cs)
             if (LocalGreatStar(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // the Great Star stance: Fire draws the route and throws instead (GreatStar.cs)
             V2 edgeWant = RoomsHold(before, me.Pos, me.Def.BodyR);  // (a room locks behind you: Rooms.cs)
@@ -1594,11 +1596,13 @@ namespace Arena
             }
             KeepOutOfDomes();  // Fortress's dome (Dome.cs)
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
+            TickLivingBolt(dt);  // Living Bolt: its clock, the discharge and the residue's damage (LivingBolt.cs)
             TickVortex(dt);  // the Vortex ultimate: its clock, swirl, damage, swept shots and fling (Vortex.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
             KeepOffBridges(dt);    // the Drawbridge (Drawbridge.cs)
             KeepOffBloodWalls(dt);  // Blood Wall (BloodWall.cs): pushes enemies back, bleeds those against it
             KeepOffCovers();  // Deployable Cover (DeployableCover.cs): enemies can't walk through its plates
+            KeepOffGroveFences();  // Bamboo Grove's fence (BambooGrove.cs): enemies stay outside it
             KeepOffOssuaryWalls(dt);  // the Bone Guard's Ossuary Wall (BoneGuard.cs): pushes enemies back, darts those against it
             KeepOffPhalanx();    // the Bone Phalanx's shields (BonePhalanx.cs)
             TickMinions(dt);
@@ -1754,6 +1758,10 @@ namespace Arena
                 }
                 else if (TankOn(p))
                     TickTankGun(p, dt);  // in A Literal Tank: its main gun, not your weapon (LiteralTank.cs)
+                else if (BoltOn(p))
+                {
+                    // electrified: the weapon is put away, Fire is the dash (sent by the player's own game: LivingBolt.cs)
+                }
                 else if (ColOn(p))
                     ColossusTrigger(p);  // the golem: Fire slams, the weapon is put away (StoneColossus.cs)
                 else if (SpOn(p))

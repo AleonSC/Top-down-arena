@@ -249,6 +249,7 @@ namespace Arena
             DrawBossGate(t);         // the boss gate in the hub before a boss (BossGateLook.cs)
             DrawTombFloor(t);        // the Glacial Tomb's frost lattice and mandala (GlacialTombLook.cs)
             DrawBloodFreezeFloor(t); // Blood Freeze's frost, cracks, rune circle and wave (BloodFreezeLook.cs)
+            DrawBambooGroveFloor(t); // Bamboo Grove's wash, cracks, front and shadows (BambooGroveLook.cs)
             DrawShockwaveFloor();    // the Shockwave ability's scorch (ShockwaveLook.cs)
             DrawTitanFloor();        // the Titan golem's slam cracks and rubble (TitanLook.cs)
             DrawSpiritFloor();       // Spirit Avatar's ink strokes and stains (SpiritAvatarLook.cs)
@@ -307,6 +308,7 @@ namespace Arena
             DrawEclipseMoon(t);    // EclipseLook.cs
             DrawLichScene(t);  // LichLook.cs
             PruneDarts();  // Poison Dart's stuck darts (PoisonDartLook.cs)
+            DrawBambooGroveBack(t);  // Bamboo Grove's far stalks, behind the enemies (BambooGroveLook.cs)
             segTol = CrowdTol();
             foreach (var e in game.Enemies.Values)
                 if (!Game.DevourUnder(e) && !Game.GutwormUnder(e) && !(game.DrillTargetOf(e, out int drillOwner) && drillOwner != game.MyId) && !(e.Dormant ? game.FogHidesStill(e.Pos) : game.FogHides(e.Pos)))  // (room fog: hidden in an unseen room unless a player is close, RoomFog.cs); the Devourer or a Gutworm underground is just its ripple (DevourerLook.cs, LarderLook.cs)
@@ -314,6 +316,7 @@ namespace Arena
             segTol = SegTol;
             DrawDormantMarks(t);  // sleeping groups in unseen rooms: drifting z's (RoomFogLook.cs)
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
+            DrawBambooGroveFront(t);  // Bamboo Grove's near stalks, in front of the enemies (BambooGroveLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawBloodbathOver(t);  // enemies wading in a Bloodbath: tinted, bleeding drops (BloodbathLook.cs)
             DrawGlSmokeOver(t);  // the Grenade Launcher's clouds over the enemies, jammed ones greyed (GrenadeLauncherLook.cs)
@@ -362,6 +365,7 @@ namespace Arena
                 DrawHammerIdle(p, t);  // the Warhammer held at the ready (MeleeLooks.cs)
                 DrawStunned(p, t);  // WardenLook.cs
                 DrawRodSparks(p, t);  // Lightning Rod's arcs on the body (LightningRodLook.cs)
+                DrawLivingBoltSparks(p, t);  // Living Bolt's arcs on the body (LivingBoltLook.cs)
                 DrawHeldStunGun(p, t);
             }
             DrawWardenNet(t);  // the Warden's net, thrown and wrapped round someone, over the bodies (HoldingCellLook.cs)
@@ -397,6 +401,7 @@ namespace Arena
             DrawBuffTimers(p, t);  // a shrinking arc under them for each timed buff (AbilityLooks.cs)
             DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
             DrawVortex(p, t);      // the Vortex ultimate's storm (VortexLook.cs)
+            DrawLivingBoltAura(p, t);  // Living Bolt's channel, halo and time ring (LivingBoltLook.cs)
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)
             DrawTempest(p, t);  // Wind Clash's Tempest (WindClashLook.cs)
             DrawStaticShockUnder(p, t);  // Overcharge's gold ring; the plain cone (StaticShockLook.cs)

@@ -330,6 +330,8 @@ namespace Arena
                 Apply = s => { s.SmokeRadiusMult += 0.4f; s.SmokeBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CeremonialArmor, MaxStacks = 2, Name = "Tempered Steel", Desc = "Ceremonial Armor's plates have 50% more health",
                 Apply = s => s.PlateHpMult += 0.5f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BambooGrove, MaxStacks = 2, Name = "Rhizome", Desc = "Bamboo Grove reaches 30% farther and its bleed lasts 50% longer",
+                Apply = s => { s.BgRadiusMult += 0.3f; s.BgBleedMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HealingDash, MaxStacks = 2, Name = "Morning Dew", Desc = "Healing Dash's footprints heal 50% more and are 25% bigger",
                 Apply = s => { s.MistHealMult += 0.5f; s.MistRadiusMult += 0.25f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Substitution, MaxStacks = 2, Name = "Body Double", Desc = "Substitution's shield is 60% stronger and lasts 2 s longer",
@@ -393,6 +395,13 @@ namespace Arena
                 Name = "Ceremonial Armor", Cooldown = 2.5f, Desc = "Armour plates circle you, blocking bullets and shoving enemies.",
                 Capstone = "A plate that breaks bursts for 30 damage to enemies within 60 px.",
                 Bot = b => b.Me.PlateN < Game.CerePlateMax,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.BambooGrove, Kit = Kit.Ninja, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (BambooGrove.cs)
+                Name = "Bamboo Grove", Cooldown = BgCooldown, Desc = "Bamboo bursts from the ground around you, stunning enemies, then bleeding them.",
+                Capstone = "The bamboo fence lasts 6 s.",
+                Bot = b => b.NearEnemies >= 3 && b.TargetD < BgRadius,
             },
             new AbilityDef
             {
@@ -483,6 +492,9 @@ namespace Arena
                 }
                 case AbilityId.CeremonialArmor:  // Ceremonial Armor (CeremonialArmor.cs)
                     SummonCerePlate(p, pw, cap);
+                    return true;
+                case AbilityId.BambooGrove:  // Bamboo Grove (BambooGrove.cs)
+                    CastBambooGrove(p, pw, cap);
                     return true;
                 case AbilityId.HealingDash:
                 {
@@ -729,7 +741,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashKnuckleStance = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs; 58-59: DashPikeOn/Off in Halberd.cs; 42: DashWhip in PistolWhip.cs; 43: free (was the Strider); 44: DashZero in FrostLance; 45: DashSympathy in BloodBrawler.cs; 46: DashTide in BloodBlast.cs; 47: DashIgnite in Chalk.cs; 48: DashNodStance in Nodachi.cs; 49: DashWyvernSlam in WyvernStaff.cs; 50: DashLaser in TwinPistols.cs; 51: DashVgStance in Vowguard.cs; 52-54: DashShardOn/Off, DashBladeRecall in Arcanist.cs; 55: DashHeatDump in RailBeam.cs; 56: DashArcCannon in StaticShock.cs)
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashKnuckleStance = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs; 58-59: DashPikeOn/Off in Halberd.cs; 42: DashWhip in PistolWhip.cs; 43: free (was the Strider); 44: DashZero in FrostLance; 45: DashSympathy in BloodBrawler.cs; 46: DashTide in BloodBlast.cs; 47: DashIgnite in Chalk.cs; 48: DashNodStance in Nodachi.cs; 49: DashWyvernSlam in WyvernStaff.cs; 50: DashLaser in TwinPistols.cs; 51: DashVgStance in Vowguard.cs; 52-54: DashShardOn/Off, DashBladeRecall in Arcanist.cs; 55: DashHeatDump in RailBeam.cs; 56: DashArcCannon in StaticShock.cs; 57: DashScatter in BowFocus.cs; 60: DashBolt in LivingBolt.cs)
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -1254,6 +1266,11 @@ namespace Arena
             Player p;
             if (!Players.TryGetValue(id, out p) || p.Downed || TankOn(p))  // (in A Literal Tank: no Alt, LiteralTank.cs)
                 return;
+            if (kind == DashBolt)
+            {
+                HostBoltDash(p, target);  // a Living Bolt dash (LivingBolt.cs)
+                return;
+            }
             var w = p.Weapon;
             if (HostArcanistDash(p, kind))
                 return;  // Shard Guard and the blades' recall (Arcanist.cs)
@@ -1632,6 +1649,7 @@ namespace Arena
                 if (m.Kind == MinionKind.Clone || m.Kind == MinionKind.CloneWall)
                     clones.Add(m);
             TickCloneWalls(dt);  // CloneWall.cs
+            TickBambooGroves(dt);  // BambooGrove.cs: the wave, the stuns' bleeds
             foreach (var p in Players.Values)
             {
                 p.VanishT = Math.Max(0f, p.VanishT - dt);

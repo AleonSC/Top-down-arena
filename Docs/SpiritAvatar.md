@@ -1,6 +1,6 @@
 # Spirit Avatar (design)
 
-Status: **built** (Nov 2026, protocol 498). The Tank Ninja's third ultimate (lobby key 2 of the Ultimate row; Thousand Clones stays the
+Status: **built** (Nov 2026, protocol 500). The Tank Ninja's third ultimate (lobby key 2 of the Ultimate row; Thousand Clones stays the
 default, Dragon's Dogma is key 1). The owner chose look **C, Sumi Giant**, and the rules as shown in the mockup.
 Mockup: [`Docs/Mockups/spirit-avatar.html`](Mockups/spirit-avatar.html) (https://claude.ai/artifact/7HCYDiWg8GvaPzgP3heeZj).
 Looks A (Oni Warden) and B (Kitsune Mantle) are in the same mockup and were not picked.

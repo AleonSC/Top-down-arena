@@ -819,6 +819,40 @@ static partial class Shot {
         gm.Effects.Add(new Effect { Kind = FxKind.JuggShard, Pos = hit, Pos2 = at, Color = new Rgba(1f, 0.82f, 0.45f), Radius = me.Id, Dur = Game.JuggShardFx, T = 0.03f + 0.045f * i });
       }
     }
+    if (Environment.GetEnvironmentVariable("BOLT") != null) {
+      // A DPS Elementalist's Living Bolt (LivingBoltLook.cs): BOLT=<seconds since the cast> (the channel runs to 0.5 s; use 0.3 or 4,
+      // 9.5 for the flicker); past the channel: three dashes zigzagging in, their residue lanes, the last bolt still lit and two
+      // grunts it shocked. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear(); gm.Zones.Clear();
+      me.Kit = Kit.Elementalist; me.Role = Role.Dps; me.Def = Defs.Get(Role.Dps); me.Slots[Upgrades.UltSlot].Id = AbilityId.LivingBolt;
+      V2 at0 = new V2(330f, 520f), at1 = new V2(520f, 360f), at2 = new V2(600f, 600f), from = new V2(800f, 440f);
+      float bt = float.Parse(Environment.GetEnvironmentVariable("BOLT"));
+      bool charged = bt >= Game.BoltChannel;
+      if (!charged) from = new V2(640f, 440f);
+      me.Pos = me.Disp = from; me.Aim = -0.4f; me.AimAt = from + new V2(240f, -100f); me.Hp = me.MaxHp * 0.9f;
+      me.BarrierT = 0f; me.AegisT = 0f; me.OverdriveT = 0f; me.ShieldHp = 0f;
+      me.BoltAge = bt; me.BoltT = Math.Max(0.05f, Game.BoltChannel + Game.BoltTime - bt); me.UltT = me.BoltT;
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var rnd = new System.Random(11);
+      V2[] spots = { new V2(430f, 455f), new V2(700f, 520f), new V2(560f, 470f), new V2(900f, 320f), new V2(380f, 300f), new V2(980f, 560f), new V2(760f, 250f), new V2(260f, 380f) };
+      for (int i = 0; i < spots.Length; i++) {
+        var en = (Enemy)spawnAt.Invoke(gm, new object[] { i == 3 ? EnemyType.Brute : EnemyType.Grunt, spots[i], 0f, 0, false });
+        en.SpawnT = 0f; en.Pos = en.Disp = spots[i]; en.MaxHp = 1000f; en.Hp = 1000f * (0.4f + 0.55f * (float)rnd.NextDouble());
+        if (charged && i < 3) { en.StunT = 0.3f; en.FrozenT = 0.3f; }
+      }
+      if (charged) {
+        V2[] path = { at0, at1, at2, from };
+        float[] left = { 1.1f, 2f, 2.9f };
+        for (int i = 0; i < 3; i++) {
+          V2 a = path[i], b = path[i + 1], d = b - a;
+          gm.Zones[9000 + i] = new Zone { Id = 9000 + i, Kind = ZoneKind.StaticResidue, Owner = me.Id, Pos = a + d * 0.5f, Radius = d.Length * 0.5f, Aim = d.Angle, T = left[i], Duration = Game.ResidueTime };
+        }
+        gm.Effects.Add(new Effect { Kind = FxKind.LivingBolt, Pos = at2, Pos2 = from, Color = Game.BoltCyan, Radius = me.Id, Dur = Game.BoltDashFx, T = 0.05f });
+        gm.Effects.Add(new Effect { Kind = FxKind.RodArc, Pos = new V2(690f, 510f), Pos2 = spots[1], Color = Game.BoltCyan, Radius = 40f, Dur = 0.22f, T = 0.04f });
+      }
+    }
     if (Environment.GetEnvironmentVariable("VORTEX") != null) {
       // A Tank Elementalist's Vortex (VortexLook.cs): VORTEX=<seconds since the cast> (the wind-up runs to 0.4 s; use 0.2, 2 or 5.2),
       // VXMASTERED=1 for 300 px; grunts swept round inside, one drawn in from past the edge, a few enemy shots swept away. Use with mode hud.
@@ -1073,6 +1107,7 @@ static partial class Shot {
     HospitalScene();  // HOSP=pick|<s since the cast> [HOSPTENT=1] (ShotHospital.cs)
     DeployTurretScene();  // DEPLOYTURRET=<s since the cast> [FXOFF=1] (ShotDeployTurret.cs)
     ThornBloomScene();  // THORNBLOOM=<s since the cast> [THORNCAP=1] (ShotThornBloom.cs)
+    BambooGroveScene();  // BAMBOO=<s since the cast> [BAMBOOCAP=1] (ShotBambooGrove.cs)
     SpiritAvatarScene();  // SPIRIT=<s since the cast>: the Tank Ninja's Spirit Avatar, Fire held (ShotSpiritAvatar.cs)
     DragonsDogmaScene();  // DOGMA=<s since the cast>: MOCKUP of the Tank Ninja's Dragon's Dogma (ShotDragonsDogma.cs)
     RedShotScene();  // REDSHOT=1: the red boss shots, barbed spears (ShotRedShot.cs)

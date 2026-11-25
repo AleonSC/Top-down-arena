@@ -605,6 +605,8 @@ namespace Arena
             s.Float(ref p.VortexT);  // Vortex (Vortex.cs)
             s.Float(ref p.VortexAge);
             s.Float(ref p.VortexR);
+            s.Float(ref p.BoltT);  // Living Bolt (LivingBolt.cs)
+            s.Float(ref p.BoltAge);
             s.Byte(ref p.HeliGuns);  // the Attack Helicopter (AttackHelicopter.cs): its guns, then their targets while it's out
             if (p.HeliGuns > 0)
             {

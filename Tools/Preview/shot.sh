@@ -79,6 +79,7 @@
 #   with RIFLEFIRE=1 (holding fire: the Twin Rifle held wide, Spread arms) and CROSSAT=<px> (the cursor's distance).
 # DEPLOYTURRET=<s since the cast> [DEPLOYCAP=1 mastered] (the DPS Soldier's Deployable Turret played through the game, shot.sh x hud 1 6 1: drop 0-0.55, unfolds to 1.1, fires to 11.1 (spool full by ~2.3), overheats, blows at 11.9; use 0.3, 0.8, 3, 6, 10, 11.5, 12; FXOFF=1 plain; ShotDeployTurret.cs).
 # THORNBLOOM=<s since the cast> [THORNCAP=1 mastered] (the DPS Hemomancer's Thorn Bloom played through the game, shot.sh x hud 1 6 1: needles fly 0-0.2, tendrils whip on to ~0.9; use 0.05, 0.15, 0.3, 0.5, 0.8; ShotThornBloom.cs).
+# BAMBOO=<s since the cast> [BAMBOOCAP=1 mastered] (the Tank Ninja's Bamboo Grove played through the game, ZOOM=2 shot.sh x hud 1 6 1: wind-up 0-0.35, rings burst 0.35-0.7, fence to 3.9; use 0.2, 0.42, 0.6, 1.0, 2.5; ShotBambooGrove.cs).
 # ROD=<s since the cast> (you take Lightning Rod, the tank Elementalist's second ultimate, and cast it that long before the shot; mode hud).
 # TANKALT=<s> (the Tank Soldier's Alt fires: Double Barrel that long after firing, shells pips, Proximity Shells, Tear Gas; TankAltLook.cs).
 # HONEYBEE=<s> (the Summoner DPS Honeybee Staff that long into a scripted loop: clicks that swarm a dummy at 0-0.8 s, the honey spray held 1.0-1.9 s, a harvest at ~2.5 s; mode hud; HoneybeeLook.cs).
@@ -101,6 +102,7 @@
 # TWINNADES=<loaded>,<next tube 0/1>,<charge> (the Twin Rifle's grenade tubes and pips; with CAST=Airstrike CASTT=<s> for the Airstrike).
 # JUGG=<s since cast> JUGGARMOR=<0-1> (the Tank Soldier's Juggernaut Suit: plates, armour bar, flak tracers; mode hud).
 # VORTEX=<s since cast> VXMASTERED=1 (the Tank Elementalist's Vortex: wind-up, storm, grunts swept round, shots swept away; mode hud; VortexLook.cs).
+# BOLT=<s since cast> (the DPS Elementalist's Living Bolt: 0.3 the channel, 4 electrified with three dashes' residue, 9.5 the flicker; mode hud; LivingBoltLook.cs).
 # COLOSSUS=<s since cast> COLWIND=<0-1> COLEND=<s> (the Tank Elementalist's Stone Colossus: rising, standing, slamming, crumbling; mode hud; StoneColossusLook.cs).
 # BLOODBATH=<s since the cast> (the Tank Hemomancer's Bloodbath pool, wading enemies and heal numbers; BATHMASTERED=1 for 220 px; mode hud, 2 players).
 # BLOODWALL=<s> BWCLOCK=<s> (the tank Hemomancer laying a Blood Wall, ShotBloodWall.cs; mode hud, 2 players).
