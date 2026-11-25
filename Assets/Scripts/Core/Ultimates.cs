@@ -223,6 +223,10 @@ namespace Arena
                     CastHospital(p, target, cap);
                     break;
 
+                case AbilityId.SupplyDrop:  // Healer: Soldier, the third ultimate (SupplyDrop.cs)
+                    CastSupplyDrop(p, target, cap);
+                    break;
+
                 case AbilityId.Sanctum:  // Healer: Elementalist
                 {
                     float r = cap ? 300f : 200f;

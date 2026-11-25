@@ -186,6 +186,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Deployable Medkit | Healer | 1st, choice 3 | 14 s | - | Bursts into 9 orbs worth 20 health each. | Throw a medkit that bursts into health orbs anyone can grab. |
 | Lifeline | Healer | ultimate | 90 s | - | Everyone also gets 4 s of Overdrive. | Revive and fully heal the whole party, with brief invulnerability. |
 | Field Hospital | Healer | ultimate | 150 s | - | 8 orbs, one back every 3 s. | Open a hospital cell behind a door: a shrine, healing orbs and a laser gate for a minute. |
+| Supply Drop | Healer | ultimate | 110 s | - | The zone lasts 18 s and packs heal 40. | Call in a crate that hits enemies where it lands, then opens: faster cooldowns, shooting and movement inside, and health packs. |
 | Decoy Dummy | Healer | 1st, choice 5 | 4 s (+2 charges) | - | Dummies have 50% more health, and the confetti blast reaches 130 px. | Throw an inflatable soldier that enemies shoot at instead of you. |
 | Poison Dart | Dps | 1st, choice 1 | 8 s | - | Spreads to 5 enemies at a time, at full strength. | Poison the nearest enemy; the poison spreads when it dies. |
 | Airstrike | Dps | 1st, choice 2 | 16 s | - | A second wall lands 160 px further out, half a second later. | Call a jet to carpet a line with bombs. |

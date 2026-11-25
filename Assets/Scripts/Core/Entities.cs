@@ -653,6 +653,7 @@ namespace Arena
         public bool RadiantOn;              // Radiant Orb: held out (replicated; RadiantOrb.cs)
         public bool StaticOn;               // Static Shock: the cone is out (replicated; StaticShock.cs)
         public float OverchargeT;           // Overcharge from a Static Shock: time left (replicated)
+        public float SupplyT;               // standing in an open Supply Drop: faster cooldowns, shooting and moving while > 0 (replicated; SupplyDrop.cs)
         public float ArcCd;                 // host: until the Arc Cannon can go again
         public V2 RadiantPos, RadiantDisp;      // ...where it is (replicated), and where this screen draws it
         public RunStats Run = new RunStats();
@@ -672,7 +673,7 @@ namespace Arena
         public float RiotT;  // Riot Gear: seconds until the shield is back, 0 = ready (RiotGear.cs)
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
-        public float Speed => Def.Speed * Stats.SpeedMult * Game.MomentumMult(this) * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (OverchargeT > 0f ? Game.OverchargeMove : 1f) * Game.GustMult(GustT) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (RepelPull ? Game.RepelPullSelfSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (NunGuard ? Game.NunGuardSlow : 1f) * (NodStance == 1 && Weapon.Id == WeaponId.Nodachi ? Game.NodGuardSlow : 1f) * (VgStance == 1 && Weapon.Id == WeaponId.Vowguard ? Game.VgSanctSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f) * Game.ColSpeed(this) * Game.SpSpeed(this) * Game.BoltSpeed(this) * (TankT > 0f ? Game.TankSlow : 1f) * (WcTempestT > 0f ? Game.TempestSlow : 1f) * (FlZeroT > Game.ZeroDur - Game.ZeroCharge ? Game.ZeroSlow : 1f) * (TitheClock > 0f ? Game.TitheSlow : 1f) * (BbBrace ? Game.BraceSlow : 1f) * (HbSet ? Game.PikeSlow : 1f) * (ShardGuard ? Game.ShardGuardSlow : 1f) * (TpLaserT > 0f ? Game.TpLaserSlow : 1f) * (Game.EnergyDrinkOn(this) ? Game.EnergySpeed : 1f) * (PvpSlowT > 0f ? PvpSlowMult : 1f);
+        public float Speed => Def.Speed * Stats.SpeedMult * Game.MomentumMult(this) * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (OverchargeT > 0f ? Game.OverchargeMove : 1f) * (Game.Supplied(this) ? Game.SupplyMove : 1f) * Game.GustMult(GustT) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (RepelPull ? Game.RepelPullSelfSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (NunGuard ? Game.NunGuardSlow : 1f) * (NodStance == 1 && Weapon.Id == WeaponId.Nodachi ? Game.NodGuardSlow : 1f) * (VgStance == 1 && Weapon.Id == WeaponId.Vowguard ? Game.VgSanctSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f) * Game.ColSpeed(this) * Game.SpSpeed(this) * Game.BoltSpeed(this) * (TankT > 0f ? Game.TankSlow : 1f) * (WcTempestT > 0f ? Game.TempestSlow : 1f) * (FlZeroT > Game.ZeroDur - Game.ZeroCharge ? Game.ZeroSlow : 1f) * (TitheClock > 0f ? Game.TitheSlow : 1f) * (BbBrace ? Game.BraceSlow : 1f) * (HbSet ? Game.PikeSlow : 1f) * (ShardGuard ? Game.ShardGuardSlow : 1f) * (TpLaserT > 0f ? Game.TpLaserSlow : 1f) * (Game.EnergyDrinkOn(this) ? Game.EnergySpeed : 1f) * (PvpSlowT > 0f ? PvpSlowMult : 1f);
         public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
         public float AuraRange => Game.AuraRange * Stats.AuraRangeMult;
     }
@@ -879,6 +880,7 @@ namespace Arena
         public int Owner;       // the player this copy is for (an enemy's or a crate's orb, Combat.cs SpawnOrbEach); 0: anyone's
         public bool Big, Tiny;  // Tiny: knocked loose by the Repulsion Cannon
         public bool Med;        // a Deployable Medkit's orb (Medkit.cs), or a Field Hospital's
+        public int Supply;      // host: the Supply Drop zone that threw it (SupplyDrop.cs; 0: none), to cap how many lie out
         public int Hosp;        // host: the Field Hospital zone it lies in (FieldHospital.cs; 0: none): it only drifts to players inside
         public float MedHeal;   // host: what it heals
         public V2 Pos, Disp;
