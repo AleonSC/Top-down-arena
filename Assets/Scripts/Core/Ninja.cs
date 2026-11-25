@@ -168,6 +168,9 @@ namespace Arena
                 case WeaponId.Nodachi:
                     FireNodachi(p, aim, dmg, extra);  // the next step of the stance you're in (Nodachi.cs)
                     break;
+                case WeaponId.TwinTessen:
+                    FireTessen(p, aim, dmg, extra);  // the next step of the Crane Dance (TwinTessen.cs)
+                    break;
                 case WeaponId.Nunchaku:
                     FireNunchaku(p, aim, dmg, extra);  // the Twin Storm combo, or the Twin Counter from the guard (Nunchaku.cs)
                     break;
@@ -309,6 +312,9 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Ofuda, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2, Speed = 360f, Life = 1.6f, Damage = 25f, ExtraDesc = "+1 charm, fanned out", Name = "Ofuda", FireInterval = 0.5f,
                 Desc = "Primary Fire: Throw charms that sit as wards and burst when an enemy steps on them.",
                 AreaDesc = "bursts 25% wider, for damage and healing" },
+            new WeaponDef { Id = WeaponId.TwinTessen, Kit = Kit.Ninja, Role = Role.Healer, Choice = 3, Damage = 10f, Reach = 125f, Melee = true, BotRange = 110f, ExtraDesc = "+2 petals a Petal Spin and a 10% wider gust", Name = "Twin Tessen", FireInterval = 0.2f,
+                Desc = "Primary Fire: A five-step dance of two war fans that heals the allies it brushes and ends in a petal wave.\n\nAlternative Fire: Hold to pull the fans back, let go for a massive gust that throws enemies back and heals allies.",
+                AreaDesc = "a 25% longer gust" },
             // DPS
             new WeaponDef { Id = WeaponId.Shuriken, Kit = Kit.Ninja, Role = Role.Dps, Choice = 0, Speed = 700f, Life = 0.75f, Damage = 9f, ExtraDesc = "+1 star in the fan", Name = "Shuriken", FireInterval = 0.35f,
                 Desc = "Primary Fire: Tight fans of stars that stick, then rip out and fly back.\n\nAlternative Fire: Switch to a huge star thrown along a route you draw." },
@@ -374,6 +380,8 @@ namespace Arena
                 Apply = s => { s.NunDiscMult += 0.25f; s.NunSwatBonus += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Nodachi }, MaxStacks = 2, Name = "Tamahagane", Desc = "The Nodachi's sweeps and Tenchi's ring reach 15% farther, and Mamori's jabs block shots in a 30° wider cone",
                 Apply = s => { s.NodReachMult += 0.15f; s.NodConeBonus += 30f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.TwinTessen }, MaxStacks = 2, Name = "Divine Wind", Desc = "The Twin Tessen's Kamikaze Gust reaches 25% farther, and it and the Petal Spin's petals heal 50% more",
+                Apply = s => { s.TtGustReachMult += 0.25f; s.TtHealMult += 0.5f; } },
         };
 
         /// The Ninja's abilities and ultimates. (Upgrades.Abilities gathers every class's list.)
@@ -755,7 +763,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashKnuckleStance = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs; 58-59: DashPikeOn/Off in Halberd.cs; 42: DashWhip in PistolWhip.cs; 43: free (was the Strider); 44: DashZero in FrostLance; 45: DashSympathy in BloodBrawler.cs; 46: DashTide in BloodBlast.cs; 47: DashIgnite in Chalk.cs; 48: DashNodStance in Nodachi.cs; 49: DashWyvernSlam in WyvernStaff.cs; 50: DashLaser in TwinPistols.cs; 51: DashVgStance in Vowguard.cs; 52-54: DashShardOn/Off, DashBladeRecall in Arcanist.cs; 55: DashHeatDump in RailBeam.cs; 56: DashArcCannon in StaticShock.cs; 57: DashScatter in BowFocus.cs; 60: DashBolt in LivingBolt.cs)
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashKnuckleStance = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs; 58-59: DashPikeOn/Off in Halberd.cs; 42: DashWhip in PistolWhip.cs; 43: free (was the Strider); 44: DashZero in FrostLance; 45: DashSympathy in BloodBrawler.cs; 46: DashTide in BloodBlast.cs; 47: DashIgnite in Chalk.cs; 48: DashNodStance in Nodachi.cs; 49: DashWyvernSlam in WyvernStaff.cs; 50: DashLaser in TwinPistols.cs; 51: DashVgStance in Vowguard.cs; 52-54: DashShardOn/Off, DashBladeRecall in Arcanist.cs; 55: DashHeatDump in RailBeam.cs; 56: DashArcCannon in StaticShock.cs; 57: DashScatter in BowFocus.cs; 60: DashBolt in LivingBolt.cs; 61: DashRavager in BloodRavager.cs; 62: DashNeedles in NeedleSwarm.cs; 63-64: DashTessenOn/Off in TwinTessen.cs)
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -1023,6 +1031,8 @@ namespace Arena
                 return;  // the Arc Knuckles' stance swap, and their dashes moving you (ArcKnuckles.cs)
             if (LocalArcanistAlt(me, pressed, released, aimAt))
                 return;  // the Orbit Shards' Shard Guard, held, and the Dancing Blades' recall (Arcanist.cs)
+            if (LocalTessenGust(me, pressed, released, aimAt))
+                return;  // the Twin Tessen's Kamikaze Gust, held (TwinTessen.cs)
             if (LocalHoneySpray(me, pressed, released, aimAt))
                 return;  // the Honeybee Staff's honey spray, held (HoneybeeStaff.cs)
             if (LocalNunGuard(me, aimAt, pressed, dt))
@@ -1295,6 +1305,8 @@ namespace Arena
             var w = p.Weapon;
             if (HostArcanistDash(p, kind))
                 return;  // Shard Guard and the blades' recall (Arcanist.cs)
+            if (HostTessenDash(p, kind))
+                return;  // the Twin Tessen's gust, held then let go (TwinTessen.cs)
             if (HostHoneyDash(p, kind))
                 return;  // the Honeybee Staff's spray (HoneybeeStaff.cs)
             if (kind == DashWhirlOn || kind == DashWhirlOff)

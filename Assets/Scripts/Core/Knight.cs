@@ -61,6 +61,7 @@ namespace Arena
         public V2 KnuckleKnock;       // a Drive Punch: what it hits is sent this far this way (ArcKnucklesBrawl.cs)
         public int OnlyEnemy;         // != 0: hits only this enemy (the Arc Knuckles' locked-on Rocket Dash)
         public bool Nun;              // a Nunchaku hit (Nunchaku.cs): a stick landing sounds Sfx.NunHit
+        public byte Tessen;           // a Twin Tessen step (1-5, 6 the Petal Spin's second turn; TwinTessen.cs): Breeze, its healing and petals
         public byte Vg;               // a Vowguard hit (Vowguard.cs): 1 a Valor link (lights Faith), 2 any other; the parry and the switch take back one still winding up
         public bool Nod;              // a Nodachi hit (Nodachi.cs): the parry and the stance switch take back one still winding up
         public int BlastPress;        // != 0: a Blood Blast cut, this press's number: what it hits gets one blood stack per press (BloodBlast.cs)
@@ -543,6 +544,8 @@ namespace Arena
                 else if (s.Taunt > 0f)
                     TauntEnemy(p, e, s.Taunt);
             }
+            if (s.Tessen > 0)
+                TessenLanded(p, s, origin, hits.Count);  // Breeze, the healing, Tailwind and petals (TwinTessen.cs)
             if (s.KatanaMove > 0)
                 KatanaLanded(p, s, hits);  // each cut's look, a killing dash bringing the next step at once, the hit cue (Katana.cs)
             if (s.CenserStep > 0)

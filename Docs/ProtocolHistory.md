@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 513: Twin Tessen (Healer Ninja 4th weapon): `WeaponId.TwinTessen`, `FxKind.TessenStep`/`TessenPetals`/`TessenGust` (each at the end), `Player.TtCharging`/`TtCharge`/`TtGustCd`/`TtTailT`/`TtBreeze` in the player sync after `OverchargeT`, `Msg.WeaponDash` kinds 63-64, the Rare card Divine Wind (card ids shift).
 - 512: Needle Swarm (DPS Hemomancer weapon, replaces Blood Bolts: `WeaponId.BloodBolts` renamed `NeedleSwarm`, same value): `Player.NsCount`/`NsBurstCd`/`NsTen`/`NsLen`/`NsBound` in the player sync, `FxKind.NeedleSwarm`, `Msg.WeaponDash` kind 62.
 - 511: Forbidden Path (DPS Ninja second ultimate, key 1): `AbilityId.ForbiddenPath`, `FxKind.ForbiddenPath` (each at the end), `Player.FpT` (+ `FpAge`/`FpStage`/`FpStageT`/`FpTarget`/`FpAt`/`FpFrom` while on) in the player sync after `BoltAge`, `Enemy.FpBrands` (a byte after the Blood Blast stacks), the Rare card Forbidden Hunger (card ids shift).
 - 510: health orbs send a `Blood` flag (a Hemomancer's shared blood orb, Combat.cs `DropBloodOrb`).

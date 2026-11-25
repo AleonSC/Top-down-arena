@@ -23,6 +23,7 @@ namespace Arena
                     : p.Weapon.Id == WeaponId.BoneGuard ? game.BoneWallLocalCd / Game.BoneWallCd
                     : p.Weapon.Id == WeaponId.Nimbus ? game.StormLocalCd / Game.NimbusStormCd
                     : p.Weapon.Id == WeaponId.WindClash ? game.TempestLocalCd / Game.TempestCd
+                    : p.Weapon.Id == WeaponId.TwinTessen ? p.TtGustCd / Game.TtGustCd  // (the Twin Tessen's Kamikaze Gust: TwinTessen.cs)
                     : p.Weapon.Id == WeaponId.StaticShock ? game.ArcLocalCd / Game.CannonCd  // (Static Shock's Arc Cannon: StaticShock.cs)
                     : p.Weapon.Id == WeaponId.WyvernStaff ? game.WyvernSlamLocalCd / Game.WyvernSlamCd
                     : p.Weapon.Id == WeaponId.BloodBlast ? game.TideLocalCd / Game.TideCd
@@ -30,7 +31,7 @@ namespace Arena
                     : p.Weapon.Id == WeaponId.SpiritChalk ? game.IgniteLocalCd / Game.ChalkIgniteCd : 0f;  // (the Frost Lance's Absolute Zero: FrostLance.cs)  // (Wind Clash's Tempest: WindClash.cs)  // (the Nimbus's Eye of the Storm: Nimbus.cs)  // (the Bone Guard's Ossuary Wall: BoneGuard.cs)
                 if (cd > 0f)
                 {
-                    Rgba col = p.Weapon.Id == WeaponId.WyvernStaff ? Game.WyvColor : p.Weapon.Id == WeaponId.FlakCannon ? MineAmber : p.Weapon.Id == WeaponId.BoneGuard ? Defs.BulletColor(Defs.BoneShot) : p.Weapon.Id == WeaponId.Nimbus ? Game.NimbusBoltColor : p.Weapon.Id == WeaponId.WindClash ? Game.WcColor : p.Weapon.Id == WeaponId.StaticShock ? Game.CannonViolet : p.Weapon.Id == WeaponId.BloodBlast ? new Rgba(0.88f, 0.12f, 0.24f) : p.Weapon.Id == WeaponId.FrostLance ? Game.FlColor : p.Weapon.Id == WeaponId.SpiritChalk ? new Rgba(1f, 0.55f, 0.15f) : GasPale;
+                    Rgba col = p.Weapon.Id == WeaponId.WyvernStaff ? Game.WyvColor : p.Weapon.Id == WeaponId.FlakCannon ? MineAmber : p.Weapon.Id == WeaponId.BoneGuard ? Defs.BulletColor(Defs.BoneShot) : p.Weapon.Id == WeaponId.Nimbus ? Game.NimbusBoltColor : p.Weapon.Id == WeaponId.WindClash ? Game.WcColor : p.Weapon.Id == WeaponId.TwinTessen ? Game.TtWind : p.Weapon.Id == WeaponId.StaticShock ? Game.CannonViolet : p.Weapon.Id == WeaponId.BloodBlast ? new Rgba(0.88f, 0.12f, 0.24f) : p.Weapon.Id == WeaponId.FrostLance ? Game.FlColor : p.Weapon.Id == WeaponId.SpiritChalk ? new Rgba(1f, 0.55f, 0.15f) : GasPale;
                     Arc(p.Disp, p.Def.BodyR + 7f, 2f, new Rgba(1f, 1f, 1f, 0.1f), 28);
                     Arc(p.Disp, p.Def.BodyR + 7f, 2f, col.WithAlpha(0.6f), 28, -MathX.Pi / 2f, MathX.Tau * (1f - cd));
                 }
