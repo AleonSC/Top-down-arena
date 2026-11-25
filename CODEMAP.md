@@ -355,7 +355,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 
 ## World rendering (Game)
 - `OrbLook.cs`: health orbs as green discs with a white cross like the Medkit's (`DrawPlainOrb`) and the pickup burst (`DataBurst`: sparks, a ring, a rising plus)
-- `WorldRenderer.cs`: GL drawing of the arena (floor, layers, `DrawEnemy`/`DrawPlayer` entry, GL primitives)
+- `WorldRenderer.cs`: GL drawing of the arena (floor, layers, `DrawEnemy`/`DrawPlayer` entry, GL primitives; `DrawArenaOver`: the layer over the contents (Attack Helicopter, Deployable Turret, Warhorn Volley, Dragon's Dogma), also drawn by the Practice window and the loadout preview)
 - `FloorGridLook.cs`: the arena floor grid, the "Pressure grid" (bends round players, takes their colour near them, ripples from kills, a small burst in your colour when you Dodge (`Game.Dodges`) (`FloorDashBurst`, preview `DASHBURST=<s>`); Settings > Visual effects > Arena floor: Bending / Static, pref `floor_bend`; preview `FLOORBEND=0`)
 - `FloorStylesLook.cs`: the arena floor's other patterns (Settings > Visual effects > Arena floor, pref `floor_style`, keys `FloorStyleChoices`): Flux (needles), Seismo (scan lines), Plates (flipping plates), Circuit (seeded traces per area, `CircuitFor`, pulses from kills, dodges and footsteps); drawn from `DrawFloorGrid` by `DrawFloorPattern`; preview `FLOORSTYLE=<1-4>` (with `FLOORBEND=0`, `DASHBURST=<s>`)
 - `WorldPlayers.cs`, `WorldEnemies.cs`, `WorldShots.cs`, `WorldEffects.cs`: players, enemies/zones/minions, shots, effects
