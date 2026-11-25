@@ -4,7 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 508: health orbs send a `Blood` flag (a Hemomancer's shared blood orb, Combat.cs `DropBloodOrb`).
+- 509: health orbs send a `Blood` flag (a Hemomancer's shared blood orb, Combat.cs `DropBloodOrb`).
 - 508: Senbon Seekers (DPS Ninja 4th choice): `AbilityId.SenbonSeekers`, bullet kind `Defs.Senbon`, `Player.SbN`/`SbClock`/`SbNewT`/`SbCap` in the player snapshot, the Rare card Hidden Needles (card ids shift).
 - 507: Mammoth Fall (DPS Summoner third ultimate, key 2): `AbilityId.MammothFall`, `ZoneKind.Mammoth` (its `Origin` and `Side` in the zone sync), the Rare card Ice Age (card ids shift).
 - 506: Claymore (DPS Soldier 3rd choice) takes Mark for Death's place and number (`AbilityId.Claymore`); `ZoneKind.Claymore` (its `Marched` synced like the Decoy Dummy's), `FxKind.ClaymoreBlast` (each at the end); the Rare card Shaped Charge replaces Exploit Weakness.
