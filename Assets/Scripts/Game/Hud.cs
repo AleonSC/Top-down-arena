@@ -32,8 +32,6 @@ namespace Arena
             HudGroup(1, new Vector2(-150f, 30f), HudWavePlate, DrawWaveCorner);  // (the layout: HudLayout.cs)
             HudGroup(3, new Vector2(0f, -80f), HudTopRow, () =>
             {
-                if (game.Recorder != null)  // this run is being recorded (hosts only)
-                    Ui.Label(HudRecTag, "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
                 DrawBossBars();
                 DrawObjectiveLine();  // the hunt/approach objective and layout tag (ApproachUi.cs), under the boss bars (bossBarsBottom)
             });
@@ -43,15 +41,12 @@ namespace Arena
             DrawMiniBossBars(introHidHud ? 0f : 1f - hudT);  // (not while a boss's entrance card has the HUD off: they'd sit on the card's bars)  // the HUD hidden (H): a slim bar per boss stays at the top (HealthBars.cs)
             DrawWardenTags();   // "EXPOSED" / "STUNNED" over the Warden (WardenLook.cs)
             DrawHoldingCellHud(me);  // the net's fade, the Holding Cell panel, a teammate's padlock (HoldingCellLook.cs)
-            DrawPossessHud();   // the Dev Arena: the enemy you play and its controls (DevArenaUi.cs)
             DrawUnlockToasts(W / 2f, HudUnlockToastY);  // SavesUi.cs
-            if (aimDebug && me != null)
-                DrawAimDebug(me);
 
             // Names, level-up popups and downed labels over players (hidden while they're under
             // the between-waves banner, so they don't show on top of its text).
             bool banner = game.State == MatchState.Intermission && (me == null || me.Offer == null);
-            DrawDevNames();  // the name labels overview (DevTrapUi.cs)
+            DrawNameLabels();  // Settings > Gameplay > Name labels, or N (EnemyTagLook.cs)
             foreach (var p in game.Players.Values)
             {
                 float r = p.Def.BodyR;
@@ -519,25 +514,6 @@ namespace Arena
                 Ui.Shadowed(new Rect(hpBar.x, hpBar.y - 1f, hpBar.width, hpBar.height + 2f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 10, Color.white);
             }
             Ui.Bar(new Rect(r.x + 18f, r.y + 55f, r.width - 28f, 4f), p.Xp / Defs.XpToNext(p.Level), new Color(1f, 0.82f, 0.3f), new Color(0f, 0f, 0f, 0.4f));
-        }
-
-        /// F3: the numbers behind the aim lines.
-        void DrawAimDebug(Player me)
-        {
-            var r = new Rect(14f, 12f, 300f, 104f);
-            DkHud(r, new Color(0.3f, 0.9f, 1f));
-            Func<float, string> deg = a => (MathX.Fmod(a * 180f / MathX.Pi + 360f, 360f)).ToString("0.00") + "°";
-            float diff = MathX.WrapPi(game.LastShotAngle - game.LastShotAim);
-            Ui.Label(new Rect(r.x + 12f, r.y + 6f, r.width - 24f, 16f), "AIM DEBUG  (F3)", 11, new Color(0.3f, 0.9f, 1f), TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(r.x + 12f, r.y + 24f, r.width - 24f, 18f), "Aim now", 12, Ui.Muted);
-            Ui.Label(new Rect(r.x + 12f, r.y + 24f, r.width - 24f, 18f), deg(me.Aim), 12, Color.white, TextAnchor.MiddleRight, true);
-            Ui.Label(new Rect(r.x + 12f, r.y + 42f, r.width - 24f, 18f), "Last shot", 12, Ui.Muted);
-            Ui.Label(new Rect(r.x + 12f, r.y + 42f, r.width - 24f, 18f), game.LastShotId != 0 ? deg(game.LastShotAngle) : "-", 12, new Color(1f, 0.85f, 0.2f), TextAnchor.MiddleRight, true);
-            Ui.Label(new Rect(r.x + 12f, r.y + 60f, r.width - 24f, 18f), "Shot vs aim when it appeared", 12, Ui.Muted);
-            Ui.Label(new Rect(r.x + 12f, r.y + 60f, r.width - 24f, 18f), game.LastShotId != 0 ? (diff * 180f / MathX.Pi).ToString("+0.00;-0.00;0.00") + "°" : "-", 12, Color.white, TextAnchor.MiddleRight, true);
-            Ui.Label(new Rect(r.x + 12f, r.y + 78f, r.width - 24f, 18f), "Ping to host", 12, Ui.Muted);
-            Ui.Label(new Rect(r.x + 12f, r.y + 78f, r.width - 24f, 18f), session.IsHost ? "0 ms (you're the host)" : Mathf.RoundToInt(game.PingMs) + " ms", 12,
-                session.IsHost || game.PingMs < 60f ? Ui.Good : game.PingMs < 120f ? Ui.Warn : new Color(1f, 0.45f, 0.45f), TextAnchor.MiddleRight, true);
         }
 
         /// GET READY / WAVE N CLEARED as the scan band (WaveBand.cs; at BannerRect, HudLayout.cs): log lines each side, the title, the sub line and a bar that fills as the countdown runs out.

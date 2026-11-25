@@ -55,8 +55,8 @@ no Unity in the cloud container: check changes with the tools below.
 ## How the owner works
 
 - Requests are short and outcome-focused ("make the lance a rectangle", "do 1, 2"). Implement them fully.
-- They play-test in Unity and send **screenshots** and **session JSON uploads** (`Tools/SessionReport/report.py`
-  summarises them). Analyses give concrete numbers and a short list of proposed fixes, then ask which to do.
+- They play-test in Unity and send **screenshots**. Analyses give concrete numbers and a short list of proposed fixes,
+  then ask which to do.
 - They want things to look **polished** ("make it really nice"), with live previews over names.
 - For visual choices, offer options to choose from as **`Tools/Preview` renders of the real draw code** (`shot.sh`, sent
   with `SendUserFile`), not hand-built HTML mockups: those use browser effects (blur, glow, fonts, free layout) that

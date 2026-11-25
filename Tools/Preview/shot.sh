@@ -3,7 +3,7 @@
 # triangles and IMGUI draw calls, and shot.py composites them with Pillow.
 #   Tools/Preview/shot.sh <out-name> <mode> [wave] [seconds] [players]
 # picker: GOLDINSTEAD=1 (on the Bazaar: the "Gold instead" key under the row).
-# Modes (see ShotModes.cs; flags in ShotScenes.cs): hud, dev, bg, lobby, labsetup, labpanel, tab, picker, legendary, ...
+# Modes (see ShotModes.cs; flags in ShotScenes.cs): hud, dev, bg, lobby, tab, picker, legendary, ...
 # Env flags tweak the scene, e.g. KNIGHT=1 (Knights), POSE=1 (fixed pose), THRUST=0.3 (Lance jab frame),
 # DAZE=1 (three enemies dazed round you; mode hud), BOW=0.9, MASTERY=1, BG=3 (background number for 'bg'), MOUSE=x,y (hover for lobby modes), SOLO=1,
 # menu: PLAY=1 (the Play picker; NOSAVES=1, MORE=1 extra saves, OLDER=1 the older runs, PAGE=n), MENUT=<s> (the clock: 3 = rooms built), BG=28 (Holo Floor).

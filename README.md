@@ -1438,7 +1438,7 @@ Bosses are always the standard fight. A path changes the enemy mix and the arena
 | **Narrow Pass** | 2 | Glowing canyon walls close in to a 1120 x 720 pass: no wrapping round the edges, and bullets stop at the walls |
 | **Bazaar** | 1 | The usual enemies, but every kill drops gold; its prize is a shop (below) instead of the heal and rerolls |
 
-A chip above the wave panel shows the path and the waves left. Session recordings note each wave's path. The
+A chip above the wave panel shows the path and the waves left. The
 mist rolls in and the walls close in during the countdown before a path's first wave, and lift before the boss.
 Design notes and the decisions behind them are in `Docs/Paths.md`.
 
@@ -1697,7 +1697,7 @@ mouse wheel to slide along. Each card has its tier's colour along the top, an ic
 like Ready's; click anywhere on a card to switch it. The **Enabled modifiers** box along the bottom holds a key for each one
 that's on, in its tier's colour (click one to turn it off; when they don't fit on one line they show only their icons, with
 the name on hover). The host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active
-ones show as chips above the wave panel during the run, and session recordings list them.
+ones show as chips above the wave panel during the run.
 
 **In Survival** every modifier works except four that have nothing to act on in its one walled room: **Tiny Arena**,
 **Solid Walls**, **Gold Rush** (no shop) and **Simple Arena**. Their cards are dimmed and say *NO EFFECT IN SURVIVAL*,
@@ -1899,7 +1899,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 | First-person mouse 0.25x–4x | Settings → Gameplay (1x by default): how fast the mouse turns you in the first-person view (F8); each step of the bar is the same feel of change. Local only, saved on your machine |
 | Aim line on / off | V (the line runs from you to the crosshair, but never past your weapon's range: as far as your shots fly, or your swing reaches; a small cap marks the end when the crosshair is beyond it) |
 | Hide / show the HUD | H, or Settings > Gameplay; the mode is remembered between launches (H cycles three modes: Corner (the default; CRT phosphor readouts in bracket corners: health with a 20-cell bar, your level and a thin gold line for its progress bottom-left (teammates' health in slim rows above it), each ability key over its seconds left (the ultimate's charge %), its name and its mastery cells and level at the bottom, the wave and enemies left bottom-right with slim rows above it for what the run has: lives, gold, vectors (flashing as they come in), relic, path and hunt sector; the minimap keeps the top right), On the player (a leader line from you to a small CRT tag with your health, a cell bar and a row per ability: its key, its name and its seconds left, green when ready, the ultimate's charge in gold; it switches sides near the left wall and the top, and hides while you're downed; the wave and enemies left at the top), Hidden; it fades, "Press H to show the HUD" stays faintly at the bottom while it's hidden, and a slim health bar for each boss stays at the top in every mode) |
-| Aim debug overlay | F3 |
+| Name labels (a name over you and every enemy) | N, or Settings → Gameplay (off by default) |
 | Save / load a run snapshot (host, dev) | F6 saves the run as it is now; F7 loads the newest (see *Run snapshots*, under *Testing tricks*) |
 | Lag chart: off / pill / chart; freeze it; copy a summary | F5; Shift+F5; Ctrl+F5 (also Settings → Gameplay; see *Lag chart*, under *Playing with a friend*) |
 | Open the folder with `Player.log` (menus, lobby, results; not in a run) | F2 |
@@ -2175,7 +2175,7 @@ players report, and only accepts a frame or trail your rank has. XP, what's equi
 **Runs save themselves.** The host's game saves the run as each wave starts (once everyone has picked their
 upgrades, the path is chosen and the shop is closed), and again if the run is left or the game closed between
 waves. Every arena saves (Classic and Expanding, with its map). Leaving mid-wave keeps the save from that wave's start. A run that's won or lost loses its save. The
-The lobby's loadout preview and Boss Lab fights are never saved.
+The lobby's loadout preview is never saved.
 
 **Records count the Campaign's waves** (1-100): best wave, best endless wave, Recent runs and the run charts. A profile
 from before the Campaign has its waves doubled once when it loads (a 50-wave run's wave n is about the Campaign's wave
@@ -2200,7 +2200,7 @@ with upgrades and abilities by name, so they keep working as the game changes.
 **Records > Recent runs** (Docs/RecentRuns.md): a strip of your last 20 runs (newest first, four at a time with arrows; each card says the mode, class, wave and won, died or quit; a run you leave before it ends counts too, with no XP), six tiles for the open run (result, time, wave, damage, damage taken, XP) and two tabs. **Overview** has three graphs: **damage per second** over the run (your line in gold with a blue team line when you played in a party, alternating bands for the waves, a red tint on boss waves, a red dot where you went down), **health** over time for everyone in the party, and **accuracy per wave**. Hover a time graph for a readout of that moment. **Trends** shows the wave reached and the damage dealt run by run (green won, red died); click a run on it to open it. Each finished run keeps a sample of everyone's totals and health every 10 seconds, in a small file in your profile's `runs` folder (the newest 20 are kept); Quick Play is tracked like a run (a quit one too); after a win, the endless stretch gets its own **Endless** card (Quick Play's or the Campaign's, fallen or quit: a fall adds its best endless wave and XP for the waves and bosses since the win, a quit no XP); runs from before this, Challenge rooms have no graphs (Boss Hunts and rooms keep their own records). Co-op: every player's profile keeps its own copy with the whole party's lines. Runs with dev tools or the bot are not kept, like the rest of Records.
 best score, time played, totals (kills, damage, healing, downs, revives), each boss beaten, and runs and wins per
 class. The host tells every player's game when a boss falls and when a run ends, so in co-op everyone's records
-grow. Boss Lab fights and runs where dev tools (F1) or the bot were used don't count.
+grow. Runs where dev tools (F1) or the bot were used don't count.
 **Profiles:** the game asks **Who's playing?** at launch (`Docs/Mockups/whos-playing-carousel.html`): the monitor with
 WHO'S PLAYING? on its glass and the floppy drive in its chin, and under it one big floppy disk per profile on an endless
 side-scrolling carousel: the middle disk large, two either side smaller and fainter, fading out at the edges, wrapping round (with only 2 or 3 profiles the reel repeats, so a disk rolls smoothly off one side as its copy comes in on the other). Scroll with the **‹ ›** keys,
@@ -2466,11 +2466,11 @@ One person **hosts**, the other **joins**. The host's game acts as the server, s
 
 **Bots.** The host can fill the lobby's open slots with bots that play with them: click **+ Add a bot** on an OPEN SLOT (host only,
 in the lobby, not while continuing a saved run). A bot takes the first role nobody has, a random class, weapon and 1st ability,
-and readies up by itself; it revives, heals, dodges and uses its abilities like the Boss Lab's bots (below), picks its own
+and readies up by itself; it revives, heals, dodges and uses its abilities like the other bots (see *Bots*, under *Testing tricks*), picks its own
 upgrades and carries on between waves. On its card, the skill button cycles **Casual, Good, Expert**, **MIX** deals it a
 new random loadout and **x** removes it. Click a bot's card (it gets a gold rim) to choose its role, class, weapon and
 ability in the loadout panel, just like your own; click your own card to go back. With a bot's card chosen, type in the **Bot name** box above its preview to rename it. In the Hangout, bots stroll about the room and play emotes now and then (any emote, whatever their rank). Bots leave when you leave the lobby. A run with bots in the party isn't saved and isn't
-counted in Records, XP or ranks, like Boss Lab fights and the F1 bot. It still plays like any run: a Campaign with bots is on the Expanding arena, with building rounds and lives.
+counted in Records, XP or ranks, like the F1 bot. It still plays like any run: a Campaign with bots is on the Expanding arena, with building rounds and lives.
 
 Without Tailscale, the host can forward **TCP port 7777** on their router to their PC and give the friend
 their public IP. On the same Wi-Fi, use the host's local `192.168.x.x` address. Windows Firewall may ask
@@ -2532,13 +2532,11 @@ they stay in sync (`Tools/SimTest/run.sh [start-wave] [seconds] [suite]`, needs 
 Press **F1** anywhere for the developer **dock** (Esc, F1 or its X closes it). It's a slim bar across the top of the screen. In a
 match the game keeps running behind it (a click or scroll over the dock is the dock's alone: nothing under it is clicked and you don't shoot); in the lobby and menus it covers the
 screen. On the bar: the wave, **GOD** (everyone), **FULL HEAL**, **SKIP WAVE**, **KILL ALL** and **SNAP** (run snapshots, below) pinned for one click, four keys that
-open a small drawer under them (**WAVE**, **PARTY**, **VIEW**, **LABS**), and **BOT** and **REC** lamps you can click. The stat editor opens
+open a small drawer under them (**WAVE**, **PARTY**, **VIEW**, **LABS**), and a **BOT** lamp you can click. The stat editor opens
 as a drawer on the right, and the bigger tools (Spawn an enemy, Spawn an upgrade, Spawn a gadget, chest or relic, Run snapshots) open as one sheet. While you type in one of
 its fields the game's keys are off. Outside a run only VIEW and LABS show.
 
-- **WAVE drawer (host):** pick a wave with -10 / -5 / -1 / +1 / +5 / +10 and **Go to wave N**. It clears the arena, gets
-  downed players back up and starts that wave after 2 s. The boss on that wave (or the next boss) is shown moving
-  beside it. **Kill-all key (B)**: a switch (saved between sessions) that makes **B** kill every enemy on the field,
+- **WAVE drawer (host):** **Kill-all key (B)**: a switch (saved between sessions) that makes **B** kill every enemy on the field,
   bosses included, as your kills: XP, score, drops, gold and kill credit as usual, through shields and immunity. It
   doesn't end the wave: enemies still to come keep coming. Standing on a chest item, B throws it away instead. **Freeze enemies**: a switch under it that stops every enemy moving and shooting and stops new ones spawning
   (you can still kill the frozen ones; the wave won't clear while it's on; it resets when a run starts). The **PARTY drawer** has **Everyone** buttons: level up, max mastery, full heal and reset stats for every player at once (god mode and full heal are also pinned on the bar). The WAVE drawer's **Data Gates** buttons (between waves): straight into Crystal, Gatekeeper, Kill Rush, Zones or Mirror.
@@ -2550,22 +2548,6 @@ its fields the game's keys are off. Outside a run only VIEW and LABS show.
   makes them elite). The pad shows a ghost of its enemy, a ring filling to the next one and a pip per enemy alive; its tag says what and
   how often. Up to 12 at once; **UNDO** takes the newest away, **CLEAR** all of them (their enemies stay). The wave won't clear while one
   keeps refilling.
-- **LABS > DEV ARENA (PLAY AS ENEMIES) (host):** a sandbox for trying enemies' attacks. From the menu or the lobby it starts a Quick
-  Play match and turns it on; in a run it turns on there. The field is cleared, everyone goes into god mode, no enemies arrive and the
-  wave never clears. The Spawn-an-enemy sheet opens with a row on top: **CLICK: SPAWN** puts enemies in front of you as usual, **CLICK:
-  PLAY AS** spawns one and hands it to you, **LET GO**, **CLEAR ARENA** and **LEAVE DEV ARENA** (the wave then clears as usual). Playing as
-  an enemy: your hero stands still and the camera follows the enemy (gold brackets, "YOU", and a controls strip at the top). **WASD** moves
-  it, the **mouse** is what it goes for (its own AI aims, lunges, charges and keeps its range at the cursor), hold **Fire** to attack on its
-  real cadence (it moves on its own while it attacks unless you steer), **Parry** attacks at once (skips the cooldown), the **1st ability** key
-  lets go. Its shots and touches hurt players as usual, so aim at your parked hero (or a bot) to see them land. While you don't
-  attack, its AI waits (a boss's phases pause too). Some boss attacks still go for a player rather than the cursor. **Played enemy can't
-  die** (a switch, on by default): its health refills and a killing blow leaves it standing; off, a dead enemy lets go by itself. Marks
-  the run as a dev run.
-  **Hero dummies** (up to 6): stand-in heroes for enemies to hit. **ADD HERO DUMMY** puts one in front of you; while playing an enemy,
-  **2** (the 2nd ability key) drops one at the cursor and **3** (the 3rd) takes away the one nearest it; **CLEAR DUMMIES** removes them all (Clear arena keeps them).
-  Enemy shots and body touches land on them (counted at what an unbuffed hero would take); each shows its last hit, then DPS (last 3 s),
-  hits and total. **Enemies aim at dummies** (on by default): every other enemy goes for the nearest dummy instead of the players.
-  Blasts, beams, zones and other area attacks still only hit players. Only the host sees the dummies.
 - **PARTY > SPAWN AN UPGRADE… (host, in a run):** a sheet listing every upgrade (filter by name or text, or by rarity, including weapon mods and milestone
   cards; pick whose build it is for with several players). Click one and it drops a few steps in front of that player exactly as a treasure
   chest's item does: only they see it, walk onto it, then **F** takes it and **B** throws it away (the wave waits for it, like a chest's). Only
@@ -2581,7 +2563,7 @@ its fields the game's keys are off. Outside a run only VIEW and LABS show.
   game, and stay on top of upgrades they pick later; **Reset stats** goes back to what their upgrades give.
   Also **God mode** (takes no damage), **Full heal**, **Level up** (an extra upgrade pick) and **Max mastery**
   (every ability they have to mastery 5). Joining players can see everyone's stats but not change them.
-- **VIEW and LABS drawers:** record sessions (below) and open the sessions folder, the aim debug overlay (also F3), a bot that plays for you, **text editing** (also F4, below) and the **Boss Lab**.
+- **VIEW drawer:** **place traps** (host, in a run): pick Turret, Spike or Slow and a size, then click the arena to put one down (right click takes one away, **CLEAR** all of them); and a bot that plays for you. **LABS drawer:** the **Cell Editor**.
   **Account rank** (PARTY drawer) sets this computer's rank without playing for it: **+1**, **+10**,
   **30**, **MAX** (1000) and **RESET** (rank 1). Cosmetics the new rank hasn't reached come off. **MAX** also
   unlocks everything (every Boss Hunt, every perk, all perk slots, the Wildcard; saved on the profile) and **RESET** locks it
@@ -2596,40 +2578,13 @@ wave, enemy count, run time and party). A snapshot keeps everything in the run: 
 AI, shots in the air, the map, timers and the random rolls, so after loading, the run plays on exactly as it did (the
 bot does the same thing again too). Files are kept in the profile's `snapshots` folder (**Open folder**), the newest 40.
 - Host only, and loads only with no guests connected; start any solo run first, then load (the mode, map and party all come from the snapshot).
-- Loading marks the run as dev-touched (no records), like god mode. Your BOT and REC switches stay as they are.
+- Loading marks the run as dev-touched (no records), like god mode. Your BOT switch stays as it is.
 - Snapshots still load after code changes: a field that's gone is skipped and a new one keeps its current value (the
   sheet's note says how many). A renamed class can't load; the note says which.
 
-### Editing text in the game (F4)
+### Bots
 
-**F4** (or F1 → VIEW → *Edit any text on screen*) turns on text editing: the text under the mouse is outlined in
-gold; click it to change it in a box, then **Save**. The change shows straight away, everywhere that same text
-appears, and is kept in `TextOverrides.txt` (at the top of the project when running in the Unity editor; in a
-build, in the game's data folder). **Back to original** undoes an edit. F4, Esc or the banner's **Done** leaves the
-mode (while it's on, clicking text edits it instead of pressing the button).
-
-Numbers come from the game: an edit has to keep the same count of numbers, and they're filled in for you (so one
-edit of "Pay 15% of your max health..." also covers 20%). To make edits permanent in the code, run
-`python3 Tools/TextEdits/fold.py` (add `--dry-run` to see first): it rewrites every string literal that is exactly
-an edited text and takes those edits out of `TextOverrides.txt`. Texts the code builds from pieces (like
-"Wave " + number) stay in the file, still working, for changing by hand.
-
-### Boss Lab (F1)
-
-**F1 → Boss Lab** sets up a boss fight on the real game and lets you watch bots play it, to see how each
-boss plays out and what to change.
-
-- **Setup:** pick the boss (by wave), 1-3 players and each one's role, class, weapon and ability. Tick
-  **I'll play this one** to take player 1 yourself. Choose the **bot skill** and the **upgrades**: by
-  default each player gets the number of level-up picks a team typically has at that wave (random picks,
-  measured from full runs), a legendary and a weapon mod for every boss already beaten, and ability mastery
-  for the wave.
-- **While it runs**, a panel on the right shows pause and 1x / 2x / 4x / 8x speed (**P** also pauses), fight
-  time, boss health, the team's DPS on the boss, enemy bullets on screen against the bullet budget, each
-  player's boss damage, damage taken, downs and ability casts, and what hit them most. **Restart** reruns the
-  same setup; **Setup** changes it.
-- When the boss dies, the party wipes, or 5 minutes pass, a result card shows the summary with **Run again**.
-- **Bot team play** (the Boss Lab's bots, lobby bots and the F1 bot): a hurt bot walks to healing orbs and the team's
+- **Bot team play** (lobby bots, the F1 bot and the command-line lab's bots): a hurt bot walks to healing orbs and the team's
   healing zones (Haven, Healing Rain, Soul Lantern, World Tree, Consecrated Ground, and so on). A Soldier DPS bot
   plants a **Claymore** when its target is within 420 px. Healer
   bots cast a Medkit, Healing Rain, Soul Lantern, Holy Cross or Lumen Ward at the downed or most hurt ally, and aim a
@@ -2659,7 +2614,6 @@ boss plays out and what to change.
   its copies weaken. At the shop it heals first when under half health, then buys the shelf card worth the most for its
   gold (skipping cards worth little to it), a revive token if it has none, adds stock only with gold to spare, tops up
   its health, and is done. Tests: `Tools/SimTest/run.sh 1 30 botpicks`.
-- Lab fights aren't saved as session recordings. Starting the lab leaves any run you're in.
 
 **The bots** play like a person. They plan a short way ahead, moving in the 8 WASD directions to avoid where
 bullets, enemy bodies, lightning strikes and the Reapers' tether will be. When one of the Warden's **gates** is coming, they head for its nearest door (or the shot-out lock) in time and walk through it. They keep a distance that suits
@@ -2676,52 +2630,10 @@ defensive abilities when things get tight, and use the rest on the boss.
 Bots don't reroll upgrades. (The same bots can join your own lobby: see **Bots** under Playing with a friend.)
 
 From the command line, `Tools/SimTest/run.sh 1 1 lab <wave> <skill 1-3> <runs> <seat> [seat] [seat]` runs
-fights without drawing and prints the results. A seat is role/class/weapon, for example `T/S/0` (Tank
+boss fights with bots without drawing and prints the results. A seat is role/class/weapon, for example `T/S/0` (Tank
 Soldier, first weapon), `H/M/1`, `D/U/2` (U = Summoner) or `T/K/0` (K = Knight).
 
-### Session recording (for balancing)
-
-**Record sessions** in the F1 menu is on by default (turn it off there; `--record` forces it on). A red **● REC** in
-the top-right corner shows a run is being recorded. The Unity editor and a built game keep separate settings, so
-check it in each. While you **host**, every run (solo or with friends) is saved to a JSON file in the sessions
-folder (the **Open sessions folder** button shows it; on Windows it's
-`%USERPROFILE%\AppData\LocalLow\<company>\<product>\sessions`). The host decides every hit, so the file covers all
-players. The end-of-run screen shows where it was saved. It's rewritten after every wave and every 10 s, so a crash
-keeps nearly everything. Leaving or quitting mid-run saves it too: the outcome reads "left" (Leave game, Back to
-lobby), "quit" (the game was closed) or "restarted" (a new run started over it); a file whose outcome still reads
-"in progress" is from a run that crashed. Boss Lab fights aren't recorded; leaving one any way (Exit, the pause menu,
-or back to the lobby from its end screen) turns recording back on for the next run. If a file can't be written, the
-Unity console shows why (once per match).
-
-Each file records:
-
-- the team (role, class, weapon, ability, ultimate), party size, start wave, the mode,
-  run modifiers, and how it ended (a run continued into endless mode records its real end, marked "(endless)")
-- each player's final level and the abilities they ended with, at their mastery levels
-- **per wave:** length, the path it was played on, enemies spawned and killed by type, damage the floor did to enemies
-  (Burning Grounds' fire), and per player: damage dealt (and to bosses), kills, damage taken **broken down by source**
-  (e.g. "The Warden (aimed)", "Brute (contact)"), healing done, healing received **broken down by source** (allies,
-  own abilities, regeneration, lifesteal, heal on kill, orbs, Sanctuary pools, Blood Moon), health orbs, downs,
-  revives, seconds spent under 25% health, health and level at the end, ability uses and parry blocks / perfect
-  parries / breaks
-- **per boss:** health, time to kill, each player's damage, damage players took and downs during the fight
-- **every down** (who, when, what did it), **every upgrade pick** (the cards offered and the one taken) and rerolls
-- **per enemy type:** spawned, killed, average lifetime and damage dealt to players
-- **every path choice:** the two paths offered after each boss, the one taken (or the plain arena) and its prize
-- **dev tool use** (god mode, stat edits, healing, level-ups, mastering, wave jumps, the bot playing for the host),
-  so runs that weren't plain play can be told apart
-- a **sample every 5 s** of everyone's health, enemies and bullets on screen
-
-Summarize one run or a whole folder of them (needs Python 3):
-
-```
-python Tools/SessionReport/report.py path/to/sessions
-```
-
-It prints boss kill rates and times, difficulty by wave (damage taken, downs, time at low health), what
-downs players, where damage and healing come from, how each path plays (damage taken, healing, downs, how
-often it's offered and taken), the most dangerous enemies per spawn, upgrade pick rates, ability use and
-mastery, parry use, and how each class and role performs. Runs that used dev tools are flagged.
+### Balance probes
 
 `Tools/SimTest/run.sh 1 1 ttk [last-wave]` is a balance probe: it plays a whole run with invulnerable bots
 that level up and pick upgrades at random, and prints how long each boss survived.

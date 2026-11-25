@@ -86,7 +86,6 @@ namespace Arena
             }
             p.Run.DamageTaken += Math.Min(amount, Math.Max(0f, p.Hp));
             DamageEvent?.Invoke(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
-            Recorder?.DamageTaken(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             if (amount > 0f && !tickDamage)
                 SteelHurt(p);  // a hit knocks a third of Caught Steel's shards loose (CaughtSteel.cs)
             lastTaken = Math.Max(0f, amount);
@@ -123,7 +122,6 @@ namespace Arena
             p.OverHp = 0f;
             p.Downed = true;
             p.Run.Downs++;
-            Recorder?.Downed(this, p, source);
             p.Revive = 0f;
             p.BarrierT = 0f;
             p.OverdriveT = 0f;
@@ -138,7 +136,6 @@ namespace Arena
 
         void RevivePlayer(Player p, float fraction, Player by = null)
         {
-            Recorder?.Revived(p, by);
             if (by != null && by != p)
                 by.Run.Revives++;
             p.Downed = false;
@@ -188,7 +185,6 @@ namespace Arena
                 {
                     b.FromWeapon = true;
                     p.Run.ShotsFired++;
-                    Recorder?.ShotFired(p);
                 }
                 b.Pierce = p.Stats.Pierce;
             }
@@ -633,7 +629,6 @@ namespace Arena
                 if (Players.TryGetValue(b.Owner, out shooter))
                 {
                     shooter.Run.ShotsHit++;
-                    Recorder?.ShotHit(shooter);
                 }
             }
             if (b.Kind == Defs.SanguineShot)
@@ -730,11 +725,6 @@ namespace Arena
             if (DecoyStops(b))
             {
                 scratchIds.Add(b.Id);  // a Decoy Dummy: every enemy shot that touches it stops there and wears it (DecoyDummy.cs)
-                return;
-            }
-            if (HeroDummyShot(b))
-            {
-                scratchIds.Add(b.Id);  // the Dev Arena's hero dummies (DevArena.cs)
                 return;
             }
             foreach (var p in Players.Values)
@@ -1019,7 +1009,6 @@ namespace Arena
             DecoyShatter(e);  // a Duelist's masquerade decoy shot down bursts into a ring (Duelist.cs)
             MummerDied(e);    // a Mummer's copies vanish with it; a copy shot down just puffs (CourtFaction.cs)
             NonShooterDeath(e);  // a Floor Mine (NonShooters.cs, Turnkey.cs)
-            Recorder?.EnemyKilled(e);
             SeededKill(e);  // a Sprite Staff seed in it frees a sprite (KitWeapons.cs)
             SpreadVenom(e);  // Poison Dart's venom jumps to the enemies around it (PoisonDart.cs)
             HoneyHarvest(e);  // dying in honey bursts into bees (HoneybeeStaff.cs)
@@ -1178,7 +1167,6 @@ namespace Arena
                 {
                     float heal = Math.Min(s.Lifesteal, p.LifestealPool);
                     p.LifestealPool -= heal;
-                    Recorder?.HealReceived(p, Math.Max(0f, Math.Min(heal, p.HealCap - p.Hp)), "lifesteal");
                     p.Hp = Math.Max(p.Hp, Math.Min(p.HealCap, p.Hp + heal));
                 }
                 if (s.SlowOnHit > 0f)
@@ -1192,14 +1180,12 @@ namespace Arena
                 p.Run.BiggestHit = Math.Max(p.Run.BiggestHit, dmg);
                 BloodLifesteal(p, e, Math.Min(dmg, Math.Max(0f, e.Hp)));
             }
-            Recorder?.DamageDealt(attacker, e, Math.Min(dmg, Math.Max(0f, e.Hp)), casting ? "ability:" + Upgrades.Ability(castId).Name : dmgSrc ?? (firingWeapon ? "weapon" : null));
             if (WardenArmorTakes(e, ref dmg))
             {
                 e.Flash = 0.06f;
                 return;  // the Warden's last-stand armor took it all (Warden.cs)
             }
             e.Hp -= dmg;
-            PossessSurvives(e);  // the Dev Arena: the enemy you play can't die (DevArena.cs)
             e.Flash = 0.06f;
             if (p != null && p.Stats.ReapBelow > 0f)
                 FinalReap(p, e);  // a phantom scythe finishes it off (ReaperLoot.cs)
@@ -1416,7 +1402,6 @@ namespace Arena
             Player p;
             if (Players.TryGetValue(by, out p))
             {
-                Recorder?.DamageDealt(p.Id, e, Math.Min(dmg, Math.Max(0f, e.Hp)), "status");
                 p.Run.DamageDealt += Math.Min(dmg, Math.Max(0f, e.Hp));
                 if (e.Def.IsBoss)
                     p.Run.BossDamage += Math.Min(dmg, Math.Max(0f, e.Hp));
@@ -1434,7 +1419,6 @@ namespace Arena
             var s = p.Stats;
             if (s.KillHeal > 0f && !p.Downed)
             {
-                Recorder?.HealReceived(p, Math.Max(0f, Math.Min(s.KillHeal, p.HealCap - p.Hp)), "heal on kill");
                 p.Hp = Math.Max(p.Hp, Math.Min(p.HealCap, p.Hp + s.KillHeal));
             }
             DroneOnKill(p, e);  // Hive Drones (QueenLoot.cs)
@@ -1544,7 +1528,6 @@ namespace Arena
                 if (to.Length < nearest.Def.BodyR + o.Radius)
                 {
                     float orbHeal = o.Heal * nearest.Stats.OrbHealMult;  // Quartermaster
-                    Recorder?.Orb(nearest, Math.Max(0f, Math.Min(orbHeal, nearest.HealCap - nearest.Hp)));
                     nearest.Hp = Math.Max(nearest.Hp, Math.Min(nearest.HealCap, nearest.Hp + orbHeal));
                     BroadcastFx(FxKind.Ring, o.Pos, o.Blood ? new Rgba(0.9f, 0.12f, 0.2f) : new Rgba(0.4f, 1f, 0.5f), o.Big || o.Blood ? 40f : 25f, 0.35f, o.Big ? Sfx.PickupBig : Sfx.Pickup);
                     gone.Add(o.Id);

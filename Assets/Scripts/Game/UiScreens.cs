@@ -34,9 +34,9 @@ namespace Arena
 
     public partial class ArenaApp
     {
-        // The tool screens (the old devMenuOpen / labSetupOpen bools are properties over these, so existing code
+        // The tool screens (the old devMenuOpen bool is a property over these, so existing code
         // reads and sets them as before).
-        UiScreen screenDev, screenLab;
+        UiScreen screenDev;
         readonly List<UiScreen> screenStack = new List<UiScreen>();
 
         void InitScreens()
@@ -44,12 +44,10 @@ namespace Arena
             if (screenDev != null)
                 return;
             screenDev = new UiScreen("dev", DrawDevMenu) { Modal = false, ModalFn = () => session.Screen != AppScreen.Game, EscNeedsFreeFocus = true };
-            screenLab = new UiScreen("lab", DrawLabSetup);
             screenCellEd = new UiScreen("cellEd", DrawCellEditor);
         }
 
         bool devMenuOpen { get { InitScreens(); return screenDev.IsOpen; } set { InitScreens(); SetScreen(screenDev, value); } }
-        bool labSetupOpen { get { InitScreens(); return screenLab.IsOpen; } set { InitScreens(); SetScreen(screenLab, value); } }
 
         void SetScreen(UiScreen s, bool open)
         {

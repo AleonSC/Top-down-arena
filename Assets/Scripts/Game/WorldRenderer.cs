@@ -84,7 +84,6 @@ namespace Arena
             DrawJuiceFloor();  // scorch marks and shot trails (Juice.cs)
             DrawFrostNovaGround();  // Frost Nova's cracks and frosted ground, under everything (FrostNovaLook.cs)
             DrawLighting(t);  // shots, blasts and fire lighting the floor, their shadows cast (LightingLook.cs)
-            DrawHeroDummies(t);  // the Dev Arena's stand-in heroes (DevArenaUi.cs)
             DrawArenaContents(t, true);
             DrawJuiceParts();  // shards, rings and sparks
             DrawArenaOver(t);  // what stands or flies over the arena's contents (also in Practice and the loadout preview)
@@ -106,20 +105,6 @@ namespace Arena
 
             if (!fpView)  // (first person: none of it, FirstPerson.cs)
                 DrawPlayerOverlays(t, MouseArena(), aimLine);  // the aim line, and each weapon's pips, meters and charges
-
-            if (aimDebug && game.Me != null)
-            {
-                // Cyan: from you through the crosshair. Yellow: along your last shot as the host fired it.
-                var me = game.Me;
-                Line(me.Disp, me.Disp + V2.FromAngle(me.Aim) * 1100f, 1.5f, new Rgba(0.3f, 0.9f, 1f, 0.7f));
-                if (game.LastShotId != 0)
-                {
-                    Line(game.LastShotFrom, game.LastShotFrom + V2.FromAngle(game.LastShotAngle) * 1100f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.75f));
-                    Bullet shot;
-                    if (game.Bullets.TryGetValue(game.LastShotId, out shot))
-                        Arc(shot.Pos, shot.Radius + 5f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.9f), 12);
-                }
-            }
 
             // Crosshair
             V2 m = fpView ? FpScreenMid() : MouseArena();  // (first person: the middle of the screen, FirstPerson.cs)
