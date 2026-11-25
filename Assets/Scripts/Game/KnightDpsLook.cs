@@ -591,7 +591,7 @@ namespace Arena
                     Line(c + d * (29f * grow), c + d * (34f * grow), 2f, HeraldAccent.WithAlpha(0.75f * fade));
                 }
             }
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.GauntletCharge))
             {
                 if (fx.Kind != FxKind.GauntletCharge)
                     continue;
@@ -627,7 +627,7 @@ namespace Arena
         {
             if (!p.GauntletDown)
                 return;
-            foreach (var fx in game.Effects)  // still in the air: the throw draws it
+            foreach (var fx in FxOf(FxKind.GauntletThrow))  // still in the air: the throw draws it
                 if (fx.Kind == FxKind.GauntletThrow && (int)(fx.Radius / 10f + 0.001f) == p.Id && fx.T < GauntletFlight(fx))
                     return;
             V2 away = p.GauntletRest - p.Disp;

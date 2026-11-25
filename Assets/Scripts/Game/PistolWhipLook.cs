@@ -14,7 +14,7 @@ namespace Arena
         Effect WhipOf(int id)
         {
             Effect last = null;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.PistolWhip))
                 if (fx.Kind == FxKind.PistolWhip && (int)fx.Radius == id && (last == null || fx.T < last.T))
                     last = fx;
             return last;

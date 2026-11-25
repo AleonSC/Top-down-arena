@@ -199,7 +199,7 @@ namespace Arena
         /// The Titan's floor marks (cracks, rubble), drawn under everything on the floor (DrawArenaContents).
         void DrawTitanFloor()
         {
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.TitanSlam))
                 if (fx.Kind == FxKind.TitanSlam)
                     DrawTitanFx(fx, true);
         }

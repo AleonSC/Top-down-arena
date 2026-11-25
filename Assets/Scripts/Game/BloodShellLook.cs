@@ -26,7 +26,7 @@ namespace Arena
                 return;
             }
             float age = 1f;  // it swells over the forming effect (ShellPop mode 2), so a screen that comes in late sees it whole
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.ShellPop))
                 if (fx.Kind == FxKind.ShellPop && fx.Pos2.Y > 1.5f && fx.Pos.DistanceTo(p.Pos) < 40f)
                     age = fx.T;
             float grow = EaseOut3(Mathf.Clamp01(age / 0.5f));
@@ -37,7 +37,7 @@ namespace Arena
             // dents where bullets have just hit
             var dents = shellDents;  // x = angle, y = strength (one list, refilled each draw)
             dents.Clear();
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.ShellHit))
                 if (fx.Kind == FxKind.ShellHit && fx.Pos2.DistanceTo(p.Pos) < 40f)
                 {
                     V2 off = fx.Pos - c;

@@ -15,7 +15,7 @@ namespace Arena
         void DrawSingularityHazards(float t)
         {
             Enemy sing = null;
-            foreach (var e in game.Enemies.Values)
+            foreach (var e in EnemiesOf(EnemyType.Singularity))
                 if (e.Type == EnemyType.Singularity && !game.IsSpawning(e))
                     sing = e;
             if (sing != null)

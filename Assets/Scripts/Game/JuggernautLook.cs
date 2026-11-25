@@ -167,7 +167,7 @@ namespace Arena
         float JuggHitGlow(Player p, float plateAngle, float t)
         {
             float best = 0f;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.JuggShard))
             {
                 if (fx.Kind != FxKind.JuggShard || (int)fx.Radius != p.Id || fx.T > 0.15f)
                     continue;

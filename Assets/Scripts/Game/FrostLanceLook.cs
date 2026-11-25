@@ -389,7 +389,7 @@ namespace Arena
             game.Players.TryGetValue(id, out owner);
             // A parry broke this step: its ground marks stay, its sweep stops.
             bool broken = false;
-            foreach (var o in game.Effects)
+            foreach (var o in FxOf(FxKind.FrostBreak))
                 if (o.Kind == FxKind.FrostBreak && Mathf.RoundToInt(o.Pos2.Y) == id && o.T < fx.T)
                     broken = true;
             V2 body = owner != null && c < 0.5f ? owner.Disp : fx.Pos, g = fx.Pos, dir = V2.FromAngle(aim);
@@ -616,7 +616,7 @@ namespace Arena
         void DrawFlPips(Player p, float t)
         {
             Effect last = null;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.FrostStep))
                 if (fx.Kind == FxKind.FrostStep && FlOwner(fx) == p.Id && (last == null || fx.T < last.T))
                     last = fx;
             int lit = last != null && last.T < Game.FlGap[FlStepOf(last) % 5] + Game.FlComboReset ? FlStepOf(last) % 5 + 1 : 0;

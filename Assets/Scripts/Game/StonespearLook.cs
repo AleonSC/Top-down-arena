@@ -42,7 +42,7 @@ namespace Arena
         Effect SsImpactOf(int id)
         {
             Effect best = null;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.StoneSlam))
                 if (fx.Kind == FxKind.StoneSlam && fx.Pos2.X >= 1f && (int)fx.Pos2.Y == id && (best == null || fx.T < best.T))
                     best = fx;
             return best;
@@ -67,7 +67,7 @@ namespace Arena
             float now = game.AnimT, dt = ssClock < 0f ? 0f : Mathf.Clamp(now - ssClock, 0f, 0.1f);
             ssClock = now;
             // the slams' dust, once each
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.StoneSlam))
                 if (fx.Kind == FxKind.StoneSlam && ssSlamsSeen.Add(fx))
                 {
                     bool impact = fx.Pos2.X >= 1f;
@@ -373,7 +373,7 @@ namespace Arena
         /// On the floor, under everyone (DrawArenaContents): each slam's nine glowing cracks, fading over the impact's life.
         void DrawStoneCracks()
         {
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.StoneSlam))
             {
                 if (fx.Kind != FxKind.StoneSlam || fx.Pos2.X < 1f)
                     continue;

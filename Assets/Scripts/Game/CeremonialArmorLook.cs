@@ -148,7 +148,7 @@ namespace Arena
                 float spawn = i == n - 1 && p.PlateNewT > 0f ? 1f - p.PlateNewT / Game.CereSummonTime : 1f;
                 V2 slot = c + V2.FromAngle(v.A[i]) * v.R[i];
                 float flash = 0f;
-                foreach (var fx in game.Effects)
+                foreach (var fx in FxOf(FxKind.CereBlock))
                     if (fx.Kind == FxKind.CereBlock && fx.T < 0.12f && (fx.Pos2 - p.Pos + c).DistanceTo(slot) < 28f)
                         flash = Mathf.Max(flash, 1f - fx.T / 0.12f);
                 float frac = p.PlateMax > 0f ? p.PlateHp[i] / p.PlateMax : 1f;

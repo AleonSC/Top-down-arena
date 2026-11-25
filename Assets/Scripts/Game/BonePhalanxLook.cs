@@ -246,7 +246,7 @@ namespace Arena
         {
             V2 butt = Game.PhalanxWorld(z, -10f, Game.PhalanxLane(i, Game.PhalanxSkeletons(z)) + 6f);
             float best = -1f;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.PhalanxJab))
                 if (fx.Kind == FxKind.PhalanxJab && fx.T < BoneJabTime && fx.Pos.DistanceTo(butt) < 10f && (best < 0f || fx.T < best))
                     best = fx.T;
             return best;
