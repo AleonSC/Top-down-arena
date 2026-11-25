@@ -12,7 +12,16 @@ static partial class Program
         // The lobby: the Knight DPS has a fourth weapon; roles without one keep three.
         Check(Defs.WeaponCount(Role.Dps, Kit.Knight) == 4 && Defs.Weapon(Role.Dps, Kit.Knight, 3).Id == WeaponId.ArcKnuckles,
             "the Knight DPS's fourth weapon key is the Arc Knuckles");
-        Check(Defs.WeaponCount(Role.Healer, Kit.Ninja) == 3 && Defs.Weapon(Role.Healer, Kit.Ninja, 3) == Defs.Weapon(Role.Healer, Kit.Ninja, 0) && Defs.WeaponCount(Role.Healer, Kit.Elementalist) == 4,  // (the Healer Elementalist got Static Shock as its 4th)
+        // (any role still on three: the Healer Ninja, the old example, got the Twin Tessen as its 4th)
+        bool threeKeep = false, anyThree = false;
+        foreach (var kit in new[] { Kit.Soldier, Kit.Elementalist, Kit.Summoner, Kit.Knight, Kit.Ninja, Kit.Hemomancer })
+            foreach (var role in new[] { Role.Tank, Role.Healer, Role.Dps })
+                if (!anyThree && Defs.WeaponCount(role, kit) == 3)
+                {
+                    anyThree = true;
+                    threeKeep = Defs.Weapon(role, kit, 3) == Defs.Weapon(role, kit, 0);
+                }
+        Check(anyThree && threeKeep && Defs.WeaponCount(Role.Healer, Kit.Elementalist) == 4,  // (the Healer Elementalist got Static Shock as its 4th)
             "roles without a 4th weapon keep three (a fourth pick they don't have is their first weapon)");
         Check(Defs.WeaponOf(WeaponId.ArcKnuckles).Name == "Arc Knuckles", "the Arc Knuckles have their definition");
         V2 sd;
