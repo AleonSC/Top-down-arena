@@ -439,7 +439,7 @@ static partial class Program
 
     static void FiveMoreTest(float dt)
     {
-        // Medicine Darts dose (poison enemies, heal allies over time), the Greatsword's crescent stops bullets, a shadow
+        // Acupuncture Needles stick in allies and heal over time, the Greatsword's crescent stops bullets, a shadow
         // Kunai's mark is a blink, the Wisp Lantern sends its wisps, and the Imp Caller sends (or merges) its imps.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var volley = typeof(Game).GetMethod("FireVolley", flags);
@@ -475,26 +475,17 @@ static partial class Program
         Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); pins.Clear(); g.Bullets.Clear(); g.Minions.Clear(); };
         play(0.3f, new PlayerInput());
 
-        // Medicine Darts.
-        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.MedicineDarts);
+        // Acupuncture Needles: Fire sticks healing needles in a hurt ally (the full suite is "needles").
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.AcupunctureNeedles);
         ally.Hp = ally.MaxHp * 0.3f;
         for (int k = 0; k < 3; k++) { volley.Invoke(g, new object[] { me, 0f, 0 }); play(0.2f, new PlayerInput()); }
-        float dose = ally.DoseHps;
-        bool clientDose = client.Game.Players[2].DoseT > 0f;
+        int stuckIn = ally.NeedleN;
+        bool clientNeedles = client.Game.Players[2].NeedleN == stuckIn;
         float h0 = ally.Hp;
         play(1f, new PlayerInput());
         float healed1s = ally.Hp - h0;
-        allyAt = new V2(450f, 150f);
-        var sick = dummy(from + new V2(200f, 0f));
-        for (int k = 0; k < 3; k++) { volley.Invoke(g, new object[] { me, 0f, 0 }); play(0.2f, new PlayerInput()); }
-        float hitNow = sick.MaxHp - sick.Hp, poison = sick.PoisonDps;
-        play(1f, new PlayerInput());
-        float poisoned1s = sick.MaxHp - sick.Hp - hitNow;
-        bool clientPoison = client.Game.Enemies.ContainsKey(sick.Id) && client.Game.Enemies[sick.Id].Poisoned;
-        Console.WriteLine("  medicine darts: 3 darts dose the ally {0:0.0}/s (healed {1:0.0} in 1 s; client saw {2}); poison {3:0.0}/s on the enemy ({4:0.0} in 1 s; client saw {5})",
-            dose, healed1s, clientDose, poison, poisoned1s, clientPoison);
-        Check(Math.Abs(dose - 3f * Game.DoseHeal * me.Stats.DmgMult) < 0.3f && healed1s >= dose * 0.9f && clientDose, "Medicine Darts dose a hurt ally with stacking healing over time");
-        Check(poison > 0f && poisoned1s >= poison * 0.9f && clientPoison, "and poison enemies with stacking damage over time");
+        Console.WriteLine("  acupuncture needles: {0} needles in the ally (client saw {1}), healed {2:0.0} in 1 s", stuckIn, clientNeedles, healed1s);
+        Check(stuckIn == 3 && clientNeedles && healed1s >= 3f * Game.NeedleHeal * me.Stats.DmgMult * 0.9f, "Acupuncture Needles stick in a hurt ally and heal it over time");
         reset();
 
         // Greatsword.
