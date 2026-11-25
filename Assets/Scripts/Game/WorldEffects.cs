@@ -87,7 +87,8 @@ namespace Arena
             d[(int)FxKind.HalberdStep] = (fx, f, t) => DrawHalberdStepFx(fx, false);  // HalberdLook.cs
             d[(int)FxKind.HalberdPoke] = (fx, f, t) => DrawHalberdPokeFx(fx, false);  // HalberdLook.cs
             d[(int)FxKind.VortexWisp] = (fx, f, t) => DrawVortexWispFx(fx);  // VortexLook.cs
-            d[(int)FxKind.LivingBolt] = (fx, f, t) => DrawLivingBoltFx(fx);  // LivingBoltLook.cs
+            d[(int)FxKind.LivingBolt] = (fx, f, t) => DrawLivingBoltFx(fx);
+            d[(int)FxKind.StaticBurst] = (fx, f, t) => DrawStaticBurstFx(fx);  // StaticBubbleLook.cs  // LivingBoltLook.cs
             d[(int)FxKind.ForbiddenPath] = (fx, f, t) => DrawForbiddenFx(fx, t);  // ForbiddenPathLook.cs (the crescents, claw marks and black sun are the floor pass: DrawForbiddenFloor)
             d[(int)FxKind.BambooGrove] = (fx, f, t) => { };  // drawn in the floor and body passes (BambooGroveLook.cs)
             d[(int)FxKind.FlashFire] = (fx, f, t) => { };  // drawn in the floor and body passes (FlashFireLook.cs)

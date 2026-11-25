@@ -1220,6 +1220,7 @@ namespace Arena
             DrawOrbitalGlow();  // Orbital Laser's lock-on, beam and crater (OrbitalLaserLook.cs)
             DrawDragonsDogmaGlow();  // Dragon's Dogma's light (DragonsDogmaLook.cs)
             DrawRodGlow();    // Lightning Rod's charge and bolts (LightningRodLook.cs)
+            DrawStaticBubbleGlow();  // Static Bubble, its burst and Static Rush (StaticBubbleLook.cs)
             DrawLivingBoltGlow();  // Living Bolt's charge, dashes and residue (LivingBoltLook.cs)
             DrawBoilGlow();  // Blood Boil's heat and its end (BloodBoilLook.cs)
             DrawVgGlow();     // the Vowguard's blade, gem and shield core (VowguardLook.cs)

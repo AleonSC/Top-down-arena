@@ -993,6 +993,13 @@ static partial class Shot {
       else fyaw = float.Parse(fp[0], System.Globalization.CultureInfo.InvariantCulture) * 0.017453292f;
       typeof(ArenaApp).GetField("fpYaw", f2).SetValue(app, fyaw);
       if (fp.Length > 1) typeof(ArenaApp).GetField("fpPitch", f2).SetValue(app, float.Parse(fp[1], System.Globalization.CultureInfo.InvariantCulture) * 0.017453292f);
+      if (Environment.GetEnvironmentVariable("FPVWEAPON") != null) foreach (var fw in Defs.Weapons) if (fw.Id.ToString() == Environment.GetEnvironmentVariable("FPVWEAPON")) { me.Weapon = fw; break; }  // FPVWEAPON=<WeaponId>: hold that weapon (its view model)
+      if (Environment.GetEnvironmentVariable("FPVKICK") != null) {  // FPVKICK=<1-0>[,<swings>]: the weapon that far into its kick (1 the moment it fires; FirstPersonWeapon.cs)
+        var fk = Environment.GetEnvironmentVariable("FPVKICK").Split(',');
+        typeof(ArenaApp).GetField("fpVmKick", f2).SetValue(app, float.Parse(fk[0], System.Globalization.CultureInfo.InvariantCulture));
+        if (fk.Length > 1) typeof(ArenaApp).GetField("fpVmSwings", f2).SetValue(app, int.Parse(fk[1]));
+        typeof(ArenaApp).GetField("fpVmBeat", f2).SetValue(app, 99f);
+      }
     }
     var glMat = typeof(ArenaApp).GetField("glMaterial", f2);
     if (glMat.GetValue(app) == null) glMat.SetValue(app, new Material(null));  // (as OnPostRender makes it: without it, everything after the glow pass, enemy shots included, stayed additive)
