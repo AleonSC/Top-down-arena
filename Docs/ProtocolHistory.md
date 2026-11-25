@@ -4,7 +4,10 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 520: Acupuncture Needles (was Medicine Darts; `WeaponId.MedicineDarts` renamed in place): `Player.NeedleN` (byte) and `NeedleT` replace `DoseT` in the player sync, `Enemy.NeedlesIn` (byte) after the stuck stars, `Defs.BloodNeedle` (84), `FxKind.NeedleBurst` (at the end), `Msg.WeaponDash` kind 67 (Bloodletting).
+- 523: Acupuncture Needles (was Medicine Darts; `WeaponId.MedicineDarts` renamed in place): `Player.NeedleN` (byte) and `NeedleT` replace `DoseT` in the player sync, `Enemy.NeedlesIn` (byte) after the stuck stars, `Defs.BloodNeedle` (84), `FxKind.NeedleBurst` (at the end), `Msg.WeaponDash` kind 69 (Bloodletting).
+- 522: Armor Drop (Tank Soldier fourth ultimate, key 3): `AbilityId.ArmorDrop` and `ZoneKind.ArmorDrop` (at the end), `Player.Armor` in the player sync after `SupplyT`, `Orb.Vest` in the orb sync after `Blood`.
+- 521: the Hive Censer (Healer Summoner 4th weapon): `WeaponId.HiveCenser` and `FxKind.HiveCall` (both at the end, after the Twin Tessen's, Static Bubble's, Blood Boil's and the Bumble Remote's); the player sync adds `ChitinHp`, `HiveOn` and `HivePour`; the snapshot adds the swarm list (`SyncHive`: id, owner, position, insects, radius, kind, target, wrapping); `Msg.WeaponDash` kind 68 (Hive Call).
+- 520: Bumble Remote (DPS Engineer 2nd weapon): `WeaponId.BumbleRemote`, `MinionKind.BumbleBot`, `FxKind.BumbleBurst` (each at the end), `Msg.WeaponDash` kind 67.
 - 519: Blood Boil (DPS Hemomancer third ultimate, key 2): `AbilityId.BloodBoil` (at the end), `FxKind.BoilEnd` (at the end), `Player.BoilT` (+ `BoilLen` while on) in the player sync after `RvT`.
 - 518: Static Bubble (Healer Elementalist second ultimate, key 1): `AbilityId.StaticBubble`, `FxKind.StaticBurst` (each at the end), `Player.BubT` (+ `BubR`/`BubCharge` while on) and `RushT` (+ `RushLen` while on) in the player sync after `ApLinkT`.
 - 517: Iron Armadillo (the Tank Summoner's key-2 ultimate): `AbilityId.IronArmadillo` (at the end), `Player.ArmT` and `ArmAge` in the player sync after `BoltAge`, `Msg.WeaponDash` kind 66 (a wall bash).

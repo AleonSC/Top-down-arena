@@ -317,19 +317,10 @@ static partial class Program
             {
                 Run(s, dt, 1);
                 Check(s[0].Game.State == MatchState.Victory && s[1].Game.State == MatchState.Victory, "beating The Eclipse at wave 50 wins the game on both screens");
-                // A recording that won at wave 50 opens again for endless, so its real end is kept.
-                string recFolder = Path.Combine(Path.GetTempPath(), "arena-endless-" + Guid.NewGuid().ToString("N").Substring(0, 6));
-                var rec = s[0].Game.Recorder = new SessionRecorder(recFolder);
-                rec.Begin(s[0].Game, 50);
-                rec.End(s[0].Game, "victory");
                 s[0].Game.ContinueEndless();
                 Run(s, dt, 12, () => s[1].Game.Wave > 50 && s[1].Game.State == MatchState.Fighting);
                 Check(s[1].Game.Endless && s[1].Game.Wave == 51, "endless mode carries on past wave 50");
                 s[0].Leave(""); s[1].Leave("");
-                string recText = File.Exists(rec.Path) ? File.ReadAllText(rec.Path) : "";
-                Check(recText.Contains("\"outcome\": \"left (endless)\"") && recText.Contains("\"endless\": true") && recText.Contains("\"wave\": 51"),
-                    "a recorded run that goes on into endless records its real end, not the wave-50 victory");
-                try { Directory.Delete(recFolder, true); } catch (IOException) { }
                 continue;
             }
             s[0].Leave(""); s[1].Leave("");

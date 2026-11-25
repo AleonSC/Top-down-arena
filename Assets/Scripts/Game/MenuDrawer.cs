@@ -236,7 +236,7 @@ namespace Arena
             }) { Danger = true },
         };
 
-        bool CanQuitToLobby => session.IsHost && !LabRunning;
+        bool CanQuitToLobby => session.IsHost;
 
         /// The pause menu (DrawPauseMenu applies its opening): the cabinet of choices, a window to its right for what you pick,
         /// and the run's screen over the arena while no window is out.
@@ -540,9 +540,13 @@ namespace Arena
                 default:
                 {
                     OpenSectionPanel("GAMEPLAY", col, "Aim, the HUD, the view and the network", 1f);
-                    bool l2 = SwitchRow(new Rect(x, y, w, 54f), aimLine, "Aim line", "A line from you toward the cursor, as long as your weapon reaches", Keybinds.KeyName(Keybinds.Get(KeyAction.AimLine)));
+                    float halfA = (w - 36f) / 2f;
+                    bool l2 = SwitchRow(new Rect(x, y, halfA, 54f), aimLine, "Aim line", "A line toward the cursor, as far as you reach", Keybinds.KeyName(Keybinds.Get(KeyAction.AimLine)));
                     if (l2 != aimLine)
                         SetAimLine(l2);
+                    bool labels2 = SwitchRow(new Rect(x + halfA + 36f, y, halfA, 54f), nameLabels, "Name labels", "A name over you and every enemy", "N");
+                    if (labels2 != nameLabels)
+                        SetNameLabels(labels2);
                     y += 66f;
                     WinLabel(new Rect(x, y, w, 24f), "HUD", "H cycles it; a slim boss bar stays when it's hidden");
                     int hudPick = WinChoices(new Rect(x, y + 46f, w, 34f), HudModeNames, hudMode);  // (under the line, not over it)

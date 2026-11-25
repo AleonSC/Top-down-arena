@@ -74,8 +74,10 @@ namespace Arena
             d[(int)FxKind.StoneSlam] = (fx, f, t) => DrawStoneSlamFx(fx);  // StonespearLook.cs
             d[(int)FxKind.BeeSting] = (fx, f, t) => DrawBeeStingFx(fx, t);  // HoneybeeLook.cs
             d[(int)FxKind.WyvernSlam] = (fx, f, t) => DrawWyvernSlamFx(fx);  // WyvernStaffLook.cs
+            d[(int)FxKind.BumbleBurst] = (fx, f, t) => DrawBumbleBurstFx(fx);  // BumbleRemoteLook.cs
             d[(int)FxKind.HoneyHarvest] = (fx, f, t) => DrawHoneyHarvestFx(fx);  // HoneybeeLook.cs
             d[(int)FxKind.WindWave] = (fx, f, t) => DrawWindWave(fx);  // WindClashLook.cs
+            d[(int)FxKind.HiveCall] = (fx, f, t) => DrawHiveCallFx(fx);  // HiveCenserLook.cs
             d[(int)FxKind.ArcBall] = (fx, f, t) => DrawArcBallPlain(fx);  // StaticShockLook.cs (Visual effects on: the glow pass)
             d[(int)FxKind.ArcBurst] = (fx, f, t) => DrawArcBurstPlain(fx);
             d[(int)FxKind.BlastCut] = (fx, f, t) => DrawBlastCut(fx);  // BloodBlastLook.cs

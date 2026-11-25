@@ -783,8 +783,8 @@ namespace Arena
             {
                 foreach (var o in Orbs.Values)
                 {
-                    if (!CanTake(me, o.Owner))
-                        continue;  // (a teammate's copy: Coins.cs)
+                    if (!CanTake(me, o.Owner) || o.Vest)
+                        continue;  // (a teammate's copy: Coins.cs; a vest heals nothing)
                     float od = o.Pos.DistanceTo(me.Pos) - 30f;
                     if (od < lureD) { lureD = od; ms.lurePos = o.Pos; ms.lureR = 30f; ms.lure = true; }
                 }
@@ -796,6 +796,14 @@ namespace Arena
                     if (zd < lureD) { lureD = zd; ms.lurePos = z.Pos; ms.lureR = z.Radius - 10f; ms.lure = true; }
                 }
             }
+            if (me.Armor < ArmorCap)  // an Armor Drop's vest is worth walking to (ArmorDrop.cs)
+                foreach (var o in Orbs.Values)
+                {
+                    if (!o.Vest)
+                        continue;
+                    float od = o.Pos.DistanceTo(me.Pos) - 8f;
+                    if (od < lureD) { lureD = od; ms.lurePos = o.Pos; ms.lureR = 8f; ms.lure = true; }
+                }
         }
 
         /// The Warden's gates (Lockdown, Warden.cs): a wall of push bullets the width of the arena, with doors near the

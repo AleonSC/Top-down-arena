@@ -50,7 +50,7 @@ namespace Arena
         /// Update, after the game's: notice the run ending, track what to focus on, and run the clock.
         void TickEnding(float dt)
         {
-            bool inGame = session.Screen == AppScreen.Game && game.Running && !LabRunning;
+            bool inGame = session.Screen == AppScreen.Game && game.Running;
             bool over = inGame && (game.State == MatchState.GameOver || game.State == MatchState.Victory);
             if (!over)
             {

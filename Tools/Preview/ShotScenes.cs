@@ -1132,6 +1132,7 @@ static partial class Shot {
     TankScene();  // TANK=<s since the cast> [TANKCAP=1] [FXOFF=1] (ShotTank.cs)
     ArmadilloScene();  // ARMADILLO=<s since the cast> [ARMREV=<s>] [FXOFF=1] (ShotArmadillo.cs)
     SupplyScene();  // SUPPLY=<s since the cast> [SUPPLYCAP=1] [FXOFF=1] (ShotSupply.cs)
+    ArmorDropScene();  // ARMORDROP=<s since the cast> [ARMORCAP=1] [ARMORHIT=<armor>] [FXOFF=1] (ShotArmorDrop.cs)
     HospitalScene();  // HOSP=pick|<s since the cast> [HOSPTENT=1] (ShotHospital.cs)
     DeployTurretScene();  // DEPLOYTURRET=<s since the cast> [FXOFF=1] (ShotDeployTurret.cs)
     NeedleSwarmScene();  // NEEDLESWARM=<s held> [NSALT=<s>] (ShotNeedleSwarm.cs)
@@ -1319,6 +1320,47 @@ static partial class Shot {
         gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = !alt, WeaponAction = alt && f >= 6 && f < 9 });
         gm.Update(1f / 60f);
         me.Disp = me.Pos = home; me.Aim = 0f; me.AimAt = cursor; me.Hp = me.MaxHp; for (int i = 0; i < foes.Count; i++) foes[i].Disp = foes[i].Pos = keep[i];
+        for (int i = 0; i < mates.Count && i < 2; i++) mates[i].Pos = mates[i].Disp = home + mateAt[i];
+        draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
+    // HIVECENSER=<s>: the Healer Summoner's Hive Censer (Core/HiveCenser.cs, Game/HiveCenserLook.cs) that long into a scripted pour: Fire
+    // held on a pack of grunts ahead (the cursor sweeping across it) until 1.2 s, then beside a teammate below until 2.0 s (a swarm shells
+    // them in chitin), then back on the pack. HCALT=1: Hive Call (Alt) at 2.4 s toward the second teammate. Run with 3 players
+    // (shot.sh x hud 3 1 3).
+    if (Environment.GetEnvironmentVariable("HIVECENSER") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear(); gm.Orbs.Clear();
+      me.Role = Role.Healer; me.Kit = Kit.Summoner; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.Weapon(Role.Healer, Kit.Summoner, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; q0.ChitinHp = 0f; }
+      bool call = Environment.GetEnvironmentVariable("HCALT") != null;
+      V2 home = new V2(420f, 420f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var mates = new System.Collections.Generic.List<Player>();
+      foreach (var q in gm.Players.Values) if (q != me) mates.Add(q);
+      var mateAt = new[] { new V2(-40f, 230f), new V2(200f, 300f) };
+      for (int i = 0; i < mates.Count && i < 2; i++) { mates[i].Pos = mates[i].Disp = home + mateAt[i]; mates[i].Firing = false; }
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at in new[] { new V2(300f, -70f), new V2(340f, 10f), new V2(290f, 70f), new V2(400f, -30f), new V2(260f, -160f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var keep = new V2[foes.Count];
+      for (int i = 0; i < foes.Count; i++) keep[i] = foes[i].Pos;
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(2, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("HIVECENSER"), ci) * 60f));
+      for (int f = 0; f < frames; f++) {
+        float tt = f / 60f;
+        V2 cursor = tt < 1.2f ? home + new V2(250f + 90f * (float)Math.Sin(tt * 4f), -90f + 120f * tt)
+                  : tt < 2.0f ? home + mateAt[0] + new V2(70f, -20f)
+                  : home + new V2(230f + 40f * (float)Math.Sin(tt * 5f), 40f * (float)Math.Cos(tt * 4f));
+        if (call && tt >= 2.4f) cursor = home + mateAt[1];
+        bool fire = !(call && tt >= 2.4f);
+        me.Pos = me.Disp = home; me.Aim = (cursor - home).Angle; for (int i = 0; i < foes.Count; i++) { foes[i].Pos = foes[i].Disp = keep[i]; foes[i].FireT = 99f; }
+        for (int i = 0; i < mates.Count && i < 2; i++) { mates[i].Pos = mates[i].Disp = home + mateAt[i]; mates[i].Hp = mates[i].MaxHp; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = fire, WeaponAction = call && f >= 144 && f < 147 });
+        gm.Update(1f / 60f);
+        me.Disp = me.Pos = home; me.AimAt = cursor; me.Hp = me.MaxHp; for (int i = 0; i < foes.Count; i++) foes[i].Disp = foes[i].Pos = keep[i];
         for (int i = 0; i < mates.Count && i < 2; i++) mates[i].Pos = mates[i].Disp = home + mateAt[i];
         draw.Invoke(app, null);
       }
@@ -1720,6 +1762,37 @@ static partial class Shot {
         gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = !alt, WeaponAction = alt && f < 3 });
         gm.Update(1f / 60f);
         me.Pos = home; me.Disp = me.Pos; me.Aim = 0f; me.AimAt = cursor; me.Hp = me.MaxHp; foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
+    // BUMBLE=<s>: the DPS Engineer's Bumble Remote (Core/BumbleRemote.cs, Game/BumbleRemoteLook.cs) that long into a fight: the Bumble Bot
+    // flies to the cursor by a pack ahead and stings it, Fire held from BUMFIRE s (default 0.6); BUMALT=<s>: the Swarm Burst pressed then.
+    if (Environment.GetEnvironmentVariable("BUMBLE") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Engineer; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Engineer, 1); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      string altS = Environment.GetEnvironmentVariable("BUMALT"), fireS = Environment.GetEnvironmentVariable("BUMFIRE");
+      float altAt = altS != null ? float.Parse(altS, ci) : -1f, fireAt = fireS != null ? float.Parse(fireS, ci) : 0.6f;
+      V2 home = new V2(420f, 470f); me.Pos = me.Disp = home; me.Aim = 0f;
+      foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = home + new V2(-90f, -170f); q.Firing = false; }
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at0 in new[] { new V2(300f, -150f), new V2(360f, -90f), new V2(250f, -60f), new V2(390f, -190f), new V2(330f, 0f), new V2(-120f, 140f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 0.3f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("BUMBLE"), ci) * 60f));
+      V2 cursor = home + new V2(230f, -120f);
+      for (int f = 0; f < frames; f++) {
+        float tt = f / 60f;
+        foreach (var e in foes) e.Disp = e.Pos;
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        V2 aimAt = altAt >= 0f && tt >= altAt ? home + new V2(320f, -90f) : cursor;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt, Fire = tt >= fireAt, WeaponAction = altAt >= 0f && tt >= altAt && tt < altAt + 0.05f });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Disp = me.Pos; me.Aim = (aimAt - home).Angle; me.AimAt = aimAt; me.Hp = me.MaxHp;
+        foreach (var m in gm.Minions.Values) m.Disp = m.Pos;
+        foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
       }
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
@@ -2324,12 +2397,6 @@ static partial class Shot {
       Input.mousePosition = new Vector3(target.X * ws, 720f - target.Y * ws, 0f);
       me.Aim = (target - me.Pos).Angle;
     }
-    if (Environment.GetEnvironmentVariable("AIMDEBUG") != null)
-    {
-      typeof(ArenaApp).GetField("aimDebug", f2).SetValue(app, true);
-      me.Aim = -0.6f;
-      host.Game.LastShotId = 1; host.Game.LastShotAngle = -0.62f; host.Game.LastShotAim = -0.6f; host.Game.LastShotFrom = me.Pos + V2.FromAngle(-0.62f) * 20f;
-    }
     if (Environment.GetEnvironmentVariable("REPULSE") != null) {
       // The Repulsion Cannon's blast REPULSE=<seconds> after the shot.
       float rt = float.Parse(Environment.GetEnvironmentVariable("REPULSE"));
@@ -2570,27 +2637,6 @@ static partial class Shot {
       var solo = Environment.GetEnvironmentVariable("CAPPHASE");  // CAPPHASE=<k 0-3>: only that one, 200 px left of you (close-ups)
       if (solo != null) { int k = int.Parse(solo); var c = cap(me.Pos + new V2(-200f, 0f), phases[k]); if (set == 1 && k == 3) c.Hp = c.MaxHp * 0.3f; }
       else for (int k = 0; k < 4; k++) { var c = cap(spots[k], phases[k]); if (set == 1 && k == 3) c.Hp = c.MaxHp * 0.3f; }
-    }
-    if (Environment.GetEnvironmentVariable("POSSESS") != null) {
-      // The Dev Arena (DevArena.cs): you playing as POSSESS=<EnemyType> (brackets, name, controls strip), your hero parked, two grunts.
-      // Mode hud for the play view; mode dev with DEVSHEET=5 for the dock's Spawn / Play as row; DUMMIES=1 adds two hero dummies.
-      var spe = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
-      var pg = host.Game; pg.Enemies.Clear(); pg.Bullets.Clear(); pg.Bot = false;
-      pg.DevArena = true;
-      me.Pos = me.Disp = new V2(520f, 470f);
-      var t = (EnemyType)Enum.Parse(typeof(EnemyType), Environment.GetEnvironmentVariable("POSSESS"));
-      var you = (Enemy)spe.Invoke(pg, new object[] { t, new V2(900f, 430f), 0f, 0, false });
-      you.SpawnT = 0f; you.Disp = you.Pos; you.Facing = (me.Pos - you.Pos).Angle;
-      pg.PossessId = you.Id;
-      // Two hero dummies, one just hit (DUMMIES=1).
-      if (Environment.GetEnvironmentVariable("DUMMIES") != null) {
-        pg.DevAddHeroDummy(new V2(700f, 300f)); pg.DevAddHeroDummy(new V2(700f, 580f));
-        var hd = pg.HeroDummies[0]; hd.Hits = 7; hd.Taken = 98f; hd.Last = 14f; hd.Flash = 0.12f;
-        hd.Recent.Add(new System.Collections.Generic.KeyValuePair<float, float>(pg.DevClock, 42f));
-      }
-      foreach (var at in new[] { new V2(1200f, 300f), new V2(1250f, 640f) }) {
-        var o = (Enemy)spe.Invoke(pg, new object[] { EnemyType.Grunt, at, 0f, 0, false }); o.SpawnT = 0f; o.Disp = o.Pos;
-      }
     }
     if (Environment.GetEnvironmentVariable("FLANKERS") != null) {
       // The Hive Queen's Swarm bombers: two swooping out to your sides (gold) and two diving in (red-hot).

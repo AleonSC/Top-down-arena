@@ -85,7 +85,7 @@ namespace Arena
         readonly System.Diagnostics.Stopwatch clock = System.Diagnostics.Stopwatch.StartNew();
         float pingT;
 
-        /// For the aim debug overlay: the direction of your most recent shot, as the host fired it.
+        /// The direction of your most recent shot, as the host fired it (the aim test checks it).
         public int LastShotId;
         public float LastShotAngle, LastShotAim;
         public V2 LastShotFrom;
@@ -110,9 +110,6 @@ namespace Arena
             lastShotTicks = clock.ElapsedTicks;
         }
 
-        /// Dev: when set (on the host), each run is recorded to a new file in this folder.
-        public string RecordFolder;
-        public SessionRecorder Recorder;
         public Action<Player, float, string> DamageEvent;  // host: every hit a player takes (Boss Lab)
         public bool BotRerolls = true;
         int botRerolledAt = -1;
@@ -325,22 +322,6 @@ namespace Arena
             lastMyHp = Me != null ? Me.Hp : 0f;
             if (!HangoutOn)
                 session.Screen = AppScreen.Game;  // (Practice plays inside the lobby's window: the screen stays the lobby, HangoutGame.cs)
-            if (Recorder != null && !Recorder.Ended)
-                Recorder.End(this, "restarted");  // a new run started over one still going: finish its file first
-            Recorder = null;
-            if (IsHost && RecordFolder != null && !Unrecorded && !Quiet)  // (not a Boss Lab fight or the lobby's preview)
-            {
-                try
-                {
-                    Recorder = new SessionRecorder(RecordFolder);
-                    Recorder.Begin(this, startWave);
-                }
-                catch (Exception ex)
-                {
-                    Recorder = null;  // a recording problem never stops the run, but it says why
-                    DoLog("session recording failed to start: " + ex.Message);
-                }
-            }
             BeginRunRecord(resumed);  // RunSaves.cs
             Tutorial.Begin(this);  // a profile's first Quick Play: the guided prompts (Tutorial.cs)
             DoLog("game started with " + Players.Count + " player(s)");
@@ -354,8 +335,6 @@ namespace Arena
             SettleRetry(how);  // a retry left untaken ends the run for good (Checkpoints.cs)  // RunSaves.cs (the run you walk away from still shows in Recent runs)
             if (Running)
                 SaveRun();  // between waves: keep the run to continue later (RunSaves.cs)
-            if (Recorder != null && Running)
-                Recorder.End(this, how);
             Running = false;
             HangoutOn = false;  // HangoutGame.cs
             Drill = -1;  // DrillGame.cs
@@ -383,9 +362,6 @@ namespace Arena
             spawnQueue.Clear();
             squadQueue.Clear();
             DevFreeze = false;  // (DevTools.cs)
-            DevArena = false;   // (DevArena.cs)
-            HeroDummies.Clear();
-            PossessId = -1;
             ClearRisers();
             pendingSpawns.Clear();
             pendingRemoved.Clear();
@@ -667,7 +643,6 @@ namespace Arena
             if (!Players.TryGetValue(id, out p) || p.Offer == null || p.OfferLegendary || p.OfferMod || p.OfferMilestone || p.OfferPrize || p.OfferWave || p.Rerolls <= 0 || State != MatchState.Intermission)
                 return;
             p.Rerolls--;
-            Recorder?.Rerolled(p);
             p.Offer = p.OfferCards ? BossCardOffer(p) : Upgrades.RollOffer(rng, OfferFor(p), p.Level);
             DoLog(p.Role + " rerolled (" + p.Rerolls + " left)");
             SendSnapshot();
@@ -714,7 +689,6 @@ namespace Arena
                     }
                     return;
                 }
-                Recorder?.PickedNamed(this, p, Array.ConvertAll(p.Offer, BossCards.Name), BossCards.Name(code), p.OfferWave ? "wave card" : "boss card");
                 if (p.OfferWave)
                     GiveCard(p, BossCards.CardOf(code), "wave pick");
                 else
@@ -727,7 +701,6 @@ namespace Arena
                 return;
             }
             int upgrade = p.Offer[index];
-            Recorder?.Picked(this, p, p.Offer, upgrade, p.OfferLegendary ? "legendary" : p.OfferMod ? "mod" : p.OfferMilestone ? "milestone" : p.OfferPrize ? "prize" : "level");
             if (p.OfferLegendary)
                 p.LegendaryQueue.RemoveAt(0);
             else if (p.OfferMod)
@@ -1017,6 +990,7 @@ namespace Arena
             TickGates(dt);         // the shutter gates' clocks (Gates.cs)
             UpdatePropView(dt);    // crates, barrels, chests and their items (Props.cs)
             UpdateInkView(dt);     // Chalk.cs: the chalk's tip easing, a client's ink ageing
+            UpdateHiveView(dt);    // HiveCenser.cs: the swarms and pour points easing on screen
             UpdateWardenView(dt);  // Warden.cs
             UpdateHoldingCellView(dt);  // HoldingCell.cs
             UpdateDrillView(dt);   // DrillGame.cs: a client's drill clocks and walls, and its own finish
@@ -1531,7 +1505,6 @@ namespace Arena
         {
             tickDt = dt;
             TickLiveStats(dt);  // RunStats.cs
-            Recorder?.Tick(this, dt);
             TickPlayers(dt);
             TickKnights(dt);  // Knight.cs
             TickDives(dt);    // Royal Dive landings (QueenLoot.cs)
@@ -1581,6 +1554,7 @@ namespace Arena
             TickWindWaves(dt);  // WindClash.cs: Wind Clash's waves and Tempests
             TickArcBalls(dt);   // StaticShock.cs: Arc Cannon balls and bursts
             TickTessenPetals(dt);  // TwinTessen.cs: the Petal Spin's petals landing
+            TickHive(dt);       // HiveCenser.cs: the Hive Censer's insects settling, swarms hunting and wrapping, chitin
             TickBloodBlast(dt);  // BloodBlast.cs: Blood Blast's returning blood
             TickTide(dt);       // BloodBlast.cs: Crimson Tides gathering and rolling out
             TickFrostStrikes(dt);  // FrostLance.cs: the Frost Lance's chain, chill and Absolute Zero
@@ -1761,6 +1735,11 @@ namespace Arena
                 p.DumpCd = Math.Max(0f, p.DumpCd - dt);  // the Railgun's Heat Dump (RailBeam.cs)
                 if (p.Weapon.Id != WeaponId.StaticShock && p.StaticOn)
                     ClearStaticShock(p);  // (StaticShock.cs)
+                TickHiveCall(p, dt);  // Hive Call's clocks (HiveCenser.cs)
+                if (p.Weapon.Id != WeaponId.HiveCenser && p.HiveOn)
+                    ClearHivePour(p);
+                if (p.Weapon.Id == WeaponId.HiveCenser)
+                    TickHivePour(p, dt);  // held, not fired: insects pour from the cursor (HiveCenser.cs)
                 if (p.Weapon.Id == WeaponId.StaticShock)
                 {
                     string ssSrc = CreditTo("weapon");
@@ -1833,11 +1812,13 @@ namespace Arena
                     TickOutOfAmmo(p, dt);  // the swats, the knife chain and Alt's spin, no trigger (OutOfAmmo.cs)
                 else if (IsBotWeapon(p.Weapon.Id))
                     TickBotWeapon(p, dt);  // summon the robot, send it, the basic attack (EngineerBots.cs)
+                else if (p.Weapon.Id == WeaponId.BumbleRemote)
+                    TickBumbleRemote(p, dt);  // you never shoot: the Bumble Bot reads Fire (BumbleRemote.cs)
                 else if (p.Weapon.Id == WeaponId.TwinRifleAuto)
                     TickTwinAuto(p, dt);  // the guns aim and fire on their own, no trigger (TwinAuto.cs)
                 else if (p.Weapon.Id == WeaponId.ArcKnuckles)
                     TickKnuckleFire(p, dt);  // a click is a move, held repeats, the Quake Punch charges while held (ArcKnucklesBrawl.cs)
-                else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Weapon.Id != WeaponId.StaticShock && !InGreatStar(p) && p.Firing && !p.ParryActive && !p.RapierGuard && !p.HbSet && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
+                else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Weapon.Id != WeaponId.StaticShock && p.Weapon.Id != WeaponId.HiveCenser && !InGreatStar(p) && p.Firing && !p.ParryActive && !p.RapierGuard && !p.HbSet && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);
                     FirePlayer(p);
@@ -1855,7 +1836,6 @@ namespace Arena
                 }
                 if (!OnPathOf(PathId.BloodMoon) && FloorAt(p.Pos) != PathId.BloodMoon && !Has(RunMod.Bloodlust))  // Blood Moon (Paths.cs) and Bloodlust: no regeneration
                 {
-                    Recorder?.HealReceived(p, Math.Max(0f, Math.Min((PassiveRegen + p.Stats.Regen) * dt, p.HealCap - p.Hp)), "regeneration");
                     p.Hp = Math.Max(p.Hp, Math.Min(p.HealCap, p.Hp + (PassiveRegen + p.Stats.Regen) * dt));
                 }
                 if (p.Role == Role.Healer)

@@ -932,6 +932,8 @@ namespace Arena
                 return;  // Wind Clash's Tempest (WindClash.cs)
             if (LocalWyvernSlam(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // the Wyvern Staff's Wyrm Slam (WyvernStaff.cs)
+            if (LocalBumbleBurst(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
+                return;  // the Bumble Remote's Swarm Burst (BumbleRemote.cs)
             if (LocalTide(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // the Blood Blast's Crimson Tide (BloodBlast.cs)
             if (LocalZero(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
@@ -1106,6 +1108,8 @@ namespace Arena
                 return;  // the Acupuncture Needles' Bloodletting (AcupunctureNeedles.cs)
             if (LocalArcCannon(me, pressed, aimAt, dt))
                 return;  // Static Shock's Arc Cannon (StaticShock.cs)
+            if (LocalHiveCall(me, pressed, aimAt, dt))
+                return;  // the Hive Censer's Hive Call (HiveCenser.cs)
             if (LocalHammerSlamReady(me, pressed, dt))
             {
                 if (IsHost)
@@ -1349,6 +1353,11 @@ namespace Arena
                 HostBloodletting(p, target);  // the Acupuncture Needles' Alt (AcupunctureNeedles.cs)
                 return;
             }
+            if (kind == DashHiveCall)
+            {
+                HostHiveCall(p, target);  // the Hive Censer's Alt (HiveCenser.cs)
+                return;
+            }
             if (kind == DashArcCannon)
             {
                 HostArcCannon(p, target);  // Static Shock's Alt (StaticShock.cs)
@@ -1422,6 +1431,11 @@ namespace Arena
             if (kind == DashTempest)
             {
                 HostTempest(p);  // Wind Clash's Alt (WindClash.cs)
+                return;
+            }
+            if (kind == DashBumbleBurst)
+            {
+                HostBumbleBurst(p, target);  // the Bumble Remote's Alt (BumbleRemote.cs)
                 return;
             }
             if (kind == DashWyvernSlam)

@@ -283,6 +283,9 @@ namespace Arena
                 case ZoneKind.SupplyDrop:
                     DrawSupplyDrop(z, t);  // SupplyDropLook.cs (its own time arc)
                     return;
+                case ZoneKind.ArmorDrop:
+                    DrawArmorDrop(z, t);  // ArmorDropLook.cs (no timer ring: it folds once the vests are gone)
+                    return;
                 case ZoneKind.FieldHospital:
                     DrawHospitalZone(z, t);  // FieldHospitalLook.cs (its gate and time are drawn over the walls)
                     return;
@@ -336,6 +339,11 @@ namespace Arena
             if (m.Kind == MinionKind.Wyvern)
             {
                 DrawWyvernMinion(m, t);  // WyvernStaffLook.cs
+                return;
+            }
+            if (m.Kind == MinionKind.BumbleBot)
+            {
+                DrawBumbleBot(m, t);  // BumbleRemoteLook.cs
                 return;
             }
             if (m.Kind == MinionKind.Bee)

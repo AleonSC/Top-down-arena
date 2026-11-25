@@ -1213,6 +1213,7 @@ namespace Arena
             DrawArcLightningGlow();  // Arc Lightning's lock-on chain (ArcLockLook.cs)
             DrawWindClashGlow();  // Wind Clash's waves and Tempest (WindClashLook.cs)
             DrawTessenGlow();  // the Twin Tessen's gust and full Breeze (TwinTessenLook.cs)
+            DrawHiveGlow();  // the Hive Censer's insects (HiveCenserLook.cs)
             DrawStaticShockGlow();  // Static Shock's cone, circuit, Overcharge and Arc Cannon (StaticShockLook.cs)
             DrawBloodBlastGlow();  // the Blood Blast's Cleave, Tide and returning blood (BloodBlastLook.cs)
             DrawFrostLanceGlow();  // the Frost Lance's head, slams, shatters and Absolute Zero (FrostLanceLook.cs)

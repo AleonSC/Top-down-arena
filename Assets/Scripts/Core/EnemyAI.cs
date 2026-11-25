@@ -311,7 +311,6 @@ namespace Arena
             var d = Defs.Get(type);
             pos = SnapIntoRooms(pos, d.Radius);
             var e = NewEnemy(type, d, pos, parent, elite);
-            Recorder?.EnemySpawned(e);
             PlaceEnemy(e, pos, spawnT, parent);
             Enemies[e.Id] = e;
             if (type == EnemyType.BoundWraith)
@@ -489,7 +488,6 @@ namespace Arena
         {
             float rate = WaveFireRate(Wave) * D(DiffKnob.FireRate);
             PullStrength = 0f;
-            TickDevArena(dt);  // the Dev Arena's hero dummies, and the enemy you play healed up (DevArena.cs)
             CountEnemyShots();
             PrepareVariety();  // squads and Commanders (Variety.cs)
             PrepareAccretion();  // the Accretion rings' bands (Infall.cs)
@@ -583,24 +581,11 @@ namespace Arena
                 tpos = RoomTarget(e, tpos);
                 tpos = GnawlingTarget(e, tpos);  // a Gnawling smells a morsel (LarderFaction.cs)  // a challenge room: the crystal, or the zone (Challenges.cs)
                 bool held = RoomsLeash(e, ref tpos);  // a Gatekeeper room's mini-boss keeps to its room (Rooms.cs)
-                bool mine = IsPossessed(e);  // the Dev Arena's enemy being played: it goes for the cursor (DevArena.cs)
-                if (mine)
-                {
-                    tpos = possessAim;
-                    held = false;
-                }
-                else if (HeroDummyAim(e, ref tpos))
-                    held = false;  // the Dev Arena's hero dummies draw its aim (DevArena.cs)
                 if (e.Type != EnemyType.Singularity && e.Type != EnemyType.Devourer && !(e.Type == EnemyType.Gatekeeper && e.Phase != 0))  // (the Gatekeeper's charge keeps its line)  // their Facing is the lasers' sweep, or the Devourer's mouth (Devourer.cs)
                     Face(e, tpos, dt);
-                if (mine)
-                    PossessMoveEnemy(e, tpos, dt);  // your keys, or its own moves while it attacks (DevArena.cs)
-                else
-                {
-                    V2 stepFrom = e.Pos;
-                    MoveEnemy(e, tpos, dt);
-                    KeepEnemyOffPits(e, stepFrom);  // walking never takes it into a pit (Pits.cs)
-                }
+                V2 stepFrom = e.Pos;
+                MoveEnemy(e, tpos, dt);
+                KeepEnemyOffPits(e, stepFrom);  // walking never takes it into a pit (Pits.cs)
                 RoomsKeepHome(e);  // a mini-boss can't charge out of its locked room (Rooms.cs)
                 if (Battle && (e.DazeT > 0f || e.SmokeT > 0f))
                 {
@@ -610,12 +595,8 @@ namespace Arena
                     e.Winding = false;
                     e.GasLocked = false;
                 }
-                else if (mine && Battle && !PossessAttacking)
-                    e.Winding = false;  // the enemy being played waits for you to attack (DevArena.cs)
                 else if (Battle)
                 {
-                    if (mine)
-                        PossessFireNow(e);
                     Special(e, tpos, dt);
                     if (e.Def.IsBoss)
                         BossCues(e);  // BossSounds.cs
@@ -627,7 +608,7 @@ namespace Arena
                         e.FireT -= dt * mult * (1f - e.Suppress);  // the Riot Repeater's suppression (Weapons.cs)
                     // A regular shooter glows just before it fires (Readability.cs).
                     float rateNow = mult * (1f - e.Suppress);
-                    e.Winding = (IsSecurity(e.Type) ? e.Phase > 0 : TakesTurns(e) && (HasTurn(e) || mine)) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
+                    e.Winding = (IsSecurity(e.Type) ? e.Phase > 0 : TakesTurns(e) && (HasTurn(e))) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;
                     var fb = BrainOf(e.Type);
                     if (fb != null && fb.Fire != null)
                         fb.Fire.Wind(this, e, tpos, rateNow);  // a lobber locks its lob when the wind-up starts (LobBrains.cs)
@@ -635,9 +616,9 @@ namespace Arena
                         e.FireT = Rand(0.2f, 0.4f);  // nobody in its room: nothing to shoot at
                     if (e.FireT <= 0f)
                     {
-                        if (!HasTurn(e) && !mine)
+                        if (!HasTurn(e))
                             e.FireT = Rand(0.2f, 0.4f);  // not its turn: hold fire and reposition (Readability.cs)
-                        else if (!mine && !e.Def.IsBoss && !Challenges.Own(e.Type) && !Zombies.Is(e.Type) && enemyShots >= RegularShotBudget())
+                        else if (!e.Def.IsBoss && !Challenges.Own(e.Type) && !Zombies.Is(e.Type) && enemyShots >= RegularShotBudget())
                             e.FireT = Rand(0.2f, 0.4f);  // the screen is full: hold this volley and try again shortly
                         else
                             EnemyFire(e, tpos);
@@ -658,8 +639,6 @@ namespace Arena
                     DecoyContact(e, contact);  // a Decoy Dummy in the way gets bitten (DecoyDummy.cs)
                 if ((e.Def.IsBoss || e.Def.Mini) && !BossDashing(e))
                     continue;  // bosses' and mini-bosses' bodies don't hurt heroes, so melee can stand close; only their telegraphed charges do (a boss still shoves you out: Game.cs)
-                if (!mine || PossessAttacking)
-                    HeroDummyContact(e, contact);  // the Dev Arena's hero dummies (DevArena.cs)
                 foreach (var p in Players.Values)
                 {
                     if (!Hittable(p) || p.SwallowT > 0f || p.MeleeGraceT > 0f)

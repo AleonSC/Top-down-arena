@@ -221,8 +221,6 @@ namespace Arena
                 else
                     Ui.Label(new Rect(x, by, RackL + RackFull - x, bh), "Waiting for the host…", 16, Ui.Muted, TextAnchor.MiddleRight, true);
             });
-            if (game.Recorder != null)
-                Ui.Label(new Rect(RackL, H - 16f, RackFull, 14f), "Session recorded: " + game.Recorder.Path, 10, new Color(1f, 1f, 1f, 0.35f), TextAnchor.MiddleLeft);
         }
 
         /// This run's curve for the results charts: the newest Recent runs entry (the run just paid out, so only once LastGain is set).
