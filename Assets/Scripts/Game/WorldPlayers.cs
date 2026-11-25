@@ -149,6 +149,7 @@ namespace Arena
             // Abilities
             if (p.PlateN > 0)  // Ceremonial Armor's plates (CeremonialArmorLook.cs; the rings and sigil are under the model)
                 DrawCeremonialArmor(p, t);
+            DrawSpiritFront(p, t);  // Spirit Avatar's arms and brush over the model (SpiritAvatarLook.cs)
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BlossomStorm)  // petals swirling round
                 for (int k = 0; k < 10; k++)
                     Circle(p.Disp + V2.FromAngle(t * 1.5f + MathX.Tau * k / 10f) * (r + 30f + 8f * Mathf.Sin(t * 2f + k)), 3f, new Rgba(1f, 0.7f, 0.85f, 0.8f), 6);

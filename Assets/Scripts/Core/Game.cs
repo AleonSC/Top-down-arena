@@ -535,7 +535,7 @@ namespace Arena
                     s.Timer = 0f;
                     continue;
                 }
-                s.Timer -= OverclockOn(p) ? dt * OverclockMult : dt;  // (an Overclock Chip: Gadgets.cs)
+                s.Timer -= (OverclockOn(p) ? dt * OverclockMult : dt) * (i != Upgrades.UltSlot && Supplied(p) ? SupplyCdMult : 1f);  // (an Overclock Chip: Gadgets.cs; a Supply Drop, not the ultimate: SupplyDrop.cs)
                 if (s.Timer <= 0f)
                 {
                     s.Charges++;
@@ -1533,10 +1533,12 @@ namespace Arena
             TickHolyCross(dt);  // HolyCross.cs: Holy Crosses flying
             TickCavalry(dt);    // CavalryCall.cs: lancers riding
             TickVolleys(dt);    // WarhornVolley.cs: the arrows' front crossing the field
+            TickOrbitals(dt);   // OrbitalLaser.cs: the beam's kills and the scorch
             TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickTanks(dt);      // LiteralTank.cs: the tank's time, running enemies over, getting out
             TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders
+            TickSpirit(dt);     // SpiritAvatar.cs: the spirit's time, Moon Cleaves and swallowed shots
             TickGaleWalls(dt);  // GaleWall.cs: lenses run down and unleash
             TickWaterWards(dt);    // WaterWard.cs: the drops circle, land, spread and splash
             TickHarvest(dt);    // CrimsonHarvest.cs: blood torn out, the ball held and thrown
@@ -1677,6 +1679,7 @@ namespace Arena
                 p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
                 p.AdrenalineT = Math.Max(0f, p.AdrenalineT - dt);
                 p.OverchargeT = Math.Max(0f, p.OverchargeT - dt);  // StaticShock.cs
+                p.SupplyT = Math.Max(0f, p.SupplyT - dt);  // SupplyDrop.cs
                 TickGustTimers(p, dt);  // GustGate.cs
                 p.SurgeT = Math.Max(0f, p.SurgeT - dt);  // Arcane Surge
                 p.GhostT = Math.Max(0f, p.GhostT - dt);  // Ghost Step
@@ -1763,6 +1766,8 @@ namespace Arena
                 }
                 else if (ColOn(p))
                     ColossusTrigger(p);  // the golem: Fire slams, the weapon is put away (StoneColossus.cs)
+                else if (SpOn(p))
+                    SpiritTrigger(p);  // Spirit Avatar: Fire is the Moon Cleave, the weapon is put away (SpiritAvatar.cs)
                 else if (p.StunShots > 0)
                     TickStunGun(p);  // the Stun Gun is out instead of your weapon (Stun.cs)
                 else if (p.Weapon.Id == WeaponId.Revolver)

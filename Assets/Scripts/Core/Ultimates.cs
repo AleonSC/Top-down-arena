@@ -178,6 +178,10 @@ namespace Arena
                     CastColossus(p, cap);
                     break;
 
+                case AbilityId.SpiritAvatar:  // Tank: Ninja, the third ultimate (SpiritAvatar.cs)
+                    CastSpirit(p, cap);
+                    break;
+
                 case AbilityId.Vortex:  // Tank: Elementalist, the fourth ultimate (Vortex.cs)
                     CastVortex(p, cap);
                     break;
@@ -219,6 +223,10 @@ namespace Arena
                     CastHospital(p, target, cap);
                     break;
 
+                case AbilityId.SupplyDrop:  // Healer: Soldier, the third ultimate (SupplyDrop.cs)
+                    CastSupplyDrop(p, target, cap);
+                    break;
+
                 case AbilityId.Sanctum:  // Healer: Elementalist
                 {
                     float r = cap ? 300f : 200f;
@@ -243,6 +251,10 @@ namespace Arena
 
                 case AbilityId.AttackHelicopter:  // DPS: Soldier, the second ultimate (AttackHelicopter.cs)
                     CastHeli(p, cap);
+                    break;
+
+                case AbilityId.OrbitalLaser:  // DPS: Soldier, the third ultimate (OrbitalLaser.cs)
+                    CastOrbital(p, target, cap);
                     break;
 
                 case AbilityId.BulletRain:  // DPS: Elementalist

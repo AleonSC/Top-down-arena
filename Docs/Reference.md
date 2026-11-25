@@ -186,12 +186,14 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Deployable Medkit | Healer | 1st, choice 3 | 14 s | - | Bursts into 9 orbs worth 20 health each. | Throw a medkit that bursts into health orbs anyone can grab. |
 | Lifeline | Healer | ultimate | 90 s | - | Everyone also gets 4 s of Overdrive. | Revive and fully heal the whole party, with brief invulnerability. |
 | Field Hospital | Healer | ultimate | 150 s | - | 8 orbs, one back every 3 s. | Open a hospital cell behind a door: a shrine, healing orbs and a laser gate for a minute. |
+| Supply Drop | Healer | ultimate | 110 s | - | The zone lasts 18 s and packs heal 40. | Call in a crate that hits enemies where it lands, then opens: faster cooldowns, shooting and movement inside, and health packs. |
 | Decoy Dummy | Healer | 1st, choice 5 | 4 s (+2 charges) | - | Dummies have 50% more health, and the confetti blast reaches 130 px. | Throw an inflatable soldier that enemies shoot at instead of you. |
 | Poison Dart | Dps | 1st, choice 1 | 8 s | - | Spreads to 5 enemies at a time, at full strength. | Poison the nearest enemy; the poison spreads when it dies. |
 | Airstrike | Dps | 1st, choice 2 | 16 s | - | A second wall lands 160 px further out, half a second later. | Call a jet to carpet a line with bombs. |
 | Mark for Death | Dps | 1st, choice 3 | 12 s | - | Marks the three enemies nearest your cursor. | Mark an enemy so it takes more damage. |
 | Artillery Assault | Dps | ultimate | 60 s | - | +4 extra projectiles instead of +2. | Fire three times as fast with extra projectiles. |
 | Attack Helicopter | Dps | ultimate | 70 s | - | A second gun on the wing: two targets at once. | A gunship locks enemies one at a time and can't be hit. |
+| Orbital Laser | Dps | ultimate | 90 s | - | The circle is 340 px wide instead of 260, and the beam ploughs 200 px on while it fires. | Call a laser down from orbit on your cursor: after a 1.9 s lock-on it kills every enemy in a huge circle (bosses lose 20%) and leaves the ground burning. |
 | Deployable Turret | Dps | 1st, choice 5 | 45 s | - | Fires 14 s, rounds pierce 4, and the blast does double. | Climb into a heavy turret that spools up to a fast piercing fire. |
 
 ### Elementalist
@@ -265,6 +267,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Ceremonial Armor | Tank | 1st, choice 3 | 2.5 s | - | A plate that breaks bursts for 30 damage to enemies within 60 px. | Armour plates circle you, blocking bullets and shoving enemies. |
 | Thousand Clones | Tank | ultimate | 70 s | - | Twenty clones. | Twelve clones appear all over the map and draw every enemy. |
 | Dragon's Dogma | Tank | ultimate | 70 s | - | Hunts for 7 s, and every enemy it devours heals you 3%. | A spirit dragon hunts across the arena, devouring enemies and their shots. |
+| Spirit Avatar | Tank | ultimate | 70 s | - | Lasts 15 s and the cleave reaches 20% further. | A giant ink spirit wraps you: Fire paints a slow, wide Moon Cleave that throws enemies back. |
 | Bamboo Grove | Tank | 1st, choice 5 | 14 s | - | The bamboo fence lasts 6 s. | Bamboo bursts from the ground around you, stunning enemies, then bleeding them. |
 | Healing Dash | Healer | 1st, choice 1 | 15 s | - | The sprint lasts 4.5 s. | Sprint, leaving footprints that heal you and allies. |
 | Substitution | Healer | 1st, choice 2 | 12 s | - | You and your ally are both invulnerable for 1 s after the swap. | Swap places with an ally and shield them. |

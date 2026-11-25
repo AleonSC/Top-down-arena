@@ -62,6 +62,7 @@ namespace Arena
             d[(int)FxKind.StaffShove] = DrawFxStaffShove;
             d[(int)FxKind.CavalryCall] = (fx, f, t) => DrawCavalryCallFx(fx);  // CavalryCallLook.cs
             d[(int)FxKind.WarhornVolley] = (fx, f, t) => DrawWarhornGround(fx);  // WarhornVolleyLook.cs
+            d[(int)FxKind.OrbitalLaser] = (fx, f, t) => DrawOrbitalGround(fx);  // OrbitalLaserLook.cs
             d[(int)FxKind.Airstrike] = (fx, f, t) => DrawAirstrikeFx(fx);  // AirstrikeLook.cs
             d[(int)FxKind.BsBlow] = (fx, f, t) => DrawBsBlowFx(fx);  // BloodBrawlerLook.cs
             d[(int)FxKind.EmbolusBlast] = (fx, f, t) => DrawEmbolusBlastFx(fx);  // EmbolusLook.cs
@@ -85,6 +86,7 @@ namespace Arena
             d[(int)FxKind.VortexWisp] = (fx, f, t) => DrawVortexWispFx(fx);  // VortexLook.cs
             d[(int)FxKind.LivingBolt] = (fx, f, t) => DrawLivingBoltFx(fx);  // LivingBoltLook.cs
             d[(int)FxKind.BambooGrove] = (fx, f, t) => { };  // drawn in the floor and body passes (BambooGroveLook.cs)
+            d[(int)FxKind.SpiritInk] = (fx, f, t) => DrawSpiritInkFx(fx);  // SpiritAvatarLook.cs (the strokes and stains are the floor pass: DrawSpiritFloor)
             d[(int)FxKind.BulwarkStep] = (fx, f, t) => DrawBulwarkStepFx(fx);  // BulwarkBarrierLook.cs
             d[(int)FxKind.BulwarkBash] = (fx, f, t) => DrawBulwarkBashFx(fx, t);  // BulwarkBarrierLook.cs
             d[(int)FxKind.BulwarkBlock] = (fx, f, t) => DrawBulwarkBlockFx(fx);  // BulwarkBarrierLook.cs

@@ -4,6 +4,10 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 503: Land Shark (DPS Summoner 4th choice): `AbilityId.LandShark`, `ZoneKind.LandShark`, the Rare card Great White (card ids shift).
+- 502: Orbital Laser (the DPS Soldier's third ultimate, key 2): `AbilityId.OrbitalLaser`, `FxKind.OrbitalLaser` and `Sfx.OrbitalLaser` (each at the end).
+- 501: Supply Drop (the Healer Soldier's third ultimate, key 2): `Player.SupplyT` in the player snapshot after `OverchargeT`; `AbilityId.SupplyDrop`; `ZoneKind.SupplyDrop` (both at the end).
+- 500: Spirit Avatar (the Tank Ninja's third ultimate): the player snapshot gains `SpT`, `SpAge`, `SpWind`, `SpAng`; new `FxKind.SpiritInk`, `AbilityId.SpiritAvatar`.
 - 499: Bamboo Grove (Tank Ninja 4th choice): `AbilityId.BambooGrove`, `FxKind.BambooGrove`, the Rare card Rhizome (card ids shift).
 - 498: Living Bolt (the DPS Elementalist's second ultimate, key 1): `Player.BoltT`, `BoltAge` in the player snapshot after `VortexR`; `AbilityId.LivingBolt`; `ZoneKind.StaticResidue`; `FxKind.LivingBolt` (at the end); `Msg.WeaponDash` kind 60 (a dash).
 - 497: Revolver rework: the player snapshot drops `AmmoUsed`/`ReloadT` and gains `RevStance`, `RevStep`, `RevCocked`, `RevCockT`, `RevT`, `RevFanReload`; WeaponDash kind 42 switches the Revolver's stance (was the Pistol Whip).
