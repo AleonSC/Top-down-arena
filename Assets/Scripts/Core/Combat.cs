@@ -1089,6 +1089,8 @@ namespace Arena
                 return;  // a boss changing phase, the Queen up in a dive, the Singularity split, the Lich guarded
             if (ColossusDazed(e))
                 dmg *= ColDazeMult;  // it charged into a plate (Colossus.cs)
+            if (ColossusBreakHit(e, dmg))
+                return;  // staggered: the hit fills its Break meter instead (Colossus.cs)
             if (!DualReaperHit(e, ref dmg))
                 return;  // the Dual Reaper's shield took it (Reapers.cs); otherwise its armor, or its open window
             if (DuelOpen(e))
