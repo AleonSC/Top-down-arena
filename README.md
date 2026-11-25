@@ -402,7 +402,7 @@ Parry upgrades show up like any other card:
 **Q** fires your **ultimate**. Each role and class combination has its own default one, and some have others to
 pick instead on the lobby's **Ultimate** row (so far the Tank Soldier: **Juggernaut Suit** and **A Literal Tank** and the Tank Elementalist: **Lightning Rod**, **Stone Colossus** and **Vortex**, below the table; and the DPS Elementalist: **Living Bolt** and **Flash Fire**, below; and the
 Tank Hemomancer: **Bloodbath**, in the Hemomancer table; and the Tank Summoner: **Bone Phalanx**, below the table; and the
-Tank Ninja: **Dragon's Dogma** and, on key 2, **Spirit Avatar**, below; and the DPS Soldier: **Attack Helicopter** and **Orbital Laser**, below; and the Healer Soldier: **Field Hospital** and on key 2 **Supply Drop**, below; and the DPS Knight: **Warhorn Volley**, below; and the DPS Summoner: **Rodent Minigun** and, on key 2, **Mammoth Fall**, below; and the DPS Ninja: **Forbidden Path**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
+Tank Ninja: **Dragon's Dogma** and, on key 2, **Spirit Avatar**, below; and the DPS Soldier: **Attack Helicopter** and **Orbital Laser**, below; and the Healer Soldier: **Field Hospital** and on key 2 **Supply Drop**, below; and the DPS Knight: **Warhorn Volley**, below; and the DPS Hemomancer: **Blood Ravager**, below; and the DPS Summoner: **Rodent Minigun** and, on key 2, **Mammoth Fall**, below; and the DPS Ninja: **Forbidden Path**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
 that upgrades don't shorten, and start each run half charged. The HUD shows the charge in the gold slot.
 
 **Juggernaut Suit** (Tank Soldier, picked instead of Fortress, 75 s): six steel plates clamp onto you over 0.6 s and
@@ -529,6 +529,19 @@ Going down or the wave ending shuts it at once. Mastered: 2 s longer at full rat
 stacks) makes 14 points more of the rodents rats (30% with one) and every rat bite bleeds. The look: gold studs spin
 round the portal's rim like barrels, teal swirls turn faster as it heats, a rodent that hits tumbles back off and runs away,
 and cheese crumbs flick out of the portal's side like spent cases; a squeak per rodent and a whoosh as it opens.
+
+**Blood Ravager** (DPS Hemomancer, key 1 of the lobby's Ultimate row, picked instead of Crimson Harvest, 70 s): eight thin
+blood legs burst out of you like a spider's for **9 s**. You move **1.8x** as fast (432 for a DPS) and walk on them: the
+legs step in two diagonal halves, each foot planting ahead of you as you run. **Trample**: every foot that lands stomps for
+**7** in a 24 px circle with a small shove, and running into an enemy at speed rams it for **12** (once every 0.3 s each).
+**Lash**: your weapon is put away and every click sends the leg whose claw is nearest an enemy within **140 px** out at it:
+the claw follows the enemy, lands **20** (and 20 to anything within 16 px of it) with a shove and comes back, 0.2 s all told.
+Click as fast as you like (0.07 s apart), **up to 3 legs lashing at once**, each new one going for an enemy no other leg is
+already lashing; a click with nothing in reach does nothing. All damage is times your damage. Going down or the wave ending
+folds the legs at once. Mastered: lasts 12 s. The look: dark red legs with a wet sheen, barbed thighs and knee knobs, a
+shadow under each foot that shrinks as it lifts, blood stains where feet land, drops falling off the knees and a pulsing red
+glow under you; on your own screen a dashed ring shows the 140 px reach, each enemy inside it gets a ring, and three pips
+under you light for each leg lashing.
 
 **Mammoth Fall** (DPS Summoner, key 2 of the lobby's Ultimate row, picked instead of Legion, 75 s): a violet rift tears open
 over you and a woolly mammoth forms in it over **1.6 s** (motes spiral in, a glowing outline fills with wool, it rears at
@@ -691,7 +704,7 @@ the key, pops "MASTERY 3" over it and shows a line above the keys with what it g
 | **Spirit Avatar** | Lasts 15 s and the cleave reaches 20% further. | **Rodent Minigun** | Fires 2 s longer (7 s at full rate). |
 | **Orbital Laser** | The circle is 340 px wide instead of 260, and the beam ploughs 200 px on while it fires. | **Mammoth Fall** | Rampages 1.5 s longer (4.5 s). |
 | **Land Shark** | A 30% wider puddle, and the bite hits for 160. | **Senbon Seekers** | Holds up to 12 needles. |
-| **Forbidden Path** | The beast lasts 11 s. | | |
+| **Blood Ravager** | Lasts 12 s. | **Forbidden Path** | The beast lasts 11 s. |
 
 A popup appears when an ability gains mastery. The **Tab** menu shows each ability's mastery as five pips (the next one
 fills as it earns XP). What mastery 5 unlocks is always written in gold under each ability's description: in the lobby
@@ -1771,6 +1784,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 | Gadget wheel: hold to open, let go on a gadget to swap it into your hand | C |
 | Wiki: tap to look anything up (pauses a solo run; in co-op only on your screen); hold and click anything on screen (text, an enemy, a player) to open its page | I |
 | Rotate camera left / right: swing the view a quarter turn anticlockwise / clockwise (see Zoom in / out below) | [ ] |
+| First person (experimental): see the run through your own eyes. The arena's floor art becomes the ground, walls and pillars rise, enemies, players and shots stand up as cards with a shadow under each. The mouse turns you (the cursor is locked while no menu is up), W walks where you look, and you aim at the crosshair in the middle of the screen (looking down aims at that spot on the floor). Your own body, the aim line and the weapon pips round you aren't drawn. Just your screen: the game, co-op and saves are unchanged. Remembered between launches | F8 |
 | 2nd, 3rd and 4th abilities | 2, 3 and 4 (changeable; once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |

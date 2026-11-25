@@ -17,7 +17,7 @@ namespace Arena
     /// With Visual effects off: the beast without smoke or glow, plain rings and lines.
     public partial class ArenaApp
     {
-        static readonly Rgba FpRim = new Rgba(0.75f, 0.07f, 0.14f), FpSpine = new Rgba(0.43f, 0.04f, 0.08f), FpEye = new Rgba(1f, 0.2f, 0.27f);
+        static readonly Rgba BeastRim = new Rgba(0.75f, 0.07f, 0.14f), BeastSpine = new Rgba(0.43f, 0.04f, 0.08f), BeastEye = new Rgba(1f, 0.2f, 0.27f);
 
         readonly System.Collections.Generic.Dictionary<int, V2> fpLastDisp = new System.Collections.Generic.Dictionary<int, V2>();
         readonly System.Collections.Generic.Dictionary<int, float> fpGait = new System.Collections.Generic.Dictionary<int, float>();  // each beast's stride, run on while it moves
@@ -111,7 +111,7 @@ namespace Arena
             V2 fw = V2.FromAngle(ang), sd = new V2(-fw.Y, fw.X);
             System.Func<float, float, V2> W = (x, y) => o + fw * (x * s) + sd * (y * s);
             Rgba body = shade ? new Rgba(0.055f, 0f, 0.016f, 0.82f * alpha) : Game.FpInk.WithAlpha(alpha);
-            Rgba rim = shade ? Game.FpRed.WithAlpha(0.9f * alpha) : FpRim.WithAlpha(0.85f * alpha);
+            Rgba rim = shade ? Game.FpRed.WithAlpha(0.9f * alpha) : BeastRim.WithAlpha(0.85f * alpha);
             // the smoking tail
             if (fxOn)
                 for (int i = 0; i < 12; i++)
@@ -148,11 +148,11 @@ namespace Arena
             if (shade)
                 SoftGlow(o, 40f * s, Game.FpRed, 0.25f * alpha);
             // the spine ridge
-            Line(W(-30f, 0f), W(26f, 0f), 1.6f * s, FpSpine.WithAlpha(alpha));
+            Line(W(-30f, 0f), W(26f, 0f), 1.6f * s, BeastSpine.WithAlpha(alpha));
             for (int i = 0; i < 9; i++)
             {
                 float x = -26f + i * 6f, d = i % 2 == 0 ? 1f : -1f;
-                Line(W(x, 0f), W(x - 5f, d * 5f), 1.4f * s, FpSpine.WithAlpha(alpha));
+                Line(W(x, 0f), W(x - 5f, d * 5f), 1.4f * s, BeastSpine.WithAlpha(alpha));
             }
             // the mane's smoke
             if (fxOn)
@@ -168,9 +168,9 @@ namespace Arena
                 if (fxOn)
                 {
                     SoftGlow(eye, 9f * s, Game.FpRed, 0.5f * alpha);
-                    Line(W(39f, e * 4.6f), W(27f, e * 7f), 1.2f * s, FpEye.WithAlpha(0.55f * alpha));
+                    Line(W(39f, e * 4.6f), W(27f, e * 7f), 1.2f * s, BeastEye.WithAlpha(0.55f * alpha));
                 }
-                Ellipse(eye, 2.8f * s, 1.5f * s, ang + e * 0.3f, FpEye.WithAlpha(alpha), 8);
+                Ellipse(eye, 2.8f * s, 1.5f * s, ang + e * 0.3f, BeastEye.WithAlpha(alpha), 8);
             }
         }
 

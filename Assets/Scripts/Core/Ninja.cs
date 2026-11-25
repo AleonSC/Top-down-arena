@@ -1280,6 +1280,11 @@ namespace Arena
             Player p;
             if (!Players.TryGetValue(id, out p) || p.Downed || TankOn(p))  // (in A Literal Tank: no Alt, LiteralTank.cs)
                 return;
+            if (kind == DashRavager)
+            {
+                HostRavagerLash(p);  // a Blood Ravager lash (BloodRavager.cs)
+                return;
+            }
             if (kind == DashBolt)
             {
                 HostBoltDash(p, target);  // a Living Bolt dash (LivingBolt.cs)

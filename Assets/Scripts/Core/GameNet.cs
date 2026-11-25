@@ -607,6 +607,9 @@ namespace Arena
             s.Float(ref p.VortexR);
             s.Float(ref p.BoltT);  // Living Bolt (LivingBolt.cs)
             s.Float(ref p.BoltAge);
+            s.Float(ref p.RvT);  // Blood Ravager (BloodRavager.cs)
+            if (p.RvT > 0f)
+                s.Float(ref p.RvLen);
             s.Float(ref p.FpT);  // Forbidden Path (ForbiddenPath.cs)
             if (p.FpT > 0f)
             {

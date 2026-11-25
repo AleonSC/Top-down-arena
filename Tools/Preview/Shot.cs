@@ -985,6 +985,15 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("PACSKIN") != null) Profile.Current.DiskLook = "pac";  // the Pac-Man skin (PacmanLook.cs)
     if (Environment.GetEnvironmentVariable("MXFX") != null) { host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Zones.Clear(); }  // (mastery moments: a clear floor so the keys read)
+    if (Environment.GetEnvironmentVariable("FPV") != null) {  // FPV=<yaw deg>[,<pitch deg>]: the first-person view, looking that way (FirstPerson.cs)
+      var fp = Environment.GetEnvironmentVariable("FPV").Split(',');
+      typeof(ArenaApp).GetField("fpView", f2).SetValue(app, true);
+      float fyaw = 0f;
+      if (fp[0] == "big") { Enemy big = null; foreach (var fe in host.Game.Enemies.Values) if (big == null || fe.Def.Radius > big.Def.Radius) big = fe; if (big != null) fyaw = (big.Disp - me.Disp).Angle; }  // FPV=big: facing the biggest enemy
+      else fyaw = float.Parse(fp[0], System.Globalization.CultureInfo.InvariantCulture) * 0.017453292f;
+      typeof(ArenaApp).GetField("fpYaw", f2).SetValue(app, fyaw);
+      if (fp.Length > 1) typeof(ArenaApp).GetField("fpPitch", f2).SetValue(app, float.Parse(fp[1], System.Globalization.CultureInfo.InvariantCulture) * 0.017453292f);
+    }
     var glMat = typeof(ArenaApp).GetField("glMaterial", f2);
     if (glMat.GetValue(app) == null) glMat.SetValue(app, new Material(null));  // (as OnPostRender makes it: without it, everything after the glow pass, enemy shots included, stayed additive)
     typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
