@@ -110,7 +110,8 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Nodachi | Tank | 0.3 s | 20 | - | 150 | 52 | Primary Fire: A tall katana with two five-step combo stances: wide sweeps, or fast jabs that block.  Alternative Fire: Switch stance. |
 | Medicine Darts | Healer | 0.18 s | 7 | 900 x 0.8 s | - | 50 | Primary Fire: Fast needles that poison enemies and heal allies. |
 | Spirit Fan | Healer | 0.4 s | 6 | 420 x 0.3 s | - | 75 | Primary Fire: A short gust that heals allies and pushes small bullets back. |
-| Ofuda | Healer | 0.5 s | 25 | 360 x 1.6 s | - | 50 | Primary Fire: Throw charms that sit as wards and burst when an enemy steps on them. |
+| Ofuda | Healer | 0.45 s | 45 | 380 x 1.1 s | - | 40 | Primary Fire: Healing Talisman: a paper charm that bends toward a hurt teammate at the end of its flight, heals them and bursts, healing teammates near, shoving enemies back and erasing small bullets.  Alternative Fire: Blast Ofuda: a charm that flies straight, sticks to the enemy it hits and blows up; one that misses lands and blows up a moment later. |
+| Twin Tessen | Healer | 0.2 s | 10 | - | 105 | 54 | Primary Fire: A five-step dance of two war fans that heals the allies it brushes and ends in a petal wave.  Alternative Fire: Hold to pull the fans back, let go for a massive gust that throws enemies back and heals allies. |
 | Shuriken | Dps | 0.35 s | 9 | 700 x 0.75 s | - | 140 | Primary Fire: Tight fans of stars that stick, then rip out and fly back.  Alternative Fire: Switch to a huge star thrown along a route you draw. |
 | Katana | Dps | 0.3 s | 20 | - | 120 | 65 | Primary Fire: Two stance combos: dashing slices, or cuts that end in caltrops.  Alternative Fire: Switch stance. |
 | Kunai | Dps | 0.7 s | 42 | 1400 x 0.5 s | - | 88 | Primary Fire: Slow, heavy throwing knives that leave a mark where they land.  Alternative Fire: Blink to the mark, and your next hit lands double. |
@@ -230,6 +231,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Force Pact | Tank | 1st, choice 3 | 12 s | - | A second thrall: the pact keeps the last two types you chose. | Make a regular enemy fight for you. |
 | Titan | Tank | ultimate | 80 s | - | The titan is 30% bigger and stays for 27 s. | Summon a huge stone titan that stomps enemies and blocks bullets. |
 | Bone Phalanx | Tank | ultimate | 75 s | - | 10 skeletons with 180 health each. | Skeletons with tower shields march ahead, blocking shots and spearing enemies. |
+| Iron Armadillo | Tank | ultimate | 75 s | - | Rolls 13 s and the uncurl slam hits for 130. | Curl into a giant armoured ball for 10 s: roll over enemies, bounce their shots back, slam down as you uncurl. |
 | Stampede | Tank | 1st, choice 5 | 14 s | - | 9 beasts, and the herd turns and charges back. | A line of spirit beasts tramples everything ahead. |
 | Spirit Swarm | Healer | 1st, choice 1 | 14 s | - | Releases 8 sprites. | Release healing sprites. |
 | Phoenix | Healer | 1st, choice 2 | 22 s | - | Revives at full health, and the phoenix keeps fighting. | A phoenix follows your cursor, shooting and healing, and revives anyone who goes down. |
@@ -276,6 +278,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Substitution | Healer | 1st, choice 2 | 12 s | - | You and your ally are both invulnerable for 1 s after the swap. | Swap places with an ally and shield them. |
 | Spirit Ward | Healer | 1st, choice 3 | 18 s | - | The ward follows you. | Plant a talisman that absorbs damage for allies, then heals them. |
 | Blossom Storm | Healer | ultimate | 80 s | - | Lasts 8 s. | Petals heal the whole party and erase enemy bullets. |
+| Astral Projection | Healer | ultimate | 70 s | - | Lasts 10 s and heals 40% more. | Leave your body safe and ignored for 8 s; your spirit rides a teammate, shoots astral bolts, and heals them and speeds them up. Right click: switch teammate. |
 | Shadow Step | Dps | 1st, choice 1 | 7 s | - | +1 charge. | Teleport behind an enemy and strike it hard. |
 | Vanish | Dps | 1st, choice 2 | 16 s | - | Erases enemy bullets around you when you vanish. | Enemies lose track of you and your next hit deals double. |
 | Blade Fan | Dps | 1st, choice 3 | 12 s | - | Throws twice as many kunai. | Spinning kunai cut enemies around you, then fly out in a ring. |
