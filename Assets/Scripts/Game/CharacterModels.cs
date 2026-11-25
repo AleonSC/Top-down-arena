@@ -213,6 +213,8 @@ namespace Arena
                 TwinSpreadPose(p, wk, ref rhx, ref rhy, ref lhx, ref lhy, out twist, out climbR, out climbL);
             else if (p.Weapon.Id == WeaponId.TwinPistols)
                 TpHandPose(p, wk, ref rhx, ref rhy, ref lhx, ref lhy, out twist);  // held out in front, turned in with Laser Sights (TwinPistolsLook.cs)
+            else if (p.Weapon.Id == WeaponId.TwinTessen)
+                TtHandPose(p, ref rhx, ref rhy, ref lhx, ref lhy, out twist, out climbR, out climbL);  // each fan swept, spun or pulled back (TwinTessenLook.cs)
             bool ownArms = LookDrawsArms(p);
             if (!ownArms)
             {
@@ -229,7 +231,7 @@ namespace Arena
             }
             MFrame(bowHands ? bowOx : rhx, bowHands ? bowOy : rhy, -twist + climbR + whipRot, wk, false);  // (the climb turns each gun outward)
             float keepA = mAlpha;
-            mAlpha *= p.Weapon.Melee && fxOn ? HeldPhase(p.Id) : 1f;  // a melee weapon phases out for its swing and back in after
+            mAlpha *= p.Weapon.Melee && fxOn && p.Weapon.Id != WeaponId.TwinTessen ? HeldPhase(p.Id) : 1f;  // a melee weapon phases out for its swing and back in after
             if (mAlpha > 0.01f && !ownArms)
             {
                 mHeldTube = 1;  // (the right hand's Twin Rifle carries the right grenade tube, DpsGunLooks.cs)
@@ -507,7 +509,7 @@ namespace Arena
                 case WeaponId.Flamethrower: case WeaponId.WaterGun: case WeaponId.GaleGun: case WeaponId.Warhammer: hold = 1; offX = 12f; break;
                 case WeaponId.Lance: hold = 1; offX = -4f; break;
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
-                case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: case WeaponId.EmbolusSpears: case WeaponId.TwinPistols: hold = 2; break;
+                case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: case WeaponId.EmbolusSpears: case WeaponId.TwinPistols: case WeaponId.TwinTessen: hold = 2; break;
                 case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.Waterball: case WeaponId.Earthball: case WeaponId.IceShards: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.FrostLance: case WeaponId.GoreMortar: case WeaponId.SanguineOrb: case WeaponId.Implosion: case WeaponId.BloodBrawler:
                 case WeaponId.GolemStaff: case WeaponId.WyvernStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: case WeaponId.StaticShock: hold = 3; break;
                 case WeaponId.OrbitShards: case WeaponId.DancingBlades: hold = 3; break;  // the Arcanist casts from an open palm (ArcanistLook.cs)
@@ -559,7 +561,8 @@ namespace Arena
             d[(int)WeaponId.EmbolusSpears] = (p, t, hold) => DrawEsHeld(p, mHeldTube, t);
             d[(int)WeaponId.Stonespear] = DrawHeldStonespear;
             d[(int)WeaponId.WindClash] = DrawHeldWindClash;
-            d[(int)WeaponId.StaticShock] = DrawHeldStaticShock;  // a crackling spark on the palm
+            d[(int)WeaponId.StaticShock] = DrawHeldStaticShock;
+            d[(int)WeaponId.TwinTessen] = DrawHeldTessen;  // a war fan in each hand (TwinTessenLook.cs)  // a crackling spark on the palm
             d[(int)WeaponId.IceShards] = DrawHeldIceShards;
             // ---- Summoner
             d[(int)WeaponId.GolemStaff] = DrawHeldGolemStaff;

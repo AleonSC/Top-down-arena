@@ -254,10 +254,14 @@ static partial class Program
                 {
                     var sc = new Showcase();
                     sc.Show(role, kit, w, Upgrades.FirstAbility(role, kit, 0), false);
+                    bool burst = false;  // the Ofuda's Healing Talisman deals no damage (Ofuda.cs): it counts when its burst reaches a dummy
                     for (int f = 0; f < 360; f++)
+                    {
                         sc.Step(dt);
+                        burst |= sc.Game.Effects.Any(fx => fx.Kind == FxKind.TalismanBurst && sc.Game.Enemies.Values.Any(e => e.Pos.WithinReach(fx.Pos, fx.Radius + e.Radius)));
+                    }
                     var g = sc.Game;
-                    bool hit = g.Score > 0 || g.Enemies.Values.Any(e => e.Hp < e.MaxHp - 0.5f);
+                    bool hit = g.Score > 0 || g.Enemies.Values.Any(e => e.Hp < e.MaxHp - 0.5f) || burst;
                     if (hit) weapons++; else quiet.Add(sc.Me.Weapon.Name);
                     sc.Stop();
                 }

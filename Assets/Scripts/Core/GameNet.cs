@@ -917,6 +917,11 @@ namespace Arena
             s.Float(ref p.TpCd);
             s.Bool(ref p.StaticOn);  // Static Shock (StaticShock.cs)
             s.Float(ref p.OverchargeT);
+            s.Bool(ref p.TtCharging);  // the Twin Tessen (TwinTessen.cs)
+            s.Float(ref p.TtCharge);
+            s.Float(ref p.TtGustCd);
+            s.Float(ref p.TtTailT);
+            s.Byte(ref p.TtBreeze);
             s.Float(ref p.SupplyT);  // Supply Drop (SupplyDrop.cs)
             for (int k = 0; k < 2; k++)  // the Embolus Spears (EmbolusSpears.cs)
             {
