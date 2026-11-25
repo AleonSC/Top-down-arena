@@ -264,6 +264,8 @@ static partial class Shot {
       }
     }
     if (host.Game.Reapers != null) { var R = host.Game.Reapers; Console.WriteLine("reapers stage {0} turn {1} turnT {2:0.0} trans {3} {4:0.0} suck {5:0.0} trapped {6} holes {7}", R.Stage, R.Turn, R.TurnT, R.Trans, R.TransT, R.Suck, R.Trapped, R.Holes.Count); }
+    // DEVOURAT=x,y[,deg]: pin the Devourer there, facing deg (default 90: down), for a close look at its body, with no shots about (use with ZOOM and CAMAT on the same spot).
+    if (Environment.GetEnvironmentVariable("DEVOURAT") != null) { var da = Environment.GetEnvironmentVariable("DEVOURAT").Split(','); foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Devourer) { e.Pos = new V2(float.Parse(da[0]), float.Parse(da[1])); e.Disp = e.Pos; e.Facing = (da.Length > 2 ? float.Parse(da[2]) : 90f) * MathX.Pi / 180f; } host.Game.Bullets.Clear(); }
     // LICHAT=x,y: pin the Lich there for a close look at its body (LichBodyLook.cs; use with ZOOM and CAMAT on the same spot).
     // LICHPRISON=<s since it began to rise>: one bone prison at (640, 560), its gap facing down, no shots (LichBodyLook.cs; use with LICH=0.5 CAMAT=640,560).
     if (Environment.GetEnvironmentVariable("LICHPRISON") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Lich && e.Lich != null) { e.Lich.Prisons.Clear(); e.Lich.Prisons.Add(new BonePrison { Center = new V2(640f, 560f), Gap = MathX.Pi / 2f, T = float.Parse(Environment.GetEnvironmentVariable("LICHPRISON")) }); host.Game.Bullets.Clear(); }
