@@ -695,7 +695,7 @@ Expanding arena's, Solid Walls' and the like). Your weapon, its Alt, your abilit
 minions keep fighting. On time the ball uncurls with a slam: 90 within 180 px, shoving regular enemies back; going down
 or the wave ending uncurls it quietly. Mastered: rolls 13 s and the slam hits for 130. Bots cast it with an enemy within
 420 px. The banded plates roll over the top as it goes, with a teal spirit rim, a dust trail and speed lines (gold while
-launched); a thin bar over it is the time left.
+launched); a thin bar over it is the time left. In the lobby preview it rolls a little slower at the dummies, bouncing round the picture's edges, and flings them less far.
 
 ### Ability mastery
 
