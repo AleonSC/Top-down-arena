@@ -1,0 +1,278 @@
+<title>Revolver Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one CRT-style playfield up top, then the input timeline and a numbers table below. Single dark look, like the game's HUD. */
+:root{
+  --bg:#0b0d0c; --panel:#121614; --line:#26302b; --ink:#d9e4dc; --dim:#7d8b83;
+  --gold:#e8b44a; --danger:#e8574a; --stun:#7ec8ff; --fan:#ff9a3c;
+  --disp:"VT323",ui-monospace,monospace; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:14px;line-height:1.5}
+.wrap{max-width:980px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:22px}
+h1{font-family:var(--disp);font-size:44px;line-height:1;margin:0;color:var(--gold);letter-spacing:.04em;text-wrap:balance}
+h2{font-family:var(--disp);font-size:28px;margin:0 0 8px;color:var(--gold);letter-spacing:.04em}
+.sub{color:var(--dim);margin:4px 0 0;max-width:68ch}
+.note{font-size:12px;color:var(--dim)}
+.stage{position:relative;border:1px solid var(--line);background:#070908;border-radius:4px;overflow:hidden}
+canvas{display:block;width:100%;height:auto;max-width:100%;cursor:crosshair;touch-action:none}
+.keys{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:12px;color:var(--dim);align-items:center}
+kbd{font-family:var(--mono);border:1px solid var(--line);border-bottom-width:2px;padding:0 6px;border-radius:3px;color:var(--ink);background:var(--panel)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:720px){.cols{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);padding:14px 16px;border-radius:4px;min-width:0}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:13px}
+td,th{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--dim);font-weight:400;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+td.n{text-align:right;white-space:nowrap}
+.tl{overflow-x:auto}
+.tl svg{display:block;min-width:620px}
+.tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:2px;border:1px solid currentColor}
+.g{color:var(--gold)}.s{color:var(--stun)}.f{color:var(--fan)}.d{color:var(--danger)}
+ul{margin:0;padding-left:18px}li{margin:2px 0}
+button{font-family:var(--mono);background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:4px 10px;border-radius:3px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--gold)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>REVOLVER // REWORK MOCKUP</h1>
+    <p class="sub">Single-action Revolver: one click fires, the next click pulls the hammer back (a quick 0.15 s pull). Fire rate is your click speed. Alt switches to the <b>Fan stance</b>: click to Pistol Whip, click again to Fan the Hammer. Holding parry and clicking also fans; tapping parry resets the combo to the whip.</p>
+    <p class="note">Approximate HTML mockup to try the feel; the in-game look would reuse the existing Revolver and Pistol Whip draw code.</p>
+  </header>
+
+  <section>
+    <div class="stage"><canvas id="cv" width="960" height="520" aria-label="Playable revolver mockup"></canvas></div>
+    <div class="keys" style="margin-top:8px">
+      <span><kbd>WASD</kbd> move</span><span><kbd>Mouse</kbd> aim</span><span><kbd>Left click</kbd> fire / cock / whip</span>
+      <span><kbd>E</kbd> Alt: switch stance</span><span>hold <kbd>Right click</kbd> or <kbd>Space</kbd> parry (+ click = fan)</span>
+      <button id="reset" type="button">Reset dummies</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Inputs</h2>
+    <div class="tl">
+      <svg viewBox="0 0 640 210" aria-label="Clicks in both stances">
+        <g font-family="IBM Plex Mono, monospace" font-size="11">
+          <text x="0" y="14" fill="#7d8b83">GUNSLINGER (default): every click alternates</text>
+          <!-- clicks -->
+          <g fill="#e8b44a"><rect x="0" y="24" width="10" height="26"/><rect x="170" y="24" width="10" height="26"/><rect x="290" y="24" width="10" height="26"/></g>
+          <g fill="#8a958e"><rect x="80" y="30" width="10" height="14"/><rect x="230" y="30" width="10" height="14"/><rect x="350" y="30" width="10" height="14"/></g>
+          <text x="0" y="66" fill="#e8b44a">FIRE</text><text x="74" y="66" fill="#8a958e">COCK</text><text x="164" y="66" fill="#e8b44a">FIRE</text><text x="224" y="66" fill="#8a958e">COCK</text><text x="284" y="66" fill="#e8b44a">FIRE</text><text x="344" y="66" fill="#8a958e">COCK</text>
+          <text x="400" y="42" fill="#d9e4dc">click faster → shoot faster</text>
+          <text x="400" y="58" fill="#7d8b83">each pull takes 0.15 s</text>
+
+          <text x="0" y="100" fill="#7d8b83">FAN STANCE (Alt)</text>
+          <rect x="0" y="110" width="60" height="26" fill="#7ec8ff"/><text x="6" y="128" fill="#0b0d0c">WHIP</text>
+          <g fill="#ff9a3c"><rect x="70" y="110" width="5" height="26"/><rect x="82" y="110" width="5" height="26"/><rect x="94" y="110" width="5" height="26"/><rect x="106" y="110" width="5" height="26"/><rect x="118" y="110" width="5" height="26"/><rect x="130" y="110" width="5" height="26"/></g><text x="70" y="104" fill="#ff9a3c">click: FAN</text>
+          <rect x="170" y="142" width="180" height="8" fill="#d9e4dc" opacity=".35"/><text x="170" y="164" fill="#d9e4dc">or hold parry</text>
+          <g fill="#ff9a3c"><rect x="180" y="110" width="6" height="26"/><rect x="200" y="110" width="6" height="26"/><rect x="220" y="110" width="6" height="26"/><rect x="240" y="110" width="6" height="26"/><rect x="260" y="110" width="6" height="26"/><rect x="280" y="110" width="6" height="26"/></g>
+          <text x="180" y="104" fill="#ff9a3c">+ click: FAN any time</text>
+          <rect x="370" y="110" width="60" height="26" fill="#7ec8ff"/><text x="376" y="128" fill="#0b0d0c">WHIP</text>
+          <text x="440" y="128" fill="#7d8b83">tap parry after a whip: whip again</text>
+          <rect x="0" y="176" width="300" height="5" fill="#7ec8ff" opacity=".35"/><text x="0" y="200" fill="#7ec8ff">stun 1.0 s from the whip → fan hits stunned targets +25%</text>
+          
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <section class="cols">
+    <div class="card">
+      <h2>Numbers (proposed)</h2>
+      <table>
+        <tr><th>Move</th><th>Shape</th><th class="n">Dmg</th><th class="n">Timing</th></tr>
+        <tr><td class="g">Shot</td><td>fast round, perfectly aimed</td><td class="n">50</td><td class="n">click</td></tr>
+        <tr><td>Hammer pull</td><td>next click after a shot; a click during the pull is kept</td><td class="n">–</td><td class="n">0.15 s</td></tr>
+        <tr><td class="s">Pistol Whip</td><td>110° arc, 120 px, cuts small bullets</td><td class="n">24</td><td class="n">0.3 s</td></tr>
+        <tr><td class="s">&nbsp;└ stun</td><td>all hit (heavies 0.5 s, bosses no)</td><td class="n">–</td><td class="n">1.0 s</td></tr>
+        <tr><td class="f">Fan the Hammer</td><td>6 rounds, 30° cone, 280 px</td><td class="n">6 × 16</td><td class="n">0.07 s apart</td></tr>
+        <tr><td class="f">&nbsp;└ vs stunned</td><td>+25%</td><td class="n">6 × 20</td><td class="n"></td></tr>
+        <tr><td class="f">&nbsp;└ reload</td><td>after a full fan</td><td class="n">–</td><td class="n">1.2 s</td></tr>
+      </table>
+      <p class="note" style="margin-top:8px">At 4 clicks/s (2 shots/s) the shot does 100 DPS; at 6 clicks/s, 150. Today's Revolver ≈ 82. The pull (0.15 s) plus 0.08 s after a shot caps it at about 4.3 shots/s.</p>
+    </div>
+    <div class="card">
+      <h2>Rules</h2>
+      <ul>
+        <li><span class="tag g">Gunslinger</span> no cylinder, no auto-fire: holding does nothing. Clicks alternate FIRE and COCK; the hammer swings back over 0.15 s, and a click during the pull fires as soon as it's back.</li>
+        <li><span class="tag s">Whip</span> click in the Fan stance. Wide and forgiving; every enemy in the arc is stunned, so a tight pack all freezes.</li>
+        <li><span class="tag f">Fan</span> click again within 0.5 s of a whip, or hold parry and click at any time (the only time you can shoot with the parry up).</li>
+        <li><span class="tag d">Reset</span> tap parry after a whip and the combo goes back to the start: your next click is another Whip. Parry during a click-started fan cuts the rest.</li>
+        <li>The shield stays up while you fan, so you block bullets in front while firing; the 1.2 s fan reload stops that being a permanent wall.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+(()=>{
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const W=960,H=520;
+const C={gold:'#e8b44a',danger:'#e8574a',stun:'#7ec8ff',fan:'#ff9a3c',ink:'#d9e4dc',dim:'#7d8b83',line:'#1c2420'};
+const T={cock:0.15,fireRec:0.08,link:0.5,shot:50,whipSwing:0.18,whipRecover:0.12,whipArc:110*Math.PI/180,whipR:120,stun:1.0,fanN:6,fanGap:0.07,fanCone:30*Math.PI/180,fanR:280,fanDmg:16,fanStunMul:1.25,fanReload:1.2,whipDmg:24,swap:0.2};
+let P,dummies,shots,fx,floaters,keys={},mouse={x:W*0.7,y:H/2},t=0,eb=[],shake=0,shotLog=[],dmgLog=[];
+function reset(){
+  P={x:220,y:H/2,aim:0,stance:'gun',cocked:true,cocking:false,buffered:false,act:0,fanByParry:false,swap:0,combo:'idle',ct:0,fanLeft:0,fanNext:0,fanAim:0,fanReload:0,
+     guardR:false,guardK:false,whipAim:0,whipped:false};
+  dummies=[];
+  [[560,230],[590,260],[565,290],[610,215],[620,300]].forEach(([x,y])=>dummies.push(mk(x,y)));
+  dummies.push(mk(780,140),mk(800,400),mk(420,420));
+  shots=[];fx=[];floaters=[];eb=[];shotLog=[];dmgLog=[];
+}
+function mk(x,y){return{x,y,hp:300,max:300,stun:0,flash:0,bx:x,by:y,shoot:Math.random()*2}}
+reset();
+document.getElementById('reset').onclick=reset;
+const guard=()=>P.guardR||P.guardK;
+function pos(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
+cv.addEventListener('pointermove',e=>{Object.assign(mouse,pos(e))});
+cv.addEventListener('pointerdown',e=>{Object.assign(mouse,pos(e));if(e.button===2){P.guardR=true;guardDown()}else press();e.preventDefault()});
+addEventListener('pointerup',e=>{if(e.button===2){P.guardR=false;guardUp()}});
+cv.addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k===' '&&document.activeElement&&document.activeElement.tagName==='BUTTON')return;keys[k]=true;
+  if(k==='e'&&!e.repeat)swap();if(k===' '){e.preventDefault();if(!e.repeat){P.guardK=true;guardDown()}}});
+addEventListener('keyup',e=>{const k=e.key.toLowerCase();keys[k]=false;if(k===' '){P.guardK=false;guardUp()}});
+addEventListener('blur',()=>{keys={};P.guardR=P.guardK=false;guardUp()});
+
+function swap(){P.stance=P.stance==='gun'?'fan':'gun';P.swap=T.swap;P.combo='idle';P.fanLeft=0;
+  float(P.x,P.y-34,P.stance==='gun'?'GUNSLINGER':'FAN STANCE',P.stance==='gun'?C.gold:C.fan)}
+function guardDown(){
+  if(P.stance!=='fan')return;
+  if(P.combo==='link'||(P.combo==='whip'&&P.whipped)){P.combo='idle';float(P.x,P.y-34,'COMBO RESET',C.stun)}
+  else if(P.combo==='fan'&&!P.fanByParry&&P.fanLeft>0){P.combo='idle';P.fanLeft=0;P.fanReload=T.fanReload*0.5;float(P.x,P.y-34,'FAN CANCELLED',C.danger)}
+}
+function guardUp(){}
+function press(){
+  if(P.swap>0)return;
+  if(P.stance==='gun'){
+    if(guard())return;
+    if(P.cocking){P.buffered=true;return}
+    if(P.act>0)return;
+    if(P.cocked){fire();P.cocked=false;P.act=T.fireRec}
+    else{P.cocking=true;P.act=T.cock;fx.push({k:'cock',x:P.x,y:P.y,t:0,d:0.2})}
+  }else{
+    if(guard()){ if(P.combo!=='fan'&&P.fanReload<=0&&(P.combo!=='whip'||P.whipped))startFan(true); }
+    else if(P.combo==='idle')whip();
+    else if(P.combo==='link'){ if(P.fanReload<=0)startFan(false); else whip(); }
+  }
+}
+function fire(){
+  const a=P.aim;shots.push({x:P.x+Math.cos(a)*22,y:P.y+Math.sin(a)*22,vx:Math.cos(a)*1100,vy:Math.sin(a)*1100,dmg:T.shot,life:0.6,big:true});
+  fx.push({k:'flash',x:P.x+Math.cos(a)*24,y:P.y+Math.sin(a)*24,t:0,d:0.12});shake=4;shotLog.push(t);
+}
+function whip(){P.combo='whip';P.ct=0;P.whipped=false;P.whipAim=P.aim}
+function doWhipHit(){
+  let n=0;
+  for(const d of dummies){const dx=d.x-P.x,dy=d.y-P.y,r=Math.hypot(dx,dy);
+    if(r<T.whipR+14&&Math.abs(ang(Math.atan2(dy,dx)-P.whipAim))<T.whipArc/2+0.15){hit(d,T.whipDmg,C.stun);d.stun=T.stun;d.x+=dx/r*14;d.y+=dy/r*14;n++}}
+  for(const b of eb)if(Math.hypot(b.x-P.x,b.y-P.y)<T.whipR&&Math.abs(ang(Math.atan2(b.y-P.y,b.x-P.x)-P.whipAim))<T.whipArc/2)b.dead=true;
+  fx.push({k:'whip',x:P.x,y:P.y,a:P.whipAim,t:0,d:0.25});
+  if(n)float(P.x+Math.cos(P.whipAim)*70,P.y+Math.sin(P.whipAim)*70-20,n>1?'STUN x'+n:'STUN',C.stun);
+  shake=n?6:2;
+}
+function startFan(byParry){P.combo='fan';P.fanByParry=byParry;P.fanLeft=T.fanN;P.fanNext=0;P.fanAim=P.aim}
+function fanShot(){
+  const i=T.fanN-P.fanLeft,a=P.fanAim+(i/(T.fanN-1)-0.5)*T.fanCone+(Math.random()-0.5)*0.08;
+  shots.push({x:P.x+Math.cos(a)*22,y:P.y+Math.sin(a)*22,vx:Math.cos(a)*1000,vy:Math.sin(a)*1000,dmg:T.fanDmg,life:T.fanR/1000,fan:true});
+  fx.push({k:'flash',x:P.x+Math.cos(a)*24,y:P.y+Math.sin(a)*24,t:0,d:0.07,small:true});shake=3;
+}
+function hit(d,dmg,col){d.hp-=dmg;d.flash=0.12;dmgLog.push([t,dmg]);float(d.x+(Math.random()-.5)*14,d.y-24,String(Math.round(dmg)),col);if(d.hp<=0){d.hp=d.max;d.x=d.bx;d.y=d.by}}
+function float(x,y,s,c){floaters.push({x,y,s,c,t:0})}
+function ang(a){while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a}
+
+let last=performance.now();
+function step(now){
+  const dt=Math.min(0.033,(now-last)/1000);last=now;t+=dt;
+  let mx=(keys.d?1:0)-(keys.a?1:0),my=(keys.s?1:0)-(keys.w?1:0),m=Math.hypot(mx,my)||1;
+  const sp=(guard()?0.7:1)*190;
+  P.x=Math.max(20,Math.min(W-20,P.x+mx/m*sp*dt));P.y=Math.max(20,Math.min(H-20,P.y+my/m*sp*dt));
+  P.aim=Math.atan2(mouse.y-P.y,mouse.x-P.x);
+  P.swap=Math.max(0,P.swap-dt);P.act=Math.max(0,P.act-dt);
+  if(P.cocking&&P.act<=0){P.cocking=false;P.cocked=true;if(P.buffered&&!guard()){P.buffered=false;fire();P.cocked=false;P.act=T.fireRec}P.buffered=false}P.fanReload=Math.max(0,P.fanReload-dt);
+  if(P.stance==='fan'){
+    P.ct+=dt;
+    if(P.combo==='whip'){if(!P.whipped&&P.ct>=T.whipSwing*0.6){P.whipped=true;doWhipHit()}if(P.ct>=T.whipSwing){P.combo='link';P.ct=0}}
+    else if(P.combo==='link'){if(P.ct>=T.link)P.combo='idle'}
+    else if(P.combo==='fan'){P.fanNext-=dt;while(P.fanLeft>0&&P.fanNext<=0){fanShot();P.fanLeft--;P.fanNext+=T.fanGap}if(P.fanLeft===0){P.combo='idle';P.fanReload=T.fanReload}}
+  }
+  for(const s of shots){s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt;
+    for(const d of dummies){if(!s.dead&&Math.hypot(d.x-s.x,d.y-s.y)<16){hit(d,s.dmg*(s.fan&&d.stun>0?T.fanStunMul:1),s.fan?C.fan:C.gold);s.dead=true;
+      fx.push({k:'spark',x:s.x,y:s.y,t:0,d:0.15,c:s.fan?C.fan:C.gold})}}}
+  shots=shots.filter(s=>!s.dead&&s.life>0);
+  for(const d of dummies){d.flash=Math.max(0,d.flash-dt);
+    if(d.stun>0)d.stun-=dt;else{d.x+=(d.bx-d.x)*dt*1.5;d.y+=(d.by-d.y)*dt*1.5;d.shoot-=dt;
+      if(d.shoot<=0){d.shoot=2.5+Math.random()*2;const a=Math.atan2(P.y-d.y,P.x-d.x);eb.push({x:d.x,y:d.y,vx:Math.cos(a)*170,vy:Math.sin(a)*170,life:4})}}}
+  for(const b of eb){b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;const r=Math.hypot(b.x-P.x,b.y-P.y);
+    if(r<26&&guard()&&Math.abs(ang(Math.atan2(b.y-P.y,b.x-P.x)-P.aim))<1.3){b.dead=true;fx.push({k:'spark',x:b.x,y:b.y,t:0,d:0.2,c:C.ink})}
+    else if(r<12){b.dead=true;fx.push({k:'spark',x:b.x,y:b.y,t:0,d:0.2,c:C.danger})}}
+  eb=eb.filter(b=>!b.dead&&b.life>0);
+  for(const f of fx)f.t+=dt;fx=fx.filter(f=>f.t<f.d);
+  for(const f of floaters){f.t+=dt;f.y-=28*dt}floaters=floaters.filter(f=>f.t<0.9);
+  shotLog=shotLog.filter(x=>t-x<2);dmgLog=dmgLog.filter(x=>t-x[0]<2);
+  shake*=0.85;draw();requestAnimationFrame(step);
+}
+function draw(){
+  ctx.save();ctx.setTransform(1,0,0,1,(Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  ctx.fillStyle='#070908';ctx.fillRect(-10,-10,W+20,H+20);
+  ctx.strokeStyle=C.line;ctx.lineWidth=1;for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  ctx.save();ctx.translate(P.x,P.y);
+  if(P.stance==='fan'){
+    const a=P.combo==='fan'?P.fanAim:P.aim, g=guard();
+    ctx.globalAlpha=g?0.06:0.18;ctx.fillStyle=C.stun;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,T.whipR,a-T.whipArc/2,a+T.whipArc/2);ctx.fill();
+    ctx.globalAlpha=(g||P.combo==='link')&&P.fanReload<=0?0.24:0.06;ctx.fillStyle=C.fan;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,T.fanR,a-T.fanCone/2,a+T.fanCone/2);ctx.fill();
+  }else{
+    ctx.rotate(P.aim);ctx.strokeStyle=C.gold;ctx.globalAlpha=P.cocked?0.3:0.1;ctx.setLineDash([4,6]);ctx.beginPath();ctx.moveTo(26,0);ctx.lineTo(420,0);ctx.stroke();ctx.setLineDash([]);
+  }
+  ctx.globalAlpha=1;ctx.restore();
+  for(const b of eb){ctx.fillStyle=C.danger;ctx.beginPath();ctx.arc(b.x,b.y,5,0,7);ctx.fill()}
+  for(const d of dummies){
+    ctx.fillStyle=d.flash>0?'#fff':'#3a4540';ctx.strokeStyle=d.stun>0?C.stun:'#5b6a62';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(d.x,d.y,15,0,7);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#1a201d';ctx.fillRect(d.x-16,d.y+20,32,4);ctx.fillStyle=C.danger;ctx.fillRect(d.x-16,d.y+20,32*d.hp/d.max,4);
+    if(d.stun>0){ctx.strokeStyle=C.stun;ctx.lineWidth=2;ctx.beginPath();ctx.arc(d.x,d.y,21,-Math.PI/2,-Math.PI/2+2*Math.PI*d.stun/T.stun);ctx.stroke();
+      ctx.fillStyle=C.stun;ctx.font='14px VT323, monospace';for(let i=0;i<3;i++){const a=t*5+i*2.1;ctx.fillText('*',d.x+Math.cos(a)*12-3,d.y-22+Math.sin(a)*4)}}
+  }
+  for(const f of fx){const k=f.t/f.d;
+    if(f.k==='whip'){ctx.save();ctx.translate(f.x,f.y);ctx.globalAlpha=1-k;ctx.strokeStyle=C.stun;ctx.lineWidth=10*(1-k)+2;
+      ctx.beginPath();ctx.arc(0,0,T.whipR*0.8,f.a-T.whipArc/2,f.a-T.whipArc/2+T.whipArc*Math.min(1,k*3));ctx.stroke();
+      ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,T.whipR,f.a-T.whipArc/2,f.a+T.whipArc/2);ctx.stroke();ctx.restore()}
+    if(f.k==='flash'){ctx.globalAlpha=1-k;ctx.fillStyle=f.small?C.fan:C.gold;ctx.beginPath();ctx.arc(f.x,f.y,(f.small?8:14)*(1-k*0.5),0,7);ctx.fill();ctx.globalAlpha=1}
+    if(f.k==='spark'){ctx.globalAlpha=1-k;ctx.strokeStyle=f.c;ctx.lineWidth=2;ctx.beginPath();ctx.arc(f.x,f.y,4+k*14,0,7);ctx.stroke();ctx.globalAlpha=1}
+    if(f.k==='cock'){ctx.globalAlpha=1-k;ctx.fillStyle=C.ink;ctx.font='16px VT323, monospace';ctx.textAlign='center';ctx.fillText('click',P.x,P.y-24-k*8);ctx.textAlign='left';ctx.globalAlpha=1}
+  }
+  for(const s of shots){ctx.strokeStyle=s.fan?C.fan:C.gold;ctx.lineWidth=s.big?4:2.5;ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(s.x-s.vx*0.022,s.y-s.vy*0.022);ctx.stroke()}
+  // player + gun
+  ctx.save();ctx.translate(P.x,P.y);
+  ctx.fillStyle='#2c3a33';ctx.strokeStyle=P.stance==='gun'?C.gold:C.fan;ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,13,0,7);ctx.fill();ctx.stroke();
+  let ga=P.aim,kick=0;
+  if(P.combo==='whip'){ga=P.whipAim-T.whipArc/2+T.whipArc*Math.min(1,P.ct/T.whipSwing)}
+  if(P.stance==='gun'&&!P.cocked&&!P.cocking&&P.act>0)kick=-6;
+  ctx.rotate(ga);ctx.fillStyle='#b9c4bd';ctx.fillRect(10+kick,-3,20,6);ctx.fillStyle='#6d5a3a';ctx.fillRect(8+kick,-2,6,9);
+  if(P.stance==='gun'){ctx.save();ctx.translate(12+kick,-3);const ck=P.cocked?1:P.cocking?1-P.act/T.cock:0;ctx.rotate(-0.15-1.05*ck);ctx.fillStyle=P.cocked?C.gold:'#8a958e';ctx.fillRect(-1.5,-8,4,8);ctx.restore()}
+  ctx.restore();
+  if(guard()){ctx.save();ctx.translate(P.x,P.y);ctx.strokeStyle=P.stance==='fan'?C.fan:C.ink;ctx.globalAlpha=0.8;ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,26,P.aim-1.2,P.aim+1.2);ctx.stroke();ctx.restore()}
+  // under-player HUD
+  ctx.font='16px VT323, monospace';ctx.textAlign='center';
+  if(P.stance==='gun'){ctx.fillStyle=P.cocked?C.gold:C.dim;ctx.fillText(P.cocked?'CLICK: FIRE':P.cocking?'PULLING...':'CLICK: COCK',P.x,P.y+38)}
+  else{
+    if(P.fanReload>0){ctx.strokeStyle=C.fan;ctx.lineWidth=3;ctx.beginPath();ctx.arc(P.x,P.y,32,-Math.PI/2,-Math.PI/2+2*Math.PI*(1-P.fanReload/T.fanReload));ctx.stroke()}
+    ctx.fillStyle=guard()?C.fan:C.stun;
+    ctx.fillStyle=(guard()||P.combo==='link')?C.fan:C.stun;
+    ctx.fillText(P.fanReload>0&&(guard()||P.combo==='link')?'FAN RELOADING':guard()?'CLICK: FAN':P.combo==='link'?'CLICK: FAN  ·  PARRY: RESET':'CLICK: WHIP',P.x,P.y+46);
+  }
+  ctx.textAlign='left';
+  for(const f of floaters){ctx.globalAlpha=1-f.t/0.9;ctx.fillStyle=f.c;ctx.font='20px VT323, monospace';ctx.textAlign='center';ctx.fillText(f.s,f.x,f.y);ctx.textAlign='left';ctx.globalAlpha=1}
+  // corner HUD
+  ctx.fillStyle=P.stance==='gun'?C.gold:C.fan;ctx.font='26px VT323, monospace';ctx.fillText(P.stance==='gun'?'GUNSLINGER':'FAN STANCE',16,30);
+  ctx.fillStyle=C.dim;ctx.font='16px VT323, monospace';
+  ctx.fillText(P.stance==='gun'?'click fires, next click pulls the hammer (0.15 s)  ·  E: fan stance':'click: whip → click: fan  ·  parry + click: fan  ·  parry: reset combo  ·  E: gunslinger',16,50);
+  const dps=dmgLog.reduce((s,x)=>s+x[1],0)/2;
+  ctx.textAlign='right';ctx.fillStyle=C.ink;ctx.font='22px VT323, monospace';
+  ctx.fillText('DPS '+Math.round(dps),W-16,30);ctx.fillStyle=C.dim;ctx.font='16px VT323, monospace';ctx.fillText('shots/s '+(shotLog.length/2).toFixed(1),W-16,50);ctx.textAlign='left';
+  ctx.restore();
+}
+requestAnimationFrame(step);
+})();
+</script>

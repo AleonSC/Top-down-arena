@@ -96,7 +96,7 @@
 # DOUBLEBARREL=<s> (the Soldier DPS Double Barrel that long into a fight: fire held at three dummies in a line; DBBOTH=1 Alt both barrels at 0.3 s; DBIDLE=1 not firing; mode hud; DoubleBarrelLook.cs).
 # STATICSHOCK=<s> (the Healer Elementalist's Static Shock that long into a fight: fire held at a pack, a teammate in the cone gets Overcharge; SSALT=1 the Arc Cannon at 0.1 s through a teammate; SSHEAT=<s> every enemy already that long in the cone (the ramp); mode hud, 3 players; StaticShockLook.cs).
 # TWINPISTOLS=<s> (the Healer Soldier Twin Pistols that long into a fight: fire held at a pack 260 px ahead; TPLASER=1 Alt (Laser Sights) at 0.1 s; TPIDLE=1 not firing; TwinPistolsLook.cs).
-# WHIP=<s> (the Revolver's Pistol Whip that long into a fight: grunts and enemy shots in front, Alt at 0.1 s; WHIPIDLE=1 no press; mode hud; PistolWhipLook.cs).
+# WHIP=<s> (the Revolver's Fan stance that long into a fight: grunts and enemy shots in front, a click (the whip) at 0.1 s; WHIPIDLE=1 no click; WHIPFAN=1 a second click (the fan) at 0.3 s; mode hud; PistolWhipLook.cs).
 # UNDERTOW=<meter>,<s held> (the Repulsion Cannon's Undertow meter, and its pull held that long on a pack of grunts; mode hud).
 # TWINNADES=<loaded>,<next tube 0/1>,<charge> (the Twin Rifle's grenade tubes and pips; with CAST=Airstrike CASTT=<s> for the Airstrike).
 # JUGG=<s since cast> JUGGARMOR=<0-1> (the Tank Soldier's Juggernaut Suit: plates, armour bar, flak tracers; mode hud).

@@ -11,17 +11,12 @@ namespace Arena
             * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f) * (p.SurgeT > 0f ? 1f + p.Stats.SurgeRate : 1f)  // Arcane Surge
             * (OverclockOn(p) ? OverclockMult : 1f);  // an Overclock Chip (Gadgets.cs)
 
-        /// spread: each shot lands somewhere within this many radians of your aim (fanning the hammer).
+        /// spread: each shot lands somewhere within this many radians of your aim.
         void FirePlayer(Player p, float spread = 0f)
         {
             // Each extra projectile (Multishot, Artillery Assault) upgrades the weapon in its own way.
             int extra = ExtraShots(p);
             FireFanned(p, p.Aim + (spread > 0f ? Rand(-spread, spread) : 0f), extra);
-            if (p.Weapon.Id == WeaponId.Revolver)
-            {
-                p.AmmoUsed++;  // fanned copies come free with the round
-                p.ReloadIdle = 0f;
-            }
             if (p.Weapon.Id == WeaponId.TwinPistols)
                 TwinPistolsFired(p);  // the other gun's turn, or Laser Sights' clock (TwinPistols.cs)
             if (p.Weapon.Id == WeaponId.RiotRepeater && extra > 0)
@@ -169,18 +164,14 @@ namespace Arena
         public int ExtraShots(Player p) => p.Stats.ExtraShots + (Storming(p) ? (Mastered(p, AbilityId.ArtilleryAssault) ? 4 : 2) : 0)
             + (p.OverdriveT > 0f && Mastered(p, AbilityId.Overdrive) ? 1 : 0);
 
-        // --- Revolver (the Healer's Pistol) -------------------------------------------
+        // --- Revolver (the Healer's Pistol): a single-action gun ------------------------------------------------------
 
-        public const int RevolverCylinder = 6;
-        public const float RevolverReload = 1.2f;
-        const float RevolverTopUpDelay = 0.8f;  // stop shooting this long and it starts sliding rounds back in...
-        const float RevolverTopUpEach = 0.25f;  // ...one at a time (shooting stops it; it never locks you out)
+        public const float RevCock = 0.15f;     // a click after a shot pulls the hammer back over this long...
+        public const float RevShotRecover = 0.08f;  // ...and a shot holds the gun this long before the next click counts
+        const float RevBotClick = 0.25f;        // a bot holding Fire clicks this often (four clicks a second: two shots)
 
-        /// Six rounds, plus two per extra projectile.
-        public int RevolverCapacity(Player p) => RevolverCylinder + 2 * ExtraShots(p);
-
-        /// The last rounds in the cylinder are heavy (double damage): one, plus two per extra projectile.
-        public int RevolverHeavy(Player p) => 1 + 2 * ExtraShots(p);
+        /// How long the hammer takes to come back (fire-rate upgrades and Hot Lead shorten it).
+        public float RevCockTime(Player p) => RevCock / FireRate(p) * p.Stats.RevolverCockMult;
 
         // --- Mender's Bow: hold to draw, release to fire ----------------------------------
 
@@ -254,81 +245,52 @@ namespace Arena
             return release;
         }
 
-        const float FanDelay = 0.2f;      // hold the trigger this long and you start fanning the hammer
-        const float FanInterval = 0.07f;  // fanned rounds come this fast...
-        const float FanSpread = 0.087f;   // ...each within 5 degrees either side of your aim (a 10 degree arc)
-
-        /// Tap to fire single aimed rounds (Weapon.FireInterval apart); hold to fan the hammer and empty
-        /// the cylinder in a quick, imprecise burst. Keep holding and it fans again once it's reloaded.
+        /// The Revolver's trigger, both stances. Gunslinger: every click alternates between firing (a hard, perfectly aimed
+        /// round) and pulling the hammer back (RevCock), so it shoots as fast as you click; a click that comes while the gun
+        /// is busy is kept and used the moment it can be. The Fan stance's clicks are the Pistol Whip and Fan the Hammer
+        /// (PistolWhip.cs). A bot holding Fire clicks every RevBotClick.
         void RevolverTrigger(Player p, float dt)
         {
             bool pressed = p.Firing && !p.WasFiring;
             p.WasFiring = p.Firing;
-            if (!p.Firing)
+            if (p.IsBot)
             {
-                p.HeldT = 0f;
-                p.Fanning = false;
+                p.RevBotClick -= dt;
+                pressed = p.Firing && p.RevBotClick <= 0f;
+                if (pressed)
+                    p.RevBotClick = RevBotClick;
             }
-            else
-                p.HeldT += dt;
-            p.TapQueued |= pressed;
-            if (p.ParryActive || p.ReloadT > 0f || State == MatchState.GameOver)
-                return;
-            if (p.Firing && p.HeldT >= FanDelay && !p.Fanning)
+            if (p.RevCockT > 0f)
             {
-                p.Fanning = true;
-                p.FireCd = Math.Min(p.FireCd, 0f);  // the hammer goes right away, whatever the tap timer says
-            }
-            if (p.Fanning)
-            {
-                if (p.FireCd <= 0f)
+                p.RevCockT -= dt;
+                if (p.RevCockT <= 0f)
                 {
-                    p.FireCd = FanInterval / FireRate(p);
-                    p.TapQueued = false;
-                    FirePlayer(p, FanSpread);
+                    p.RevCockT = 0f;
+                    p.RevCocked = true;
                 }
             }
-            else if (p.TapQueued && p.FireCd <= 0f)
+            p.TapQueued |= pressed;
+            if (p.RevStance == 1)
             {
-                p.FireCd = p.Weapon.FireInterval / FireRate(p);
-                p.TapQueued = false;
+                RevFanStance(p, dt);  // PistolWhip.cs
+                return;
+            }
+            if (!p.TapQueued || p.FireCd > 0f || p.RevCockT > 0f || p.Downed || p.StunT > 0f || State == MatchState.GameOver)
+                return;
+            if (p.ParryActive)
+            {
+                p.TapQueued = false;  // (can't shoot behind the shield)
+                return;
+            }
+            p.TapQueued = false;
+            if (p.RevCocked)
+            {
+                p.RevCocked = false;
+                p.FireCd = RevShotRecover / FireRate(p);
                 FirePlayer(p);
             }
-        }
-
-        void TickRevolver(Player p, float dt)
-        {
-            if (p.ReloadT > 0f)
-            {
-                p.ReloadT -= dt;
-                if (p.ReloadT <= 0f)
-                {
-                    p.ReloadT = 0f;
-                    p.AmmoUsed = 0;
-                }
-                return;
-            }
-            int cap = RevolverCapacity(p);
-            if (p.AmmoUsed >= cap)
-            {
-                // Empty: a full reload, which you have to wait out.
-                p.ReloadT = RevolverReload / p.Stats.FireRateMult * p.Stats.RevolverReloadMult;  // (Hot Lead: faster)
-                p.ReloadIdle = 0f;
-                Sounds.Add(Sfx.Pick);
-                return;
-            }
-            if (p.Firing || p.AmmoUsed == 0)
-            {
-                p.ReloadIdle = 0f;
-                return;
-            }
-            // Not shooting: top the cylinder up a round at a time.
-            p.ReloadIdle += dt;
-            if (p.ReloadIdle >= RevolverTopUpDelay + RevolverTopUpEach / p.Stats.FireRateMult)
-            {
-                p.AmmoUsed--;
-                p.ReloadIdle = RevolverTopUpDelay;
-            }
+            else
+                p.RevCockT = RevCockTime(p);
         }
 
         /// One shot of the player's weapon, upgraded by `extra` extra projectiles.
@@ -381,10 +343,10 @@ namespace Arena
                     break;
                 case WeaponId.Revolver:
                 {
-                    // Revolver: a perfectly accurate round; the last ones in the cylinder are heavy.
-                    int left = RevolverCapacity(p) - p.AmmoUsed;  // FirePlayer uses up the round
-                    bool heavy = left <= RevolverHeavy(p);
-                    SpawnBullet(Defs.HealerShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * (heavy ? 2f + p.Stats.HeavyRoundBonus : 1f) * dmg, p.Id).Radius = (heavy ? 6f : 4.5f) * p.Stats.ShotSizeMult;  // Magnum Rounds
+                    // Revolver: one hard, perfectly accurate round; each extra projectile lets it go through one more enemy.
+                    var rb = SpawnBullet(Defs.HealerShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * (1f + p.Stats.RevolverShotBonus) * dmg, p.Id);  // (Hot Lead: harder)
+                    rb.Radius = 6f * p.Stats.ShotSizeMult;  // Magnum Rounds
+                    rb.Pierce += extra;
                     break;
                 }
                 case WeaponId.MendersBow:

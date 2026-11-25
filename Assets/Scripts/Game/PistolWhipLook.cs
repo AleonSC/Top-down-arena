@@ -5,8 +5,7 @@ namespace Arena
     /// The Revolver's Pistol Whip (Core/PistolWhip.cs), drawn from its FxKind.PistolWhip's age:
     ///   - the swing: a brass crescent across the arc, thick at the gun and thinning behind it, with sparks off the edge;
     ///   - the hand: the right hand swings the gun from your right side across to your left (WhipHandPose, for the model),
-    ///     then eases back to aiming;
-    ///   - the cooldown: a short arc over your head filling up while it recovers (DrawWhipReady).
+    ///     then eases back to aiming.
     public partial class ArenaApp
     {
         const float WhipRecover = 0.22f;
@@ -83,22 +82,6 @@ namespace Arena
             float hx = Mathf.Cos(a) * 21f, hy = Mathf.Sin(a) * 21f;
             rhx += (hx - rhx) * mix; rhy += (hy - rhy) * mix;
             rot = (a - 0.6f) * mix;  // the gun turned a little behind the swing, the butt leading
-        }
-
-        /// Over your head while the whip recovers: a short arc filling up (gone once it's ready).
-        void DrawWhipReady(Player p)
-        {
-            var last = WhipOf(p.Id);
-            if (last == null)
-                return;
-            float r = p.Def.BodyR + 13f, span = 1.1f, a0 = -MathX.Pi / 2f - span / 2f;
-            float left = Game.WhipCd - last.T;
-            if (left > 0f)
-            {
-                float f = 1f - Mathf.Clamp01(left / Game.WhipCd);
-                Arc(p.Disp, r, 2.5f, new Rgba(1f, 1f, 1f, 0.15f), 16, a0, span);
-                Arc(p.Disp, r, 2.5f, Game.WhipColor.WithAlpha(0.6f), 16, a0, span * f);
-            }
         }
     }
 }

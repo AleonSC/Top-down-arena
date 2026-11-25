@@ -123,8 +123,8 @@ namespace Arena
                     return !late && e != null && v.InReach && me.TpCd <= 0f && Tap(e.Def.IsBoss || EnemiesNear(e.Pos, 140f) >= 3, 1f);
                 case WeaponId.MendersBow:  // Scatter: a crowd in front, not mid-draw
                     return !late && e != null && v.ShootD < ScatterReach * 0.8f && bowDraw < 0f && Tap(EnemiesAhead(me, ScatterReach * 0.8f, ScatterFan * 0.5f) >= 3, ScatterCd);
-                case WeaponId.Revolver:  // Pistol Whip: bullets on top of you, or something in your face
-                    return !late && Tap(v.Incoming >= 2 || e != null && v.ShootD < 110f, WhipCd);
+                case WeaponId.Revolver:  // the Fan stance with something in your face, the Gunslinger otherwise (PistolWhip.cs)
+                    return !late && Tap(me.RevStance == 1 ? e == null || v.ShootD > 220f : e != null && v.ShootD < 130f, 0.8f);  // (in close, out past 220 px)
                 case WeaponId.RepulsionCannon:  // Undertow: pull a spread-out group in, then let go and blast
                     if (botAltWas)
                         return botAltHoldT < 2f && me.RepelMeter > 5 && EnemiesAhead(me, 70f, 1f) == 0 && v.Incoming < 3;
