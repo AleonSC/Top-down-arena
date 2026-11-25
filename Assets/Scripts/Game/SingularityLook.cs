@@ -119,12 +119,19 @@ namespace Arena
                     float r = Game.DiskOrbR, a = (at - sing.Disp).Angle;
                     for (int k = 4; k >= 1; k--)  // the trail, behind it along the ring
                         Circle(sing.Disp + V2.FromAngle(a - dir * k * (r * 0.55f) / rad) * rad, r * (1f - 0.17f * k), SingGold.WithAlpha(0.4f - 0.08f * k), 10);
-                    GlowDisc(at, r * 2.6f, SingGold, 0.35f);
-                    Circle(at, r, SingGold, 14);
-                    Arc(at, r * 0.72f, r * 0.32f, SingHot, 14);  // the hot rim
-                    Circle(at, r * 0.4f, new Rgba(0.12f, 0.04f, 0f, 0.9f), 10);  // a boss orb's dark core
+                    DrawEmberOrb(at, r);
                 }
             }
+        }
+
+        /// One of the disk's orbs (and the Eclipse's echo of it): a gold ember, a hot rim and the dark core every boss
+        /// orb has. Callers draw its trail first.
+        void DrawEmberOrb(V2 at, float r)
+        {
+            GlowDisc(at, r * 2.6f, SingGold, 0.35f);
+            Circle(at, r, SingGold, 14);
+            Arc(at, r * 0.72f, r * 0.32f, SingHot, 14);  // the hot rim
+            Circle(at, r * 0.4f, new Rgba(0.12f, 0.04f, 0f, 0.9f), 10);  // a boss orb's dark core
         }
 
         /// Under the core: the pull's rings (in during a pull, out during the white hole's push), the event horizon

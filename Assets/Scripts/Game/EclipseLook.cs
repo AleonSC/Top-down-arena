@@ -101,19 +101,26 @@ namespace Arena
                         Line(sun, tip, 10f, new Rgba(0.79f, 1f, 0.89f));
                     }
                 }
-            // The Singularity echo: its disk of orbs spinning out.
+            // The Singularity echo: its disk of orbs spinning out, gold embers like its Accretion disk (SingularityLook.cs),
+            // each trailing light back along the spiral it has come out on.
             if (s.DiskT >= 0f)
                 for (int k = 0; k < Game.DiskOrbs; k++)
                 {
-                    V2 o = Game.DiskOrbAt(sun, s.DiskT, k);
-                    Circle(o, Game.EchoDiskOrbR + 11f, new Rgba(0.75f, 0.47f, 1f, 0.2f), 16);
-                    Circle(o, Game.EchoDiskOrbR, new Rgba(0.84f, 0.69f, 1f), 16);
-                    Circle(o, Game.EchoDiskOrbR * 0.45f, new Rgba(0.1f, 0.02f, 0.15f), 10);
+                    for (int j = 4; j >= 1; j--)
+                        if (s.DiskT - j * 0.05f >= 0f)
+                            Circle(Game.DiskOrbAt(sun, s.DiskT - j * 0.05f, k), Game.EchoDiskOrbR * (1f - 0.17f * j), SingGold.WithAlpha(0.4f - 0.08f * j), 12);
+                    DrawEmberOrb(Game.DiskOrbAt(sun, s.DiskT, k), Game.EchoDiskOrbR);
                 }
             // An echo: the borrowed boss as a faint gold-rimmed ghost above the sun.
             int sides;
             Rgba ghost;
-            if (EchoLook(s.Turn, out sides, out ghost))
+            if (s.Turn == EclipseTurn.EchoSingularity)  // its ghost is a lensed black hole, half there (SingularityLook.cs)
+            {
+                V2 at = sun + new V2(0f, -130f);
+                GlowDisc(at, 90f, SingGold, 0.12f);
+                DrawLensedHole(at, 26f, 1, 0.45f + 0.15f * Mathf.Sin(t * 4f), 0f, t * 1.2f, -0.25f + 0.3f * Mathf.Sin(t * 0.3f), 5);
+            }
+            else if (EchoLook(s.Turn, out sides, out ghost))
             {
                 float a = 0.35f + 0.15f * Mathf.Sin(t * 4f);
                 V2 at = sun + new V2(0f, -130f);
@@ -137,7 +144,6 @@ namespace Arena
                 case EclipseTurn.EchoColossus: sides = 8; col = new Rgba(0.85f, 0.63f, 0.4f); return true;
                 case EclipseTurn.EchoLich: sides = 7; col = new Rgba(0.43f, 1f, 0.69f); return true;
                 case EclipseTurn.EchoHerald: sides = 9; col = new Rgba(0.56f, 0.82f, 1f); return true;
-                case EclipseTurn.EchoSingularity: sides = 12; col = new Rgba(0.71f, 0.55f, 1f); return true;
                 default: sides = 0; col = SunGold; return false;
             }
         }
