@@ -164,16 +164,9 @@ namespace Arena
                 case ZoneKind.OssuaryWall:  // the Bone Guard's Alt (BoneGuardLook.cs)
                     DrawOssuaryWall(z, t);
                     return;
-                case ZoneKind.OfudaWard:  // an Ofuda charm lying on the ground: a paper strip with a red seal, glowing
-                {
-                    float pulse = 0.5f + 0.5f * Mathf.Sin(t * 4f + z.Id);
-                    Circle(z.Pos, z.Radius, c.WithAlpha(0.08f + 0.06f * pulse), 20);
-                    V2.Axes(0.3f + z.Id, out V2 u, out V2 s2);
-                    SetColor(new Rgba(0.98f, 0.95f, 0.85f));
-                    Quad(z.Pos - u * 9f - s2 * 4f, z.Pos + u * 9f - s2 * 4f, z.Pos + u * 9f + s2 * 4f, z.Pos - u * 9f + s2 * 4f);
-                    Circle(z.Pos, 2.5f, new Rgba(0.85f, 0.15f, 0.15f), 8);
-                    break;
-                }
+                case ZoneKind.BlastOfuda:  // a Blast Ofuda stuck to an enemy or lying lit, its fuse burning (OfudaLook.cs)
+                    DrawBlastOfuda(z, t);
+                    return;
                 case ZoneKind.Sanctum:  // a shining dome
                     if (fxOn)
                     {

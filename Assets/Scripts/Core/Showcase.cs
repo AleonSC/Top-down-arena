@@ -96,6 +96,7 @@ namespace Arena
                     : shown == AbilityId.LivingBolt ? Game.BoltChannel + Game.BoltTime + 1.5f  // (the trails fade before the next)
                     : shown == AbilityId.BloodRavager ? Game.RvTime + 1.5f  // (the legs fold away before the next)
                     : shown == AbilityId.ForbiddenPath ? Game.FpShed + Game.FpTime + 1.5f  // (the beast sheds back before the next)
+                    : shown == AbilityId.AstralProjection ? Game.ApTime + 1.5f  // (the spirit snaps back before the next)
                     : shown == AbilityId.RodentMinigun ? Game.RmTotal(Game.RmFull) + 1.5f  // (the portal closes before the next)
                     : shown == AbilityId.MammothFall ? Game.MfTotal(Game.MfRampage) + 1.5f  // (it has run off before the next)
                     : shown == AbilityId.SpiritAvatar ? Game.SpRise + Game.SpTime + 1.5f  // (it bursts before the next)
@@ -153,6 +154,8 @@ namespace Arena
             // The bow draws and lets go; everything else just holds the trigger.
             bool firing = !Idle && !demoAbility;  // an ability or ultimate demo shows just that: no trigger, no Alt
             input.Fire = firing && (!Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f);
+            if (me.Weapon.Id == WeaponId.Revolver)  // single-action: clicked, not held (a click fires, the next cocks it; PistolWhip.cs)
+                input.Fire = firing && MathX.Fmod(t, 0.25f) < 0.12f;
             if (me.Weapon.Id == WeaponId.GoreMortar)  // the Gore Mortar: held just long enough to lob the clot onto the dummies
             {
                 float c = MathX.Clamp01((Distance / me.Stats.ShotSpeedMult - Game.ClotMin) / (Game.ClotMax - Game.ClotMin));

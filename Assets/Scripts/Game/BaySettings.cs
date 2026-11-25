@@ -345,6 +345,10 @@ namespace Arena
             y = SetBar(y, w, "Teammate shots", "How solid other players' bullets look", ref mate, live, calm, 0.25f);
             if (Mathf.Abs(mate - mateShotAlpha) > 0.0001f)
                 SetMateShotAlpha(mate);
+            float sens = FpSensSetting;
+            y = SetBar(y, w, "First-person mouse", "How fast the mouse turns you in the F8 view", ref sens, live, calm, 0.05f);
+            if (Mathf.Abs(sens - FpSensSetting) > 0.0001f)
+                SetFpSens(sens);
             SetLabel(y, w, "Network port", "Hosting and joining (" + Session.DefaultPort + " unless changed)");
             var pr = new Rect(w - 80f, y + 8f, 80f, 26f);
             Ui.Fill(pr, CrtStyle.Ink.WithAlpha(0.08f));

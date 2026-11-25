@@ -334,13 +334,18 @@ namespace Arena
             Circle(b.Pos, b.Radius * 0.45f, new Rgba(1f, 1f, 1f, 0.9f), 8);
         }
 
-        /// The Ninja's thrown things: spinning stars, needles, knives, paper charms and gusts of wind.
+        /// The Ninja's thrown things: spinning stars, needles, knives, paper charms (OfudaLook.cs) and gusts of wind.
         /// The Ninja's shots (KitLook.Shot): false for any other kind.
         bool DrawNinjaShot(Bullet b, Rgba c, float t)
         {
             if (b.Kind == Defs.GreatStar)
             {
                 DrawGreatStarShot(b, t);  // the Shuriken's Great Star (GreatStarLook.cs)
+                return true;
+            }
+            if (b.Kind == Defs.OfudaShot || b.Kind == Defs.BlastOfudaShot)
+            {
+                DrawOfudaShot(b, t);  // the Ofuda's charms (OfudaLook.cs)
                 return true;
             }
             if (b.Kind < Defs.StarShot || b.Kind > Defs.FumaStar)
@@ -369,15 +374,6 @@ namespace Arena
                     SetColor(c);
                     Tri(b.Pos + dir * 7f, b.Pos + side * 3f, b.Pos - side * 3f);
                     break;
-                case Defs.OfudaShot:  // a paper charm fluttering along, glowing faintly
-                {
-                    Circle(b.Pos, b.Radius + 5f, c.WithAlpha(0.2f), 12);
-                    V2 s = side * (3.5f + 1.5f * Mathf.Sin(t * 14f + b.Id));
-                    SetColor(c);
-                    Quad(b.Pos - dir * 7f - s, b.Pos + dir * 7f - s, b.Pos + dir * 7f + s, b.Pos - dir * 7f + s);
-                    Line(b.Pos - side * 2.5f, b.Pos + side * 2.5f, 2f, new Rgba(0.9f, 0.2f, 0.2f));
-                    break;
-                }
                 default:  // GustShot: soft puffs of air
                     Circle(b.Pos, b.Radius, c.WithAlpha(0.18f), 12);
                     Arc(b.Pos, b.Radius * 0.7f, 1.5f, c.WithAlpha(0.45f), 10, b.Vel.Angle + t * 8f, 2f);

@@ -620,6 +620,13 @@ namespace Arena
                 s.Vec(ref p.FpAt);
                 s.Vec(ref p.FpFrom);
             }
+            s.Float(ref p.ApT);  // Astral Projection (AstralProjection.cs)
+            if (p.ApT > 0f)
+            {
+                s.Int(ref p.ApHost);
+                s.Vec(ref p.ApPos);
+            }
+            s.Float(ref p.ApLinkT);
             s.Float(ref p.RmT);  // Rodent Minigun (RodentMinigun.cs)
             if (p.RmT > 0f)
             {
@@ -1288,7 +1295,7 @@ namespace Arena
                 s.Vec(ref z.Origin);
                 s.Int(ref z.Side);
             }
-            if (z.Kind == ZoneKind.FieldHospital)  // who has used its shrine (FieldHospital.cs)
+            if (z.Kind == ZoneKind.FieldHospital || z.Kind == ZoneKind.BlastOfuda)  // who has used its shrine (FieldHospital.cs); the enemy a Blast Ofuda rides, 0 on the ground (Ofuda.cs)
                 s.Int(ref z.Side);
             if (s.Reading)
                 Zones[z.Id] = z;

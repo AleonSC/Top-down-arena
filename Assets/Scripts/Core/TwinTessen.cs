@@ -25,7 +25,7 @@ namespace Arena
     /// The look is Game/TwinTessenLook.cs; the fans' poses come from TtPose here.
     public partial class Game
     {
-        const byte DashTessenOn = 63, DashTessenOff = 64;
+        const byte DashTessenOn = 64, DashTessenOff = 65;
         public const int TtSteps = 5;
         public const float TtWindow = 0.7f, TtHitAt = 0.45f, TtSpinEcho = 0.8f;
         public static readonly float[] TtDur = { 0.2f, 0.2f, 0.24f, 0.36f, 0.4f };

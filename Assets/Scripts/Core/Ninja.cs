@@ -143,21 +143,8 @@ namespace Arena
                     break;
                 }
                 case WeaponId.Ofuda:
-                {
-                    int n = 1 + extra;
-                    // Each charm flies to your cursor (over enemies) and lies there as a ward (PlaceWard), fanned apart.
-                    // Velocity Rounds speed charms up (SpawnBullet) and reach farther, but they still land at the cursor.
-                    float fast = w.Speed * p.Stats.ShotSpeedMult;
-                    float far = Math.Min(WardRange * p.Stats.ShotSpeedMult * PierceReach(p), Math.Max(40f, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
-                    for (int i = 0; i < n; i++)
-                    {
-                        float a = Fanned(aim, i, n, 0.4f);
-                        var b = SpawnBullet(Defs.OfudaShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, far / fast, w.Damage * dmg, p.Id);
-                        b.Ward = true;
-                        b.Burst = 1;  // marks it as landing (MoveBullets)
-                    }
+                    FireTalismans(p, aim, muzzle, dmg, extra);  // Healing Talismans (Ofuda.cs)
                     break;
-                }
                 case WeaponId.Shuriken:
                 {
                     int n = 3 + extra;
@@ -309,9 +296,9 @@ namespace Arena
                 Desc = "Primary Fire: Fast needles that poison enemies and heal allies." },
             new WeaponDef { Id = WeaponId.SpiritFan, Kit = Kit.Ninja, Role = Role.Healer, Choice = 1, Speed = 420f, Life = 0.3f, Damage = 6f, Grow = 0.25f, ExtraDesc = "+25% reach and +1 HP healed", Name = "Spirit Fan", FireInterval = 0.4f,
                 Desc = "Primary Fire: A short gust that heals allies and pushes small bullets back." },
-            new WeaponDef { Id = WeaponId.Ofuda, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2, Speed = 360f, Life = 1.6f, Damage = 25f, ExtraDesc = "+1 charm, fanned out", Name = "Ofuda", FireInterval = 0.5f,
-                Desc = "Primary Fire: Throw charms that sit as wards and burst when an enemy steps on them.",
-                AreaDesc = "bursts 25% wider, for damage and healing" },
+            new WeaponDef { Id = WeaponId.Ofuda, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2, Speed = 380f, Life = 1.1f, Damage = 45f, ExtraDesc = "+1 talisman and +1 Blast Ofuda, fanned out", Name = "Ofuda", FireInterval = 0.45f,
+                Desc = "Primary Fire: Healing Talisman: a paper charm that bends toward a hurt teammate at the end of its flight, heals them and bursts, healing teammates near, shoving enemies back and erasing small bullets.\n\nAlternative Fire: Blast Ofuda: a charm that flies straight, sticks to the enemy it hits and blows up; one that misses lands and blows up a moment later.",
+                AreaDesc = "the talisman's burst and the Blast Ofuda's blast 25% wider" },
             new WeaponDef { Id = WeaponId.TwinTessen, Kit = Kit.Ninja, Role = Role.Healer, Choice = 3, Damage = 10f, Reach = 105f, Melee = true, BotRange = 110f, ExtraDesc = "+15% damage, +2 petals a Petal Spin and a 10% wider gust", Name = "Twin Tessen", FireInterval = 0.2f,
                 Desc = "Primary Fire: A five-step dance of two war fans that heals the allies it brushes and ends in a petal wave.\n\nAlternative Fire: Hold to pull the fans back, let go for a massive gust that throws enemies back and heals allies.",
                 AreaDesc = "a 25% longer gust" },
@@ -356,6 +343,8 @@ namespace Arena
                 Apply = s => { s.SpBonusTime += Game.SpVesselTime; s.SpWindCut += Game.SpVesselWind; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ForbiddenPath, MaxStacks = 2, Name = "Forbidden Hunger", Desc = "Forbidden Path's combo hits 20% harder, and each kill heals twice as much",
                 Apply = s => { s.FpDmgMult += Game.FpHungerDmg; s.FpKillHealMult += 1f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.AstralProjection, MaxStacks = 2, Name = "Astral Bond", Desc = "Astral Projection lasts 2 s longer, and its astral bolts hit 25% harder",
+                Apply = s => { s.ApBonusTime += Game.ApBondTime; s.ApDmgMult += Game.ApBondDmg; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Ninja, MaxStacks = 2, Name = "Ghost Step", Desc = "+6% move speed, and you take 30% less damage for 1 s after you dodge (1 s longer per extra copy)",
                 Apply = s => { s.SpeedMult += 0.06f; s.GhostCut = 0.3f; s.GhostTime += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Kusarigama }, MaxStacks = 2, Name = "Heavy Weight", Desc = "The Kusarigama's thrown weight flies 25% farther and stuns 0.4 s longer",
@@ -368,7 +357,7 @@ namespace Arena
                 Apply = s => { s.DoseMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.SpiritFan }, MaxStacks = 2, Name = "Gale Fan", Desc = "The Spirit Fan's gust reaches 25% farther and heals 30% more",
                 Apply = s => { s.FanReachMult += 0.25f; s.FanHealMult += 0.3f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Ofuda }, MaxStacks = 2, Name = "Blessed Paper", Desc = "Ofuda wards burst 25% wider and heal 30% more",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Ofuda }, MaxStacks = 2, Name = "Blessed Paper", Desc = "Ofuda talisman bursts and Blast Ofudas 25% wider, talismans heal 30% more",
                 Apply = s => { s.CharmBurstMult += 0.25f; s.CharmHealMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Shuriken }, MaxStacks = 2, Name = "Barbed Stars", Desc = "Stuck stars come back 1.5 s sooner, and their return hit is 40% harder",
                 Apply = s => { s.StarStickCut += 1.5f; s.StarReturnMult += 0.4f; } },
@@ -763,7 +752,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashKnuckleStance = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs; 58-59: DashPikeOn/Off in Halberd.cs; 42: DashWhip in PistolWhip.cs; 43: free (was the Strider); 44: DashZero in FrostLance; 45: DashSympathy in BloodBrawler.cs; 46: DashTide in BloodBlast.cs; 47: DashIgnite in Chalk.cs; 48: DashNodStance in Nodachi.cs; 49: DashWyvernSlam in WyvernStaff.cs; 50: DashLaser in TwinPistols.cs; 51: DashVgStance in Vowguard.cs; 52-54: DashShardOn/Off, DashBladeRecall in Arcanist.cs; 55: DashHeatDump in RailBeam.cs; 56: DashArcCannon in StaticShock.cs; 57: DashScatter in BowFocus.cs; 60: DashBolt in LivingBolt.cs; 61: DashRavager in BloodRavager.cs; 62: DashNeedles in NeedleSwarm.cs; 63-64: DashTessenOn/Off in TwinTessen.cs)
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashKnuckleStance = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs; 58-59: DashPikeOn/Off in Halberd.cs; 42: DashWhip in PistolWhip.cs; 43: free (was the Strider); 44: DashZero in FrostLance; 45: DashSympathy in BloodBrawler.cs; 46: DashTide in BloodBlast.cs; 47: DashIgnite in Chalk.cs; 48: DashNodStance in Nodachi.cs; 49: DashWyvernSlam in WyvernStaff.cs; 50: DashLaser in TwinPistols.cs; 51: DashVgStance in Vowguard.cs; 52-54: DashShardOn/Off, DashBladeRecall in Arcanist.cs; 55: DashHeatDump in RailBeam.cs; 56: DashArcCannon in StaticShock.cs; 57: DashScatter in BowFocus.cs; 60: DashBolt in LivingBolt.cs; 61: DashRavager in BloodRavager.cs; 62: DashNeedles in NeedleSwarm.cs; 63: DashOfuda in Ofuda.cs; 64-65: DashTessenOn/Off in TwinTessen.cs)
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -785,49 +774,6 @@ namespace Arena
                 float to = Math.Max(e.Radius + p.Def.BodyR + 6f, d + shove);
                 KnockEnemy(e, ClampToArena(p.Pos + away * to, e.Radius) - e.Pos);  // slides (Knock.cs)
             }
-        }
-
-        // --- Ofuda: wards ---------------------------------------------------------------------
-
-        public const float WardRange = 460f, WardTrigger = 26f, WardBurst = 70f, WardHeal = 12f, WardHealReach = 110f, WardLast = 10f;
-        public const int WardCap = 5;
-
-        /// An Ofuda charm landed: it lies there as a ward (your oldest goes if you have WardCap).
-        void PlaceWard(Bullet b)
-        {
-            Player p;
-            if (!Players.TryGetValue(b.Owner, out p))
-                return;
-            Zone oldest = null;
-            int mine = 0;
-            foreach (var z in Zones.Values)
-                if (z.Kind == ZoneKind.OfudaWard && z.Owner == p.Id)
-                {
-                    mine++;
-                    if (oldest == null || z.T < oldest.T)
-                        oldest = z;
-                }
-            if (mine >= WardCap && oldest != null)
-                Zones.Remove(oldest.Id);
-            var w = AddZone(ZoneKind.OfudaWard, p, ClampToArena(b.Pos, 10f), WardTrigger, WardLast);
-            w.DmgMult = b.Dmg / Defs.WeaponOf(WeaponId.Ofuda).Damage;  // the charm's damage, upgrades and all
-        }
-
-        /// A ward an enemy stepped on bursts: damage round it, and healing for allies near it.
-        void BurstWard(Zone z)
-        {
-            var wardOwner = PlayerOrNull(z.Owner);
-            float r = WardBurst * (wardOwner != null ? AreaMult(wardOwner) * wardOwner.Stats.CharmBurstMult : 1f);  // (Blessed Paper: wider)
-            float dmg = Defs.WeaponOf(WeaponId.Ofuda).Damage * z.DmgMult;
-            foreach (var e in FoesInCircle(z.Pos, r, by: z.Owner))
-            {
-                WeaponHurt(e, dmg, z.Owner);
-                ModHit(e, z.Owner, dmg, Defs.OfudaShot, default(V2));  // weapon mods ride the burst
-            }
-            foreach (var q in Players.Values)
-                if (!q.Downed && q.Pos.DistanceTo(z.Pos) < WardHealReach * (wardOwner != null ? wardOwner.Stats.CharmBurstMult : 1f))
-                    Heal(q, WardHeal * (wardOwner != null ? wardOwner.Stats.CharmHealMult : 1f), wardOwner);
-            BroadcastFx(FxKind.Boom, z.Pos, z.Def.Color, r, 0.35f, Sfx.SpellHoly);
         }
 
         // --- Shuriken: stars that stick, recalled -------------------------------------------------
@@ -1187,6 +1133,8 @@ namespace Arena
                 return;  // the Mender's Bow's Scatter (BowFocus.cs)
             if (LocalTwinLaser(me, pressed, aimAt, dt))
                 return;  // the Twin Pistols' Laser Sights (TwinPistols.cs)
+            if (LocalOfudaBlast(me, pressed, aimAt, dt))
+                return;  // the Ofuda's Blast Ofuda (Ofuda.cs)
             if (LocalArcCannon(me, pressed, aimAt, dt))
                 return;  // Static Shock's Arc Cannon (StaticShock.cs)
             if (LocalHammerSlamReady(me, pressed, dt))
@@ -1413,6 +1361,11 @@ namespace Arena
             if (kind == DashNunGuard)
             {
                 HostNunSwitch(p);  // the Nunchaku's combo to Twin Windmill and back (Nunchaku.cs)
+                return;
+            }
+            if (kind == DashOfuda)
+            {
+                HostOfudaBlast(p, target);  // the Ofuda's Alt (Ofuda.cs)
                 return;
             }
             if (kind == DashArcCannon)
