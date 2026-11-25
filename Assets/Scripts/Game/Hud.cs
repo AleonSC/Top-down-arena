@@ -655,6 +655,12 @@ namespace Arena
                 DkTitle(new Rect(r.x + 64f, r.y + 4f, r.width - 120f, 20f), full ? "FULL" : me.WwOff.Count + "/" + Game.WwMax, 15,
                     full ? new Color(0.95f, 0.78f, 0.42f) : new Color(0.45f, 0.86f, 0.95f), TextAnchor.MiddleLeft);
             }
+            if (slot.Id == AbilityId.SenbonSeekers)  // the needles held, out of 9 (12 mastered; SenbonSeekers.cs)
+            {
+                bool full = Game.SbFull(me);
+                DkTitle(new Rect(r.x + 64f, r.y + 4f, r.width - 120f, 20f), full ? "FULL" : me.SbN + "/" + Game.SbMaxOf(me), 15,
+                    full ? new Color(0.95f, 0.78f, 0.42f) : new Color(0.56f, 0.82f, 0.31f), TextAnchor.MiddleLeft);
+            }
             if (ready)
             {
                 Color lo = ultimate ? CrtStyle.Gold : Ui.Good;

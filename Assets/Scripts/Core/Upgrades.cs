@@ -59,6 +59,7 @@ namespace Arena
         FlashFire,      // the DPS Elementalist's third ultimate (FlashFire.cs), key 2 of the lobby's Ultimate row
         LandShark,      // the DPS Summoner's 4th choice (LandShark.cs), the lobby's 4th choice
         RodentMinigun,  // the DPS Summoner's second ultimate (RodentMinigun.cs), key 1 of the lobby's Ultimate row
+        SenbonSeekers,  // the DPS Ninja's 4th choice (SenbonSeekers.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -121,6 +122,7 @@ namespace Arena
         public float RushReach = 1f, RushRefund;               // Vein Rush: Crimson Tide
         public float TbDmgMult = 1f; public int TbExtraJumps;    // Thorn Bloom: Thornwork
         public float BgRadiusMult = 1f, BgBleedMult = 1f;        // Bamboo Grove: Rhizome
+        public float SbDmgMult = 1f, SbStackBonus;               // Senbon Seekers: Hidden Needles
         public float FfRadiusMult = 1f, FfBurnMult = 1f;         // Flash Fire: Backdraft
         public bool ChalkWard;             // Warding Ink: Spirit Chalk blocks enemy bullets (at the cost of wearing the ink away)
         // Elementalist abilities (Docs/UpgradePools.md step 5)

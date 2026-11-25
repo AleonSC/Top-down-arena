@@ -673,8 +673,8 @@ namespace Arena
         /// One shot this frame: its muzzle flash when it's new, then its trail and emissions.
         void SeeShot(Bullet b, float dt)
         {
-            if (b.Kind == Defs.RodentShot)
-                return;  // a Rodent Minigun rodent: no flash, trail or spark; it scampers off on its own (RodentMinigunLook.cs)
+            if (b.Kind == Defs.RodentShot || b.Kind == Defs.Senbon)
+                return;  // a Rodent Minigun rodent (or a Senbon Seekers needle, which draws its own ink tail): no flash, trail or spark; it scampers off on its own (RodentMinigunLook.cs)
             ShotSeen s;
             if (!seenShots.TryGetValue(b.Id, out s))
             {
