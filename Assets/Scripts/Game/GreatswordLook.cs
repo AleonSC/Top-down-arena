@@ -93,19 +93,6 @@ namespace Arena
             return v;
         }
 
-        /// Where a step's sweep starts, as an angle off the aim (MeleeLooks.cs sweeps from aim - sign * half).
-        static float GreatSweepStart(Game.GreatMove m)
-        {
-            switch (m)
-            {
-                case Game.GreatMove.Undertow: return -Game.UndertowArc * MathX.Pi / 360f;
-                case Game.GreatMove.Cross: return -0.35f - Game.CrossArc * MathX.Pi / 360f;
-                case Game.GreatMove.Backstep: return Game.BackstepArc * MathX.Pi / 360f;
-                case Game.GreatMove.FullMoon: return -MathX.Pi;
-                default: return 0f;
-            }
-        }
-
         void DrawGreatWindup(Player p) => DrawGreatMove(p, true);
 
         /// Each step's own pose before its hit (and the moves with no Slash of their own): see the class notes. True while it draws the

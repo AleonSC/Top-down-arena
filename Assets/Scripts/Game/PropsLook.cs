@@ -230,7 +230,7 @@ namespace Arena
 
         // --- Look A, round two: barrels and the chest (Docs/Mockups/digital-props.html, "Barrels and the chest") -------
 
-        static readonly Rgba PropHoloRed = new Rgba(1f, 0.35f, 0.35f), PropHoloAmber = new Rgba(1f, 0.82f, 0.23f), PropHoloGold = new Rgba(1f, 0.81f, 0.35f);
+        static readonly Rgba PropHoloRed = new Rgba(1f, 0.35f, 0.35f), PropHoloAmber = new Rgba(1f, 0.82f, 0.23f);
 
         /// A projected disc: a faint fill and (unless Reduced) scanlines across it.
         void HoloDisc(V2 c, float r, Rgba fill, Rgba scan)
@@ -260,68 +260,6 @@ namespace Arena
             GlowLine(bl, top, 1.4f, am);
             GlowLine(c + new V2(0f, -2.5f), c + new V2(0f, 0.8f), 1.6f, am);
             Circle(c + new V2(0f, 2.4f), 0.9f, am, 6);
-        }
-
-        void DrawChestHolo(Prop p, V2 c, float a, float hw, float hh)
-        {
-            var col = PropHoloGold.WithAlpha(a);
-            var fill = new Rgba(1f, 0.81f, 0.35f, 0.08f * a);
-            float lift = 0f;
-            if (p.Open)
-            {
-                lift = 18f * Mathf.Clamp01(p.OpenT / 0.25f);
-                // Light pours up out of it.
-                for (int i = 0; i < 4; i++)
-                {
-                    float w = hw * (1.1f - i * 0.22f), up = 70f + i * 20f;
-                    SetColor(new Rgba(1f, 0.88f, 0.45f, 0.1f * a));
-                    Quad(new V2(c.X - hw * 0.8f, c.Y - hh + 4f), new V2(c.X + hw * 0.8f, c.Y - hh + 4f), new V2(c.X + w, c.Y - hh - up), new V2(c.X - w, c.Y - hh - up));
-                }
-            }
-            FillRect(c.X - hw, c.Y - hh, hw * 2f, hh * 2f, fill);
-            if (!fxReduced)
-                for (float y = -hh + 1f; y < hh; y += 3f)
-                    FillRect(c.X - hw, c.Y + y, hw * 2f, 1f, fill.WithAlpha(0.10f * a));
-            if (p.Open)
-            {
-                FillRect(c.X - hw + 5f, c.Y - hh + 4f, hw * 2f - 10f, hh - 2f, new Rgba(1f, 0.89f, 0.47f, 0.55f * a));
-                // The lid, lifted away as an outline.
-                var lid = col.WithAlpha(0.7f * a);
-                float ly = c.Y - hh - lift, lh = hh * 0.9f;
-                GlowLine(new V2(c.X - hw, ly), new V2(c.X + hw, ly), 1.2f, lid);
-                GlowLine(new V2(c.X + hw, ly), new V2(c.X + hw, ly + lh), 1.2f, lid);
-                GlowLine(new V2(c.X + hw, ly + lh), new V2(c.X - hw, ly + lh), 1.2f, lid);
-                GlowLine(new V2(c.X - hw, ly + lh), new V2(c.X - hw, ly), 1.2f, lid);
-            }
-            else
-                GlowLine(new V2(c.X - hw, c.Y - hh * 0.15f), new V2(c.X + hw, c.Y - hh * 0.15f), 1.5f, col);  // the lid's seam
-            // The frame, the two bands and the corner brackets.
-            GlowLine(new V2(c.X - hw, c.Y - hh), new V2(c.X + hw, c.Y - hh), 1.5f, col);
-            GlowLine(new V2(c.X + hw, c.Y - hh), new V2(c.X + hw, c.Y + hh), 1.5f, col);
-            GlowLine(new V2(c.X + hw, c.Y + hh), new V2(c.X - hw, c.Y + hh), 1.5f, col);
-            GlowLine(new V2(c.X - hw, c.Y + hh), new V2(c.X - hw, c.Y - hh), 1.5f, col);
-            GlowLine(new V2(c.X - hw * 0.55f, c.Y - hh), new V2(c.X - hw * 0.55f, c.Y + hh), 1f, col);
-            GlowLine(new V2(c.X + hw * 0.55f, c.Y - hh), new V2(c.X + hw * 0.55f, c.Y + hh), 1f, col);
-            const float L = 9f, e = 1.4f;
-            for (int i = 0; i < 4; i++)
-            {
-                float sx = (i & 1) != 0 ? 1f : -1f, sy = (i & 2) != 0 ? 1f : -1f;
-                V2 corner = c + new V2(sx * hw, sy * hh);
-                GlowLine(corner + new V2(sx * e, 0f), corner + new V2(-sx * L, 0f), 2.8f, col);
-                GlowLine(corner + new V2(0f, sy * e), corner + new V2(0f, -sy * L), 2.8f, col);
-            }
-            if (!p.Open)
-            {
-                // The lock: a diamond with a keyhole.
-                SetColor(col.WithAlpha(0.2f * a));
-                Quad(c + new V2(0f, -6f), c + new V2(6f, 0f), c + new V2(0f, 6f), c + new V2(-6f, 0f));
-                GlowLine(c + new V2(0f, -6f), c + new V2(6f, 0f), 1.4f, col);
-                GlowLine(c + new V2(6f, 0f), c + new V2(0f, 6f), 1.4f, col);
-                GlowLine(c + new V2(0f, 6f), c + new V2(-6f, 0f), 1.4f, col);
-                GlowLine(c + new V2(-6f, 0f), c + new V2(0f, -6f), 1.4f, col);
-                Circle(c + new V2(0f, -0.5f), 1.6f, new Rgba(1f, 0.95f, 0.77f, a), 8);
-                GlowLine(c + new V2(0f, 0.5f), c + new V2(0f, 3.5f), 1.2f, new Rgba(1f, 0.95f, 0.77f, a));
-            }
         }
 
         void DrawCrate(Prop p, V2 c, float a)

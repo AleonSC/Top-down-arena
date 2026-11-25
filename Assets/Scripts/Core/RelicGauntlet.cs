@@ -111,14 +111,6 @@ namespace Arena
                     yield return r;
         }
 
-        public bool HasRelicGauntlet()
-        {
-            foreach (var r in Expanded)
-                if (RelicGauntlet.Is(r))
-                    return true;
-            return false;
-        }
-
         void WriteRelicGauntletClock(BinaryWriter w) => w.Write(hostClock);
 
         void ReadRelicGauntletClock(BinaryReader r)

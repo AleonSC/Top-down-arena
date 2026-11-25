@@ -18,12 +18,6 @@ namespace Arena
 
         static Color DiffColor(DifficultyLevel l) => DiffColors[(int)l];
 
-        static Color DiffBadgeColor(DifficultyLevel l)
-        {
-            var c = DiffColor(l);
-            return new Color(c.r * 0.7f, c.g * 0.7f, c.b * 0.7f);
-        }
-
         string diffFocus = "", diffBuffer = "";
 
         void DrawDifficulty(Rect r, float t)

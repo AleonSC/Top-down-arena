@@ -219,22 +219,6 @@ namespace Arena
 
         // --- Screen power-on ------------------------------------------------------------------------------------------
 
-        /// 0 not yet on, 1 a line opening (draw only `shown`, the frame), 2 on (draw normally, then PowerFlash).
-        public static int PowerState(float age, bool calm)
-        {
-            if (calm || age >= 0.3f)
-                return 2;
-            return age < 0f ? 0 : 1;
-        }
-
-        /// The frame while the line opens: from a thin bright line to the full height (vertical only).
-        public static Rect PowerRect(Rect r, float age)
-        {
-            float k = age < 0.1f ? 0.012f : Mathf.Lerp(0.012f, 1f, Mathf.Clamp01((age - 0.1f) / 0.2f));
-            float h = Mathf.Max(2f, r.height * k);
-            return new Rect(r.x, r.center.y - h / 2f, r.width, h);
-        }
-
         /// The white flash over a screen as it comes on, fading out by 0.8 s. Draw it after the screen's content.
         public static void PowerFlash(Rect r, float age, bool calm)
         {
@@ -242,20 +226,6 @@ namespace Arena
                 return;
             float a = age < 0.1f ? age / 0.1f * 0.7f : age < 0.3f ? 0.7f - (age - 0.1f) / 0.2f * 0.3f : 0.4f * (1f - (age - 0.3f) / 0.5f);
             Ui.Fill(r, new Color(0.8f, 0.9f, 1f, a * 0.2f));
-        }
-
-        /// A bright bar sweeping once down a screen (the options list as it fills). `age` 0..1.1 s.
-        public static void ScanBar(Rect r, float age, bool calm)
-        {
-            if (calm || age < 0f || age > 1.1f || Event.current.type != EventType.Repaint)
-                return;
-            float y = Mathf.Lerp(r.y - 46f, r.yMax, age / 1.1f);
-            for (int i = 0; i < 10; i++)
-            {
-                float y0 = Mathf.Max(y + 46f * i / 10f, r.y), y1 = Mathf.Min(y + 46f * (i + 1) / 10f + 1f, r.yMax);
-                if (y1 > y0)
-                    Ui.Fill(new Rect(r.x, y0, r.width, y1 - y0), CrtStyle.Ink.WithAlpha(0.5f * (i + 1f) / 10f));
-            }
         }
 
         // --- Frames, keys, chassis ------------------------------------------------------------------------------------
@@ -357,12 +327,6 @@ namespace Arena
             }
             Frame(screen, rim, CrtUi.T(new Color(0.07f, 0.125f, 0.247f, vis)));
             Frame(new Rect(screen.x + rim, screen.y + rim, screen.width - 2f * rim, screen.height - 2f * rim), line, CrtStyle.Dim.WithAlpha(vis));
-        }
-
-        /// A physical key on the chassis (Back): the tactile blue key with a lamp. Returns true on a click.
-        public static bool PhysicalKey(Rect r, string text)
-        {
-            return KeyUi.Key(r, text, null, r.height >= 44f ? 20 : 16);
         }
     }
 }

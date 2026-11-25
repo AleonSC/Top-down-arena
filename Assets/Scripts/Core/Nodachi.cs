@@ -22,7 +22,6 @@ namespace Arena
         public const float NodAftershockOut = 45f, NodAftershockMult = 0.6f, NodAftershockDelay = 0.18f;
         public const float NodHopGrace = 0.06f;  // Hiki-zuki's hop is untouchable, and this long after
         public static readonly Rgba NodSteel = new Rgba(0.86f, 0.92f, 1f), NodJade = new Rgba(0.5f, 0.88f, 0.77f), NodVermilion = new Rgba(1f, 0.42f, 0.27f);
-        public static readonly string[] NodStanceNames = { "Arashi", "Mamori" };
         /// Each step's own sound, sent at the press and timed to its strikes (Game/NodachiSoundBank.cs): Arashi's five, then Mamori's.
         static readonly Sfx[] NodStepSounds = { Sfx.NodNuki, Sfx.NodKesa, Sfx.NodMoon, Sfx.NodTenchi, Sfx.NodNagi, Sfx.NodKasumi, Sfx.NodNidan, Sfx.NodSenbon, Sfx.NodTsuka, Sfx.NodHiki };
 

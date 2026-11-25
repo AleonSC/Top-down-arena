@@ -557,16 +557,8 @@ static partial class Shot {
       // WIKI=<query>: the Wiki on the bay's screen (BayWiki.cs) searching for it ("" for everything); WIKIPAGE=<name>: that entry's page.
       if (mode == "menu" && Environment.GetEnvironmentVariable("WIKI") != null) { set("menuWikiOpen", true); set("wikiQuery", Environment.GetEnvironmentVariable("WIKI")); set("wikiOpenedAt", -100f); set("menuPlayK", 1f); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); if (Environment.GetEnvironmentVariable("WIKIPAGE") != null) set("wikiPage", Wiki.Find(Environment.GetEnvironmentVariable("WIKIPAGE"))); }
       if (Environment.GetEnvironmentVariable("JOINOPEN") != null) { set("menuJoinOpen", true); set("menuPlayK", 1f); }
-      // MENUT=<s>: the menu's clock (Time.unscaledTime), e.g. MENUT=3 for the rooms drawn round the title and box (MenuHolo.cs).
+      // MENUT=<s>: the menu's clock (Time.unscaledTime).
       if (Environment.GetEnvironmentVariable("MENUT") != null) Time.unscaledTime = float.Parse(Environment.GetEnvironmentVariable("MENUT"), System.Globalization.CultureInfo.InvariantCulture);
-      // ROOMS=<s>: the rooms that far into their sequence (MenuHolo.cs DrawRooms: one every 3.5 s, three at most).
-      if (Environment.GetEnvironmentVariable("ROOMS") != null) {
-        var sets = typeof(ArenaApp).GetField("BoxRoomSets", f2 | System.Reflection.BindingFlags.Static).GetValue(null);
-        set("roomsLower", sets); set("roomsFrame", Time.frameCount); set("roomsStart", Time.unscaledTime - float.Parse(Environment.GetEnvironmentVariable("ROOMS"), System.Globalization.CultureInfo.InvariantCulture));
-        var pool = typeof(ArenaApp).GetField("roomPool", f2).GetValue(app) as System.Collections.IList; var add = typeof(ArenaApp).GetMethod("AddRoomSpot", f2);
-        foreach (var setArr in new[] { sets })
-          foreach (var row in (System.Array)setArr) foreach (var m in (System.Array)row) add.Invoke(app, new object[] { m });
-      }
       // WHEEL=<x>,<y>,<dy>: a mouse-wheel event there first (one draw on it), then the shot: to check scrolling.
       if (Environment.GetEnvironmentVariable("WHEEL") != null) {
         var wv = Environment.GetEnvironmentVariable("WHEEL").Split(',');

@@ -366,18 +366,6 @@ namespace Arena
             }
         }
 
-        void FlHexBlock(V2 c, float r, float a)
-        {
-            SetColor(FlEdge.WithAlpha(a));
-            V2[] pts = new V2[6];
-            for (int i = 0; i < 6; i++)
-                pts[i] = c + new V2(Mathf.Cos(i * MathX.Tau / 6f + 0.52f) * r, Mathf.Sin(i * MathX.Tau / 6f + 0.52f) * r * 0.86f);
-            for (int i = 0; i < 6; i++)
-                Tri(c, pts[i] + (pts[i] - c) * 0.1f, pts[(i + 1) % 6] + (pts[(i + 1) % 6] - c) * 0.1f);
-            for (int i = 0; i < 6; i++)
-                VTri(c, FlMid.WithAlpha(0.8f * a), pts[i], FlTip.Mix(FlDeep, i / 6f).WithAlpha(0.9f * a), pts[(i + 1) % 6], FlTip.Mix(FlDeep, (i + 1) / 6f).WithAlpha(0.9f * a));
-        }
-
         // --- the effects ----------------------------------------------------------------------------------------
 
         /// One chain step from its effect's age.

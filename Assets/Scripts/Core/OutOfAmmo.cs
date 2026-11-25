@@ -31,7 +31,6 @@ namespace Arena
         public static readonly float[] KDamage = { 12f, 12f, 20f };
         public static readonly float[] KCone = { 1.0f, 1.0f, 0.55f };
         public static readonly float[] KReach = { 84f, 84f, 106f };
-        public static readonly string[] KNames = { "Cross cut", "Reverse cut", "Lunge stab" };
     }
 
     public partial class Game
