@@ -206,7 +206,7 @@ namespace Arena
         /// Shots thrown in an arc (grenades, boulders, Gore Mortar clots, medkits): they fly over what's below and land.
         static bool Lobbed(byte kind) => kind == Defs.GrenadeShot || kind == Defs.BoulderShot || kind == Defs.ClotShot || kind == Defs.MedkitShot || kind == Defs.HoneyGlob;
 
-        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop && kind != Defs.HoneyGlob && kind != Defs.TankShell && kind != Defs.RodentShot;
+        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop && kind != Defs.HoneyGlob && kind != Defs.TankShell && kind != Defs.RodentShot && kind != Defs.Senbon;
 
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false, float homing = 0f)
         {
@@ -236,6 +236,8 @@ namespace Arena
                 return Sfx.LitTankCannon;  // A Literal Tank's main gun (LiteralTank.cs, LitTankSoundBank.cs)
             if (kind == Defs.RodentShot)
                 return Sfx.RodentSqueak;  // a Rodent Minigun rodent (RodentMinigun.cs, RodentSoundBank.cs)
+            if (kind == Defs.Senbon)
+                return Sfx.Throw;  // a Senbon Seekers needle leaving the ring (SenbonSeekers.cs)
             Player p;
             if (!Players.TryGetValue(owner, out p))
                 return Sfx.ShotRifle;
@@ -296,7 +298,9 @@ namespace Arena
                     b.Vel = b.Vel.Rotated(b.AngVel * dt);
                 if (b.Homing > 0f)
                     Steer(b, dt);
-                if (b.HomeOn != 0)
+                if (b.Senbon)
+                    SteerSenbon(b, dt);  // a Senbon Seekers needle (host only: SenbonSeekers.cs)
+                else if (b.HomeOn != 0)
                     SteerSpear(b, dt);  // a Stonespear volley spear (host only: Stonespear.cs)
                 if (wellsUp && b.Owner != 0 && !Lobbed(b.Kind))
                     PullIntoWells(b, dt);
@@ -1224,6 +1228,7 @@ namespace Arena
             SuppressHit(b, e);  // Riot Repeater rounds slow its shooting (Weapons.cs)
             TwinShedHit(b, e);  // Twin Pistols rounds knock health orbs loose (TwinPistols.cs)
             PoisonHit(b, e);    // Medicine Darts poison it (Ninja.cs)
+            SenbonHit(b, e);    // a Senbon Seekers needle poisons it (SenbonSeekers.cs)
             ShadowKunaiLanded(b, e.Pos);  // a shadow kunai marks where it hit (Ninja.cs)
             StarStuck(b, e);    // a Shuriken star sticks in it (Ninja.cs)
             SeedHit(b, e);      // Sprite Staff seeds and fireflies stick (KitWeapons.cs)
@@ -1257,9 +1262,9 @@ namespace Arena
                 return;
             if (b.Kind == Defs.ArcaneShot && p.Weapon.Id == WeaponId.IceShards && !Heavy(e))
                 Chill(e, 1, IceShardChillTime, 1f - IceShardSlow, gated: true);  // an ice shard: slowed and chilled, a stack a second (Chill.cs)
-            if (p.Stats.SplitShots > 0 && b.Kind != Defs.SwarmShot && b.Kind != Defs.RodentShot)
+            if (p.Stats.SplitShots > 0 && b.Kind != Defs.SwarmShot && b.Kind != Defs.RodentShot && b.Kind != Defs.Senbon)
                 splits.Add(new Bullet { Pos = b.Pos, Owner = b.Owner, Dmg = b.Dmg * 0.4f, Pierce = p.Stats.SplitShots, LastHit = e.Id });
-            if (p.Stats.ImpactSplash > 0f && b.Kind != Defs.SwarmShot && b.Kind != Defs.RodentShot)
+            if (p.Stats.ImpactSplash > 0f && b.Kind != Defs.SwarmShot && b.Kind != Defs.RodentShot && b.Kind != Defs.Senbon)
             {
                 splashes.Add(new Bullet { Pos = b.Pos, Owner = b.Owner, Kind = Defs.NovaShot, Splash = p.Stats.ImpactSplash, Dmg = b.Dmg * 0.67f, LastHit = e.Id });
                 HurtEnemy(e, b.Dmg * 0.67f * 0.6f * CollapseCore, b.Owner);  // the enemy shot is in the implosion too, at half its damage

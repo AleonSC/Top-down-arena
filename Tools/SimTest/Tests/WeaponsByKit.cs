@@ -951,8 +951,8 @@ static partial class Program
         play(0.3f, new PlayerInput());
 
         // Gore Mortar: hold to charge, let go to lob a clot over enemies; the charge sets how far it lands, never how hard.
-        // It splashes everything where it lands and leaves a big pool that congeals after a second, sticking the enemies
-        // in it; standing in your own pool no longer guards you.
+        // It splashes everything where it lands and leaves a big pool that congeals after a second but never stops the
+        // enemies in it; standing in your own pool no longer guards you.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.GoreMortar);
         Check(Game.ChargeWeapon(WeaponId.GoreMortar) && me.Weapon.Name == "Gore Mortar", "the tank Hemomancer's Gore Mortar charges like a bow");
         var tapNear = dummy(from + new V2(Game.ClotMin, 0f), 1e5f);
@@ -986,16 +986,16 @@ static partial class Program
         play(0.5f, new PlayerInput());
         bool wetFree = stuck.FrozenT <= 0f && beside.FrozenT <= 0f;
         play(0.6f, new PlayerInput());
-        bool setStuck = stuck.FrozenT > 0f && beside.FrozenT > 0f;
-        Check(wetFree && setStuck, "the pool congeals after a second, sticking every enemy in it");
+        bool setFree = pool != null && pool.Congealed && stuck.FrozenT <= 0f && beside.FrozenT <= 0f;
+        Check(wetFree && setFree, "the pool congeals after a second but never freezes the enemies in it");
         g.DevSetGod(1, false);
         me.Hp = me.MaxHp; me.ShieldHp = 0f; damage.Invoke(g, new object[] { me, 20f, "Test" }); float outside = me.MaxHp - me.Hp;
         if (pool != null) from = pool.Pos;
         play(0.02f, new PlayerInput());
         me.Hp = me.MaxHp; me.ShieldHp = 0f; damage.Invoke(g, new object[] { me, 20f, "Test" }); float inside = me.MaxHp - me.Hp;
         g.DevSetGod(1, true);
-        Console.WriteLine("  clot cannon: enemy free while wet {0}, stuck once it congealed {1}; 20 damage taken outside {2:0.0}, in your pool {3:0.0}",
-            wetFree, setStuck, outside, inside);
+        Console.WriteLine("  clot cannon: enemy free while wet {0}, free once it congealed {1}; 20 damage taken outside {2:0.0}, in your pool {3:0.0}",
+            wetFree, setFree, outside, inside);
         Check(Math.Abs(inside - outside) < 0.01f && outside > 0f, "standing in your own pool doesn't guard you any more");
         // Standing in the pool heals slowly (against your own healing standing outside it).
         Func<float> gain = () => { me.Hp = me.MaxHp * 0.5f; float h = me.Hp; play(1f, new PlayerInput()); return me.Hp - h; };

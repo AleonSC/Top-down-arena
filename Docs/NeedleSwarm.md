@@ -1,6 +1,6 @@
 # Needle Swarm: the DPS Hemomancer's 1st weapon
 
-**Status: built** (protocol 508). It replaced Blood Bolts (`WeaponId.BloodBolts` renamed `NeedleSwarm`, same slot). Logic in
+**Status: built** (protocol 509). It replaced Blood Bolts (`WeaponId.BloodBolts` renamed `NeedleSwarm`, same slot). Logic in
 `Assets/Scripts/Core/NeedleSwarm.cs`, look in `Assets/Scripts/Game/NeedleSwarmLook.cs`, test `Tools/SimTest/run.sh 1 30 needleswarm`,
 preview `NEEDLESWARM=<s held> [NSALT=<s>] ZOOM=2 CAMAT=800,470 Tools/Preview/shot.sh x hud 1 6 1`. Mockup `Docs/Mockups/needle-swarm.html`
 (published: https://claude.ai/artifact/JpcTsJuQBbbfV7MhXEW3EL).

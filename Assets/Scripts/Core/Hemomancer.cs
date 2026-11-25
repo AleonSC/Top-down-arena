@@ -10,14 +10,14 @@ namespace Arena
     {
         // The Gore Mortar : hold to charge, let go to lob a clot over enemies. The charge sets only
         // how far it lands (ClotMin on a tap to ClotMax at full); the splash hits the same at any range, then a big pool
-        // slows enemies and congeals after PoolCongeal, sticking the enemies in it for PoolStuck (not bosses).
+        // slows enemies and congeals after PoolCongeal (a look only: it never stops them).
         // Every shot costs ClotCost of your max health (never below 1); the pools heal everyone standing in them (the
         // Blood Pool zone's HealRate, Kits.cs), so you can win some of it back by wading into your own blood.
         public const float ClotMin = 160f, ClotMax = 520f, ClotSplash = 70f, ClotPoolRadius = 130f, ClotPoolTime = 4f, ClotFan = 0.2f, ClotCost = 0.06f;
         public static float ClotDistance(float c) => ClotMin + (ClotMax - ClotMin) * c;
         public static float ClotFlight(float c) => 0.45f + 0.3f * c;
         public static float ClotApex(float c) => 50f + 110f * c;  // how high it flies (drawing only)
-        public const float PoolCongeal = 1f, PoolStuck = 1f;  // (each weapon's main reach, speed and damage are in Defs)
+        public const float PoolCongeal = 1f;  // (each weapon's main reach, speed and damage are in Defs)
         const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, VeinSteal = 0.4f, VeinRange = 300f;
         public const float VeinBeamHalfWidth = 6f;  // Vein Tether's beam (its length and damage per tick are the weapon's Reach and Damage)
         public const float GraspArc = 70f * MathX.Pi / 180f;  // Leech Tendrils reach across this arc (their reach and damage per tick are the weapon's Reach and Damage)
@@ -589,15 +589,10 @@ namespace Arena
             BroadcastFx(FxKind.Ring, b.Pos, Defs.BulletColor(Defs.ClotShot), b.Splash * 1.4f, 0.32f, Sfx.Explode);
         }
 
-        /// A Gore Mortar's pool sets: enemies still in it are stuck for a moment (not bosses).
+        /// A Gore Mortar's pool sets: it crusts over with a thump (only the look: enemies in it are slowed, never stuck).
         void CongealPool(Zone z)
         {
             z.Congealed = true;
-            foreach (var e in AllFoes(by: z.Owner))
-                if (Targetable(e) && !e.Def.IsBoss && e.Pos.WithinReach(z.Pos, z.Radius + e.Radius))
-                {
-                    Hold(e, PoolStuck);
-                }
             BroadcastFx(FxKind.Ring, z.Pos, z.Def.Color, z.Radius, 0.3f, Sfx.None);
         }
 
