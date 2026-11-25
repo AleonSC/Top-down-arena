@@ -535,7 +535,7 @@ namespace Arena
                     s.Timer = 0f;
                     continue;
                 }
-                s.Timer -= OverclockOn(p) ? dt * OverclockMult : dt;  // (an Overclock Chip: Gadgets.cs)
+                s.Timer -= (OverclockOn(p) ? dt * OverclockMult : dt) * (i != Upgrades.UltSlot && Supplied(p) ? SupplyCdMult : 1f);  // (an Overclock Chip: Gadgets.cs; a Supply Drop, not the ultimate: SupplyDrop.cs)
                 if (s.Timer <= 0f)
                 {
                     s.Charges++;
@@ -1533,6 +1533,7 @@ namespace Arena
             TickHolyCross(dt);  // HolyCross.cs: Holy Crosses flying
             TickCavalry(dt);    // CavalryCall.cs: lancers riding
             TickVolleys(dt);    // WarhornVolley.cs: the arrows' front crossing the field
+            TickOrbitals(dt);   // OrbitalLaser.cs: the beam's kills and the scorch
             TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickTanks(dt);      // LiteralTank.cs: the tank's time, running enemies over, getting out
@@ -1678,6 +1679,7 @@ namespace Arena
                 p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
                 p.AdrenalineT = Math.Max(0f, p.AdrenalineT - dt);
                 p.OverchargeT = Math.Max(0f, p.OverchargeT - dt);  // StaticShock.cs
+                p.SupplyT = Math.Max(0f, p.SupplyT - dt);  // SupplyDrop.cs
                 TickGustTimers(p, dt);  // GustGate.cs
                 p.SurgeT = Math.Max(0f, p.SurgeT - dt);  // Arcane Surge
                 p.GhostT = Math.Max(0f, p.GhostT - dt);  // Ghost Step

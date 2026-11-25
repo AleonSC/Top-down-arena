@@ -34,7 +34,7 @@ Every weapon, ability, enemy, role and class with its numbers (health, damage, c
 The lobby is one calm blue CRT screen with a 36 px margin and soft, darker edges: the party column is on the left, the big loadout screen on the right washed with a soft gradient in your role's colour (it eases when you pick another role), and the tabs above it are small, faded caps with the open one a lit pill. Every option is a digital key (outlined, inverse video under the mouse or when picked; locked ones are dashed with a padlock), and the colour lives in the party cards, the live preview, the stat bars and the pixel icons. With Visual effects on (and Reduced effects off) it's alive: its pieces **holo-boot** as you come in (a scan line wipes down each, then it flickers), box frames near the cursor light up with a crisp bright line (and a faint echo just outside) where they're closest, the scanlines crawl slowly down, a faint **radar sweep** turns over the loadout preview, and readying sends a small green spark with a short tail from Ready up the gap between the party column and the big screen into that player's card, a thin ring bursts 10 px off it and the card keeps a faint thin green line while ready. Starting the run glitches the lobby (red and blue copies split off, torn bands jump sideways) and switches it off like an old CRT, squashed to a line that shrinks to a point, before the drop-in. In it each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight,
 Ninja, Hemomancer), then one of that combination's three weapons (four for the Soldier, Elementalist, Summoner, Knight, Ninja and Hemomancer DPS and the Soldier, Elementalist, Summoner, Knight, Ninja and Hemomancer Tank, and the Healer Soldier, Elementalist and Knight: their fourth on the 4th key) and three 1st abilities (four for a few: their fourth on the 4th key). Weapons and abilities are
 unique to their role and class. The **Ultimate** row under them shows the combination's ultimates: key 0 is its default
-ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, and on key 2 A Literal Tank, the Tank Elementalist: Lightning Rod, with Stone Colossus on key 2 and Vortex on key 3, the Tank Summoner: Bone Phalanx, the Tank Ninja: Dragon's Dogma, with Spirit Avatar on key 2, the Tank Hemomancer: **Bloodbath**, the DPS Soldier: Attack Helicopter, the DPS Elementalist: **Living Bolt**, the Healer Soldier: Field Hospital, and the DPS Knight: Warhorn Volley); the
+ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, and on key 2 A Literal Tank, the Tank Elementalist: Lightning Rod, with Stone Colossus on key 2 and Vortex on key 3, the Tank Summoner: Bone Phalanx, the Tank Ninja: Dragon's Dogma, with Spirit Avatar on key 2, the Tank Hemomancer: **Bloodbath**, the DPS Soldier: Attack Helicopter, and on key 2 Orbital Laser, the DPS Elementalist: **Living Bolt**, the Healer Soldier: Field Hospital, and on key 2 Supply Drop, and the DPS Knight: Warhorn Volley); the
 other keys are locked. Click a key to pick it (inverse video, like the weapon and ability keys): the detail box and the
 preview show it. The pick goes back to the default when you change role or class; bots use the default, a Wildcard's
 row lists its class wheel's class, and a saved run's seats keep theirs.
@@ -402,7 +402,7 @@ Parry upgrades show up like any other card:
 **Q** fires your **ultimate**. Each role and class combination has its own default one, and some have others to
 pick instead on the lobby's **Ultimate** row (so far the Tank Soldier: **Juggernaut Suit** and **A Literal Tank** and the Tank Elementalist: **Lightning Rod**, **Stone Colossus** and **Vortex**, below the table; and the DPS Elementalist: **Living Bolt**, below; and the
 Tank Hemomancer: **Bloodbath**, in the Hemomancer table; and the Tank Summoner: **Bone Phalanx**, below the table; and the
-Tank Ninja: **Dragon's Dogma** and, on key 2, **Spirit Avatar**, below; and the DPS Soldier: **Attack Helicopter**, below; and the Healer Soldier: **Field Hospital**, below; and the DPS Knight: **Warhorn Volley**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
+Tank Ninja: **Dragon's Dogma** and, on key 2, **Spirit Avatar**, below; and the DPS Soldier: **Attack Helicopter** and **Orbital Laser**, below; and the Healer Soldier: **Field Hospital** and on key 2 **Supply Drop**, below; and the DPS Knight: **Warhorn Volley**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
 that upgrades don't shorten, and start each run half charged. The HUD shows the charge in the gold slot.
 
 **Juggernaut Suit** (Tank Soldier, picked instead of Fortress, 75 s): six steel plates clamp onto you over 0.6 s and
@@ -443,6 +443,20 @@ climbs away, the barrels whine up on a fresh target, and every round cracks (all
 second gun on the other wing, so two targets at once. Design:
 [`Docs/Mockups/attack-helicopter.html`](Docs/Mockups/attack-helicopter.html) (the Orbit pattern).
 
+**Orbital Laser** (DPS Soldier, key 2 of the Ultimate row, picked instead of Artillery Assault, 90 s): calls a laser
+down from orbit on your **cursor**, anywhere in the arena. A red spotting line drops out of the sky onto the point, then
+for **1.9 s** a red **260 px** circle locks on: gold brackets spin round its rim, a pale timer ring closes in on the
+point, three gold arcs count down outside it, and every enemy inside is marked with gold corners. From 1.5 s the screen
+dims and a thin white pilot beam comes down. Then a white **flash**, a screen shake and a column of blue-white light
+for **1.1 s**: every regular and heavy enemy it touches **dies**, however tough; a **boss** loses **20%** of its health,
+once; enemy shots inside are erased; allies are never hurt. A shockwave rolls out and sparks fly up. It leaves a crater
+of molten glass for **4 s** that burns enemies in it for **25 a second** (times your damage multiplier) and slows them
+30%, glowing cracks and embers cooling as it goes. Fast enemies can walk out during the lock-on. Bots call it with four
+or more enemies near them. Sound (OrbitalSoundBank.cs, Effects volume): an uplink chirp, three rising lock-on beeps, a
+charging whine, a deep boom with a crack, the beam's roar and the glass hissing as it cools. Mastered: a **340 px**
+circle, and the beam ploughs **200 px** on, away from you, while it fires. Design:
+[`Docs/Mockups/orbital-laser.html`](Docs/Mockups/orbital-laser.html).
+
 **Field Hospital** (Healer Soldier, picked instead of Lifeline, 150 s): in a Grid run, pressing it starts a pick. Every
 free door spot within 900 px of you lights up as a green hologram door with a white **+** (the mystery door's look in
 medic green) and a dashed outline of the cell behind it; a spot whose cell is taken (a built room, a mystery door on it,
@@ -459,6 +473,15 @@ orbs go, and the cell comes off the map. Outside a Grid run it is a **tent** at 
 same shrine and orbs inside a 150 px ring of green beams that keeps enemies and their shots out. Mastered: 8 orbs, one
 back every 3 s. Bots use it when in danger or hurt beside a hurt ally, on the free door nearest them. Design:
 [`Docs/Mockups/field-hospital.html`](Docs/Mockups/field-hospital.html).
+
+**Supply Drop** (Healer Soldier, key 2 of the Ultimate row, 110 s): throw a red smoke flare at your cursor (up to 520 px
+away). For 1.5 s a pulsing red ring marks where the crate lands as it falls under its chute; then it slams down for
+**60** (scaled by your damage) to every enemy within 90 px and staggers them 0.4 s (not bosses). It opens into a **170 px
+green zone for 12 s**: everyone inside moves **20% faster**, fires **30% faster** and has their weapon and ability
+cooldowns recharge **40% faster** (not the ultimate); a green ring under each player shows it, and it ends a quarter
+second after you step out. Every 2 s the crate throws out a **health pack** (heals 25, lands 60-150 px out, lasts 8 s,
+4 at most on the floor). Mastered: the zone lasts 18 s and packs heal 40. Bots use it when an ally is hurt or an enemy
+is within 460 px. Preview: `SUPPLY=<s since the cast> [SUPPLYCAP=1] Tools/Preview/shot.sh x hud 3 1 3`; test suite `supplydrop`.
 
 **Dragon's Dogma** (Tank Ninja, picked instead of Thousand Clones, 70 s): a gold sigil opens under you, the arena dims
 and a great azure spirit dragon (680 px long, gold spine and antlers, a shadow on the floor) pours out of you head first.
@@ -609,6 +632,7 @@ the key, pops "MASTERY 3" over it and shows a line above the keys with what it g
 | **Dragon's Dogma** | Hunts for 7 s, and every enemy it devours heals you 3%. | **Warhorn Volley** | The volley is 40% wider and the fire burns for 8 s. |
 | **Attack Helicopter** | A second gun on the wing: two targets at once. | **Field Hospital** | 8 orbs, one back every 3 s. |
 | **Spirit Avatar** | Lasts 15 s and the cleave reaches 20% further. | | |
+| **Orbital Laser** | The circle is 340 px wide instead of 260, and the beam ploughs 200 px on while it fires. | | |
 
 A popup appears when an ability gains mastery. The **Tab** menu shows each ability's mastery as five pips (the next one
 fills as it earns XP). What mastery 5 unlocks is always written in gold under each ability's description: in the lobby
@@ -618,7 +642,7 @@ with "…"; hover a Tab tile to read it in full.
 
 In the lobby, the loadout screen's **Ultimate** row has four keys. Key 0 is your role and class's default ultimate;
 the next keys hold the others you can pick instead (key 1 is **Juggernaut Suit** for the Tank Soldier, with **A Literal Tank** on key 2, **Lightning Rod**
-for the Tank Elementalist (key 2: **Stone Colossus**, key 3: **Vortex**), **Bloodbath** for the Tank Hemomancer, **Bone Phalanx** for the Tank Summoner, **Dragon's Dogma** for the Tank Ninja, **Attack Helicopter** for the DPS Soldier, **Living Bolt** for the DPS Elementalist, **Field Hospital** for the Healer Soldier and **Warhorn Volley** for the DPS Knight), and the rest
+for the Tank Elementalist (key 2: **Stone Colossus**, key 3: **Vortex**), **Bloodbath** for the Tank Hemomancer, **Bone Phalanx** for the Tank Summoner, **Dragon's Dogma** for the Tank Ninja, **Attack Helicopter** for the DPS Soldier (key 2: **Orbital Laser**), **Living Bolt** for the DPS Elementalist, **Field Hospital** (key 2: **Supply Drop**) for the Healer Soldier and **Warhorn Volley** for the DPS Knight), and the rest
 are locked slots for ultimates still to come. Click a key to pick it (the picked one is in inverse video, like the
 weapon and ability keys): it goes to the host and the other players like your other picks, the detail box shows its
 charge time, what it does and what mastering it adds, and the preview casts it. Changing role or class goes back to

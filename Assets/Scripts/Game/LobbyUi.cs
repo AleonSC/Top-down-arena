@@ -1666,8 +1666,10 @@ namespace Arena
                 }
                 DrawArenaContents(sg.AnimT);
                 if (fx)
-                {
                     DrawJuiceParts();
+                DrawArenaOver(sg.AnimT);  // the Deployable Turret, the Attack Helicopter... (WorldRenderer.cs)
+                if (fx)
+                {
                     SwitchToGlow(true);  // the added light, as in the arena (Juice.GlowPass)
                     DrawGlowPass();
                     SwitchToGlow(false);

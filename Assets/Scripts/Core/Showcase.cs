@@ -10,6 +10,7 @@ namespace Arena
     public class Showcase
     {
         public const float AbilityEvery = 3.5f;  // seconds between demo casts (cooldowns are skipped)
+        public const float TurretDemoFire = 4.5f;  // the Deployable Turret demo: seconds of fire before the next press steps out (DeployableTurret.cs)
         public const float UltimateEvery = 9f;   // ...and between ultimate casts (most last several seconds)
         const float FirstCast = 1.2f;            // the dummies are up by then (Mark for Death needs a target)
 
@@ -96,7 +97,9 @@ namespace Arena
                     : shown == AbilityId.SpiritAvatar ? Game.SpRise + Game.SpTime + 1.5f  // (it bursts before the next)
                     : shown == AbilityId.Vortex ? Game.VortexWindup + Game.VortexTime + 1.5f  // (the dummies walk home before the next)
                     : shown == AbilityId.AttackHelicopter ? Game.HeliTime + 2f  // (it flies away before the next)
+                    : shown == AbilityId.OrbitalLaser ? Game.OrbFxDur + 1f  // (the crater cools before the next)
                     : shown == AbilityId.LiteralTank ? Game.TankTime + 2f  // (the wreck clears before the next)
+                    : shown == AbilityId.SupplyDrop ? Game.SupplyCallIn + Game.SupplyOpen + Game.SupplyTime + Game.SupplyFold + 1f  // (the crate folds away before the next)
                     : shown == AbilityId.DragonsDogma ? Game.DogmaTime + 1.5f  // (it coils back in before the next)
                     : shown == AbilityId.Bloodbath ? Game.BathTime + 1.5f  // (a Bloodbath dries up before the next)
                     : shown == AbilityId.BonePhalanx ? Game.PhalanxLife(Game.PhalanxCount) + 1.2f : UltimateEvery;  // (the line marches and crumbles before the next)
@@ -153,6 +156,8 @@ namespace Arena
             }
             if (AltFire)
                 input.Fire = false;  // ALT FIRE: only the Alt, never the trigger
+            if (demoAbility && Game.Seated(me))
+                input.Fire = true;  // in the Deployable Turret: hold the trigger so it spools up and fires (DeployableTurret.cs)
             // ALT FIRE: weapons with an Alt press it on a loop (ShowcaseAlt.cs).
             input.WeaponAction = firing && AltFire && ShowcaseAlt.Held(Game, me, t, dt);
             if (input.WeaponAction && ShowcaseAlt.NeedsAlly(me.Weapon.Id))
@@ -168,7 +173,7 @@ namespace Arena
                 {
                     Game.ShowcaseRefill(ultimate ? Upgrades.UltSlot : 0);
                     castHeld = true;
-                    castT = ultimate ? ultEvery : AbilityEvery;
+                    castT = ultimate ? ultEvery : ability == AbilityId.DeployableTurret ? Game.DtDeploy + TurretDemoFire : AbilityEvery;  // (the turret: drop, fire a while, then the press again steps out and it blows)
                     prepped = false;
                     castCount++;
                     aimTicks = 4;  // (held abilities cast on release, so the cursor stays put a few ticks)
