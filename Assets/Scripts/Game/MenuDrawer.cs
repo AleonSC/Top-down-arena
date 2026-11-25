@@ -558,9 +558,13 @@ namespace Arena
                     if (zoom2 != scrollZoom)
                         SetCamZoom(zoom2);
                     y += 66f;
-                    bool hover2 = SwitchRow(new Rect(x, y, w, 54f), hoverNames, "Enemy names on hover", "Point at an enemy to see its name and what it does (the first sightings show it anyway)");
+                    bool hover2 = SwitchRow(new Rect(x, y, halfW, 54f), hoverNames, "Enemy names on hover", "Point at an enemy for its name and job");
                     if (hover2 != hoverNames)
                         SetHoverNames(hover2);
+                    WinLabel(new Rect(x + halfW + 36f, y, halfW - 236f, 54f), "First-person", "Mouse turn speed (F8)");  // (FirstPerson.cs)
+                    float sens2 = FpSensSlider(new Rect(x + w - 226f, y + 3f, 226f, 48f), FpSensSetting);
+                    if (Mathf.Abs(sens2 - FpSensSetting) > 0.0001f)
+                        SetFpSens(sens2);
                     y += 66f;
                     y += DrawLagSettingsRow(x, y, w);  // LagChartUi.cs
                     WinLabel(new Rect(x, y + 6f, w - 396f, 48f), "Teammate shots", "How solid other players' bullets look (25% at least)");
