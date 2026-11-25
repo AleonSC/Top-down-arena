@@ -96,6 +96,7 @@ namespace Arena
                     : shown == AbilityId.LivingBolt ? Game.BoltChannel + Game.BoltTime + 1.5f  // (the trails fade before the next)
                     : shown == AbilityId.ForbiddenPath ? Game.FpShed + Game.FpTime + 1.5f  // (the beast sheds back before the next)
                     : shown == AbilityId.RodentMinigun ? Game.RmTotal(Game.RmFull) + 1.5f  // (the portal closes before the next)
+                    : shown == AbilityId.MammothFall ? Game.MfTotal(Game.MfRampage) + 1.5f  // (it has run off before the next)
                     : shown == AbilityId.SpiritAvatar ? Game.SpRise + Game.SpTime + 1.5f  // (it bursts before the next)
                     : shown == AbilityId.Vortex ? Game.VortexWindup + Game.VortexTime + 1.5f  // (the dummies walk home before the next)
                     : shown == AbilityId.AttackHelicopter ? Game.HeliTime + 2f  // (it flies away before the next)

@@ -1260,6 +1260,11 @@ namespace Arena
             }
             if (z.Kind == ZoneKind.Stampede)  // the herd's walk (Stampede.cs)
                 s.Float(ref z.Marched);
+            if (z.Kind == ZoneKind.Mammoth)  // where it lands, and the enemy it's charging (MammothFall.cs)
+            {
+                s.Vec(ref z.Origin);
+                s.Int(ref z.Side);
+            }
             if (z.Kind == ZoneKind.FieldHospital)  // who has used its shrine (FieldHospital.cs)
                 s.Int(ref z.Side);
             if (s.Reading)
