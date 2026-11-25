@@ -43,6 +43,11 @@ namespace Arena
                 EndRain(p, true);
                 return;
             }
+            if (BoilPress(p, slot))  // Blood Boil pressed again: it ends (no cooldown spent; BloodBoil.cs)
+            {
+                EndBoil(p);
+                return;
+            }
             if (BathPress(p, slot))  // Bloodbath pressed again: the channel ends and the pool dries up (no cooldown spent; Bloodbath.cs)
             {
                 EndBath(ActiveBath(p));
