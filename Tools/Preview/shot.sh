@@ -38,6 +38,7 @@
 # TAGS=1 (a row of enemies on first sight, each with its name and job tag; uses a fresh profile).
 # WAVECLEARED=1 WCWAVE=17 (the between-waves box after wave 17: the new-enemy chips for wave 18).
 # STAMPEDE=<s since the cast> [STAMPEDEMASTERED=1] (the Tank Summoner's Stampede: the gate, the herd charging, fading; use 0.2, 0.7, 1.2; mode hud).
+# SENBON=<needles>[,<s since the last cast>[,<enemies>]] [SENBONCAP=1] (the DPS Ninja's Senbon Seekers: the ring of needles, new ones coming out under 0.35 s, needles curving in on enemies 170 px off; ZOOM=2, mode hud; ShotSenbon.cs).
 # LANDSHARK=<s since the cast> [LANDSHARKMASTERED=1] (the DPS Summoner's Land Shark: the puddle, the fin, the leap and bite, the drain; use 0.6, 1.0, 1.1, 1.25; mode hud).
 # HEMODPS=spray|debt|rush (the DPS Hemomancer's Arterial Spray, Blood Debt, Vein Rush; DEBTSETTLE=paid|forfeit, RUSHT=<s>; mode hud).
 # GALEWALL=<s into the scene> (Gale Wall like the mockup: cast at 0.5 s, shots from 0.4 s; GALEBLAST=<s> unleashes it then; GALECAP=1 mastered; ShotGaleWall.cs).
@@ -106,6 +107,7 @@
 # TWINNADES=<loaded>,<next tube 0/1>,<charge> (the Twin Rifle's grenade tubes and pips; with CAST=Airstrike CASTT=<s> for the Airstrike).
 # JUGG=<s since cast> JUGGARMOR=<0-1> (the Tank Soldier's Juggernaut Suit: plates, armour bar, flak tracers; mode hud).
 # VORTEX=<s since cast> VXMASTERED=1 (the Tank Elementalist's Vortex: wind-up, storm, grunts swept round, shots swept away; mode hud; VortexLook.cs).
+# RAVAGER=<s since cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (the DPS Hemomancer's Blood Ravager walking right through grunts, clicking over the last 0.4 s; ShotBloodRavager.cs; ZOOM=2.2, mode hud).
 # BOLT=<s since cast> (the DPS Elementalist's Living Bolt: 0.3 the channel, 4 electrified with three dashes' residue, 9.5 the flicker; mode hud; LivingBoltLook.cs).
 # COLOSSUS=<s since cast> COLWIND=<0-1> COLEND=<s> (the Tank Elementalist's Stone Colossus: rising, standing, slamming, crumbling; mode hud; StoneColossusLook.cs).
 # BLOODBATH=<s since the cast> (the Tank Hemomancer's Bloodbath pool, wading enemies and heal numbers; BATHMASTERED=1 for 220 px; mode hud, 2 players).

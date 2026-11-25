@@ -607,6 +607,9 @@ namespace Arena
             s.Float(ref p.VortexR);
             s.Float(ref p.BoltT);  // Living Bolt (LivingBolt.cs)
             s.Float(ref p.BoltAge);
+            s.Float(ref p.RvT);  // Blood Ravager (BloodRavager.cs)
+            if (p.RvT > 0f)
+                s.Float(ref p.RvLen);
             s.Float(ref p.RmT);  // Rodent Minigun (RodentMinigun.cs)
             if (p.RmT > 0f)
             {
@@ -648,6 +651,13 @@ namespace Arena
                     if (s.Reading)
                         p.PlateHp[k] = q / 255f * p.PlateMax;
                 }
+            }
+            s.Byte(ref p.SbN);  // Senbon Seekers (SenbonSeekers.cs)
+            if (p.SbN > 0)
+            {
+                s.Float(ref p.SbClock);
+                s.Float(ref p.SbNewT);
+                s.Bool(ref p.SbCap);
             }
             s.Vec(ref p.VanishFrom);
             s.Float(ref p.OrbitT);

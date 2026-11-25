@@ -224,6 +224,7 @@ namespace Arena
             DrawWarhornSky();  // Warhorn Volley's horn and the arrows in the air (WarhornVolleyLook.cs)
             DrawOrbitalSky();  // Orbital Laser's lock-on, beam, shockwave and flash (OrbitalLaserLook.cs)
             DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon (DragonsDogmaLook.cs)
+            DrawRavagerDrops();  // Blood Ravager's drops (BloodRavagerLook.cs)
             DrawRodentAfter(t);  // the Rodent Minigun's rodents scampering off and its cheese crumbs (RodentMinigunLook.cs)
         }
 
@@ -234,6 +235,7 @@ namespace Arena
         void DrawArenaContents(float t, bool enemyShotsLater = false)
         {
             DrawRankTrails(t);  // a rank reward drawn under everyone (RankTrails.cs)
+            DrawRavagerStains(t);  // Blood Ravager's footprints (BloodRavagerLook.cs)
             foreach (var p in game.Players.Values)
                 if (!FpHidesMe(p))  // (first person: your own auras would fill the screen, FirstPerson.cs)
                     DrawPlayerAuras(p, t);
@@ -397,6 +399,7 @@ namespace Arena
                 DrawStunned(p, t);  // WardenLook.cs
                 DrawRodSparks(p, t);  // Lightning Rod's arcs on the body (LightningRodLook.cs)
                 DrawLivingBoltSparks(p, t);  // Living Bolt's arcs on the body (LivingBoltLook.cs)
+                DrawRavagerOver(p, t);  // Blood Ravager's front legs and lash pips (BloodRavagerLook.cs)
                 DrawHeldStunGun(p, t);
                 FpFloor();
             }
@@ -443,6 +446,7 @@ namespace Arena
             DrawVortex(p, t);      // the Vortex ultimate's storm (VortexLook.cs)
             DrawLivingBoltAura(p, t);  // Living Bolt's channel, halo and time ring (LivingBoltLook.cs)
             DrawRodentPortal(p, t);  // the Rodent Minigun's portal (RodentMinigunLook.cs)
+            DrawRavagerUnder(p, t);  // Blood Ravager's glow, reach ring and back legs (BloodRavagerLook.cs)
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)
             DrawTempest(p, t);  // Wind Clash's Tempest (WindClashLook.cs)
             DrawStaticShockUnder(p, t);  // Overcharge's gold ring; the plain cone (StaticShockLook.cs)
