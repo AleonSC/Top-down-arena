@@ -18,6 +18,7 @@ namespace Arena
             // Hemomancer and Elementalist
             coatings.Clear(); freezeWaves.Clear(); shockRuns.Clear(); harvestTargets.Clear(); harvests.Clear(); waves.Clear();
             Ink.Clear(); pens.Clear(); hands.Clear();
+            ResetHive();  // HiveCenser.cs
             // enemies and bosses
             dives.Clear(); scytheCuts.Clear(); throwHits.Clear();
             steerMem.Clear();  // LayoutRules.cs: keyed by enemy id

@@ -1017,6 +1017,7 @@ namespace Arena
             TickGates(dt);         // the shutter gates' clocks (Gates.cs)
             UpdatePropView(dt);    // crates, barrels, chests and their items (Props.cs)
             UpdateInkView(dt);     // Chalk.cs: the chalk's tip easing, a client's ink ageing
+            UpdateHiveView(dt);    // HiveCenser.cs: the swarms and pour points easing on screen
             UpdateWardenView(dt);  // Warden.cs
             UpdateHoldingCellView(dt);  // HoldingCell.cs
             UpdateDrillView(dt);   // DrillGame.cs: a client's drill clocks and walls, and its own finish
@@ -1581,6 +1582,7 @@ namespace Arena
             TickWindWaves(dt);  // WindClash.cs: Wind Clash's waves and Tempests
             TickArcBalls(dt);   // StaticShock.cs: Arc Cannon balls and bursts
             TickTessenPetals(dt);  // TwinTessen.cs: the Petal Spin's petals landing
+            TickHive(dt);       // HiveCenser.cs: the Hive Censer's insects settling, swarms hunting and wrapping, chitin
             TickBloodBlast(dt);  // BloodBlast.cs: Blood Blast's returning blood
             TickTide(dt);       // BloodBlast.cs: Crimson Tides gathering and rolling out
             TickFrostStrikes(dt);  // FrostLance.cs: the Frost Lance's chain, chill and Absolute Zero
@@ -1761,6 +1763,11 @@ namespace Arena
                 p.DumpCd = Math.Max(0f, p.DumpCd - dt);  // the Railgun's Heat Dump (RailBeam.cs)
                 if (p.Weapon.Id != WeaponId.StaticShock && p.StaticOn)
                     ClearStaticShock(p);  // (StaticShock.cs)
+                TickHiveCall(p, dt);  // Hive Call's clocks (HiveCenser.cs)
+                if (p.Weapon.Id != WeaponId.HiveCenser && p.HiveOn)
+                    ClearHivePour(p);
+                if (p.Weapon.Id == WeaponId.HiveCenser)
+                    TickHivePour(p, dt);  // held, not fired: insects pour from the cursor (HiveCenser.cs)
                 if (p.Weapon.Id == WeaponId.StaticShock)
                 {
                     string ssSrc = CreditTo("weapon");
@@ -1839,7 +1846,7 @@ namespace Arena
                     TickTwinAuto(p, dt);  // the guns aim and fire on their own, no trigger (TwinAuto.cs)
                 else if (p.Weapon.Id == WeaponId.ArcKnuckles)
                     TickKnuckleFire(p, dt);  // a click is a move, held repeats, the Quake Punch charges while held (ArcKnucklesBrawl.cs)
-                else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Weapon.Id != WeaponId.StaticShock && !InGreatStar(p) && p.Firing && !p.ParryActive && !p.RapierGuard && !p.HbSet && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
+                else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Weapon.Id != WeaponId.StaticShock && p.Weapon.Id != WeaponId.HiveCenser && !InGreatStar(p) && p.Firing && !p.ParryActive && !p.RapierGuard && !p.HbSet && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);
                     FirePlayer(p);
