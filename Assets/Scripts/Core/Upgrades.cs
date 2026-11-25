@@ -64,6 +64,7 @@ namespace Arena
         BloodRavager,   // the DPS Hemomancer's second ultimate (BloodRavager.cs), key 1 of the lobby's Ultimate row
         ForbiddenPath,  // the DPS Ninja's second ultimate (ForbiddenPath.cs), key 1 of the lobby's Ultimate row
         AstralProjection,  // the Healer Ninja's second ultimate (AstralProjection.cs), key 1 of the lobby's Ultimate row
+        StaticBubble,   // the Healer Elementalist's second ultimate (StaticBubble.cs), key 1 of the lobby's Ultimate row
         None = 255,
     }
 
@@ -351,7 +352,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Elementalist, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// Hemomancer.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.RavagerUltimates, Game.FpUltimates, Game.AstralUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.RavagerUltimates, Game.FpUltimates, Game.AstralUltimates, Game.StaticBubbleUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 
