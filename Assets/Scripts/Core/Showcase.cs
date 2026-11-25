@@ -97,6 +97,7 @@ namespace Arena
                     : shown == AbilityId.Vortex ? Game.VortexWindup + Game.VortexTime + 1.5f  // (the dummies walk home before the next)
                     : shown == AbilityId.AttackHelicopter ? Game.HeliTime + 2f  // (it flies away before the next)
                     : shown == AbilityId.LiteralTank ? Game.TankTime + 2f  // (the wreck clears before the next)
+                    : shown == AbilityId.SupplyDrop ? Game.SupplyCallIn + Game.SupplyOpen + Game.SupplyTime + Game.SupplyFold + 1f  // (the crate folds away before the next)
                     : shown == AbilityId.DragonsDogma ? Game.DogmaTime + 1.5f  // (it coils back in before the next)
                     : shown == AbilityId.Bloodbath ? Game.BathTime + 1.5f  // (a Bloodbath dries up before the next)
                     : shown == AbilityId.BonePhalanx ? Game.PhalanxLife(Game.PhalanxCount) + 1.2f : UltimateEvery;  // (the line marches and crumbles before the next)

@@ -54,6 +54,7 @@ namespace Arena
         LivingBolt,     // the DPS Elementalist's second ultimate (LivingBolt.cs), key 1 of the lobby's Ultimate row
         BambooGrove,    // the Tank Ninja's 4th choice (BambooGrove.cs), the lobby's 4th choice
         SpiritAvatar,   // the Tank Ninja's third ultimate (SpiritAvatar.cs), key 2 of the lobby's Ultimate row
+        SupplyDrop,     // the Healer Soldier's third ultimate (SupplyDrop.cs), key 2 of the lobby's Ultimate row
         None = 255,
     }
 
@@ -333,7 +334,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Elementalist, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// Hemomancer.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 
