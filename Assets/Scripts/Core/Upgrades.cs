@@ -9,7 +9,7 @@ namespace Arena
     public enum AbilityId : byte
     {
         Barrier, MendPulse, PoisonDart, Shockwave, Overdrive, Blink, Starburst, Turret,
-        Roar, Bulldoze, Adrenaline, Medkit, Airstrike, Mark,  // Poison Dart (PoisonDart.cs) took Dash's place (and number); Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
+        Roar, Bulldoze, Adrenaline, Medkit, Airstrike, Claymore,  // Claymore (Claymore.cs) took Mark for Death's place (and number); Poison Dart (PoisonDart.cs) took Dash's place (and number); Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
         // Elementalist
         Aeroaegis, FrostNova, FlameWall, HealingRain, GustGate, LumenWard, Meteor, Blizzard, Tsunami,  // Tsunami (Tsunami.cs) took Arcane Surge's place (and number); Gust Gate (GustGate.cs) took Energy Ward's
         // Summoner
@@ -98,7 +98,7 @@ namespace Arena
         public float VenomMult = 1f, VenomReachBonus;  // Virulence (Poison Dart, PoisonDart.cs)
         public float RoarBonusTime, RoarExtraReduction, BulldozeMult = 1f;
         public float AdrenalineBonusTime, LinkHealMult = 1f;
-        public float GrenadeRadiusMult = 1f, MarkBonus;
+        public float GrenadeRadiusMult = 1f, ClaymoreDmgMult = 1f;  // Airstrike: Bigger Boom; Claymore: Shaped Charge
         // Knight abilities
         public float WallCapMult = 1f, WallArcMult = 1f;
         public float SlamRadiusMult = 1f, SlamStunBonus;

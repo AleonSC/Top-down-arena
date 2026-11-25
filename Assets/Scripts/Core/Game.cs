@@ -1337,8 +1337,6 @@ namespace Arena
                 }
                 if (!pressed || me.Downed || State == MatchState.GameOver)
                     continue;
-                if (me.Slots[slot].Id == AbilityId.Mark && !AnyTarget())
-                    continue;  // nothing to mark: don't waste the cooldown
                 if (me.Slots[slot].Id == AbilityId.WaterWard && WwFull(me))
                     continue;  // every drop already out: don't waste the cooldown (WaterWard.cs)
                 if (me.Slots[slot].Id == AbilityId.CeremonialArmor && me.PlateN >= CerePlateMax)

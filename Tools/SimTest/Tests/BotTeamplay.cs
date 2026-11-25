@@ -2,7 +2,7 @@ using System.Linq;
 using System;
 using Arena;
 
-// The smart bot's team play: Roar and Last Stand for a teammate in trouble, Mark for Death on the team's target, walking to
+// The smart bot's team play: Roar and Last Stand for a teammate in trouble, the team's marked target, walking to
 // healing orbs and zones when hurt (BotBrain.cs, and each AbilityDef.Bot).
 static partial class Program
 {
@@ -17,7 +17,7 @@ static partial class Program
         var calm = new BotSense { Me = me, HaveTarget = true, TargetD = 300f, Players = 3, DownedD = 9999f };
         Check(!rule(AbilityId.Roar)(calm), "Roar waits while nobody is in trouble");
         Check(rule(AbilityId.Roar)(new BotSense { Me = me, HaveTarget = true, TargetD = 300f, Players = 3, AllyThreatened = true, DownedD = 9999f }), "Roar goes off for a teammate with enemies on top of them");
-        Check(rule(AbilityId.Mark)(calm) && !rule(AbilityId.Mark)(new BotSense { Me = me, HaveTarget = true, TargetD = 300f, TargetMarked = true }), "Mark for Death goes on an unmarked target, not twice");
+        Check(rule(AbilityId.Claymore)(calm) && !rule(AbilityId.Claymore)(new BotSense { Me = me, HaveTarget = true, TargetD = 600f }), "Claymore goes down with a target near, not far off");
         Check(!rule(AbilityId.LastStand)(calm) && rule(AbilityId.LastStand)(new BotSense { Me = me, AllyDown = true, DownedD = 40f }), "Last Stand plants over a downed ally, only once the tank is at them");
         Check(!rule(AbilityId.LastStand)(new BotSense { Me = me, AllyDown = true, DownedD = 400f }), "Last Stand doesn't plant far from the downed ally");
 

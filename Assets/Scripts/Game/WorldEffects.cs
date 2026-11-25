@@ -99,6 +99,7 @@ namespace Arena
             d[(int)FxKind.CoverHit] = DrawFxCoverHit;
             d[(int)FxKind.CoverBreak] = DrawFxCoverBreak;
             d[(int)FxKind.CoverFold] = (fx, f, t) => DrawCoverFoldFx(fx);  // DeployableCoverLook.cs
+            d[(int)FxKind.ClaymoreBlast] = (fx, f, t) => DrawClaymoreBlastFx(fx);  // ClaymoreLook.cs
             d[(int)FxKind.DecoyHit] = (fx, f, t) => DrawDecoyHitFx(fx);  // DecoyDummyLook.cs
             d[(int)FxKind.DecoyPop] = (fx, f, t) => DrawDecoyPopFx(fx);  // DecoyDummyLook.cs
             d[(int)FxKind.DecoyFold] = (fx, f, t) => DrawDecoyFoldFx(fx);  // DecoyDummyLook.cs
