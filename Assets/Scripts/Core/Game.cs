@@ -1612,6 +1612,7 @@ namespace Arena
             TickForbiddenPath(dt);  // Forbidden Path: the beast's clock, drain, lock-on and combo stages (ForbiddenPath.cs)
             TickAstral(dt);  // Astral Projection: the spirit's clock, its host, lean and heal (AstralProjection.cs)
             TickRodentMinigun(dt);  // Rodent Minigun: the portal's clock, its turn after the aim and the rodents it spits (RodentMinigun.cs)
+            TickStaticBubble(dt);  // Static Bubble: its clock, growth, enemies put out, shots eaten, the burst (StaticBubble.cs)
             TickVortex(dt);  // the Vortex ultimate: its clock, swirl, damage, swept shots and fling (Vortex.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
             KeepOffBridges(dt);    // the Drawbridge (Drawbridge.cs)
@@ -1693,6 +1694,7 @@ namespace Arena
                 p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
                 p.AdrenalineT = Math.Max(0f, p.AdrenalineT - dt);
                 p.OverchargeT = Math.Max(0f, p.OverchargeT - dt);  // StaticShock.cs
+                p.RushT = Math.Max(0f, p.RushT - dt);  // Static Rush (StaticBubble.cs)
                 p.SupplyT = Math.Max(0f, p.SupplyT - dt);  // SupplyDrop.cs
                 TickGustTimers(p, dt);  // GustGate.cs
                 p.SurgeT = Math.Max(0f, p.SurgeT - dt);  // Arcane Surge

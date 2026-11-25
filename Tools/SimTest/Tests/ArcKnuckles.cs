@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using Arena;
 
@@ -12,7 +13,9 @@ static partial class Program
         // The lobby: the Knight DPS has a fourth weapon; roles without one keep three.
         Check(Defs.WeaponCount(Role.Dps, Kit.Knight) == 4 && Defs.Weapon(Role.Dps, Kit.Knight, 3).Id == WeaponId.ArcKnuckles,
             "the Knight DPS's fourth weapon key is the Arc Knuckles");
-        Check(Defs.WeaponCount(Role.Healer, Kit.Summoner) == 3 && Defs.Weapon(Role.Healer, Kit.Summoner, 3) == Defs.Weapon(Role.Healer, Kit.Summoner, 0) && Defs.WeaponCount(Role.Healer, Kit.Elementalist) == 4,  // (the Healer Elementalist got Static Shock as its 4th, the Healer Ninja Twin Tessen)
+        var three = Enumerable.Range(0, 3).SelectMany(r => Enum.GetValues(typeof(Kit)).Cast<Kit>().Where(k => (int)k < Defs.KitCount).Select(k => ((Role)r, k)))
+            .Where(rk => Defs.WeaponLimit(rk.Item1, rk.Item2) == 3).ToList();  // (whichever still have three: more get a 4th over time)
+        Check(three.Count > 0 && three.All(rk => Defs.WeaponCount(rk.Item1, rk.Item2) == 3 && Defs.Weapon(rk.Item1, rk.Item2, 3) == Defs.Weapon(rk.Item1, rk.Item2, 0)),
             "roles without a 4th weapon keep three (a fourth pick they don't have is their first weapon)");
         Check(Defs.WeaponOf(WeaponId.ArcKnuckles).Name == "Arc Knuckles", "the Arc Knuckles have their definition");
         V2 sd;

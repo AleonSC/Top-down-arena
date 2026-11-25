@@ -202,6 +202,9 @@ namespace Arena
                 case AbilityId.ForbiddenPath:  // DPS: Ninja, the second ultimate (ForbiddenPath.cs)
                     CastForbiddenPath(p, cap);
                     break;
+                case AbilityId.StaticBubble:  // Healer: Elementalist, the second ultimate (StaticBubble.cs)
+                    CastStaticBubble(p, cap);
+                    break;
                 case AbilityId.AstralProjection:  // Healer: Ninja, the second ultimate (AstralProjection.cs)
                     CastAstral(p, cap);
                     break;

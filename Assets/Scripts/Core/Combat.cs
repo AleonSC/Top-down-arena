@@ -23,7 +23,9 @@ namespace Arena
             if (ArmOn(p))
                 return;  // curled up in Iron Armadillo: nothing gets through the shell (IronArmadillo.cs)
             if (ApOn(p))
-                return;  // Astral Projection: the body can't be hurt, nor the spirit (AstralProjection.cs)
+                return;
+            if (InStaticBubble(p.Pos))
+                return;  // inside a Static Bubble nothing hostile reaches you (StaticBubble.cs)  // Astral Projection: the body can't be hurt, nor the spirit (AstralProjection.cs)
             if (bladedRuns.Exists(r => r.Owner == p.Id))
                 return;  // mid-rush in Bladed Dive: nothing touches you, whatever checks InvulnT (BladedDive.cs)
             if (!tickDamage && RiotBlocks(p, source))
@@ -124,6 +126,7 @@ namespace Arena
             p.OverdriveT = 0f;
             p.AdrenalineT = 0f;
             p.OverchargeT = 0f;
+            p.RushT = 0f;  // Static Rush (StaticBubble.cs)
             p.GustT = 0f;
             p.Firing = false;
         }
