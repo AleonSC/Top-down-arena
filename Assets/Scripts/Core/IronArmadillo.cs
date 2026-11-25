@@ -33,7 +33,7 @@ namespace Arena
         public const float ArmSlam = 90f, ArmSlamMastered = 130f, ArmSlamR = 180f, ArmSlamShove = 110f;
         public const float ArmRicochet = 15f / 12f;          // a ricochet hits for 15 (SendReflects' 12 x this)
         public const float ArmBotRange = 420f;
-        const byte DashArmBash = 64;                         // Msg.WeaponDash kind (the rest are listed in Ninja.cs)
+        const byte DashArmBash = 66;                         // Msg.WeaponDash kind (the rest are listed in Ninja.cs)
         public static readonly Rgba ArmShell = new Rgba(0.79f, 0.71f, 0.54f), ArmSpirit = new Rgba(0.37f, 0.88f, 0.82f),
             ArmGold = new Rgba(1f, 0.8f, 0.35f);
 
