@@ -110,6 +110,7 @@ namespace Arena
             // --- Hemomancer ---
             { WeaponId.BloodLash, (g, me, t, dt) => Hold(t, 8f, 2f, 2.5f) },        // Martyr's Leash, held
             { WeaponId.BloodBrawler, (g, me, t, dt) => Primed(t, dt, 3f, 1.5f, () => { var e = Dummy(g, me); if (e != null) { me.BsTarget = e.Id; me.BsT = 1f; } }) },      // Sympathy on the marked enemy
+            { WeaponId.NeedleSwarm, (g, me, t, dt) => Tap(t, dt, 5f, 3f) },     // a fan of needles out of the swarm every 5 s
             { WeaponId.EmbolusSpears, (g, me, t, dt) => Primed(t, dt, 3f, 1.5f, () => StickSpears(g, me)) },     // burst the spears
             { WeaponId.BloodBlast, (g, me, t, dt) => Tap(t, dt, 8.5f, 1.5f) },      // the Crimson Tide (8 s cooldown)
             // --- Fourth weapons ---

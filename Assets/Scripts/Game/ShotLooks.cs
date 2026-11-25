@@ -11,8 +11,8 @@ namespace Arena
     ///   Ice Shards (was Arcane Missiles)   faceted ice kites with a trail of glints (EmitFromShot)
     ///   lightning               flickering, re-forking bolts with a white-hot core (DrawJuicyBolt)
     ///   Shuriken                motion-blur arcs while it spins
-    ///   Blood Bolts             the mockup's blood drop: a teardrop with a dotted trail
-    ///   Fireball, boulder, Blood Bolts   embers and smoke, dust, drips (EmitFromShot)
+    ///   Needle Swarm (Alt)      the swarm's needle with a fading red streak (NeedleSwarmLook.cs)
+    ///   Fireball, boulder, Needle Swarm   embers and smoke, dust, drips (EmitFromShot)
     /// Each one's glow in the glow pass is the mockup's too (ShotGlow): small for flechettes, at the exhaust for missiles,
     /// none for the boulder and blood.
     public partial class ArenaApp
@@ -35,7 +35,7 @@ namespace Arena
                 case Defs.FlakShell: return w == WeaponId.FlakCannon ? w : (WeaponId?)null;
                 case Defs.GrenadeShot: return w == WeaponId.GrenadeLauncher ? w : (WeaponId?)null;
                 case Defs.ArcaneShot: return w == WeaponId.IceShards ? w : (WeaponId?)null;
-                case Defs.BloodShot: return w == WeaponId.BloodBolts ? w : (WeaponId?)null;
+                case Defs.BloodShot: return w == WeaponId.NeedleSwarm ? w : (WeaponId?)null;
                 case Defs.BoulderShot: return w == WeaponId.GolemStaff ? w : (WeaponId?)null;
                 case Defs.FireflyShot: return w == WeaponId.SpriteStaff ? w : (WeaponId?)null;
             }
@@ -137,8 +137,10 @@ namespace Arena
                     GlowDisc(b.Pos, 16f, IceCol, 0.7f);  // a cold glow round the shard
                     return;
                 case WeaponId.GolemStaff:
-                case WeaponId.BloodBolts:
-                    return;  // a rock and a drop of blood don't glow (as in the mockup)
+                    return;  // a rock doesn't glow (as in the mockup)
+                case WeaponId.NeedleSwarm:
+                    GlowDisc(b.Pos, 9f, new Rgba(0.59f, 0.04f, 0.11f), 0.3f);  // the swarm's needles' faint red glow
+                    return;
             }
             GlowDisc(b.Pos, Mathf.Max(14f, b.Radius * 4.5f), Defs.BulletColor(b.Kind), b.Owner != 0 ? 0.47f : 0.5f);
         }
@@ -211,29 +213,13 @@ namespace Arena
                 case WeaponId.RiotRepeater:
                     DrawRiotRound(b, c);
                     return true;
-                case WeaponId.BloodBolts:
-                {
-                    // The mockup's blood drop: a dotted trail (every other frame of the last 8, shrinking and fading),
-                    // a teardrop pointing back, and a pale highlight.
-                    float speed = b.Vel.Length, flown = Mathf.Max(0f, (b.Life0 - b.Life) * speed);
-                    for (int i = 2; i < 8; i += 2)
-                    {
-                        float back = speed / 60f * i, f = 1f - i / 8f;
-                        if (back > flown)
-                            break;
-                        Circle(b.Pos - dir * back, 2.2f * f, c.WithAlpha(0.6f * f), 8);
-                    }
-                    SetColor(c);
-                    V2 o = b.Pos + dir * 2f;
-                    for (int k = 0; k < 8; k++)  // the round front: a half circle of radius 5
-                    {
-                        float a0 = -MathX.Pi / 2f + MathX.Pi * k / 8f, a1 = -MathX.Pi / 2f + MathX.Pi * (k + 1) / 8f;
-                        Tri(o, o + (dir * Mathf.Cos(a0) + side * Mathf.Sin(a0)) * 5f, o + (dir * Mathf.Cos(a1) + side * Mathf.Sin(a1)) * 5f);
-                    }
-                    Tri(b.Pos - dir * 9f, o + side * 5f, o - side * 5f);  // the point, trailing behind
-                    Circle(b.Pos + new V2(1f, -2f), 1.5f, new Rgba(1f, 0.6f, 0.6f), 6);
+                case WeaponId.NeedleSwarm:
+                    // A needle thrown out of the swarm (the Alt): a fading red streak, then the swarm's needle (NeedleSwarmLook.cs).
+                    Line(b.Pos - dir * 26f, b.Pos - dir * 8f, 1.2f, new Rgba(0.73f, 0.06f, 0.16f, 0.35f));
+                    Line(b.Pos - dir * 9f, b.Pos + dir * 3f, 5f, new Rgba(0.59f, 0.04f, 0.11f, 0.22f));
+                    Line(b.Pos - dir * 9f, b.Pos + dir * 2f, 2f, new Rgba(0.73f, 0.06f, 0.16f, 0.95f));
+                    Line(b.Pos, b.Pos + dir * 3.5f, 1.1f, new Rgba(1f, 0.47f, 0.51f, 0.9f));
                     return true;
-                }
                 case WeaponId.SpriteStaff:
                 {
                     // A firefly: a pale pollen trail, two flickering wings and a white-hot core.

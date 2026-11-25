@@ -341,6 +341,8 @@ namespace Arena
                     return Tap(TempestLocalCd <= 0f && me.WcTempestT <= 0f && (v.Incoming >= 3 || EnemiesNear(me.Pos, 120f) >= 3), 1f);
                 case WeaponId.WyvernStaff:  // the Wyrm Slam on a group
                     return Tap(WyvernSlamLocalCd <= 0f && EnemiesNear(me.Pos, 200f) >= 3, 1f);
+                case WeaponId.NeedleSwarm:  // a fan of needles at a pack ahead, while the swarm is thick enough to spare them
+                    return !late && e != null && v.ShootD < 320f && me.NsBurstCd <= 0f && me.NsCount > NsMax(me) * 0.6f && Tap(EnemiesNear(e.Pos, 120f) >= 2 || e.Def.IsBoss, 1f);
                 case WeaponId.EmbolusSpears:  // burst the spears where they sit among enemies
                     if (late || !(EsOut(me.EsSt[0]) || EsOut(me.EsSt[1])))
                         return false;

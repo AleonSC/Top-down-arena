@@ -107,6 +107,7 @@
 # BOLT=<s since cast> (the DPS Elementalist's Living Bolt: 0.3 the channel, 4 electrified with three dashes' residue, 9.5 the flicker; mode hud; LivingBoltLook.cs).
 # COLOSSUS=<s since cast> COLWIND=<0-1> COLEND=<s> (the Tank Elementalist's Stone Colossus: rising, standing, slamming, crumbling; mode hud; StoneColossusLook.cs).
 # BLOODBATH=<s since the cast> (the Tank Hemomancer's Bloodbath pool, wading enemies and heal numbers; BATHMASTERED=1 for 220 px; mode hud, 2 players).
+# NEEDLESWARM=<s held> NSALT=<s> (the DPS Hemomancer's Needle Swarm: Fire held on a grunt, tendrils growing and wrapping, shots breaking needles; NSALT the Alt's fan; ShotNeedleSwarm.cs; mode hud).
 # BLOODWALL=<s> BWCLOCK=<s> (the tank Hemomancer laying a Blood Wall, ShotBloodWall.cs; mode hud, 2 players).
 # CAST="Poison Dart" DARTKILL=<s> (its target dies that long after the cast, so the poison spreads; CASTT after it shows the globs).
 # CLOT=<draw s> (the Gore Mortar charging, clots in flight, a wet pool and a congealed one; mode hud).

@@ -1153,6 +1153,8 @@ namespace Arena
                 return;  // the Stonespear's volley (Stonespear.cs)
             if (LocalEmbolusBlast(me, pressed, aimAt))
                 return;  // the Embolus Spears burst (EmbolusSpears.cs)
+            if (LocalNeedleBurst(me, pressed, aimAt))
+                return;  // the Needle Swarm's burst (NeedleSwarm.cs)
             if (LocalSympathy(me, pressed, aimAt))
                 return;  // the Blood Brawler's Sympathy (BloodBrawler.cs)
             if (LocalPistolWhip(me, pressed, aimAt, dt))
@@ -1410,6 +1412,11 @@ namespace Arena
             if (kind == DashEmbolus)
             {
                 HostEmbolusBlast(p);  // the Embolus Spears' Alt (EmbolusSpears.cs)
+                return;
+            }
+            if (kind == DashNeedles)
+            {
+                HostNeedleBurst(p, target);  // the Needle Swarm's Alt (NeedleSwarm.cs)
                 return;
             }
             if (kind == DashVolley)

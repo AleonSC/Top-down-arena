@@ -705,6 +705,7 @@ namespace Arena
         {
             if (LaunchHides(p))
                 return;  // still on its way down in a pillar of light (LaunchIntro.cs)
+            DrawNeedleSwarm(p, t);  // the Needle Swarm's ring and tendrils, under the player (NeedleSwarmLook.cs)
             DrawPlayer(p, t);
             if (!p.Downed)
                 DrawStonespears(p, t);  // the hovering spears (StonespearLook.cs)

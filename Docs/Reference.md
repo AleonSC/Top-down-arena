@@ -127,7 +127,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Transfusion Darts | Healer | 0.2 s | 7 | 850 x 0.85 s | - | 32 | Primary Fire: Darts that heal hurt allies for more than they cost you. |
 | Sanguine Orb | Healer | 0.45 s | 16 | 420 x 1.4 s | - | 57 | Primary Fire: Homing orbs that make enemies bleed, or heal a hurt ally once charged. |
 | Vein Tether | Healer | 0.08 s | 4 | - | 350 | 48 | Primary Fire: A draining beam that hurts enemies and heals you and the nearest ally. |
-| Blood Bolts | Dps | 0.13 s | 9 | 800 x 0.8 s | - | 121 | Primary Fire: Rapid bolts that make enemies bleed, then burst them when the bleed fills. |
+| Needle Swarm | Dps | 0.1 s | 4 | - | 260 | 140 | A swarm of blood needles circles you, blocking shots. Lost needles are siphoned from your health.  Primary Fire: Hold to grow a tendril to the enemy nearest your cursor; it wraps them and cuts until they die.  Alternative Fire: Throw a fan of needles from the swarm. |
 | Implosion | Dps | 0.45 s | 34 | - | 480 | 75 | Primary Fire: Click an enemy to collapse its blood inward and pull nearby enemies in. |
 | Blood Brawler | Dps | 0.26 s | 18 | - | 520 | 80 | Primary Fire: Click an enemy to work its blood from range, ending in a bone-shard burst.  Alternative Fire: Bind the enemies near it so your moves hit them too. |
 | Embolus Spears | Dps | 0.25 s | 30 | 1100 x 0 s | - | 63 | Primary Fire: Throw a spear from each hand that pierces everything, then recall them to get health back.  Alternative Fire: Burst the spears where they are. |
@@ -239,6 +239,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Hydra | Dps | 1st, choice 2 | 18 s | - | A fourth head. | A three-headed hydra spits venom at enemies. |
 | Alpha Call | Dps | 1st, choice 3 | 14 s | - | Also summons 3 wolves for 6 s. | Your minions bite faster, then lunge for triple damage. |
 | Legion | Dps | ultimate | 70 s | - | Summons 7 wolves and 7 bats. | A blood moon: wolves and bats circle you, you run faster and your minions frenzy. |
+| Rodent Minigun | Dps | ultimate | 70 s | - | Fires 2 s longer. | A portal opens in front of you and spins up into a minigun of mice, rats and hamsters, following your aim. |
 | Land Shark | Dps | 1st, choice 5 | 14 s | - | A 30% wider puddle, and the bite hits for 160. | A puddle opens at your cursor and a shark leaps out, biting everything in it. |
 
 ### Knight

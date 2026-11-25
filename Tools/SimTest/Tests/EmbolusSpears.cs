@@ -113,7 +113,7 @@ static partial class Program
         Check(Math.Abs(g.EsBlastRadius(me) - r0 * 1.3f) < 0.5f, "and widens the burst by 30% (" + r0.ToString("0") + " -> " + g.EsBlastRadius(me).ToString("0") + ")");
         Click();
         var keep = me.Weapon;
-        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BloodBolts);
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Implosion);
         Step(dt * 2f, far, false, false);
         Check(me.EsSt.All(x => x == Game.EsInHand), "putting the weapon away crumbles the spears out");
         me.Weapon = keep;

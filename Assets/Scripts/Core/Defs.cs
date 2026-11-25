@@ -128,7 +128,7 @@ namespace Arena
         // Ninja (Ninja.cs): thrown blades and quick melee
         Kusarigama, BoStaff, FumaShuriken, MedicineDarts, SpiritFan, Ofuda, Shuriken, Katana, Kunai,
         // Hemomancer (Hemomancer.cs): blood spells that drain and heal
-        BloodLash, GoreMortar, LeechTendrils, TransfusionDarts, SanguineOrb, VeinTether, BloodBolts, Implosion, BloodBrawler,
+        BloodLash, GoreMortar, LeechTendrils, TransfusionDarts, SanguineOrb, VeinTether, NeedleSwarm, Implosion, BloodBrawler,
         // Fourth weapons (Choice 3), where a class has one: the Knight DPS's Arc Knuckles (ArcKnuckles.cs), the Soldier DPS's Double Barrel (DoubleBarrel.cs), the Elementalist DPS's Stonespear (Stonespear.cs); the Twin Rifle's variants (Twin Rifle Auto, Out of Ammo) are Choice 4 and 5
         ArcKnuckles, TwinRifleAuto, OutOfAmmo, DoubleBarrel, Stonespear,
         // the Tank Soldier's fourth (GrenadeLauncher.cs)

@@ -601,7 +601,7 @@ namespace Arena
             d[(int)WeaponId.TransfusionDarts] = DrawHeldTransfusionDarts;
             d[(int)WeaponId.SanguineOrb] = DrawHeldSanguineOrb;
             d[(int)WeaponId.VeinTether] = DrawHeldVeinTether;
-            d[(int)WeaponId.BloodBolts] = DrawHeldBloodBolts;
+            d[(int)WeaponId.NeedleSwarm] = DrawHeldNeedleSwarm;
             d[(int)WeaponId.Implosion] = DrawHeldImplosion;
             d[(int)WeaponId.BloodBrawler] = (p, t, hold) => DrawBsHand(t);  // an open, bleeding hand (BloodBrawlerLook.cs)
             // ---- Arcanist (ArcanistLook.cs)
@@ -1112,9 +1112,15 @@ namespace Arena
             MArc(6f, 0f, 10f, -1.3f, -0.2f, 2.8f, MBone); MArc(6f, 0f, 10f, 0.2f, 1.3f, 2.8f, MBone); MCirc(8f, 0f, 3.8f, Hx(0xc4122e), 10); MCirc(7f, -1f, 1.2f, Hx(0xff9aa6), 6); MLine(-6f, 0f, 5f, 0f, 1.4f, Hx(0xe0203a));
         }
 
-        void DrawHeldBloodBolts(Player p, float t, int hold)
+        /// The Needle Swarm: an open hand with a bead of blood and three needles turning over it (the swarm itself: NeedleSwarmLook.cs).
+        void DrawHeldNeedleSwarm(Player p, float t, int hold)
         {
-            MPoly(Hx(0xb3122a), 2f, 0f, 10f, -3f, 22f, 0f, 10f, 3f); MPoly(Hx(0x7a0c1d), 4f, 3f, 10f, 8f, 14f, 4f); MPoly(Hx(0x7a0c1d), 4f, -3f, 10f, -8f, 14f, -4f); MLine(4f, 0f, 20f, 0f, 1f, Hx(0xff8896));
+            MCirc(9f, 0f, 3.2f, Hx(0x7a0c1d), 8); MCirc(9f, 0f, 2f, Hx(0xb3122a), 8);
+            for (int i = 0; i < 3; i++)
+            {
+                float a = t * 5f + i * MathX.Tau / 3f, x = 9f + Mathf.Cos(a) * 6f, y = Mathf.Sin(a) * 6f, dx = -Mathf.Sin(a) * 4f, dy = Mathf.Cos(a) * 4f;
+                MLine(x - dx, y - dy, x + dx * 0.4f, y + dy * 0.4f, 1.4f, Hx(0xb3122a)); MLine(x, y, x + dx * 0.5f, y + dy * 0.5f, 0.9f, Hx(0xff7882));
+            }
         }
 
         void DrawHeldImplosion(Player p, float t, int hold)

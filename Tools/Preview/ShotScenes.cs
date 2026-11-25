@@ -1131,6 +1131,7 @@ static partial class Shot {
     SupplyScene();  // SUPPLY=<s since the cast> [SUPPLYCAP=1] [FXOFF=1] (ShotSupply.cs)
     HospitalScene();  // HOSP=pick|<s since the cast> [HOSPTENT=1] (ShotHospital.cs)
     DeployTurretScene();  // DEPLOYTURRET=<s since the cast> [FXOFF=1] (ShotDeployTurret.cs)
+    NeedleSwarmScene();  // NEEDLESWARM=<s held> [NSALT=<s>] (ShotNeedleSwarm.cs)
     ThornBloomScene();  // THORNBLOOM=<s since the cast> [THORNCAP=1] (ShotThornBloom.cs)
     BambooGroveScene();  // BAMBOO=<s since the cast> [BAMBOOCAP=1] (ShotBambooGrove.cs)
     FlashFireScene();  // FLASHFIRE=<s since the cast> [FLASHCAP=1] (ShotFlashFire.cs)
@@ -2650,7 +2651,7 @@ static partial class Shot {
       if (ee.Count > 2) { ee[2].StunT = ee[2].FrozenT = 0.6f; ee[2].Dazed = true; gm.Effects.Add(new Effect { Kind = FxKind.Debris, Pos = ee[2].Pos, Pos2 = ee[2].Pos, Color = Defs.BulletColor(Defs.EarthballShot), Radius = Game.EarthRubble, Dur = 0.45f, T = 0.08f }); }
     }
     if (Environment.GetEnvironmentVariable("HEMO") != null) {
-      // Blood Bolts: enemies with 1 to 4 bolts stuck in them (4 is one short of the burst).
+      // Bleed drops: enemies with 1 to 4 bleed stacks (4 is one short of the Needle Swarm's burst).
       var hm = new System.Collections.Generic.List<Enemy>(host.Game.Enemies.Values);
       for (int k = 0; k < hm.Count && k < 4; k++) { hm[k].Pos = hm[k].Disp = new V2(560f + 130f * k, 450f); hm[k].BleedStacks = k + 1; }
     }

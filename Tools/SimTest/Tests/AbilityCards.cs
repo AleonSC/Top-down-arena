@@ -575,10 +575,10 @@ static partial class Program
         float vn0 = vein(0), vn1 = vein(1);
         Check(near(vn0, 4f, 0.01f) && near(vn1, 5.5f, 0.01f), "Red Thread: 55% of the tether's damage heals (from 40%)");
 
-        var hemo = typeof(Game).GetMethod("BloodBoltBleed", flags);
+        var hemo = typeof(Game).GetMethod("NeedleBleed", flags);
         Func<int, int> bolts = n =>
         {
-            arm(WeaponId.BloodBolts, "Hemophilia", n);
+            arm(WeaponId.NeedleSwarm, "Hemophilia", n);
             var e = enemyAt(there);
             for (int k = 0; k < 4; k++) hemo.Invoke(g, new object[] { me, e, 9f });
             return e.BleedStacks;
@@ -587,7 +587,7 @@ static partial class Program
         Check(hm0 == 4 && hm1 == 0 && near(me.Stats.HemoRadiusMult, 1.3f, 0.001f), "Hemophilia: the fourth bleed stack bursts (not the fifth), 30% wider");
 
         var bleed = typeof(Game).GetMethod("ApplyBleed", flags);
-        arm(WeaponId.BloodBolts, "Hemophilia", 0);
+        arm(WeaponId.NeedleSwarm, "Hemophilia", 0);
         var bled = enemyAt(there);
         float bledHp = bled.Hp;
         for (int k = 0; k < 4; k++) bleed.Invoke(g, new object[] { bled, 2f, me.Id, true });  // four claw hits
