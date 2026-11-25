@@ -1050,7 +1050,20 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("REVOLVER") != null) { me.Weapon = Defs.Weapon(Role.Healer, Kit.Soldier, 1); me.AmmoUsed = 3; me.Stats.ExtraShots = 1; host.Game.Bot = false; me.Pos = me.Disp = new V2(800f, 450f); Console.WriteLine("cap " + host.Game.RevolverCapacity(me)); }
   }
+  // KNWHEEL=r|l|u|d|c: your Arc Knuckles' click wheel open up and to the right of you, the cursor on that side of it (c: its centre).
+  static void KnuckleWheelScene() {
+    string kw = Environment.GetEnvironmentVariable("KNWHEEL");
+    if (kw == null) return;
+    var me = host.Game.Me;
+    float ws = 1280f / Game.Width;
+    V2 at = me.Pos + new V2(150f, -60f), c = new V2(at.X * ws, 720f - at.Y * ws);
+    set("knWheelOpen", true);
+    set("knWheelAt", c);
+    V2 off = kw == "r" ? new V2(40f, 0f) : kw == "l" ? new V2(-40f, 0f) : kw == "u" ? new V2(0f, 40f) : kw == "d" ? new V2(0f, -40f) : V2.Zero;
+    Input.mousePosition = new Vector3(c.X + off.X, c.Y + off.Y, 0f);
+  }
   static void ArenaScenes() {
+    KnuckleWheelScene();  // KNWHEEL=r|l|u|d|c: the Arc Knuckles' click wheel open, the cursor on that side (with SWINGW=ArcKnuckles MOVE=<1-7>)
     DuelistSheetScene();  // DUELSHEET=<1-8>|all (ShotDuelist.cs)
     HoldingCellScene();  // HOLDCELL=<s> [HOLDCELLS=2], HOLDLOCK=1, HOLDNET=<s> (ShotHoldingCell.cs)
     ShockwaveScene();  // SHOCK=<s since the cast> [SHOCKCAP=1] [FXOFF=1] (ShotShockwave.cs)
@@ -2061,17 +2074,20 @@ static partial class Shot {
             gm.Effects.Add(new Effect { Kind = FxKind.CenserStep, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * cr, Color = Game.CenserGold, Radius = me.Id * 10 + ci, T = st, Dur = CenserMotion.Steps[ci - 1].Dur + CenserMotion.Recover }); }
           break;
         }
-        case WeaponId.ArcKnuckles:  // KNUCKLESTEP=dash the Rocket Dash; flurry|grab|punch the dash chain, prompt its Fire window; KNUCKLESTEP=1..5 a punch (Jab, Cross, Hook, Uppercut, Twin Hammer; default 1), 6 the Counter Hammer, 0 the guard (ARMED=1: the Counter Hammer armed); SWING = seconds after the press
+        case WeaponId.ArcKnuckles:  // KNUCKLESTEP=1..5 a punch's look (1 jab, 2 cross, 3 Pin Punch, 4 Quake Punch, 5 Counter Hammer; default 1), 0 the guard; dash a Slip Dash / Rocket Dash; flurry|grab|punch the Rocket chain (flurry is the Barrage too), prompt its wait for a click; MOVE=<0-7> the Brawl move next (its pips; ROCKET=1 the Rocket stance); CHARGE=<0-1> the Quake Punch's charge ring; ARMED=1 the Counter Hammer armed; SWING = seconds after the press
         {
           string kns = Environment.GetEnvironmentVariable("KNUCKLESTEP") ?? "1";
           me.KnuckleArmed = Environment.GetEnvironmentVariable("ARMED") == "1";
-          if (kns == "dash")  // the Rocket Dash, SWING = seconds after the press: you part-way along it (DASHCD=<s> left on its cooldown ring)
+          me.KnuckleStance = (byte)(Environment.GetEnvironmentVariable("ROCKET") == "1" ? 1 : 0);
+          me.KnuckleMove = byte.Parse(Environment.GetEnvironmentVariable("MOVE") ?? "0");
+          me.KnuckleCharge = (byte)Math.Round(255f * float.Parse(Environment.GetEnvironmentVariable("CHARGE") ?? "0", System.Globalization.CultureInfo.InvariantCulture));
+          if (kns == "dash")  // a dash, SWING = seconds after the press: you part-way along it
           {
             V2 d0 = me.Pos - V2.FromAngle(me.Aim) * Game.KnuckleDashLen * Math.Min(1f, st / Game.KnuckleDashTime), d1 = d0 + V2.FromAngle(me.Aim) * Game.KnuckleDashLen;
             gm.Effects.Add(new Effect { Kind = FxKind.KnuckleDash, Pos = d0, Pos2 = d1, Color = Game.ArcBlue, Radius = me.Id, T = st, Dur = Game.KnuckleDashTime + Game.KnuckleDashFxAfter });
             break;
           }
-          if (kns == "flurry" || kns == "grab" || kns == "punch" || kns == "prompt")  // the dash chain (SWING = seconds into the move); prompt: a Fire window open
+          if (kns == "flurry" || kns == "grab" || kns == "punch" || kns == "prompt")  // the Rocket chain (SWING = seconds into the move); prompt: waiting for the click
           {
             if (kns == "prompt") { me.KnuckleChain = 1; break; }
             int mv = kns == "flurry" ? 1 : kns == "grab" ? 2 : 3;
@@ -2087,8 +2103,9 @@ static partial class Shot {
           int kn = int.Parse(kns);
           if (kn > 0)
           {
-            me.Combo = (1 << 3) | kn;
-            gm.Effects.Add(new Effect { Kind = FxKind.KnuckleStep, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * reach, Color = kn == 6 ? Game.ArcGold : Game.ArcBlue, Radius = me.Id * 10 + kn, T = st, Dur = kn >= 5 ? Game.KnuckleLand[kn - 1] + 0.7f + Game.KnuckleAftershock * int.Parse(Environment.GetEnvironmentVariable("EXTRA") ?? "0") : Game.KnuckleDur[kn - 1] });  // EXTRA=<n>: the hammer's aftershocks
+            float far = kn == 4 ? Game.KnuckleQuakeR1 : kn == 5 ? Game.KnuckleHammerAt : Math.Min(reach, 110f);
+            bool full = kn == 4 && Environment.GetEnvironmentVariable("FULL") == "1";
+            gm.Effects.Add(new Effect { Kind = FxKind.KnuckleStep, Pos = me.Pos, Pos2 = me.Pos + V2.FromAngle(me.Aim) * far, Color = kn == 5 || full ? Game.ArcGold : Game.ArcBlue, Radius = me.Id * 10 + kn, T = st, Dur = kn >= 4 ? Game.KnuckleLand[kn - 1] + 0.7f + Game.KnuckleAftershock * int.Parse(Environment.GetEnvironmentVariable("EXTRA") ?? "0") : Game.KnuckleDur[kn - 1] });  // EXTRA=<n>: the slam's aftershocks
           }
           break;
         }

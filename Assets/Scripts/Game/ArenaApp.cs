@@ -714,6 +714,7 @@ namespace Arena
                 Dodge = wantDodge,
                 DodgeHeld = dodgeKey < 0 ? Keybinds.Held(KeyAction.Dodge) : Keybinds.MoveHeld((KeyAction)dodgeKey),
             };
+            input.Steer = KnuckleWheelSteer(input.Fire);  // the Arc Knuckles' click wheel (ArcKnucklesWheel.cs)
             wantDodge = false;
             for (int i = 0; i < wantAbility.Length; i++)
                 wantAbility[i] = false;
@@ -787,13 +788,7 @@ namespace Arena
             RefreshCull();  // WorldRenderer.cs
         }
 
-        V2 MouseArena()
-        {
-            Vector3 m = Input.mousePosition;
-            float ws = scale * WorldToUi;
-            V2 s = new V2((m.x - offX) / ws, (UnityEngine.Screen.height - m.y - offY) / ws) + lean;  // (+ the camera lean, CameraLean.cs)
-            return ChargeCamUnpunch(CamZoomed ? UnzoomPoint(s) : s);  // (and the scroll-wheel zoom, CameraZoom.cs; a charge weapon's draw zoom, ChargeCameraFx.cs)
-        }
+        V2 MouseArena() => ScreenToArena(new V2(Input.mousePosition.x, Input.mousePosition.y));  // (+ the camera lean, CameraLean.cs; the scroll-wheel zoom, CameraZoom.cs; a charge weapon's draw zoom, ChargeCameraFx.cs: ArcKnucklesWheel.cs)
 
         // --- Menus and HUD (IMGUI, arena coordinates) --------------------------
 

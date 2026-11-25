@@ -77,7 +77,11 @@ static partial class Program
         Action Clear = () => { foreach (var e in g.Enemies.Values) if (!keep.Contains(e)) e.Hp = 0f; };
         Func<EnemyType, V2, float, Enemy> Mob = (type, at, hp) =>
         {
+            float variants = Game.VariantChanceScale;
+            Game.VariantChanceScale = 0f;  // the plain enemy: a variant's or elite's size would change what fits through a gap
             var e = (Enemy)spawn.Invoke(g, new object[] { type, at, 0f, 0, false });
+            Game.VariantChanceScale = variants;
+            e.Elite = false; e.Radius = e.Def.Radius;
             e.SpawnT = 0f; e.Hp = e.MaxHp = hp; e.Pos = at; e.FireT = 99f; keep.Add(e); return e;
         };
         V2 home = new V2(400f, 450f), aimAt = new V2(900f, 450f);
