@@ -251,6 +251,7 @@ namespace Arena
             UpdateCardPicker(me, choosing);
             UpdateWorldKeys(me, menuUp);
             HandleEscAndEndKeys(me, menuUp);
+            UpdateFirstPerson();  // F8, the mouse look (FirstPerson.cs)
         }
 
         /// The game, the network, bots, sounds and every per-frame animation tick.
@@ -701,7 +702,7 @@ namespace Arena
             session.Poll();
             var input = new PlayerInput
             {
-                Move = UnrotateView(new V2(Axis(KeyAction.MoveRight) - Axis(KeyAction.MoveLeft), Axis(KeyAction.MoveDown) - Axis(KeyAction.MoveUp))).Normalized(),  // (keys move you on the screen: turned back with the camera, CameraRotate.cs)
+                Move = FpMove(new V2(Axis(KeyAction.MoveRight) - Axis(KeyAction.MoveLeft), Axis(KeyAction.MoveDown) - Axis(KeyAction.MoveUp))).Normalized(),  // (keys move you on the screen: turned back with the camera, CameraRotate.cs; first person: where you look, FirstPerson.cs)
                 AimAt = MouseArena(),
                 Fire = Keybinds.Held(KeyAction.Fire) && !fireBlocked && !DevTrapPlacing,
                 Ability = wantAbility[0] || Keybinds.Held(KeyAction.Ability1),
@@ -788,7 +789,7 @@ namespace Arena
             RefreshCull();  // WorldRenderer.cs
         }
 
-        V2 MouseArena() => ScreenToArena(new V2(Input.mousePosition.x, Input.mousePosition.y));  // (+ the camera lean, CameraLean.cs; the scroll-wheel zoom, CameraZoom.cs; a charge weapon's draw zoom, ChargeCameraFx.cs: ArcKnucklesWheel.cs)
+        V2 MouseArena() => fpView ? FpAimPoint() : ScreenToArena(new V2(Input.mousePosition.x, Input.mousePosition.y));  // (+ the camera lean, CameraLean.cs; the scroll-wheel zoom, CameraZoom.cs; a charge weapon's draw zoom, ChargeCameraFx.cs: ArcKnucklesWheel.cs)
 
         // --- Menus and HUD (IMGUI, arena coordinates) --------------------------
 
