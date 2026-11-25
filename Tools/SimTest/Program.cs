@@ -296,7 +296,7 @@ static partial class Program
         Test("lightcone", "Chain Light's cone", () => LightConeTest(Dt)),
         Test("sanguine", "the Sanguine Orb", () => SanguineOrbTest(Dt)),
         Test("fireball", "the Fireball and Arc Lightning", () => FireballArcTest(Dt)),
-        Test("scatterflak", "the Scattergun, Flak Cannon and Blood Bolts", () => ScatterFlakBloodTest(Dt)),
+        Test("scatterflak", "the Scattergun, Flak Cannon and the Needle Swarm's bleed", () => ScatterFlakBloodTest(Dt)),
         Test("twinsmg", "the Twin Rifle and Burst SMG", () => TwinSmgTest(Dt)),
         Test("prismwolfrail", "the Prism Beam, Wolf Whistle and Railgun", () => PrismWolfRailTest(Dt)),
         Test("missilesriot", "Ice Shards, the Riot Repeater and Twin Blades", () => MissilesRiotBladesTest(Dt)),
@@ -467,6 +467,7 @@ static partial class Program
         Test("honeybee", "the Honeybee Staff: a bee hatches at the cursor, buzzes, stings the nearest enemy once and dies (or fizzles), the cap, Swarm, held Alt sprays honey puddles that slow and drain the meter, an enemy dying in honey bursts into free bees, the other screen sees it, Bigger Hive", () => HoneybeeTest(Dt)),
         Test("stonespear", "the Stonespear: Fire slams (wind-up, damage round you, six spears up), then throws the risen spear nearest the cursor (pierces one), Alt sends the rest curving in on the enemy nearest the cursor, the next slam waits, the other screen sees the spears and the lock, Tectonic adds a spear a side", () => StonespearTest(Dt)),
         Test("bloodbrawler", "the Blood Brawler: Fire on an enemy marks it and lands Pulse, Reel, Heart Lift and Marrow Burst (costs, shove, pull, airborne, shards), the string starts over, nothing fires without a target, Alt's Sympathy echoes moves onto bound enemies at half, Marrow", () => BloodBrawlerTest(Dt)),
+        Test("needleswarm", "the Needle Swarm: full and free when it comes out, siphoned for health (not under 15%), shots break needles on the ring, held Fire grows a tendril to the enemy nearest the cursor (pulled back if let go) that wraps, cuts, slows and bleeds it until it dies, three at once, Alt's fan of needles and its cooldown, the other screen, putting it away", () => NeedleSwarmTest(Dt)),
         Test("embolus", "the Embolus Spears: Fire throws the left then the right spear for 20% health each, they pierce and stick in the wall, a third Fire recalls both (piercing again) and the catch heals it back, Alt bursts them for half back and new ones harden, holding Fire cycles, the other screen sees them, Burst Vessels, putting it away crumbles them", () => EmbolusTest(Dt)),
         Test("vowguard", "the Vowguard: chains packed, saved and sent to both screens, each stance plays its own chain in order, Faith lit by Valor links and spent by finishers, the chain window, Alt and Sanctuary's slower walk and front guard, Rally Tap, the ward, the dome, Cover Ally, the parry starts both over", () => VowguardTest(Dt)),
         Test("nodachi", "the Nodachi: Arashi's five sweeps land and go round with no timer, Alt switches to Mamori and both stances keep their place, Mamori's jabs and slower walk and its cone blocking shots, armoured Storm wind-ups, Tenchi stuns, the parry starts both over, the other screen sees it, Tamahagane", () => NodachiTest(Dt)),
@@ -602,7 +603,7 @@ static partial class Program
     {
         "snapshot", "turnkey", "holdingcell", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
-        "exploit", "doublebarrel", "railgun", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "vowguard", "embolus", "bloodbrawler", "arclock", "twinauto", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
+        "exploit", "doublebarrel", "railgun", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "vowguard", "embolus", "needleswarm", "bloodbrawler", "arclock", "twinauto", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
         "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "hangoutmode", "training", "foequery", "pvp", "three", "wrap", "ready", "wavekinds", "landmarks",
         "arcanist", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };

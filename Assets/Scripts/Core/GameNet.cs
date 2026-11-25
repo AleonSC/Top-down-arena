@@ -915,6 +915,14 @@ namespace Arena
                 s.Vec(ref p.EsPos[k]);
                 s.Vec(ref p.EsDir[k]);
             }
+            s.Short(ref p.NsCount);  // the Needle Swarm (NeedleSwarm.cs)
+            s.Float(ref p.NsBurstCd);
+            for (int k = 0; k < Game.NsTendrils; k++)
+            {
+                s.Int(ref p.NsTen[k]);
+                s.Float(ref p.NsLen[k]);
+                s.Byte(ref p.NsBound[k]);
+            }
             int tagged = Math.Min(Game.ArcTagCap, p.ArcTags.Count);  // Arc Lightning's tags (ArcLock.cs)
             s.Byte(ref tagged);
             if (s.Reading)

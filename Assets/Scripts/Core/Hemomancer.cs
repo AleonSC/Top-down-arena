@@ -103,13 +103,6 @@ namespace Arena
                         SpawnBullet(Defs.SanguineShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.35f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id, false, SanguineTurn);  // it homes only at the last moment (Steer)
                     break;
                 }
-                case WeaponId.BloodBolts:
-                {
-                    int n = 1 + extra;
-                    for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.BloodShot, muzzle, V2.FromAngle(Fanned(aim, i, n, 0.07f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                    break;
-                }
                 case WeaponId.Implosion:
                 {
                     // No projectile: the enemy under your cursor collapses (ImplodeReady made sure there is one).
@@ -482,14 +475,6 @@ namespace Arena
                     }
                     break;
                 }
-                case Defs.BloodShot:
-                    if (p.Weapon.Id == WeaponId.BloodBolts)
-                    {
-                        string was = CreditTo(BulletSrc(b));
-                        BloodBoltBleed(p, e, b.Dmg);
-                        dmgSrc = was;
-                    }
-                    break;
             }
         }
 
@@ -568,14 +553,14 @@ namespace Arena
             }
         }
 
-        // --- Blood Bolts: hemorrhage --------------------------------------------------------------------
+        // --- Needle Swarm: hemorrhage (NeedleSwarm.cs) ---------------------------------------------------
 
         public const int BleedBurstAt = 5;
-        public const float BoltBleed = 0.3f, BleedBurstMult = 4f, BleedBurstRadius = 80f;  // a bolt bleeds this share of its hit a second (a stack); the burst is this many bolts' damage
+        public const float BoltBleed = 0.3f, BleedBurstMult = 4f, BleedBurstRadius = 80f;  // a stack bleeds this share of the hit a second; the burst is this many hits' damage
 
-        /// A Blood Bolt hit `e`: another bleed stack, and the one that fills its bleed (BleedBurstAt stacks, from any
-        /// source) bursts it, hurting it and every enemy round it and clearing the bleed.
-        void BloodBoltBleed(Player p, Enemy e, float boltDmg)
+        /// The Needle Swarm's wrap cut `e` again (every NsBleedEvery): another bleed stack, and the one that fills its bleed
+        /// (BleedBurstAt stacks, from any source) bursts it, hurting it and every enemy round it and clearing the bleed.
+        void NeedleBleed(Player p, Enemy e, float boltDmg)
         {
             ApplyBleed(e, boltDmg * BoltBleed, p.Id);  // KitWeapons.cs
             if (e.BleedStacks < BleedBurstAt - p.Stats.HemoHitCut)  // (Hemophilia: fewer)
@@ -731,8 +716,8 @@ namespace Arena
                 Desc = "Primary Fire: A draining beam that hurts enemies and heals you and the nearest ally.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the beam 25% wider" },
             // DPS
-            new WeaponDef { Id = WeaponId.BloodBolts, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0, Speed = 800f, Life = 0.8f, Damage = 9f, ExtraDesc = "+1 bolt, fanned out", Name = "Blood Bolts", FireInterval = 0.13f,
-                Desc = "Primary Fire: Rapid bolts that make enemies bleed, then burst them when the bleed fills.",
+            new WeaponDef { Id = WeaponId.NeedleSwarm, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0, Damage = 4f, Reach = Game.NsReach, ExtraDesc = "+20 needles in the swarm, +5 wrapped round each enemy and 10% harder cuts, +4 in the burst", Name = "Needle Swarm", FireInterval = 0.1f, BotRange = 220f,
+                Desc = "A swarm of blood needles circles you, blocking shots. Lost needles are siphoned from your health.\n\nPrimary Fire: Hold to grow a tendril to the enemy nearest your cursor; it wraps them and cuts until they die.\n\nAlternative Fire: Throw a fan of needles from the swarm.",
                 Sound = Sfx.SpellArcane },
             new WeaponDef { Id = WeaponId.Implosion, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1, Damage = 34f, Reach = 480f, ExtraDesc = "+1 implosion: another enemy near your target collapses too (60% damage)", Name = "Implosion", FireInterval = 0.45f,
                 Desc = "Primary Fire: Click an enemy to collapse its blood inward and pull nearby enemies in.",
@@ -787,7 +772,7 @@ namespace Arena
                 Apply = s => { s.ReserveGainMult += 0.3f; s.CoatHealMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.VeinTether }, MaxStacks = 2, Name = "Red Thread", Desc = "15% more of the Vein Tether's damage heals",
                 Apply = s => { s.VeinStealBonus += 0.15f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BloodBolts }, MaxStacks = 2, Name = "Hemophilia", Desc = "Blood Bolts burst an enemy one bleed stack sooner, 30% wider",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.NeedleSwarm }, MaxStacks = 2, Name = "Hemophilia", Desc = "The Needle Swarm bursts an enemy one bleed stack sooner, 30% wider",
                 Apply = s => { s.HemoHitCut += 1; s.HemoRadiusMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Implosion }, MaxStacks = 2, Name = "Event Horizon", Desc = "Implosion pulls enemies in from 30% farther, and the crush hits 40% harder",
                 Apply = s => { s.ImplodeReachMult += 0.3f; s.ImplodeDmgMult += 0.4f; } },

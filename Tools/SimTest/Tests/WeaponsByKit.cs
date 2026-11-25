@@ -12,7 +12,7 @@ static partial class Program
     static void ScatterFlakBloodTest(float dt)
     {
         // Scattergun: point-blank pellets do double and shove. Flak Cannon: shells fly over enemies to the cursor and
-        // burst there, also destroying enemy bullets. Blood Bolts: the fifth in a row makes an enemy hemorrhage.
+        // burst there, also destroying enemy bullets. The Needle Swarm: the fifth bleed stack of its cuts makes an enemy hemorrhage.
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var volley = typeof(Game).GetMethod("FireVolley", flags);
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
@@ -83,26 +83,27 @@ static partial class Program
         Check(popped == 4 && g.Bullets.ContainsKey(far.Id), "its burst destroys enemy bullets caught in it, not ones outside");
         g.Bullets.Clear();
 
-        // Blood Bolts.
-        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BloodBolts);
+        // The Needle Swarm's bleed (its wrap adds a stack every half second: NeedleSwarm.cs; the swarm itself: the needleswarm suite).
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.NeedleSwarm);
         me.Kit = Kit.Hemomancer;
+        var cut = typeof(Game).GetMethod("NeedleBleed", flags);
         var bb = place(new[] { from + new V2(200f, 0f), from + new V2(200f, 60f) });
         Func<int, float> Bolts = n =>
         {
             float before = bb[1].Hp;
-            for (int k = 0; k < n; k++) { volley.Invoke(g, new object[] { me, 0f, 0 }); step(0.15f, true); }
-            step(0.4f, true);
+            for (int k = 0; k < n; k++) { cut.Invoke(g, new object[] { me, bb[0], Game.NsBleedHit }); step(0.15f, false); }
+            step(0.4f, false);
             return before - bb[1].Hp;
         };
         float four = Bolts(4);
         int stacked = bb[0].BleedStacks;
         bool bled = bb[0].Bleeding;
         float fifth = Bolts(1);
-        Check(stacked == 4 && bled && bb[0].BleedStacks == 0 && !bb[0].Bleeding, "Blood Bolts stack bleed on an enemy (drawn as drops) and the burst clears it");
-        step(3.2f, true);  // (the bleed's 3 s)
+        Check(stacked == 4 && bled && bb[0].BleedStacks == 0 && !bb[0].Bleeding, "the Needle Swarm's cuts stack bleed on an enemy (drawn as drops) and the burst clears it");
+        step(3.2f, false);  // (the bleed's 3 s)
         float faded = Bolts(1);
-        Console.WriteLine("  blood bolts: neighbour took {0:0.0} after 4 bolts, {1:0.0} on the 5th; after they fade, one more bolt {2:0.0}", four, fifth, faded);
-        Check(four == 0f && fifth > 0f && faded == 0f, "the fifth Blood Bolt's bleed stack bursts the enemy onto enemies round it; the stacks fade");
+        Console.WriteLine("  needle bleed: neighbour took {0:0.0} after 4 stacks, {1:0.0} on the 5th; after they fade, one more {2:0.0}", four, fifth, faded);
+        Check(four == 0f && fifth > 0f && faded == 0f, "the fifth stack bursts the enemy onto enemies round it; the stacks fade");
         host.Leave("");
     }
 

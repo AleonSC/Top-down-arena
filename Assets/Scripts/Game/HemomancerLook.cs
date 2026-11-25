@@ -30,7 +30,7 @@ namespace Arena
         }
 
         /// An enemy's bleed stacks (any source): a drop for each, circling it and drawing in closer as they build toward
-        /// a Blood Bolt's burst; one short of it, they swell and throb.
+        /// the Needle Swarm's burst; one short of it, they swell and throb.
         void DrawBleedDrops(Enemy e, V2 pos, float r, float t)
         {
             int n = e.BleedStacks, burstAt = Game.BleedBurstAt;

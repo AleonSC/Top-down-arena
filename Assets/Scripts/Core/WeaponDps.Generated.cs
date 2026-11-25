@@ -78,7 +78,7 @@ namespace Arena
             { WeaponId.TransfusionDarts, 32f },
             { WeaponId.SanguineOrb, 57f },
             { WeaponId.VeinTether, 48f },
-            { WeaponId.BloodBolts, 121f },
+            { WeaponId.NeedleSwarm, 140f },
             { WeaponId.Implosion, 75f },
             { WeaponId.BloodBrawler, 80f },
             { WeaponId.BloodBlast, 53f },
