@@ -127,7 +127,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Transfusion Darts | Healer | 0.2 s | 7 | 850 x 0.85 s | - | 32 | Primary Fire: Darts that heal hurt allies for more than they cost you. |
 | Sanguine Orb | Healer | 0.45 s | 16 | 420 x 1.4 s | - | 57 | Primary Fire: Homing orbs that make enemies bleed, or heal a hurt ally once charged. |
 | Vein Tether | Healer | 0.08 s | 4 | - | 350 | 48 | Primary Fire: A draining beam that hurts enemies and heals you and the nearest ally. |
-| Blood Bolts | Dps | 0.13 s | 9 | 800 x 0.8 s | - | 121 | Primary Fire: Rapid bolts that make enemies bleed, then burst them when the bleed fills. |
+| Needle Swarm | Dps | 0.1 s | 4 | - | 260 | 140 | A swarm of blood needles circles you, blocking shots. Lost needles are siphoned from your health.  Primary Fire: Hold to grow a tendril to the enemy nearest your cursor; it wraps them and cuts until they die.  Alternative Fire: Throw a fan of needles from the swarm. |
 | Implosion | Dps | 0.45 s | 34 | - | 480 | 75 | Primary Fire: Click an enemy to collapse its blood inward and pull nearby enemies in. |
 | Blood Brawler | Dps | 0.26 s | 18 | - | 520 | 80 | Primary Fire: Click an enemy to work its blood from range, ending in a bone-shard burst.  Alternative Fire: Bind the enemies near it so your moves hit them too. |
 | Embolus Spears | Dps | 0.25 s | 30 | 1100 x 0 s | - | 63 | Primary Fire: Throw a spear from each hand that pierces everything, then recall them to get health back.  Alternative Fire: Burst the spears where they are. |
@@ -240,6 +240,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Alpha Call | Dps | 1st, choice 3 | 14 s | - | Also summons 3 wolves for 6 s. | Your minions bite faster, then lunge for triple damage. |
 | Legion | Dps | ultimate | 70 s | - | Summons 7 wolves and 7 bats. | A blood moon: wolves and bats circle you, you run faster and your minions frenzy. |
 | Rodent Minigun | Dps | ultimate | 70 s | - | Fires 2 s longer. | A portal opens in front of you and spins up into a minigun of mice, rats and hamsters, following your aim. |
+| Mammoth Fall | Dps | ultimate | 75 s | - | Rampages 1.5 s longer. | Summon a woolly mammoth in the sky, aim it, and it slams down, stunning everything around, then rampages through enemies. |
 | Land Shark | Dps | 1st, choice 5 | 14 s | - | A 30% wider puddle, and the bite hits for 160. | A puddle opens at your cursor and a shark leaps out, biting everything in it. |
 
 ### Knight
@@ -278,8 +279,9 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Shadow Step | Dps | 1st, choice 1 | 7 s | - | +1 charge. | Teleport behind an enemy and strike it hard. |
 | Vanish | Dps | 1st, choice 2 | 16 s | - | Erases enemy bullets around you when you vanish. | Enemies lose track of you and your next hit deals double. |
 | Blade Fan | Dps | 1st, choice 3 | 12 s | - | Throws twice as many kunai. | Spinning kunai cut enemies around you, then fly out in a ring. |
-| Senbon Seekers | Dps | 1st, choice 5 | 6 s | - | Holds up to 12 needles. | Three poisoned needles circle you and fly at enemies that come close. Stacks to 9. |
 | Death Lotus | Dps | ultimate | 65 s | - | Strikes up to 14 enemies. | A flurry of cuts on up to 8 enemies near your cursor. |
+| Forbidden Path | Dps | ultimate | 75 s | - | The beast lasts 11 s. | Become a shadow beast for 8 s: it locks onto the strongest enemy near and Fire tears through a five-part area combo. Drains your health. |
+| Senbon Seekers | Dps | 1st, choice 5 | 6 s | - | Holds up to 12 needles. | Three poisoned needles circle you and fly at enemies that come close. Stacks to 9. |
 
 ### Hemomancer
 
@@ -298,6 +300,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Blood Debt | Dps | 1st, choice 2 | 16 s | - | Kills repay 50% more. | Borrow health to heal on hit, and pay it back with kills. |
 | Vein Rush | Dps | 1st, choice 3 | 6 s | 10% of max health | The trail bursts after 1 s for 20 to everything on it. | Rush toward your cursor untouchable, bleeding enemies on the way. |
 | Crimson Harvest | Dps | ultimate | 65 s | - | Hold 8 s, and 25% more blood. | Rip blood from every enemy into a ball, then throw it as a huge blast. |
+| Blood Ravager | Dps | ultimate | 70 s | - | Lasts 12 s. | Eight blood legs burst out of you for 9 s: run fast and trample, and every click lashes a leg at an enemy nearby. |
 | Thorn Bloom | Dps | 1st, choice 5 | 8 s | 12% of max health | Tendrils jump 5 times. | Burst blood needles all round that chain between enemies. |
 
 ### Engineer

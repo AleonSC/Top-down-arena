@@ -219,7 +219,7 @@ One Rare card per Hemomancer weapon (`Weapons = { that weapon }`, `MaxStacks = 2
 | Transfusion Darts | Generous Blood | Each dart gives an ally 30% more health for the same cost |
 | Sanguine Orb | Rich Blood | The heal reserve fills 30% faster, and the healing coat heals 30% more |
 | Vein Tether | Lifeline | 15% more of the beam's damage heals (40% → 55%) |
-| Blood Bolts | Hemophilia | Blood Bolts burst an enemy one bleed stack sooner (5 → 4), 30% wider |
+| Needle Swarm | Hemophilia | The Needle Swarm bursts an enemy one bleed stack sooner (5 → 4), 30% wider |
 | Implosion | Event Horizon | Pulls enemies in from 30% farther, and the crush hits 40% harder |
 | Embolus Spears | Burst Vessels | The burst is 30% wider and hits 30% harder |
 | Blood Brawler | Marrow | Marrow Burst throws 2 more bone shards, and Sympathy binds 1 more enemy |

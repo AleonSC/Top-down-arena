@@ -152,7 +152,7 @@ static partial class Program
 
         // putting the weapon away drops the mark
         var keep = me.Weapon;
-        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BloodBolts);
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Implosion);
         Step(dt * 2f, On(t), false, false);
         Check(me.BsTarget == 0 && me.SympBound.Count == 0, "putting the weapon away drops the mark and Sympathy");
         me.Weapon = keep;

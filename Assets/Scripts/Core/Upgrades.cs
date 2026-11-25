@@ -197,7 +197,7 @@ namespace Arena
         public float TransfuseMult = 1f;                                   // Transfusion Darts: Generous Blood
         public float ReserveGainMult = 1f, CoatHealMult = 1f;              // Sanguine Orb: Rich Blood
         public float VeinStealBonus;                                       // Vein Tether: Lifeline
-        public int HemoHitCut; public float HemoRadiusMult = 1f;           // Blood Bolts: Hemophilia
+        public int HemoHitCut; public float HemoRadiusMult = 1f;           // the Needle Swarm: Hemophilia
         public float ImplodeReachMult = 1f, ImplodeDmgMult = 1f;           // Implosion: Event Horizon
         public int BsShardBonus, SympBonus;                                // Blood Brawler: Marrow (BloodBrawler.cs)
         // Summoner weapon cards (Docs/UpgradePools.md step 10)

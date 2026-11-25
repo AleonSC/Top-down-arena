@@ -322,7 +322,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   Hammers in flight and an electrified enemy arcing), `BOULDER=<draw secs>` (the Golem Staff charging, with its
   landing marker, and boulders in flight), `CAGE=1` (a Bone Guard cage, with guard shots), `WYVERN=<s>` (the Wyvern Staff hovering, then breathing; `WYALT=1` the slam), `WEAPONS5=1` (Fuma
   Shuriken, Chain Light, Sanguine Orb coating, Fireballs and Arc Lightning in one scene), `HEMO=1` (enemies with 1-4
-  Blood Bolts stuck in them), `HOOK=whirl` or `HOOK=<0..0.65 s into the throw>` (a Kusarigama's whirl, or its thrown weight). Env flags: `KNIGHT=<weapon>`,
+  bleed stacks), `NEEDLESWARM=<s held>` (`NSALT=<s>`: the Needle Swarm's tendrils, wraps and Alt fan), `HOOK=whirl` or `HOOK=<0..0.65 s into the throw>` (a Kusarigama's whirl, or its thrown weight). Env flags: `KNIGHT=<weapon>`,
   `POSE=1`, `THRUST=<0..1>`, `BOW=<draw>`, `MASTERY=1`, `KIT=n` with mode `kitgrid` (every role and weapon of a class,
   drawn big), `NINJA=<weapon>` / `BLOOD=<weapon>` (like `KNIGHT=`), `MOUSE=x,y`, `AIMLINE=<px>` (mouse that far from
   you, with the aim line), `SOLO=1`, `INFO=1` (open the lobby's "!" connection popup), `BG=n` (also in `hud`: the

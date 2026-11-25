@@ -776,6 +776,12 @@ namespace Arena
                 ShellHit(p, b);
                 return true;
             }
+            if (blockable && NsBlocks(p, b))
+            {
+                scratchIds.Add(b.Id);  // the Needle Swarm: a needle in the ring takes the shot and breaks (NeedleSwarm.cs)
+                NsBlockHit(p, b);
+                return true;
+            }
             if (blockable && p.AegisT > 0f && Enters(b, p.Pos, AegisRadius))
             {
                 reflects.Add(new Bullet { Pos = b.Pos, Vel = b.Vel, Owner = p.Id, Dmg = p.AegisReflectMult, Kind = Defs.ArcaneShot });  // Aeroaegis
