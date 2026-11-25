@@ -1015,7 +1015,7 @@ static partial class Program
                     foreach (var x in s)
                     {
                         x.Poll();
-                        x.Game.FixedStep(dt, x == who ? new PlayerInput { AimAt = target, Fire = true } : new PlayerInput { AimAt = new V2(0f, 0f) });
+                        x.Game.FixedStep(dt, x == who ? new PlayerInput { AimAt = target, Fire = i % 4 < 2 } : new PlayerInput { AimAt = new V2(0f, 0f) });  // clicks: the Revolver is single-action (a click fires, the next cocks it)
                     }
                     Thread.Sleep(1);
                     foreach (var b in host.Game.Bullets.Values)

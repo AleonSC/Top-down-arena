@@ -532,7 +532,7 @@ static partial class Program
                 build("Incendiary Rounds", pass);
                 me.Weapon = Defs.Weapons.First(w => w.Id == id);
                 var e = dummy(from + new V2(200f, 0f));
-                for (int f = 0; f < 60 * 6; f++) { e.Pos = from + new V2(200f, 0f); e.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = e.Pos }); }
+                for (int f = 0; f < 60 * 6; f++) { e.Pos = from + new V2(200f, 0f); e.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = id != WeaponId.Revolver || f % 12 < 6, AimAt = e.Pos }); }
                 for (int f = 0; f < 60 * 4; f++) { e.Pos = from + new V2(200f, 0f); e.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput()); }  // let it burn out
                 dealt[pass] = e.MaxHp - e.Hp;
             }
@@ -670,12 +670,17 @@ static partial class Program
 
         // Magnum Rounds: shots 15% bigger a stack, the same size on the client; area weapons' areas 15% wider.
         clear();
+        build("Magnum Rounds", 0);  // (no stacks: the plain round)
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Revolver);
+        me.Pos = from; me.AimAt = from + new V2(300f, 0f);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        float plain = g.Bullets.Values.First(x => x.Owner == 1).Radius;  // (the Revolver's round is bigger than its kind's plain size: compare like with like)
+        g.Bullets.Clear();
         build("Magnum Rounds", 2);
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Revolver);
         me.Pos = from; me.AimAt = from + new V2(300f, 0f);
         volley.Invoke(g, new object[] { me, 0f, 0 });
         var round = g.Bullets.Values.First(x => x.Owner == 1);
-        float plain = Defs.BulletRadius(round.Kind);
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.FlakCannon);
         float area = Game.AreaMult(me);
         Console.WriteLine("  magnum rounds x2: a Revolver round {0:0.00} px (plain {1:0.00}); a Flak Cannon's area x{2:0.00}", round.Radius, plain, area);
