@@ -252,6 +252,7 @@ namespace Arena
             DrawBambooGroveFloor(t); // Bamboo Grove's wash, cracks, front and shadows (BambooGroveLook.cs)
             DrawShockwaveFloor();    // the Shockwave ability's scorch (ShockwaveLook.cs)
             DrawTitanFloor();        // the Titan golem's slam cracks and rubble (TitanLook.cs)
+            DrawSpiritFloor();       // Spirit Avatar's ink strokes and stains (SpiritAvatarLook.cs)
             DrawHammerFloor();       // the Warhammer slam's crater and cracks, under the enemies (MeleeLooks.cs)
             DrawSprayStains(t);      // Arterial Spray's spatter (ArterialSprayLook.cs)
             DrawClotStains(t);       // the Gore Mortar's drops on the floor (GoreMortarLook.cs)
@@ -533,6 +534,7 @@ namespace Arena
             DrawRiotGear(p, t);  // Riot Gear's plate (RiotGearLook.cs)
             DrawVanishSmoke(p, t);  // Vanish (NinjaLooks.cs)
             DrawCeremonialFloor(p, t);  // Ceremonial Armor's aura, rings and sigil (CeremonialArmorLook.cs)
+            DrawSpiritBack(p, t);  // Spirit Avatar's ink body, seal, mask and the cleave's floor arc, under the model (SpiritAvatarLook.cs)
             if (p.DashT > 0f)  // Healing Dash's sprint: speed lines and a mint wake (NinjaLooks.cs)
                 DrawDashWake(p, t);
             else if (p.Id == game.MyId ? game.SprintT > 0f : p.Sprint > 0)  // the Dodge's held sprint (NinjaLooks.cs)
