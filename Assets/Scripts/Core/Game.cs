@@ -1596,6 +1596,7 @@ namespace Arena
             KeepOutOfDomes();  // Fortress's dome (Dome.cs)
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
             TickLivingBolt(dt);  // Living Bolt: its clock, the discharge and the residue's damage (LivingBolt.cs)
+            TickForbiddenPath(dt);  // Forbidden Path: the beast's clock, drain, lock-on and combo stages (ForbiddenPath.cs)
             TickRodentMinigun(dt);  // Rodent Minigun: the portal's clock, its turn after the aim and the rodents it spits (RodentMinigun.cs)
             TickVortex(dt);  // the Vortex ultimate: its clock, swirl, damage, swept shots and fling (Vortex.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
@@ -1763,6 +1764,8 @@ namespace Arena
                 {
                     // electrified: the weapon is put away, Fire is the dash (sent by the player's own game: LivingBolt.cs)
                 }
+                else if (FpOn(p))
+                    FpTrigger(p);  // Forbidden Path: the weapon is put away, Fire runs the combo (ForbiddenPath.cs)
                 else if (RodentOn(p))
                 {
                     // the Rodent Minigun's portal is open: the weapon is put away (RodentMinigun.cs)

@@ -264,6 +264,7 @@ namespace Arena
             DrawShockwaveFloor();    // the Shockwave ability's scorch (ShockwaveLook.cs)
             DrawTitanFloor();        // the Titan golem's slam cracks and rubble (TitanLook.cs)
             DrawSpiritFloor();       // Spirit Avatar's ink strokes and stains (SpiritAvatarLook.cs)
+            DrawForbiddenFloor(t);   // Forbidden Path's rakes, claw marks and black sun (ForbiddenPathLook.cs)
             DrawHammerFloor();       // the Warhammer slam's crater and cracks, under the enemies (MeleeLooks.cs)
             DrawSprayStains(t);      // Arterial Spray's spatter (ArterialSprayLook.cs)
             DrawClotStains(t);       // the Gore Mortar's drops on the floor (GoreMortarLook.cs)
@@ -389,6 +390,7 @@ namespace Arena
             DrawQueenSwarm(t);  // QueenLook.cs
             DrawKnightDpsTop(t);  // Caught Steel's shards, the Gauntlet lying where it hit (KnightDpsLook.cs)
             DrawKatanaMarks(t);  // the enemies a Momentum Burst marked, and its cracks (KatanaLook.cs)
+            DrawForbiddenTop(t);  // Forbidden Path's lock brackets and Blood Brands (ForbiddenPathLook.cs)
             DrawStonespearLeftovers(t);  // spent Stonespear spears and their dust (StonespearLook.cs)
             foreach (var fx in game.Effects)
                 DrawEffect(fx, t);
@@ -416,6 +418,7 @@ namespace Arena
             DrawVortex(p, t);      // the Vortex ultimate's storm (VortexLook.cs)
             DrawLivingBoltAura(p, t);  // Living Bolt's channel, halo and time ring (LivingBoltLook.cs)
             DrawRodentPortal(p, t);  // the Rodent Minigun's portal (RodentMinigunLook.cs)
+            DrawForbiddenAura(p, t);  // Forbidden Path's time ring, lock chain, Spiral trail and Gate runes (ForbiddenPathLook.cs)
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)
             DrawTempest(p, t);  // Wind Clash's Tempest (WindClashLook.cs)
             DrawStaticShockUnder(p, t);  // Overcharge's gold ring; the plain cone (StaticShockLook.cs)

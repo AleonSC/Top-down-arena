@@ -10,6 +10,8 @@ namespace Arena
     {
         void DrawPlayer(Player p, float t, bool preview = false)
         {
+            if (!preview && !p.Downed && DrawForbiddenBeast(p, t))
+                return;  // Forbidden Path: a shadow beast in place of the ninja (ForbiddenPathLook.cs)
             float r = p.Def.BodyR;
             Rgba col = p.Def.Color;
             float leapH = 0f;
