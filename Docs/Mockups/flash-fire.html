@@ -1,0 +1,402 @@
+<!-- Status: look C (Pyre) was built as the DPS Elementalist's ultimate Flash Fire (key 2; Core/FlashFire.cs, Game/FlashFireLook.cs): 260 px, the fire stays 8 s and leaves enemies burning when it goes out. -->
+<title>Flash Fire</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: title block, then the arena loop (the hero) beside a live readout, the look picker and toggles, a scrubbable
+   timeline under it, then rules and numbers side by side, then the lobby's Ultimate row.
+   House mockup palette (steel and parchment neutrals, gold for ultimates, the DPS red); the fire lives in the arena. */
+:root{
+  --bg:#ebe8e1; --fg:#1c1e22; --muted:#5d6168; --panel:#f7f5f0; --line:#d2cec3; --chip:#e0dcd1;
+  --gold:#9a6608; --dps:#b8402f; --fire:#d2560f; --fire-soft:#f6e0cf; --arena:#0c0f14;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101215; --fg:#e7e8ea; --muted:#979ca4; --panel:#171a1f; --line:#2b3037; --chip:#22262d;
+  --gold:#f0bd54; --dps:#ff8a78; --fire:#ff9a4a; --fire-soft:#3a2216; --arena:#0a0c10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101215; --fg:#e7e8ea; --muted:#979ca4; --panel:#171a1f; --line:#2b3037; --chip:#22262d;
+  --gold:#f0bd54; --dps:#ff8a78; --fire:#ff9a4a; --fire-soft:#3a2216; --arena:#0a0c10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 var(--body);margin:0;padding-block:28px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1140px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 10px}
+.eyebrow .dps{color:var(--dps)} .eyebrow .gold{color:var(--gold)}
+h1{font:800 clamp(52px,10vw,104px)/.88 var(--display);text-transform:uppercase;margin:6px 0 10px;text-wrap:balance}
+h1 span{color:var(--fire)}
+.lede{margin:0;max-width:66ch;color:var(--muted);font-size:17px}
+.lede b{color:var(--fg);font-weight:600}
+h2{font:700 26px/1 var(--display);letter-spacing:.04em;text-transform:uppercase;margin:0}
+h2 small{font:500 12px var(--mono);letter-spacing:.04em;text-transform:none;color:var(--muted);margin-left:8px}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;align-items:start}
+@media (max-width:860px){.stage{grid-template-columns:minmax(0,1fr)}}
+.frame{position:relative;border-radius:8px;overflow:hidden;background:var(--arena);border:1px solid var(--line);box-shadow:0 18px 40px -24px rgba(90,30,0,.6)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;max-width:100%}
+.phase-tag{position:absolute;left:12px;top:10px;font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#ffd9b8;
+  background:rgba(40,14,2,.72);border:1px solid rgba(255,140,60,.45);padding:3px 8px;border-radius:3px;pointer-events:none}
+.side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.readout{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;font:500 13px var(--mono)}
+.readout dt{color:var(--muted)} .readout dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.readout .t{grid-column:1/-1;font:700 15px var(--display);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.looks{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.looks button{padding:8px 4px;font-size:14px;display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.1}
+.looks button small{font:500 10px var(--mono);letter-spacing:.02em;text-transform:none;color:var(--muted)}
+.looks button[aria-pressed="true"]{background:var(--fire-soft);border-color:var(--fire);color:var(--fire)}
+.toggles{display:flex;flex-direction:column;gap:8px}
+.tog{display:flex;align-items:center;gap:10px;font:500 14px var(--body);cursor:pointer;user-select:none}
+.tog input{appearance:none;width:34px;height:20px;border-radius:10px;background:var(--chip);border:1px solid var(--line);position:relative;cursor:pointer;flex:none;margin:0}
+.tog input::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .15s,background .15s}
+.tog input:checked{background:var(--fire-soft);border-color:var(--fire)} .tog input:checked::after{transform:translateX(14px);background:var(--fire)}
+.tog small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+input:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.transport{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+button{font:700 15px var(--display);letter-spacing:.05em;text-transform:uppercase;padding:7px 14px;border:1px solid var(--line);border-radius:5px;background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)}
+.track{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:4px}
+.bands{height:6px;border-radius:3px;overflow:hidden;display:flex}
+.bands i{display:block;height:100%}
+input[type=range]{width:100%;margin:0;accent-color:var(--fire)}
+.marks{position:relative;height:16px;font:500 11px var(--mono);color:var(--muted)}
+.marks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.clock{font:600 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted);min-width:9ch}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px}
+@media (max-width:860px){.two{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.rules{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.rules li{display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;align-items:baseline}
+.rules b{font:700 15px var(--display);letter-spacing:.05em;text-transform:uppercase;color:var(--fire)}
+.rules span{color:var(--fg)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font:500 13px var(--mono);font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+td.n{text-align:right} tr.me td{color:var(--fire);font-weight:600}
+.lobby{background:#0b1730;border-radius:8px;padding:18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;border:1px solid var(--line)}
+.lobby .lab{font:600 11px var(--mono);letter-spacing:.12em;color:#7fb2ff;text-transform:uppercase;width:100%}
+.key{font:600 13px var(--mono);color:#7fb2ff;border:1px solid #3d6bb0;padding:8px 14px;border-radius:2px;display:flex;gap:10px;align-items:center}
+.key i{font-style:normal;opacity:.7;font-size:11px}
+.key.on{background:#7fb2ff;color:#0b1730;border-color:#7fb2ff}
+.note{font-size:13px;color:var(--muted);margin:0;max-width:80ch}
+@media (prefers-reduced-motion:reduce){.tog input::after{transition:none}}
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow"><span class="dps">DPS · Elementalist</span><span>·</span><span class="gold">Ultimate · key 3</span><span>·</span><span>concept</span></div>
+    <h1>Flash <span>Fire</span></h1>
+    <p class="lede">You draw the heat in for half a second, then <b>everything within 320 px goes up at once</b>: 150 damage, enemies set
+      <b>burning</b> and <b>slowed</b>, and the ground stays on fire for 4 s. The pick for a DPS who wants to stand in the crowd.</p>
+  </header>
+
+  <section class="stage">
+    <div class="frame">
+      <canvas id="cv" width="1280" height="720" aria-label="Arena loop: the Elementalist casts Flash Fire in a crowd"></canvas>
+      <div class="phase-tag" id="phase">Kindle</div>
+    </div>
+    <div class="side">
+      <dl class="readout">
+        <div class="t">This cast</div>
+        <dt>Damage dealt</dt><dd id="rDmg">0</dd>
+        <dt>Kills</dt><dd id="rKill">0</dd>
+        <dt>Burning</dt><dd id="rBurn">0</dd>
+        <dt>Slowed</dt><dd id="rSlow">0</dd>
+        <dt>Radius</dt><dd id="rRad">320 px</dd>
+      </dl>
+      <div class="looks" role="group" aria-label="Look">
+        <button id="lookA" aria-pressed="true">A Nova<small>flash + char</small></button>
+        <button id="lookB" aria-pressed="false">B Firestorm<small>tongues</small></button>
+        <button id="lookC" aria-pressed="false">C Pyre<small>fire ring</small></button>
+      </div>
+      <div class="toggles">
+        <label class="tog"><input type="checkbox" id="mast"><span>Mastered<small>380 px, ground burns 6 s</small></span></label>
+        <label class="tog"><input type="checkbox" id="slow"><span>Slow motion<small>quarter speed</small></span></label>
+        <label class="tog"><input type="checkbox" id="ring" checked><span>Show reach<small>dashed 320 px circle</small></span></label>
+      </div>
+    </div>
+  </section>
+
+  <div class="transport">
+    <button id="play">Pause</button>
+    <div class="track">
+      <div class="bands" id="bands"></div>
+      <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Timeline">
+      <div class="marks" id="marks"></div>
+    </div>
+    <div class="clock" id="clock">0.00 s</div>
+  </div>
+
+  <section class="two">
+    <div class="col">
+      <h2>How it plays <small>proposed rules</small></h2>
+      <ul class="rules">
+        <li><b>Kindle</b><span>0.5 s: embers stream into you and a dashed ring marks the reach. You can walk at half speed but not attack. Can't be hurt.</span></li>
+        <li><b>Flash</b><span>A wall of flame rolls out to 320 px in 0.3 s. <b>150</b> to every enemy it passes (by your damage), bosses too, and a 40 px shove (not heavies or bosses).</span></li>
+        <li><b>Burn</b><span>Everything flashed burns for <b>10 a second for 5 s</b> (Fireball's burn rules).</span></li>
+        <li><b>Slow</b><span><b>40% slower for 4 s</b> (heavies and bosses 20%), drawn as ash dragging at their feet.</span></li>
+        <li><b>Scorch</b><span>The circle stays on fire for 4 s: <b>20 a second</b> to enemies in it, and walking in sets them burning and slowed too.</span></li>
+        <li><b>Mastery</b><span>380 px reach, the ground burns 6 s.</span></li>
+        <li><b>Card</b><span>Rare <b>Backdraft</b> (up to 2): the flash hits 25% harder and burns last 2 s longer a stack.</span></li>
+        <li><b>Bot</b><span>Casts it with 5 enemies within 280 px.</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <h2>Numbers <small>against the other DPS Elementalist ultimates</small></h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Ultimate</th><th>CD</th><th>Area</th><th class="n">One enemy, full stay</th></tr></thead>
+        <tbody>
+          <tr><td>Bullet Rain</td><td>70 s</td><td>520 px square at cursor</td><td class="n">270 + wet</td></tr>
+          <tr><td>Living Bolt</td><td>80 s</td><td>your blink paths</td><td class="n">40 a pass + 60</td></tr>
+          <tr class="me"><td>Flash Fire</td><td>80 s</td><td>320 px circle on you</td><td class="n">150 + 50 + 80 = 280</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">280 = flash 150 + burn 10×5 s + ground 20×4 s. Grunts (120) die in the flash; heavies (420) walk out burnt and slow.
+        Like Bullet Rain in total, but all of it front-loaded and centred on you, so it trades safety for burst.</p>
+    </div>
+  </section>
+
+  <section class="col">
+    <h2>In the lobby <small>the DPS Elementalist's Ultimate row</small></h2>
+    <div class="lobby">
+      <div class="lab">Ultimate</div>
+      <span class="key"><i>1</i>Bullet Rain</span>
+      <span class="key"><i>2</i>Living Bolt</span>
+      <span class="key on"><i>3</i>Flash Fire</span>
+    </div>
+    <p class="note">Browser mockup, so the glow and blur are approximate. Once a look is picked it gets built in the real draw code and shown as a Tools/Preview render.</p>
+  </section>
+</main>
+
+<script>
+(()=>{
+const cv=document.getElementById('cv'),g=cv.getContext('2d'),W=1280,H=720,CX=640,CY=360,K=0.8;
+const T_K=0.5,T_F=0.3,LOOP=8.0;
+let look='A',mastered=false,playing=true,slowmo=false,showRing=true,t=0,last=performance.now();
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const R=()=>mastered?380:320, SCORCH=()=>mastered?6:4;
+const hash=i=>{const s=Math.sin(i*127.1+311.7)*43758.5453;return s-Math.floor(s)};
+const ease=x=>1-Math.pow(1-Math.min(1,Math.max(0,x)),3);
+
+// enemies: grunts in the crowd, heavies, and a few walking in from outside
+const SPAWN=[];
+for(let i=0;i<26;i++){
+  const heavy=i%7===3, outside=i>=21;
+  const a=hash(i)*Math.PI*2, d=outside?420+hash(i+50)*200:70+hash(i+90)*230;
+  SPAWN.push({x:CX+Math.cos(a)*d*1.25,y:CY+Math.sin(a)*d*0.82,heavy,hp:heavy?420:120,v:heavy?32:52,r:heavy?17:10});
+}
+function sim(tEnd){
+  const es=SPAWN.map(s=>({...s,max:s.hp,alive:true,burn:0,slow:0,hit:false,sx:0,sy:0,dead:-1,acc:0,mult:s.heavy?0.8:0.6}));
+  const pops=[];let dmg=0;const dt=1/60,r=R(),sc=SCORCH();
+  const hurt=(e,n,tt)=>{if(!e.alive)return;const k=Math.min(e.hp,n);e.hp-=n;dmg+=k;if(e.hp<=0){e.alive=false;e.dead=tt}};
+  for(let tt=0;tt<tEnd;tt+=dt){
+    const ringR=tt>=T_K?r*ease((tt-T_K)/T_F):-1, scorch=tt>=T_K+T_F&&tt<T_K+T_F+sc;
+    for(const e of es){
+      if(!e.alive)continue;
+      const dx=CX-e.x,dy=CY-e.y,d=Math.hypot(dx,dy)||1;
+      const sp=e.v*(e.slow>0?e.mult:1);
+      if(d>46){e.x+=dx/d*sp*dt;e.y+=dy/d*sp*dt}
+      e.x+=e.sx*dt;e.y+=e.sy*dt;e.sx*=0.86;e.sy*=0.86;
+      if(!e.hit&&ringR>=0&&tt<T_K+T_F+0.05&&d<=ringR+e.r){
+        e.hit=true;hurt(e,150,tt);e.burn=5;e.slow=4;
+        pops.push({t:tt,x:e.x,y:e.y-e.r-8,s:'150',big:true});
+        if(!e.heavy){e.sx=-dx/d*260;e.sy=-dy/d*260}
+      }
+      if(scorch&&d<=r){hurt(e,20*dt,tt);e.acc+=20*dt;if(e.burn<=0&&!e.hit){e.hit=true;pops.push({t:tt,x:e.x,y:e.y-e.r-8,s:'IGNITE',big:false})}e.burn=Math.max(e.burn,2);e.slow=Math.max(e.slow,1)}
+      if(e.burn>0){hurt(e,10*dt,tt);e.acc+=10*dt;e.burn-=dt}
+      if(e.slow>0)e.slow-=dt;
+      if(e.acc>=15){pops.push({t:tt,x:e.x+(hash(tt*9)-.5)*14,y:e.y-e.r-6,s:String(Math.round(e.acc)),big:false});e.acc=0}
+    }
+  }
+  return {es,pops,dmg};
+}
+
+// ---------- drawing helpers ----------
+function flame(x,y,s,f,a){ // teardrop flame, s = height, f = flicker 0..1
+  if(a<=0.01||s<1)return;
+  const h=s*(0.8+0.35*f),w=s*0.42;
+  const gr=g.createLinearGradient(x,y,x,y-h);
+  gr.addColorStop(0,`rgba(255,90,20,${0.9*a})`);gr.addColorStop(0.45,`rgba(255,170,40,${0.85*a})`);gr.addColorStop(1,`rgba(255,240,170,0)`);
+  g.fillStyle=gr;g.beginPath();g.moveTo(x-w,y);
+  g.quadraticCurveTo(x-w*1.1,y-h*0.5,x+(f-.5)*w*0.8,y-h);g.quadraticCurveTo(x+w*1.1,y-h*0.5,x+w,y);
+  g.quadraticCurveTo(x,y+w*0.6,x-w,y);g.fill();
+  g.fillStyle=`rgba(255,245,200,${0.55*a})`;g.beginPath();g.ellipse(x,y-h*0.22,w*0.35,h*0.22,0,0,7);g.fill();
+}
+function glow(x,y,rad,c,a){const gr=g.createRadialGradient(x,y,0,x,y,rad);gr.addColorStop(0,`rgba(${c},${a})`);gr.addColorStop(1,`rgba(${c},0)`);g.fillStyle=gr;g.fillRect(x-rad,y-rad,rad*2,rad*2)}
+function arena(){
+  g.fillStyle='#0d1219';g.fillRect(0,0,W,H);
+  g.strokeStyle='rgba(90,130,190,0.07)';g.lineWidth=1;
+  for(let x=0;x<=W;x+=40){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke()}
+  for(let y=0;y<=H;y+=40){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke()}
+  g.strokeStyle='rgba(120,170,240,0.25)';g.lineWidth=2;g.strokeRect(20,20,W-40,H-40);
+}
+function telegraph(p,r,now){
+  if(!showRing)return;
+  g.save();g.setLineDash([10,8]);g.lineDashOffset=-now*30;
+  g.strokeStyle=`rgba(255,150,60,${0.15+0.5*p})`;g.lineWidth=2;
+  g.beginPath();g.arc(CX,CY,r,0,7);g.stroke();g.restore();
+}
+
+// ---------- the three looks ----------
+function kindle(p,r,now){
+  g.globalCompositeOperation='lighter';
+  const n=46;
+  for(let i=0;i<n;i++){
+    const a0=hash(i)*7,ph=(hash(i+3)+p*1.6)%1,rr=r*(1-ph)*(0.6+0.4*hash(i+7));
+    const a=a0+ph*(look==='A'?2.4:look==='B'?0.4:1.2);
+    const x=CX+Math.cos(a)*rr,y=CY+Math.sin(a)*rr*0.95;
+    glow(x,y,6+6*ph,'255,150,50',0.7*p);
+  }
+  if(look==='B'){for(let i=0;i<5;i++)flame(CX+(i-2)*7,CY+6,22+50*p*(0.7+0.3*hash(i)),hash(i+now*8|0),0.9*p)}
+  if(look==='C'){
+    g.save();g.translate(CX,CY);g.rotate(now*1.5);g.strokeStyle=`rgba(255,180,80,${0.55*p})`;g.lineWidth=3;
+    for(let k=0;k<6;k++){g.beginPath();g.arc(0,0,r,k*Math.PI/3,k*Math.PI/3+0.6*p);g.stroke()}g.restore();
+  }
+  glow(CX,CY,30+60*p,'255,200,110',0.5+0.4*p);
+  g.globalCompositeOperation='source-over';
+}
+function flash(q,r,now){ // q = 0..1 across the roll-out, then afterglow
+  const rr=r*ease(q);
+  g.globalCompositeOperation='lighter';
+  if(look==='A'){
+    const gr=g.createRadialGradient(CX,CY,Math.max(0,rr-70),CX,CY,rr+8);
+    gr.addColorStop(0,'rgba(255,110,20,0)');gr.addColorStop(0.7,`rgba(255,160,50,${0.8*(1-q*0.4)})`);gr.addColorStop(0.92,`rgba(255,245,200,${1-q*0.3})`);gr.addColorStop(1,'rgba(255,200,120,0)');
+    g.fillStyle=gr;g.beginPath();g.arc(CX,CY,rr+8,0,7);g.fill();
+    glow(CX,CY,rr*0.7,'255,230,170',0.6*(1-q));
+  }else if(look==='B'){
+    const n=30;
+    for(let i=0;i<n;i++){
+      const a=i/n*Math.PI*2+hash(i)*0.15,len=rr*(0.82+0.18*hash(i+11)),wd=0.11;
+      const x2=CX+Math.cos(a)*len,y2=CY+Math.sin(a)*len;
+      const gr=g.createLinearGradient(CX,CY,x2,y2);
+      gr.addColorStop(0,'rgba(255,240,180,0.9)');gr.addColorStop(0.6,'rgba(255,140,30,0.75)');gr.addColorStop(1,'rgba(220,50,10,0)');
+      g.fillStyle=gr;g.beginPath();g.moveTo(CX,CY);
+      g.quadraticCurveTo(CX+Math.cos(a-wd)*len*0.6,CY+Math.sin(a-wd)*len*0.6,x2,y2);
+      g.quadraticCurveTo(CX+Math.cos(a+wd)*len*0.6,CY+Math.sin(a+wd)*len*0.6,CX,CY);g.fill();
+    }
+  }else{
+    g.strokeStyle=`rgba(255,220,140,${1-q*0.5})`;g.lineWidth=18*(1-q*0.5);
+    g.beginPath();g.arc(CX,CY,rr,0,7);g.stroke();
+    glow(CX,CY,rr,'255,120,30',0.35*(1-q));
+  }
+  g.globalCompositeOperation='source-over';
+}
+function scorch(a,sc,r,now){ // a = age since the flash ended
+  const f=Math.max(0,1-a/sc), fin=Math.min(1,a/0.2);
+  if(f<=0)return;
+  // charred floor
+  const gr=g.createRadialGradient(CX,CY,0,CX,CY,r);
+  gr.addColorStop(0,`rgba(40,14,4,${0.55*f})`);gr.addColorStop(0.85,`rgba(70,22,6,${0.5*f})`);gr.addColorStop(1,`rgba(160,50,10,${0.4*f})`);
+  g.fillStyle=gr;g.beginPath();g.arc(CX,CY,r,0,7);g.fill();
+  g.globalCompositeOperation='lighter';
+  if(look==='A'){
+    g.lineWidth=2;
+    for(let i=0;i<14;i++){ // glowing cracks
+      let x=CX,y=CY,ang=hash(i)*7;g.strokeStyle=`rgba(255,${110+60*hash(i+now|0)},30,${0.55*f*(0.7+0.3*Math.sin(now*9+i))})`;
+      g.beginPath();g.moveTo(x,y);
+      for(let k=1;k<=6;k++){ang+=(hash(i*9+k)-.5)*0.7;const s=r/6*(0.85+0.2*hash(i+k));x+=Math.cos(ang)*s;y+=Math.sin(ang)*s;
+        if(Math.hypot(x-CX,y-CY)>r)break;g.lineTo(x,y)}
+      g.stroke();
+    }
+    for(let i=0;i<34;i++){const a2=hash(i+40)*7,d=Math.sqrt(hash(i+80))*r*0.95;
+      flame(CX+Math.cos(a2)*d,CY+Math.sin(a2)*d,(12+10*hash(i))*f,0.5+0.5*Math.sin(now*14+i*3),f*fin)}
+    g.strokeStyle=`rgba(255,140,40,${0.6*f})`;g.lineWidth=4;g.beginPath();g.arc(CX,CY,r,0,7);g.stroke();
+  }else if(look==='B'){
+    for(let i=0;i<70;i++){const a2=hash(i+40)*7,d=Math.sqrt(hash(i+80))*r*0.97;
+      const life=(hash(i+5)+now*0.7)%1;
+      flame(CX+Math.cos(a2)*d,CY+Math.sin(a2)*d,(14+18*Math.sin(life*Math.PI))*f,hash(i+(now*10|0)),f*fin)}
+    for(let i=0;i<30;i++){const ph=(hash(i)+now*0.5)%1,a2=hash(i+3)*7,d=Math.sqrt(hash(i+9))*r;
+      glow(CX+Math.cos(a2)*d,CY+Math.sin(a2)*d-ph*60,4,'255,170,60',0.8*f*(1-ph))}
+  }else{
+    const n=64;
+    for(let i=0;i<n;i++){const a2=i/n*Math.PI*2,x=CX+Math.cos(a2)*r,y=CY+Math.sin(a2)*r;
+      flame(x,y,(26+14*hash(i))*f,0.5+0.5*Math.sin(now*12+i*1.7),f*fin)}
+    for(let i=0;i<40;i++){const ph=(hash(i)+now*0.35)%1,a2=hash(i+3)*7,d=Math.sqrt(hash(i+9))*r*0.9;
+      glow(CX+Math.cos(a2)*d,CY+Math.sin(a2)*d-ph*40,5,'255,150,60',0.7*f*(1-ph))}
+  }
+  g.globalCompositeOperation='source-over';
+}
+
+function enemy(e,now){
+  if(!e.alive){
+    const a=t-e.dead; if(a>0.7)return;
+    g.globalCompositeOperation='lighter';
+    for(let i=0;i<8;i++){const an=i/8*7+hash(e.x+i),d=a*70;glow(e.x+Math.cos(an)*d,e.y+Math.sin(an)*d-a*20,5,'255,140,40',1-a/0.7)}
+    g.globalCompositeOperation='source-over';
+    g.fillStyle=`rgba(30,20,16,${1-a/0.7})`;g.beginPath();g.arc(e.x,e.y,e.r*(1-a*0.6),0,7);g.fill();
+    return;
+  }
+  if(e.slow>0){ // ash dragging at the feet
+    g.fillStyle='rgba(120,110,100,0.35)';g.beginPath();g.ellipse(e.x,e.y+e.r*0.7,e.r*1.4,e.r*0.5,0,0,7);g.fill();
+    for(let i=0;i<4;i++){const ph=(hash(i+e.r)+now*0.8)%1;g.fillStyle=`rgba(150,140,130,${0.6*(1-ph)})`;
+      g.fillRect(e.x+(hash(i)-.5)*e.r*2.2,e.y+e.r*0.6-ph*10,2,2)}
+  }
+  const burning=e.burn>0;
+  g.fillStyle=burning?(e.heavy?'#8a3a24':'#a8452c'):(e.heavy?'#6b4a8f':'#c0485f');
+  g.strokeStyle=burning?'#ffb066':'#ffd0dc';g.lineWidth=2;
+  g.beginPath();
+  if(e.heavy){g.rect(e.x-e.r,e.y-e.r,e.r*2,e.r*2)}else{g.moveTo(e.x,e.y-e.r-2);g.lineTo(e.x+e.r+2,e.y);g.lineTo(e.x,e.y+e.r+2);g.lineTo(e.x-e.r-2,e.y);g.closePath()}
+  g.fill();g.stroke();
+  if(burning){g.globalCompositeOperation='lighter';flame(e.x,e.y-e.r*0.2,e.r*1.6,0.5+0.5*Math.sin(now*16+e.x),0.9);g.globalCompositeOperation='source-over'}
+  // hp bar + pips
+  const w=e.r*2.6,hp=Math.max(0,e.hp/e.max);
+  g.fillStyle='rgba(0,0,0,.6)';g.fillRect(e.x-w/2,e.y-e.r-12,w,4);
+  g.fillStyle=burning?'#ff9a3c':'#e05a6a';g.fillRect(e.x-w/2,e.y-e.r-12,w*hp,4);
+}
+function player(p,now){
+  glow(CX,CY,40,'255,160,70',0.25+0.3*p);
+  g.fillStyle='#e7653f';g.strokeStyle='#fff3e8';g.lineWidth=3;
+  g.beginPath();g.arc(CX,CY,14,0,7);g.fill();g.stroke();
+  g.strokeStyle='#fff3e8';g.lineWidth=3;g.beginPath();g.moveTo(CX+14,CY);g.lineTo(CX+24,CY);g.stroke();
+}
+function popups(pops){
+  for(const p of pops){const a=t-p.t;if(a<0||a>0.9)continue;
+    g.globalAlpha=1-a/0.9;g.font=p.big?'700 22px "Barlow Condensed",sans-serif':'600 14px "IBM Plex Mono",monospace';
+    g.fillStyle=p.big?'#ffe2a6':(p.s==='IGNITE'?'#ff9a3c':'#ffb37a');g.textAlign='center';
+    g.fillText(p.s,p.x,p.y-a*28);g.globalAlpha=1}
+}
+
+// ---------- frame ----------
+const phaseEl=document.getElementById('phase'),scrub=document.getElementById('scrub'),clock=document.getElementById('clock');
+const rD=document.getElementById('rDmg'),rK=document.getElementById('rKill'),rB=document.getElementById('rBurn'),rS=document.getElementById('rSlow'),rR=document.getElementById('rRad');
+function draw(now){
+  const r=R(),sc=SCORCH(),s=sim(t);
+  arena();
+  const tf=T_K+T_F;
+  g.save();g.translate(CX,CY);g.scale(K,K);g.translate(-CX,-CY);
+  if(t>=tf)scorch(t-tf,sc,r,now);
+  if(t<T_K)telegraph(t/T_K,r,now);
+  for(const e of s.es)enemy(e,now);
+  player(t<T_K?t/T_K:0,now);
+  if(t<T_K)kindle(t/T_K,r,now);
+  else if(t<tf+0.15)flash(Math.min(1,(t-T_K)/T_F)+(t>tf?(t-tf)/0.15*0.3:0),r,now);
+  popups(s.pops);g.restore();
+  if(t>=T_K&&t<T_K+0.12){g.fillStyle=`rgba(255,235,200,${0.35*(1-(t-T_K)/0.12)})`;g.fillRect(0,0,W,H)} // white-out
+  const phase=t<T_K?'Kindle':t<tf?'Flash':t<tf+sc?'Scorch':'Burn and slow wear off';
+  phaseEl.textContent=phase+(look?` · look ${look}`:'');
+  rD.textContent=Math.round(s.dmg);rK.textContent=s.es.filter(e=>!e.alive).length;
+  rB.textContent=s.es.filter(e=>e.alive&&e.burn>0).length;rS.textContent=s.es.filter(e=>e.alive&&e.slow>0).length;rR.textContent=r+' px';
+  clock.textContent=t.toFixed(2)+' s';scrub.value=Math.round(t/LOOP*1000);
+}
+function tick(ts){
+  const dt=Math.min(0.05,(ts-last)/1000);last=ts;
+  if(playing&&!reduce){t+=dt*(slowmo?0.25:1);if(t>=LOOP)t=0}
+  draw(ts/1000);requestAnimationFrame(tick);
+}
+// timeline bands + marks
+function buildTrack(){
+  const sc=SCORCH(),seg=[[T_K,'#f0bd54'],[T_F,'#fff0c0'],[sc,'#d2560f'],[LOOP-T_K-T_F-sc,'#6b5a50']];
+  document.getElementById('bands').innerHTML=seg.map(([d,c])=>`<i style="width:${d/LOOP*100}%;background:${c}"></i>`).join('');
+  const m=[[0,'0'],[T_K,'flash'],[T_K+T_F+sc,'ground out'],[T_K+T_F+5,'burn ends']];
+  document.getElementById('marks').innerHTML=m.map(([x,l],i)=>`<span style="left:${x/LOOP*100}%;${i===0?'transform:none':''}">${l}</span>`).join('');
+}
+buildTrack();
+scrub.addEventListener('input',()=>{t=scrub.value/1000*LOOP;playing=false;document.getElementById('play').textContent='Play'});
+document.getElementById('play').onclick=e=>{playing=!playing;e.target.textContent=playing?'Pause':'Play'};
+for(const k of['A','B','C'])document.getElementById('look'+k).onclick=()=>{look=k;for(const j of['A','B','C'])document.getElementById('look'+j).setAttribute('aria-pressed',j===k)};
+document.getElementById('mast').onchange=e=>{mastered=e.target.checked;buildTrack()};
+document.getElementById('slow').onchange=e=>slowmo=e.target.checked;
+document.getElementById('ring').onchange=e=>showRing=e.target.checked;
+if(reduce){t=0.62;playing=false;document.getElementById('play').textContent='Play'}
+requestAnimationFrame(tick);
+})();
+</script>

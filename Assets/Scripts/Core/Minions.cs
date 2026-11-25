@@ -692,6 +692,7 @@ namespace Arena
 
         void TickZones(float dt)
         {
+            TickFlashFires(dt);  // FlashFire.cs: the ring and the pyre
             var expired = scratchZonesExpired;
             expired.Clear();
             foreach (var z in Zones.Values)

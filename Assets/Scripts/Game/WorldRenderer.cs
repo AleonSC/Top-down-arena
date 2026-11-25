@@ -258,6 +258,7 @@ namespace Arena
             DrawTombFloor(t);        // the Glacial Tomb's frost lattice and mandala (GlacialTombLook.cs)
             DrawBloodFreezeFloor(t); // Blood Freeze's frost, cracks, rune circle and wave (BloodFreezeLook.cs)
             DrawBambooGroveFloor(t); // Bamboo Grove's wash, cracks, front and shadows (BambooGroveLook.cs)
+            DrawFlashFireFloor(t);   // Flash Fire's kindle, rolling ring, scorched band and embers (FlashFireLook.cs)
             DrawShockwaveFloor();    // the Shockwave ability's scorch (ShockwaveLook.cs)
             DrawTitanFloor();        // the Titan golem's slam cracks and rubble (TitanLook.cs)
             DrawSpiritFloor();       // Spirit Avatar's ink strokes and stains (SpiritAvatarLook.cs)
@@ -317,6 +318,7 @@ namespace Arena
             DrawLichScene(t);  // LichLook.cs
             PruneDarts();  // Poison Dart's stuck darts (PoisonDartLook.cs)
             DrawBambooGroveBack(t);  // Bamboo Grove's far stalks, behind the enemies (BambooGroveLook.cs)
+            DrawFlashFireBack(t);  // Flash Fire's far flames, behind the enemies (FlashFireLook.cs)
             segTol = CrowdTol();
             foreach (var e in game.Enemies.Values)
                 if (!Game.DevourUnder(e) && !Game.GutwormUnder(e) && !(game.DrillTargetOf(e, out int drillOwner) && drillOwner != game.MyId) && !(e.Dormant ? game.FogHidesStill(e.Pos) : game.FogHides(e.Pos)))  // (room fog: hidden in an unseen room unless a player is close, RoomFog.cs); the Devourer or a Gutworm underground is just its ripple (DevourerLook.cs, LarderLook.cs)
@@ -325,6 +327,7 @@ namespace Arena
             DrawDormantMarks(t);  // sleeping groups in unseen rooms: drifting z's (RoomFogLook.cs)
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
             DrawBambooGroveFront(t);  // Bamboo Grove's near stalks, in front of the enemies (BambooGroveLook.cs)
+            DrawFlashFireFront(t);  // Flash Fire's near flames, in front of the enemies (FlashFireLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawBloodbathOver(t);  // enemies wading in a Bloodbath: tinted, bleeding drops (BloodbathLook.cs)
             DrawGlSmokeOver(t);  // the Grenade Launcher's clouds over the enemies, jammed ones greyed (GrenadeLauncherLook.cs)
