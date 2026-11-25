@@ -813,6 +813,8 @@ namespace Arena
                     }
                     if (AscensionKey(new Rect(main.xMax - 2f, b.y, b.xMax - (main.xMax - 2f), b.height), Defs.Weapon(me.Role, me.Kit, i).Name, WeaponKeyOn(me, i), calm))
                         ascOpen = i;
+                    if (WeaponKeyOn(me, i) && PlayingRow(me) == 0)
+                        LiveKeyMark(main, roleColor, t, calm);  // (the name's part, not the ascension button)
                 }
                 EndCarousel();
                 y += CarRowStep;
@@ -837,6 +839,8 @@ namespace Arena
                         detailSel = 1;
                         detailSecond = false;
                     }
+                    if (me.Ability == i && PlayingRow(me) == 1)
+                        LiveKeyMark(b, roleColor, t, calm);
                 }
                 EndCarousel();
                 y += CarRowStep;
@@ -872,6 +876,8 @@ namespace Arena
                         ultChoice = pick;
                     detailSel = 2;  // (the preview then casts it until you click something else)
                 }
+                if (me.Ult == pick && PlayingRow(me) == 2)
+                    LiveKeyMark(b, roleColor, t, calm);
             }
             EndCarousel();
 
@@ -1334,6 +1340,40 @@ namespace Arena
         static string ChipName(LobbyEntry me, int i, int second) =>
             i == 0 ? Defs.Weapon(Role.Wildcard, Kit.Soldier, me.Weapon).Name
             : i == 3 ? Upgrades.Ability(me.UltId).Name : Upgrades.Ability(Upgrades.FirstAbility(Role.Wildcard, Kit.Soldier, i == 1 ? me.Ability : second)).Name;
+
+        /// The row whose picked key the preview is playing: 0 the weapon (also on the role and class pages), 1 the ability, 2 the ultimate.
+        int PlayingRow(LobbyEntry me) => detailSel == 1 || detailSel == 2 ? detailSel : 0;
+
+        /// A small pixel play triangle pointing right, h px tall, its left edge at x.
+        static void PlayTriangle(float x, float cy, float h, Color c)
+        {
+            for (int k = 0; k < h / 2f; k++)
+            {
+                float half = h / 2f - k;
+                Ui.Fill(new Rect(x + k, Mathf.Round(cy - half), 1f, half * 2f), c);
+            }
+        }
+
+        /// The "now playing" mark on the key the preview is showing: a play triangle by the name and a playhead sweeping
+        /// along the key's bottom edge, in the role's colour (calm: the bar stands full).
+        void LiveKeyMark(Rect b, Color c, float t, bool calm)
+        {
+            if (Event.current.type != EventType.Repaint)
+                return;
+            var track = new Rect(b.x + 2f, b.yMax - 4f, b.width - 4f, 2f);
+            Ui.Fill(track, c.WithAlpha(0.3f));
+            float head = track.x + track.width * (calm ? 1f : (t / 1.8f) % 1f);
+            const int segs = 16;
+            for (int k = 0; k < segs; k++)  // the trail behind the head, fading
+            {
+                float sl = Mathf.Max(track.x, head - (k + 1) * 3f), sr = Mathf.Min(head - k * 3f, track.xMax);
+                if (sr <= sl)
+                    break;
+                Ui.Fill(new Rect(sl, track.y, sr - sl, track.height), c.WithAlpha(1f - k / (float)segs));
+            }
+            Ui.Fill(new Rect(head - 1f, track.y - 1f, 2f, 4f), Color.Lerp(c, Color.white, 0.6f));
+            PlayTriangle(b.x + 6f, b.center.y, 8f, c.WithAlpha(0.9f));
+        }
 
         /// A small pixel chevron pointing left (dir -1) or right (1), centred on c.
         static void Chevron(Vector2 c, int dir, Color col)
