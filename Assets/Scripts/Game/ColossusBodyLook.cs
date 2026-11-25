@@ -4,7 +4,9 @@ namespace Arena
 {
     /// The Colossus's body (Colossus.cs), look A of Docs/Mockups (the Quarry Golem): a sandstone giant seen from above, two
     /// huge fists, four slab plates bolted on (they come off at Crumbling: they're the cover slabs), charred with lava
-    /// seams and a core in its chest from Molten Core, kneeling with its fists in the ground for the Last Stand.
+    /// seams and a core in its chest from Molten Core, kneeling with its fists in the ground for the Last Stand and
+    /// while staggered at the end of a phase (dizzy, its plates rattling), shedding chips and dust all through
+    /// Crumbling, and lifting a boulder over its head in one fist before it throws (HoldT, HoldSide).
     /// Every pose comes from what the snapshot already carries: a stomp ring winding up at its feet (fists up, then the
     /// slam), the charge's warning and run (ChargeWarn, ChargeLeft, ChargeDir), a boulder or meteor just thrown (its
     /// drop's From and T), the daze (DazeT) and the phase change (TransT).
@@ -15,6 +17,18 @@ namespace Arena
             LavaHot = new Rgba(1f, 0.55f, 0.2f), LavaCore = new Rgba(1f, 0.86f, 0.5f), PlateEdge = new Rgba(0.78f, 0.62f, 0.45f);
         const float ColUnit = 60f;  // drawing units per body radius (the fists reach about 1.6 radii out)
         const float ColSlamShow = 45f;  // how far a fresh ring spreads while the fists still show the slam
+        public const float ColBoulderSize = 62f;  // a boulder's radius as it's held and thrown (bigger at the top of the throw)
+        static readonly Rgba BoulderBase = new Rgba(0.47f, 0.36f, 0.27f), BoulderLite = new Rgba(0.64f, 0.5f, 0.37f), BoulderDark = new Rgba(0.17f, 0.12f, 0.09f);
+
+        /// A boulder it holds or throws: darker rock than its body, with a red rim (it's coming for you). Leaves the
+        /// Titan palette as TitanPaint(false); the body puts its own back.
+        void ColBoulder(V2 at, float r, float rim)
+        {
+            TitanBase = BoulderBase; TitanLite = BoulderLite; TitanDark = BoulderDark;
+            TitanStone(at, r, 57f, 8, 0f, 1f);
+            Arc(at, r * 1.02f, 3f, new Rgba(1f, 0.32f, 0.36f, rim), 24);
+            TitanPaint(false);
+        }
 
         /// Paints TitanStone (TitanLook.cs) in the Colossus's colours: sandstone, or charred once molten.
         static void ColPaint(bool charred)
@@ -73,9 +87,10 @@ namespace Arena
         {
             var c = e.Colossus;
             var st = c != null ? c.Stage : ColStage.Awakening;
-            bool kneel = st == ColStage.LastStand, molten = st >= ColStage.MoltenCore;
+            bool stagger = c != null && c.Stagger;
+            bool kneel = st == ColStage.LastStand || stagger, molten = st >= ColStage.MoltenCore;
             bool charging = c != null && c.ChargeLeft > 0f, bracing = c != null && c.ChargeWarn > 0f && !charging;
-            bool dazed = c != null && c.DazeT > 0f, roaring = c != null && c.TransT > 0f;
+            bool dazed = c != null && (c.DazeT > 0f || stagger), roaring = c != null && c.TransT > 0f;
             var ring = c != null ? ColFreshRing(c, e) : null;
             var thrown = c != null && !charging ? ColFreshThrow(c, e) : null;
             float s = r / ColUnit, ang = charging || bracing ? c.ChargeDir : e.Facing;
@@ -104,7 +119,7 @@ namespace Arena
                 }
                 for (int sd = -1; sd <= 1; sd += 2)
                     ColArm(c, e, L, fx, fy, s, sd, t, ang, st, wk, glow, lean, charging, bracing, dazed, roaring, ring, thrown);
-                ColTorso(L, fx, fy, s, t, ang, st, glow, lean, ColCrumbleT(c), c != null ? ColPlateFor(e.Disp, e.Facing, s) : null);
+                ColTorso(L, fx, fy, s, t, ang, st, glow, lean, ColCrumbleT(c), c != null ? ColPlateFor(e.Disp, e.Facing, s) : null, stagger);
                 // the head, sunk between the shoulders; bowed when kneeling, lolling when dazed
                 V2 head = L((kneel ? 22f : 36f) + lean, dazed ? Mathf.Sin(t * 4f) * 7f : 0f);
                 Circle(head + fx * 3f * s, 17f * s, new Rgba(0f, 0f, 0f, 0.3f), 14);
@@ -124,6 +139,16 @@ namespace Arena
                         V2 at = head + new V2(Mathf.Cos(t * 5f + k * 2.1f) * 28f, Mathf.Sin(t * 5f + k * 2.1f) * 9f - 22f) * s;
                         Polygon(at, 6f * s, 5, t * 4f, new Rgba(1f, 0.85f, 0.35f));
                     }
+                if (c != null && c.HoldT > 0f)  // a boulder up in one fist, torn out of the ground, shaking before the throw
+                {
+                    float held = Game.ColHoldTime - c.HoldT, grow = TEase(held / 0.35f), ready = held > 0.7f ? 0.5f + 0.5f * Mathf.Sin(t * 24f) : 0f;
+                    V2 at = Game.ColHand(e, c.HoldSide) - e.Pos + pos + (held > 0.7f ? new V2(Mathf.Sin(t * 50f), 0f) * 1.5f : V2.Zero);
+                    Circle(at + new V2(16f, 20f) * s, ColBoulderSize * 0.9f * grow, new Rgba(0f, 0f, 0f, 0.3f), 16);
+                    ColBoulder(at - new V2(0f, 10f * s * grow), ColBoulderSize * (0.5f + 0.5f * grow), 0.35f + 0.6f * ready);
+                    ColPaint(molten);
+                }
+                if (st == ColStage.Crumbling && !roaring)
+                    DrawColCrumbling(pos, r, s, t);
             }
             finally { TitanPaint(false); }
         }
@@ -135,7 +160,12 @@ namespace Arena
             bool kneel = st == ColStage.LastStand, molten = st >= ColStage.MoltenCore;
             V2 rest = kneel ? new V2(50f, sd * 36f) : new V2(30f + wk * sd * 6f, sd * 68f), at = rest;
             float lift = 0f, slam = 0f;
-            if (ring != null && ring.Warn > 0f)  // a stomp winding up: both fists rise over its head
+            if (c != null && c.HoldT > 0f && sd == c.HoldSide)  // the arm holding a boulder up over its head
+            {
+                lift = TEase((Game.ColHoldTime - c.HoldT) / 0.35f);
+                at = V2.Lerp(rest, new V2(14f, sd * 56f), lift);
+            }
+            else if (ring != null && ring.Warn > 0f)  // a stomp winding up: both fists rise over its head
             {
                 lift = TEase(1f - ring.Warn / Game.RingWarn);
                 at = V2.Lerp(rest, new V2(8f, sd * 44f), lift);
@@ -267,8 +297,25 @@ namespace Arena
             }
         }
 
+        /// Crumbling: chips and dust keep breaking off its edge, scattering outward and fading.
+        void DrawColCrumbling(V2 pos, float r, float s, float t)
+        {
+            for (int k = 0; k < 22; k++)
+            {
+                float run = t * 0.75f + TH(k * 7.3f), ph = run - Mathf.Floor(run), cyc = Mathf.Floor(run);
+                float a = TH(k * 3.7f + cyc * 1.3f) * MathX.Tau, from = r * (0.6f + 0.35f * TH(k + cyc * 2.1f));
+                float go = (50f + 70f * TH(k * 1.9f + cyc)) * Mathf.Sqrt(s) * TEase(ph);
+                V2 at = pos + V2.FromAngle(a) * (from + go);
+                float fade = 1f - ph;
+                if (TH(k * 5.1f + cyc) < 0.2f)  // a puff of dust
+                    Circle(at, (10f + 14f * ph) * Mathf.Sqrt(s), TitanDust.Mix(SandLite, 0.4f).WithAlpha(0.22f * fade), 10);
+                else
+                    Polygon(at, (TH(k * 2.3f + cyc) < 0.25f ? 6f : 3.2f) * Mathf.Sqrt(s), 4, a + ph * 3f, (TH(k + cyc * 0.7f) < 0.5f ? SandLite : SandBase).WithAlpha(fade));
+            }
+        }
+
         /// Its torso and shoulders: plates on (Awakening), then bare sockets and fractures, then lava seams and a core.
-        void ColTorso(System.Func<float, float, V2> L, V2 fx, V2 fy, float s, float t, float ang, ColStage st, float glow, float lean, float crumble, int[] slabOf)
+        void ColTorso(System.Func<float, float, V2> L, V2 fx, V2 fy, float s, float t, float ang, ColStage st, float glow, float lean, float crumble, int[] slabOf, bool rattle)
         {
             bool kneel = st == ColStage.LastStand, molten = st >= ColStage.MoltenCore;
             float b = -6f + lean;
@@ -282,7 +329,8 @@ namespace Arena
                     ColPlateSpot(i, L(0f, 0f), ang, s, lean, out V2 at, out float w, out float h, out float pa);
                     if (crumble < 0f)
                     {
-                        ColPlate(at, w, h, pa);
+                        V2 rat = rattle ? new V2(Mathf.Sin(t * 47f + i * 2f), Mathf.Cos(t * 43f + i)) * (1.6f * s) : V2.Zero;  // staggered: they rattle
+                        ColPlate(at + rat, w, h, pa + (rattle ? Mathf.Sin(t * 33f + i) * 0.06f : 0f));
                         continue;
                     }
                     float launch = ColPlateLaunch(slabOf[i]), since = crumble - launch;

@@ -44,12 +44,12 @@ namespace Arena
             new Attack(EnemyType.Singularity, "Spaghettify", "White hole", "A 1 s white flash, then for 1.5 s it pushes and every enemy bullet on screen turns round."),
             new Attack(EnemyType.Singularity, "Spaghettify", "Split", "Three shards orbit and fire; the core can't be hurt, and damage to the shards goes to it."),
             // The Colossus
-            new Attack(EnemyType.Colossus, null, "Stomp", "Rings of push blocks with green gaps, each a short step to one side of a player: step into the gap and the ring passes you by. Caught, it passes over you once and hurts."),
-            new Attack(EnemyType.Colossus, "Awakening", "Boulders", "Thrown where you're heading, then a burst."),
-            new Attack(EnemyType.Colossus, "Awakening", "Fissures", "A crack races toward you, then erupts along its length."),
+            new Attack(EnemyType.Colossus, null, "Stomp", "Rings of indestructible stone orbs with a few small openings, one a short step to the side of each player: slip through an opening. Touch an orb and it hurts (once a ring)."),
+            new Attack(EnemyType.Colossus, "Awakening", "Boulders", "It lifts a huge boulder over its head (a red ring follows where it'll land), then lobs it high where you're heading; it lands with a burst."),
+            new Attack(EnemyType.Colossus, "Awakening", "Fissures", "A crack races toward you and erupts along its length, then stays as a scar until the phase ends. With five up, they all wake and erupt again in turn."),
             new Attack(EnemyType.Colossus, "Crumbling", "Colossus charge", "A red lane, then it runs; a plate of cover in the way breaks and dazes it (+50% damage)."),
             new Attack(EnemyType.Colossus, "Crumbling", "Rockslide", "Rows of rocks from an edge with a moving gap."),
-            new Attack(EnemyType.Colossus, "Crumbling", "Aftershocks", "Stomp rings whose gaps spiral."),
+            new Attack(EnemyType.Colossus, "Crumbling", "Aftershocks", "Rings of shots whose gaps spiral."),
             new Attack(EnemyType.Colossus, "Molten Core", "Meteors", "They land in orb rings and pools of lava."),
             new Attack(EnemyType.Colossus, "Molten Core", "Cave-in", "Pillars fall, stand as cover for 3 s, then shatter."),
             // The Duelist

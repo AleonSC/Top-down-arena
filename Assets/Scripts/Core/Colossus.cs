@@ -9,14 +9,18 @@ namespace Arena
     /// What it's doing now. Each phase loops its turns, one attack at a time, with breathers (Rest) between.
     public enum ColTurn : byte { Rest, Stomps, Boulders, Fissures, Charge, Rockslide, Aftershocks, LavaStomps, Meteors, CaveIn, Last }
 
-    /// A stomp: a ring of push blocks (two rows, like the Warden's gates) spreading out from where it stomped, with
-    /// one or two gaps, each placed a short step to the side of a player. Step into a gap and it passes you by; caught,
-    /// it passes over you (one hit, and you're behind it); walk into it from inside and it shoves you back (ColossusPush).
+    /// A stomp ring spreading out from where it stomped. A Stomper's (QuarryFaction.cs) is push blocks (two rows, like
+    /// the Warden's gates) with one or two gaps, each a short step to the side of a player: step into a gap and it passes
+    /// you by; caught, it passes over you (one hit, and you're behind it); walk into it from inside and it shoves you back
+    /// (ColossusPush). The Colossus's (Orbs) is a ring of ColRingOrbs indestructible orbs like the Singularity's disk,
+    /// with a few small openings (Gaps of them, at Gap1-Gap4): touch an orb and it hurts (once a ring); nothing shoves.
     public class StompRing
     {
         public V2 Center;
-        public float Radius, Warn, Gap1, Gap2;  // replicated; Gap2 only with Gaps == 2
+        public float Radius, Warn, Gap1, Gap2, Gap3, Gap4;  // replicated; only the first Gaps are used
         public int Gaps = 1;
+        public bool Orbs;  // replicated: the Colossus's ring of orbs
+        public float Rot;  // replicated: where its first orb sits (an Orbs ring)
         public readonly HashSet<int> Hit = new HashSet<int>();      // host: players it has hurt (once each)
         public readonly HashSet<int> Outside = new HashSet<int>();  // host: players seen in front of it (so a crossing can be told)
     }
@@ -31,12 +35,17 @@ namespace Arena
         public bool Hot => Kind == Meteor || Kind == LastMeteor;
     }
 
-    /// A fissure racing out from the Colossus's feet; once it stops it waits, then erupts along its length.
+    /// A fissure racing out from the Colossus's feet; once it stops it waits, then erupts along its length. The
+    /// Colossus's stay on the floor as scars (Dormant) until the phase ends, and wake to erupt again (Fissures with five
+    /// up); a Driller's or Geomancer's (QuarryFaction.cs) only race and erupt once.
     public class ColCrack
     {
+        public const byte Racing = 0, Waiting = 1, Erupting = 2, Dormant = 3;
         public V2 From;
         public float Ang, Len, Max, Wait;
         public int Seed;
+        public byte State;  // replicated (the Colossus's): Racing, Waiting, Erupting or Dormant
+        public readonly HashSet<int> Hit = new HashSet<int>();  // host: players this eruption has hurt (once each)
     }
 
     /// A fallen armour plate (Crumbling): cover that stops bullets both ways and crumbles after enough enemy hits.
@@ -61,6 +70,11 @@ namespace Arena
         public ColStage Stage, TransTo;
         public ColTurn Turn;
         public float TurnT, TransT, DazeT, ChargeWarn, ChargeLeft, ChargeDir;
+        public bool Stagger;  // replicated: kneeling, stunned, at the end of a phase; hits fill Break instead of hurting it
+        public float Break;   // replicated: 0-1, how broken (at 1 its shell blasts off and TransTo starts)
+        public float HoldT;   // replicated: lifting a boulder over its head (seconds left before the throw)
+        public int HoldSide = 1;  // replicated: the hand it's in (-1 or 1, the side in Facing's local y)
+        public V2 HoldAim;    // replicated: where the held boulder will land (it follows its target while it winds up)
         public readonly List<StompRing> Rings = new List<StompRing>();
         public readonly List<ColDrop> Drops = new List<ColDrop>();
         public readonly List<ColCrack> Cracks = new List<ColCrack>();
@@ -68,15 +82,20 @@ namespace Arena
         public readonly List<ColPillar> Pillars = new List<ColPillar>();
 
         // Host only.
-        public int Step = -1, Fired, SlideEdge, SlideGap, NextTarget, StompSide = 1;
+        public int Step = -1, Fired, SlideEdge, SlideGap, NextTarget, StompSide = 1, HoldTarget;
+        public bool Cycling;  // a Fissures turn waking the five scars on the floor in turn
         public float TurnLen, ActT, GapA, ShockA, MeteorT, LavaTickT;
         public readonly Dictionary<int, V2> LastPos = new Dictionary<int, V2>(), Vel = new Dictionary<int, V2>();
     }
 
     /// The Colossus (wave 25): a fight in three phases by its health, like the Warden's, then a last stand. It breaks
-    /// down as it goes: armour, then shell, then a molten core.
-    ///   Awakening (100-65%): it walks at you 200 px off, its rock volley between turns; Stomps (rings of push
-    ///     blocks with a gap), Boulders (thrown where you're heading), Fissures (a crack that erupts).
+    /// down as it goes: armour, then shell, then a molten core, and shrinks each time (ColSizes: three times its size
+    /// in Awakening, twice in Crumbling, its size in Molten Core, 0.7 in the Last Stand). At the end of each phase it
+    /// kneels, staggered (Stagger): it can't act, and hits fill its Break meter instead of hurting it; broken, its shell
+    /// blasts off, it drops to the next size and the next phase starts (TransT).
+    ///   Awakening (100-65%): it walks at you 200 px off, its rock volley between turns; Stomps (rings of orbs with
+    ///     a few small openings), Boulders (lifted over its head, then lobbed where you're heading), Fissures (cracks
+    ///     that erupt and stay as scars; with five up they all wake and erupt again in turn).
     ///   Crumbling (65-30%): four armour plates fall as cover that blocks shots both ways, and it walks faster;
     ///     Charge (a plate in the way breaks and dazes it: +50% damage), Rockslide (rows of rocks from an edge),
     ///     Aftershocks (rings of shots whose gaps spiral).
@@ -86,6 +105,15 @@ namespace Arena
     {
         const float ColCrumbleAt = 0.65f, ColMoltenAt = 0.3f, ColLastAt = 0.1f;
         public const float ColTransTime = 2f;
+        public static readonly float[] ColSizes = { 3f, 2f, 1f, 0.7f };  // its radius by phase, times its Def's
+        public const float ColBreakShare = 0.05f;  // the damage that breaks a stagger: this share of its full health
+        // Its stomp rings: ColRingOrbs orbs like the Singularity's disk, spreading at ColOrbSpeed, with small openings
+        // ColOpenHalf radians to each side (never under ColOpenMinArc across).
+        public const int ColRingOrbs = 120;
+        public const float ColOrbR = 9f, ColOrbSpeed = 125f, ColOpenHalf = 0.12f, ColOpenMinArc = 70f;
+        public const float ColHoldTime = 1.2f, ColBoulderFlight = 1.35f, ColBoulderR = 70f;  // a boulder: held over its head, then lobbed
+        public const int ColMaxCracks = 5;
+        public const float CrackErupt = 1.2f, CrackHurtR = 24f, ColCrackDamage = 22f;
         // Stomp rings: push blocks like the Warden's gates (GateRows, GateRowGap, GateBulletR), spreading out.
         public const float RingSpeed = 150f, RingWarn = 0.45f, RingGapHalf = 0.33f;  // the gap is 0.66 rad (about 38 degrees) wide...
         public const float RingGapMinArc = 100f;  // ...but never less than 100 px across, however close to its middle
@@ -96,7 +124,7 @@ namespace Arena
         public const float SlabW = 110f, SlabH = 34f;
         const int SlabHp = 40;
         public const float PillarR = 28f, PillarLife = 3f;
-        public const float CrackSpeed = 600f, CrackMax = 900f, CrackWait = 0.6f, CrackStep = 45f;
+        public const float CrackSpeed = 600f, CrackMax = 1800f, CrackWait = 0.8f, CrackStep = 45f;
         const float LavaDps = 20f, LavaLife = 6f, LavaWarn = 0.5f;
         public static readonly V2[] SlabSpots = { new V2(520f, 290f), new V2(1080f, 290f), new V2(430f, 600f), new V2(1170f, 600f) };
 
@@ -109,7 +137,7 @@ namespace Arena
         };
         static readonly float[][] ColTimes =
         {
-            new[] { 6f, 1f, 5f, 1f, 5f, 1.5f },
+            new[] { 6f, 1f, 7f, 1f, 7f, 1.5f },
             new[] { 6f, 1f, 7f, 1f, 6f, 1.5f },
             new[] { 6f, 1f, 6f, 1f, 6f, 1.5f },
             new[] { 999f },
@@ -118,6 +146,24 @@ namespace Arena
         ColossusState ColOf(Enemy e) => e.Colossus ?? (e.Colossus = new ColossusState());
 
         public static bool ColossusImmune(Enemy e) => e.Type == EnemyType.Colossus && e.Colossus != null && e.Colossus.TransT > 0f;
+
+        /// Its radius: ColSizes by phase (the next phase's once its shell has blasted off).
+        public static float ColRadius(Enemy e)
+        {
+            var c = e.Colossus;
+            var st = c == null ? ColStage.Awakening : c.TransT > 0f ? c.TransTo : c.Stage;
+            return Defs.Get(EnemyType.Colossus).Radius * ColSizes[(int)st];
+        }
+
+        /// A hit while it's staggered: it fills the Break meter instead of hurting it (HurtEnemy, Combat.cs).
+        bool ColossusBreakHit(Enemy e, float dmg)
+        {
+            if (e.Type != EnemyType.Colossus || e.Colossus == null || !e.Colossus.Stagger)
+                return false;
+            e.Colossus.Break = Math.Min(1f, e.Colossus.Break + dmg / Math.Max(1f, e.MaxHp * ColBreakShare));
+            e.Flash = 0.06f;
+            return true;
+        }
         public static bool ColossusDazed(Enemy e) => e.Type == EnemyType.Colossus && e.Colossus != null && e.Colossus.DazeT > 0f;
 
         /// The Colossus on the field, if any (for the pushes on each player's own game).
@@ -140,7 +186,7 @@ namespace Arena
         {
             var c = ColOf(e);
             V2 middle = ArenaMid;
-            if (c.TransT > 0f || c.DazeT > 0f || c.ChargeWarn > 0f)
+            if (c.TransT > 0f || c.DazeT > 0f || c.ChargeWarn > 0f || c.Stagger || c.HoldT > 0f)
                 return V2.Zero;
             if (c.ChargeLeft > 0f)
             {
@@ -153,7 +199,7 @@ namespace Arena
                 return e.Pos.FartherThan(middle, 6f) ? (middle - e.Pos).Normalized() : V2.Zero;
             }
             speed = c.Stage == ColStage.Crumbling ? 55f : c.Stage == ColStage.MoltenCore ? 40f : e.Def.Speed;
-            return KeepDistance(dir, dist, ColKeep);
+            return KeepDistance(dir, dist, ColKeep + e.Radius - e.Def.Radius);  // (its edge stays as far off at every size)
         }
 
         // --- The fight (host) -----------------------------------------------------------------------
@@ -164,9 +210,17 @@ namespace Arena
             if (c.Step < 0)
                 EnterColStage(e, ColStage.Awakening);
             float frac = e.MaxHp > 0f ? e.Hp / e.MaxHp : 1f;
+            e.Radius = ColRadius(e);
             TrackPlayers(c, dt);
             TickColHazards(e, c, dt);
 
+            if (c.Stagger)
+            {
+                e.Phase = ColShift;
+                if (c.Break >= 1f)
+                    BreakColShell(e, c);
+                return;
+            }
             if (c.TransT > 0f)
             {
                 c.TransT -= dt;
@@ -179,14 +233,14 @@ namespace Arena
                 e.Phase = ColShift;
                 return;
             }
-            if (c.Stage == ColStage.Awakening && frac <= ColCrumbleAt) { StartColTransition(e, ColStage.Crumbling); return; }
-            if (c.Stage == ColStage.Crumbling && frac <= ColMoltenAt) { StartColTransition(e, ColStage.MoltenCore); return; }
-            if (c.Stage == ColStage.MoltenCore && frac <= ColLastAt && c.ChargeLeft <= 0f)
-                EnterColStage(e, ColStage.LastStand);  // straight away, as the others do
+            if (c.Stage == ColStage.Awakening && frac <= ColCrumbleAt) { StartColStagger(e, ColStage.Crumbling, ColCrumbleAt); return; }
+            if (c.Stage == ColStage.Crumbling && frac <= ColMoltenAt && c.ChargeLeft <= 0f) { StartColStagger(e, ColStage.MoltenCore, ColMoltenAt); return; }
+            if (c.Stage == ColStage.MoltenCore && frac <= ColLastAt) { StartColStagger(e, ColStage.LastStand, ColLastAt); return; }
 
             c.TurnT += dt;
             c.DazeT = Math.Max(0f, c.DazeT - dt);
             ColCharge(e, c, dt);
+            ColHold(e, c, dt);
             c.ActT -= dt;
             if (c.ActT <= 0f)
                 ColAct(e, c, tpos);
@@ -236,19 +290,53 @@ namespace Arena
             DoLog("the Colossus: " + stage);
         }
 
+        /// The end of a phase: it drops to its knees, staggered, its health held at the threshold. The screen clears
+        /// (its rings, landings, fissures and pillars go, and its shots); hits fill Break until its shell blasts off.
+        void StartColStagger(Enemy e, ColStage to, float at)
+        {
+            var c = ColOf(e);
+            e.Hp = Math.Max(e.Hp, e.MaxHp * at);
+            c.Stagger = true;
+            c.Break = 0f;
+            c.TransTo = to;
+            ClearColField(c);
+            HostClearEnemyBullets();
+            BroadcastFx(FxKind.Boom, e.Pos, ColStageColor(c.Stage), e.Radius * 1.4f, 0.5f, Sfx.BossCrack);  // it buckles
+            BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.85f, 0.35f), e.Radius * 3f, 0.6f, Sfx.BossRumble);
+            e.Phase = ColShift;
+            DoLog("the Colossus: staggered");
+        }
+
+        static void ClearColField(ColossusState c)
+        {
+            c.Rings.Clear();
+            c.Drops.Clear();
+            c.Cracks.Clear();
+            c.Pillars.Clear();
+            c.ChargeWarn = c.ChargeLeft = c.DazeT = c.HoldT = 0f;
+        }
+
+        /// Broken: a layer of its shell blasts off (the shards: ColossusShellLook.cs), it drops to the next phase's
+        /// size, and the phase change starts (TransT: it can't be hurt while it stands back up).
+        void BreakColShell(Enemy e, ColossusState c)
+        {
+            c.Stagger = false;
+            c.Break = 0f;
+            BroadcastFx(FxKind.Boom, e.Pos, Rgba.White, e.Radius * 2.2f, 0.5f, Sfx.BigExplode);
+            BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.9f, 0.7f), 1200f, 0.7f, Sfx.Shockwave);
+            StartColTransition(e, c.TransTo);
+        }
+
         void StartColTransition(Enemy e, ColStage to)
         {
             var c = ColOf(e);
             c.TransT = ColTransTime;
             c.TransTo = to;
-            c.Rings.Clear();
-            c.Drops.Clear();
-            c.Cracks.Clear();
-            c.Pillars.Clear();
-            c.ChargeWarn = c.ChargeLeft = c.DazeT = 0f;
+            ClearColField(c);
             HostClearEnemyBullets();
             BroadcastFx(FxKind.Ring, e.Pos, ColStageColor(to), 900f, 0.8f, to == ColStage.MoltenCore ? Sfx.BossWarp : Sfx.BossRumble);
             e.Phase = ColShift;
+            e.Radius = ColRadius(e);
             DoLog("the Colossus: changing to " + to);
         }
 
@@ -263,6 +351,7 @@ namespace Arena
             c.Fired = 0;
             if (c.Turn == ColTurn.Stomps || c.Turn == ColTurn.Last)
                 c.GapA = RandAngle();
+            c.Cycling = c.Turn == ColTurn.Fissures && c.Cracks.Count >= ColMaxCracks;
             if (c.Turn == ColTurn.Rockslide)
             {
                 c.SlideEdge = (c.SlideEdge + 1) % 2;
@@ -317,30 +406,53 @@ namespace Arena
             float aim = (tpos - e.Pos).Angle;
             switch (c.Turn)
             {
-                case ColTurn.Stomps:  // three stomps 2 s apart, each gap a short step to one side of its target, alternating
+                case ColTurn.Stomps:  // three stomps 2 s apart: rings of orbs with three small openings, one a short step beside its target
                     c.ActT = 2f;
-                    c.StompSide = -c.StompSide;
-                    AddRing(e, c, GapBeside(e, tpos, c.StompSide), float.NaN);
+                    AddOrbRing(e, c, 3);
                     break;
-                case ColTurn.Boulders:
+                case ColTurn.Boulders:  // three boulders, each lifted over its head (ColHoldTime), then lobbed where its target is heading
                 {
-                    c.ActT = 1.2f;
-                    var p = ColTarget(c);
-                    if (p != null)
+                    if (c.Fired >= 3 || c.HoldT > 0f)
                     {
-                        V2 v;
-                        c.Vel.TryGetValue(p.Id, out v);
-                        ThrowDrop(e, c, p.Pos + v.LimitLength(240f) * 1.1f, ColDrop.Boulder);
+                        c.ActT = c.Fired >= 3 ? 99f : 0.2f;
+                        break;
                     }
+                    var p = ColTarget(c);
+                    if (p == null)
+                    {
+                        c.ActT = 0.5f;
+                        break;
+                    }
+                    c.Fired++;
+                    c.HoldT = ColHoldTime;
+                    c.HoldSide = -c.HoldSide;
+                    c.HoldTarget = p.Id;
+                    c.HoldAim = p.Pos;
+                    c.ActT = ColHoldTime + 0.6f;
+                    BroadcastSound(Sfx.BossRumble);  // it tears a boulder out of the ground
                     break;
                 }
                 case ColTurn.Fissures:
-                    if (c.Fired < 2)
+                    if (c.Cycling)  // five scars on the floor: they wake and erupt again, one after another
+                    {
+                        if (c.Fired < c.Cracks.Count)
+                        {
+                            var k = c.Cracks[c.Fired++];
+                            k.State = ColCrack.Waiting;
+                            k.Wait = 0f;
+                            c.ActT = 0.45f;
+                            if (c.Fired == 1)
+                                BroadcastFx(FxKind.Boom, e.Pos, ColStageColor(ColStage.Awakening), e.Radius * 1.4f, 0.4f, Sfx.BossRumble);  // the scars wake
+                        }
+                        else
+                            c.ActT = 99f;
+                    }
+                    else if (c.Fired < 2 && c.Cracks.Count < ColMaxCracks)
                     {
                         c.ActT = 2.5f;
                         c.Fired++;
-                        c.Cracks.Add(new ColCrack { From = e.Pos, Ang = aim, Max = CrackMax, Seed = rng.Next(1000) });
-                        BroadcastFx(FxKind.Boom, e.Pos, ColStageColor(ColStage.Awakening), e.Radius * 1.6f, 0.4f, Sfx.BossRumble);  // a fissure opens
+                        c.Cracks.Add(new ColCrack { From = e.Pos, Ang = CrackAim(e, c, aim), Max = CrackMax, Seed = rng.Next(1000) });
+                        BroadcastFx(FxKind.Boom, e.Pos, ColStageColor(ColStage.Awakening), e.Radius * 1.2f, 0.4f, Sfx.BossRumble);  // a fissure opens
                     }
                     else
                         c.ActT = 99f;
@@ -387,10 +499,9 @@ namespace Arena
                     }
                     BroadcastFx(FxKind.Ring, e.Pos, ColStageColor(ColStage.Crumbling), 120f, 0.35f, c.TurnT < 0.5f ? Sfx.BossRumble : Sfx.BossPulse);  // the first one quakes
                     break;
-                case ColTurn.LavaStomps:  // a stomp every 1.5 s with a gap a short step to each side of you, and a pool where it stood
+                case ColTurn.LavaStomps:  // a stomp every 1.5 s, three openings, and a pool where it stood
                     c.ActT = 1.5f;
-                    c.StompSide = -c.StompSide;
-                    AddRing(e, c, GapBeside(e, tpos, c.StompSide), SecondGap(e, tpos, -c.StompSide));
+                    AddOrbRing(e, c, 3);
                     SpawnPatchAt(PatchKind.Lava, e.Pos, LavaWarn, LavaWarn + LavaLife, 90f, 90f);
                     BroadcastSound(Sfx.BossSplat);
                     break;
@@ -418,10 +529,9 @@ namespace Arena
                                 DropPillar(c, ClampToArena(p.Pos + RandDir() * 45f, 60f));
                     BroadcastSound(Sfx.BossRumble);  // the roof starts coming down
                     break;
-                case ColTurn.Last:  // two gaps: one a step beside its target (alternating sides), one by the other player (or opposite)
+                case ColTurn.Last:  // four openings: one a step beside its target (alternating sides), one by each other player
                     c.ActT = 1.6f;
-                    c.StompSide = -c.StompSide;
-                    AddRing(e, c, GapBeside(e, tpos, c.StompSide), SecondGap(e, tpos, float.NaN));
+                    AddOrbRing(e, c, 4);
                     break;
                 default:
                     c.ActT = 0.2f;
@@ -440,30 +550,83 @@ namespace Arena
             return rel.Angle + side * Math.Max(0.25f, Math.Min(0.8f, StompStep / d));
         }
 
-        /// A two-gap ring's second gap: beside the other player if there's one standing (side NaN: right on them),
-        /// otherwise on the target's other side (side given) or straight across (side NaN).
-        float SecondGap(Enemy e, V2 tpos, float side)
+        /// A stomp: a ring of orbs from its feet with `opens` small openings: one a short step beside its target
+        /// (alternating sides), one beside each other player standing, the rest anywhere (spread round).
+        void AddOrbRing(Enemy e, ColossusState c, int opens)
         {
-            Player other = null;
+            var r = new StompRing { Center = e.Pos, Radius = e.Radius + 6f, Warn = RingWarn, Orbs = true, Rot = RandAngle(), Gaps = 0 };
+            V2 tpos = ColTargetPos(e);
+            c.StompSide = -c.StompSide;
+            AddOpening(r, GapBeside(e, tpos, c.StompSide), 0f);
             foreach (var p in Players.Values)
-                if (!p.Downed && p.Pos.FartherThan(tpos, 60f) && (other == null || p.Pos.FartherThan(tpos, other.Pos.DistanceTo(tpos))))
-                    other = p;
-            if (other != null)
-                return GapBeside(e, other.Pos, float.IsNaN(side) ? 0.5f : side);
-            return float.IsNaN(side) ? (tpos - e.Pos).Angle + MathX.Pi : GapBeside(e, tpos, side);
-        }
-
-        /// A stomp: a ring of push blocks from its feet with one gap (gap2 NaN) or two.
-        void AddRing(Enemy e, ColossusState c, float gap1, float gap2)
-        {
-            var r = new StompRing { Center = e.Pos, Radius = e.Radius + 6f, Warn = RingWarn, Gap1 = MathX.Fmod(gap1, MathX.Tau), Gaps = 1 };
-            if (!float.IsNaN(gap2))
-            {
-                r.Gap2 = MathX.Fmod(gap2, MathX.Tau);
-                r.Gaps = 2;
-            }
+                if (r.Gaps < opens && !p.Downed && p.Pos.FartherThan(tpos, 60f))
+                    AddOpening(r, GapBeside(e, p.Pos, c.StompSide), 0.5f);
+            for (int tries = 0; r.Gaps < opens && tries < 60; tries++)
+                AddOpening(r, RandAngle(), 0.75f);
             c.Rings.Add(r);
             BroadcastSound(Sfx.BossSlam);  // the stomp
+        }
+
+        /// Adds an opening at `a` unless it's within `apart` radians of one already there.
+        static void AddOpening(StompRing r, float a, float apart)
+        {
+            for (int k = 0; k < r.Gaps; k++)
+                if (AngleGap(a, RingGapAt(r, k)) < apart)
+                    return;
+            a = MathX.Fmod(a, MathX.Tau);
+            switch (r.Gaps++)
+            {
+                case 0: r.Gap1 = a; break;
+                case 1: r.Gap2 = a; break;
+                case 2: r.Gap3 = a; break;
+                default: r.Gap4 = a; r.Gaps = 4; break;
+            }
+        }
+
+        public static float RingGapAt(StompRing r, int k) => k == 0 ? r.Gap1 : k == 1 ? r.Gap2 : k == 2 ? r.Gap3 : r.Gap4;
+
+        /// A new fissure's aim: at its target, turned aside if a scar from about here already runs that way.
+        float CrackAim(Enemy e, ColossusState c, float aim)
+        {
+            for (int k = 1; k < 12; k++)
+            {
+                bool clear = true;
+                foreach (var old in c.Cracks)
+                    if (old.From.CloserThan(e.Pos, 150f) && AngleGap(old.Ang, aim) < 0.3f)
+                        clear = false;
+                if (clear)
+                    break;
+                aim += (k % 2 == 1 ? 1f : -1f) * k * 0.34f;
+            }
+            return aim;
+        }
+
+        /// The hand holding a boulder (side -1 or 1 in Facing's local y), where the body look draws it.
+        public static V2 ColHand(Enemy e, int side)
+        {
+            V2.Axes(e.Facing, out V2 f, out V2 y);
+            return e.Pos + (f * 14f + y * (side * 56f)) * (e.Radius / 60f);
+        }
+
+        /// A boulder over its head: its aim follows its target's lead, then it's lobbed from that hand.
+        void ColHold(Enemy e, ColossusState c, float dt)
+        {
+            if (c.HoldT <= 0f)
+                return;
+            Player p;
+            if (Players.TryGetValue(c.HoldTarget, out p) && !p.Downed)
+            {
+                V2 v;
+                c.Vel.TryGetValue(p.Id, out v);
+                c.HoldAim = ClampToArena(p.Pos + v.LimitLength(240f) * 0.9f, 40f);
+                e.Facing = (p.Pos - e.Pos).Angle;
+            }
+            c.HoldT -= dt;
+            if (c.HoldT > 0f)
+                return;
+            c.HoldT = 0f;
+            c.Drops.Add(new ColDrop { Pos = c.HoldAim, From = ColHand(e, c.HoldSide), Dur = ColBoulderFlight, Radius = ColBoulderR, Kind = ColDrop.Boulder });
+            BroadcastSound(Sfx.Throw);
         }
 
         void ColShot(Enemy e, V2 pos, float ang, float speed, byte kind, float life = 8f)
@@ -510,7 +673,7 @@ namespace Arena
             if (stop)
             {
                 c.ChargeLeft = 0f;
-                AddRing(e, c, GapBeside(e, ColTargetPos(e), Rand(0f, 1f) < 0.5f ? -1f : 1f), float.NaN);
+                AddOrbRing(e, c, 3);
             }
         }
 
@@ -554,25 +717,10 @@ namespace Arena
                 }
                 BroadcastFx(FxKind.Boom, d.Pos, d.Hot ? new Rgba(1f, 0.48f, 0.23f) : ColStageColor(ColStage.Awakening), d.Radius + 20f, 0.4f, d.Hot ? Sfx.BigExplode : Sfx.BossSlam);
             }
-            // Fissures: race out, wait, erupt (shots out of both sides every 45 px)
-            for (int i = c.Cracks.Count - 1; i >= 0; i--)
-            {
-                var k = c.Cracks[i];
-                if (GrowCrack(k, dt))
-                    continue;
-                k.Wait += dt;
-                if (k.Wait < CrackWait)
-                    continue;
-                c.Cracks.RemoveAt(i);
-                V2 dir = V2.FromAngle(k.Ang);
-                for (float s = CrackStep; s < k.Len; s += CrackStep)
-                {
-                    V2 at = k.From + dir * s;
-                    ColShot(e, at, k.Ang + MathX.Pi / 2f, 120f, Defs.SmallShot);
-                    ColShot(e, at, k.Ang - MathX.Pi / 2f, 120f, Defs.SmallShot);
-                }
-                BroadcastFx(FxKind.Bolt, k.From, k.From + dir * k.Len, new Rgba(1f, 0.6f, 0.3f), 0f, 0.3f, Sfx.BossCrack);  // the fissure erupts
-            }
+            // Fissures: race out, wait, erupt (shots out of both sides every 45 px, and for CrackErupt it burns along its
+            // length), then lie as a scar until the phase ends (a Fissures turn with five up wakes them again)
+            foreach (var k in c.Cracks)
+                TickColCrack(e, k, dt);
             // Pillars shatter
             for (int i = c.Pillars.Count - 1; i >= 0; i--)
             {
@@ -607,6 +755,54 @@ namespace Arena
             }
         }
 
+        void TickColCrack(Enemy e, ColCrack k, float dt)
+        {
+            switch (k.State)
+            {
+                case ColCrack.Racing:
+                    if (!GrowCrack(k, dt))
+                    {
+                        k.State = ColCrack.Waiting;
+                        k.Wait = 0f;
+                    }
+                    break;
+                case ColCrack.Waiting:
+                    k.Wait += dt;
+                    if (k.Wait < CrackWait)
+                        break;
+                    k.State = ColCrack.Erupting;
+                    k.Wait = 0f;
+                    k.Hit.Clear();
+                    V2 dir = V2.FromAngle(k.Ang);
+                    for (float s = CrackStep; s < k.Len; s += CrackStep)
+                    {
+                        V2 at = k.From + dir * s;
+                        ColShot(e, at, k.Ang + MathX.Pi / 2f, 120f, Defs.SmallShot);
+                        ColShot(e, at, k.Ang - MathX.Pi / 2f, 120f, Defs.SmallShot);
+                    }
+                    BroadcastFx(FxKind.Bolt, k.From, k.From + dir * k.Len, new Rgba(1f, 0.6f, 0.3f), 0f, 0.3f, Sfx.BossCrack);  // the fissure erupts
+                    break;
+                case ColCrack.Erupting:
+                    k.Wait += dt;
+                    foreach (var p in Players.Values)
+                        if (Hittable(p) && OnCrack(k, p.Pos, CrackHurtR + p.Def.HitR) && k.Hit.Add(p.Id))
+                            Damage(p, ColCrackDamage, "The Colossus (fissure)");
+                    if (k.Wait >= CrackErupt)
+                        k.State = ColCrack.Dormant;
+                    break;
+            }
+        }
+
+        /// Within `reach` of the fissure's line (its jags aside).
+        public static bool OnCrack(ColCrack k, V2 p, float reach)
+        {
+            V2 dir = V2.FromAngle(k.Ang), rel = p - k.From;
+            float along = rel.X * dir.X + rel.Y * dir.Y;
+            if (along < 0f || along > k.Len)
+                return false;
+            return Math.Abs(rel.X * dir.Y - rel.Y * dir.X) < reach;
+        }
+
         /// Host: a spreading ring hurts each player once as it passes over them: seen in front of it, now at it or just
         /// behind it (your own game puts you behind it, so the host may only ever see you there), and not in a gap.
         /// The Colossus's rings and a Stomper's (QuarryFaction.cs).
@@ -614,6 +810,16 @@ namespace Arena
         {
             if (r.Warn > 0f)
                 return;
+            if (r.Orbs)
+            {
+                foreach (var p in Players.Values)  // the Colossus's orbs: touch one (outside an opening) and it hurts, once a ring
+                    if (Hittable(p) && !r.Hit.Contains(p.Id) && TouchesRingOrb(r, p.Pos, ColOrbR + p.Def.HitR))
+                    {
+                        r.Hit.Add(p.Id);
+                        Damage(p, damage, source);
+                    }
+                return;
+            }
             foreach (var p in Players.Values)
             {
                 if (p.Downed)
@@ -630,6 +836,42 @@ namespace Arena
             }
         }
 
+        /// Where an Orbs ring's orb i is.
+        public static V2 RingOrbAt(StompRing r, int i) => r.Center + V2.FromAngle(r.Rot + MathX.Tau * i / ColRingOrbs) * r.Radius;
+
+        /// An opening's half-width (radians) at this radius: ColOpenHalf, or wider near the middle so it's never less
+        /// than ColOpenMinArc across.
+        public static float OrbOpenHalfAt(float radius) => Math.Max(ColOpenHalf, ColOpenMinArc / 2f / Math.Max(1f, radius));
+
+        /// An Orbs ring has no orb at this angle (it's in an opening).
+        public static bool RingOpenAt(StompRing r, float a)
+        {
+            float half = OrbOpenHalfAt(r.Radius);
+            for (int k = 0; k < r.Gaps; k++)
+                if (AngleGap(a, RingGapAt(r, k)) < half)
+                    return true;
+            return false;
+        }
+
+        /// Something at `p` touches one of an Orbs ring's orbs (within `reach` of its middle).
+        public static bool TouchesRingOrb(StompRing r, V2 p, float reach)
+        {
+            V2 rel = p - r.Center;
+            float d = rel.Length;
+            if (r.Warn > 0f || Math.Abs(d - r.Radius) > reach)
+                return false;
+            int i0 = (int)Math.Round((rel.Angle - r.Rot) / MathX.Tau * ColRingOrbs);
+            for (int i = i0 - 1; i <= i0 + 1; i++)
+            {
+                int k = ((i % ColRingOrbs) + ColRingOrbs) % ColRingOrbs;
+                if (RingOpenAt(r, r.Rot + MathX.Tau * k / ColRingOrbs))
+                    continue;
+                if (RingOrbAt(r, k).CloserThan(p, reach))
+                    return true;
+            }
+            return false;
+        }
+
         /// Moves the rings out (every game: the host, and clients between snapshots); gone once off the arena.
         static void AdvanceRings(ColossusState c, float dt)
         {
@@ -638,7 +880,7 @@ namespace Arena
                 if (r.Warn > 0f)
                     r.Warn -= dt;
                 else
-                    r.Radius += RingSpeed * dt;
+                    r.Radius += (r.Orbs ? ColOrbSpeed : RingSpeed) * dt;
             }
             c.Rings.RemoveAll(r => RingBack(r) > RingReach(r) + 20f);
         }
@@ -663,7 +905,7 @@ namespace Arena
         }
 
         /// The ring's band of push blocks (both rows) at this distance from its centre, with `pad` on either side.
-        public static float RingBack(StompRing r) => r.Radius - (GateRows - 1) * GateRowGap;
+        public static float RingBack(StompRing r) => r.Orbs ? r.Radius - ColOrbR : r.Radius - (GateRows - 1) * GateRowGap;
 
         /// A gap's half-width (radians) at this distance from the ring's middle: RingGapHalf, or wider near the middle so
         /// it's never less than RingGapMinArc across.
@@ -705,7 +947,8 @@ namespace Arena
                 return;
             var c = e.Colossus;
             foreach (var r in c.Rings)
-                PushOutOfRing(r, me);
+                if (!r.Orbs)  // (orbs don't shove: they hurt)
+                    PushOutOfRing(r, me);
             foreach (var s in c.Slabs)
             {
                 float pad = me.Def.HitR;
@@ -762,7 +1005,7 @@ namespace Arena
         void ColossusFire(Enemy e, float aim)
         {
             var c = ColOf(e);
-            bool volley = c.TransT <= 0f && c.ChargeLeft <= 0f && (c.Stage == ColStage.LastStand
+            bool volley = c.TransT <= 0f && c.ChargeLeft <= 0f && !c.Stagger && c.HoldT <= 0f && (c.Stage == ColStage.LastStand
                 || (c.Stage == ColStage.Awakening && (c.Turn == ColTurn.Rest || c.Turn == ColTurn.Boulders))
                 || (c.Stage == ColStage.Crumbling && c.Turn == ColTurn.Rest));
             if (!volley)
@@ -794,15 +1037,26 @@ namespace Arena
             s.Float(ref c.ChargeWarn);
             s.Float(ref c.ChargeLeft);
             s.Float(ref c.ChargeDir);
+            s.Bool(ref c.Stagger);
+            s.Float(ref c.Break);
+            s.Float(ref c.HoldT);
+            s.Vec(ref c.HoldAim);
+            int side = c.HoldSide > 0 ? 1 : 0;
+            s.Byte(ref side);
             if (s.Reading)
             {
                 c.Stage = (ColStage)stage;
                 c.Turn = (ColTurn)turn;
                 c.TransTo = (ColStage)transTo;
+                c.HoldSide = side == 1 ? 1 : -1;
             }
-            SyncList(s, c.Rings, (q, r) => { q.Vec(ref r.Center); q.Float(ref r.Radius); q.Float(ref r.Warn); q.Float(ref r.Gap1); q.Float(ref r.Gap2); q.Byte(ref r.Gaps); });
+            SyncList(s, c.Rings, (q, r) =>
+            {
+                q.Vec(ref r.Center); q.Float(ref r.Radius); q.Float(ref r.Warn); q.Byte(ref r.Gaps); q.Bool(ref r.Orbs);
+                q.Float(ref r.Gap1); q.Float(ref r.Gap2); q.Float(ref r.Gap3); q.Float(ref r.Gap4); q.Float(ref r.Rot);
+            });
             SyncList(s, c.Drops, (q, d) => { q.Vec(ref d.Pos); q.Vec(ref d.From); q.Float(ref d.T); q.Float(ref d.Dur); q.Float(ref d.Radius); q.Byte(ref d.Kind); });
-            SyncList(s, c.Cracks, (q, k) => { q.Vec(ref k.From); q.Float(ref k.Ang); q.Float(ref k.Len); q.Float(ref k.Max); q.Short(ref k.Seed); });
+            SyncList(s, c.Cracks, (q, k) => { q.Vec(ref k.From); q.Float(ref k.Ang); q.Float(ref k.Len); q.Float(ref k.Max); q.Short(ref k.Seed); q.Byte(ref k.State); q.Float(ref k.Wait); });
             SyncList(s, c.Slabs, (q, b) => { q.Vec(ref b.Pos); q.Float(ref b.W); q.Float(ref b.H); q.Byte(ref b.Hp); });
             SyncList(s, c.Pillars, (q, p) => { q.Vec(ref p.Pos); q.Float(ref p.T); });
         }
@@ -838,7 +1092,12 @@ namespace Arena
                     continue;
                 AdvanceRings(c, dt);
                 foreach (var k in c.Cracks)
-                    GrowCrack(k, dt);
+                {
+                    if (k.State == ColCrack.Racing)
+                        GrowCrack(k, dt);
+                    else if (k.State != ColCrack.Dormant)
+                        k.Wait += dt;
+                }
                 foreach (var d in c.Drops)
                     d.T = Math.Min(d.Dur, d.T + dt);
                 foreach (var p in c.Pillars)
@@ -847,6 +1106,8 @@ namespace Arena
                 c.TransT = Math.Max(0f, c.TransT - dt);
                 c.DazeT = Math.Max(0f, c.DazeT - dt);
                 c.ChargeWarn = Math.Max(0f, c.ChargeWarn - dt);
+                c.HoldT = Math.Max(0f, c.HoldT - dt);
+                e.Radius = ColRadius(e);
             }
         }
     }

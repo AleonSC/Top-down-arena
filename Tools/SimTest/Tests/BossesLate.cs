@@ -807,7 +807,8 @@ static partial class Program
     static int CountBits(int v) { int n = 0; while (v != 0) { v &= v - 1; n++; } return n; }
     static float Vdot(V2 a, V2 b) => a.X * b.X + a.Y * b.Y;
 
-    // The Colossus (Colossus.cs): three phases that break it down, stomp rings of push blocks, then a last stand.
+    // The Colossus (Colossus.cs): three phases that break it down and shrink it, a stagger at the end of each, stomp
+    // rings of orbs with small openings, held boulders, fissures that stay, then a last stand.
     static void ColossusTest(float dt)
     {
         var s = StartBuffed(dt, 25, 0);
@@ -821,97 +822,126 @@ static partial class Program
         Run(s, dt, 15, () => g.State == MatchState.Fighting && Find(s[0], EnemyType.Colossus) != null && !g.IsSpawning(Find(s[0], EnemyType.Colossus)));
         var col = Find(s[0], EnemyType.Colossus);
         foreach (var e in g.Enemies.Values) if (e != col) e.Hp = 0f;  // just the Colossus
+        float baseR = col.Def.Radius;
+        Func<float> clientR = () => Find(s[1], EnemyType.Colossus)?.Radius ?? 0f;
 
-        // Awakening: Stomps, Boulders, Fissures, with breathers; rings, landings and cracks reach the client.
+        // Awakening: three times its size; Stomps, Boulders, Fissures, with breathers; rings, held boulders, landings
+        // and cracks reach the client.
         var turns = new List<ColTurn>();
-        bool ringOnClient = false, oneGap = false, dropOnClient = false, crackOnClient = false, volley = false;
-        Run(s, dt, 20f, null, () =>
+        bool ringOnClient = false, openings = false, dropOnClient = false, crackOnClient = false, holdOnClient = false, volley = false;
+        Run(s, dt, 25f, null, () =>
         {
             safe();
             if (col.Colossus != null && (turns.Count == 0 || turns[turns.Count - 1] != col.Colossus.Turn)) turns.Add(col.Colossus.Turn);
             var cc = Find(s[1], EnemyType.Colossus)?.Colossus;
-            if (cc != null) { ringOnClient |= cc.Rings.Count > 0; oneGap |= cc.Rings.Any(r => r.Gaps == 1); dropOnClient |= cc.Drops.Count > 0; crackOnClient |= cc.Cracks.Count > 0; }
+            if (cc != null)
+            {
+                ringOnClient |= cc.Rings.Any(r => r.Orbs); openings |= cc.Rings.Any(r => r.Orbs && r.Gaps == 3);
+                dropOnClient |= cc.Drops.Count > 0; crackOnClient |= cc.Cracks.Count > 0; holdOnClient |= cc.HoldT > 0f;
+            }
             volley |= g.Bullets.Values.Any(b => b.Source == EnemyType.Colossus && b.Kind == Defs.PierceShot);
         });
         string order = string.Join(" > ", turns);
-        Console.WriteLine("  awakening: {0}", order);
+        Console.WriteLine("  awakening: {0}; radius {1:0} (client {2:0})", order, col.Radius, clientR());
+        Check(Math.Abs(col.Radius - baseR * 3f) < 0.5f && Math.Abs(clientR() - baseR * 3f) < 0.5f, "in Awakening it's three times its size (seen on the client)");
         Check(col.Colossus.Stage == ColStage.Awakening && order.StartsWith("Stomps > Rest > Boulders > Rest > Fissures > Rest"), "Awakening: Stomps, Boulders, Fissures, with breathers between");
-        Check(ringOnClient && oneGap && dropOnClient && crackOnClient, "stomp rings (one gap), thrown boulders and fissures show on the client");
+        Check(ringOnClient && openings && holdOnClient && dropOnClient && crackOnClient, "rings of orbs (three openings), boulders held up then thrown, and fissures show on the client");
         Check(volley, "its rock volley still flies between turns");
-
-        // The stomp ring is a wall of push blocks: walk into it and it shoves you back; caught, it passes over you (you
-        // end up behind it, never carried along) and hurts once; in its gap you're left alone.
         var cst = col.Colossus;
+        Check(cst.Cracks.Count >= 2 && cst.Cracks.All(k => k.State == ColCrack.Dormant), "its fissures stay on the floor as scars after they erupt");
+
+        // A ring of orbs: touch an orb and it hurts (once), and nothing shoves you; in an opening you're left alone.
         cst.Rings.Clear(); cst.Drops.Clear(); cst.Cracks.Clear();
         var me = g.Players[1];
         g.DevSetGod(1, false);
         me.Hp = me.MaxHp;
         V2 center = new V2(800f, 450f);
-        Func<float, float, StompRing> Ring = (radius, gap) => { var r = new StompRing { Center = center, Radius = radius, Gap1 = gap, Gaps = 1 }; cst.Rings.Add(r); return r; };
-        Action quiet = () => { col.FireT = 99f; cst.TurnT = 0f; cst.ActT = 99f; cst.Drops.Clear(); cst.Cracks.Clear(); foreach (var b in g.Bullets.Values.Where(b => b.Owner == 0).ToList()) g.Bullets.Remove(b.Id); };
+        Func<float, float, StompRing> Ring = (radius, gap) => { var r = new StompRing { Center = center, Radius = radius, Gap1 = gap, Gaps = 1, Orbs = true, Rot = 0.013f }; cst.Rings.Add(r); return r; };
+        Action quiet = () => { col.FireT = 99f; cst.TurnT = 0f; cst.ActT = 99f; cst.HoldT = 0f; cst.Drops.Clear(); cst.Cracks.Clear(); foreach (var b in g.Bullets.Values.Where(b => b.Owner == 0).ToList()) g.Bullets.Remove(b.Id); };
         Action<float> Hold = secs => Run(s, dt, secs, null, quiet);
-        // Caught: standing just outside a ring that's about to pass (it moves out at 150 px/s).
+        col.Pos = center + new V2(0f, 380f);  // (its body out of the way)
         me.Pos = center + new V2(0f, -200f);
-        me.InvulnT = 0f;  // (rings pass over an invulnerable player without hurting: start this without the earlier hit grace)
-        var r1 = Ring(180f, 0f);  // gap to the right, the player is above
+        me.InvulnT = 0f;
+        var r1 = Ring(170f, 0f);  // the opening to the right, the player is above
         float took = me.Run.DamageTaken;
-        Hold(0.3f);
-        float d1 = me.Pos.DistanceTo(center), hit1 = me.Run.DamageTaken - took;
-        Hold(0.7f);
-        float d2 = me.Pos.DistanceTo(center), hit2 = me.Run.DamageTaken - took;
-        Console.WriteLine("  ring catches you: {0:0} px out after 0.3 s, {1:0} after 1 s (ring at {2:0}); damage {3:0} then {4:0}", d1, d2, r1.Radius, hit1, hit2);
-        Check(d1 < 200f && d2 < 200f && d2 < Game.RingBack(r1) && hit1 > 0f && hit2 == hit1, "a stomp ring that reaches you passes over you (you're behind it, not carried along), and hurts once");
-        // Walking into it from inside: shoved back in.
-        cst.Rings.Clear();
-        var r2 = Ring(260f, 0f);
-        r2.Hit.Add(me.Id);
-        me.Pos = center + new V2(0f, -150f);
-        Run(s, dt, 0.6f, null, () => { quiet(); me.Pos += new V2(0f, -400f) * dt; });
-        Console.WriteLine("  walking out into a ring: {0:0} px from its centre (ring back {1:0})", me.Pos.DistanceTo(center), Game.RingBack(r2));
-        Check(me.Pos.DistanceTo(center) < Game.RingBack(r2) + 1f, "walk into a stomp ring and it shoves you back: only its gap lets you through");
-        // In the gap: untouched.
+        Hold(0.6f);
+        float hit1 = me.Run.DamageTaken - took, d1 = me.Pos.DistanceTo(center);
+        Hold(1f);
+        float hit2 = me.Run.DamageTaken - took, d2 = me.Pos.DistanceTo(center);
+        Console.WriteLine("  orb ring catches you: damage {0:0} then {1:0}; you stand {2:0} then {3:0} px out (ring at {4:0})", hit1, hit2, d1, d2, r1.Radius);
+        Check(hit1 > 0f && hit2 == hit1 && Math.Abs(d1 - 200f) < 1f && Math.Abs(d2 - 200f) < 1f, "a ring of orbs that reaches you hurts once, and nothing shoves you");
         cst.Rings.Clear();
         me.Pos = center + new V2(250f, 0f);
         took = me.Run.DamageTaken;
-        var r3 = Ring(230f, 0f);
+        me.InvulnT = 0f;
+        var r3 = Ring(200f, 0f);
         Hold(1f);
-        Console.WriteLine("  in the gap: {0:0} px out, damage {1:0}", me.Pos.DistanceTo(center), me.Run.DamageTaken - took);
-        Check(Math.Abs(me.Pos.DistanceTo(center) - 250f) < 2f && me.Run.DamageTaken == took && r3.Radius > 300f, "a ring passes you by if you're in its gap");
-        // At the edge: it passes over you the same way, once.
+        Console.WriteLine("  in an opening: damage {0:0}, ring at {1:0}", me.Run.DamageTaken - took, r3.Radius);
+        Check(me.Run.DamageTaken == took && r3.Radius > 300f, "a ring of orbs passes you by in one of its openings");
+        Check(Game.OrbOpenHalfAt(60f) * 2f * 60f >= Game.ColOpenMinArc - 0.5f && Game.OrbOpenHalfAt(600f) == Game.ColOpenHalf,
+            "an opening is small (0.24 rad) but never under 70 px across near its middle");
+        // A stomp: three openings, one a short step beside its target.
+        var add = typeof(Game).GetMethod("AddOrbRing", flags);
         cst.Rings.Clear();
-        me.Pos = new V2(800f, 30f);
-        took = me.Run.DamageTaken;
-        var r4 = Ring(380f, MathX.Pi / 2f);  // gap at the bottom; the player is at the top edge
-        Hold(1.5f);
-        Console.WriteLine("  at the edge: now {0:0} px from the centre (ring at {1:0}); damage {2:0}", me.Pos.DistanceTo(center), r4.Radius, me.Run.DamageTaken - took);
-        Check(me.Pos.DistanceTo(center) < Game.RingBack(r4) && Math.Abs(me.Run.DamageTaken - took - hit1) < 0.5f, "against the edge it passes over you once too (no second hit)");
-        // Gaps: a short step beside you, wherever you stand, and never too narrow near its middle.
-        var beside = typeof(Game).GetMethod("GapBeside", flags);
-        bool reachable = true;
-        foreach (float dist in new[] { 150f, 300f, 600f })
-        {
-            V2 at = col.Pos + new V2(0f, dist);
-            float gap = (float)beside.Invoke(g, new object[] { col, at, 1f });
-            V2 gapAt = col.Pos + V2.FromAngle(gap) * dist;
-            reachable &= at.DistanceTo(gapAt) < 200f && at.DistanceTo(gapAt) > 60f;
-        }
-        var near = new StompRing { Center = center, Radius = 90f, Gap1 = 0f, Gaps = 1 };
-        Check(reachable, "a stomp's gap is a short step to your side (60-200 px), however far from it you stand");
-        Check(Game.InRingGap(near, center + V2.FromAngle(0.3f) * 80f, 0f) && Game.RingGapHalfAt(80f) * 2f * 80f >= Game.RingGapMinArc - 0.5f,
-            "close to the Colossus a gap is still 100 px across");
+        col.Pos = center;
+        me.Pos = center + new V2(0f, 300f);
+        col.TargetId = me.Id;
+        add.Invoke(g, new object[] { col, cst, 3 });
+        var st = cst.Rings[0];
+        float nearest = 99f;
+        for (int k = 0; k < st.Gaps; k++) nearest = Math.Min(nearest, Math.Abs(MathX.WrapPi(Game.RingGapAt(st, k) - MathX.Pi / 2f)));
+        Console.WriteLine("  a stomp: {0} openings, the nearest {1:0} px beside you", st.Gaps, nearest * 300f);
+        Check(st.Orbs && st.Gaps == 3 && nearest * 300f > 60f && nearest * 300f < 200f, "a stomp's ring has three openings, one a short step to your side");
         cst.Rings.Clear();
-        g.DevSetGod(1, true);
 
-        // 65%: can't be hurt while it changes phase, the screen clears; Crumbling brings four plates of cover.
+        // Fissures: one that erupts under you hurts (once an eruption); with five scars up, a Fissures turn wakes them all.
+        col.Pos = center + new V2(-300f, 0f);
+        var ck = new ColCrack { From = col.Pos, Ang = 0f, Len = 600f, Max = 600f, State = ColCrack.Waiting };
+        cst.Cracks.Add(ck);
+        me.Pos = col.Pos + new V2(400f, 5f);
+        me.InvulnT = 0f;
+        took = me.Run.DamageTaken;
+        Run(s, dt, 2.2f, null, () => { col.FireT = 99f; cst.TurnT = 0f; cst.ActT = 99f; cst.Rings.Clear(); foreach (var b in g.Bullets.Values.Where(b => b.Owner == 0).ToList()) g.Bullets.Remove(b.Id); });
+        float burnt = me.Run.DamageTaken - took;
+        Console.WriteLine("  standing on an erupting fissure: {0:0} damage (its burn and a side shot); it's now {1}", burnt, ck.State);
+        Check(burnt > 0f && burnt < 80f && ck.State == ColCrack.Dormant, "an erupting fissure hurts what stands on it, once, then lies as a scar");
+        g.DevSetGod(1, true);
+        cst.Cracks.Clear();
+        for (int k = 0; k < 5; k++) cst.Cracks.Add(new ColCrack { From = col.Pos, Ang = k * 0.5f, Len = 400f, Max = 400f, State = ColCrack.Dormant });
+        cst.Step = 3; cst.ActT = 0f;  // the next turn is Fissures
+        typeof(Game).GetMethod("NextColTurn", flags).Invoke(g, new object[] { col, cst });
+        int woke = 0;
+        Run(s, dt, 3f, null, () => { safe(); woke = Math.Max(woke, cst.Cracks.Count(k => k.State != ColCrack.Dormant)); });
+        Console.WriteLine("  five scars: turn {0}, cycling {1}, {2} woken, still {3} on the floor", cst.Turn, cst.Cycling, woke, cst.Cracks.Count);
+        Check(cst.Turn == ColTurn.Fissures && woke >= 4 && cst.Cracks.Count == 5, "with five fissures up it doesn't open more: they all wake and erupt again in turn");
+        Run(s, dt, 6f, () => cst.Turn != ColTurn.Fissures, safe);
+
+        // 65%: it kneels, staggered: hits fill its Break meter, not its health; broken, its shell blasts off, it drops to
+        // twice its size, can't be hurt while it stands back up, and Crumbling brings four plates of cover.
         col.Hp = col.MaxHp * 0.6f;
         Run(s, dt, 0.3f, null, safe);
-        float hp = col.Hp; hurt.Invoke(g, new object[] { col, 500f, 1 });
-        bool immune = cst.TransT > 0f && col.Hp == hp && g.Bullets.Values.All(b => b.Source != EnemyType.Colossus);
+        float hp = col.Hp;
+        hurt.Invoke(g, new object[] { col, 100f, 1 });
+        Run(s, dt, 0.3f, null, safe);
+        var cs = Find(s[1], EnemyType.Colossus)?.Colossus;
+        Console.WriteLine("  staggered {0} (client {1}): health held at {2:0}%, a hit took {3:0} and broke {4:0}% (client {5:0}%)", cst.Stagger, cs?.Stagger, hp / col.MaxHp * 100f, hp - col.Hp, cst.Break * 100f, (cs?.Break ?? 0f) * 100f);
+        Check(cst.Stagger && cs != null && cs.Stagger && Math.Abs(hp / col.MaxHp - 0.65f) < 0.001f && col.Hp == hp && cst.Break > 0f && cs.Break > 0f,
+            "at 65% it kneels, staggered: its health holds and hits fill its Break meter (seen on the client)");
+        Check(cst.Rings.Count == 0 && cst.Cracks.Count == 0 && g.Bullets.Values.All(b => b.Source != EnemyType.Colossus), "the stagger clears the field (its rings, fissures and shots)");
+        Run(s, dt, 2f, null, safe);
+        Check(cst.Stagger && cst.TurnT == 0f || cst.Stagger, "a stagger waits to be broken");
+        Action breakIt = () => { for (int k = 0; k < 40 && cst.Stagger; k++) { hurt.Invoke(g, new object[] { col, col.MaxHp * 0.01f, 1 }); Run(s, dt, 0.05f, null, safe); } };
+        breakIt();
+        hp = col.Hp; hurt.Invoke(g, new object[] { col, 500f, 1 });
+        bool immune = cst.TransT > 0f && col.Hp == hp;
+        Run(s, dt, 0.3f, null, safe);
+        Console.WriteLine("  broken: immune {0}, radius {1:0} (client {2:0})", immune, col.Radius, clientR());
+        Check(!cst.Stagger && immune && Math.Abs(col.Radius - baseR * 2f) < 0.5f && Math.Abs(clientR() - baseR * 2f) < 0.5f, "broken, its shell blasts off: it drops to twice its size at once and can't be hurt while it stands up");
         Run(s, dt, 3f, () => cst.Stage == ColStage.Crumbling && cst.TransT <= 0f, safe);
         Run(s, dt, 0.5f, null, safe);
         var cc2 = Find(s[1], EnemyType.Colossus)?.Colossus;
-        Console.WriteLine("  phase change: immune {0}; now {1} with {2} plates; client sees {3} with {4}", immune, cst.Stage, cst.Slabs.Count, cc2?.Stage, cc2?.Slabs.Count);
-        Check(immune && cst.Stage == ColStage.Crumbling && cc2?.Stage == ColStage.Crumbling, "at 65% it changes stage (can't be hurt, screen cleared), then Crumbling (seen on the client)");
+        Console.WriteLine("  now {0} with {1} plates; client sees {2} with {3}", cst.Stage, cst.Slabs.Count, cc2?.Stage, cc2?.Slabs.Count);
+        Check(cst.Stage == ColStage.Crumbling && cc2?.Stage == ColStage.Crumbling, "then Crumbling (seen on the client)");
         Check(cst.Slabs.Count == 4 && cc2?.Slabs.Count == 4, "its armour falls as four plates of cover");
 
         // A plate stops shots both ways; enemy shots wear it down.
@@ -925,7 +955,7 @@ static partial class Program
 
         // Charging into a plate breaks it and dazes the Colossus: +50% damage taken.
         var target = cst.Slabs[1];
-        col.Pos = target.Pos + new V2(0f, 200f);
+        col.Pos = target.Pos + new V2(0f, 260f);
         cst.Turn = ColTurn.Rest; cst.TurnT = 0f; cst.TurnLen = 99f; cst.ActT = 99f;
         cst.ChargeDir = -MathX.Pi / 2f; cst.ChargeWarn = 0.01f;
         int plates = cst.Slabs.Count;
@@ -936,8 +966,11 @@ static partial class Program
         Check(cst.Slabs.Count == plates - 1 && cst.DazeT > 1f && Math.Abs(dazedHit - 150f) < 1f, "a charge into a plate breaks it and dazes the Colossus (+50% damage taken)");
         cst.TurnLen = 1f;
 
-        // 30%: Molten Core; its stomps leave lava, which hurts.
+        // 30%: staggered again; broken, Molten Core at its own size; its stomps leave lava, which hurts.
         col.Hp = col.MaxHp * 0.25f;
+        Run(s, dt, 1.5f, () => cst.Stagger, safe);
+        bool stagger2 = cst.Stagger;
+        breakIt();
         Run(s, dt, 4f, () => cst.Stage == ColStage.MoltenCore && cst.TransT <= 0f, safe);
         Run(s, dt, 3f, () => g.Patches.Values.Any(pt => pt.Kind == PatchKind.Lava && pt.Active), safe);
         var lava = g.Patches.Values.FirstOrDefault(pt => pt.Kind == PatchKind.Lava && pt.Active);
@@ -952,15 +985,19 @@ static partial class Program
             burned = me.Run.DamageTaken - took;
             g.DevSetGod(1, true);
         }
-        Console.WriteLine("  molten core: stage {0}, lava {1} (client {2}), a second in it: {3:0} damage", cst.Stage, lava != null, lavaOnClient, burned);
-        Check(cst.Stage == ColStage.MoltenCore && cst.Slabs.Count == 0, "at 30% the shell splits: Molten Core, and the plates are gone");
+        Console.WriteLine("  molten core: staggered first {0}, stage {1}, radius {2:0}, lava {3} (client {4}), a second in it: {5:0} damage", stagger2, cst.Stage, col.Radius, lava != null, lavaOnClient, burned);
+        Check(stagger2 && cst.Stage == ColStage.MoltenCore && cst.Slabs.Count == 0 && Math.Abs(col.Radius - baseR) < 0.5f, "at 30% it's staggered, then the shell splits: Molten Core at its own size, and the plates are gone");
         Check(lava != null && lavaOnClient && burned > 10f && burned < 40f, "its stomps leave lava pools that hurt about 20 a second (seen on the client)");
 
-        // Below 10%: the last stand, kneeling in the middle with stomps of two gaps.
+        // Below 10%: staggered once more, then the last stand, smaller still, kneeling in the middle; its rings have four openings.
         col.Hp = col.MaxHp * 0.08f;
-        Run(s, dt, 6f, null, safe);
-        Console.WriteLine("  last stand: stage {0}, {1:0} px from the middle, rings with two gaps {2}", cst.Stage, col.Pos.DistanceTo(new V2(800f, 450f)), cst.Rings.Any(r => r.Gaps == 2));
-        Check(cst.Stage == ColStage.LastStand && col.Pos.DistanceTo(new V2(800f, 450f)) < 10f && cst.Rings.Any(r => r.Gaps == 2), "below 10% it kneels in the middle for its last stand: stomps with two gaps");
+        Run(s, dt, 1.5f, () => cst.Stagger, safe);
+        bool stagger3 = cst.Stagger;
+        breakIt();
+        Run(s, dt, 7f, null, safe);
+        Console.WriteLine("  last stand: staggered first {0}, stage {1}, radius {2:0}, {3:0} px from the middle, rings with four openings {4}", stagger3, cst.Stage, col.Radius, col.Pos.DistanceTo(new V2(800f, 450f)), cst.Rings.Any(r => r.Gaps == 4));
+        Check(stagger3 && cst.Stage == ColStage.LastStand && Math.Abs(col.Radius - baseR * 0.7f) < 0.5f && col.Pos.DistanceTo(new V2(800f, 450f)) < 10f && cst.Rings.Any(r => r.Gaps == 4),
+            "below 10% it's staggered, then kneels in the middle for its last stand, smaller still: stomps with four openings");
         col.Hp = 0f;
         Run(s, dt, 1f, null, safe);
         Check(Find(s[0], EnemyType.Colossus) == null && Find(s[1], EnemyType.Colossus) == null, "the Colossus goes down (and its rings with it)");

@@ -544,6 +544,11 @@ namespace Arena
         /// Where a stomp ring's band will be in `t` s covers `p` (outside a gap): the Colossus's and a Stomper's.
         static bool RingDanger(StompRing r, V2 p, float t, float pad)
         {
+            if (r.Orbs)  // the Colossus's ring of orbs: its one row, outside its openings
+            {
+                float at = r.Radius + ColOrbSpeed * Math.Max(0f, t - r.Warn), dr = p.DistanceTo(r.Center);
+                return Math.Abs(dr - at) < ColOrbR + pad && !RingOpenAt(r, (p - r.Center).Angle);
+            }
             float front = r.Radius + RingSpeed * Math.Max(0f, t - r.Warn), back = front - (GateRows - 1) * GateRowGap;
             float dc = p.DistanceTo(r.Center);
             return dc > back - pad && dc < front + pad && !InRingGap(r, p, pad);
@@ -927,8 +932,8 @@ namespace Arena
                 foreach (var dr in ms.col.Drops)
                     if (dr.T + t + 0.2f >= dr.Dur && dr.Pos.CloserThan(p, dr.Radius + hitR + 8f))
                         d += w * 3f;
-                foreach (var ck in ms.col.Cracks)
-                    if (p.DistanceToSegment(ck.From, ck.From + V2.FromAngle(ck.Ang) * ck.Max) < hitR + 18f)
+                foreach (var ck in ms.col.Cracks)  // racing, about to erupt or erupting (a scar left lying is safe)
+                    if (ck.State != ColCrack.Dormant && p.DistanceToSegment(ck.From, ck.From + V2.FromAngle(ck.Ang) * ck.Max) < hitR + CrackHurtR + 4f)
                         d += w * 1.5f;
                 if (ms.col.ChargeWarn > 0f && ms.colossus != null && p.DistanceToSegment(ms.colossus.Pos, ms.colossus.Pos + V2.FromAngle(ms.col.ChargeDir) * ColChargeLength) < ms.colossus.Radius + hitR + 10f)
                     d += w * 3f;
