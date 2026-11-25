@@ -381,8 +381,11 @@ static partial class Shot {
         var watchGreat = typeof(ArenaApp).GetMethod("WatchGreatMove", f2);
         bool great = false;
         foreach (var gp in sc.Game.Players.Values) great |= gp.Weapon.Id == WeaponId.Greatsword;
+        // The Deployable Turret's look eases its drop and guns frame by frame (DeployTurretLook.cs): let it see each step too.
+        var dtLook = typeof(ArenaApp).GetMethod("UpdateDeployTurrets", f2); var gameF = typeof(ArenaApp).GetField("game", f2);
         for (int f = 0; f < (int)(st * 60f); f++) {
           sc.Step(1f / 60f);
+          if (System.Linq.Enumerable.Any(sc.Game.Zones.Values, z => z.Kind == ZoneKind.DeployTurret)) { var real = gameF.GetValue(app); gameF.SetValue(app, sc.Game); dtLook.Invoke(app, new object[] { sc.Game.AnimT }); gameF.SetValue(app, real); }
           if (!great) continue;
           Time.unscaledTime += 1f / 60f;
           foreach (var gp in sc.Game.Players.Values) if (gp.Weapon.Id == WeaponId.Greatsword) watchGreat.Invoke(app, new object[] { gp });

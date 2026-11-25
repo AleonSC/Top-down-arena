@@ -86,10 +86,7 @@ namespace Arena
             DrawHeroDummies(t);  // the Dev Arena's stand-in heroes (DevArenaUi.cs)
             DrawArenaContents(t, true);
             DrawJuiceParts();  // shards, rings and sparks
-            DrawHelis(t);      // the Attack Helicopter, flying over the arena's contents (AttackHelicopterLook.cs)
-            DrawDeployTurrets(t);  // the DPS Soldier's Deployable Turret and its rounds (DeployTurretLook.cs)
-            DrawWarhornSky();  // Warhorn Volley's horn and the arrows in the air, over the arena's contents (WarhornVolleyLook.cs)
-            DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon, over the arena's contents (DragonsDogmaLook.cs)
+            DrawArenaOver(t);  // what stands or flies over the arena's contents (also in Practice and the loadout preview)
             DrawEngineerMock(t);  // Tools/Preview only: the Engineer mockup (EngineerLook.cs)
             GlowPass();        // the additive glow
             DrawCellDoorsOver(t);  // the Turnkey's Cell Doors, cut into the walls (CellDoorLook.cs)
@@ -211,6 +208,16 @@ namespace Arena
                 else if (p.Weapon.Id == WeaponId.GoreMortar && p.DrawT > 0f && !p.Downed)
                     DrawClotCharge(p, p.Id == game.MyId, t);  // GoreMortarLook.cs
             DrawBowFocusUi(t);  // your Mender's Bow: the Focus bar and Scatter's cooldown (BowFocusLook.cs)
+        }
+
+        /// What stands or flies over the arena's contents, after DrawArenaContents: the run, the Practice window (HangoutUi.cs)
+        /// and the lobby's loadout preview all draw it, or these never show there.
+        void DrawArenaOver(float t)
+        {
+            DrawHelis(t);      // the Attack Helicopter, flying over the arena's contents (AttackHelicopterLook.cs)
+            DrawDeployTurrets(t);  // the DPS Soldier's Deployable Turret and its rounds (DeployTurretLook.cs)
+            DrawWarhornSky();  // Warhorn Volley's horn and the arrows in the air (WarhornVolleyLook.cs)
+            DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon (DragonsDogmaLook.cs)
         }
 
         /// Everything on the arena floor: players, bullets, enemies, minions, zones and effects. Also draws the

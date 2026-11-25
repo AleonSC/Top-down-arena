@@ -6,7 +6,7 @@ using Arena;
 // Deployable Turret (DeployableTurret.cs), the DPS Soldier's 4th choice on the lobby's 4th key: the table, the pick reaching the
 // run, the zone on both screens, the root (no walking), nothing fired before it unfolds or without Fire, the lane (first two
 // enemies hurt, off-lane and a third untouched), the spool-up (a later second hits harder than the first), the overheat blast
-// (inside 160 px only), quiet folding when you go down, and mastery (14 s, pierce 4, double blast) and Overclocked Barrels.
+// (inside 160 px only), quiet folding when you go down, mastery (14 s, pierce 4, double blast), Overclocked Barrels, and the loadout preview.
 static partial class Program
 {
     static void DeployTurretTest(float dt)
@@ -180,6 +180,21 @@ static partial class Program
         var m4 = make(EnemyType.Grunt, home + new V2(300f, 0f)); var m5 = make(EnemyType.Grunt, home + new V2(350f, 0f));
         step(2.5f, true);
         Check(lost(m4) > 0f && lost(m5) == 0f, "mastered: rounds pierce 4");
+
+        // The lobby's loadout preview: it drops the turret, holds the trigger so it fires on the dummies, then steps out (it blows).
+        var show = new Showcase();
+        show.Show(Role.Dps, Kit.Soldier, 0, AbilityId.DeployableTurret, true, false, 0);
+        bool up = false, hurt = false, out_ = false;
+        for (int i = 0; i < 60 * 10; i++)
+        {
+            show.Step(dt);
+            var sz = show.Game.Zones.Values.FirstOrDefault(zz => zz.Kind == ZoneKind.DeployTurret);
+            up |= sz != null && show.Game.Seated(show.Me);
+            hurt |= up && show.Game.Enemies.Values.Any(e => e.Hp < e.MaxHp);
+            out_ |= up && sz != null && sz.Radius <= 0f;
+        }
+        Check(up && hurt && out_, "the loadout preview drops it, fires on the dummies and steps out");
+        show.Stop();
     }
 
     static void Vector2Move(Game g, Player me, float dt, Session hostS, Session client, bool free = false)
