@@ -39,7 +39,6 @@ namespace Arena
             HostClearEnemyBullets();
             BroadcastRunStats();
             RunOver(true);  // RunSaves.cs
-            Recorder?.End(this, "victory");
             DoLog("victory at wave " + Wave + ", score " + Score);
         }
 
@@ -49,7 +48,6 @@ namespace Arena
             if (!IsHost || State != MatchState.Victory || Hunt != null)
                 return;  // (a Boss Hunt is over once its boss is)
             Endless = true;
-            Recorder?.ContinueEndless();
             WaveCleared();
         }
 

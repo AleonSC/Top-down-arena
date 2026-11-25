@@ -69,7 +69,7 @@ namespace Arena
             if (bossSlowT < 0f)
                 return;
             bossSlowT += realDt;
-            if (bossSlowT > BossSlowIn + BossSlowHold + BossSlowOut || EndingOn || LabRunning)
+            if (bossSlowT > BossSlowIn + BossSlowHold + BossSlowOut || EndingOn)
                 bossSlowT = -1f;
         }
 
@@ -160,7 +160,7 @@ namespace Arena
         /// A boss is dead (Shatter): time slows for a moment.
         void StartBossSlow()
         {
-            if (!fxReduced && !LabRunning)
+            if (!fxReduced)
                 bossSlowT = 0f;
         }
 

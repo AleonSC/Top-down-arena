@@ -79,7 +79,7 @@ static partial class Program
             WeaponId.Kusarigama, WeaponId.BoStaff, WeaponId.FumaShuriken, WeaponId.Katana, WeaponId.Kunai,
             WeaponId.BloodLash, WeaponId.BloodBrawler,
             WeaponId.ArcKnuckles, WeaponId.TwinRifleAuto, WeaponId.OutOfAmmo, WeaponId.DoubleBarrel, WeaponId.Stonespear, WeaponId.GrenadeLauncher,
-            WeaponId.HoneybeeStaff, WeaponId.Nunchaku, WeaponId.WindClash, WeaponId.EmbolusSpears, WeaponId.BulwarkBarrier, WeaponId.WyvernStaff, WeaponId.TwinPistols, WeaponId.StaticShock, WeaponId.TwinTessen,
+            WeaponId.HoneybeeStaff, WeaponId.Nunchaku, WeaponId.WindClash, WeaponId.EmbolusSpears, WeaponId.BulwarkBarrier, WeaponId.WyvernStaff, WeaponId.TwinPistols, WeaponId.StaticShock, WeaponId.TwinTessen, WeaponId.HiveCenser,
         };
         var missed = new System.Collections.Generic.List<string>();
         foreach (var wid in weapons)

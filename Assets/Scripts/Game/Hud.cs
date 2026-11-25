@@ -32,8 +32,6 @@ namespace Arena
             HudGroup(1, new Vector2(-150f, 30f), HudWavePlate, DrawWaveCorner);  // (the layout: HudLayout.cs)
             HudGroup(3, new Vector2(0f, -80f), HudTopRow, () =>
             {
-                if (game.Recorder != null)  // this run is being recorded (hosts only)
-                    Ui.Label(HudRecTag, "● REC", 10, new Color(1f, 0.4f, 0.4f, 0.8f), TextAnchor.MiddleRight, true);
                 DrawBossBars();
                 DrawObjectiveLine();  // the hunt/approach objective and layout tag (ApproachUi.cs), under the boss bars (bossBarsBottom)
             });
@@ -43,15 +41,12 @@ namespace Arena
             DrawMiniBossBars(introHidHud ? 0f : 1f - hudT);  // (not while a boss's entrance card has the HUD off: they'd sit on the card's bars)  // the HUD hidden (H): a slim bar per boss stays at the top (HealthBars.cs)
             DrawWardenTags();   // "EXPOSED" / "STUNNED" over the Warden (WardenLook.cs)
             DrawHoldingCellHud(me);  // the net's fade, the Holding Cell panel, a teammate's padlock (HoldingCellLook.cs)
-            DrawPossessHud();   // the Dev Arena: the enemy you play and its controls (DevArenaUi.cs)
             DrawUnlockToasts(W / 2f, HudUnlockToastY);  // SavesUi.cs
-            if (aimDebug && me != null)
-                DrawAimDebug(me);
 
             // Names, level-up popups and downed labels over players (hidden while they're under
             // the between-waves banner, so they don't show on top of its text).
             bool banner = game.State == MatchState.Intermission && (me == null || me.Offer == null);
-            DrawDevNames();  // the name labels overview (DevTrapUi.cs)
+            DrawNameLabels();  // Settings > Gameplay > Name labels, or N (EnemyTagLook.cs)
             foreach (var p in game.Players.Values)
             {
                 float r = p.Def.BodyR;
@@ -219,7 +214,9 @@ namespace Arena
             if (!tabHeld && game.Running)
                 DrawVectorGainHud();  // "+10 VECTORS" over you and the shards into the chip (VectorGainLook.cs)
             if (!tabHeld && game.Running)
-                DrawOverchargeHud();  // Overcharge's seconds and its pop (StaticShockLook.cs)
+                DrawOverchargeHud();
+            if (!tabHeld && game.Running)
+                DrawHiveHud();  // "SLOWED" under enemies a Hive Censer swarm wraps (HiveCenserLook.cs)  // Overcharge's seconds and its pop (StaticShockLook.cs)
             if (!tabHeld && game.Running)
                 DrawLootSweepHud();  // "+86 GOLD" and your coins streaming in as the wave starts (LootSweepLook.cs)
             if (tabHeld)
@@ -374,6 +371,8 @@ namespace Arena
                 Ui.Bar(new Rect(hp.x + 1f, hp.yMax - 2f, (hp.width - 2f) * Mathf.Clamp01(Game.Ironhide(p) / Mathf.Max(1f, p.MaxHp)), 2f), 1f, CrtStyle.Steel, new Color(0f, 0f, 0f, 0f));
             if (p.ShieldHp > 0f)
                 Ui.Bar(new Rect(hp.x + 1f, hp.yMax - 2f, (hp.width - 2f) * Mathf.Clamp01(p.ShieldHp / Mathf.Max(1f, p.MaxHp)), 2f), 1f, new Color(0.55f, 0.8f, 1f), new Color(0f, 0f, 0f, 0f));
+            if (Game.Armored(p))  // an Armor Drop vest's armor: a steel bar just over the health bar (ArmorDrop.cs)
+                Ui.Bar(new Rect(hp.x, hp.y - 3f, hp.width * Mathf.Clamp01(p.Armor / Game.ArmorCap), 2f), 1f, CrtStyle.Steel, new Color(0f, 0f, 0f, 0f));
             if (p.OverHp > 0f)  // a health shrine's health past max: a gold stripe along the top (Shrines.cs)
                 Ui.Bar(new Rect(hp.x + 1f, hp.y, (hp.width - 2f) * Mathf.Clamp01(p.OverHp / Mathf.Max(1f, p.MaxHp)), 2f), 1f, CrtStyle.Gold, new Color(0f, 0f, 0f, 0f));
             Ui.Label(new Rect(hp.x, r.y + 2f, hp.width - 36f, 14f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 9, Ui.Muted, TextAnchor.MiddleLeft, true);
@@ -503,30 +502,18 @@ namespace Arena
                     Ui.Bar(new Rect(hpBar.x + 2f, hpBar.yMax - 4f, (hpBar.width - 4f) * Mathf.Clamp01(Game.Ironhide(p) / Mathf.Max(1f, p.MaxHp)), 3f), 1f, CrtStyle.Steel, new Color(0f, 0f, 0f, 0f));
                 if (p.ShieldHp > 0f)  // a shield: a blue stripe along the bottom of the health bar
                     Ui.Bar(new Rect(hpBar.x + 2f, hpBar.yMax - 4f, (hpBar.width - 4f) * Mathf.Clamp01(p.ShieldHp / Mathf.Max(1f, p.MaxHp)), 3f), 1f, new Color(0.55f, 0.8f, 1f), new Color(0f, 0f, 0f, 0f));
+                if (Game.Armored(p))  // an Armor Drop vest's armor: a steel bar just over the health bar, notched every 10 (ArmorDrop.cs)
+                {
+                    var ar = new Rect(hpBar.x, hpBar.y - 5f, hpBar.width, 3f);
+                    Ui.Bar(ar, Mathf.Clamp01(p.Armor / Game.ArmorCap), CrtStyle.Steel, new Color(0f, 0f, 0f, 0.5f));
+                    for (int i = 1; i < 5; i++)
+                        Ui.Bar(new Rect(ar.x + ar.width * i / 5f - 0.5f, ar.y, 1f, ar.height), 1f, new Color(0f, 0f, 0f, 0.7f), new Color(0f, 0f, 0f, 0f));
+                }
                 if (p.OverHp > 0f)  // a health shrine's health past max: a gold stripe along the top (Shrines.cs)
                     Ui.Bar(new Rect(hpBar.x + 2f, hpBar.y + 1f, (hpBar.width - 4f) * Mathf.Clamp01(p.OverHp / Mathf.Max(1f, p.MaxHp)), 3f), 1f, CrtStyle.Gold, new Color(0f, 0f, 0f, 0f));
                 Ui.Shadowed(new Rect(hpBar.x, hpBar.y - 1f, hpBar.width, hpBar.height + 2f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 10, Color.white);
             }
             Ui.Bar(new Rect(r.x + 18f, r.y + 55f, r.width - 28f, 4f), p.Xp / Defs.XpToNext(p.Level), new Color(1f, 0.82f, 0.3f), new Color(0f, 0f, 0f, 0.4f));
-        }
-
-        /// F3: the numbers behind the aim lines.
-        void DrawAimDebug(Player me)
-        {
-            var r = new Rect(14f, 12f, 300f, 104f);
-            DkHud(r, new Color(0.3f, 0.9f, 1f));
-            Func<float, string> deg = a => (MathX.Fmod(a * 180f / MathX.Pi + 360f, 360f)).ToString("0.00") + "°";
-            float diff = MathX.WrapPi(game.LastShotAngle - game.LastShotAim);
-            Ui.Label(new Rect(r.x + 12f, r.y + 6f, r.width - 24f, 16f), "AIM DEBUG  (F3)", 11, new Color(0.3f, 0.9f, 1f), TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(r.x + 12f, r.y + 24f, r.width - 24f, 18f), "Aim now", 12, Ui.Muted);
-            Ui.Label(new Rect(r.x + 12f, r.y + 24f, r.width - 24f, 18f), deg(me.Aim), 12, Color.white, TextAnchor.MiddleRight, true);
-            Ui.Label(new Rect(r.x + 12f, r.y + 42f, r.width - 24f, 18f), "Last shot", 12, Ui.Muted);
-            Ui.Label(new Rect(r.x + 12f, r.y + 42f, r.width - 24f, 18f), game.LastShotId != 0 ? deg(game.LastShotAngle) : "-", 12, new Color(1f, 0.85f, 0.2f), TextAnchor.MiddleRight, true);
-            Ui.Label(new Rect(r.x + 12f, r.y + 60f, r.width - 24f, 18f), "Shot vs aim when it appeared", 12, Ui.Muted);
-            Ui.Label(new Rect(r.x + 12f, r.y + 60f, r.width - 24f, 18f), game.LastShotId != 0 ? (diff * 180f / MathX.Pi).ToString("+0.00;-0.00;0.00") + "°" : "-", 12, Color.white, TextAnchor.MiddleRight, true);
-            Ui.Label(new Rect(r.x + 12f, r.y + 78f, r.width - 24f, 18f), "Ping to host", 12, Ui.Muted);
-            Ui.Label(new Rect(r.x + 12f, r.y + 78f, r.width - 24f, 18f), session.IsHost ? "0 ms (you're the host)" : Mathf.RoundToInt(game.PingMs) + " ms", 12,
-                session.IsHost || game.PingMs < 60f ? Ui.Good : game.PingMs < 120f ? Ui.Warn : new Color(1f, 0.45f, 0.45f), TextAnchor.MiddleRight, true);
         }
 
         /// GET READY / WAVE N CLEARED as the scan band (WaveBand.cs; at BannerRect, HudLayout.cs): log lines each side, the title, the sub line and a bar that fills as the countdown runs out.

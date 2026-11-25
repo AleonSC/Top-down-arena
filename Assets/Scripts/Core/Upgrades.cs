@@ -67,6 +67,7 @@ namespace Arena
         IronArmadillo,  // the Tank Summoner's third ultimate (IronArmadillo.cs), key 2 of the lobby's Ultimate row
         StaticBubble,   // the Healer Elementalist's second ultimate (StaticBubble.cs), key 1 of the lobby's Ultimate row
         BloodBoil,      // the DPS Hemomancer's third ultimate (BloodBoil.cs), key 2 of the lobby's Ultimate row
+        ArmorDrop,      // the Tank Soldier's fourth ultimate (ArmorDrop.cs), key 3 of the lobby's Ultimate row
         TrojanHorse,    // the Tank Knight's second ultimate (TrojanHorse.cs), key 1 of the lobby's Ultimate row
         None = 255,
     }
