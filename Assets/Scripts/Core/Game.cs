@@ -1537,6 +1537,7 @@ namespace Arena
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickTanks(dt);      // LiteralTank.cs: the tank's time, running enemies over, getting out
             TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders
+            TickSpirit(dt);     // SpiritAvatar.cs: the spirit's time, Moon Cleaves and swallowed shots
             TickGaleWalls(dt);  // GaleWall.cs: lenses run down and unleash
             TickWaterWards(dt);    // WaterWard.cs: the drops circle, land, spread and splash
             TickHarvest(dt);    // CrimsonHarvest.cs: blood torn out, the ball held and thrown
@@ -1764,6 +1765,8 @@ namespace Arena
                 }
                 else if (ColOn(p))
                     ColossusTrigger(p);  // the golem: Fire slams, the weapon is put away (StoneColossus.cs)
+                else if (SpOn(p))
+                    SpiritTrigger(p);  // Spirit Avatar: Fire is the Moon Cleave, the weapon is put away (SpiritAvatar.cs)
                 else if (p.StunShots > 0)
                     TickStunGun(p);  // the Stun Gun is out instead of your weapon (Stun.cs)
                 else if (p.Weapon.Id == WeaponId.Revolver)

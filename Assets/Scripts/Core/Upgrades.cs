@@ -53,6 +53,7 @@ namespace Arena
         Vortex,         // the Tank Elementalist's fourth ultimate (Vortex.cs), key 3 of the lobby's Ultimate row
         LivingBolt,     // the DPS Elementalist's second ultimate (LivingBolt.cs), key 1 of the lobby's Ultimate row
         BambooGrove,    // the Tank Ninja's 4th choice (BambooGrove.cs), the lobby's 4th choice
+        SpiritAvatar,   // the Tank Ninja's third ultimate (SpiritAvatar.cs), key 2 of the lobby's Ultimate row
         SupplyDrop,     // the Healer Soldier's third ultimate (SupplyDrop.cs), key 2 of the lobby's Ultimate row
         None = 255,
     }
@@ -100,6 +101,7 @@ namespace Arena
         public float UnbreakBonus, CavalryDmgBonus;  // Cavalry Call: extra damage blocked while the guard is up, extra damage per lance
         public float HolyRangeMult = 1f, HolySwiftBonus, OathCut, LayMult = 1f;
         public float BladedDamage, BladedReach, GauntletRange = 1f, GauntletDamage = 1f, SteelDamage, SteelReach;  // the DPS Knight's cards: Coup de Grace, Iron Grip, Forged Edge
+        public float SpBonusTime, SpWindCut;  // Kami Vessel (SpiritAvatar.cs): +2 s, a 0.2 s shorter cleave wind-up a stack
         public float ColBonusTime, ColSlamWide;  // Bedrock (StoneColossus.cs): +3 s, slams +25% wider a stack
         public float VolleyDamage, VolleyWide;  // Bodkin Points (WarhornVolley.cs): +25% damage, +20% width a stack
         // Ninja abilities
@@ -332,7 +334,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Elementalist, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// Hemomancer.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SupplyUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 
