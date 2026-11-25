@@ -1135,6 +1135,7 @@ static partial class Shot {
     DeployTurretScene();  // DEPLOYTURRET=<s since the cast> [FXOFF=1] (ShotDeployTurret.cs)
     NeedleSwarmScene();  // NEEDLESWARM=<s held> [NSALT=<s>] (ShotNeedleSwarm.cs)
     OfudaScene();  // OFUDA=<s> (ShotOfuda.cs)
+    NeedlesScene();  // NEEDLES=<s> (ShotNeedles.cs)
     ThornBloomScene();  // THORNBLOOM=<s since the cast> [THORNCAP=1] (ShotThornBloom.cs)
     BambooGroveScene();  // BAMBOO=<s since the cast> [BAMBOOCAP=1] (ShotBambooGrove.cs)
     FlashFireScene();  // FLASHFIRE=<s since the cast> [FLASHCAP=1] (ShotFlashFire.cs)

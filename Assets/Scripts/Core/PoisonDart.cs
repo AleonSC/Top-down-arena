@@ -7,7 +7,7 @@ namespace Arena
     /// nearest your cursor hits it and poisons it (the venom: Enemy.VenomT / VenomDps). An enemy that dies while the venom
     /// is still on it passes it to the nearest enemies around it that don't carry it yet, a little weaker (full strength
     /// once mastered), with the full time again, and they pass it on in turn when they die (SpreadVenom, from the kill loop
-    /// in Combat.cs). Medicine Darts' poison (Ninja.cs) is a separate status and never spreads.
+    /// in Combat.cs). Senbon Seekers' poison (Ninja.cs TickPoison) is a separate status and never spreads.
     public partial class Game
     {
         public const float VenomHit = 20f;         // the dart's own hit
@@ -48,7 +48,7 @@ namespace Arena
             e.VenomFalloff = falloff;
         }
 
-        /// Host, every tick (EnemyAI.cs, next to Medicine Darts' poison).
+        /// Host, every tick (EnemyAI.cs, next to Senbon Seekers' poison).
         void TickVenom(Enemy e, float dt)
         {
             if (e.VenomT <= 0f)

@@ -335,6 +335,11 @@ namespace Arena
                         return Tap(v.Incoming == 0 && BotDanger < 0.5f, 1f);
                     }
                     return Tap(v.Incoming >= 3, 1f);
+                case WeaponId.AcupunctureNeedles:  // Bloodletting at what it shoots, in reach (AcupunctureNeedles.cs)
+                    if (late || e == null || v.ShootD >= BloodRange || !Tap(BloodletLocalCd <= 0f, 1f))
+                        return false;
+                    aimAt = e.Pos;  // (Fire may be aimed at a hurt teammate)
+                    return true;
                 case WeaponId.Ofuda:  // a Blast Ofuda at what it shoots, in reach (Ofuda.cs)
                     return !late && e != null && v.ShootD < BlastRange && Tap(OfudaLocalCd <= 0f, 1f);
                 case WeaponId.StaticShock:  // the Arc Cannon into a crowd or the boss (StaticShock.cs)

@@ -127,6 +127,7 @@ namespace Arena
                 TickBleed(s, dt);
                 TickBoneCage(s, dt);
                 TickPoison(s, dt);
+                TickNeedlesIn(s, dt);
                 TickVenom(s, dt);
                 foreach (var tick in Classes.EnemyHooks)
                     tick(this, s, dt);

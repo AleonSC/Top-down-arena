@@ -519,6 +519,7 @@ namespace Arena
                 TickBleed(e, dt);  // KitWeapons.cs
                 TickBoneCage(e, dt);  // KitWeapons.cs
                 TickPoison(e, dt);  // Ninja.cs
+                TickNeedlesIn(e, dt);  // AcupunctureNeedles.cs
                 TickVenom(e, dt);   // Poison Dart (PoisonDart.cs)
                 TickDaze(e, dt);    // Daze.cs
                 foreach (var tick in Classes.EnemyHooks)  // each class's KitDef.TickEnemy

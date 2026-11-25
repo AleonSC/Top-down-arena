@@ -693,6 +693,8 @@ namespace Arena
                 DrawBleedDrops(e, pos, r, t);  // HemomancerLook.cs
             if (e.BlastStacks > 0 && !spawning)
                 DrawBlastStacks(e, pos, r, t);  // BloodBlastLook.cs
+            if (e.NeedlesIn > 0)
+                DrawNeedlesInEnemy(e, pos, r);  // Bloodletting needles (AcupunctureLook.cs)
             for (int k = 0; k < e.StarsStuck && k < 8; k++)  // Shuriken stars stuck in it, waiting to be recalled
                 DrawStar(pos + V2.FromAngle(k * 2.4f + e.Id) * (r * 0.75f), 4f, k * 0.7f, Defs.BulletColor(Defs.StarShot));
             foreach (var hunter in game.Players.Values)
@@ -1248,7 +1250,7 @@ namespace Arena
                 Circle(c + new V2(-1.5f, 2f), size * 0.15f, new Rgba(1f, 0.6f, 0.6f), 6);
                 x += step;
             }
-            if (e.Poisoned)  // Medicine Darts' poison: green bubbles
+            if (e.Poisoned)  // Senbon Seekers' poison: green bubbles
             {
                 V2 c = new V2(x, center.Y);
                 Circle(c, size + 3f, bg, 12);

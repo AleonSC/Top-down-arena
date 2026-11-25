@@ -108,9 +108,9 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Bo Staff | Tank | 0.47 s | 16 | - | 105 | 48 | Primary Fire: A three-swing staff combo that cuts small bullets.  Alternative Fire: Shove a wall of staff ahead of you. |
 | Fuma Shuriken | Tank | 0.7 s | 30 | - | - | 6 | Primary Fire: A giant star thrown in a loop that cuts everything both ways. |
 | Nodachi | Tank | 0.3 s | 20 | - | 150 | 52 | Primary Fire: A tall katana with two five-step combo stances: wide sweeps, or fast jabs that block.  Alternative Fire: Switch stance. |
-| Medicine Darts | Healer | 0.18 s | 7 | 900 x 0.8 s | - | 50 | Primary Fire: Fast needles that poison enemies and heal allies. |
+| Acupuncture Needles | Healer | 0.18 s | 10 | 900 x 0.8 s | - | 63 | Primary Fire: Fast needles that fly through enemies and stick in hurt teammates, healing over time. Five open the meridian for a burst of healing.  Alternative Fire: Bloodletting, three needles that cut and bleed enemies. Five in one enemy burst at the pressure point; a dying enemy's needles fly back to heal the most hurt teammate. |
 | Spirit Fan | Healer | 0.4 s | 6 | 420 x 0.3 s | - | 75 | Primary Fire: A short gust that heals allies and pushes small bullets back. |
-| Ofuda | Healer | 0.5 s | 25 | 360 x 1.6 s | - | 50 | Primary Fire: Throw charms that sit as wards and burst when an enemy steps on them. |
+| Ofuda | Healer | 0.45 s | 45 | 380 x 1.1 s | - | 40 | Primary Fire: Healing Talisman: a paper charm that bends toward a hurt teammate at the end of its flight, heals them and bursts, healing teammates near, shoving enemies back and erasing small bullets.  Alternative Fire: Blast Ofuda: a charm that flies straight, sticks to the enemy it hits and blows up; one that misses lands and blows up a moment later. |
 | Shuriken | Dps | 0.35 s | 9 | 700 x 0.75 s | - | 140 | Primary Fire: Tight fans of stars that stick, then rip out and fly back.  Alternative Fire: Switch to a huge star thrown along a route you draw. |
 | Katana | Dps | 0.3 s | 20 | - | 120 | 65 | Primary Fire: Two stance combos: dashing slices, or cuts that end in caltrops.  Alternative Fire: Switch stance. |
 | Kunai | Dps | 0.7 s | 42 | 1400 x 0.5 s | - | 88 | Primary Fire: Slow, heavy throwing knives that leave a mark where they land.  Alternative Fire: Blink to the mark, and your next hit lands double. |
@@ -276,6 +276,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Substitution | Healer | 1st, choice 2 | 12 s | - | You and your ally are both invulnerable for 1 s after the swap. | Swap places with an ally and shield them. |
 | Spirit Ward | Healer | 1st, choice 3 | 18 s | - | The ward follows you. | Plant a talisman that absorbs damage for allies, then heals them. |
 | Blossom Storm | Healer | ultimate | 80 s | - | Lasts 8 s. | Petals heal the whole party and erase enemy bullets. |
+| Astral Projection | Healer | ultimate | 70 s | - | Lasts 10 s and heals 40% more. | Leave your body safe and ignored for 8 s; your spirit rides a teammate, shoots astral bolts, and heals them and speeds them up. Right click: switch teammate. |
 | Shadow Step | Dps | 1st, choice 1 | 7 s | - | +1 charge. | Teleport behind an enemy and strike it hard. |
 | Vanish | Dps | 1st, choice 2 | 16 s | - | Erases enemy bullets around you when you vanish. | Enemies lose track of you and your next hit deals double. |
 | Blade Fan | Dps | 1st, choice 3 | 12 s | - | Throws twice as many kunai. | Spinning kunai cut enemies around you, then fly out in a ring. |
