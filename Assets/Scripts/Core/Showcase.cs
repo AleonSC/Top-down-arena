@@ -107,6 +107,7 @@ namespace Arena
                     : shown == AbilityId.OrbitalLaser ? Game.OrbFxDur + 1f  // (the crater cools before the next)
                     : shown == AbilityId.IronArmadillo ? Game.ArmCurl + Game.ArmRoll + 1.5f  // (it uncurls before the next)
                     : shown == AbilityId.LiteralTank ? Game.TankTime + 2f  // (the wreck clears before the next)
+                    : shown == AbilityId.TrojanHorse ? Game.HorseTime + 2f  // (it springs open before the next)
                     : shown == AbilityId.SupplyDrop ? Game.SupplyCallIn + Game.SupplyOpen + Game.SupplyTime + Game.SupplyFold + 1f  // (the crate folds away before the next)
                     : shown == AbilityId.DragonsDogma ? Game.DogmaTime + 1.5f  // (it coils back in before the next)
                     : shown == AbilityId.Bloodbath ? Game.BathTime + 1.5f  // (a Bloodbath dries up before the next)

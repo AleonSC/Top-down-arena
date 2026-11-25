@@ -1130,6 +1130,7 @@ static partial class Shot {
     HeliScene();  // HELI=<s since the cast> [HELICAP=1] [FXOFF=1] (ShotHeli.cs)
     OrbitalScene();  // ORBITAL=<s since the cast> [ORBCAP=1] [FXOFF=1] (ShotOrbital.cs)
     TankScene();  // TANK=<s since the cast> [TANKCAP=1] [FXOFF=1] (ShotTank.cs)
+    HorseScene();  // HORSE=<s since the cast> [HORSEALL=1] [HORSEWEAR=<0-1>] [HORSEEND=broke|sally] (ShotTrojanHorse.cs)
     ArmadilloScene();  // ARMADILLO=<s since the cast> [ARMREV=<s>] [FXOFF=1] (ShotArmadillo.cs)
     SupplyScene();  // SUPPLY=<s since the cast> [SUPPLYCAP=1] [FXOFF=1] (ShotSupply.cs)
     HospitalScene();  // HOSP=pick|<s since the cast> [HOSPTENT=1] (ShotHospital.cs)

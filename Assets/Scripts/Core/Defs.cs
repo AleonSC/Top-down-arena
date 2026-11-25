@@ -802,6 +802,7 @@ namespace Arena
             RodentShot = 80,   // a Rodent Minigun rodent: a mouse, rat or hamster by its id (Game.RodentOf; RodentMinigun.cs, Game/RodentMinigunLook.cs)
             BlastOfudaShot = 82, // the Ofuda's Blast Ofuda: a red-sealed charm that sticks to what it hits and blows up (Ofuda.cs, Game/WorldShots.cs)
             AstralBolt = 83,   // Astral Projection's bolt, shot from the spirit (AstralProjection.cs)
+            HorseArrow = 84,   // an arrow shot out of a Trojan Horse's side slit (TrojanHorse.cs, Game/TrojanHorseLook.cs)
             EarthballShot = 72; // the Earthball: stops on the first enemy, stuns it and breaks into rubble (ElementBalls.cs, Game/ElementBallLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark || kind == BottleShot;
@@ -832,6 +833,7 @@ namespace Arena
             Row(table, NovaShot, radius: 6f, color: new Rgba(0.95f, 0.8f, 1f));
             Row(table, FlakShell, radius: 8f, color: new Rgba(0.7f, 0.85f, 1f));
             Row(table, TankShell, radius: 9f, color: new Rgba(1f, 0.62f, 0.25f));
+            Row(table, HorseArrow, radius: 4.5f, color: new Rgba(1f, 0.8f, 0.35f));
             Row(table, AstralBolt, radius: 5f, color: new Rgba(0.73f, 0.96f, 1f));  // the spirit's pale cyan (AstralProjection.cs)
             Row(table, Senbon, radius: 4f, color: new Rgba(0.86f, 0.89f, 0.93f));  // steel (the venom tip and ink tail are drawn by SenbonSeekersLook.cs)
             Row(table, RodentShot, radius: 5f, color: new Rgba(0.72f, 0.7f, 0.77f));  // a mouse's grey (rats and hamsters are drawn in their own colours)

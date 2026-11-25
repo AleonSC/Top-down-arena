@@ -83,6 +83,7 @@ namespace Arena
             DrawOffscreenMarkers();  // zoomed in: arrows to the enemies and teammates off the edge (OffscreenMarkers.cs)
             DrawRoomsMinimap();  // the Rooms arena's minimap, top right (RoomsLook.cs)
             DrawGateHint();      // by a shutter gate: the key to shut it (GateLook.cs)
+            DrawHorseHint();     // by or in a Trojan Horse: the key to climb in or leave (TrojanHorseLook.cs)
             DrawMysteryHint();   // mystery doors' price tags and keys (MysteryDoorLook.cs)
             DrawHospitalHint();  // the Field Hospital's pick hint, time left and eject countdown (FieldHospitalLook.cs)
             DrawZoomHint();      // the open Rooms map: "scroll to zoom out" (CameraZoom.cs)

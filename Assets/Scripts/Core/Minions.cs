@@ -709,6 +709,8 @@ namespace Arena
                 {
                     if (z.Kind == ZoneKind.GrandSigil || z.Kind == ZoneKind.ArcCrush)
                         ArcZoneEnds(z);  // the sigil sends its frozen shots back, the crush slams (Arcanist.cs)
+                    if (z.Kind == ZoneKind.TrojanHorse)
+                        EndHorse(z, false);  // Sally Forth (TrojanHorse.cs)
                     if (z.Kind == ZoneKind.FieldHospital)
                         EndHospital(z);  // everyone out, the room off the map (FieldHospital.cs)
                     expired.Add(z);
@@ -773,6 +775,11 @@ namespace Arena
                 {
                     TickDecoy(z, dt);  // DecoyDummy.cs
                     continue;  // (nothing below applies)
+                }
+                if (z.Kind == ZoneKind.TrojanHorse)
+                {
+                    TickHorse(z, dt);  // TrojanHorse.cs
+                    continue;  // (not a circle: nothing below applies)
                 }
                 if (z.Kind == ZoneKind.DeployTurret)
                 {

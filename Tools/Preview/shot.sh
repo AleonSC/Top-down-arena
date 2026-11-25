@@ -89,6 +89,7 @@
 # BAMBOO=<s since the cast> [BAMBOOCAP=1 mastered] (the Tank Ninja's Bamboo Grove played through the game, ZOOM=2 shot.sh x hud 1 6 1: wind-up 0-0.35, rings burst 0.35-0.7, fence to 3.9; use 0.2, 0.42, 0.6, 1.0, 2.5; ShotBambooGrove.cs).
 # ROD=<s since the cast> (you take Lightning Rod, the tank Elementalist's second ultimate, and cast it that long before the shot; mode hud).
 # TANKALT=<s> (the Tank Soldier's Alt fires: Double Barrel that long after firing, shells pips, Proximity Shells, Tear Gas; TankAltLook.cs).
+# HORSE=<s since the cast> [HORSEALL=1] [HORSEWEAR=<0-1>] [HORSEEND=broke|sally] (the Tank Knight's Trojan Horse rolling out, teammates inside shooting arrows; HORSEALL: you too, enemies go for it; mode hud, 3 players, ZOOM=2; ShotTrojanHorse.cs).
 # HONEYBEE=<s> (the Summoner DPS Honeybee Staff that long into a scripted loop: clicks that swarm a dummy at 0-0.8 s, the honey spray held 1.0-1.9 s, a harvest at ~2.5 s; mode hud; HoneybeeLook.cs).
 # BONESPEAR=<s> (the Hemomancer DPS Blood Brawler that long into its loop: Pulse 0 s, Reel 0.45, Heart Lift 0.95, Marrow Burst 1.5, Alt (Sympathy) 2.4, Pulse 2.7 and Reel 3.1 echoing; BSAIM=<deg> tilts it; BSHAND=1 centres on the bleeding hand; BloodBrawlerLook.cs).
 # EMBOLUS=<s> (the Hemomancer DPS Embolus Spears that long into the mockup's loop: throws at 0 and 0.3 s, recall at 1.7 s, throws at 2.6 and 2.9 s, Alt burst at 4.1 s; ESAIM=<deg> tilts the aim; EmbolusLook.cs).

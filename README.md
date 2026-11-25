@@ -34,7 +34,7 @@ Every weapon, ability, enemy, role and class with its numbers (health, damage, c
 The lobby is one calm blue CRT screen with a 36 px margin and soft, darker edges: the party column is on the left, the big loadout screen on the right washed with a soft gradient in your role's colour (it eases when you pick another role), and the tabs above it are small, faded caps with the open one a lit pill. Every option is a digital key (outlined, inverse video under the mouse or when picked; locked ones are dashed with a padlock), and the colour lives in the party cards, the live preview, the stat bars and the pixel icons. With Visual effects on (and Reduced effects off) it's alive: its pieces **holo-boot** as you come in (a scan line wipes down each, then it flickers), box frames near the cursor light up with a crisp bright line (and a faint echo just outside) where they're closest, the scanlines crawl slowly down, a faint **radar sweep** turns over the loadout preview, and readying sends a small green spark with a short tail from Ready up the gap between the party column and the big screen into that player's card, a thin ring bursts 10 px off it and the card keeps a faint thin green line while ready. Starting the run glitches the lobby (red and blue copies split off, torn bands jump sideways) and switches it off like an old CRT, squashed to a line that shrinks to a point, before the drop-in. In it each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight,
 Ninja, Hemomancer), then one of that combination's three weapons (four for the Soldier, Elementalist, Summoner, Knight, Ninja and Hemomancer DPS and the Soldier, Elementalist, Summoner, Knight, Ninja and Hemomancer Tank, and the Healer Soldier, Elementalist, Knight and Ninja: their fourth on the 4th key) and three 1st abilities (four for a few: their fourth on the 4th key). Weapons and abilities are
 unique to their role and class. The **Ultimate** row under them shows the combination's ultimates: key 0 is its default
-ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, and on key 2 A Literal Tank, the Tank Elementalist: Lightning Rod, with Stone Colossus on key 2 and Vortex on key 3, the Tank Summoner: Bone Phalanx, and on key 2 **Iron Armadillo**, the Tank Ninja: Dragon's Dogma, with Spirit Avatar on key 2, the Tank Hemomancer: **Bloodbath**, the DPS Soldier: Attack Helicopter, and on key 2 Orbital Laser, the DPS Elementalist: **Living Bolt**, and on key 2 **Flash Fire**, the Healer Soldier: Field Hospital, and on key 2 Supply Drop, and the DPS Knight: Warhorn Volley, and the DPS Ninja: **Forbidden Path**, and the Healer Ninja: **Astral Projection**, and the Healer Elementalist: **Static Bubble**); the
+ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, and on key 2 A Literal Tank, the Tank Elementalist: Lightning Rod, with Stone Colossus on key 2 and Vortex on key 3, the Tank Summoner: Bone Phalanx, and on key 2 **Iron Armadillo**, the Tank Ninja: Dragon's Dogma, with Spirit Avatar on key 2, the Tank Hemomancer: **Bloodbath**, the Tank Knight: **Trojan Horse**, the DPS Soldier: Attack Helicopter, and on key 2 Orbital Laser, the DPS Elementalist: **Living Bolt**, and on key 2 **Flash Fire**, the Healer Soldier: Field Hospital, and on key 2 Supply Drop, and the DPS Knight: Warhorn Volley, and the DPS Ninja: **Forbidden Path**, and the Healer Ninja: **Astral Projection**, and the Healer Elementalist: **Static Bubble**); the
 other keys are locked. Click a key to pick it (inverse video, like the weapon and ability keys): the detail box and the
 preview show it. The pick goes back to the default when you change role or class; bots use the default, a Wildcard's
 row lists its class wheel's class, and a saved run's seats keep theirs.
@@ -404,7 +404,7 @@ Parry upgrades show up like any other card:
 **Q** fires your **ultimate**. Each role and class combination has its own default one, and some have others to
 pick instead on the lobby's **Ultimate** row (so far the Tank Soldier: **Juggernaut Suit** and **A Literal Tank** and the Tank Elementalist: **Lightning Rod**, **Stone Colossus** and **Vortex**, below the table; and the DPS Elementalist: **Living Bolt** and **Flash Fire**, below; and the
 Tank Hemomancer: **Bloodbath**, in the Hemomancer table; and the Tank Summoner: **Bone Phalanx** and, on key 2, **Iron Armadillo**, below the table; and the
-Tank Ninja: **Dragon's Dogma** and, on key 2, **Spirit Avatar**, below; and the DPS Soldier: **Attack Helicopter** and **Orbital Laser**, below; and the Healer Soldier: **Field Hospital** and on key 2 **Supply Drop**, below; and the DPS Knight: **Warhorn Volley**, below; and the DPS Hemomancer: **Blood Ravager** and, on key 2, **Blood Boil**, below; and the DPS Summoner: **Rodent Minigun** and, on key 2, **Mammoth Fall**, below; and the DPS Ninja: **Forbidden Path**, below; and the Healer Ninja: **Astral Projection**, below; and the Healer Elementalist: **Static Bubble**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
+Tank Ninja: **Dragon's Dogma** and, on key 2, **Spirit Avatar**, below; and the DPS Soldier: **Attack Helicopter** and **Orbital Laser**, below; and the Healer Soldier: **Field Hospital** and on key 2 **Supply Drop**, below; and the DPS Knight: **Warhorn Volley**, below; and the Tank Knight: **Trojan Horse**, below; and the DPS Hemomancer: **Blood Ravager** and, on key 2, **Blood Boil**, below; and the DPS Summoner: **Rodent Minigun** and, on key 2, **Mammoth Fall**, below; and the DPS Ninja: **Forbidden Path**, below; and the Healer Ninja: **Astral Projection**, below; and the Healer Elementalist: **Static Bubble**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
 that upgrades don't shorten, and start each run half charged. The HUD shows the charge in the gold slot.
 
 **Juggernaut Suit** (Tank Soldier, picked instead of Fortress, 75 s): six steel plates clamp onto you over 0.6 s and
@@ -432,6 +432,21 @@ a charred wreck for a moment. Bots drive it out with an enemy within 480 px. Mas
 thud and a clank of steel as it lands, a diesel engine with clattering treads that idles low and revs up as you drive,
 a deep rolling boom for each shell, a double beep every half second in your own tank's last 3 s, and a hatch clunk as
 you hop out before the wreck blows.
+
+**Trojan Horse** (Tank Knight, key 1 of the Ultimate row, picked instead of Last Stand, 75 s): a wooden horse on wheels
+rolls out from you along your aim at **90 px/s**, shoving regular enemies out of its path, and parks where the arena's
+edge, a wall or a prop stops it (or after 1,400 px). It has its own health (**1,200** with one player, +200 for each more:
+1,400 for two, 1,600 for three), shown as a bar over it with one pip per seat lit in each rider's colour and its time arc.
+Any player within **80 px** presses **Interact** (F) to **climb in**, and again to drop out beside it. Inside you go where
+it goes, nothing can hurt you, enemies don't pick you, and your weapon, its Alt, abilities and the Dodge are put away:
+**Fire** shoots **arrows** out of the side slit nearer your aim (**16** each, every 0.35 s, each piercing one enemy; the
+slit glows gold). Its body stops **every enemy shot**, red aimed ones too, and enemies can't walk through it; each shot
+and bite wears it. While **everyone still up is inside**, enemies have nobody to pick and go for the horse (it pulses
+red). At 0 health it **breaks**: planks fly and the riders are thrown out, untouchable for 1 s. After **20 s** it springs
+open, **Sally Forth**: its sides swing down, regular enemies within 120 px are shoved 110 px, and everyone who was inside
+deals **25% more damage for 4 s** (a gold ring round them). It also folds away between waves. The cooldown starts when it
+comes down. Bots walk to a horse within 420 px and climb in. Mastered: 40% more health, and the arrows pierce one more
+enemy.
 
 **Attack Helicopter** (DPS Soldier, picked instead of Artillery Assault, 70 s): a gold radio ring goes out from you and
 an olive gunship drops in from off-screen over 0.9 s (high and big, its shadow tightening), then for **10 s** it circles
@@ -746,6 +761,7 @@ the key, pops "MASTERY 3" over it and shows a line above the keys with what it g
 | **Consecrate** | Two more crosses fly out 22 degrees either side (each target is hit once). | **Guardian's Oath** | Charges up to 800 px (not 600). The ward is wider, follows you, and stands a downed ally back up at 25% health. |
 | **Lay on Hands** | Also heals everyone else near them for half as much. | **Bladed Dive** | Each kill heals you 5% of your health. |
 | **The Gauntlet** | The Challenge lasts 8 s, and the charge's impact stuns for 1 s. | **Caught Steel** | Holds up to 18 shards. |
+| **Trojan Horse** | 40% more health, and the arrows pierce one more enemy. | | |
 | **Last Stand** | You take 5% of the damage instead of 10%. | **Hallowed Blade** | Three swords fall: one at your cursor and one either side. |
 | **Drawbridge** | The bridge stands for 8 s. | **Lightning Rod** | Lasts 8 s and each bolt arcs to 3 enemies. |
 | **Flood** | Deluge: the flood is 30% wider and lasts 9 s. | **Bone Phalanx** | 10 skeletons with 180 health each (a 250 px front). |
@@ -765,7 +781,7 @@ level-up picks and the Bazaar). Where space is tight the text gets smaller, then
 with "…"; hover a Tab tile to read it in full.
 
 In the lobby, the loadout screen's **Ultimate** row has four keys. Key 0 is your role and class's default ultimate;
-the next keys hold the others you can pick instead (key 1 is **Juggernaut Suit** for the Tank Soldier, with **A Literal Tank** on key 2, **Lightning Rod**
+the next keys hold the others you can pick instead (key 1 is **Juggernaut Suit** for the Tank Soldier, with **A Literal Tank** on key 2, **Trojan Horse** for the Tank Knight, **Lightning Rod**
 for the Tank Elementalist (key 2: **Stone Colossus**, key 3: **Vortex**), **Bloodbath** for the Tank Hemomancer, **Bone Phalanx** for the Tank Summoner (key 2: **Iron Armadillo**), **Dragon's Dogma** for the Tank Ninja, **Attack Helicopter** for the DPS Soldier (key 2: **Orbital Laser**), **Living Bolt** for the DPS Elementalist (key 2: **Flash Fire**), **Field Hospital** (key 2: **Supply Drop**) for the Healer Soldier and **Warhorn Volley** for the DPS Knight, **Forbidden Path** for the DPS Ninja, **Astral Projection** for the Healer Ninja), and the rest
 are locked slots for ultimates still to come. Click a key to pick it (the picked one is in inverse video, like the
 weapon and ability keys): it goes to the host and the other players like your other picks, the detail box shows its
@@ -1833,7 +1849,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 | Parry | Hold right click (changeable) |
 | Alternative fire (Kunai blink, Twin Fang, Sunlance, Hook & Haul, Shuriken's Great Star stance, Bo Staff shove, Kusarigama whirl) | Left Alt |
 | Ultimate | Q |
-| Interact: take your chest item (standing on it; B discards it), open a mystery door, shut a gate, open a room shop again | F |
+| Interact: take your chest item (standing on it; B discards it), open a mystery door, shut a gate, open a room shop again, climb into or out of a Trojan Horse | F |
 | Gadget: tap to switch on / off, hold and let go to throw it where you aim (right click while holding cancels) | X |
 | Gadget wheel: hold to open, let go on a gadget to swap it into your hand | C |
 | Wiki: tap to look anything up (pauses a solo run; in co-op only on your screen); hold and click anything on screen (text, an enemy, a player) to open its page | I |

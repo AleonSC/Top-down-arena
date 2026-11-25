@@ -118,6 +118,7 @@ namespace Arena
                 DrawJuggBar(p, r);     // the Juggernaut Suit's armour, over the health bar (JuggernautLook.cs)
                 DrawTankBar(p, r);     // A Literal Tank's armour and time (LiteralTankLook.cs)
                 DrawArmBar(p);         // Iron Armadillo's time (IronArmadilloLook.cs)
+                DrawSallyRing(p, t);   // Sally Forth, out of a Trojan Horse (TrojanHorseLook.cs)
             }
             if (p.Downed)
             {
