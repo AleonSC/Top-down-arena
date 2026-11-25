@@ -103,6 +103,11 @@ namespace Arena
                 DrawHoneyGlob(b);  // HoneybeeLook.cs
                 return;
             }
+            if (b.Kind == Defs.Senbon)
+            {
+                DrawSenbonShot(b, t);  // SenbonSeekersLook.cs
+                return;
+            }
             if (b.Kind == Defs.StoneSpear)
             {
                 DrawStoneSpearShot(b, t);  // StonespearLook.cs

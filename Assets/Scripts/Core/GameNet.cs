@@ -652,6 +652,13 @@ namespace Arena
                         p.PlateHp[k] = q / 255f * p.PlateMax;
                 }
             }
+            s.Byte(ref p.SbN);  // Senbon Seekers (SenbonSeekers.cs)
+            if (p.SbN > 0)
+            {
+                s.Float(ref p.SbClock);
+                s.Float(ref p.SbNewT);
+                s.Bool(ref p.SbCap);
+            }
             s.Vec(ref p.VanishFrom);
             s.Float(ref p.OrbitT);
             s.Float(ref p.DashT);  // Healing Dash's sprint (Ninja.cs)

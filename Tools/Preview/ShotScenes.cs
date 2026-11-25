@@ -1126,6 +1126,7 @@ static partial class Shot {
     HoldingCellScene();  // HOLDCELL=<s> [HOLDCELLS=2], HOLDLOCK=1, HOLDNET=<s> (ShotHoldingCell.cs)
     ShockwaveScene();  // SHOCK=<s since the cast> [SHOCKCAP=1] [FXOFF=1] (ShotShockwave.cs)
     CereScene();  // CERE=<plates>,<s since the last cast>[,1 hurt] (ShotCeremonial.cs)
+    SenbonScene();  // SENBON=<needles>[,<s since the last cast>[,<enemies>]] [SENBONCAP=1] (ShotSenbon.cs)
     HeliScene();  // HELI=<s since the cast> [HELICAP=1] [FXOFF=1] (ShotHeli.cs)
     OrbitalScene();  // ORBITAL=<s since the cast> [ORBCAP=1] [FXOFF=1] (ShotOrbital.cs)
     TankScene();  // TANK=<s since the cast> [TANKCAP=1] [FXOFF=1] (ShotTank.cs)

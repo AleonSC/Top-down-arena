@@ -328,6 +328,8 @@ namespace Arena
                 Apply = s => { s.CloneBonusTime += 2f; s.CloneHpMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SmokeBomb, MaxStacks = 2, Name = "Thick Smoke", Desc = "Smoke Bomb is 40% bigger and lasts 2 s longer",
                 Apply = s => { s.SmokeRadiusMult += 0.4f; s.SmokeBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SenbonSeekers, MaxStacks = 2, Name = "Hidden Needles", Desc = "Senbon Seekers' needles hit 30% harder, and their poison stacks 2 higher",
+                Apply = s => { s.SbDmgMult += 0.3f; s.SbStackBonus += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CeremonialArmor, MaxStacks = 2, Name = "Tempered Steel", Desc = "Ceremonial Armor's plates have 50% more health",
                 Apply = s => s.PlateHpMult += 0.5f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BambooGrove, MaxStacks = 2, Name = "Rhizome", Desc = "Bamboo Grove reaches 30% farther and its bleed lasts 50% longer",
@@ -447,6 +449,13 @@ namespace Arena
             },
             new AbilityDef
             {
+                Id = AbilityId.SenbonSeekers, Kit = Kit.Ninja, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (SenbonSeekers.cs)
+                Name = "Senbon Seekers", Cooldown = SbCooldown, Desc = "Three poisoned needles circle you and fly at enemies that come close. Stacks to 9.",
+                Capstone = "Holds up to 12 needles.",
+                Bot = b => !SbFull(b.Me),
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.ThousandClones, Kit = Kit.Ninja, Role = Role.Tank, Choice = AbilityDef.Ult,
                 Name = "Thousand Clones", Cooldown = 70f, Desc = "Twelve clones appear all over the map and draw every enemy.",
                 Capstone = "Twenty clones.",
@@ -495,6 +504,9 @@ namespace Arena
                     return true;
                 case AbilityId.BambooGrove:  // Bamboo Grove (BambooGrove.cs)
                     CastBambooGrove(p, pw, cap);
+                    return true;
+                case AbilityId.SenbonSeekers:  // Senbon Seekers (SenbonSeekers.cs)
+                    CastSenbon(p, pw, cap);
                     return true;
                 case AbilityId.HealingDash:
                 {
@@ -1663,6 +1675,7 @@ namespace Arena
                 if (p.Downed)
                     p.VanishT = p.AmbushT = 0f;
                 TickCereArmor(p, dt);  // Ceremonial Armor's plates (CeremonialArmor.cs)
+                TickSenbon(p, dt);  // Senbon Seekers' needles (SenbonSeekers.cs)
                 if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BlossomStorm)
                     foreach (var q in Players.Values)
                     {
