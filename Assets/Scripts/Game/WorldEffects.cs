@@ -68,10 +68,12 @@ namespace Arena
             d[(int)FxKind.EmbolusBlast] = (fx, f, t) => DrawEmbolusBlastFx(fx);  // EmbolusLook.cs
             d[(int)FxKind.NeedleSwarm] = (fx, f, t) => DrawNeedleSwarmFx(fx, f);  // NeedleSwarmLook.cs
             d[(int)FxKind.TalismanBurst] = (fx, f, t) => DrawTalismanBurstFx(fx, f);  // OfudaLook.cs
+            d[(int)FxKind.BoilEnd] = (fx, f, t) => DrawBoilEndFx(fx, f);  // BloodBoilLook.cs
             d[(int)FxKind.PistolWhip] = (fx, f, t) => DrawPistolWhipFx(fx);  // PistolWhipLook.cs
             d[(int)FxKind.StoneSlam] = (fx, f, t) => DrawStoneSlamFx(fx);  // StonespearLook.cs
             d[(int)FxKind.BeeSting] = (fx, f, t) => DrawBeeStingFx(fx, t);  // HoneybeeLook.cs
             d[(int)FxKind.WyvernSlam] = (fx, f, t) => DrawWyvernSlamFx(fx);  // WyvernStaffLook.cs
+            d[(int)FxKind.BumbleBurst] = (fx, f, t) => DrawBumbleBurstFx(fx);  // BumbleRemoteLook.cs
             d[(int)FxKind.HoneyHarvest] = (fx, f, t) => DrawHoneyHarvestFx(fx);  // HoneybeeLook.cs
             d[(int)FxKind.WindWave] = (fx, f, t) => DrawWindWave(fx);  // WindClashLook.cs
             d[(int)FxKind.ArcBall] = (fx, f, t) => DrawArcBallPlain(fx);  // StaticShockLook.cs (Visual effects on: the glow pass)

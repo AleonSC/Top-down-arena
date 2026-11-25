@@ -343,6 +343,12 @@ namespace Arena
                     m.Pos = ClampToArena(m.Pos, d.Radius);
                     continue;
                 }
+                if (m.Kind == MinionKind.BumbleBot)
+                {
+                    if (MoveBumble(m, owner, dt))  // re-armed: it goes (BumbleRemote.cs)
+                        expired.Add(m);
+                    continue;
+                }
                 if (m.Kind == MinionKind.Thrall)
                 {
                     TickThrall(m, owner, dt);  // ForcePact.cs

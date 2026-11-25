@@ -341,6 +341,11 @@ namespace Arena
                 DrawWyvernMinion(m, t);  // WyvernStaffLook.cs
                 return;
             }
+            if (m.Kind == MinionKind.BumbleBot)
+            {
+                DrawBumbleBot(m, t);  // BumbleRemoteLook.cs
+                return;
+            }
             if (m.Kind == MinionKind.Bee)
             {
                 DrawBee(m, t);  // HoneybeeLook.cs

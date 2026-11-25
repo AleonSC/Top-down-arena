@@ -16,7 +16,7 @@ static partial class Program
         // The table: one robot weapon a role, standing in for the class's other (locked) places; the forges are gone.
         Check(Defs.Weapon(Role.Dps, Kit.Engineer, 0).Id == WeaponId.VectorBlade && Defs.Weapon(Role.Tank, Kit.Engineer, 0).Id == WeaponId.IronFist
             && Defs.Weapon(Role.Healer, Kit.Engineer, 0).Id == WeaponId.StasisGun && !Defs.WeaponGap(Role.Dps, Kit.Engineer, 0)
-            && Defs.WeaponGap(Role.Dps, Kit.Engineer, 1) && Defs.WeaponGap(Role.Tank, Kit.Engineer, 2) && Defs.Weapon(Role.Tank, Kit.Engineer, 2).Id == WeaponId.IronFist,
+            && !Defs.WeaponGap(Role.Dps, Kit.Engineer, 1) && Defs.WeaponGap(Role.Dps, Kit.Engineer, 2) && Defs.WeaponGap(Role.Tank, Kit.Engineer, 2) && Defs.Weapon(Role.Tank, Kit.Engineer, 2).Id == WeaponId.IronFist,
             "each Engineer role's first weapon is its robot weapon, which fills the locked places");
         Check(!Enum.GetNames(typeof(WeaponId)).Any(n => n.EndsWith("Forge")) && !Enum.GetNames(typeof(MinionKind)).Any(n => n == "Strider" || n == "Sentinel" || n == "MediDrone"),
             "the Vector, Bulwark and Medi-Drone Forges and their Strider, Sentinel and med-drone are gone");

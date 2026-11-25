@@ -24,6 +24,7 @@ namespace Arena
         TankBot, MedicBot, AssaultBot,  // the Engineer's robots (Iron Fist, Stasis Gun, Vector Blade): summoned by a click, they fight and draw aggro (EngineerBots.cs)
         Wyvern,       // the Wyvern Staff's wind Wyvern: hovers over you, its gale slows and shoves, it breathes fire at your cursor and slams (WyvernStaff.cs)
         ArcShard, ArcBlade,  // the Arcanist's Orbit Shards (circle you, cut small shots, flung at the cursor and back) and Dancing Blades (hover behind you, launched to slash at the cursor) (Arcanist.cs)
+        BumbleBot,    // the Bumble Remote's robot bee: follows your cursor, shoots stingers, dives into a Swarm Burst; enemies ignore it (BumbleRemote.cs)
         None = 255,
     }
 
@@ -128,6 +129,7 @@ namespace Arena
             new MinionDef { Name = "Wyvern", Radius = 22f, Sides = 6, Color = new Rgba(0.44f, 0.88f, 0.81f), Move = MinionMove.FollowOwner, Speed = 240f },  // flown by WyvernStaff.cs (MoveWyvern)
             new MinionDef { Name = "Orbit Shard", Radius = 7f, Sides = 4, Color = new Rgba(0.72f, 0.55f, 1f), Move = MinionMove.Static },   // flown by Arcanist.cs (MoveArcane)
             new MinionDef { Name = "Dancing Blade", Radius = 8f, Sides = 3, Color = new Rgba(1f, 0.83f, 0.42f), Move = MinionMove.Static },  // flown by Arcanist.cs (MoveArcane)
+            new MinionDef { Name = "Bumble Bot", Radius = 22f, Sides = 6, Color = new Rgba(1f, 0.8f, 0.3f), Move = MinionMove.Static, Range = Game.BumbleRange },  // flown and fired by BumbleRemote.cs (MoveBumble)
         };
 
         // Indexed by ZoneKind.

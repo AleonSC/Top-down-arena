@@ -97,6 +97,7 @@
 # BULWARK=<s> BBMODE=chain|guard|brace|bash|melee (the Tank Knight's Bulwark Barrier that long into a scene: Fire held (the chain, then the Shield Throw from about 1 s), shots at the plate, braced soaking them, a full-Ram Shield Bash at 0.3 s, or braced with Brutes walking into the plate; mode hud; BulwarkBarrierLook.cs).
 # FROSTLANCE=<s> (the Tank Elementalist's Frost Lance that long into its chain, Fire held: Shiver Crescent at 0, Backhand Rime 0.34 s, Frost Waltz 0.68 s, Crystal Fan 1.08 s, Avalanche Slam 1.5 s; FLALT=1: Absolute Zero at 0; FLCHILL=<n> chill on the grunts; mode hud; FrostLanceLook.cs).
 # BLOODBLAST=<s> (the Tank Hemomancer's Blood Blast chain that long in; BBSTEP=n start step, BBALT=1 Crimson Tide, BBSTACKS=n BBKILL=<s> the Blood Vortex; mode hud, ZOOM=1.8).
+# BUMBLE=<s> (the DPS Engineer's Bumble Remote that long into a fight: the Bumble Bot at the cursor by a pack, stinging it, Fire held from BUMFIRE s (0.6); BUMALT=<s>: the Swarm Burst pressed then; mode hud; BumbleRemoteLook.cs).
 # WYVERN=<s> (the Tank Summoner's Wyvern Staff that long into a loop: hovering with its gale until 1.0 s, then Fire held; WYALT=1: the Wyrm Slam at 1.0 s instead; mode hud).
 # TESSEN=<s> (the Healer Ninja's Twin Tessen that long into the Crane Dance, Fire held: the Crane Bloom about 1.25 s, its wave out by 1.45 s; TTALT=<s>: Alt held that long then let go, the Kamikaze Gust; TTBREEZE=100: a Typhoon; mode hud; TwinTessenLook.cs).
 # WINDCLASH=<s> (the Tank Elementalist's Wind Clash that long into its combo, Fire held: crescents at 0 and 0.34 s, lance at 0.68 s, ring at 1.12 s; WCALT=1: the Tempest at 0 with enemies shooting; mode hud; WindClashLook.cs).
@@ -112,6 +113,7 @@
 # ARMORDROP=<s since the cast> [ARMORCAP=1] [ARMORHIT=<armor left>] (the Tank Soldier's Armor Drop: crate, vests, armor shell and bar; mode hud).
 # VORTEX=<s since cast> VXMASTERED=1 (the Tank Elementalist's Vortex: wind-up, storm, grunts swept round, shots swept away; mode hud; VortexLook.cs).
 # RAVAGER=<s since cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (the DPS Hemomancer's Blood Ravager walking right through grunts, clicking over the last 0.4 s; ShotBloodRavager.cs; ZOOM=2.2, mode hud).
+# BOIL=<s since cast> [BOILHP=<0-1>] [BOILEND=1] (the DPS Hemomancer's Blood Boil circling and firing at grunts, health eased down to BOILHP; BOILEND=1 ends it 0.4 s before, for the steam; ShotBloodBoil.cs; ZOOM=1.8, mode hud).
 # BOLT=<s since cast> (the DPS Elementalist's Living Bolt: 0.3 the channel, 4 electrified with three dashes' residue, 9.5 the flicker; mode hud; LivingBoltLook.cs).
 # COLOSSUS=<s since cast> COLWIND=<0-1> COLEND=<s> (the Tank Elementalist's Stone Colossus: rising, standing, slamming, crumbling; mode hud; StoneColossusLook.cs).
 # BLOODBATH=<s since the cast> (the Tank Hemomancer's Bloodbath pool, wading enemies and heal numbers; BATHMASTERED=1 for 220 px; mode hud, 2 players).
