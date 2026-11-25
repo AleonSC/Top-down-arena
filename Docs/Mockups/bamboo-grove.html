@@ -1,0 +1,379 @@
+<title>Bamboo Grove</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: one dark lacquer stage, three live arenas side by side (stacked on phones), numbers sheet below. Single dark look on purpose, like the other Ninja mockups. */
+:root{
+  --ink:#0e0f0c; --panel:#161813; --line:#2a2e24;
+  --bamboo:#7fb04a; --gold:#d9a441; --blood:#c2362b; --paper:#ebe6d6; --muted:#979283;
+  --display:"Shippori Mincho","Hiragino Mincho ProN",Georgia,serif;
+  --body:"IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+html,body{background:var(--ink);color:var(--paper)}
+body{font-family:var(--body);font-size:14px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:14px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--bamboo)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,4vw,42px);margin:2px 0 0;line-height:1.1;text-wrap:balance}
+h1 small{font-family:var(--body);font-weight:400;font-size:14px;color:var(--muted);margin-left:8px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--paper);background:var(--panel);border:1px solid var(--line);padding:8px 12px;cursor:pointer}
+button:hover{border-color:var(--bamboo)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button.primary{background:#3d5a22;border-color:var(--bamboo)}
+button[aria-pressed="true"]{color:var(--bamboo);border-color:var(--bamboo)}
+kbd{font:600 11px var(--mono);border:1px solid currentColor;padding:0 4px;margin-left:6px;opacity:.8}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+canvas{display:block;width:100%;max-width:100%;aspect-ratio:4/3;background:#12140f}
+.meta{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.meta h2{font-family:var(--display);font-weight:800;font-size:20px;margin:0;display:flex;gap:8px;align-items:baseline}
+.meta h2 span{font:400 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--bamboo)}
+.meta p{margin:0;color:var(--muted)}
+.hud{display:flex;flex-wrap:wrap;gap:6px 14px;font:12px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.hud b{color:var(--paper);font-weight:600}
+.hud .st b{color:var(--gold)} .hud .bl b{color:#e0675c}
+.sheet{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px}
+@media (max-width:860px){.sheet{grid-template-columns:minmax(0,1fr)}}
+.sheet section{background:var(--panel);border:1px solid var(--line);padding:14px 16px;min-width:0}
+.sheet h3{font-family:var(--display);font-size:18px;margin:0 0 8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td{padding:5px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{color:var(--muted);width:38%;padding-right:10px}
+td b{font-family:var(--mono);color:var(--gold);font-weight:600}
+ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.note{font-size:12px;color:var(--muted);margin-top:10px}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Ninja · Tank · new ability</div>
+      <h1>Bamboo Grove <small>approximate mockup, not the real draw code</small></h1>
+    </div>
+    <div class="controls">
+      <button class="primary" id="cast">Cast<kbd>Space</kbd></button>
+      <button id="auto" aria-pressed="true">Auto-cast</button>
+      <button id="heavy" aria-pressed="false">Heavies</button>
+      <button id="slow" aria-pressed="false">Slow-mo</button>
+    </div>
+  </header>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="sheet">
+    <section>
+      <h3>Proposed numbers</h3>
+      <table>
+        <tr><td>Radius</td><td><b>140 px</b> round you (about 4 Ninja widths)</td></tr>
+        <tr><td>Wind-up</td><td><b>0.35 s</b>: ring and ground cracks show where it lands</td></tr>
+        <tr><td>Spike hit</td><td><b>40</b> damage, once per enemy</td></tr>
+        <tr><td>Stun</td><td><b>1.2 s</b> (heavies <b>0.6 s</b>, bosses <b>0.3 s</b>)</td></tr>
+        <tr><td>Bleed</td><td><b>8/s for 4 s</b> after the stun ends (32 total), refreshes on recast</td></tr>
+        <tr><td>Cooldown</td><td><b>14 s</b></td></tr>
+        <tr><td>Tank angle</td><td>Stalks stay <b>1.5 s</b> and block enemy bullets (B's rim fence stays 3 s)</td></tr>
+        <tr><td>Upgrade idea</td><td>Deep Roots: <b>+30%</b> radius, bleed lasts <b>6 s</b></td></tr>
+      </table>
+    </section>
+    <section>
+      <h3>The three takes</h3>
+      <ul>
+        <li><b>A · Grove</b>: the whole circle bursts at once into a thicket. Instant, readable, every enemy stunned on the same frame.</li>
+        <li><b>B · Ripple</b>: rings of bamboo race outward from your feet; enemies stun as the wave reaches them. The outer ring stays 3 s as a fence that holds enemies off.</li>
+        <li><b>C · Impale</b>: a crossed cluster of spears shoots up under each enemy and lifts it off the ground for the stun, then drops it bleeding. Sparse grass-stalks fill the rest.</li>
+      </ul>
+      <div class="note">Gold stars = stunned. Red drops and red numbers = bleeding. White numbers = the spike hit.</div>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+const W = 480, H = 360, R = 140, WIND = 0.35, HIT = 40, BLEED_DPS = 8, BLEED_T = 4, CYCLE = 4.6;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const opts = { auto: true, heavy: false, slow: false };
+const VARIANTS = [
+  { key: 'A', name: 'Grove', tag: 'all at once', blurb: 'The circle erupts into a thicket in one beat.' },
+  { key: 'B', name: 'Ripple', tag: 'wave out', blurb: 'Rings race outward; the rim stays as a fence.' },
+  { key: 'C', name: 'Impale', tag: 'per enemy', blurb: 'Spears cross under each enemy and lift it.' },
+];
+const rnd = (a, b) => a + Math.random() * (b - a);
+const grid = document.getElementById('grid');
+
+function makeCard(v) {
+  const card = document.createElement('div'); card.className = 'card';
+  const cv = document.createElement('canvas'); cv.width = W * 2; cv.height = H * 2;
+  cv.setAttribute('aria-label', 'Animated mockup of take ' + v.key);
+  const meta = document.createElement('div'); meta.className = 'meta';
+  meta.innerHTML = `<h2>${v.key} · ${v.name} <span>${v.tag}</span></h2><p>${v.blurb}</p>
+    <div class="hud"><span class="st">stunned <b>0</b></span><span class="bl">bleeding <b>0</b></span><span>damage <b>0</b></span><span>cooldown <b>ready</b></span></div>`;
+  card.append(cv, meta); grid.append(card);
+  const hud = meta.querySelectorAll('.hud b');
+  return { v, cv, ctx: cv.getContext('2d'), hud };
+}
+
+// ---------- per-arena state ----------
+function newArena(card) {
+  const a = { card, t: 0, castAt: -99, enemies: [], stalks: [], nums: [], drops: [], cracks: [], fence: 0, dmg: 0, hitSet: new Set(), lastCast: -99 };
+  a.ground = [...Array(70)].map(() => ({ x: rnd(0, W), y: rnd(0, H), r: rnd(1, 3), c: Math.random() < .5 ? '#1b1f16' : '#191b14' }));
+  for (let i = 0; i < 9; i++) spawn(a, true);
+  return a;
+}
+function spawn(a, initial) {
+  const heavy = opts.heavy && Math.random() < .35;
+  const ang = rnd(0, Math.PI * 2), d = initial ? rnd(70, 200) : rnd(230, 260);
+  a.enemies.push({ x: W / 2 + Math.cos(ang) * d, y: H / 2 + Math.sin(ang) * d * .8, r: heavy ? 12 : 7, heavy,
+    hp: heavy ? 220 : 90, max: heavy ? 220 : 90, stun: 0, bleed: 0, lift: 0, liftT: 0, flash: 0, tick: 0, id: Math.random(), dead: 0 });
+}
+function cast(a) {
+  if (a.t - a.lastCast < 0.8) return;
+  a.lastCast = a.t; a.castAt = a.t; a.hitSet.clear();
+  a.cracks = [...Array(14)].map((_, i) => {
+    let ang = i / 14 * Math.PI * 2 + rnd(-.15, .15), pts = [[0, 0]], r = 0;
+    while (r < R) { r += rnd(14, 26); ang += rnd(-.3, .3); pts.push([Math.cos(ang) * Math.min(r, R), Math.sin(ang) * Math.min(r, R) * .8]); }
+    return pts;
+  });
+  a.erupted = false; a.ripple = -1;
+}
+function inZone(e) { const dx = e.x - W / 2, dy = (e.y - H / 2) / .8; return Math.hypot(dx, dy) <= R + e.r * .5; }
+function zoneDist(e) { return Math.hypot(e.x - W / 2, (e.y - H / 2) / .8); }
+function addStalk(a, x, y, h, delay, life, opt = {}) {
+  a.stalks.push({ x, y, h, born: a.t + delay, life, lean: opt.lean ?? rnd(-.18, .18), w: opt.w ?? rnd(3.5, 6), bloody: opt.bloody || false, fence: opt.fence || false });
+}
+function strike(a, e, mode) {
+  if (a.hitSet.has(e.id)) return; a.hitSet.add(e.id);
+  e.hp -= HIT; a.dmg += HIT; e.flash = .15;
+  e.stun = e.heavy ? .6 : 1.2; e.bleed = BLEED_T + e.stun; e.tick = e.stun;
+  a.nums.push({ x: e.x, y: e.y - e.r - 6, s: HIT, c: '#fff6dc', t: 0, big: true });
+  if (mode === 'lift') { e.liftT = e.stun; }
+}
+function erupt(a, vkey) {
+  const cx = W / 2, cy = H / 2;
+  if (vkey === 'A') {
+    for (let i = 0; i < 85; i++) {
+      const ang = rnd(0, Math.PI * 2), d = Math.sqrt(Math.random()) * R;
+      if (d < 18) continue;
+      addStalk(a, cx + Math.cos(ang) * d, cy + Math.sin(ang) * d * .8, rnd(18, 38), rnd(0, .05), 1.5);
+    }
+    for (const e of a.enemies) if (inZone(e)) {
+      for (let k = 0; k < 3; k++) addStalk(a, e.x + rnd(-e.r, e.r), e.y + rnd(-2, 4), rnd(34, 46), 0, 1.5, { bloody: true });
+      strike(a, e);
+    }
+  } else if (vkey === 'B') {
+    a.ripple = a.t;
+    const rings = [28, 52, 76, 100, 122, 140];
+    rings.forEach((rr, ri) => {
+      const n = Math.round(rr / 5.5), last = ri === rings.length - 1;
+      for (let i = 0; i < n; i++) {
+        const ang = i / n * Math.PI * 2 + ri * .3 + rnd(-.04, .04);
+        addStalk(a, cx + Math.cos(ang) * rr, cy + Math.sin(ang) * rr * .8, last ? rnd(34, 42) : rnd(20, 32), ri * .07, last ? 3.2 : .9 + ri * .07, { fence: last, lean: last ? 0 : undefined, w: last ? 5.5 : undefined });
+      }
+    });
+    a.fence = a.t + 3.2;
+  } else {
+    for (let i = 0; i < 26; i++) {
+      const ang = rnd(0, Math.PI * 2), d = rnd(24, R);
+      addStalk(a, cx + Math.cos(ang) * d, cy + Math.sin(ang) * d * .8, rnd(8, 14), rnd(0, .1), 1.0, { w: rnd(2.5, 3.5) });
+    }
+    for (const e of a.enemies) if (inZone(e)) {
+      const n = e.heavy ? 5 : 4;
+      for (let k = 0; k < n; k++) {
+        const s = (k / (n - 1) - .5) * 2;
+        addStalk(a, e.x + s * e.r * 1.1, e.y + 3, rnd(44, 58) + (e.heavy ? 8 : 0), k * .02, (e.heavy ? .6 : 1.2) + .35, { lean: -s * .32, w: rnd(5, 7), bloody: true });
+      }
+      strike(a, e, 'lift');
+    }
+  }
+}
+
+// ---------- update ----------
+function update(a, vkey, dt) {
+  a.t += dt;
+  if (opts.auto && a.t - a.lastCast > CYCLE) cast(a);
+  const since = a.t - a.castAt;
+  if (since >= WIND && !a.erupted) { a.erupted = true; erupt(a, vkey); }
+  if (vkey === 'B' && a.ripple >= 0) {
+    const front = (a.t - a.ripple) / .07 * 24 + 18;
+    for (const e of a.enemies) if (inZone(e) && zoneDist(e) <= front) strike(a, e);
+    if (front > R + 20) a.ripple = -1;
+  }
+  const cx = W / 2, cy = H / 2;
+  for (const e of a.enemies) {
+    e.flash = Math.max(0, e.flash - dt);
+    if (e.dead) { e.dead += dt; continue; }
+    if (e.stun > 0) e.stun -= dt;
+    else {
+      const dx = cx - e.x, dy = cy - e.y, d = Math.hypot(dx, dy);
+      const sp = (e.heavy ? 16 : 26) * (e.bleed > 0 ? .85 : 1);
+      if (d > 24 + e.r) { e.x += dx / d * sp * dt; e.y += dy / d * sp * dt; }
+      if (vkey === 'B' && a.t < a.fence) {           // the fence holds them outside
+        const zd = zoneDist(e);
+        if (zd > R - 4 && zd < R + 12 + e.r) { const k = (R + 12 + e.r) / zd; e.x = cx + (e.x - cx) * k; e.y = cy + (e.y - cy) * k; }
+      }
+    }
+    if (e.liftT > 0) { e.liftT -= dt; e.lift = Math.min(1, e.lift + dt * 9); } else e.lift = Math.max(0, e.lift - dt * 6);
+    if (e.bleed > 0) {
+      e.bleed -= dt; e.tick -= dt;
+      if (e.tick <= 0 && e.stun <= 0) {
+        e.tick += .5; const d = BLEED_DPS * .5; e.hp -= d; a.dmg += d;
+        a.nums.push({ x: e.x + rnd(-6, 6), y: e.y - e.r - 4 - e.lift * 18, s: d, c: '#e0675c', t: 0 });
+      }
+      if (Math.random() < dt * 7) a.drops.push({ x: e.x + rnd(-e.r, e.r) * .6, y: e.y - e.lift * 18, vy: rnd(10, 30), g: e.y + rnd(2, 6), t: 0 });
+    }
+    if (e.hp <= 0) e.dead = .001;
+  }
+  a.enemies = a.enemies.filter(e => !e.dead || e.dead < .5);
+  while (a.enemies.filter(e => !e.dead).length < (opts.heavy ? 10 : 9)) spawn(a, false);
+  a.stalks = a.stalks.filter(s => a.t - s.born < s.life + .35);
+  for (const n of a.nums) n.t += dt; a.nums = a.nums.filter(n => n.t < .9);
+  for (const d of a.drops) { d.t += dt; if (d.y < d.g) { d.vy += 300 * dt; d.y += d.vy * dt; } }
+  a.drops = a.drops.filter(d => d.t < 2.2);
+}
+
+// ---------- draw ----------
+function stalkH(a, s) {
+  const age = a.t - s.born; if (age < 0) return 0;
+  const up = .09;
+  if (age < up) return s.h * (age / up) * 1.15;
+  if (age < up + .08) return s.h * (1.15 - .15 * (age - up) / .08);
+  if (age > s.life) return s.h * Math.max(0, 1 - (age - s.life) / .35);
+  return s.h;
+}
+function drawStalk(g, a, s) {
+  const h = stalkH(a, s); if (h <= .5) return;
+  const age = a.t - s.born;
+  const tx = s.x + s.lean * h, ty = s.y - h, w = s.w;
+  // dirt burst at the base when it pops
+  if (age < .3) { g.fillStyle = `rgba(110,90,60,${.6 * (1 - age / .3)})`; for (let i = 0; i < 4; i++) { const an = i * 1.7 + s.x; g.beginPath(); g.arc(s.x + Math.cos(an) * age * 40, s.y + Math.sin(an) * age * 18 - age * 20, 1.6, 0, 7); g.fill(); } }
+  g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(s.x + 2, s.y + 1, w * .9, w * .4, 0, 0, 7); g.fill();
+  const nx = -(ty - s.y), ny = tx - s.x, nl = Math.hypot(nx, ny) || 1, ox = nx / nl * w / 2, oy = ny / nl * w / 2;
+  const grd = g.createLinearGradient(s.x - ox, s.y - oy, s.x + ox, s.y + oy);
+  grd.addColorStop(0, '#2f5520'); grd.addColorStop(.45, s.fence ? '#8cbf55' : '#7fb04a'); grd.addColorStop(1, '#3c6a26');
+  g.fillStyle = grd;
+  // body with a slanted cut at the tip
+  g.beginPath(); g.moveTo(s.x - ox, s.y - oy); g.lineTo(tx - ox, ty - oy + w * .6); g.lineTo(tx + ox, ty + oy - w * .6); g.lineTo(s.x + ox, s.y + oy); g.closePath(); g.fill();
+  // nodes
+  g.strokeStyle = 'rgba(214,228,160,.55)'; g.lineWidth = 1;
+  for (let k = 9; k < h - 4; k += 10) { const f = k / h, px = s.x + (tx - s.x) * f, py = s.y + (ty - s.y) * f; g.beginPath(); g.moveTo(px - ox * 1.15, py - oy * 1.15); g.lineTo(px + ox * 1.15, py + oy * 1.15); g.stroke(); }
+  // cut face
+  g.fillStyle = s.bloody ? '#b8322a' : '#e4dcae';
+  g.beginPath(); g.ellipse(tx, ty, w * .55, w * .32, Math.atan2(ny, nx), 0, 7); g.fill();
+  if (s.bloody) { g.fillStyle = '#8f231c'; g.fillRect(tx - 1, ty, 2, Math.min(8, h * .2)); }
+}
+function drawEnemy(g, a, e) {
+  const lift = e.lift * 18, fade = e.dead ? 1 - e.dead / .5 : 1;
+  g.globalAlpha = fade;
+  g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.ellipse(e.x, e.y + e.r * .55, e.r * (1 - e.lift * .3), e.r * .45, 0, 0, 7); g.fill();
+  const y = e.y - lift;
+  const base = e.heavy ? '#7a4a9a' : '#b4443c';
+  g.fillStyle = e.flash > 0 ? '#fff' : e.stun > 0 ? (e.heavy ? '#8a7690' : '#a47872') : base;
+  g.beginPath(); g.arc(e.x, y, e.r, 0, 7); g.fill();
+  g.strokeStyle = 'rgba(0,0,0,.5)'; g.lineWidth = 1.5; g.stroke();
+  // eyes
+  g.fillStyle = '#1a1010'; g.fillRect(e.x - e.r * .45, y - e.r * .25, e.r * .25, e.r * .25); g.fillRect(e.x + e.r * .2, y - e.r * .25, e.r * .25, e.r * .25);
+  // health bar
+  if (e.hp < e.max && !e.dead) { g.fillStyle = '#000a'; g.fillRect(e.x - 10, y - e.r - 6, 20, 3); g.fillStyle = e.bleed > 0 ? '#e0675c' : '#d9a441'; g.fillRect(e.x - 10, y - e.r - 6, 20 * Math.max(0, e.hp / e.max), 3); }
+  // stun stars
+  if (e.stun > 0 && !e.dead) {
+    for (let i = 0; i < 3; i++) {
+      const an = a.t * 5 + i * 2.09, sx = e.x + Math.cos(an) * (e.r + 3), sy = y - e.r - 9 + Math.sin(an) * 3;
+      star(g, sx, sy, 2.8, '#ffd45a');
+    }
+  }
+  // bleed ring
+  if (e.bleed > 0 && e.stun <= 0 && !e.dead) { g.strokeStyle = `rgba(224,103,92,${.35 + .25 * Math.sin(a.t * 10)})`; g.lineWidth = 1.5; g.beginPath(); g.arc(e.x, y, e.r + 2.5, 0, 7); g.stroke(); }
+  g.globalAlpha = 1;
+}
+function star(g, x, y, r, c) {
+  g.fillStyle = c; g.beginPath();
+  for (let i = 0; i < 10; i++) { const rr = i % 2 ? r * .45 : r, an = i / 10 * Math.PI * 2 - Math.PI / 2; g.lineTo(x + Math.cos(an) * rr, y + Math.sin(an) * rr); }
+  g.closePath(); g.fill();
+}
+function drawPlayer(g, a) {
+  const x = W / 2, y = H / 2, since = a.t - a.castAt;
+  const crouch = since < WIND + .2 ? Math.min(1, since / WIND) : 0;
+  g.fillStyle = 'rgba(0,0,0,.45)'; g.beginPath(); g.ellipse(x, y + 9, 13, 5, 0, 0, 7); g.fill();
+  // palm-to-ground pose: a short flash ring under the hands
+  if (crouch > 0 && since < WIND + .2) { g.strokeStyle = `rgba(217,164,65,${.8 * (1 - Math.max(0, since - WIND) / .2)})`; g.lineWidth = 2; g.beginPath(); g.ellipse(x, y + 8, 10 + crouch * 6, 4 + crouch * 2, 0, 0, 7); g.stroke(); }
+  g.fillStyle = '#20263a'; g.beginPath(); g.arc(x, y - crouch * -2, 11, 0, 7); g.fill();
+  g.fillStyle = '#9a2c25'; g.fillRect(x - 11, y - 3 + crouch * 2, 22, 6);                  // lacquer chest plate
+  g.fillStyle = '#d9a441'; g.fillRect(x - 2, y - 3 + crouch * 2, 4, 6);
+  g.fillStyle = '#c2362b'; g.fillRect(x - 10, y - 9 + crouch * 2, 20, 3);                   // headband
+  g.fillStyle = '#ebe6d6'; g.fillRect(x - 5, y - 6 + crouch * 2, 3, 2); g.fillRect(x + 2, y - 6 + crouch * 2, 3, 2);
+}
+function draw(a, vkey) {
+  const g = a.card.ctx; g.setTransform(2, 0, 0, 2, 0, 0);
+  g.fillStyle = '#12140f'; g.fillRect(0, 0, W, H);
+  for (const p of a.ground) { g.fillStyle = p.c; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 7); g.fill(); }
+  const cx = W / 2, cy = H / 2, since = a.t - a.castAt;
+  // range hint
+  g.strokeStyle = 'rgba(127,176,74,.12)'; g.setLineDash([4, 6]); g.lineWidth = 1; g.beginPath(); g.ellipse(cx, cy, R, R * .8, 0, 0, 7); g.stroke(); g.setLineDash([]);
+  // wind-up: closing ring + cracks
+  if (since < WIND + 1.4) {
+    const k = Math.min(1, since / WIND), fadeOut = since > WIND ? Math.max(0, 1 - (since - WIND) / 1.4) : 1;
+    if (since < WIND) {
+      g.fillStyle = `rgba(127,176,74,${.07 + .1 * k})`; g.beginPath(); g.ellipse(cx, cy, R, R * .8, 0, 0, 7); g.fill();
+      g.strokeStyle = `rgba(160,210,100,${.5 + .5 * k})`; g.lineWidth = 2.5; g.beginPath(); g.ellipse(cx, cy, R * (1.25 - .25 * k), R * .8 * (1.25 - .25 * k), 0, 0, 7); g.stroke();
+      if (vkey === 'C') for (const e of a.enemies) if (inZone(e)) { g.strokeStyle = `rgba(224,103,92,${k})`; g.lineWidth = 1.5; g.beginPath(); g.ellipse(e.x, e.y + 3, e.r + 4, (e.r + 4) * .5, 0, 0, 7); g.stroke(); }
+    }
+    g.strokeStyle = `rgba(70,55,35,${.9 * fadeOut})`; g.lineWidth = 2; g.lineCap = 'round';
+    for (const c of a.cracks) {
+      const n = Math.max(2, Math.ceil(c.length * k)); g.beginPath();
+      for (let i = 0; i < n; i++) i ? g.lineTo(cx + c[i][0], cy + c[i][1]) : g.moveTo(cx + c[i][0], cy + c[i][1]);
+      g.stroke();
+    }
+    g.strokeStyle = `rgba(160,210,100,${.35 * fadeOut})`; g.lineWidth = .8;
+    for (const c of a.cracks) { const n = Math.max(2, Math.ceil(c.length * k)); g.beginPath(); for (let i = 0; i < n; i++) i ? g.lineTo(cx + c[i][0], cy + c[i][1] - 1) : g.moveTo(cx + c[i][0], cy + c[i][1] - 1); g.stroke(); }
+  }
+  // impact flash
+  if (since > WIND && since < WIND + .18 && vkey !== 'B') { g.fillStyle = `rgba(230,240,190,${.25 * (1 - (since - WIND) / .18)})`; g.beginPath(); g.ellipse(cx, cy, R, R * .8, 0, 0, 7); g.fill(); }
+  // ripple front
+  if (vkey === 'B' && since > WIND && since < WIND + .55) { const f = (since - WIND) / .42 * R; if (f < R + 6) { g.strokeStyle = 'rgba(200,230,150,.6)'; g.lineWidth = 3; g.beginPath(); g.ellipse(cx, cy, f, f * .8, 0, 0, 7); g.stroke(); } }
+  // blood on the ground
+  for (const d of a.drops) if (d.y >= d.g) { g.fillStyle = `rgba(140,30,24,${.7 * (1 - d.t / 2.2)})`; g.beginPath(); g.ellipse(d.x, d.g, 2, 1.1, 0, 0, 7); g.fill(); }
+  // y-sorted stalks + enemies + player
+  const items = [];
+  for (const s of a.stalks) items.push({ y: s.y, f: () => drawStalk(g, a, s) });
+  for (const e of a.enemies) items.push({ y: e.y + .5, f: () => drawEnemy(g, a, e) });
+  items.push({ y: cy + .4, f: () => drawPlayer(g, a) });
+  items.sort((p, q) => p.y - q.y).forEach(i => i.f());
+  for (const d of a.drops) if (d.y < d.g) { g.fillStyle = '#d0453a'; g.beginPath(); g.arc(d.x, d.y, 1.4, 0, 7); g.fill(); }
+  // numbers
+  g.textAlign = 'center';
+  for (const n of a.nums) {
+    g.globalAlpha = 1 - n.t / .9; g.font = `600 ${n.big ? 13 : 10}px "IBM Plex Mono", monospace`;
+    g.fillStyle = '#000'; g.fillText(Math.round(n.s), n.x + 1, n.y - n.t * 26 + 1);
+    g.fillStyle = n.c; g.fillText(Math.round(n.s), n.x, n.y - n.t * 26);
+  }
+  g.globalAlpha = 1;
+  // HUD line
+  const st = a.enemies.filter(e => e.stun > 0 && !e.dead).length, bl = a.enemies.filter(e => e.bleed > 0 && !e.dead).length;
+  const cd = Math.max(0, 14 - (a.t - a.lastCast) * (14 / CYCLE));
+  a.card.hud[0].textContent = st; a.card.hud[1].textContent = bl; a.card.hud[2].textContent = Math.round(a.dmg);
+  a.card.hud[3].textContent = cd > 0 ? cd.toFixed(1) + ' s' : 'ready';
+}
+
+const arenas = VARIANTS.map(v => ({ v, a: newArena(makeCard(v)) }));
+let last = performance.now();
+function frame(now) {
+  let dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (opts.slow) dt *= .3;
+  if (reduce && opts.auto) dt *= .6;
+  for (const { v, a } of arenas) { update(a, v.key, dt); draw(a, v.key); }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+arenas.forEach(({ a }) => { a.t = 2.4; });   // first cast shortly after load
+
+const doCast = () => arenas.forEach(({ a }) => cast(a));
+document.getElementById('cast').onclick = doCast;
+addEventListener('keydown', e => { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); doCast(); } });
+for (const id of ['auto', 'heavy', 'slow']) {
+  const b = document.getElementById(id);
+  b.onclick = () => { opts[id] = !opts[id]; b.setAttribute('aria-pressed', opts[id]); };
+}
+})();
+</script>

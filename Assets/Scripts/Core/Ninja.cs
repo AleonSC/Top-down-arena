@@ -330,6 +330,8 @@ namespace Arena
                 Apply = s => { s.SmokeRadiusMult += 0.4f; s.SmokeBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CeremonialArmor, MaxStacks = 2, Name = "Tempered Steel", Desc = "Ceremonial Armor's plates have 50% more health",
                 Apply = s => s.PlateHpMult += 0.5f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BambooGrove, MaxStacks = 2, Name = "Rhizome", Desc = "Bamboo Grove reaches 30% farther and its bleed lasts 50% longer",
+                Apply = s => { s.BgRadiusMult += 0.3f; s.BgBleedMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HealingDash, MaxStacks = 2, Name = "Morning Dew", Desc = "Healing Dash's footprints heal 50% more and are 25% bigger",
                 Apply = s => { s.MistHealMult += 0.5f; s.MistRadiusMult += 0.25f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Substitution, MaxStacks = 2, Name = "Body Double", Desc = "Substitution's shield is 60% stronger and lasts 2 s longer",
@@ -391,6 +393,13 @@ namespace Arena
                 Name = "Ceremonial Armor", Cooldown = 2.5f, Desc = "Armour plates circle you, blocking bullets and shoving enemies.",
                 Capstone = "A plate that breaks bursts for 30 damage to enemies within 60 px.",
                 Bot = b => b.Me.PlateN < Game.CerePlateMax,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.BambooGrove, Kit = Kit.Ninja, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (BambooGrove.cs)
+                Name = "Bamboo Grove", Cooldown = BgCooldown, Desc = "Bamboo bursts from the ground around you, stunning enemies, then bleeding them.",
+                Capstone = "The bamboo fence lasts 6 s.",
+                Bot = b => b.NearEnemies >= 3 && b.TargetD < BgRadius,
             },
             new AbilityDef
             {
@@ -481,6 +490,9 @@ namespace Arena
                 }
                 case AbilityId.CeremonialArmor:  // Ceremonial Armor (CeremonialArmor.cs)
                     SummonCerePlate(p, pw, cap);
+                    return true;
+                case AbilityId.BambooGrove:  // Bamboo Grove (BambooGrove.cs)
+                    CastBambooGrove(p, pw, cap);
                     return true;
                 case AbilityId.HealingDash:
                 {
@@ -1635,6 +1647,7 @@ namespace Arena
                 if (m.Kind == MinionKind.Clone || m.Kind == MinionKind.CloneWall)
                     clones.Add(m);
             TickCloneWalls(dt);  // CloneWall.cs
+            TickBambooGroves(dt);  // BambooGrove.cs: the wave, the stuns' bleeds
             foreach (var p in Players.Values)
             {
                 p.VanishT = Math.Max(0f, p.VanishT - dt);

@@ -684,6 +684,11 @@ namespace Arena
                 scratchIds.Add(b.Id);  // a Blood Wall: everything stops there, red aimed shots too (BloodWall.cs)
                 return;
             }
+            if (GroveStops(b))
+            {
+                scratchIds.Add(b.Id);  // a Bamboo Grove's fence: enemy shots stop on it (BambooGrove.cs)
+                return;
+            }
             if (CoverStops(b))
             {
                 scratchIds.Add(b.Id);  // a Deployable Cover: every enemy shot stops on its plates and wears it (DeployableCover.cs)
