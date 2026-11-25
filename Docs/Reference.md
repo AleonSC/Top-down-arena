@@ -22,7 +22,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Knight | x1.15 | x1 | Melee. Holding fire swings instead of shooting, hitting every enemy in the arc and cutting small bullets out of the air in front of you (big orbs, mines and red aimed shots still get through). Armoured for the thick of it: 115% health. |
 | Ninja | x0.85 | x1.12 | Thrown blades and quick melee with tricks and misdirection: stars that come back, stances, smoke and shadow clones. Fast (+12% move speed) but lightly protected (85% health): hit, slip away, hit again. |
 | Hemomancer | x1 | x1 | Blood magic: health is your resource. Every 1st ability costs a share of your health (never below 1 HP), every hit heals you for 3% of its damage, and you hit harder the lower your health (up to +40%). Shorter cooldowns make up for it. Full health and normal speed: live on the edge. |
-| Engineer | x1 | x0.95 | A builder who works in vectors: robots, walls, pylons and breaches drawn in cyan ink. Draftsman: +25% vectors. One robot weapon, ability and ultimate per role for now. Full health, a little slower (95%). |
+| Engineer | x1 | x0.95 | A builder who works in vectors: robots, walls, pylons and breaches drawn in cyan ink. Draftsman: +25% vectors. One robot weapon, ability and ultimate per role for now (the DPS also has the Bumble Remote). Full health, a little slower (95%). |
 | Arcanist | x0.9 | x1 | A mage of telekinesis, runes and enchantments: shards and blades that fly at your will, enemies lifted and thrown, sigils on the floor. Kinetic Field: enemy shots slow down near you. One weapon, ability and ultimate per role for now. 90% health. |
 
 ## Weapons
@@ -78,6 +78,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Sprite Staff | Healer | 0.5 s | 7 | 540 x 1 s | - | 14 | Primary Fire: A firefly that seeds an enemy and hops on; sprites heal whoever is hurt. |
 | Treant Rod | Healer | 0.55 s | 15 | - | 250 | 34 | Primary Fire: A thorny root whips out along your aim; your Treant blocks bullets and heals along its root. |
 | Spirit Chalk | Healer | 0.1 s | 26 | - | 450 | 26 | Primary Fire: Hold and drag to draw ink that burns enemies and heals allies; circle enemies to trap them.  Alternative Fire: Ignite your loops to burn what they hold. |
+| Hive Censer | Healer | 0.1 s | 18 | - | 420 | 83 | Primary Fire: Hold to pour insects from your cursor. They gather into swarms that wrap enemies (damage and slow) and shell allies in chitin, a barrier that wears off and is topped up near a swarm.  Alternative Fire: Hive Call: every swarm rushes to your cursor. |
 | Wolf Whistle | Dps | 0.3 s | 6.5 | 720 x 0.8 s | - | 150 | Primary Fire: Darts mark prey for your wolves; kills grow the pack.  Alternative Fire: Merge the pack into an alpha. |
 | Wisp Lantern | Dps | 0.25 s | 22 | - | - | 84 | Primary Fire: Wisps orbit you; each shot sends one to strike the nearest enemy and return. |
 | Imp Caller | Dps | 0.35 s | 0 | - | - | 77 | Primary Fire: Imps wait by you: tap to send one to explode at your cursor.  Alternative Fire: Hold to merge them into one big imp. |
@@ -145,7 +146,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Stasis Gun | Healer | 0.1 s | 14 | - | 300 | 37 | Primary Fire: Summon a Medic Bot that shoots rivets and heals nearby allies.  Alternative Fire: With the bot out, hold to freeze enemies in place at your cursor. |
 | Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Primary Fire: Summon a fast Assault Bot with a rapid rivet gun.  Alternative Fire: With the bot out, swipe a cyan blade in front of you. |
 | Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Primary Fire: Summon a fast Assault Bot with a rapid rivet gun.  Alternative Fire: With the bot out, swipe a cyan blade in front of you. |
-| Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Primary Fire: Summon a fast Assault Bot with a rapid rivet gun.  Alternative Fire: With the bot out, swipe a cyan blade in front of you. |
+| Bumble Remote | Dps | 0.24 s | 7 | - | - | 105 | You can't attack: a giant robot bee follows your cursor and fights for you. Enemies still go for you.  Primary Fire: Hold to double its stinger rate.  Alternative Fire: Swarm Burst: it dives to your cursor, blasts enemies away and releases a swarm of bees. |
 
 ### Arcanist
 
@@ -213,6 +214,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Gust Gate | Healer | 1st, choice 2 | 14 s | - | The ring is 40% wider and pushes enemies twice as hard. | A wind ring that gives anyone passing through a speed boost. |
 | Lumen Ward | Healer | 1st, choice 3 | 20 s | - | Also freezes enemies outside the light for as long as it lasts (not bosses). | A cone of light that heals allies and burns away enemy bullets. |
 | Sanctum | Healer | ultimate | 80 s | - | The dome is half again as wide (300 px). | A dome of light that blocks bullets, keeps allies up and heals them. |
+| Static Bubble | Healer | ultimate | 80 s | - | The burst reaches 240 px, and Static Rush lasts 8 s. | A bubble of static round you shoves enemies out, eats their shots and shields allies inside. What it touches feeds it until it bursts: Static Rush for everyone in the blast. |
 | Water Ward | Healer | 1st, choice 5 | 3 s | - | Splashes and bursts reach 40% farther. | Water drops orbit you and splash enemies and eat shots. |
 | Meteor | Dps | 1st, choice 1 | 10 s | - | Leaves burning ground for 3 s. | Call a meteor down at your cursor. |
 | Blizzard | Dps | 1st, choice 2 | 14 s | - | Lasts 10 s. | A storm at your cursor that slows and damages enemies. |
@@ -304,6 +306,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Vein Rush | Dps | 1st, choice 3 | 6 s | 10% of max health | The trail bursts after 1 s for 20 to everything on it. | Rush toward your cursor untouchable, bleeding enemies on the way. |
 | Crimson Harvest | Dps | ultimate | 65 s | - | Hold 8 s, and 25% more blood. | Rip blood from every enemy into a ball, then throw it as a huge blast. |
 | Blood Ravager | Dps | ultimate | 70 s | - | Lasts 12 s. | Eight blood legs burst out of you for 9 s: run fast and trample, and every click lashes a leg at an enemy nearby. |
+| Blood Boil | Dps | ultimate | 70 s | - | Up to +90% damage at full boil. | Your health drains for 10 s; the lower it gets, the faster you move and fire and the harder you hit. Press again to end it. |
 | Thorn Bloom | Dps | 1st, choice 5 | 8 s | 12% of max health | Tendrils jump 5 times. | Burst blood needles all round that chain between enemies. |
 
 ### Engineer

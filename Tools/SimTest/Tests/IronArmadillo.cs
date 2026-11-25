@@ -181,5 +181,26 @@ static partial class Program
         Check(me.ArmT == 0f && me.UltT == 0f && me.ArmSlams == 0, "and when the wave is over");
         g.State = MatchState.Fighting;
         host.Leave(""); client.Leave("");
+
+        // The lobby preview: the ball stays in the picture (its pen) and the dummies aren't flung far enough to zoom the view out.
+        var sc = new Showcase();
+        sc.Show(Role.Tank, Kit.Summoner, 0, Upgrades.FirstAbility(Role.Tank, Kit.Summoner, 0), true, true, 2);
+        float worstOut = 0f, maxExtent = 0f;
+        bool rolled2 = false;
+        for (int f = 0; f < 12f / dt; f++)
+        {
+            sc.Step(dt);
+            var pm = sc.Me;
+            if (pm == null) continue;
+            rolled2 |= Game.ArmRolling(pm);
+            V2 d = pm.Pos - Showcase.Home;
+            float outX = Math.Abs(d.X) - (Game.ArmShowHalfW - Game.ArmR), outY = Math.Max(-d.Y - (Game.ArmShowAbove - Game.ArmR), d.Y - (Game.ArmShowBelow - Game.ArmR));
+            if (Game.ArmRolling(pm)) worstOut = Math.Max(worstOut, Math.Max(outX, outY));
+            maxExtent = Math.Max(maxExtent, sc.Extent);
+        }
+        sc.Stop();
+        Console.WriteLine("  preview: past the pen by {0:0.0} px at most, view extent up to {1:0}", worstOut, maxExtent);
+        Check(rolled2 && worstOut <= 8f, "the lobby preview's ball stays in the picture (within a few px of its pen)");
+        Check(maxExtent < 330f, "and the dummies stay close enough that the view doesn't zoom out after them");
     }
 }

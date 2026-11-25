@@ -178,13 +178,16 @@ namespace Arena
         /// KitLook.Body: nothing over the model yet.
         void DrawEngineerBody(Player p, float r, float t) { }
 
-        /// KitLook.Shot: an Engineer's DPS shots are rivets.
+        /// KitLook.Shot: an Engineer's DPS shots are rivets (the Bumble Bot's are stingers).
         bool DrawEngineerShot(Bullet b, Rgba c, float t)
         {
             Player owner;
             if (b.Kind != Defs.DpsShot || game == null || !game.Players.TryGetValue(b.Owner, out owner) || owner.Kit != Kit.Engineer)
                 return false;
-            DrawRivet(b.Pos, b.Vel.Angle, 0.8f);
+            if (owner.Weapon.Id == WeaponId.BumbleRemote)
+                DrawStinger(b.Pos, b.Vel.Angle);  // the Bumble Bot's stingers (BumbleRemoteLook.cs)
+            else
+                DrawRivet(b.Pos, b.Vel.Angle, 0.8f);
             return true;
         }
 

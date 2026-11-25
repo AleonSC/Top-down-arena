@@ -614,6 +614,7 @@ static partial class Program
             g.Minions.Clear();
             g.Zones.Clear();
             g.Bullets.Clear();
+            typeof(Game).GetMethod("ResetHive", bf).Invoke(g, null);  // (the last weapon's Hive Censer swarms don't hurt this trial's dummies)
             var dummies = new List<Enemy>();
             for (int k = 0; k < 9; k++)
             {
@@ -919,6 +920,12 @@ static partial class Program
                     if (Math.Abs(range - want) < 0.5f) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (" + want.ToString("0") + " vs " + range.ToString("0") + ")");
                     continue;
                 }
+                if (w.Id == WeaponId.BumbleRemote)
+                {
+                    // No shots from you: the Bumble Bot flies at your cursor, no farther than BumbleLeash (BumbleRemote test); the aim line shows how far.
+                    if (Math.Abs(range - Game.BumbleLeash) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
+                    continue;
+                }
                 if (w.Id == WeaponId.WyvernStaff)
                 {
                     // No shots: the breath streams at your cursor, no farther than BreathReach (WyvernStaff test); the aim line shows how far.
@@ -941,6 +948,20 @@ static partial class Program
                 {
                     // No shots: a shard or blade is sent out (arcanist test); the aim line shows how far.
                     if (Math.Abs(range - (w.Id == WeaponId.OrbitShards ? Game.ShardReach : Game.BladeReach)) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
+                    continue;
+                }
+                if (w.Id == WeaponId.HiveCenser)
+                {
+                    // No shots: insects pour from the cursor, no farther than the reach (the aim line's end).
+                    V2 stand = new V2(120f, 450f);
+                    for (int f = 0; f < 10; f++)
+                    {
+                        me.Pos = stand;
+                        host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f), Fire = true });
+                    }
+                    float reached = me.HivePour.DistanceTo(stand);
+                    for (int f = 0; f < 5; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) }); }
+                    if (Math.Abs(reached - range) <= 2f) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (poured at " + reached.ToString("0") + " vs " + range.ToString("0") + ")");
                     continue;
                 }
                 if (w.Id == WeaponId.Nimbus || w.Id == WeaponId.SpiritChalk)
