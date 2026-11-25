@@ -1104,6 +1104,7 @@ static partial class Shot {
     CereScene();  // CERE=<plates>,<s since the last cast>[,1 hurt] (ShotCeremonial.cs)
     HeliScene();  // HELI=<s since the cast> [HELICAP=1] [FXOFF=1] (ShotHeli.cs)
     TankScene();  // TANK=<s since the cast> [TANKCAP=1] [FXOFF=1] (ShotTank.cs)
+    SupplyScene();  // SUPPLY=<s since the cast> [SUPPLYCAP=1] [FXOFF=1] (ShotSupply.cs)
     HospitalScene();  // HOSP=pick|<s since the cast> [HOSPTENT=1] (ShotHospital.cs)
     DeployTurretScene();  // DEPLOYTURRET=<s since the cast> [FXOFF=1] (ShotDeployTurret.cs)
     ThornBloomScene();  // THORNBLOOM=<s since the cast> [THORNCAP=1] (ShotThornBloom.cs)

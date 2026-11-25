@@ -878,6 +878,7 @@ namespace Arena
             s.Float(ref p.TpCd);
             s.Bool(ref p.StaticOn);  // Static Shock (StaticShock.cs)
             s.Float(ref p.OverchargeT);
+            s.Float(ref p.SupplyT);  // Supply Drop (SupplyDrop.cs)
             for (int k = 0; k < 2; k++)  // the Embolus Spears (EmbolusSpears.cs)
             {
                 s.Byte(ref p.EsSt[k]);
