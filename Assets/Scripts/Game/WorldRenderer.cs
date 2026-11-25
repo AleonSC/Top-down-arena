@@ -137,7 +137,7 @@ namespace Arena
             if (aim && game.Me != null && !game.Me.Downed && !game.Me.ParryActive && !LaunchHides(game.Me) && !(game.Me.Weapon.Id == WeaponId.MendersBow && game.Me.DrawT > 0f))  // (a drawn bow has its own: BowFocusLook.cs)
                 DrawAimLine(game.Me, cursor, t);
             if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.Revolver && game.Me.StunShots == 0)
-                DrawCylinder(game.Me, t);
+                DrawRevolverPips(game.Me, t);
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.TwinPistols)
                     DrawTwinLasers(p, t);  // Laser Sights' beams (TwinPistolsLook.cs)
