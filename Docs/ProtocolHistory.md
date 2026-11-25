@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 500: Orbital Laser (the DPS Soldier's third ultimate, key 2): `AbilityId.OrbitalLaser`, `FxKind.OrbitalLaser` and `Sfx.OrbitalLaser` (each at the end).
 - 499: Bamboo Grove (Tank Ninja 4th choice): `AbilityId.BambooGrove`, `FxKind.BambooGrove`, the Rare card Rhizome (card ids shift).
 - 498: Living Bolt (the DPS Elementalist's second ultimate, key 1): `Player.BoltT`, `BoltAge` in the player snapshot after `VortexR`; `AbilityId.LivingBolt`; `ZoneKind.StaticResidue`; `FxKind.LivingBolt` (at the end); `Msg.WeaponDash` kind 60 (a dash).
 - 497: Revolver rework: the player snapshot drops `AmmoUsed`/`ReloadT` and gains `RevStance`, `RevStep`, `RevCocked`, `RevCockT`, `RevT`, `RevFanReload`; WeaponDash kind 42 switches the Revolver's stance (was the Pistol Whip).

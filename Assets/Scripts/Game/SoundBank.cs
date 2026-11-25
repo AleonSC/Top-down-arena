@@ -420,6 +420,7 @@ namespace Arena
                 BuildFrost();  // FrostSoundBank.cs
                 BuildBloodBlast();  // BloodBlastSoundBank.cs
                 BuildWarhorn();  // WarhornSoundBank.cs
+                BuildOrbital();  // OrbitalSoundBank.cs
                 BuildRioter();  // RioterSoundBank.cs
                 BuildGraze();  // GrazeSoundBank.cs
                 BuildMenuHolo();  // MenuSoundBank.cs (last: it replaces some of the menu's older sounds)

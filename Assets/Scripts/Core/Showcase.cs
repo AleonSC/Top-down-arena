@@ -95,6 +95,7 @@ namespace Arena
                     : shown == AbilityId.LivingBolt ? Game.BoltChannel + Game.BoltTime + 1.5f  // (the trails fade before the next)
                     : shown == AbilityId.Vortex ? Game.VortexWindup + Game.VortexTime + 1.5f  // (the dummies walk home before the next)
                     : shown == AbilityId.AttackHelicopter ? Game.HeliTime + 2f  // (it flies away before the next)
+                    : shown == AbilityId.OrbitalLaser ? Game.OrbFxDur + 1f  // (the crater cools before the next)
                     : shown == AbilityId.LiteralTank ? Game.TankTime + 2f  // (the wreck clears before the next)
                     : shown == AbilityId.DragonsDogma ? Game.DogmaTime + 1.5f  // (it coils back in before the next)
                     : shown == AbilityId.Bloodbath ? Game.BathTime + 1.5f  // (a Bloodbath dries up before the next)

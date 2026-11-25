@@ -1533,6 +1533,7 @@ namespace Arena
             TickHolyCross(dt);  // HolyCross.cs: Holy Crosses flying
             TickCavalry(dt);    // CavalryCall.cs: lancers riding
             TickVolleys(dt);    // WarhornVolley.cs: the arrows' front crossing the field
+            TickOrbitals(dt);   // OrbitalLaser.cs: the beam's kills and the scorch
             TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickTanks(dt);      // LiteralTank.cs: the tank's time, running enemies over, getting out
