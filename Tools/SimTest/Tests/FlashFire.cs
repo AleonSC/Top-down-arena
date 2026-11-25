@@ -3,10 +3,10 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// Flash Fire (FlashFire.cs), the DPS Summoner's 4th choice on the lobby's 4th key: the table and cards, the pick reaching
-// the run and both screens, the real key path, the kindle (nothing lands at the cast), the ring reaching the near enemy
-// before the far one, 40 and burning and slowed, nothing past the radius, heavy enemies slowed less, the pyre catching an
-// enemy that walks onto it and ending on time, mastery (a 5 s pyre) and Backdraft (+25% radius, hotter burn).
+// Flash Fire (FlashFire.cs), the DPS Elementalist's third ultimate on key 2 of the lobby's Ultimate row: the table and
+// card, the pick reaching the run and both screens, the kindle (nothing lands at the cast), the ring reaching the near enemy
+// before the far one (100), nothing past the radius, the ground hurting and slowing what's in it (heavy enemies less), the
+// fire going out on time and leaving what's in it burning (not what walked out), mastery (11 s) and Backdraft.
 static partial class Program
 {
     static void FlashFireTest(float dt)
@@ -14,31 +14,39 @@ static partial class Program
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var hostAbility = typeof(Game).GetMethod("HostAbility", flags);
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
+        var masteredField = typeof(Game).GetField("castMastered", flags);
 
         var def = Upgrades.Ability(AbilityId.FlashFire);
-        Check(def.Name == "Flash Fire" && def.Choice == AbilityDef.Fourth && def.Kit == Kit.Summoner && def.Role == Role.Dps && def.Cooldown == 14f,
-            "Flash Fire: a 14 s DPS Summoner 1st ability on the 4th key");
-        Check(Upgrades.AbilityLimit(Role.Dps, Kit.Summoner) == 4 && Upgrades.FirstAbility(Role.Dps, Kit.Summoner, 3) == AbilityId.FlashFire
-            && Upgrades.FirstAbility(Role.Dps, Kit.Summoner, 0) == AbilityId.BatSwarm && Upgrades.FirstAbility(Role.Dps, Kit.Summoner, 2) == AbilityId.AlphaCall,
-            "the DPS Summoner's 4th key is Flash Fire; its first three are unchanged");
-        Check(Upgrades.All.Any(u => u.ClassAbility && u.Grants == AbilityId.FlashFire) && Upgrades.All.Any(u => u.Name == "Backdraft" && u.RequiresAbility == AbilityId.FlashFire && u.Rarity == Rarity.Rare),
-            "Flash Fire is a very rare card for DPS Summoners who picked another, and Backdraft a Rare card for it");
+        Check(def.Name == "Flash Fire" && def.Choice == AbilityDef.Ult && def.UltKey == 2 && def.Kit == Kit.Elementalist && def.Role == Role.Dps && def.Cooldown == 80f,
+            "Flash Fire is the DPS Elementalist's ultimate on key 2, 80 s");
+        Check(Upgrades.Ultimate(Role.Dps, Kit.Elementalist, 2) == AbilityId.FlashFire && Upgrades.Ultimate(Role.Dps, Kit.Elementalist, 1) == AbilityId.LivingBolt
+            && Upgrades.Ultimate(Role.Dps, Kit.Elementalist) == AbilityId.BulletRain && Upgrades.ClampUlt(Role.Dps, Kit.Elementalist, 2) == 2
+            && Upgrades.AbilityLimit(Role.Dps, Kit.Summoner) == 3,
+            "key 2 is Flash Fire; Bullet Rain and Living Bolt keep keys 0 and 1; the DPS Summoner keeps three abilities");
+        Check(Upgrades.All.Any(u => u.Name == "Backdraft" && u.RequiresAbility == AbilityId.FlashFire && u.Rarity == Rarity.Rare),
+            "Backdraft is a Rare card for it");
 
         int port = nextPort++;
-        var hostS = new Session { AutoStart = 2, StartWave = 3 };
-        hostS.Host(port, "Pyro", Role.Dps, 0, 3, Kit.Summoner);
-        var client = JoinAs(port, false, "Friend", Role.Healer, 0, 0, Kit.Knight);
+        var hostS = new Session { AutoStart = 3, StartWave = 3 };
+        hostS.Host(port, "Pyro", Role.Dps, 0, 0, Kit.Elementalist, 0, 2);
+        var client = new Session();
+        client.Join("127.0.0.1", port, "Friend", Role.Healer, 0, 0, Kit.Knight);
         var s = new[] { hostS, client };
+        Run(s, dt, 3, () => hostS.Lobby.Count == 2 && client.Lobby.Count == 2 && !hostS.Game.Running);
+        Run(s, dt, 2, () => client.Lobby[1].Ult == 2);
+        Check(hostS.Lobby[1].UltId == AbilityId.FlashFire && client.Lobby[1].Ult == 2, "the pick reaches the host and the other player");
+        hostS.StartMatch();
         WaitForGame(hostS, client, dt);
         var g = hostS.Game;
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
-        Check(me.Slots[0].Id == AbilityId.FlashFire && client.Game.Players[1].Slots[0].Id == AbilityId.FlashFire, "the 4th pick reaches the run, on both screens");
-        g.DevSetGod(2, true);
+        Check(me.Slots[Upgrades.UltSlot].Id == AbilityId.FlashFire && client.Game.Players[1].Slots[Upgrades.UltSlot].Id == AbilityId.FlashFire,
+            "in the run the ultimate is Flash Fire, on both screens");
+        foreach (var q in g.Players.Values) g.DevSetGod(q.Id, true);
 
-        V2 home = new V2(500f, 450f);
+        V2 home = new V2(600f, 500f);
         var mine = new HashSet<int>();
-        var hold = new Dictionary<int, V2>();  // enemies pinned in place (the pyre test lets one walk)
+        var hold = new Dictionary<int, V2>();
         Func<V2, EnemyType, Enemy> make = (at, type) =>
         {
             var e = (Enemy)spawn.Invoke(g, new object[] { type, at, 0f, 0, false });
@@ -50,7 +58,7 @@ static partial class Program
             {
                 foreach (var id in g.Enemies.Keys.Where(k => !mine.Contains(k)).ToList()) g.Enemies.Remove(id);
                 foreach (var e in g.Enemies.Values) { e.FireT = 99f; if (hold.ContainsKey(e.Id)) e.Pos = hold[e.Id]; }
-                g.Minions.Clear();  // no wolves biting: only the fire hurts
+                g.Minions.Clear();
                 me.Pos = home;
                 hostS.Poll(); client.Poll();
                 g.FixedStep(dt, new PlayerInput { AimAt = home + new V2(100f, 0f) });
@@ -60,68 +68,74 @@ static partial class Program
         Action reset = () =>
         {
             mine.Clear(); hold.Clear(); g.Enemies.Clear(); g.Bullets.Clear(); g.Effects.Clear(); client.Game.Effects.Clear();
-            step(Game.FfPyreStart + Game.FfPyreMastered + 0.5f);  // any fire from before is over
-            me.Slots[0].Charges = 1; me.Slots[0].Timer = 0f; me.Pos = home; me.Downed = false; me.Hp = me.MaxHp;
-            me.MasteryXp.Remove(AbilityId.FlashFire); me.Stats.FfRadiusMult = 1f; me.Stats.FfBurnMult = 1f;
+            step(Game.FfFireStart + Game.FfLifeMastered + 1f);  // any fire from before is out
+            foreach (var id in g.Zones.Keys.ToList()) g.Zones.Remove(id);
+            me.Slots[Upgrades.UltSlot].Charges = 1; me.Slots[Upgrades.UltSlot].Timer = 0f; me.UltT = 0f; me.Pos = home; me.Downed = false; me.Hp = me.MaxHp;
+            me.Stats.FfRadiusMult = 1f; me.Stats.FfBurnMult = 1f; masteredField.SetValue(g, false);
+            g.State = MatchState.Fighting;
         };
+        Action cast = () => hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, home, false });
         EnemyType heavyType = EnemyType.Grunt;
         foreach (EnemyType et in Enum.GetValues(typeof(EnemyType))) { if ((int)et >= Defs.Enemies.Length) continue; var d = Defs.Get(et); if (d != null && d.Heavy && !d.IsBoss) { heavyType = et; break; } }
+        float dmg = me.Stats.DmgMult;
 
-        // The real key path: a press casts it; nothing lands during the kindle.
+        // The kindle, then the ring rolling out.
         reset();
-        var near = make(home + new V2(30f, 0f), EnemyType.Grunt);
-        var far = make(home + new V2(-140f, 0f), EnemyType.Grunt);
-        var outside = make(home + new V2(0f, 240f), EnemyType.Grunt);
-        var heavy = make(home + new V2(0f, -100f), heavyType);
+        var near = make(home + new V2(40f, 0f), EnemyType.Grunt);
+        var far = make(home + new V2(-235f, 0f), EnemyType.Grunt);
+        var outside = make(home + new V2(0f, 330f), EnemyType.Grunt);
+        var heavy = make(home + new V2(0f, -150f), heavyType);
         step(dt);
-        foreach (var e in new[] { near, far, outside, heavy }) e.Hp = e.MaxHp;
-        hostS.Poll(); client.Poll();
-        g.FixedStep(dt, new PlayerInput { Ability = true, AimAt = home + new V2(100f, 0f) });
-        Check(g.Effects.Count(f => f.Kind == FxKind.FlashFire) == 1, "pressing the ability key casts it: one fire effect");
-        step(0.2f);
+        foreach (var e in new[] { near, far, outside, heavy }) { e.Hp = e.MaxHp; e.BurnT = 0f; }
+        cast();
+        Check(g.Effects.Count(f => f.Kind == FxKind.FlashFire) == 1, "casting: one fire effect");
+        step(0.3f);
         Check(client.Game.Effects.Count(f => f.Kind == FxKind.FlashFire) == 1, "the other screen sees the fire");
-        Check(lost(near) == 0f && lost(far) == 0f, "nothing lands during the 0.3 s kindle");
-        step(0.12f);  // just past the kindle: the ring has reached the near one, not yet the far one
-        Check(lost(near) >= 40f && lost(near) < 50f && near.BurnT > 0f && near.SlowT > 0f && near.SlowMult < 0.65f,
-            "the ring reaches the near enemy first: 40, burning and slowed 40% (" + lost(near).ToString("0") + ")");
+        Check(lost(near) == 0f && lost(far) == 0f, "nothing lands during the 0.5 s kindle");
+        step(0.25f);  // 0.55 s: the ring has reached the near one, not yet the far one
+        Check(lost(near) >= 100f * dmg - 1f && lost(near) < 110f * dmg && near.SlowT > 0f && near.SlowMult < 0.65f,
+            "the ring reaches the near enemy first: 100 and slowed 40% (" + lost(near).ToString("0") + ")");
         Check(lost(far) == 0f, "the far enemy isn't reached yet: the ring rolls outward");
         step(0.3f);
-        Check(lost(far) >= 40f && far.BurnT > 0f, "the ring reaches the far edge (" + lost(far).ToString("0") + ")");
-        Check(lost(outside) == 0f && outside.BurnT <= 0f && outside.SlowT <= 0f, "nothing past the radius");
+        Check(lost(far) >= 100f * dmg - 1f, "the ring reaches the far edge (" + lost(far).ToString("0") + ")");
+        Check(lost(outside) == 0f && outside.SlowT <= 0f, "nothing past the radius");
         Check(heavy.SlowT > 0f && heavy.SlowMult > 0.75f, "a heavy enemy is slowed less (x" + heavy.SlowMult.ToString("0.00") + ")");
+
+        // The ground: 25 a second while it burns, no burn yet.
         float before = lost(near);
+        step(2f);
+        float ground = (lost(near) - before) / 2f;
+        Check(ground > 22f * dmg && ground < 28f * dmg && near.BurnT <= 0f, "the ground hurts 25 a second, and doesn't set them burning yet (" + ground.ToString("0.0") + "/s)");
+        var leaver = near;
+        hold[leaver.Id] = home + new V2(400f, 0f);  // walks out before it ends
+        step(Game.FfFireStart + Game.FfLife - 2.85f - 0.1f);  // just before it goes out (2.85 s in so far)
+        Check(far.BurnT <= 0f && g.Effects.Any(f => f.Kind == FxKind.FlashFire), "still burning 8 s in, nobody set burning yet");
+        step(0.3f);
+        Check(far.BurnT > Game.FfBurnTime - 0.5f && far.BurnDps > 11f * dmg, "as it goes out, what's in it is left burning (12 a second for 5 s)");
+        Check(leaver.BurnT <= 0f && outside.BurnT <= 0f, "what walked out (or was never in it) isn't");
+        float after = lost(far);
         step(1f);
-        Check(lost(near) > before + 4f, "the burn hurts (" + (lost(near) - before).ToString("0.0") + " in 1 s)");
+        Check(lost(far) - after > 10f * dmg && lost(far) - after < 14f * dmg, "the fire's out: only the burn hurts now (" + (lost(far) - after).ToString("0.0") + ")");
 
-        // The pyre: an enemy walking onto the edge is set burning; it ends after 3 s.
+        // Mastered: 11 s.
         reset();
-        var walker = make(home + new V2(0f, 260f), EnemyType.Grunt);
-        hostAbility.Invoke(g, new object[] { 1, 0, home, false });
-        step(Game.FfPyreStart + 0.5f);
-        Check(walker.BurnT <= 0f, "an enemy outside isn't burning");
-        hold[walker.Id] = home + new V2(0f, Game.FfRadius + 4f);
-        step(0.1f);
-        Check(walker.BurnT > 0f && walker.SlowT > 0f && lost(walker) < 1f, "stepping onto the pyre sets it burning and slowed (no flash damage)");
-        var late = make(home + new V2(Game.FfRadius, 0f), EnemyType.Grunt);
-        step(Game.FfPyre + 0.5f);
-        Check(late.BurnT <= Game.FfBurnTime - 0.5f, "the pyre is out after 3 s (the late enemy's burn is running down)");
+        me.MasteryXp[AbilityId.FlashFire] = 1e6f;
+        var stay = make(home + new V2(100f, 0f), EnemyType.Grunt);
+        step(dt); stay.Hp = stay.MaxHp;
+        cast();
+        me.MasteryXp.Remove(AbilityId.FlashFire);
+        step(Game.FfFireStart + 10f);
+        Check(stay.BurnT <= 0f && g.Effects.Any(f => f.Kind == FxKind.FlashFire), "mastered, it still burns 10 s in");
+        step(1.3f);
+        Check(stay.BurnT > 0f, "and goes out after 11 s");
 
-        // Mastered: the pyre stands 5 s.
+        // Backdraft: 20% farther, the burn 50% hotter.
         reset();
-        me.MasteryXp[AbilityId.FlashFire] = 99999f;
-        hostAbility.Invoke(g, new object[] { 1, 0, home, false });
-        step(Game.FfPyreStart + 4.2f);
-        var latecomer = make(home + new V2(0f, -Game.FfRadius), EnemyType.Grunt);
-        step(0.1f);
-        Check(latecomer.BurnT > 0f, "mastered, the pyre still burns 4.2 s in");
-
-        // Backdraft: 25% farther, the burn 50% hotter.
-        reset();
-        me.Stats.FfRadiusMult = 1.25f; me.Stats.FfBurnMult = 1.5f;
-        var edge = make(home + new V2(190f, 0f), EnemyType.Grunt);
+        me.Stats.FfRadiusMult = 1.2f; me.Stats.FfBurnMult = 1.5f;
+        var edge = make(home + new V2(300f, 0f), EnemyType.Grunt);
         step(dt); edge.Hp = edge.MaxHp;
-        hostAbility.Invoke(g, new object[] { 1, 0, home, false });
-        step(0.7f);
-        Check(lost(edge) >= 40f && edge.BurnDps > Game.FfBurnDps * 1.4f, "Backdraft: the fire reaches an enemy 190 px out and burns hotter");
+        cast();
+        step(Game.FfFireStart + Game.FfLife + 0.2f);
+        Check(lost(edge) >= 100f * dmg && edge.BurnDps > 17f * dmg, "Backdraft: the fire reaches an enemy 300 px out and leaves it burning hotter");
     }
 }

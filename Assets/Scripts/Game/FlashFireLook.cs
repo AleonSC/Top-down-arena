@@ -3,11 +3,12 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The DPS Summoner's Flash Fire (Core/FlashFire.cs), take C "Pyre" of Docs/Mockups/flash-fire.html, drawn from the one
-    /// `FxKind.FlashFire` effect. The kindle: a warm wash over the circle, six rune arcs turning round its edge and growing,
-    /// embers streaming in to the caster and a glow at their feet. The flash: a white-hot ring rolls out to the edge over an
-    /// orange wash. The pyre: a scorched band at the edge with a red glow and a hot line, flame tongues bursting up along it
-    /// (overshoot, then flicker), embers rising inside; the last 0.5 s the flames sink and the band cools.
+    /// The DPS Elementalist's Flash Fire ultimate (Core/FlashFire.cs), take C "Pyre" of Docs/Mockups/flash-fire.html, drawn
+    /// from the one `FxKind.FlashFire` effect. The kindle: a warm wash over the circle, six rune arcs turning round its edge
+    /// and growing, embers streaming in to the caster and a glow at their feet. The flash: a white-hot ring rolls out to the
+    /// edge over an orange wash. The fire: a scorched band at the edge with a red glow and a hot line, flame tongues bursting
+    /// up along it (overshoot, then flicker), scorched ground inside with small flames flaring and dying all over it and
+    /// embers rising; the last 0.6 s the flames sink, smoke puffs up and the band cools.
     ///
     /// Tongues stand up the screen, so they're split for depth like Bamboo Grove's stalks: the far half before the enemies,
     /// the near half after them (`DrawFlashFireBack` / `DrawFlashFireFront`); the wash, runes, ring, band and embers go
@@ -19,11 +20,11 @@ namespace Arena
         static float FfHash(float n) => Mathf.Repeat(Mathf.Sin(n * 127.1f + 311.7f) * 43758.5453f, 1f);
         static float FfSeed(Effect fx) => Mathf.Repeat(fx.Pos.X * 0.37f + fx.Pos.Y * 1.91f, 1000f);
 
-        /// How lit the pyre is: 0 before the ring arrives, 1 standing, down to 0 over the fade.
-        static float FfPyreK(Effect fx)
+        /// How lit the fire is: 0 before the ring arrives, 1 burning, down to 0 over the fade.
+        static float FfFireK(Effect fx)
         {
-            float since = fx.T, stand = Game.FfPyreStart + fx.Pos2.Y;
-            if (since < Game.FfPyreStart)
+            float since = fx.T, stand = Game.FfFireStart + fx.Pos2.Y;
+            if (since < Game.FfFireStart)
                 return 0f;
             return since < stand ? 1f : Mathf.Clamp01(1f - (since - stand) / Game.FfFade);
         }
@@ -68,15 +69,37 @@ namespace Arena
                 Arc(c, front, 16f * s, FireOrange.WithAlpha(0.45f * fade), 56);
                 Arc(c, front, 6f * s, FireWhite.WithAlpha(0.95f * fade), 56);
             }
-            float pk = FfPyreK(fx);
+            float pk = FfFireK(fx);
             if (pk <= 0f)
                 return;
-            float grow = Mathf.Clamp01((since - Game.FfPyreStart) / 0.2f);
+            float grow = Mathf.Clamp01((since - Game.FfFireStart) / 0.2f);
             Circle(c, R - 6f * s, FfChar.WithAlpha(0.22f * pk), 48);  // scorched floor, warm light at the edge
             Circle(c, R - 24f * s, FireOrange.WithAlpha(0.05f * pk), 44);
             Arc(c, R, 22f * s, FfChar.WithAlpha(0.7f * pk * grow), 64);
             Arc(c, R, 9f * s, FireRed.WithAlpha((0.55f + 0.15f * Mathf.Sin(t * 6f)) * pk * grow), 64);
             Arc(c, R, 2.5f * s, FireYellow.WithAlpha((0.75f + 0.25f * Mathf.Sin(t * 11f)) * pk * grow), 64);
+            int ground = Mathf.Clamp(Mathf.RoundToInt(R * R / 1000f), 12, 110);
+            for (int i = 0; i < ground; i++)  // small flames flaring and dying all over the ground
+            {
+                float cyc = 0.9f + 0.8f * FfHash(seed + i * 6.1f), ph = Mathf.Repeat(t / cyc + FfHash(seed + i * 2.9f), 1f);
+                float a = FfHash(seed + i * 3.7f) * MathX.Tau, rr = Mathf.Sqrt(FfHash(seed + i * 9.3f)) * (R - 14f * s);
+                float life = Mathf.Sin(ph * Mathf.PI), h = (16f + 14f * FfHash(seed + i * 1.3f)) * s * life * pk * grow;
+                if (h < 1f)
+                    continue;
+                V2 at = c + V2.FromAngle(a) * rr;
+                Circle(at, h * 0.8f, FireOrange.WithAlpha(0.14f * pk * life), 10);
+                DrawFlame(at, new V2(0f, -1f), h, 4.5f * s, seed + i * 4.1f, t, 0.9f * pk);
+            }
+            if (since > Game.FfFireStart + fx.Pos2.Y)  // going out: smoke puffs up
+            {
+                float k = Mathf.Clamp01((since - Game.FfFireStart - fx.Pos2.Y) / Game.FfFade);
+                for (int i = 0; i < 18; i++)
+                {
+                    float a = FfHash(seed + i * 4.9f) * MathX.Tau, rr = Mathf.Sqrt(FfHash(seed + i * 7.7f)) * R;
+                    V2 at = c + V2.FromAngle(a) * rr + new V2(0f, -k * 26f * s);
+                    Circle(at, (8f + 8f * FfHash(seed + i)) * s * (0.6f + k), FireSmoke.WithAlpha(0.35f * Mathf.Sin(k * Mathf.PI)), 10);
+                }
+            }
             for (int i = 0; i < 26; i++)  // embers rising inside
             {
                 float ph = Mathf.Repeat(FfHash(seed + i * 1.9f) + t * 0.45f, 1f), a = FfHash(seed + i * 5.3f) * MathX.Tau;
@@ -97,7 +120,7 @@ namespace Arena
             {
                 if (fx.Kind != FxKind.FlashFire)
                     continue;
-                float pk = FfPyreK(fx);
+                float pk = FfFireK(fx);
                 if (pk <= 0f)
                     continue;
                 float since = fx.T, R = fx.Radius, s = R / Game.FfRadius, seed = FfSeed(fx);
@@ -108,7 +131,7 @@ namespace Arena
                     V2 b = fx.Pos + V2.FromAngle(a) * R;
                     if ((b.Y < fx.Pos.Y) != back)  // up the screen: behind the enemies
                         continue;
-                    float burst = FlameBurst((since - Game.FfPyreStart - FfHash(seed + i) * 0.08f) / 0.22f);
+                    float burst = FlameBurst((since - Game.FfFireStart - FfHash(seed + i) * 0.08f) / 0.22f);
                     if (burst <= 0.02f)
                         continue;
                     float h = (20f + 12f * FfHash(seed + i * 4.4f)) * s * burst * pk * (0.85f + 0.15f * Mathf.Sin(t * 13f + i * 1.3f));

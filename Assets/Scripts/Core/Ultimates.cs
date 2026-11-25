@@ -190,6 +190,10 @@ namespace Arena
                     CastLivingBolt(p, cap);
                     break;
 
+                case AbilityId.FlashFire:  // DPS: Elementalist, the third ultimate (FlashFire.cs)
+                    CastFlashFire(p, cap);
+                    break;
+
                 case AbilityId.DragonsDogma:  // Tank: Ninja, the second ultimate (DragonsDogma.cs)
                     CastDogma(p, cap);
                     break;

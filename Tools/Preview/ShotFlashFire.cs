@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Reflection;
 using Arena;
 
-// FLASHFIRE=<seconds since the cast>: the DPS Summoner's Flash Fire (Core/FlashFire.cs, Game/FlashFireLook.cs) played
+// FLASHFIRE=<seconds since the cast>: the DPS Elementalist's Flash Fire ultimate (Core/FlashFire.cs, Game/FlashFireLook.cs) played
 // through the real game (FLASHCAP=1 mastered): you at (800, 470) with grunts and a Heavy standing round you, some inside the
-// 160 px circle and some just outside, the cast 0.3 s into the scene. The kindle runs 0-0.3 s, the ring rolls 0.3-0.55 s,
-// the pyre stands to 3.55 s (mastered 5.55 s), then sinks over 0.5 s. Try 0.2, 0.42, 0.7, 2.0, 3.8. Use with
-// `ZOOM=2 shot.sh x hud 1 6 1` (6 s in, so the wave is fighting).
+// 260 px circle and some just outside, the cast 0.3 s into the scene. The kindle runs 0-0.5 s, the ring rolls 0.5-0.8 s,
+// the fire burns to 8.8 s (mastered 11.8 s), then goes out over 0.6 s. Try 0.3, 0.65, 2.0, 9.1. Use with
+// `ZOOM=1.3 shot.sh x hud 1 6 1` (6 s in, so the wave is fighting).
 static partial class Shot {
   static void FlashFireScene() {
     string ts = Environment.GetEnvironmentVariable("FLASHFIRE");
@@ -23,7 +23,7 @@ static partial class Shot {
     if (gm.Profile != null) foreach (EnemyType et in Enum.GetValues(typeof(EnemyType))) gm.Profile.TagSeen[et.ToString()] = 99;
     for (int i = 0; i < 3; i++) Step(host);
     gm.Bullets.Clear(); gm.Effects.Clear(); gm.Zones.Clear(); gm.Minions.Clear(); gm.Orbs.Clear();
-    me.Kit = Kit.Summoner; me.Role = Role.Dps; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Summoner, 0);
+    me.Kit = Kit.Elementalist; me.Role = Role.Dps; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Elementalist, 0);
     V2 home = new V2(800f, 470f);
     foreach (var q in gm.Players.Values) if (q != me) q.Pos = q.Disp = new V2(150f, 820f);
     EnemyType heavy = EnemyType.Grunt;
@@ -31,20 +31,20 @@ static partial class Shot {
     var rng = new Random(7);
     var mobs = new List<Enemy>();
     var spots = new Dictionary<Enemy, V2>();
-    for (int i = 0, tries = 0; mobs.Count < 12 && tries < 2000; tries++) {
-      float a = (float)rng.NextDouble() * MathX.Tau, d = i < 8 ? 50f + (float)rng.NextDouble() * 95f : 200f + (float)rng.NextDouble() * 45f;
+    for (int i = 0, tries = 0; mobs.Count < 15 && tries < 2000; tries++) {
+      float a = (float)rng.NextDouble() * MathX.Tau, d = i < 10 ? 60f + (float)rng.NextDouble() * 180f : 300f + (float)rng.NextDouble() * 60f;
       V2 at = home + V2.FromAngle(a) * d;
       if (mobs.Exists(o => o.Pos.CloserThan(at, 42f))) continue;
       var e = (Enemy)spawn.Invoke(gm, new object[] { i == 3 ? heavy : EnemyType.Grunt, at, 0f, 0, false });
-      e.SpawnT = 0f; e.Hp = e.MaxHp = i == 3 ? 400f : 200f; e.Pos = e.Disp = at; e.FireT = 99f; mobs.Add(e); spots[e] = at; i++;
+      e.SpawnT = 0f; e.Hp = e.MaxHp = i == 3 ? 1200f : 600f; e.Pos = e.Disp = at; e.FireT = 99f; mobs.Add(e); spots[e] = at; i++;
     }
-    me.Slots[0].Id = AbilityId.FlashFire; me.Slots[0].Charges = 1; me.Slots[0].Timer = 0f;
+    me.Slots[Upgrades.UltSlot].Id = AbilityId.FlashFire; me.Slots[Upgrades.UltSlot].Charges = 1; me.Slots[Upgrades.UltSlot].Timer = 0f;
     if (Environment.GetEnvironmentVariable("FLASHCAP") != null) me.MasteryXp[AbilityId.FlashFire] = 99999f;
     V2 aimAt = home + new V2(100f, -30f);
     me.Aim = (aimAt - home).Angle;
     int frames = (int)Math.Round((float.Parse(ts, inv) + 0.3f) * 60f);
     for (int f = 0; f < frames; f++) {
-      if (f == 18) cast.Invoke(gm, new object[] { me.Id, 0, aimAt, false });
+      if (f == 18) cast.Invoke(gm, new object[] { me.Id, Upgrades.UltSlot, aimAt, false });
       foreach (var e in mobs) { e.FireT = 99f; if (f < 18) e.Pos = e.Disp = spots[e]; }
       me.Pos = me.Disp = home;
       host.Poll(); gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt }); gm.Update(1f / 60f);
