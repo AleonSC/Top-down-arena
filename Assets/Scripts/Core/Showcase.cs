@@ -154,6 +154,8 @@ namespace Arena
             // The bow draws and lets go; everything else just holds the trigger.
             bool firing = !Idle && !demoAbility;  // an ability or ultimate demo shows just that: no trigger, no Alt
             input.Fire = firing && (!Game.ChargeWeapon(me.Weapon.Id) || MathX.Fmod(t, 1.3f) < 1.05f);
+            if (me.Weapon.Id == WeaponId.Revolver)  // single-action: clicked, not held (a click fires, the next cocks it; PistolWhip.cs)
+                input.Fire = firing && MathX.Fmod(t, 0.25f) < 0.12f;
             if (me.Weapon.Id == WeaponId.GoreMortar)  // the Gore Mortar: held just long enough to lob the clot onto the dummies
             {
                 float c = MathX.Clamp01((Distance / me.Stats.ShotSpeedMult - Game.ClotMin) / (Game.ClotMax - Game.ClotMin));

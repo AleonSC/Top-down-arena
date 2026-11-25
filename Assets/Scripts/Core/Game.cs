@@ -1581,7 +1581,7 @@ namespace Arena
             TickSteelWalls(dt);  // Knight.cs: Greatsword crescents stopping bullets
             TickStuckStars(dt);  // Ninja.cs: Shuriken stars falling out
             TickVines(dt);    // KitWeapons.cs: the Treant Rod's vine
-            TickHealerKit(dt);   // KitWeapons.cs: Ofuda wards, seeded enemies
+            TickHealerKit(dt);   // KitWeapons.cs: Blast Ofudas, seeded enemies
             TickNimbus(dt);      // Nimbus.cs: rain under each cloud heals allies in it
             TickChalk(dt);       // Chalk.cs: drawing, and what the ink does
             TickLarderHost(dt);     // LarderFaction.cs: loose bile pools, morsels stepped on with no Devourer about

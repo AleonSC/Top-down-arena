@@ -68,7 +68,7 @@ namespace Arena
             { WeaponId.Vowguard, 74f },
             { WeaponId.MedicineDarts, 50f },
             { WeaponId.SpiritFan, 75f },
-            { WeaponId.Ofuda, 50f },
+            { WeaponId.Ofuda, 40f },
             { WeaponId.Shuriken, 140f },
             { WeaponId.Katana, 65f },
             { WeaponId.Kunai, 88f },

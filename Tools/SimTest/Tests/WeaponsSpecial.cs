@@ -481,7 +481,7 @@ static partial class Program
         host.Leave(""); client.Leave("");
     }
 
-    // Upgrade fixes: Velocity Rounds no longer carry a Flak Cannon shell or Ofuda charm past the cursor, and Incendiary
+    // Upgrade fixes: Velocity Rounds no longer carry a Flak Cannon shell past the cursor, and Incendiary
     // Rounds add up over every hit (about +25% a stack on a fast weapon and a slow one alike).
     static void UpgradeFixesTest(float dt)
     {
@@ -500,10 +500,10 @@ static partial class Program
         Action clear = () => { foreach (var e in g.Enemies.Values) e.Hp = 0f; for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput()); } g.Bullets.Clear(); g.Zones.Clear(); g.Minions.Clear(); };
         Func<V2, Enemy> dummy = at => { var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Brute, at, 0f, 0, false }); e.Hp = e.MaxHp = 1e6f; e.SpawnT = 0f; e.FireT = 99f; return e; };
 
-        // Velocity Rounds: where a Flak shell bursts and an Ofuda charm lands, aimed 250 px away.
+        // Velocity Rounds: where a Flak shell bursts, aimed 250 px away.
         var landed = new List<string>();
         bool allAtCursor = true;
-        foreach (var id in new[] { WeaponId.FlakCannon, WeaponId.Ofuda })
+        foreach (var id in new[] { WeaponId.FlakCannon })
             foreach (int stacks in new[] { 0, 3 })
             {
                 clear();
@@ -519,9 +519,10 @@ static partial class Program
                 allAtCursor &= dist < 30f;
             }
         Console.WriteLine("  " + string.Join("; ", landed));
-        Check(allAtCursor, "Velocity Rounds don't carry Flak Cannon shells or Ofuda charms past the cursor");
+        Check(allAtCursor, "Velocity Rounds don't carry Flak Cannon shells past the cursor");
 
         // Incendiary Rounds on a fast weapon (Riot Repeater) and a slow one (Revolver, as a Healer would): 6 s on one enemy.
+        // (Kept out of stuns: on some seeds a wave enemy stuns you, and a stunned Revolver doesn't fire.)
         var gain = new List<float>();
         foreach (var id in new[] { WeaponId.RiotRepeater, WeaponId.Revolver })
         {
@@ -532,7 +533,7 @@ static partial class Program
                 build("Incendiary Rounds", pass);
                 me.Weapon = Defs.Weapons.First(w => w.Id == id);
                 var e = dummy(from + new V2(200f, 0f));
-                for (int f = 0; f < 60 * 6; f++) { e.Pos = from + new V2(200f, 0f); e.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = e.Pos }); }
+                for (int f = 0; f < 60 * 6; f++) { e.Pos = from + new V2(200f, 0f); e.FrozenT = 1f; me.Pos = from; me.StunT = 0f; host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = id != WeaponId.Revolver || f % 12 < 6, AimAt = e.Pos }); }
                 for (int f = 0; f < 60 * 4; f++) { e.Pos = from + new V2(200f, 0f); e.FrozenT = 1f; me.Pos = from; host.Poll(); g.FixedStep(dt, new PlayerInput()); }  // let it burn out
                 dealt[pass] = e.MaxHp - e.Hp;
             }
@@ -541,11 +542,11 @@ static partial class Program
         Console.WriteLine("  incendiary (1 stack): Riot Repeater {0:+0}%, Revolver {1:+0}%", gain[0] * 100f, gain[1] * 100f);
         Check(gain.All(x => x > 0.35f && x < 0.45f), "Incendiary Rounds add 40% of every hit as burn, on fast and slow weapons alike");
 
-        // Hits that aren't bullets (a cone, a blast, a ward burst) carry weapon mods too: Explosive Rounds used to be
+        // Hits that aren't bullets (a cone, a blast) carry weapon mods too: Explosive Rounds used to be
         // dropped for them (their splashes were cleared before they were spent), and some never applied mods at all.
         var res = new List<string>();
         bool modsRide = true;
-        foreach (var id in new[] { WeaponId.ChainLight, WeaponId.RepulsionCannon, WeaponId.Ofuda })
+        foreach (var id in new[] { WeaponId.ChainLight, WeaponId.RepulsionCannon })
         {
             var dealt = new float[2];
             bool burned = false;
@@ -570,7 +571,7 @@ static partial class Program
             modsRide &= burned && dealt[1] > dealt[0] * 1.03f;  // the Repulsion Cannon shoves enemies out of its own explosions, so it gains least
         }
         Console.WriteLine("  Explosive + Incendiary Rounds on non-bullet weapons: " + string.Join(", ", res));
-        Check(modsRide, "weapon mods (Explosive, Incendiary) apply to Chain Light, Repulsion Cannon and Ofuda hits");
+        Check(modsRide, "weapon mods (Explosive, Incendiary) apply to Chain Light and Repulsion Cannon hits");
 
         // Ricochet on a weapon whose hits can't bounce (Chain Light's cone): a bounce bolt carries on to an enemy outside it.
         var outside = new float[2];
@@ -670,12 +671,17 @@ static partial class Program
 
         // Magnum Rounds: shots 15% bigger a stack, the same size on the client; area weapons' areas 15% wider.
         clear();
+        build("Magnum Rounds", 0);  // (no stacks: the plain round)
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Revolver);
+        me.Pos = from; me.AimAt = from + new V2(300f, 0f);
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        float plain = g.Bullets.Values.First(x => x.Owner == 1).Radius;  // (the Revolver's round is bigger than its kind's plain size: compare like with like)
+        g.Bullets.Clear();
         build("Magnum Rounds", 2);
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Revolver);
         me.Pos = from; me.AimAt = from + new V2(300f, 0f);
         volley.Invoke(g, new object[] { me, 0f, 0 });
         var round = g.Bullets.Values.First(x => x.Owner == 1);
-        float plain = Defs.BulletRadius(round.Kind);
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.FlakCannon);
         float area = Game.AreaMult(me);
         Console.WriteLine("  magnum rounds x2: a Revolver round {0:0.00} px (plain {1:0.00}); a Flak Cannon's area x{2:0.00}", round.Radius, plain, area);

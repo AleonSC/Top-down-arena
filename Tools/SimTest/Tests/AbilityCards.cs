@@ -468,25 +468,25 @@ static partial class Program
         g.Bullets.Clear();
         Check(near(fa1[0] / fa0[0], 1.3f, 0.001f) && near(fa1[1] / fa0[1], 1.25f, 0.001f), "Gale Fan: the gust reaches 25% farther and heals 30% more");
 
-        var burst = typeof(Game).GetMethod("BurstWard", flags);
+        var burst = typeof(Game).GetMethod("TalismanBurst", flags);
         Func<int, float[]> ofuda = n =>
         {
             arm(WeaponId.Ofuda, "Blessed Paper", n);
-            var z = (Zone)addZone.Invoke(g, new object[] { ZoneKind.OfudaWard, me, there, 26f, 10f });
-            z.DmgMult = 1f;
+            var charm = new Bullet { Owner = me.Id, Pos = there, Dmg = Defs.WeaponOf(WeaponId.Ofuda).Damage, Talisman = true };
             g.DevSetGod(2, false);
-            friend.Pos = friend.Disp = there + new V2(125f, 0f);  // past the 110 px heal reach, inside 137
+            friend.Pos = friend.Disp = there + new V2(Game.TalismanBurstR * 1.12f + friend.Def.BodyR, 0f);  // past the 55 px burst, inside 68.75
             friend.Hp = friend.MaxHp * 0.5f; float far0 = friend.Hp;
-            burst.Invoke(g, new object[] { z });
+            burst.Invoke(g, new object[] { charm, null });
             float farHeal = friend.Hp - far0;
-            friend.Pos = friend.Disp = there + new V2(40f, 0f);
+            friend.Pos = friend.Disp = there + new V2(20f, 0f);
             friend.Hp = friend.MaxHp * 0.5f; float near0 = friend.Hp;
-            burst.Invoke(g, new object[] { z });
+            burst.Invoke(g, new object[] { charm, null });
             g.DevSetGod(2, true);
             return new[] { farHeal, friend.Hp - near0 };
         };
         var wd0 = ofuda(0); var wd1 = ofuda(1);
-        Check(wd0[0] == 0f && wd1[0] > 0f && near(wd1[1] / wd0[1], 1.3f, 0.01f), "Blessed Paper: Ofuda wards burst 25% wider and heal 30% more (" + wd0[1] + " -> " + wd1[1] + ")");
+        Check(wd0[0] == 0f && wd1[0] > 0f && near(wd1[1] / wd0[1], 1.3f, 0.01f), "Blessed Paper: Ofuda talisman bursts 25% wider and heal 30% more (" + wd0[1] + " -> " + wd1[1] + ")");
+        Check(near(Game.BlastROf(me) / Game.BlastR, 1.25f, 0.001f), "Blessed Paper: Blast Ofudas 25% wider");
 
         var stick = typeof(Game).GetMethod("StarStuck", flags);
         var stuckF = typeof(Game).GetField("stuckStars", flags);
