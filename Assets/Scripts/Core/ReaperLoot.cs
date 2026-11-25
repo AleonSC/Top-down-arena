@@ -167,7 +167,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ScytheThrow,
-                Name = "Scythe Throw", Cooldown = 9f,
+                Name = "Scythe Throw", Icon = "scythethrow", Cooldown = 9f,
                 Desc = "Throw a giant scythe that cuts out and back; catch it to cool down faster.",
                 Capstone = "Catching it takes 60% off, and it cuts 50% harder.",
                 Bot = b => b.HaveTarget && b.TargetD < 380f,

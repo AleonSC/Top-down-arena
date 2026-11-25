@@ -193,7 +193,7 @@ A class is mostly two new files plus a line in each registry. Templates: `Docs/C
 4. **`Game/<Class>Look.cs`** from the template, plus its `KitLook` line in `Game/ClassLooks.cs`. Per-class player
    fields (timers, buffs) go on `Player` in `Game.cs`, and in `SyncPlayer` (`GameNet.cs`) if clients draw them.
 5. **Icons** in `PixelArt.cs`: the class card (`class_<name>`, named by `KitDef.Icon`) and one per 1st ability
-   (`ByUpgrade` maps the ability's name to it). Ultimates have none.
+   (named by its `AbilityDef.Icon`). Ultimates have none.
    **Upgrade cards** for the class (its 1st abilities' Rare cards, weapon or class cards) go in `Game.<Class>Cards`
    beside its abilities, added to `Upgrades.All`'s `Gather` (Docs/UpgradePools.md).
 6. **Check:** `Tools/SimTest/run.sh 1 1 classes` lists every missing piece (weapon cases, ability casts, icons, blurb,

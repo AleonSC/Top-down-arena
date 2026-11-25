@@ -78,9 +78,9 @@ namespace Arena
                 Player p;
                 if (!Players.TryGetValue(g.Owner, out p))
                     continue;
-                foreach (var e in Enemies.Values)
+                foreach (var e in FoesInCircle(g.Pos, g.R, by: p.Id))  // (the ring's own test below: half the body counts)
                 {
-                    if (!Targetable(e) || g.Hit.Contains(e.Id))
+                    if (g.Hit.Contains(e.Id))
                         continue;
                     float d = e.Pos.DistanceTo(g.Pos);
                     if (d > g.R + e.Radius * 0.5f || d - e.Radius * 0.5f > front)

@@ -8,7 +8,7 @@ namespace Arena
     ///   - Arashi (Storm, stance 0): long sweeping hits round you. Every wind-up is armoured: NodArmorCut less damage taken.
     ///   - Mamori (Guard, stance 1): quick jabs. While one plays, small enemy shots in a NodConeDeg cone in front of you are blocked
     ///     (not red aimed shots), and you walk at NodGuardSlow the whole time you're in the stance.
-    ///   - Alt (the weapon-action key, Msg.WeaponDash DashNodStance) switches stance. Each stance keeps its own place in its combo
+    ///   - Alt (the weapon-action key, Msg.WeaponDash WeaponAlt.NodStance) switches stance. Each stance keeps its own place in its combo
     ///     (Player.NodStorm, NodGuard): there is no timer, so a combo never goes back down by waiting or switching. The step
     ///     playing is cut short by the switch (what hasn't landed of it never does). Raising the parry sends both combos back to
     ///     their first step (ResetNodChain).
@@ -17,7 +17,6 @@ namespace Arena
     /// step), drawn from its age.
     public partial class Game
     {
-        const byte DashNodStance = 48;
         public const float NodArmorCut = 0.4f, NodGuardSlow = 0.85f, NodConeDeg = 90f, NodConeIn = 30f, NodConeOut = 110f, NodSwitchCd = 0.3f;
         /// Each extra projectile: another ring after Tenchi's slam, this much farther out, for this share of its damage.
         public const float NodAftershockOut = 45f, NodAftershockMult = 0.6f, NodAftershockDelay = 0.18f;
@@ -236,11 +235,11 @@ namespace Arena
                 return true;
             nodSwitchLocalCd = NodSwitchCd;
             if (IsHost)
-                HostWeaponDash(MyId, DashNodStance, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.NodStance, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashNodStance);
+                w.Write(WeaponAlt.NodStance);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

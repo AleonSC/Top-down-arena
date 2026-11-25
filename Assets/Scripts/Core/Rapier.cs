@@ -8,7 +8,7 @@ namespace Arena
     ///   - Tempo: every enemy a thrust hits adds a stack (up to RapierTempoMax; skewered bullets add none). The more Tempo, the
     ///     sooner the next thrust: RapierSlow at 0, RapierFast at full, straight between. After the last hit Tempo holds for
     ///     RapierGrace seconds, then drains RapierDrain stacks a second.
-    ///   - Flourish (the weapon-action key, Msg.WeaponDash DashFlourish): with at least RapierFlourishMin Tempo, spend all of
+    ///   - Flourish (the weapon-action key, Msg.WeaponDash WeaponAlt.Flourish): with at least RapierFlourishMin Tempo, spend all of
     ///     it. The blade whips back and forth, one swing per two stacks, RapierFlourishSwing apart; each swing throws a crescent
     ///     wave (a piercing KnightWave) down your aim. No thrusts until it's done.
     public partial class Game

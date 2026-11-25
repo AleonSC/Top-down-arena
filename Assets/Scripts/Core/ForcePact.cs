@@ -38,10 +38,7 @@ namespace Arena
         /// The ability: bind the enemy nearest your cursor.
         void ForcePactCast(Player p, V2 target, bool mastered)
         {
-            Enemy best = null;
-            foreach (var e in Enemies.Values)
-                if (CanPact(e) && (best == null || e.Pos.DistanceSq(target) < best.Pos.DistanceSq(target)))
-                    best = e;
+            Enemy best = NearestEnemy(target, CanPact);  // (no `by`: a player's stand-in can't be bound)
             if (best == null)
             {
                 foreach (var sl in p.Slots)  // nothing to take: it fizzles and the cooldown is refunded

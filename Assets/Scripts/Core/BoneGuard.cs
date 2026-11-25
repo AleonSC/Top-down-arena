@@ -8,7 +8,7 @@ namespace Arena
     ///     marrow thread for MarrowLife (FxKind.MarrowLink, Radius 0). When either is caged (KitWeapons.cs ApplyBoneDart),
     ///     every enemy linked to it is reeled MarrowYank px toward the cage (not bosses or heavies) and slowed MarrowSlow
     ///     while the cage holds; the thread snaps taut (FxKind.MarrowLink, Radius 1) and is spent.
-    ///   Ossuary Wall: Alt (Msg.WeaponDash, DashBoneWall) lobs a bone to your cursor (BoneWallReach at most); after
+    ///   Ossuary Wall: Alt (Msg.WeaponDash, WeaponAlt.BoneWall) lobs a bone to your cursor (BoneWallReach at most); after
     ///     BoneWallFlight a palisade of femurs rises across your aim (ZoneKind.OssuaryWall: Pos its middle, Aim the way it
     ///     was thrown, Radius half its length) for BoneWallLife. Enemy shots stop on it, enemies can't walk through it
     ///     (bosses can), and an enemy pressed against it takes a dart (BoneWallDart damage) every BoneWallTick, so it

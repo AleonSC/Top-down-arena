@@ -33,7 +33,9 @@ namespace Arena
             { 'M', new Color32(90, 55, 30, 255) },
         };
 
-        /// Upgrade name -> icon. Stat upgrades of the same kind share a picture at different tiers.
+        /// Upgrade card name -> icon, for the cards that grant no ability (one that does shows its ability's
+        /// AbilityDef.Icon: IconKey). Stat upgrades of the same kind share a picture at different tiers. The "classes"
+        /// sim test fails on a name here that no card has, so a renamed card can't silently lose its icon.
         static readonly Dictionary<string, string> ByUpgrade = new Dictionary<string, string>
         {
             { "Sharpened Rounds", "bullet" },
@@ -77,19 +79,11 @@ namespace Arena
             { "Multishot", "multishot" },
             { "Barrage", "barrage" },
             { "Piercing Rounds", "pierce" },
-            { "Shockwave", "shockwave" },
-            { "Overdrive", "bolt" },
-            { "Blink", "blink" },
-            { "Nova", "nova" },
-            { "Turret", "turret" },
             { "Warden's Guard", "wardenguard" },
-            { "Stun Gun", "stungun" },
             { "Hive Drones", "hivedrone" },
-            { "Royal Dive", "royaldive" },
             { "Bomber Escort", "bomber" },
             { "Twin Scythes", "twinscythes" },
             { "Final Reap", "finalreap" },
-            { "Scythe Throw", "scythethrow" },
             { "Searchlight", "searchlight" },
             { "Swarm Rounds", "split" },
             { "Royal Jelly", "jelly" },
@@ -123,49 +117,7 @@ namespace Arena
             { "Iron Grip", "gauntlet" },
             { "Forged Edge", "caughtsteel" },
             { "Bodkin Points", "firearrows" },
-            // Class ability cards (a 1st ability for 2nd, 3rd or 4th) reuse the nearest icon. Two cards that share
-            // one never meet in an offer: they belong to different classes, or one needs the ability the other grants.
-            { "Barrier", "bubble" },
-            { "Roar", "roar" },
-            { "Bulldoze", "fist" },
-            { "Mend Pulse", "pulse" },
-            { "Adrenaline Shot", "pulse" },
-            { "Deployable Medkit", "pulse" },
-            { "Poison Dart", "poisondart" },
-            { "Airstrike", "explode" },
-            { "Claymore", "claymore" },
-            { "Aeroaegis", "aeroaegis" },
-            { "Frost Nova", "snow" },
-            { "Flame Wall", "flame" },
-            { "Healing Rain", "rain" },
-            { "Gust Gate", "galewall" },
-            { "Lumen Ward", "aura" },
-            { "Meteor", "explode" },
-            { "Blizzard", "snow" },
-            { "Tsunami", "cyclone" },
-            { "Gale Wall", "galewall" },
-            { "Deployable Cover", "guard_wide" },
-            { "Decoy Dummy", "clone" },
-            { "Golem Wall", "guard_wide" },
-            { "Earthquake", "earthshaker" },
-            { "Force Pact", "guard_reinforced" },
-            { "Spirit Swarm", "regen2" },
-            { "Phoenix", "flame" },
-            { "Soul Lantern", "halo" },
-            { "Bat Swarm", "brood" },
-            { "Hydra", "split" },
-            { "Alpha Call", "fangs" },
-            { "Shield Wall", "towershield" },
-            { "Leap Slam", "earthshaker" },
-            { "Cavalry Call", "ironwill" },
-            { "Consecrate", "sacredground" },
-            { "Guardian's Oath", "bulwark" },
-            { "Lay on Hands", "miracle" },
-            { "Bladed Dive", "bladeddive" },
-            { "The Gauntlet", "gauntlet" },
-            { "Caught Steel", "caughtsteel" },
-            { "Warhorn Volley", "firearrows" },
-            // Ninja: each ability's upgrade card and its class ability card share an icon (they never meet in an offer).
+            // Ninja: each ability's upgrade card shares its ability's icon (AbilityDef.Icon); they never meet in an offer.
             { "Mirror Image", "clone" },
             { "Thick Smoke", "smoke" },
             { "Tempered Steel", "ironbody" },
@@ -175,15 +127,6 @@ namespace Arena
             { "Assassinate", "assassin" },
             { "Unseen Blade", "vanish" },
             { "Storm of Steel", "bladefan" },
-            { "Shadow Clone", "clone" },
-            { "Smoke Bomb", "smoke" },
-            { "Ceremonial Armor", "ironbody" },
-            { "Healing Dash", "dew" },
-            { "Substitution", "swap" },
-            { "Spirit Ward", "talisman" },
-            { "Shadow Step", "assassin" },
-            { "Vanish", "vanish" },
-            { "Blade Fan", "bladefan" },
             // Hemomancer: the same pairing.
             { "Hardened Blood", "bloodshell" },
             { "Blood Oath", "pact" },
@@ -194,21 +137,6 @@ namespace Arena
             { "High Pressure", "spray" },
             { "Usury", "debt" },
             { "Crimson Tide", "veinrush" },
-            { "Blood Shell", "bloodshell" },
-            { "Blood Wall", "pact" },
-            { "Exsanguinate", "drain" },
-            { "Blood Gift", "gift" },
-            { "Blood Freeze", "bloodfreeze" },
-            { "Martyr", "martyr" },
-            { "Arterial Spray", "spray" },
-            { "Drag Pylon", "dragpylon" },
-            { "Vector Wall", "vectorwall" },
-            { "Med Pylon", "medpylon" },
-            { "Kinetic Grasp", "kineticgrasp" },
-            { "Arcane Tether", "arcanetether" },
-            { "Telekinetic Crush", "telekineticcrush" },
-            { "Blood Debt", "debt" },
-            { "Vein Rush", "veinrush" },
         };
 
         static readonly Dictionary<string, string[]> Icons = new Dictionary<string, string[]>
@@ -2439,12 +2367,21 @@ namespace Arena
 
         static readonly Dictionary<string, Texture2D> cache = new Dictionary<string, Texture2D>();
 
-        /// The rows of an upgrade's icon, for drawing it in the world with GL (a chest item, PropsLook.cs), or null.
-        public static string[] RowsFor(string upgradeName)
+        /// An upgrade card's icon key: its ability's AbilityDef.Icon for a card that grants one, else ByUpgrade's; or null.
+        static string IconKey(UpgradeDef u)
         {
+            if (u.Grants != AbilityId.None)
+                return Upgrades.Ability(u.Grants).Icon;
             string key;
+            return ByUpgrade.TryGetValue(u.Name, out key) ? key : null;
+        }
+
+        /// The rows of an upgrade's icon, for drawing it in the world with GL (a chest item, PropsLook.cs), or null.
+        public static string[] RowsFor(UpgradeDef u)
+        {
+            string key = IconKey(u);
             string[] rows;
-            return ByUpgrade.TryGetValue(upgradeName, out key) && Icons.TryGetValue(key, out rows) ? rows : null;
+            return key != null && Icons.TryGetValue(key, out rows) ? rows : null;
         }
 
         /// A palette character's colour; false for '.' (transparent).
@@ -2460,11 +2397,18 @@ namespace Arena
             return false;
         }
 
-        /// The icon for an upgrade, or null if it has none.
-        public static Texture2D ForUpgrade(string upgradeName)
+        /// The icon for an upgrade card, or null if it has none.
+        public static Texture2D ForUpgrade(UpgradeDef u)
         {
-            string key;
-            return ByUpgrade.TryGetValue(upgradeName, out key) ? Get(key) : null;
+            string key = IconKey(u);
+            return key != null ? Get(key) : null;
+        }
+
+        /// The icon for an ability (AbilityDef.Icon), or null if it has none.
+        public static Texture2D ForAbility(AbilityId id)
+        {
+            string key = Upgrades.Ability(id).Icon;
+            return key != null ? Get(key) : null;
         }
 
         public static Texture2D Get(string key)

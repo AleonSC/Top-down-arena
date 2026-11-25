@@ -9,7 +9,7 @@ namespace Arena
     /// and a current fills a narrower, longer cone, dragging enemies toward you at RepelPullSpeed (stopping RepelPullStop in
     /// front of you), slowing them and stinging a little, while the meter drains at RepelDrain a second. You can't fire while
     /// pulling: let go (or run dry) and the next blast lands on the crowd you pulled in, which fills the meter back up. Your game
-    /// sends Msg.WeaponDash (DashPullOn when you press, DashPullOff when you let go); the host does the rest (TickRepulsion).
+    /// sends Msg.WeaponDash (WeaponAlt.PullOn when you press, WeaponAlt.PullOff when you let go); the host does the rest (TickRepulsion).
     public partial class Game
     {
         readonly System.Collections.Generic.List<Enemy> repelTargets = new System.Collections.Generic.List<Enemy>();

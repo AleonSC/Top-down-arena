@@ -765,63 +765,63 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ShieldWall, Kit = Kit.Knight, Role = Role.Tank, Choice = 0,
-                Name = "Shield Wall", Cooldown = 12f, Desc = "Raise a wall of steel plates that blocks bullets at your front.",
+                Name = "Shield Wall", Icon = "towershield", Cooldown = 12f, Desc = "Raise a wall of steel plates that blocks bullets at your front.",
                 Capstone = "Bullets that hit the shield are reflected back as your own.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.LeapSlam, Kit = Kit.Knight, Role = Role.Tank, Choice = 1,
-                Name = "Leap Slam", Cooldown = 9f, Desc = "Leap to your cursor untouchable, then slam and stun.",
+                Name = "Leap Slam", Icon = "earthshaker", Cooldown = 9f, Desc = "Leap to your cursor untouchable, then slam and stun.",
                 Capstone = "The landing also erases enemy bullets within 160 px.",
                 Bot = b => b.HaveTarget && b.TargetD > 140f && b.TargetD < 340f || b.BotDanger > 2.5f,
             },
             new AbilityDef
             {
                 Id = AbilityId.CavalryCall, Kit = Kit.Knight, Role = Role.Tank, Choice = 2,
-                Name = "Cavalry Call", Cooldown = 18f, Desc = "Two lancers charge across the map, shoving and slowing enemies.",
+                Name = "Cavalry Call", Icon = "ironwill", Cooldown = 18f, Desc = "Two lancers charge across the map, shoving and slowing enemies.",
                 Capstone = "Two more lancers ride outside the first pair, and the guard lasts 5 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 700f,
             },
             new AbilityDef
             {
                 Id = AbilityId.Consecrate, Kit = Kit.Knight, Role = Role.Healer, Choice = 0,
-                Name = "Consecrate", Cooldown = 14f, Desc = "Throw a Holy Cross that heals and speeds allies and hurts enemies.",
+                Name = "Consecrate", Icon = "sacredground", Cooldown = 14f, Desc = "Throw a Holy Cross that heals and speeds allies and hurts enemies.",
                 Capstone = "Two more crosses fly out at 22 degrees either side (each target is hit once).",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.GuardiansOath, Kit = Kit.Knight, Role = Role.Healer, Choice = 1,
-                Name = "Guardian's Oath", Cooldown = 15f, Desc = "Haul an ally to safety and protect everyone in a ward of light.",
+                Name = "Guardian's Oath", Icon = "bulwark", Cooldown = 15f, Desc = "Haul an ally to safety and protect everyone in a ward of light.",
                 Capstone = "Charges up to 800 px. The ward is wider, follows you, and stands a downed ally back up at 25% health.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.LayOnHands, Kit = Kit.Knight, Role = Role.Healer, Choice = 2,
-                Name = "Lay on Hands", Cooldown = 18f, Desc = "Heal the most hurt ally, or revive a downed one.",
+                Name = "Lay on Hands", Icon = "miracle", Cooldown = 18f, Desc = "Heal the most hurt ally, or revive a downed one.",
                 Capstone = "Also heals everyone else near them for half as much.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.BladedDive, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Instant = true,  // Bladed Dive (BladedDive.cs) so the numbers stay put
-                Name = "Bladed Dive", Cooldown = 10f, Desc = "Rush forward untouchable with a spinning blade; a kill resets the cooldown.",
+                Name = "Bladed Dive", Icon = "bladeddive", Cooldown = 10f, Desc = "Rush forward untouchable with a spinning blade; a kill resets the cooldown.",
                 Capstone = "Each kill heals you 5% of your health.",
                 Bot = b => b.HaveTarget && b.TargetD < 260f,
             },
             new AbilityDef
             {
                 Id = AbilityId.Gauntlet, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Instant = true,  // The Gauntlet (Gauntlet.cs); the id is Lunge's
-                Name = "The Gauntlet", Cooldown = 9f, Desc = "Challenge an enemy and charge it; kill it in time to reset the cooldown.",
+                Name = "The Gauntlet", Icon = "gauntlet", Cooldown = 9f, Desc = "Challenge an enemy and charge it; kill it in time to reset the cooldown.",
                 Capstone = "The Challenge lasts 8 s, and the charge's impact stuns for 1 s.",
                 Bot = b => b.HaveTarget && b.TargetD > 90f && b.TargetD < 380f,
             },
             new AbilityDef
             {
                 Id = AbilityId.CaughtSteel, Kit = Kit.Knight, Role = Role.Dps, Choice = 2,  // Caught Steel (CaughtSteel.cs)
-                Name = "Caught Steel", Cooldown = 16f, Desc = "Catch passing bullets as steel, then hurl them back.",
+                Name = "Caught Steel", Icon = "caughtsteel", Cooldown = 16f, Desc = "Catch passing bullets as steel, then hurl them back.",
                 Capstone = "Holds up to 18 shards.",
                 Bot = b => b.Danger,
             },
@@ -848,7 +848,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.WarhornVolley, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult, UltKey = 1,  // picked instead of the Drawbridge on the lobby's Ultimate row (WarhornVolley.cs)
-                Name = "Warhorn Volley", Cooldown = 70f,
+                Name = "Warhorn Volley", Icon = "firearrows", Cooldown = 70f,
                 Desc = "A volley of fire arrows sweeps the field, burning and pinning enemies.",
                 Capstone = "The volley is 40% wider and the fire burns for 8 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 900f,

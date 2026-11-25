@@ -69,7 +69,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.KineticGrasp, Kit = Kit.Arcanist, Role = Role.Tank, Choice = 0, FillsGaps = true,
-                Name = "Kinetic Grasp", Cooldown = 10f,
+                Name = "Kinetic Grasp", Icon = "kineticgrasp", Cooldown = 10f,
                 Desc = "Lift the biggest nearby enemy as a shield, then throw it.",
                 Capstone = "The throw hits 50% harder and stuns for twice as long.",
                 Bot = b => b.HaveTarget && b.TargetD < GraspRange,
@@ -84,7 +84,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ArcaneTether, Kit = Kit.Arcanist, Role = Role.Healer, Choice = 0, FillsGaps = true,
-                Name = "Arcane Tether", Cooldown = 12f,
+                Name = "Arcane Tether", Icon = "arcanetether", Cooldown = 12f,
                 Desc = "Pull the ally nearest your cursor to your side, safe and healed.",
                 Capstone = "It heals twice as much.",
                 Bot = b => b.AllyDown || b.AllyThreatened,
@@ -99,7 +99,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.TelekineticCrush, Kit = Kit.Arcanist, Role = Role.Dps, Choice = 0, FillsGaps = true,
-                Name = "Telekinetic Crush", Cooldown = 9f,
+                Name = "Telekinetic Crush", Icon = "telekineticcrush", Cooldown = 9f,
                 Desc = "Lift enemies at your cursor, pull them together and slam them.",
                 Capstone = "It grabs 40% wider.",
                 Bot = b => b.HaveTarget && b.TargetD < CrushRange,
@@ -333,8 +333,6 @@ namespace Arena
 
         // --- Alt: Shard Guard and the blades' recall (Msg.WeaponDash) ------------------------
 
-        const byte DashShardOn = 52, DashShardOff = 53, DashBladeRecall = 54;
-
         /// Your own game: the Orbit Shards' Alt is held (both edges go to the host); the Dancing Blades' is a tap.
         bool LocalArcanistAlt(Player me, bool pressed, bool released, V2 aimAt)
         {
@@ -343,13 +341,13 @@ namespace Arena
             {
                 if (!pressed && !released)
                     return true;
-                kind = pressed ? DashShardOn : DashShardOff;
+                kind = pressed ? WeaponAlt.ShardOn : WeaponAlt.ShardOff;
             }
             else if (me.Weapon.Id == WeaponId.DancingBlades)
             {
                 if (!pressed)
                     return true;
-                kind = DashBladeRecall;
+                kind = WeaponAlt.BladeRecall;
             }
             else
                 return false;
@@ -368,14 +366,14 @@ namespace Arena
         /// From HostWeaponDash: the Arcanist's kinds.
         bool HostArcanistDash(Player p, int kind)
         {
-            if (kind == DashShardOn || kind == DashShardOff)
+            if (kind == WeaponAlt.ShardOn || kind == WeaponAlt.ShardOff)
             {
-                p.ShardGuard = kind == DashShardOn && p.Weapon.Id == WeaponId.OrbitShards && !p.Downed;
+                p.ShardGuard = kind == WeaponAlt.ShardOn && p.Weapon.Id == WeaponId.OrbitShards && !p.Downed;
                 if (p.ShardGuard)
                     BroadcastFx(FxKind.Ring, p.Pos, Kits.Get(MinionKind.ArcShard).Color, ShardGuardR, 0.25f, Sfx.SpellArcane);
                 return true;
             }
-            if (kind == DashBladeRecall)
+            if (kind == WeaponAlt.BladeRecall)
             {
                 bool any = false;
                 foreach (var m in Minions.Values)

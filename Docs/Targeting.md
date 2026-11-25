@@ -1,6 +1,6 @@
 # Targeting: one way to ask "what does this hit?"
 
-> **Status: steps 1-7 done**, plus the lobby's PVP switch (`Session.HangoutPvp`, protocol 478). `Core/FoeQuery.cs` answers every player attack loop but three; PvP is on in the Hangout (`Core/Pvp.cs`):
+> **Status: steps 1-8 done**, plus the lobby's PVP switch (`Session.HangoutPvp`, protocol 478). `Core/FoeQuery.cs` answers every player attack loop but three; PvP is on in the Hangout (`Core/Pvp.cs`):
 > 89 of 91 weapons hit players in the `pvp` test (the other two only miss its close range), and every ability's query does. Status
 > effects reach players too (step 5).
 
@@ -52,6 +52,14 @@ struct enumerables: no allocation, they nest, and `HurtEnemy` inside one is safe
    Tsunami's arcs; marks (`MarkMult`), a Searchlight and the attacker's damage cards (Blood Price, Vein Tithe, Execute,
    Graviton Rounds, crits, cast power) raise PvP hits (`PvpHitMult`). After a PvP stun a player can't be stunned again for
    `PvpStunImmune` (1.5 s past its end).
+
+8. **Audit clean-up** (done): four damage loops that still walked the raw list moved onto `FoesInCircle` (Supply Drop's
+   impact, Bladed Dive's slashes, Iron Armadillo's ball, Bamboo Grove's ring, which keeps its own half-body test inside the
+   circle), and the hand-written "nearest enemy" picks of Poison Dart, Force Pact and the Nunchaku's swatted shots use
+   `NearestEnemy` (`Targets.cs`). Its overload `NearestEnemy(at, ok, range, by)` takes a filter (Force Pact's `CanPact`; no
+   `by` there, as a player can't be bound). Same picks in PvE (the first in the list wins a tie, as before). Still hand-written:
+   Shadow Step's landing (`ShadowStepLanding`, Ninja.cs) runs on your own game, where `Targetable` (host-only `SpawnT`) can't be
+   used, and loops with their own rule (venom and Lightning Rod jumps, caged enemies, bot sensing, boss and enemy AI).
 
 ## Behaviour notes
 

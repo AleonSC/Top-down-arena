@@ -14,7 +14,7 @@ namespace Arena
     ///     5 Crane Bloom: both fans fly open, a 60° petal wave TtBloomReach long that shoves, bats enemy shots back as yours, and
     ///       heals the allies in it TtBloomHeal with a Tailwind (Player.TtTailT: TtTailSpeed for TtBloomTail s, you too).
     ///   Each enemy hit fills Breeze TtBreezeHit, each heal TtBreezeHeal (Player.TtBreeze, 0-100, replicated).
-    ///   Alt, held (Msg.WeaponDash DashTessenOn / DashTessenOff): Kamikaze Gust. Holding pulls both fans back (Player.TtCharging,
+    ///   Alt, held (Msg.WeaponDash WeaponAlt.TessenOn / WeaponAlt.TessenOff): Kamikaze Gust. Holding pulls both fans back (Player.TtCharging,
     ///     TtCharge: you move at TtChargeSlow and can't attack); letting go sweeps them forward in one gust: a TtGustHalf cone
     ///     TtGustReach long that hurts, throws enemies back up to TtGustKnock (not bosses or heavies), bats every enemy shot in it
     ///     back as yours and heals the allies in it TtGustHeal with a Tailwind of TtGustTail s. A longer hold (TtChargeMin to
@@ -25,7 +25,6 @@ namespace Arena
     /// The look is Game/TwinTessenLook.cs; the fans' poses come from TtPose here.
     public partial class Game
     {
-        const byte DashTessenOn = 64, DashTessenOff = 65;
         public const int TtSteps = 5;
         public const float TtWindow = 0.7f, TtHitAt = 0.45f, TtSpinEcho = 0.8f;
         public static readonly float[] TtDur = { 0.2f, 0.2f, 0.24f, 0.36f, 0.4f };
@@ -265,7 +264,7 @@ namespace Arena
                 return false;
             if (!pressed && !released)
                 return true;
-            byte kind = pressed ? DashTessenOn : DashTessenOff;
+            byte kind = pressed ? WeaponAlt.TessenOn : WeaponAlt.TessenOff;
             if (IsHost)
                 HostWeaponDash(MyId, kind, aimAt);
             else
@@ -281,9 +280,9 @@ namespace Arena
         /// From HostWeaponDash: the Twin Tessen's kinds.
         bool HostTessenDash(Player p, int kind)
         {
-            if (kind != DashTessenOn && kind != DashTessenOff)
+            if (kind != WeaponAlt.TessenOn && kind != WeaponAlt.TessenOff)
                 return false;
-            if (kind == DashTessenOn)
+            if (kind == WeaponAlt.TessenOn)
             {
                 if (p.Weapon.Id == WeaponId.TwinTessen && !p.Downed && p.StunT <= 0f && p.SwallowT <= 0f && p.TtGustCd <= 0f && !p.TtCharging && State != MatchState.GameOver)
                 {

@@ -556,7 +556,7 @@ namespace Arena
                 FillRect(c.X - hw - 1.5f, c.Y - hh - 1.5f, hw * 2f + 3f, hh * 2f + 3f, rc);
                 FillRect(c.X - hw, c.Y - hh, hw * 2f, hh * 2f, face ? rc.Darkened(0.78f) : rc.Darkened(0.55f));
                 if (face && isUp)
-                    DrawIconGl(PixelArt.RowsFor(u.Name), c, 27f * grow * pop, cos);
+                    DrawIconGl(PixelArt.RowsFor(u), c, 27f * grow * pop, cos);
                 else if (face)  // a build or a piece: its chest's emblem
                     ChestEmblem(l.Kind == LootKind.Build ? ChestKind.Buildable : ChestKind.Piece, c, 1.1f * grow * pop * Mathf.Max(0.15f, Mathf.Abs(cos)), rc, rc.Mix(new Rgba(1f, 1f, 1f), 0.5f), 1f);
                 else
@@ -701,7 +701,7 @@ namespace Arena
             string name, desc;
             if (up)
             {
-                Ui.Icon(new Rect(tile.x + 8f, tile.y + 8f + bobY, 48f, 48f), PixelArt.ForUpgrade(u.Name));
+                Ui.Icon(new Rect(tile.x + 8f, tile.y + 8f + bobY, 48f, 48f), PixelArt.ForUpgrade(u));
                 name = u.Name;
                 desc = Upgrades.DescFor(u, me.Weapon);
                 if (u.Grants != AbilityId.None)

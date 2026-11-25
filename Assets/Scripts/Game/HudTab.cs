@@ -251,7 +251,7 @@ namespace Arena
                 }
                 var u = Upgrades.All[item];
                 TipUpgrade(new Rect(cx - 2f, cy, colW + 4f, rowH), me, u, counts[item]);  // hover: what it does (Tooltips.cs)
-                Ui.Icon(new Rect(cx + 2f, cy + 3f, 18f, 18f), PixelArt.ForUpgrade(u.Name));
+                Ui.Icon(new Rect(cx + 2f, cy + 3f, 18f, 18f), PixelArt.ForUpgrade(u));
                 Ui.Label(new Rect(cx + 26f, cy, colW - 60f, rowH), u.Name, 13, HoloBody, TextAnchor.MiddleLeft);
                 if (counts[item] > 1)
                     CrtUi.Title(new Rect(cx, cy, colW - 4f, rowH), "×" + counts[item], 17, CrtStyle.Gold, TextAnchor.MiddleRight, calm);

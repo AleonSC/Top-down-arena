@@ -74,7 +74,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.DragPylon, Kit = Kit.Engineer, Role = Role.Dps, Choice = 0, FillsGaps = true,
-                Name = "Drag Pylon", Cooldown = 6f,
+                Name = "Drag Pylon", Icon = "dragpylon", Cooldown = 6f,
                 Desc = "Plant a pylon whose field slows enemies.",
                 Capstone = "Its field is 40% wider.",
                 Bot = b => b.Danger,
@@ -82,7 +82,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.VectorWall, Kit = Kit.Engineer, Role = Role.Tank, Choice = 0, FillsGaps = true,
-                Name = "Vector Wall", Cooldown = 10f,
+                Name = "Vector Wall", Icon = "vectorwall", Cooldown = 10f,
                 Desc = "Draw a wall that stops enemy shots.",
                 Capstone = "Seven tiles, and it lasts 12 s.",
                 Bot = b => b.Danger,
@@ -90,14 +90,14 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Bastion, Kit = Kit.Engineer, Role = Role.Tank, Choice = AbilityDef.Ult, FillsGaps = true,
-                Name = "Bastion", Cooldown = 75f,
+                Name = "Bastion", Icon = "bubble", Cooldown = 75f,
                 Desc = "Raise a ring of walls around you with gaps to shoot through.",
                 Capstone = "No gaps for the first 3 s, and it lasts 14 s.",
             },
             new AbilityDef
             {
                 Id = AbilityId.MedPylon, Kit = Kit.Engineer, Role = Role.Healer, Choice = 0, FillsGaps = true,
-                Name = "Med Pylon", Cooldown = 6f,
+                Name = "Med Pylon", Icon = "medpylon", Cooldown = 6f,
                 Desc = "Plant a pylon whose field heals allies.",
                 Capstone = "Its field is 40% wider.",
                 Bot = b => b.Danger,

@@ -12,7 +12,7 @@ namespace Arena
     ///     wounded wolf first, so they fall one at a time. A wolf at 0 health is gone. That is the price of the pack.
     ///     A wolf's health grows with the enemies' damage each wave (EnemyDamageScale), so a wolf soaks the same share
     ///     of hits all run. Pack Bond makes it tougher.
-    ///   Alpha: Alt (Msg.WeaponDash, DashPack) merges every small wolf into one big alpha that takes a single slot.
+    ///   Alpha: Alt (Msg.WeaponDash, WeaponAlt.Pack) merges every small wolf into one big alpha that takes a single slot.
     ///     Its size n is the wolves in it (AlphaMax at most; Alt again folds new wolves into it). It bites
     ///     n x AlphaBonus as hard, runs AlphaSpeedPer faster per extra wolf, is drawn bigger, and has their health summed.
     ///     Minion.Alpha is n on the host; screens read it back from Scale (AlphaSize).
@@ -21,7 +21,6 @@ namespace Arena
         public const int PackMax = 5, PackKillsPerWolf = 10, AlphaMax = 8;
         public const float PackShare = 0.1f, WolfHp = 20f;
         public const float AlphaScalePer = 0.15f, AlphaSpeedPer = 0.08f, AlphaBonus = 1.15f, PackMergeCd = 0.5f;
-        const byte DashPack = 31;
 
         float packLocalCd;  // your own game: Alt can't merge again for this long
 
@@ -212,11 +211,11 @@ namespace Arena
                 return false;
             packLocalCd = PackMergeCd;
             if (IsHost)
-                HostWeaponDash(MyId, DashPack, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.Pack, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashPack);
+                w.Write(WeaponAlt.Pack);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

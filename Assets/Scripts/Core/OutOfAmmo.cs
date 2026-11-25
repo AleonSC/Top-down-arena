@@ -9,7 +9,7 @@ namespace Arena
     ///    in turn: left, right, left, then a rifle clap (an area with a shockwave), and round again. Player.AmmoMove 1-4 is the move running.
     ///  - Your own arms hold a knife, worked by hand: holding fire runs a three-hit chain (cross cut, reverse cut, lunging stab) whether or not anything
     ///    is there to hit; it adds a little damage on top of the rifles. Player.KnifeMove 1-3 is the move running.
-    ///  - Alt (Msg.WeaponDash, DashSpin): a spin for AmmoSpinTime that cuts everything round you every AmmoSpinTick and swats every enemy bullet that
+    ///  - Alt (Msg.WeaponDash, WeaponAlt.Spin): a spin for AmmoSpinTime that cuts everything round you every AmmoSpinTick and swats every enemy bullet that
     ///    comes in reach (no one-each limit), then AmmoSpinCd. Both sets of arms are busy while it runs.
     /// Replicated: AmmoMove/AmmoSeq, KnifeMove/KnifeSeq (the look restarts its clock when a Seq rises), SwatSeqL/R and SwatAngL/R, AmmoSpin.
     /// Drawn in Game/OutOfAmmoLook.cs with the same timings (AmmoMotion).

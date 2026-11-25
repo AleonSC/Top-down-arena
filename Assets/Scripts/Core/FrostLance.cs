@@ -22,7 +22,7 @@ namespace Arena
     ///   Parry: raising the shield cancels the step in your hands (its hits still to come never land; FxKind.FrostBreak shows
     ///   the lance bursting) but keeps your place in the chain. A perfect parry primes the Rime Counter (Player.FlRime,
     ///   replicated): the next step skips its wind-up (FlWind) and adds one more chill.
-    ///   Alt (Msg.WeaponDash DashZero): Absolute Zero. A ZeroCharge s charge (you move at ZeroSlow and can't attack), then a
+    ///   Alt (Msg.WeaponDash WeaponAlt.Zero): Absolute Zero. A ZeroCharge s charge (you move at ZeroSlow and can't attack), then a
     ///   white wave ZeroR round where you cast it: ZeroMult x the damage and ZeroChill chill (freezing all but bosses); at
     ///   ZeroShatterAt a second wave, ZeroShatterMult x and shattering. ZeroCd cooldown. Player.FlZeroT/FlZeroCd replicated.
     ///   Extra projectiles: +20% damage and 10% more size each. Homing Rounds make it all bigger (AreaDesc). Glacier: 20% more
@@ -45,7 +45,6 @@ namespace Arena
         public const float ZeroMult = 0.67f, ZeroShatterMult = 1f;
         public const int ZeroChill = 3;
         public static readonly Rgba FlColor = new Rgba(0.56f, 0.89f, 1f);
-        const byte DashZero = 44;
         static readonly Sfx[] FlStepSounds = { Sfx.FrostCrescent, Sfx.FrostBackhand, Sfx.FrostWaltz, Sfx.FrostFan, Sfx.FrostSlamWind };  // FrostSoundBank.cs
 
         /// When each of a step's hits lands (s into the step): one for the sweeps, spin and slam, one per ray for the fan.
@@ -229,11 +228,11 @@ namespace Arena
             zeroLocalCd = ZeroCd;
             me.FlZeroT = ZeroDur;  // (the charge's slow starts at once on your own screen; the host's snapshot agrees)
             if (IsHost)
-                HostWeaponDash(MyId, DashZero, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.Zero, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashZero);
+                w.Write(WeaponAlt.Zero);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

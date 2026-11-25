@@ -611,7 +611,7 @@ namespace Arena
             DrawCrtChip(chipR, rarity, rc, selected);
             var tile = new Rect(r.center.x - 52f, r.y + 42f, 104f, 104f);
             DrawCrtTile(tile, rc, selected);  // the icon keeps its own colours
-            Ui.Icon(new Rect(tile.center.x - 38f, tile.center.y - 38f, 76f, 76f), PixelArt.ForUpgrade(u.Name));
+            Ui.Icon(new Rect(tile.center.x - 38f, tile.center.y - 38f, 76f, 76f), PixelArt.ForUpgrade(u));
             if (u.Rarity >= Rarity.Rare)
             {
                 // A slow shine across rare and better cards (quicker and brighter on legendaries).
@@ -710,7 +710,7 @@ namespace Arena
                 Ui.Fill(new Rect(sweep * r.width + 22f, 0f, 6f, r.height), new Color(1f, 0.9f, 0.6f, 0.05f));
                 GUI.EndGroup();
             }
-            var icon = PixelArt.ForUpgrade(u.Name);
+            var icon = PixelArt.ForUpgrade(u);
             float bob = selected ? 3f * Mathf.Sin(now * 3f) : 0f;
             string note = UpgradeNote(me, index, u);
             if (compact)
