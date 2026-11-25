@@ -1,0 +1,317 @@
+<title>Acupuncture Needles Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one looping arena stage (mode chips above), move cards, current-vs-proposed table, open questions.
+   Colour: jade for healing needles (the game's NeedleShot green), blood red for Bloodletting, steel for the needle shafts. */
+:root{
+  --bg:#edf0ec; --fg:#18211d; --muted:#58665f; --panel:#f8faf7; --line:#cbd5ce;
+  --jade:#1f8a5c; --blood:#b3263a; --chip:#dee5df; --chip-on:#18211d; --chip-on-fg:#f2f6f2;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1311; --fg:#e4ece6; --muted:#8fa096; --panel:#161d1a; --line:#29342f;
+  --jade:#7fe0b0; --blood:#f07a88; --chip:#212a26; --chip-on:#e4ece6; --chip-on-fg:#0e1311; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1311; --fg:#e4ece6; --muted:#8fa096; --panel:#161d1a; --line:#29342f;
+  --jade:#7fe0b0; --blood:#f07a88; --chip:#212a26; --chip-on:#e4ece6; --chip-on-fg:#0e1311; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header p{margin:0;max-width:64ch;color:var(--muted)}
+h2{font:700 28px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 14px}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.controls{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center}
+.group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.group>span{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+button{font:500 14px var(--body);color:var(--fg);background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+.frame{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1412}
+canvas{display:block;width:100%;aspect-ratio:720/420;max-width:100%}
+.hint{margin:0;color:var(--muted);font-size:14px;max-width:70ch}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card h3{font:700 22px/1.1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0}
+.tag{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.tag.heal{color:var(--jade)} .tag.bleed{color:var(--blood)} .tag.opt{color:var(--muted)}
+.card p{margin:0;font-size:14px;color:var(--muted)}
+.card dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font:400 13px var(--mono)}
+.card dt{color:var(--muted)} .card dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:600px;font-size:14px}
+th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500;white-space:nowrap}
+ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-width:72ch}
+@media (prefers-reduced-motion:reduce){.frame{outline:0}}
+</style>
+
+<main>
+<header>
+  <h1>Acupuncture Needles</h1>
+  <p>Healer Ninja weapon rework, replacing Medicine Darts. Fire places healing needles in teammates' pressure points. Alt drives bloodletting needles into enemies that cut and bleed them. Animated sketch; shapes and speeds are approximate, not the game's draw code.</p>
+</header>
+
+<section class="stage" aria-labelledby="stage-h">
+  <h2 id="stage-h">In the arena</h2>
+  <div class="controls">
+    <div class="group" role="group" aria-label="Mode"><span>Show</span>
+      <button id="m-both" aria-pressed="true" data-mode="both">Both, alternating</button>
+      <button id="m-fire" aria-pressed="false" data-mode="fire">Fire: heal</button>
+      <button id="m-alt" aria-pressed="false" data-mode="alt">Alt: bleed</button>
+    </div>
+    <div class="group" role="group" aria-label="Options"><span>Option</span>
+      <button id="o-return" aria-pressed="true">Needles return</button>
+    </div>
+    <div class="group" role="group" aria-label="Speed"><span>Speed</span>
+      <button id="s-1" aria-pressed="true" data-speed="1">1×</button>
+      <button id="s-h" aria-pressed="false" data-speed="0.4">0.4×</button>
+    </div>
+  </div>
+  <div class="frame"><canvas id="cv" width="1440" height="840" aria-label="Animated arena: the Ninja throws needles at two teammates and at enemies"></canvas></div>
+  <p class="hint">Green-tipped needles fly through enemies and stick in teammates; five in one teammate open the meridian. Red-tipped needles stick in enemies; five in one enemy burst at the pressure point. With "Needles return" on, a bleeding enemy's needles fly to the most hurt teammate when it dies.</p>
+</section>
+
+<section aria-labelledby="moves-h">
+  <h2 id="moves-h">The moves</h2>
+  <div class="cards">
+    <div class="card"><span class="tag heal">Fire</span><h3>Healing Needle</h3>
+      <p>A fast needle that passes through enemies and sticks in the first teammate it meets. Each needle heals over time; up to five at once.</p>
+      <dl><dt>Fire rate</dt><dd>0.18 s</dd><dt>Speed</dt><dd>900 px/s</dd><dt>Heal</dt><dd>3 HP/s per needle, 4 s</dd><dt>Max needles</dt><dd>5 per teammate</dd></dl></div>
+    <div class="card"><span class="tag heal">Fire, 5th needle</span><h3>Meridian Open</h3>
+      <p>The fifth needle pulls all five out in a jade ring: the healing they had left lands at once, plus a burst.</p>
+      <dl><dt>Burst</dt><dd>+15 HP</dd><dt>Also</dt><dd>+ remaining dose</dd><dt>Then</dt><dd>needles reset to 0</dd></dl></div>
+    <div class="card"><span class="tag bleed">Alt</span><h3>Bloodletting</h3>
+      <p>Three long needles thrown in a tight fan. Each cuts on hit, sticks, and adds a bleed stack (the game's existing bleed).</p>
+      <dl><dt>Cooldown</dt><dd>0.9 s</dd><dt>Damage</dt><dd>10 per needle</dd><dt>Bleed</dt><dd>3 /s per needle, 4 s</dd><dt>Max needles</dt><dd>5 per enemy</dd></dl></div>
+    <div class="card"><span class="tag bleed">Alt, 5th needle</span><h3>Pressure Point</h3>
+      <p>The fifth needle in one enemy bursts them all out of the wound: a hit, and the bleed refreshed at full stacks.</p>
+      <dl><dt>Burst</dt><dd>25 damage</dd><dt>Bleed</dt><dd>refreshed, 4 s</dd><dt>Bosses</dt><dd>burst 15</dd></dl></div>
+    <div class="card"><span class="tag opt">Option</span><h3>Needles Return</h3>
+      <p>An enemy that dies with needles in it sends them to the most hurt teammate, healing on arrival. Ties the two fires together.</p>
+      <dl><dt>Heal</dt><dd>4 HP per needle</dd><dt>Range</dt><dd>whole arena</dd></dl></div>
+  </div>
+</section>
+
+<section aria-labelledby="diff-h">
+  <h2 id="diff-h">Current against proposed</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th></th><th>Medicine Darts (now)</th><th>Acupuncture Needles</th></tr></thead>
+    <tbody>
+      <tr><td>Fire</td><td>One needle doses whatever it hits: poison on enemies, heal on allies</td><td>Heal only; flies through enemies to reach teammates</td></tr>
+      <tr><td>Heal</td><td>2 HP/s a dart, 3 s, stacks to 5 (10 HP/s)</td><td>3 HP/s a needle, 4 s, stacks to 5 (15 HP/s) + Meridian Open burst</td></tr>
+      <tr><td>Alt</td><td>None</td><td>Bloodletting: 3 needles, 10 damage each, bleed stacks</td></tr>
+      <tr><td>Enemy damage</td><td>7 hit + 2/s poison a dart</td><td>Alt only: 30 a volley + up to 15/s bleed + 25 burst</td></tr>
+      <tr><td>Visible state</td><td>Status tint</td><td>Needles drawn in the body: count = stacks, on allies and enemies</td></tr>
+      <tr><td>Extra (level-ups)</td><td>+1 dart, fanned</td><td>+1 healing needle per shot; Alt +1 needle in the fan</td></tr>
+      <tr><td>Potent Dose</td><td>+30% poison and heal</td><td>+30% needle heal and bleed</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section aria-labelledby="q-h">
+  <h2 id="q-h">Decisions</h2>
+  <ol>
+    <li>Renamed to Acupuncture Needles (code id <code>WeaponId.AcupunctureNeedles</code>).</li>
+    <li>Healing needles fly through enemies.</li>
+    <li>Needles Return is kept.</li>
+    <li>Alt is on a 0.9 s cooldown.</li>
+  </ol>
+</section>
+</main>
+
+<script>
+(() => {
+const cv = document.getElementById('cv'), g = cv.getContext('2d');
+const W = 720, H = 420; g.scale(2, 2);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let mode = 'both', speed = 1, returnOn = true;
+const STEEL = '#c9d3cf', JADE = '#5fe0a3', BLOOD = '#ff4d61', GOLD = '#f2c45a';
+
+function press(sel, btn) { document.querySelectorAll(sel).forEach(b => b.setAttribute('aria-pressed', b === btn)); }
+document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { mode = b.dataset.mode; press('[data-mode]', b); reset(); });
+document.querySelectorAll('[data-speed]').forEach(b => b.onclick = () => { speed = +b.dataset.speed; press('[data-speed]', b); });
+const ret = document.getElementById('o-return');
+ret.onclick = () => { returnOn = !returnOn; ret.setAttribute('aria-pressed', returnOn); };
+
+let T, player, allies, enemies, shots, fx, texts, homers, fireT, altT;
+function reset() {
+  T = 0; fireT = 0; altT = 0.4;
+  player = { x: 120, y: 210, aim: 0 };
+  allies = [ { x: 250, y: 120, hp: 55, ph: 0, needles: [] }, { x: 240, y: 305, hp: 40, ph: 2, needles: [] } ];
+  enemies = []; shots = []; fx = []; texts = []; homers = [];
+  for (let i = 0; i < 3; i++) spawnEnemy(500 + i * 70);
+}
+function spawnEnemy(x) { enemies.push({ x: x ?? 760, y: 90 + Math.random() * 240, hp: 70, needles: [], bleed: 0, wob: Math.random() * 6, dead: false }); }
+function phase() { if (mode !== 'both') return mode; return (T % 6) < 3 ? 'fire' : 'alt'; }
+function text(x, y, s, c) { texts.push({ x, y, s, c, t: 0 }); }
+
+function step(dt) {
+  T += dt;
+  allies.forEach(a => {
+    a.ph += dt; a.x = (a === allies[0] ? 250 : 240) + Math.cos(a.ph * 0.9) * 22; a.y = (a === allies[0] ? 120 : 305) + Math.sin(a.ph * 1.3) * 16;
+    a.hp = Math.max(15, a.hp - 5 * dt);
+    a.needles = a.needles.filter(n => (n.t -= dt) > 0);
+    const heal = a.needles.length * 3 * dt; a.hp = Math.min(100, a.hp + heal);
+  });
+  enemies.forEach(e => {
+    if (e.dead) return;
+    e.wob += dt; e.x -= 22 * dt; e.y += Math.sin(e.wob * 1.7) * 18 * dt;
+    e.needles = e.needles.filter(n => (n.t -= dt) > 0);
+    if (e.needles.length) { e.hp -= e.needles.length * 3 * dt; if (Math.random() < e.needles.length * dt * 3) fx.push({ k: 'drop', x: e.x + (Math.random() - .5) * 16, y: e.y + 6, vy: 30, t: 0 }); }
+    if (e.x < 330) e.x = 330;
+    if (e.hp <= 0) kill(e);
+  });
+  let due = 0;
+  enemies = enemies.filter(e => !e.dead || (e.respawn -= dt) > 0 || (due++, false));
+  while (due--) spawnEnemy();
+
+  const p = phase();
+  fireT -= dt; altT -= dt;
+  if (p === 'fire' && fireT <= 0) {
+    fireT = 0.18;
+    const a = allies[0].hp < allies[1].hp ? allies[0] : allies[1];
+    throwNeedle(a.x + Math.cos(a.ph * .9) * 4, a.y, 'heal');
+  }
+  if (p === 'alt' && altT <= 0) {
+    altT = 0.9;
+    const live = enemies.filter(e => !e.dead).sort((u, v) => (u.x - player.x) - (v.x - player.x));
+    const tgt = live[0]; if (tgt) for (let i = -1; i <= 1; i++) throwNeedle(tgt.x, tgt.y, 'bleed', i * 0.07);
+  }
+
+  shots.forEach(s => {
+    s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
+    if (s.kind === 'heal') {
+      for (const a of allies) if (Math.hypot(a.x - s.x, a.y - s.y) < 15) { s.life = 0; stickAlly(a, s); break; }
+    } else {
+      for (const e of enemies) if (!e.dead && Math.hypot(e.x - s.x, e.y - s.y) < 14) { s.life = 0; stickEnemy(e, s); break; }
+    }
+  });
+  shots = shots.filter(s => s.life > 0 && s.x < W + 20);
+
+  homers.forEach(h => {
+    const a = h.to, dx = a.x - h.x, dy = a.y - h.y, d = Math.hypot(dx, dy);
+    h.t += dt; const sp = 180 + h.t * 700;
+    if (d < 12) { h.done = true; a.hp = Math.min(100, a.hp + 4); text(a.x, a.y - 22, '+4', JADE); fx.push({ k: 'spark', x: a.x, y: a.y, t: 0, c: JADE }); return; }
+    h.ang = Math.atan2(dy, dx); h.x += dx / d * sp * dt; h.y += dy / d * sp * dt;
+  });
+  homers = homers.filter(h => !h.done);
+  fx.forEach(f => { f.t += dt; if (f.k === 'drop') f.y += f.vy * dt; if (f.k === 'shard') { f.x += f.vx * dt; f.y += f.vy * dt; } });
+  fx = fx.filter(f => f.t < (f.k === 'ring' ? 0.6 : f.k === 'drop' ? 0.5 : 0.45));
+  texts.forEach(t => t.t += dt); texts = texts.filter(t => t.t < 0.9);
+}
+
+function throwNeedle(tx, ty, kind, spread = 0) {
+  const ang = Math.atan2(ty - player.y, tx - player.x) + spread; player.aim = ang;
+  const sp = kind === 'heal' ? 620 : 520;
+  shots.push({ x: player.x + Math.cos(ang) * 16, y: player.y + Math.sin(ang) * 16, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, ang, kind, life: 1.2 });
+}
+function stickAlly(a, s) {
+  a.needles.push({ ang: s.ang + Math.PI + (Math.random() - .5) * .5, t: 4 });
+  if (a.needles.length >= 5) {
+    const left = a.needles.reduce((m, n) => m + n.t * 3, 0);
+    const amt = Math.round(15 + left); a.hp = Math.min(100, a.hp + amt);
+    fx.push({ k: 'ring', x: a.x, y: a.y, t: 0, c: JADE });
+    a.needles.forEach(n => fx.push({ k: 'shard', x: a.x + Math.cos(n.ang) * 12, y: a.y + Math.sin(n.ang) * 12, vx: Math.cos(n.ang) * 90, vy: Math.sin(n.ang) * 90, ang: n.ang, t: 0, c: JADE }));
+    a.needles = []; text(a.x, a.y - 26, 'MERIDIAN +' + amt, JADE);
+  }
+}
+function stickEnemy(e, s) {
+  e.hp -= 10; text(e.x + (Math.random() - .5) * 14, e.y - 20, '10', STEEL);
+  e.needles.push({ ang: s.ang + Math.PI + (Math.random() - .5) * .6, t: 4 });
+  fx.push({ k: 'spark', x: s.x, y: s.y, t: 0, c: BLOOD });
+  if (e.needles.length >= 5) {
+    e.hp -= 25; text(e.x, e.y - 30, 'PRESSURE POINT 25', BLOOD);
+    fx.push({ k: 'ring', x: e.x, y: e.y, t: 0, c: BLOOD });
+    e.needles.forEach(n => fx.push({ k: 'shard', x: e.x + Math.cos(n.ang) * 12, y: e.y + Math.sin(n.ang) * 12, vx: Math.cos(n.ang) * 110, vy: Math.sin(n.ang) * 110, ang: n.ang, t: 0, c: BLOOD }));
+    e.needles = [{ ang: 0, t: 4 }, { ang: 1.3, t: 4 }, { ang: 2.6, t: 4 }, { ang: 3.9, t: 4 }, { ang: 5.2, t: 4 }].map(n => ({ ...n, ghost: true }));
+  }
+  if (e.hp <= 0) kill(e);
+}
+function kill(e) {
+  if (e.dead) return; e.dead = true; e.respawn = 1;
+  fx.push({ k: 'ring', x: e.x, y: e.y, t: 0, c: '#ff8c5a' });
+  if (returnOn) {
+    const real = e.needles.filter(n => !n.ghost);
+    const to = allies[0].hp < allies[1].hp ? allies[0] : allies[1];
+    real.forEach(n => homers.push({ x: e.x + Math.cos(n.ang) * 12, y: e.y + Math.sin(n.ang) * 12, ang: n.ang, to, t: 0 }));
+  }
+}
+
+function needle(x, y, ang, len, tip) {
+  const cx = Math.cos(ang), sy = Math.sin(ang);
+  g.strokeStyle = STEEL; g.lineWidth = 1.4; g.beginPath(); g.moveTo(x - cx * len, y - sy * len); g.lineTo(x, y); g.stroke();
+  g.fillStyle = tip; g.beginPath(); g.arc(x - cx * len, y - sy * len, 1.8, 0, 7); g.fill();  // the handle bead
+  g.strokeStyle = tip; g.lineWidth = 1; g.beginPath(); g.moveTo(x - cx * 3, y - sy * 3); g.lineTo(x, y); g.stroke();
+}
+function stuck(cx0, cy0, n, tip, r) {
+  // embedded at the body edge, shaft pointing out the way it came in
+  const bx = cx0 + Math.cos(n.ang) * (r - 3), by = cy0 + Math.sin(n.ang) * (r - 3);
+  needle(bx, by, n.ang + Math.PI, 11, tip);
+}
+function bar(x, y, v, c) { g.fillStyle = '#ffffff1a'; g.fillRect(x - 16, y, 32, 3); g.fillStyle = c; g.fillRect(x - 16, y, 32 * Math.max(0, v), 3); }
+
+function draw() {
+  g.fillStyle = '#0d1412'; g.fillRect(0, 0, W, H);
+  g.strokeStyle = '#ffffff08'; g.lineWidth = 1;
+  for (let x = 0; x <= W; x += 40) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+  for (let y = 0; y <= H; y += 40) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+
+  fx.filter(f => f.k === 'ring').forEach(f => { const k = f.t / 0.6; g.strokeStyle = f.c; g.globalAlpha = 1 - k; g.lineWidth = 3 * (1 - k) + 1; g.beginPath(); g.arc(f.x, f.y, 14 + k * 46, 0, 7); g.stroke(); g.globalAlpha = 1; });
+
+  enemies.forEach(e => {
+    if (e.dead) return;
+    g.fillStyle = e.needles.length ? '#8a2333' : '#6e2a2a'; g.strokeStyle = '#d0505a'; g.lineWidth = 1.5;
+    g.beginPath(); g.rect(e.x - 12, e.y - 12, 24, 24); g.fill(); g.stroke();
+    g.fillStyle = '#ffd2c8'; g.fillRect(e.x - 7, e.y - 4, 4, 3); g.fillRect(e.x - 1, e.y - 4, 4, 3);
+    e.needles.filter(n => !n.ghost).forEach(n => stuck(e.x, e.y, n, BLOOD, 13));
+    bar(e.x, e.y - 20, e.hp / 70, '#e0606b');
+    const real = e.needles.filter(n => !n.ghost).length, bleeding = e.needles.length;
+    for (let i = 0; i < 5; i++) { g.fillStyle = i < real ? BLOOD : i < bleeding ? '#ff4d6155' : '#ffffff22'; g.fillRect(e.x - 12 + i * 5, e.y + 17, 4, 3); }
+  });
+  allies.forEach(a => {
+    g.fillStyle = '#163c4a'; g.strokeStyle = '#59b8d6'; g.lineWidth = 2;
+    g.beginPath(); g.arc(a.x, a.y, 13, 0, 7); g.fill(); g.stroke();
+    if (a.needles.length) { g.strokeStyle = JADE; g.globalAlpha = .25 + .1 * Math.sin(T * 8); g.lineWidth = 4; g.beginPath(); g.arc(a.x, a.y, 17, 0, 7); g.stroke(); g.globalAlpha = 1; }
+    a.needles.forEach(n => stuck(a.x, a.y, n, JADE, 14));
+    bar(a.x, a.y - 22, a.hp / 100, '#59d68f');
+    for (let i = 0; i < 5; i++) { g.fillStyle = i < a.needles.length ? JADE : '#ffffff22'; g.beginPath(); g.arc(a.x - 10 + i * 5, a.y + 20, 1.8, 0, 7); g.fill(); }
+  });
+  // the Ninja
+  g.fillStyle = '#1b1f22'; g.strokeStyle = '#3a4a44'; g.lineWidth = 2; g.beginPath(); g.arc(player.x, player.y, 14, 0, 7); g.fill(); g.stroke();
+  g.strokeStyle = JADE; g.lineWidth = 3; g.beginPath(); g.moveTo(player.x - Math.cos(player.aim) * 12, player.y - Math.sin(player.aim) * 12);
+  g.quadraticCurveTo(player.x - Math.cos(player.aim) * 22, player.y - Math.sin(player.aim) * 22 + Math.sin(T * 9) * 4, player.x - Math.cos(player.aim) * 30, player.y - Math.sin(player.aim) * 26); g.stroke();
+  g.fillStyle = '#e8f0ec'; g.fillRect(player.x + Math.cos(player.aim) * 6 - 4, player.y + Math.sin(player.aim) * 6 - 2, 8, 2);
+  const hand = { x: player.x + Math.cos(player.aim + .5) * 15, y: player.y + Math.sin(player.aim + .5) * 15 };
+  for (let i = -1; i <= 1; i++) needle(hand.x + Math.cos(player.aim) * 8, hand.y + Math.sin(player.aim) * 8 + i * 2, player.aim + i * .15, 9, phase() === 'fire' ? JADE : BLOOD);
+
+  shots.forEach(s => { g.globalAlpha = .25; g.strokeStyle = s.kind === 'heal' ? JADE : BLOOD; g.lineWidth = 2; g.beginPath(); g.moveTo(s.x - Math.cos(s.ang) * 30, s.y - Math.sin(s.ang) * 30); g.lineTo(s.x, s.y); g.stroke(); g.globalAlpha = 1;
+    needle(s.x, s.y, s.ang, s.kind === 'heal' ? 12 : 16, s.kind === 'heal' ? JADE : BLOOD); });
+  homers.forEach(h => { g.globalAlpha = .35; g.strokeStyle = GOLD; g.lineWidth = 2; g.beginPath(); g.moveTo(h.x - Math.cos(h.ang) * 18, h.y - Math.sin(h.ang) * 18); g.lineTo(h.x, h.y); g.stroke(); g.globalAlpha = 1; needle(h.x, h.y, h.ang, 12, GOLD); });
+  fx.forEach(f => {
+    if (f.k === 'drop') { g.fillStyle = BLOOD; g.globalAlpha = 1 - f.t / .5; g.beginPath(); g.arc(f.x, f.y, 1.6, 0, 7); g.fill(); }
+    if (f.k === 'spark') { g.strokeStyle = f.c; g.globalAlpha = 1 - f.t / .45; g.lineWidth = 1.5; for (let i = 0; i < 6; i++) { const a = i * 1.05, r = 4 + f.t * 40; g.beginPath(); g.moveTo(f.x + Math.cos(a) * r, f.y + Math.sin(a) * r); g.lineTo(f.x + Math.cos(a) * (r + 4), f.y + Math.sin(a) * (r + 4)); g.stroke(); } }
+    if (f.k === 'shard') { g.globalAlpha = 1 - f.t / .45; needle(f.x, f.y, f.ang + Math.PI, 11, f.c); }
+    g.globalAlpha = 1;
+  });
+  texts.forEach(t => { g.globalAlpha = 1 - t.t / .9; g.fillStyle = t.c; g.font = '600 12px "IBM Plex Mono", monospace'; g.textAlign = 'center'; g.fillText(t.s, t.x, t.y - t.t * 24); g.globalAlpha = 1; });
+
+  g.textAlign = 'left'; g.font = '600 13px "Barlow Condensed", sans-serif';
+  const p = phase(); g.fillStyle = p === 'fire' ? JADE : BLOOD;
+  g.fillText(p === 'fire' ? 'FIRE · HEALING NEEDLE' : 'ALT · BLOODLETTING', 14, 22);
+}
+
+reset();
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000) * speed; last = now;
+  step(dt); draw();
+  if (!reduce) requestAnimationFrame(loop);
+}
+if (reduce) { for (let i = 0; i < 120; i++) step(1 / 60); draw(); } else requestAnimationFrame(loop);
+})();
+</script>

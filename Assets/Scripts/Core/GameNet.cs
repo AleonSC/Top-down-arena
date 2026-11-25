@@ -1191,7 +1191,7 @@ namespace Arena
             else if (IsNonShooter(kind))
                 SyncNonShooter(s, e);  // NonShooters.cs: the fuse, the aim, the harpoon, a pod's arming
             if (s.Reading)
-                e.Radius = kind == EnemyType.Singularity ? SingRadius(e) : kind == EnemyType.Devourer ? DevourRadius(e) : Defs.Get(kind).Radius * (elite ? EliteSize : 1f);
+                e.Radius = kind == EnemyType.Singularity ? SingRadius(e) : kind == EnemyType.Devourer ? DevourRadius(e) : kind == EnemyType.Colossus ? ColRadius(e) : Defs.Get(kind).Radius * (elite ? EliteSize : 1f);
             return id;
         }
 

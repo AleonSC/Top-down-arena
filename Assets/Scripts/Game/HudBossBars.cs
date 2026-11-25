@@ -130,6 +130,11 @@ namespace Arena
         /// The Colossus's phase under its health bar, and what to watch for.
         static string ColossusNote(ColossusState c, ref Color col)
         {
+            if (c.Stagger)
+            {
+                col = new Color(1f, 0.82f, 0.35f);
+                return "STAGGERED — shoot it to break it: " + Mathf.FloorToInt(Mathf.Clamp01(c.Break) * 100f) + "%";
+            }
             if (c.TransT > 0f)
             {
                 col = new Color(0.95f, 0.9f, 0.85f);
@@ -148,7 +153,12 @@ namespace Arena
             if (c.Rings.Count > 0)
             {
                 col = new Color(0.6f, 1f, 0.7f);
-                return "STOMP — the rings shove you: slip through a green gap";
+                return "STOMP — rings of stone orbs: slip through an opening";
+            }
+            if (c.HoldT > 0f)
+            {
+                col = new Color(1f, 0.45f, 0.4f);
+                return "BOULDER — it's coming where you're heading: change course";
             }
             return ColStageName(c.Stage);
         }
