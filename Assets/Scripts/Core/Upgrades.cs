@@ -52,6 +52,7 @@ namespace Arena
         StoneColossus,  // the Tank Elementalist's third ultimate (StoneColossus.cs), key 2 of the lobby's Ultimate row
         Vortex,         // the Tank Elementalist's fourth ultimate (Vortex.cs), key 3 of the lobby's Ultimate row
         LivingBolt,     // the DPS Elementalist's second ultimate (LivingBolt.cs), key 1 of the lobby's Ultimate row
+        BambooGrove,    // the Tank Ninja's 4th choice (BambooGrove.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -112,6 +113,7 @@ namespace Arena
         public float DebtRepay, DebtBonusTime;                 // Blood Debt: Usury
         public float RushReach = 1f, RushRefund;               // Vein Rush: Crimson Tide
         public float TbDmgMult = 1f; public int TbExtraJumps;    // Thorn Bloom: Thornwork
+        public float BgRadiusMult = 1f, BgBleedMult = 1f;        // Bamboo Grove: Rhizome
         public bool ChalkWard;             // Warding Ink: Spirit Chalk blocks enemy bullets (at the cost of wearing the ink away)
         // Elementalist abilities (Docs/UpgradePools.md step 5)
         public float AegisBonusTime, AegisReflectBonus;                    // Aeroaegis: Eye of the Storm
