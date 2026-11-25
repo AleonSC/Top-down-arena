@@ -340,6 +340,26 @@ namespace Arena
             Arc(head, r, 3f, new Rgba(0f, 0f, 0f, 0.35f), 16, a0, 1.5f);
             if (f > 0f)
                 Arc(head, r, 3f, (typhoon ? Game.TtGold.WithAlpha(0.75f + 0.25f * Mathf.Sin(t * 8f)) : Game.TtWind.WithAlpha(0.85f)), 16, a0, 1.5f * f);
+            DrawTessenPips(p, t);
+        }
+
+        /// Five diamonds over the head, above the Breeze arc, for the Crane Dance: lit paper for each step done, the fifth (the Crane
+        /// Bloom) bigger and sun red, pulsing when it's next. Hidden while the gust charges or the dance is at its start.
+        void DrawTessenPips(Player p, float t)
+        {
+            int step = Game.TtStepOf(p.Combo);
+            if (step == 0 || p.TtCharging)
+                return;
+            V2 c = p.Disp + new V2(0f, -p.Def.BodyR - 21f);
+            for (int i = 0; i < Game.TtSteps; i++)
+            {
+                V2 at = c + new V2((i - (Game.TtSteps - 1) / 2f) * 9f, 0f);
+                bool fin = i == Game.TtSteps - 1, lit = i < step, next = fin && step == Game.TtSteps - 1;
+                float r = fin ? 3.9f : 3f;
+                Rgba col = lit ? (fin ? Game.TtSun : Game.TtPaper) : next ? Game.TtSun.WithAlpha(0.55f + 0.45f * Mathf.Sin(t * 14f)) : new Rgba(1f, 1f, 1f, 0.15f);
+                Polygon(at, r + 1f, 4, 0f, new Rgba(0f, 0f, 0f, 0.55f));
+                Polygon(at, r, 4, 0f, col);
+            }
         }
 
         /// The glow pass: the gust's front and a full Breeze bar.
