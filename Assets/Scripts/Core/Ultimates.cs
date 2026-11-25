@@ -154,6 +154,10 @@ namespace Arena
                     CastTank(p, cap);
                     break;
 
+                case AbilityId.IronArmadillo:  // Tank: Summoner, the third ultimate (IronArmadillo.cs)
+                    CastArmadillo(p, cap);
+                    break;
+
                 case AbilityId.GlacialTomb:  // Tank: Elementalist
                     EraseEnemyBullets(p.Pos, 99999f);
                     foreach (var e in AllFoes(by: p.Id))

@@ -64,7 +64,7 @@ namespace Arena
                     AddFx(FxKind.Ring, me.Pos, new Rgba(0.75f, 0.85f, 1f), 30f, 0.3f);
                 }
             }
-            if (!pressed || dodgeCd > 0f || me.Downed || me.StunT > 0f || me.StandOn || Seated(me) || TankOn(me) || ApAway(me) || DashT > 0f || HoldControls || Paused || KatanaStriking)
+            if (!pressed || dodgeCd > 0f || me.Downed || me.StunT > 0f || me.StandOn || Seated(me) || TankOn(me) || ArmOn(me) || ApAway(me) || DashT > 0f || HoldControls || Paused || KatanaStriking)
                 return;
             V2 dir = !move.IsZero ? move.Normalized() : -V2.FromAngle(me.Aim);  // no direction held: step back from your aim
             DashDir = dir;
