@@ -186,6 +186,9 @@ namespace Arena
                     CastVortex(p, cap);
                     break;
 
+                case AbilityId.RodentMinigun:  // DPS: Summoner, the second ultimate
+                    CastRodentMinigun(p, cap, castPower);  // RodentMinigun.cs
+                    break;
                 case AbilityId.LivingBolt:  // DPS: Elementalist, the second ultimate (LivingBolt.cs)
                     CastLivingBolt(p, cap);
                     break;

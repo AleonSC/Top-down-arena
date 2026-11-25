@@ -220,6 +220,7 @@ namespace Arena
             DrawWarhornSky();  // Warhorn Volley's horn and the arrows in the air (WarhornVolleyLook.cs)
             DrawOrbitalSky();  // Orbital Laser's lock-on, beam, shockwave and flash (OrbitalLaserLook.cs)
             DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon (DragonsDogmaLook.cs)
+            DrawRodentAfter(t);  // the Rodent Minigun's rodents scampering off and its cheese crumbs (RodentMinigunLook.cs)
         }
 
         /// Everything on the arena floor: players, bullets, enemies, minions, zones and effects. Also draws the
@@ -414,6 +415,7 @@ namespace Arena
             DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
             DrawVortex(p, t);      // the Vortex ultimate's storm (VortexLook.cs)
             DrawLivingBoltAura(p, t);  // Living Bolt's channel, halo and time ring (LivingBoltLook.cs)
+            DrawRodentPortal(p, t);  // the Rodent Minigun's portal (RodentMinigunLook.cs)
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)
             DrawTempest(p, t);  // Wind Clash's Tempest (WindClashLook.cs)
             DrawStaticShockUnder(p, t);  // Overcharge's gold ring; the plain cone (StaticShockLook.cs)

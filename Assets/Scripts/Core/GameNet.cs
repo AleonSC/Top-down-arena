@@ -607,6 +607,12 @@ namespace Arena
             s.Float(ref p.VortexR);
             s.Float(ref p.BoltT);  // Living Bolt (LivingBolt.cs)
             s.Float(ref p.BoltAge);
+            s.Float(ref p.RmT);  // Rodent Minigun (RodentMinigun.cs)
+            if (p.RmT > 0f)
+            {
+                s.Float(ref p.RmAng);
+                s.Float(ref p.RmLen);
+            }
             s.Byte(ref p.HeliGuns);  // the Attack Helicopter (AttackHelicopter.cs): its guns, then their targets while it's out
             if (p.HeliGuns > 0)
             {
