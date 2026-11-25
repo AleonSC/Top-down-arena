@@ -627,6 +627,8 @@ namespace Arena
                 DrawHeraldBody(e, pos, r, col, t);  // HeraldBodyLook.cs: the Tempest Herald
             else if (e.Type == EnemyType.Colossus)
                 DrawColossusBody(e, pos, r, t);  // ColossusBodyLook.cs: the Quarry Golem, posed for each move
+            else if (e.Type == EnemyType.Devourer && DevourerLook > 0)
+                DrawDevourerBody(e, pos, r, col, t);  // DevourerBodyLook.cs (mockup directions)
             else if (e.Type == EnemyType.Lich)
                 DrawLichBody(e, pos, r, col, t);  // LichBodyLook.cs: the Hooded Sorcerer, the Wraith in the Final Rite
             else if (e.Type == EnemyType.Phylactery)
@@ -1052,7 +1054,8 @@ namespace Arena
                     Line(pos, pos + V2.FromAngle(e.Facing) * (r + 8f), 6f, col);
                     break;
                 case EnemyType.Devourer:
-                    DrawDevourerMouth(e, pos, r, t);  // DevourerLook.cs: its mouth opens when it feeds
+                    if (DevourerLook == 0)  // (the mockup bodies draw their own: DevourerBodyLook.cs)
+                        DrawDevourerMouth(e, pos, r, t);  // DevourerLook.cs: its mouth opens when it feeds
                     break;
                 case EnemyType.Morsel:
                     DrawMorsel(e, pos, r, t);  // DevourerLook.cs
