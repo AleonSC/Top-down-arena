@@ -124,6 +124,9 @@ namespace Arena
                 case AbilityId.Stampede:
                     CastStampede(p, target, cap);  // Stampede.cs
                     break;
+                case AbilityId.FlashFire:
+                    CastFlashFire(p, pw, cap);  // FlashFire.cs
+                    break;
                 case AbilityId.SpiritSwarm:
                 {
                     int sprites = cap ? 8 : 5;
@@ -692,6 +695,7 @@ namespace Arena
 
         void TickZones(float dt)
         {
+            TickFlashFires(dt);  // FlashFire.cs: the ring and the pyre
             var expired = scratchZonesExpired;
             expired.Clear();
             foreach (var z in Zones.Values)

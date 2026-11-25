@@ -20,8 +20,8 @@ static partial class Program
             "Stampede: a 14 s Tank Summoner 1st ability on the 4th key");
         Check(Upgrades.AbilityLimit(Role.Tank, Kit.Summoner) == 4 && Upgrades.FirstAbility(Role.Tank, Kit.Summoner, 3) == AbilityId.Stampede
             && Upgrades.FirstAbility(Role.Tank, Kit.Summoner, 0) == AbilityId.GolemWall && Upgrades.FirstAbility(Role.Tank, Kit.Summoner, 2) == AbilityId.ForcePact
-            && Upgrades.AbilityLimit(Role.Healer, Kit.Summoner) == 3 && Upgrades.AbilityLimit(Role.Dps, Kit.Summoner) == 3,
-            "the Tank Summoner's 4th key is Stampede; its first three and the other Summoner roles are unchanged");
+            && Upgrades.AbilityLimit(Role.Healer, Kit.Summoner) == 3 && Upgrades.AbilityLimit(Role.Dps, Kit.Summoner) == 4,
+            "the Tank Summoner's 4th key is Stampede; its first three are unchanged, the Healer Summoner has 3 and the DPS Summoner 4 (Flash Fire)");
         Check(Upgrades.All.Any(u => u.ClassAbility && u.Grants == AbilityId.Stampede) && Upgrades.All.Any(u => u.Name == "Thundering Herd" && u.RequiresAbility == AbilityId.Stampede && u.Rarity == Rarity.Rare),
             "Stampede is a very rare card for Tank Summoners who picked another, and Thundering Herd a Rare card for it");
 

@@ -85,6 +85,8 @@ namespace Arena
                 Apply = s => { s.BatDmgMult += 0.4f; s.BatBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Hydra, MaxStacks = 2, Name = "Venom Glands", Desc = "The hydra's venom slows its target 30% for 1.5 s, and the hydra stays 2 s longer",
                 Apply = s => { s.HydraSlow = Math.Min(0.6f, s.HydraSlow + 0.3f); s.HydraBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.FlashFire, MaxStacks = 2, Name = "Backdraft", Desc = "Flash Fire reaches 25% farther and burns 50% hotter",
+                Apply = s => { s.FfRadiusMult += 0.25f; s.FfBurnMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.AlphaCall, MaxStacks = 2, Name = "Pack Leader", Desc = "Alpha Call's Blood Scent lasts 3 s longer and your minions start it with 1 more stack",
                 Apply = s => { s.ScentBonusTime += 3f; s.ScentStartBonus += 1; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Summoner, MaxStacks = 2, Name = "Pack Bond", Desc = "Every minion of yours (weapon and ability) hits 15% harder and takes 25% more before it breaks or falls",
@@ -181,6 +183,13 @@ namespace Arena
                 Id = AbilityId.AlphaCall, Kit = Kit.Summoner, Role = Role.Dps, Choice = 2,
                 Name = "Alpha Call", Cooldown = 14f, Desc = "Your minions bite faster, then lunge for triple damage.",
                 Capstone = "Also summons 3 wolves for 6 s.",
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.FlashFire, Kit = Kit.Summoner, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (FlashFire.cs)
+                Name = "Flash Fire", Cooldown = Game.FfCooldown, Desc = "A ring of fire rolls out around you, burning and slowing enemies, then stands as a pyre.",
+                Capstone = "The pyre burns 5 s.",
+                Bot = b => b.NearEnemies >= 3 && b.TargetD < Game.FfRadius,
             },
         };
     }

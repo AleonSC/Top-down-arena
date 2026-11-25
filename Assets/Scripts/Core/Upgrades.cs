@@ -54,6 +54,7 @@ namespace Arena
         LivingBolt,     // the DPS Elementalist's second ultimate (LivingBolt.cs), key 1 of the lobby's Ultimate row
         BambooGrove,    // the Tank Ninja's 4th choice (BambooGrove.cs), the lobby's 4th choice
         SpiritAvatar,   // the Tank Ninja's third ultimate (SpiritAvatar.cs), key 2 of the lobby's Ultimate row
+        FlashFire,      // the DPS Summoner's 4th choice (FlashFire.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -116,6 +117,7 @@ namespace Arena
         public float RushReach = 1f, RushRefund;               // Vein Rush: Crimson Tide
         public float TbDmgMult = 1f; public int TbExtraJumps;    // Thorn Bloom: Thornwork
         public float BgRadiusMult = 1f, BgBleedMult = 1f;        // Bamboo Grove: Rhizome
+        public float FfRadiusMult = 1f, FfBurnMult = 1f;         // Flash Fire: Backdraft
         public bool ChalkWard;             // Warding Ink: Spirit Chalk blocks enemy bullets (at the cost of wearing the ink away)
         // Elementalist abilities (Docs/UpgradePools.md step 5)
         public float AegisBonusTime, AegisReflectBonus;                    // Aeroaegis: Eye of the Storm
