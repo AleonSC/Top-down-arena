@@ -302,6 +302,8 @@ namespace Arena
                     SteerSenbon(b, dt);  // a Senbon Seekers needle (host only: SenbonSeekers.cs)
                 else if (b.HomeOn != 0)
                     SteerSpear(b, dt);  // a Stonespear volley spear (host only: Stonespear.cs)
+                else if (b.Talisman)
+                    SteerTalisman(b, dt);  // an Ofuda Healing Talisman late in its flight (host only: Ofuda.cs)
                 if (wellsUp && b.Owner != 0 && !Lobbed(b.Kind))
                     PullIntoWells(b, dt);
                 if (lensUp && b.Owner != 0 && !Lobbed(b.Kind) && !Defs.IsEnemyShot(b.Kind))
@@ -374,9 +376,14 @@ namespace Arena
                     dmgSrc = landSrc;
                     continue;
                 }
-                if (b.Ward)
+                if (b.Talisman)
                 {
-                    PlaceWard(b);  // Ninja.cs
+                    TalismanBurst(b, null);  // a Healing Talisman bursts where its flight ends (Ofuda.cs)
+                    continue;
+                }
+                if (b.Kind == Defs.BlastOfudaShot)
+                {
+                    PlaceBlastOfuda(b, null);  // a Blast Ofuda that hit nothing lands, lit (Ofuda.cs)
                     continue;
                 }
                 if (b.Bomblet)
@@ -515,7 +522,7 @@ namespace Arena
             FindMoonwards();      // Moonwards' moons (Penumbral.cs)
             foreach (var b in Bullets.Values)
             {
-                if (Lobbed(b.Kind) || b.Kind == Defs.FlakShell || b.Ward || b.Tossed)
+                if (Lobbed(b.Kind) || b.Kind == Defs.FlakShell || b.Tossed)
                     continue;  // grenades, boulders, Gore Mortar clots, medkits, flak shells and tossed caltrops fly over enemies and land or burst where you aimed
                 if (WorldStops(b))
                     scratchIds.Add(b.Id);
@@ -525,6 +532,7 @@ namespace Arena
                     EnemyShotHits(b);
             }
             RemoveStoppedShots();
+            SpendTalismans();  // Ofuda.cs
             SendReflects();
             SpawnRicochets();
             foreach (var hb in hops)
@@ -560,6 +568,12 @@ namespace Arena
             if (GateLockHit(b) || CellLockHit(b))
             {
                 scratchIds.Add(b.Id);  // a Warden gate's gold lock, or a Holding Cell's padlock, takes it (Warden.cs, HoldingCell.cs)
+                return;
+            }
+            if (b.Talisman || b.Kind == Defs.BlastOfudaShot)
+            {
+                if (b.Talisman ? TalismanTouches(b) : BlastOfudaTouches(b))
+                    scratchIds.Add(b.Id);  // the Ofuda's charms: a talisman bursts on a teammate or an enemy, a Blast Ofuda sticks (Ofuda.cs)
                 return;
             }
             if (b.Medicine ? DoseAlly(b) : (b.HealAlly > 0f || b.WardAlly > 0f) && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; DoseAlly: Ninja.cs; CoatAlly: Hemomancer.cs
@@ -1321,7 +1335,7 @@ namespace Arena
         bool CanBounce(Bullet b)
         {
             Bullet live;
-            return b.Id != 0 && Bullets.TryGetValue(b.Id, out live) && live == b && b.Pierce < 50 && !b.Bolts && b.Burst == 0 && !b.Ward
+            return b.Id != 0 && Bullets.TryGetValue(b.Id, out live) && live == b && b.Pierce < 50 && !b.Bolts && b.Burst == 0
                 && b.Kind != Defs.BoulderShot && b.Kind != Defs.ClotShot && b.Kind != Defs.FumaStar && b.Kind != Defs.GreatStar;
         }
 

@@ -552,6 +552,8 @@ static partial class Program
                             foreach (var e in g.Enemies.Values) if (e != target) e.Hp = 0f;
                             bool fire = true, recall = false;
                             if (hold > 0f) { held += dt; if (held > hold) { fire = false; if (held > hold + 0.05f) held = 0f; } }
+                            if (weapon.Id == WeaponId.Ofuda)
+                                recall = f % 70 < 2;  // its damage is the Alt's Blast Ofuda, pressed as its cooldown ends (Ofuda.cs)
                             if (weapon.Id == WeaponId.Revolver)
                                 fire = f % 15 < 3;  // clicked four times a second: two shots (Weapons.cs RevolverTrigger)
                             if (weapon.Id == WeaponId.Shuriken)

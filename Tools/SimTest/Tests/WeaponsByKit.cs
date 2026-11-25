@@ -868,30 +868,19 @@ static partial class Program
         Check(Math.Abs(Math.Abs(d1 - d0) - Game.FanShove) < 1f && Math.Abs(d2 - d1 + (d1 - d0)) < 1f, "Spirit Fan shots alternate blowing enemies away and drawing them in");
         reset();
 
-        // Ofuda: a charm lies at the cursor as a ward; an enemy stepping on it sets it off, hurting it and healing allies near.
+        // Ofuda: a Healing Talisman thrown at a hurt ally heals it (the rest: the ofuda suite, Tests/Ofuda.cs).
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Ofuda);
         me.Pos = from;
-        me.AimAt = from + new V2(300f, 0f);
-        volley.Invoke(g, new object[] { me, 0f, 0 });
-        play(1.2f, new PlayerInput { AimAt = me.AimAt });
-        var ward = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.OfudaWard);
-        float wardAt = ward != null ? ward.Pos.DistanceTo(from) : -1f;
-        allyAt = ward != null ? ward.Pos + new V2(0f, 60f) : allyAt;
+        allyAt = from + new V2(200f, 0f);
         play(0.2f, new PlayerInput());  // the ally gets there (its own game sends where it is)
         ally.Hp = ally.MaxHp * 0.3f;
         float ah = ally.Hp;
-        var walker = dummy(ward != null ? ward.Pos : from, 1e5f);
-        play(0.1f, new PlayerInput());
-        float hurt = walker.MaxHp - walker.Hp, healed = ally.Hp - ah;
-        bool gone = !g.Zones.Values.Any(z => z.Kind == ZoneKind.OfudaWard);
-        walker.Hp = 0f; keep.Remove(walker);
-        for (int k = 0; k < 7; k++) { me.AimAt = from + new V2(200f + 30f * k, -100f); volley.Invoke(g, new object[] { me, 0f, 0 }); }
-        play(1.5f, new PlayerInput());
-        int wards = g.Zones.Values.Count(z => z.Kind == ZoneKind.OfudaWard);
-        Console.WriteLine("  ofuda: a ward lay {0:0} px out; an enemy stepping on it took {1:0.0}, an ally near healed {2:0.0}, ward gone {3}; 7 more thrown, {4} lie (cap {5})",
-            wardAt, hurt, healed, gone, wards, Game.WardCap);
-        Check(Math.Abs(wardAt - 300f) < 30f && hurt > 0f && healed >= Game.WardHeal - 0.5f && gone && wards == Game.WardCap,
-            "Ofuda charms lie at your cursor as wards that burst when an enemy steps on one, healing allies near");
+        me.AimAt = allyAt;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(1f, new PlayerInput { AimAt = allyAt });
+        float healed = ally.Hp - ah;
+        Console.WriteLine("  ofuda: a talisman thrown at an ally 200 px off healed it {0:0.0}", healed);
+        Check(healed >= Game.TalismanHeal - 0.5f, "an Ofuda Healing Talisman thrown at a hurt ally heals it");
         allyAt = new V2(300f, 150f);
         reset();
 
