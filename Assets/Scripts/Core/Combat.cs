@@ -62,6 +62,7 @@ namespace Arena
             amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
             amount = TankSoak(p, amount);  // or A Literal Tank's (LiteralTank.cs)
             amount = TurretSoak(p, amount);  // the Deployable Turret you sit in takes the rest first (DeployableTurret.cs)
+            amount = ChitinSoak(p, amount);  // Hive Censer chitin takes it before any shield (HiveCenser.cs)
             if (p.ShieldHp > 0f)  // shields soak damage next (Guardian's Oath, Substitution, Blood Shell)
             {
                 float soak = Math.Min(p.ShieldHp, amount);
@@ -122,6 +123,8 @@ namespace Arena
             p.OverdriveT = 0f;
             p.AdrenalineT = 0f;
             p.OverchargeT = 0f;
+            p.ChitinHp = 0f;
+            p.HiveOn = false;
             p.GustT = 0f;
             p.Firing = false;
         }

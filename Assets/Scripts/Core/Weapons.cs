@@ -495,6 +495,8 @@ namespace Arena
                     return StasisReach * p.Stats.ShotSpeedMult;
                 case WeaponId.LeechTendrils:  // Leech Tendrils reach from your edge (Hemomancer.cs)
                     return p.Def.BodyR + GraspReach(p);
+                case WeaponId.HiveCenser:  // how far from you the insects pour (HiveCenser.cs)
+                    return HiveReach;
                 case WeaponId.StaticShock:  // the cone (StaticShock.cs)
                     return StaticHand(p, p.Pos).DistanceTo(p.Pos) + StaticRangeOf(p);
                 case WeaponId.RadiantOrb:  // as far out as the orb can go (RadiantOrb.cs)

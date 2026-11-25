@@ -444,6 +444,7 @@ namespace Arena
                     SyncZone(s, z);
 
             SyncInk(s);      // Chalk.cs: everyone's spirit ink
+            SyncHive(s);     // HiveCenser.cs: everyone's Hive Censer swarms
             SyncHazards(s);  // LateGame.cs
             SyncCages(s);    // Singularity.cs
             SyncAccretion(s);  // the Accretion rings' bands (Infall.cs)
@@ -915,6 +916,9 @@ namespace Arena
             s.Float(ref p.TpCd);
             s.Bool(ref p.StaticOn);  // Static Shock (StaticShock.cs)
             s.Float(ref p.OverchargeT);
+            s.Float(ref p.ChitinHp);  // the Hive Censer (HiveCenser.cs)
+            s.Bool(ref p.HiveOn);
+            s.Vec(ref p.HivePour);
             s.Float(ref p.SupplyT);  // Supply Drop (SupplyDrop.cs)
             for (int k = 0; k < 2; k++)  // the Embolus Spears (EmbolusSpears.cs)
             {

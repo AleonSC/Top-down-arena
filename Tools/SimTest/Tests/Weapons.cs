@@ -942,6 +942,20 @@ static partial class Program
                     if (Math.Abs(range - (w.Id == WeaponId.OrbitShards ? Game.ShardReach : Game.BladeReach)) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
                     continue;
                 }
+                if (w.Id == WeaponId.HiveCenser)
+                {
+                    // No shots: insects pour from the cursor, no farther than the reach (the aim line's end).
+                    V2 stand = new V2(120f, 450f);
+                    for (int f = 0; f < 10; f++)
+                    {
+                        me.Pos = stand;
+                        host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f), Fire = true });
+                    }
+                    float reached = me.HivePour.DistanceTo(stand);
+                    for (int f = 0; f < 5; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(1500f, 450f) }); }
+                    if (Math.Abs(reached - range) <= 2f) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (poured at " + reached.ToString("0") + " vs " + range.ToString("0") + ")");
+                    continue;
+                }
                 if (w.Id == WeaponId.Nimbus || w.Id == WeaponId.SpiritChalk)
                 {
                     // No shots: the cloud drifts to your cursor (and no further than its leash); the chalk draws to it (and no further than its reach).

@@ -218,7 +218,9 @@ namespace Arena
             if (!tabHeld && game.Running)
                 DrawVectorGainHud();  // "+10 VECTORS" over you and the shards into the chip (VectorGainLook.cs)
             if (!tabHeld && game.Running)
-                DrawOverchargeHud();  // Overcharge's seconds and its pop (StaticShockLook.cs)
+                DrawOverchargeHud();
+            if (!tabHeld && game.Running)
+                DrawHiveHud();  // "SLOWED" under enemies a Hive Censer swarm wraps (HiveCenserLook.cs)  // Overcharge's seconds and its pop (StaticShockLook.cs)
             if (!tabHeld && game.Running)
                 DrawLootSweepHud();  // "+86 GOLD" and your coins streaming in as the wave starts (LootSweepLook.cs)
             if (tabHeld)

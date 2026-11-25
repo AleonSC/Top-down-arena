@@ -44,6 +44,9 @@ namespace Arena
             new WeaponDef { Id = WeaponId.SpiritChalk, Kit = Kit.Summoner, Role = Role.Healer, Choice = 2, Damage = 26f, Reach = 450f, BotRange = 300f, ExtraDesc = "+20% ink, so a longer line before the start rubs out", Name = "Spirit Chalk", FireInterval = 0.1f,
                 Desc = "Primary Fire: Hold and drag to draw ink that burns enemies and heals allies; circle enemies to trap them.\n\nAlternative Fire: Ignite your loops to burn what they hold.",
                 Sound = Sfx.None, AreaDesc = "the line is 25% wider" },
+            new WeaponDef { Id = WeaponId.HiveCenser, Kit = Kit.Summoner, Role = Role.Healer, Choice = 3, Damage = 18f, Reach = Game.HiveReach, BotRange = 380f, ExtraDesc = "+1 swarm and 20% more insects", Name = "Hive Censer", FireInterval = 0.1f,
+                Desc = "Primary Fire: Hold to pour insects from your cursor. They gather into swarms that wrap enemies (damage and slow) and shell allies in chitin, a barrier that wears off and is topped up near a swarm.\n\nAlternative Fire: Hive Call: every swarm rushes to your cursor.",
+                Sound = Sfx.None },
             // DPS
             new WeaponDef { Id = WeaponId.WolfWhistle, Kit = Kit.Summoner, Role = Role.Dps, Choice = 0, Speed = 720f, Life = 0.8f, Damage = 6.5f, ExtraDesc = "+1 starting wolf", Name = "Wolf Whistle", FireInterval = 0.3f,
                 Desc = "Primary Fire: Darts mark prey for your wolves; kills grow the pack.\n\nAlternative Fire: Merge the pack into an alpha.",

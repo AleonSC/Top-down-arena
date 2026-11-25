@@ -103,6 +103,7 @@
 # GRENADE=<s> (the Tank Soldier's Grenade Launcher that long into a fight: fire held at a pack GLAT px ahead; GLSMOKE=1 Alt then smoke canisters from 0.6 s; GLSWAP=1 Alt only; GLIDLE=1; mode hud; GrenadeLauncherLook.cs).
 # DOUBLEBARREL=<s> (the Soldier DPS Double Barrel that long into a fight: fire held at three dummies in a line; DBBOTH=1 Alt both barrels at 0.3 s; DBIDLE=1 not firing; mode hud; DoubleBarrelLook.cs).
 # STATICSHOCK=<s> (the Healer Elementalist's Static Shock that long into a fight: fire held at a pack, a teammate in the cone gets Overcharge; SSALT=1 the Arc Cannon at 0.1 s through a teammate; SSHEAT=<s> every enemy already that long in the cone (the ramp); mode hud, 3 players; StaticShockLook.cs).
+# HIVECENSER=<s> (the Healer Summoner's Hive Censer that long into a scripted pour: on a pack until 1.2 s, by a teammate (chitin) until 2.0 s, then the pack again; HCALT=1 Hive Call at 2.4 s; HiveCenserLook.cs; shot.sh x hud 3 1 3).
 # TWINPISTOLS=<s> (the Healer Soldier Twin Pistols that long into a fight: fire held at a pack 260 px ahead; TPLASER=1 Alt (Laser Sights) at 0.1 s; TPIDLE=1 not firing; TwinPistolsLook.cs).
 # WHIP=<s> (the Revolver's Fan stance that long into a fight: grunts and enemy shots in front, a click (the whip) at 0.1 s; WHIPIDLE=1 no click; WHIPFAN=1 a second click (the fan) at 0.3 s; mode hud; PistolWhipLook.cs).
 # UNDERTOW=<meter>,<s held> (the Repulsion Cannon's Undertow meter, and its pull held that long on a pack of grunts; mode hud).

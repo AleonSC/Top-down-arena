@@ -165,6 +165,8 @@ namespace Arena
         TrainingPistol,
         // the Flamethrower's variants (ElementGuns.cs): the Water Gun splashes wet, the Gale Gun slices and slows
         WaterGun, GaleGun,
+        // the Healer Summoner's fourth (HiveCenser.cs): insects poured from the cursor that swarm enemies and shell allies, Hive Call on Alt
+        HiveCenser,
     }
 
     public class WeaponDef
