@@ -105,8 +105,37 @@ namespace Arena
                 FillRect(0, 0, AW, AH, new Rgba(0f, 0f, 0f, 0.45f * EndBg));
             camZoomOn = zoomed;
 
-            if (aimLine && game.Me != null && !game.Me.Downed && !game.Me.ParryActive && !LaunchHides(game.Me) && !(game.Me.Weapon.Id == WeaponId.MendersBow && game.Me.DrawT > 0f))  // (a drawn bow has its own: BowFocusLook.cs)
-                DrawAimLine(game.Me, MouseArena(), t);
+            DrawPlayerOverlays(t, MouseArena(), aimLine);  // the aim line, and each weapon's pips, meters and charges
+
+            if (aimDebug && game.Me != null)
+            {
+                // Cyan: from you through the crosshair. Yellow: along your last shot as the host fired it.
+                var me = game.Me;
+                Line(me.Disp, me.Disp + V2.FromAngle(me.Aim) * 1100f, 1.5f, new Rgba(0.3f, 0.9f, 1f, 0.7f));
+                if (game.LastShotId != 0)
+                {
+                    Line(game.LastShotFrom, game.LastShotFrom + V2.FromAngle(game.LastShotAngle) * 1100f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.75f));
+                    Bullet shot;
+                    if (game.Bullets.TryGetValue(game.LastShotId, out shot))
+                        Arc(shot.Pos, shot.Radius + 5f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.9f), 12);
+                }
+            }
+
+            // Crosshair
+            V2 m = MouseArena();
+            StepCursor(m, t, Keybinds.Held(KeyAction.Fire) && !fireBlocked);
+            if (!cursorWantPointer)  // (over a menu or the end screen the pointer is drawn on top of the UI instead: DrawMenuCursor)
+                DrawLookMorph(CursorLook(), m, t, cursorFire, cursorMorph, cursorHist);  // CursorLooks.cs: the pointer turning into your crosshair as a run starts
+            EndJuiceFrame();
+            EndRecording();
+        }
+
+        /// Over the arena's contents: your aim line toward `cursor` (when `aim`), and each weapon's pips, meters, charges
+        /// and lasers. Shared by the run (DrawWorld), Practice (HangoutUi.cs) and the loadout preview (LobbyUi.cs).
+        void DrawPlayerOverlays(float t, V2 cursor, bool aim)
+        {
+            if (aim && game.Me != null && !game.Me.Downed && !game.Me.ParryActive && !LaunchHides(game.Me) && !(game.Me.Weapon.Id == WeaponId.MendersBow && game.Me.DrawT > 0f))  // (a drawn bow has its own: BowFocusLook.cs)
+                DrawAimLine(game.Me, cursor, t);
             if (game.Me != null && !game.Me.Downed && game.Me.Weapon.Id == WeaponId.Revolver && game.Me.StunShots == 0)
                 DrawRevolverPips(game.Me, t);
             foreach (var p in game.Players.Values)
@@ -182,28 +211,6 @@ namespace Arena
                 else if (p.Weapon.Id == WeaponId.GoreMortar && p.DrawT > 0f && !p.Downed)
                     DrawClotCharge(p, p.Id == game.MyId, t);  // GoreMortarLook.cs
             DrawBowFocusUi(t);  // your Mender's Bow: the Focus bar and Scatter's cooldown (BowFocusLook.cs)
-
-            if (aimDebug && game.Me != null)
-            {
-                // Cyan: from you through the crosshair. Yellow: along your last shot as the host fired it.
-                var me = game.Me;
-                Line(me.Disp, me.Disp + V2.FromAngle(me.Aim) * 1100f, 1.5f, new Rgba(0.3f, 0.9f, 1f, 0.7f));
-                if (game.LastShotId != 0)
-                {
-                    Line(game.LastShotFrom, game.LastShotFrom + V2.FromAngle(game.LastShotAngle) * 1100f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.75f));
-                    Bullet shot;
-                    if (game.Bullets.TryGetValue(game.LastShotId, out shot))
-                        Arc(shot.Pos, shot.Radius + 5f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.9f), 12);
-                }
-            }
-
-            // Crosshair
-            V2 m = MouseArena();
-            StepCursor(m, t, Keybinds.Held(KeyAction.Fire) && !fireBlocked);
-            if (!cursorWantPointer)  // (over a menu or the end screen the pointer is drawn on top of the UI instead: DrawMenuCursor)
-                DrawLookMorph(CursorLook(), m, t, cursorFire, cursorMorph, cursorHist);  // CursorLooks.cs: the pointer turning into your crosshair as a run starts
-            EndJuiceFrame();
-            EndRecording();
         }
 
         /// Everything on the arena floor: players, bullets, enemies, minions, zones and effects. Also draws the
