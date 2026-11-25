@@ -564,6 +564,8 @@ namespace Arena
                 DrawBloodShellOn(p, t);
             else if (p.ShieldHp > 0f && p.MercyT <= 0f)  // a shield, the plain ring (a Lightbringer's ward draws its own plates)
                 Arc(p.Disp, p.Def.BodyR + 5f, 3f, new Rgba(0.5f, 0.7f, 1f, 0.4f + 0.5f * Mathf.Min(1f, p.ShieldHp / 60f)), 32);
+            if (Game.Armored(p))  // an Armor Drop vest's armor: a steel half-shell (ArmorDropLook.cs)
+                DrawArmorShell(p, t);
             if (p.OverHp > 0f && !p.Downed)  // a health shrine's health past max: a gold ring with turning ticks (ShrineLook.cs)
                 DrawOverHealth(p, t);
             if (p.LegionT > 0f)  // Legion: the blood moon (LegionLook.cs)
@@ -725,6 +727,11 @@ namespace Arena
         /// A health orb: a green disc with a white cross; big ones get a gold ring.
         void DrawOrb(Orb o, float t)
         {
+            if (o.Vest)
+            {
+                DrawVest(o, t);  // an Armor Drop's ballistic vest (ArmorDropLook.cs)
+                return;
+            }
             if (o.Med)
             {
                 DrawMedOrb(o, t);  // HealerKitLooks.cs

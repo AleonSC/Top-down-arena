@@ -116,6 +116,7 @@ namespace Arena
                 DrawDebtBar(p, r, t);  // Blood Debt's ghost segment (BloodDebtLook.cs)
                 DrawJuggBar(p, r);     // the Juggernaut Suit's armour, over the health bar (JuggernautLook.cs)
                 DrawTankBar(p, r);     // A Literal Tank's armour and time (LiteralTankLook.cs)
+                DrawArmorBar(p, r);    // an Armor Drop vest's armor, five steel segments (ArmorDropLook.cs)
             }
             if (p.Downed)
             {

@@ -724,6 +724,11 @@ namespace Arena
                     TickHospital(z, dt);  // orbs, shrine, laser gate (FieldHospital.cs)
                     continue;
                 }
+                if (z.Kind == ZoneKind.ArmorDrop)
+                {
+                    TickArmorDrop(z, dt);  // the landing, the vests (ArmorDrop.cs)
+                    continue;
+                }
                 if (z.Kind == ZoneKind.SupplyDrop)
                 {
                     TickSupplyDrop(z, dt);  // the landing, the buff, the health packs (SupplyDrop.cs)

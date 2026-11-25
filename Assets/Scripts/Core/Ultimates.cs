@@ -245,6 +245,10 @@ namespace Arena
                     CastSupplyDrop(p, target, cap);
                     break;
 
+                case AbilityId.ArmorDrop:  // Tank: Soldier, the fourth ultimate (ArmorDrop.cs)
+                    CastArmorDrop(p, target, cap);
+                    break;
+
                 case AbilityId.Sanctum:  // Healer: Elementalist
                 {
                     float r = cap ? 300f : 200f;

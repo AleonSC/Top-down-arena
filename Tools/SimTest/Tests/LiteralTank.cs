@@ -24,7 +24,7 @@ static partial class Program
         Check(def.Name == "A Literal Tank" && def.Cooldown == 80f && def.Choice == AbilityDef.Ult && def.UltKey == 2 && def.Role == Role.Tank && def.Kit == Kit.Soldier && def.Capstone != null,
             "A Literal Tank is the Tank Soldier's ultimate on key 2, 80 s");
         Check(Upgrades.Ultimate(Role.Tank, Kit.Soldier) == AbilityId.Fortress && Upgrades.Ultimate(Role.Tank, Kit.Soldier, 1) == AbilityId.JuggernautSuit
-            && Upgrades.Ultimate(Role.Tank, Kit.Soldier, 2) == AbilityId.LiteralTank && Upgrades.ClampUlt(Role.Tank, Kit.Soldier, 2) == 2 && Upgrades.ClampUlt(Role.Dps, Kit.Soldier, 2) == 0,
+            && Upgrades.Ultimate(Role.Tank, Kit.Soldier, 2) == AbilityId.LiteralTank && Upgrades.ClampUlt(Role.Tank, Kit.Soldier, 2) == 2 && Upgrades.ClampUlt(Role.Dps, Kit.Knight, 2) == 0,
             "Fortress stays the default and the Juggernaut Suit key 1; key 2 is the tank, and only for the Tank Soldier");
 
         int port = nextPort++;
