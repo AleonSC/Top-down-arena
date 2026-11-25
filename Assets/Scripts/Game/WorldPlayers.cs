@@ -61,6 +61,7 @@ namespace Arena
                 float emoteSpin;
                 int emoteId = preview ? emoteBodyFor : p.Id;  // (a menu preview only moves when the lobby says whose it is)
                 bool inTank = rebuild < 0f && DrawLiteralTank(p, t, col.A);  // A Literal Tank: drawn in place of the model (LiteralTankLook.cs)
+                inTank |= !inTank && rebuild < 0f && DrawIronArmadillo(p, t, col.A);  // Iron Armadillo: the ball in place of the model (IronArmadilloLook.cs)
                 bool golem = !inTank && rebuild < 0f && ColossusStanding(p);  // Stone Colossus: the golem stands in for the model (StoneColossusLook.cs)
                 if (inTank)
                 {
@@ -116,6 +117,7 @@ namespace Arena
                 DrawDebtBar(p, r, t);  // Blood Debt's ghost segment (BloodDebtLook.cs)
                 DrawJuggBar(p, r);     // the Juggernaut Suit's armour, over the health bar (JuggernautLook.cs)
                 DrawTankBar(p, r);     // A Literal Tank's armour and time (LiteralTankLook.cs)
+                DrawArmBar(p);         // Iron Armadillo's time (IronArmadilloLook.cs)
             }
             if (p.Downed)
             {
