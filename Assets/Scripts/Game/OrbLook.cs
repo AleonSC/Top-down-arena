@@ -25,6 +25,11 @@ namespace Arena
         /// rim and a white cross, pulsing and bobbing over a ground shadow, in a green neon outline. Big orbs add a gold ring; tiny ones are paler.
         void DrawPlainOrb(Orb o, float t)
         {
+            if (o.Blood)
+            {
+                DrawBloodOrb(o, t);
+                return;
+            }
             var col = o.Tiny ? new Rgba(0.6f, 1f, 0.75f) : OrbGreen;
             float r = o.Radius * (1f + 0.12f * Mathf.Sin(t * 6f + o.Id));
             float bob = 2.5f * Mathf.Sin(t * 3f + o.Id);
@@ -41,9 +46,43 @@ namespace Arena
                 Arc(at, r + 5f, 2f, new Rgba(1f, 0.95f, 0.5f, 0.85f), 24);
         }
 
-        /// A picked-up orb: green sparks fly out, a ring spreads from the spot, and a small plus rises off the player.
-        void DataBurst(V2 at, V2 player, float bodyR, bool big)
+        static readonly Rgba BloodOrbCol = new Rgba(0.82f, 0.08f, 0.16f), BloodOrbNeon = new Rgba(1f, 0.3f, 0.35f);
+
+        /// A Hemomancer's blood orb (anyone can drink it): a dark crimson disc in a red neon outline, slowly beating like a
+        /// heart, with a white blood drop on it and two droplets circling it.
+        void DrawBloodOrb(Orb o, float t)
         {
+            float beat = Mathf.Max(0f, Mathf.Sin(t * 5f + o.Id));
+            float r = o.Radius * (1f + 0.14f * beat * beat * beat);
+            float bob = 2.5f * Mathf.Sin(t * 3f + o.Id);
+            V2 at = o.Disp + new V2(0f, bob);
+            PickupShadow(o.Disp, o.Radius, 2.5f - bob);  // CoinLook.cs
+            Circle(at, r * 2.6f, BloodOrbCol.WithAlpha(0.18f), 20);
+            NeonRing(at, r + 2.5f, BloodOrbNeon);
+            Circle(at, r, BloodOrbCol, 16);
+            Arc(at, r + 1.5f, 1.5f, new Rgba(1f, 0.75f, 0.75f, 0.8f), 16);
+            // the drop: a round bottom and a point on top
+            float d = r * 0.42f;
+            V2 c = at + new V2(0f, d * 0.35f);
+            Circle(c, d, Rgba.White, 12);
+            Tri3(c + new V2(-d * 0.93f, -d * 0.35f), c + new V2(d * 0.93f, -d * 0.35f), c + new V2(0f, -d * 2.3f), Rgba.White);  // NonShooterLooks.cs
+            for (int i = 0; i < 2; i++)
+            {
+                float a = t * 2.2f + o.Id + i * Mathf.PI;
+                Circle(at + new V2(Mathf.Cos(a) * (r + 7f), Mathf.Sin(a) * (r + 7f) * 0.6f), 1.6f, BloodOrbNeon, 8);
+            }
+        }
+
+        /// A picked-up orb: green sparks fly out, a ring spreads from the spot, and a small plus rises off the player.
+        void DataBurst(V2 at, V2 player, float bodyR, bool big, bool blood = false)
+        {
+            if (blood)
+            {
+                Sparks(at, BloodOrbNeon, 12, 170f, 0.5f, 2.6f);
+                Ring(at, 34f, 0.35f, BloodOrbCol);
+                AddPart(new Part { Kind = PPlusUp, Pos = player + new V2(0f, -bodyR), Vel = new V2(0f, -60f), Life = 0.6f, Max = 0.6f, Size = 4.5f, Col = Rgba.White });
+                return;
+            }
             Sparks(at, OrbGreen, big ? 14 : 8, big ? 190f : 140f, 0.5f, big ? 3f : 2.2f);
             Sparks(at, Rgba.White, big ? 4 : 2, big ? 160f : 120f, 0.4f, 2f);
             Ring(at, big ? 40f : 26f, 0.35f, OrbGreen);

@@ -16,7 +16,7 @@ namespace Arena
         {
             public V2 Pos;
             public int Frame, N;
-            public bool Moving, Big;
+            public bool Moving, Big, Blood;
             public readonly V2[] Trail = new V2[7];
         }
 
@@ -50,6 +50,7 @@ namespace Arena
                     s.N--;
                 s.Pos = o.Disp;
                 s.Big = o.Big;
+                s.Blood = o.Blood;
                 s.Frame = juiceFrame;
             }
             goneIds.Clear();
@@ -64,7 +65,7 @@ namespace Arena
                 foreach (var p in game.Players.Values)
                     if (!p.Downed && p.Disp.DistanceTo(s.Pos) < p.Def.BodyR + 30f)
                     {
-                        DataBurst(s.Pos, p.Disp, p.Def.BodyR, s.Big);  // OrbLook.cs
+                        DataBurst(s.Pos, p.Disp, p.Def.BodyR, s.Big, s.Blood);  // OrbLook.cs
                         break;
                     }
                 orbPool.Push(s);
@@ -82,7 +83,7 @@ namespace Arena
                 for (int i = 0; i < s.N; i++)
                 {
                     float f = 1f - (float)i / s.N;
-                    Line(from, s.Trail[i], (s.Big ? 7f : 5f) * f, OrbGreen.WithAlpha(0.35f * f));
+                    Line(from, s.Trail[i], (s.Big ? 7f : 5f) * f, (s.Blood ? BloodOrbCol : OrbGreen).WithAlpha(0.35f * f));
                     from = s.Trail[i];
                 }
                 if (!s.Moving)
@@ -92,7 +93,7 @@ namespace Arena
                     if (!p.Downed && (near == null || p.Disp.DistanceSq(s.Pos) < near.Disp.DistanceSq(s.Pos)))
                         near = p;
                 if (near != null && near.Disp.DistanceTo(s.Pos) < 160f)
-                    Line(s.Pos, near.Disp, 1.5f, OrbGreen.WithAlpha(0.18f));
+                    Line(s.Pos, near.Disp, 1.5f, (s.Blood ? BloodOrbCol : OrbGreen).WithAlpha(0.18f));
             }
         }
 

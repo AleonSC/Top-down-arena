@@ -141,6 +141,7 @@ Health is the Hemomancer's resource. It has full health and normal speed, and:
   scales with what you paid is worth nothing. Cooldowns are shorter than other classes' to make up for it.
 - **Blood Price:** you deal more damage the more health you're missing, up to **+40%** at 10% health.
 - **All your hits heal you for 3% of the damage they deal.**
+- **Blood orbs:** 15% of your kills drop a crimson **blood orb** with a white drop on it. Unlike other health orbs it's one orb for the whole team, **anyone can drink it** (25 HP), it lasts 20 s and it drifts to a hurt player from up to 600 px away, so it isn't wasted on a big map. None from a boss's own drop or where health orbs are off (Famine, Bloodlust, Blood Moon).
 
 | | Weapons | 1st abilities (cost) | Ultimate |
 |---|---|---|---|
@@ -1763,6 +1764,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 | Gadget wheel: hold to open, let go on a gadget to swap it into your hand | C |
 | Wiki: tap to look anything up (pauses a solo run; in co-op only on your screen); hold and click anything on screen (text, an enemy, a player) to open its page | I |
 | Rotate camera left / right: swing the view a quarter turn anticlockwise / clockwise (see Zoom in / out below) | [ ] |
+| First person (experimental): see the run through your own eyes. The arena's floor art becomes the ground, walls and pillars rise, enemies, players and shots stand up as cards with a shadow under each. The mouse turns you (the cursor is locked while no menu is up), W walks where you look, and you aim at the crosshair in the middle of the screen (looking down aims at that spot on the floor). Your own body, the aim line and the weapon pips round you aren't drawn. Just your screen: the game, co-op and saves are unchanged. Remembered between launches | F8 |
 | 2nd, 3rd and 4th abilities | 2, 3 and 4 (changeable; once unlocked). When a card gives you one, choose its key on the card screen; move them between keys any time in the Tab menu (cooldowns move with them) |
 | Pick an upgrade | Click a card (or 1 / 2 / 3), then Confirm (or Enter) |
 | Reroll upgrades | Reroll button or R (twice: the first arms it) |
