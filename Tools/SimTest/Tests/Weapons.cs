@@ -614,6 +614,7 @@ static partial class Program
             g.Minions.Clear();
             g.Zones.Clear();
             g.Bullets.Clear();
+            typeof(Game).GetMethod("ResetHive", bf).Invoke(g, null);  // (the last weapon's Hive Censer swarms don't hurt this trial's dummies)
             var dummies = new List<Enemy>();
             for (int k = 0; k < 9; k++)
             {
