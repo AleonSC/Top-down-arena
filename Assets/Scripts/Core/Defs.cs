@@ -167,6 +167,8 @@ namespace Arena
         WaterGun, GaleGun,
         // the Healer Ninja's fourth (TwinTessen.cs): an iron war fan in each hand, the Kamikaze Gust on Alt
         TwinTessen,
+        // the DPS Engineer's second (BumbleRemote.cs): a remote steering the Bumble Bot, a robot bee that fights at your cursor
+        BumbleRemote,
         // the Healer Summoner's fourth (HiveCenser.cs): insects poured from the cursor that swarm enemies and shell allies, Hive Call on Alt
         HiveCenser,
     }

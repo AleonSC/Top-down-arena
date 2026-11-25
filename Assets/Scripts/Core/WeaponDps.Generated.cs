@@ -88,6 +88,7 @@ namespace Arena
             { WeaponId.IronFist, 53f },
             { WeaponId.StasisGun, 37f },
             { WeaponId.VectorBlade, 64f },
+            { WeaponId.BumbleRemote, 105f },
             { WeaponId.OrbitShards, 122f },
             { WeaponId.GlyphStylus, 38f },
             { WeaponId.DancingBlades, 117f },

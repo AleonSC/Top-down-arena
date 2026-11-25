@@ -58,11 +58,13 @@ namespace Arena
 
         /// Which robot weapon a player holds, as DrawEngineerModel's tool: 0 none.
         static int EngineerToolOf(Player p) =>
-            p.Weapon.Id == WeaponId.IronFist ? 1 : p.Weapon.Id == WeaponId.StasisGun ? 2 : p.Weapon.Id == WeaponId.VectorBlade ? 3 : 0;
+            p.Weapon.Id == WeaponId.IronFist ? 1 : p.Weapon.Id == WeaponId.StasisGun ? 2 : p.Weapon.Id == WeaponId.VectorBlade ? 3 : p.Weapon.Id == WeaponId.BumbleRemote ? 4 : 0;
 
         /// The tool's motion 0-1: the punch or swipe just after an attack, the stasis field while it is out.
         float EngineerToolFire(Player p, int tool)
         {
+            if (tool == 4)
+                return p.Firing ? 1f : 0f;  // the Bumble Remote: Fire held
             if (tool == 2)
             {
                 foreach (var z in game.Zones.Values)  // the field is out only while Fire is held
@@ -109,6 +111,11 @@ namespace Arena
                 MCirc(27f, 0f, 4.5f, StasisInk.WithAlpha(0.2f * glow), 12);
                 MCirc(27f, 0f, 2f, MWhite.WithAlpha(0.6f + 0.4f * fire), 8);
                 MCirc(rhx, rhy, 3.3f, K.Glove); MCirc(lhx, lhy, 3.3f, K.Glove);
+                return;
+            }
+            if (tool == 4)
+            {
+                DrawBumbleRemoteTool(K, ry, t, fire);  // BumbleRemoteLook.cs
                 return;
             }
             // Vector Blade: held in the right hand; it sweeps from one side to the other on a swipe

@@ -347,6 +347,8 @@ namespace Arena
                     return !late && e != null && v.ShootD < CannonReach && Tap(ArcLocalCd <= 0f && (e.Def.IsBoss || EnemiesNear(e.Pos, CannonBurstR) >= 3), 1f);
                 case WeaponId.WindClash:  // the Tempest into a barrage or a crowd
                     return Tap(TempestLocalCd <= 0f && me.WcTempestT <= 0f && (v.Incoming >= 3 || EnemiesNear(me.Pos, 120f) >= 3), 1f);
+                case WeaponId.BumbleRemote:  // the Swarm Burst on a group
+                    return Tap(BumbleBurstLocalCd <= 0f && EnemiesNear(me.Pos, 260f) >= 3, 1f);
                 case WeaponId.WyvernStaff:  // the Wyrm Slam on a group
                     return Tap(WyvernSlamLocalCd <= 0f && EnemiesNear(me.Pos, 200f) >= 3, 1f);
                 case WeaponId.NeedleSwarm:  // a fan of needles at a pack ahead, while the swarm is thick enough to spare them

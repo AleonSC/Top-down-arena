@@ -1764,6 +1764,37 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // BUMBLE=<s>: the DPS Engineer's Bumble Remote (Core/BumbleRemote.cs, Game/BumbleRemoteLook.cs) that long into a fight: the Bumble Bot
+    // flies to the cursor by a pack ahead and stings it, Fire held from BUMFIRE s (default 0.6); BUMALT=<s>: the Swarm Burst pressed then.
+    if (Environment.GetEnvironmentVariable("BUMBLE") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Dps; me.Kit = Kit.Engineer; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Engineer, 1); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      string altS = Environment.GetEnvironmentVariable("BUMALT"), fireS = Environment.GetEnvironmentVariable("BUMFIRE");
+      float altAt = altS != null ? float.Parse(altS, ci) : -1f, fireAt = fireS != null ? float.Parse(fireS, ci) : 0.6f;
+      V2 home = new V2(420f, 470f); me.Pos = me.Disp = home; me.Aim = 0f;
+      foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = home + new V2(-90f, -170f); q.Firing = false; }
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      foreach (var at0 in new[] { new V2(300f, -150f), new V2(360f, -90f), new V2(250f, -60f), new V2(390f, -190f), new V2(330f, 0f), new V2(-120f, 140f) }) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 0.3f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("BUMBLE"), ci) * 60f));
+      V2 cursor = home + new V2(230f, -120f);
+      for (int f = 0; f < frames; f++) {
+        float tt = f / 60f;
+        foreach (var e in foes) e.Disp = e.Pos;
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        V2 aimAt = altAt >= 0f && tt >= altAt ? home + new V2(320f, -90f) : cursor;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = aimAt, Fire = tt >= fireAt, WeaponAction = altAt >= 0f && tt >= altAt && tt < altAt + 0.05f });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Disp = me.Pos; me.Aim = (aimAt - home).Angle; me.AimAt = aimAt; me.Hp = me.MaxHp;
+        foreach (var m in gm.Minions.Values) m.Disp = m.Pos;
+        foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // WYVERN=<s>: the Tank Summoner's Wyvern Staff (Core/WyvernStaff.cs, Game/WyvernStaffLook.cs) that long into a scripted loop: the
     // Wyvern hovers over you with its gale on the grunts until 1.0 s, then Fire is held (it flies out and breathes at the cursor).
     // WYALT=1: Alt (Wyrm Slam) at 1.0 s instead.

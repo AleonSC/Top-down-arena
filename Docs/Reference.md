@@ -22,7 +22,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Knight | x1.15 | x1 | Melee. Holding fire swings instead of shooting, hitting every enemy in the arc and cutting small bullets out of the air in front of you (big orbs, mines and red aimed shots still get through). Armoured for the thick of it: 115% health. |
 | Ninja | x0.85 | x1.12 | Thrown blades and quick melee with tricks and misdirection: stars that come back, stances, smoke and shadow clones. Fast (+12% move speed) but lightly protected (85% health): hit, slip away, hit again. |
 | Hemomancer | x1 | x1 | Blood magic: health is your resource. Every 1st ability costs a share of your health (never below 1 HP), every hit heals you for 3% of its damage, and you hit harder the lower your health (up to +40%). Shorter cooldowns make up for it. Full health and normal speed: live on the edge. |
-| Engineer | x1 | x0.95 | A builder who works in vectors: robots, walls, pylons and breaches drawn in cyan ink. Draftsman: +25% vectors. One robot weapon, ability and ultimate per role for now. Full health, a little slower (95%). |
+| Engineer | x1 | x0.95 | A builder who works in vectors: robots, walls, pylons and breaches drawn in cyan ink. Draftsman: +25% vectors. One robot weapon, ability and ultimate per role for now (the DPS also has the Bumble Remote). Full health, a little slower (95%). |
 | Arcanist | x0.9 | x1 | A mage of telekinesis, runes and enchantments: shards and blades that fly at your will, enemies lifted and thrown, sigils on the floor. Kinetic Field: enemy shots slow down near you. One weapon, ability and ultimate per role for now. 90% health. |
 
 ## Weapons
@@ -146,7 +146,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Stasis Gun | Healer | 0.1 s | 14 | - | 300 | 37 | Primary Fire: Summon a Medic Bot that shoots rivets and heals nearby allies.  Alternative Fire: With the bot out, hold to freeze enemies in place at your cursor. |
 | Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Primary Fire: Summon a fast Assault Bot with a rapid rivet gun.  Alternative Fire: With the bot out, swipe a cyan blade in front of you. |
 | Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Primary Fire: Summon a fast Assault Bot with a rapid rivet gun.  Alternative Fire: With the bot out, swipe a cyan blade in front of you. |
-| Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Primary Fire: Summon a fast Assault Bot with a rapid rivet gun.  Alternative Fire: With the bot out, swipe a cyan blade in front of you. |
+| Bumble Remote | Dps | 0.24 s | 7 | - | - | 105 | You can't attack: a giant robot bee follows your cursor and fights for you. Enemies still go for you.  Primary Fire: Hold to double its stinger rate.  Alternative Fire: Swarm Burst: it dives to your cursor, blasts enemies away and releases a swarm of bees. |
 
 ### Arcanist
 
