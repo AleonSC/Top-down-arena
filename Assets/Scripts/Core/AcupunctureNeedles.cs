@@ -22,7 +22,7 @@ namespace Arena
         public const float BloodletCd = 0.9f, BloodSpeed = 760f, BloodRange = 420f, BloodFan = 0.04f, BloodBleed = 3f;
         public const float PressureDmg = 25f, PressureBoss = 15f, ReturnHeal = 4f, ReturnSpeed = 700f, ReturnTurn = 9f;
         public static readonly Rgba NeedleJade = new Rgba(0.37f, 0.88f, 0.64f), NeedleBlood = new Rgba(1f, 0.3f, 0.38f);
-        const byte DashBloodlet = 64;  // Msg.WeaponDash kind
+        const byte DashBloodlet = 66;  // Msg.WeaponDash kind
 
         float DoseMultOf(int owner) => Players.ContainsKey(owner) ? Players[owner].Stats.DoseMult : 1f;
         static float NeedlePower(Bullet b) => b.Dmg / Defs.WeaponOf(WeaponId.AcupunctureNeedles).Damage;  // damage upgrades

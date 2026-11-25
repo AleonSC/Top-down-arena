@@ -69,6 +69,7 @@ namespace Arena
             { WeaponId.AcupunctureNeedles, 63f },
             { WeaponId.SpiritFan, 75f },
             { WeaponId.Ofuda, 40f },
+            { WeaponId.TwinTessen, 54f },
             { WeaponId.Shuriken, 140f },
             { WeaponId.Katana, 65f },
             { WeaponId.Kunai, 88f },

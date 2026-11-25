@@ -506,6 +506,11 @@ namespace Arena
                 ResetNunChain(p);  // Nunchaku.cs
                 return;
             }
+            if (p.Weapon.Id == WeaponId.TwinTessen)
+            {
+                ResetTessenChain(p);  // TwinTessen.cs
+                return;
+            }
             if (p.Weapon.Id == WeaponId.Vowguard)
             {
                 ResetVgChain(p);  // both chains back to their first step (Vowguard.cs)
