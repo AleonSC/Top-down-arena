@@ -265,6 +265,8 @@ static partial class Shot {
     }
     if (host.Game.Reapers != null) { var R = host.Game.Reapers; Console.WriteLine("reapers stage {0} turn {1} turnT {2:0.0} trans {3} {4:0.0} suck {5:0.0} trapped {6} holes {7}", R.Stage, R.Turn, R.TurnT, R.Trans, R.TransT, R.Suck, R.Trapped, R.Holes.Count); }
     // LICHAT=x,y: pin the Lich there for a close look at its body (LichBodyLook.cs; use with ZOOM and CAMAT on the same spot).
+    // LICHPRISON=<s since it began to rise>: one bone prison at (640, 560), its gap facing down, no shots (LichBodyLook.cs; use with LICH=0.5 CAMAT=640,560).
+    if (Environment.GetEnvironmentVariable("LICHPRISON") != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Lich && e.Lich != null) { e.Lich.Prisons.Clear(); e.Lich.Prisons.Add(new BonePrison { Center = new V2(640f, 560f), Gap = MathX.Pi / 2f, T = float.Parse(Environment.GetEnvironmentVariable("LICHPRISON")) }); host.Game.Bullets.Clear(); }
     if (Environment.GetEnvironmentVariable("LICHAT") != null) { var la = Environment.GetEnvironmentVariable("LICHAT").Split(','); foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Lich) { e.Pos = new V2(float.Parse(la[0]), float.Parse(la[1])); e.Disp = e.Pos; } }
     foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Lich) Console.WriteLine("lich stage {0} turn {1} turnT {2:0.0} prisons {3} spirits {4} sweep {5}", e.Lich?.Stage, e.Lich?.Turn, e.Lich?.TurnT, e.Lich?.Prisons.Count, e.Lich?.Spirits.Count, e.Lich?.SweepOn);
     foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.HiveQueen) Console.WriteLine("queen stage {0} turn {1} turnT {2:0.0} trans {3:0.0} cells {4} cloud {5}", e.Queen?.Stage, e.Queen?.Turn, e.Queen?.TurnT, e.Queen?.TransT, e.Queen?.Cells.Count, e.Queen?.CloudOn);
@@ -305,6 +307,8 @@ static partial class Shot {
     }
     if (Environment.GetEnvironmentVariable("GOLD") != null) me.Gold = int.Parse(Environment.GetEnvironmentVariable("GOLD"));  // the Bazaar's gold on the HUD
     set = (n, v) => typeof(ArenaApp).GetField(n, f2).SetValue(app, v);
+    // LICHSHED=<0-1>: the Lich that far through shedding its cloak as the Final Rite starts (LichBodyLook.cs; use with LICH=0.05).
+    if (Environment.GetEnvironmentVariable("LICHSHED") != null) set("lichShedForce", float.Parse(Environment.GetEnvironmentVariable("LICHSHED")));
     if (Environment.GetEnvironmentVariable("RANDOM") == null) set("juiceRng", new System.Random(1));  // (Juice.cs rolls its own)
     set("session", host); set("game", host.Game); set("scale", 1f); set("drawScale", 1280f / Game.Width);
     if (Environment.GetEnvironmentVariable("FXOFF") != null) set("fxOn", false);
@@ -386,6 +390,50 @@ static partial class Shot {
         we.Warden = new WardenState(); sets[i](we.Warden, we);
       }
       foreach (var wp in host.Game.Players.Values) { wp.Pos = wp.Disp = only > 0 ? new V2(Game.Width / 2f + 120f, Game.Height / 2f + 50f) : new V2(Game.Width / 2f, Game.Height / 2f + 380f); wp.Aim = MathX.Pi; }
+    }
+    // HERALDSHEET=1: four Storm Heralds in a row, one per phase (Gathering, Gale with an east wind, Supercell, last
+    // stand: HeraldBodyLook.cs). Use with ZOOM=1.38 CAMAT=640,360 shot.sh x hud 3 1 1. HERALDSHEET=poses: its twelve poses
+    // (ZOOM=1 CAMAT=640,360); HERALDSHEET=poses:<1-12>: one, in the middle (ZOOM=2.2 CAMAT=640,360).
+    if (Environment.GetEnvironmentVariable("HERALDSHEET") != null)
+    {
+      host.Game.Enemies.Clear(); host.Game.Bullets.Clear(); host.Game.Hazards.Clear();
+      var hsp = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      for (int i = 0; i < 4; i++)
+      {
+        var at = new V2(Game.Width / 2f + (i - 1.5f) * 220f, Game.Height / 2f);
+        var he = (Enemy)hsp.Invoke(host.Game, new object[] { EnemyType.StormHerald, at, 0f, 0, false });
+        he.Spawning = false; he.SpawnT = 0f; he.Disp = he.Pos = at; he.Facing = MathX.Pi / 2f; he.Flash = 0f;
+        he.Herald = new HeraldState { Stage = (HeraldStage)i, Wind = i == 1 ? 1 : 0 };
+      }
+      string hsheet = Environment.GetEnvironmentVariable("HERALDSHEET");
+      if (hsheet.StartsWith("poses"))  // HERALDSHEET=poses: one Herald per pose (HeraldPose), 4 x 3; poses:<1-12> only that one, in the middle
+      {
+        host.Game.Enemies.Clear();
+        Action<HeraldState, Enemy>[] poses = {
+          (h, e) => { h.Turn = HeraldTurn.Rest; h.TurnT = 1.35f; },                                    // Idle (a jab with the volley)
+          (h, e) => { h.Turn = HeraldTurn.Strikes; h.TurnT = 2.15f; },                                 // Call, the sky answering
+          (h, e) => { h.Turn = HeraldTurn.Rods; h.TurnT = 0.4f; h.Rods.Add(new HeraldRod { Pos = e.Pos + new V2(0f, 600f), Fall = 0.85f }); },  // Plant
+          (h, e) => { h.Turn = HeraldTurn.Rods; h.TurnT = 2f; h.Rods.Add(new HeraldRod { Pos = e.Pos + new V2(0f, 600f) }); },  // Conduct
+          (h, e) => { h.Turn = HeraldTurn.Thunderclap; h.TurnT = 1.65f; },                             // Slam, lifting
+          (h, e) => { h.Turn = HeraldTurn.Thunderclap; h.TurnT = 1.9f; },                              // Slam, down
+          (h, e) => { h.Stage = HeraldStage.Gale; h.Wind = 1; h.Turn = HeraldTurn.Crosswind; h.TurnT = 1.15f; },  // Sweep (upwind)
+          (h, e) => { h.Stage = HeraldStage.Gale; h.Wind = 1; h.Turn = HeraldTurn.BallLightning; h.TurnT = 3.4f; },  // Gather
+          (h, e) => { h.Stage = HeraldStage.Gale; h.Wind = 1; h.Turn = HeraldTurn.Downburst; h.TurnT = 2.55f; },  // Downburst
+          (h, e) => { h.Stage = HeraldStage.Supercell; h.Turn = HeraldTurn.StormFront; h.TurnT = 2.32f; },  // Front
+          (h, e) => { h.Stage = HeraldStage.Supercell; h.Turn = HeraldTurn.Rest; h.TurnT = 0.7f; h.CondId = 1; h.CondT = 1f; },  // Mark (you)
+          (h, e) => { h.Stage = HeraldStage.Gale; h.TransTo = HeraldStage.Supercell; h.TransT = 1.2f; },  // Hunch
+        };
+        int onlyPose = hsheet.Length > 6 ? int.Parse(hsheet.Substring(6)) : 0;
+        for (int i = 0; i < poses.Length; i++)
+        {
+          if (onlyPose > 0 && i != onlyPose - 1) continue;
+          var at = onlyPose > 0 ? new V2(Game.Width / 2f, Game.Height / 2f) : new V2(Game.Width / 2f + (i % 4 - 1.5f) * 230f, Game.Height / 2f + (i / 4 - 1) * 230f);
+          var he = (Enemy)hsp.Invoke(host.Game, new object[] { EnemyType.StormHerald, at, 0f, 0, false });
+          he.Spawning = false; he.SpawnT = 0f; he.Disp = he.Pos = at; he.Facing = MathX.Pi / 2f; he.Flash = 0f;
+          he.Herald = new HeraldState(); poses[i](he.Herald, he);
+        }
+      }
+      foreach (var hp in host.Game.Players.Values) { hp.Pos = hp.Disp = new V2(Game.Width / 2f, Game.Height / 2f + 330f); hp.Aim = -MathX.Pi / 2f; }
     }
     // LAUNCH=<seconds>: a run launching from the lobby, that far in (LaunchIntro.cs).
     launchAt = Environment.GetEnvironmentVariable("LAUNCH") != null ? float.Parse(Environment.GetEnvironmentVariable("LAUNCH")) : -1f;
@@ -908,6 +956,7 @@ static partial class Shot {
       typeof(ArenaApp).GetField("camZoom", f2).SetValue(app, z);
       V2 focus = me.Disp;
       string camAt = Environment.GetEnvironmentVariable("CAMAT");  // CAMAT=x,y: centre the zoom there instead of on you
+      if (camAt == "herald") { foreach (var he in host.Game.Enemies.Values) if (he.Type == EnemyType.StormHerald) focus = he.Disp; camAt = null; }  // CAMAT=herald: on the Storm Herald
       if (camAt != null) { var cp = camAt.Split(','); focus = new V2(float.Parse(cp[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(cp[1], System.Globalization.CultureInfo.InvariantCulture)); }
       typeof(ArenaApp).GetField("camFocus", f2).SetValue(app, new V2(hx * 2 >= Game.Width ? Game.Width / 2f : Math.Max(hx, Math.Min(Game.Width - hx, focus.X)), hy * 2 >= Game.Height ? Game.Height / 2f : Math.Max(hy, Math.Min(Game.Height - hy, focus.Y))));
     }

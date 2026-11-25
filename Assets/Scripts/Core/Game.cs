@@ -1211,8 +1211,8 @@ namespace Arena
                 move = V2.Zero;  // sitting in your Deployable Turret: rooted, and it fires instead of your weapon (DeployableTurret.cs)
                 DashT = 0f;
             }
-            if (me.Weapon.Id == WeaponId.ArcKnuckles && (me.KnuckleChain == 2 || me.KnuckleChain == 4) && DashT <= 0f)
-                move = V2.Zero;  // the Arc Knuckles' Flurry and Grab & Throw: rooted while they run (ArcKnucklesChain.cs)
+            if (me.Weapon.Id == WeaponId.ArcKnuckles && (me.KnuckleChain == 2 || me.KnuckleChain == 4 || me.KnuckleRooted) && DashT <= 0f)
+                move = V2.Zero;  // the Arc Knuckles' Flurry, Grab & Throw and Barrage: rooted while they run (ArcKnucklesChain.cs, ArcKnucklesBrawl.cs)
             bool oathClick = LocalOathPick(me, aimAt, input.Fire && !Bot, ref firing);  // Guardian's Oath: Fire picks the ally instead of shooting (GuardiansOath.cs)
             bool hospClick = LocalHospPick(me, aimAt, input.Fire && !Bot, ref firing);  // Field Hospital: Fire picks the door instead of shooting (FieldHospital.cs)
             float bowRelease = LocalBow(me, firing, dt);
@@ -1466,6 +1466,7 @@ namespace Arena
             }
             me.FiringSeen = firing;
             me.AimAt = aimAt;
+            me.KnuckleSteer = input.Steer;
             me.IsBot = Bot;
             if (IsHost)
             {
@@ -1489,6 +1490,7 @@ namespace Arena
                 w.Write(bowFocusOut);  // the release was a Focus shot (BowFocus.cs)
                 w.Write(me.Sprint);  // the Dodge's sprint, for the others' wake (Dodge.cs)
                 w.Write(Bot);
+                w.Write(me.KnuckleSteer);  // the Arc Knuckles' click wheel (ArcKnucklesBrawl.cs)
                 session.SendToHost(Proto.End(w));
             }
         }
@@ -1785,6 +1787,8 @@ namespace Arena
                     TickBotWeapon(p, dt);  // summon the robot, send it, the basic attack (EngineerBots.cs)
                 else if (p.Weapon.Id == WeaponId.TwinRifleAuto)
                     TickTwinAuto(p, dt);  // the guns aim and fire on their own, no trigger (TwinAuto.cs)
+                else if (p.Weapon.Id == WeaponId.ArcKnuckles)
+                    TickKnuckleFire(p, dt);  // a click is a move, held repeats, the Quake Punch charges while held (ArcKnucklesBrawl.cs)
                 else if (p.Weapon.Id != WeaponId.RadiantOrb && p.Weapon.Id != WeaponId.StaticShock && !InGreatStar(p) && p.Firing && !p.ParryActive && !p.RapierGuard && !p.HbSet && !p.RepelPull && !p.KusariWhirl && p.FireCd <= 0f && State != MatchState.GameOver && ImplodeReady(p))
                 {
                     p.FireCd = p.Weapon.FireInterval / FireRate(p);

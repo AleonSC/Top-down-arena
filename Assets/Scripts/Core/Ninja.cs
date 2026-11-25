@@ -727,7 +727,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashRocket = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs; 58-59: DashPikeOn/Off in Halberd.cs; 42: DashWhip in PistolWhip.cs; 43: free (was the Strider); 44: DashZero in FrostLance; 45: DashSympathy in BloodBrawler.cs; 46: DashTide in BloodBlast.cs; 47: DashIgnite in Chalk.cs; 48: DashNodStance in Nodachi.cs; 49: DashWyvernSlam in WyvernStaff.cs; 50: DashLaser in TwinPistols.cs; 51: DashVgStance in Vowguard.cs; 52-54: DashShardOn/Off, DashBladeRecall in Arcanist.cs; 55: DashHeatDump in RailBeam.cs; 56: DashArcCannon in StaticShock.cs)
+        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashKnuckleStance = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs; 58-59: DashPikeOn/Off in Halberd.cs; 42: DashWhip in PistolWhip.cs; 43: free (was the Strider); 44: DashZero in FrostLance; 45: DashSympathy in BloodBrawler.cs; 46: DashTide in BloodBlast.cs; 47: DashIgnite in Chalk.cs; 48: DashNodStance in Nodachi.cs; 49: DashWyvernSlam in WyvernStaff.cs; 50: DashLaser in TwinPistols.cs; 51: DashVgStance in Vowguard.cs; 52-54: DashShardOn/Off, DashBladeRecall in Arcanist.cs; 55: DashHeatDump in RailBeam.cs; 56: DashArcCannon in StaticShock.cs)
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -992,7 +992,7 @@ namespace Arena
             if (LocalKatana(me, aimAt, pressed, dt))
                 return;  // the Katana's stance switch and steps (Katana.cs)
             if (LocalKnuckleDash(me, aimAt, pressed, dt))
-                return;  // the Arc Knuckles' Rocket Dash (ArcKnuckles.cs)
+                return;  // the Arc Knuckles' stance swap, and their dashes moving you (ArcKnuckles.cs)
             if (LocalArcanistAlt(me, pressed, released, aimAt))
                 return;  // the Orbit Shards' Shard Guard, held, and the Dancing Blades' recall (Arcanist.cs)
             if (LocalHoneySpray(me, pressed, released, aimAt))
@@ -1272,9 +1272,9 @@ namespace Arena
                 HostBrace(p, kind == DashBraceOn);  // the Bulwark Barrier's Brace (BulwarkBarrier.cs)
                 return;
             }
-            if (kind == DashRocket)
+            if (kind == DashKnuckleStance)
             {
-                HostRocketDash(p, target);  // the Arc Knuckles' Rocket Dash (target: where they were aiming; ArcKnuckles.cs)
+                SwapKnuckleStance(p);  // the Arc Knuckles: Brawl to Rocket and back (ArcKnucklesBrawl.cs)
                 return;
             }
             if (kind == DashFumaStance)
