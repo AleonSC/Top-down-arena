@@ -278,6 +278,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Shadow Step | Dps | 1st, choice 1 | 7 s | - | +1 charge. | Teleport behind an enemy and strike it hard. |
 | Vanish | Dps | 1st, choice 2 | 16 s | - | Erases enemy bullets around you when you vanish. | Enemies lose track of you and your next hit deals double. |
 | Blade Fan | Dps | 1st, choice 3 | 12 s | - | Throws twice as many kunai. | Spinning kunai cut enemies around you, then fly out in a ring. |
+| Senbon Seekers | Dps | 1st, choice 5 | 6 s | - | Holds up to 12 needles. | Three poisoned needles circle you and fly at enemies that come close. Stacks to 9. |
 | Death Lotus | Dps | ultimate | 65 s | - | Strikes up to 14 enemies. | A flurry of cuts on up to 8 enemies near your cursor. |
 
 ### Hemomancer
