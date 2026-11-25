@@ -77,6 +77,7 @@
 # GASLOB=<s into the wind-up> (the Gas Grenadier's overhand lob: ring, arm, canister; mode hud; GasLobLook.cs).
 # GAUNTLET=<clock s> (with GRIDCORE=1 EXPANDMAP=0: the Relic Gauntlet, RelicGauntlet.cs, at that laser clock; GAUNTLETAT=<0-1800> where you stand, GAUNTLETSPOT=<n>; ZOOM=0.45 sees it whole; clip.sh ... GAUNTLET=0:7:0.1 animates it).
 # ZOOM=1.8 (the scroll-wheel zoom on you, CameraZoom.cs).
+# FPV=<yaw deg>|big[,<pitch deg>] (the first-person view looking that way, FirstPerson.cs; 0 east, 90 south; big: at the biggest enemy).
 # MAPVIEW=<from>,<to>,<t> (the Map key's switch: 0 minimap, 1 full map, 2 off, t of the way; MapView.cs), MAPCYCLE=<s> (a scripted M, M, M for clip.sh); with EXPANDMAP=6 ZOOM=1.5.
 # NADET=<s> (the Twin Rifle's Rocket assist that long after a launch), NADELOAD=<s> (a tube loading; TwinNadeLook.cs);
 #   with RIFLEFIRE=1 (holding fire: the Twin Rifle held wide, Spread arms) and CROSSAT=<px> (the cursor's distance).

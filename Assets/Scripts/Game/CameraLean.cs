@@ -30,7 +30,7 @@ namespace Arena
         }
 
         /// An arena position as a point on the HUD canvas, with the lean applied (name tags, damage numbers, labels).
-        V2 ToUi(V2 p) => ((CamZoomed ? ZoomPoint(p) : p) - lean) * WorldToUi;  // (and the scroll-wheel zoom, CameraZoom.cs)
+        V2 ToUi(V2 p) => fpView && fpCamReady ? FpToUi(p) : ((CamZoomed ? ZoomPoint(p) : p) - lean) * WorldToUi;  // (and the scroll-wheel zoom, CameraZoom.cs)
 
         /// Once a frame from Update: ease the lean toward where you're looking and heading.
         void UpdateCameraLean(float dt)

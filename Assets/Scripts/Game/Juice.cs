@@ -1356,6 +1356,11 @@ namespace Arena
 
         void Vtx(Vector3 v)
         {
+            if (fpProject)
+            {
+                FpVtx(v);  // first person: collected, drawn far to near (FirstPerson.cs)
+                return;
+            }
             if (recording)
             {
                 recVerts.Add(v);
@@ -1410,6 +1415,11 @@ namespace Arena
         /// Ends the current GL batch and starts another with the glow material (or back to the normal one).
         void SwitchToGlow(bool on)
         {
+            if (fpProject)
+            {
+                fpGlowNow = on;  // first person: marked on the collected triangles (FirstPerson.cs)
+                return;
+            }
             GL.End();
             (on ? GlowMaterial() : glMaterial)?.SetPass(0);  // (null only in tools that draw without Unity)
             GL.Begin(GL.TRIANGLES);
