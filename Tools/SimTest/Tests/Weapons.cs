@@ -919,6 +919,12 @@ static partial class Program
                     if (Math.Abs(range - want) < 0.5f) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (" + want.ToString("0") + " vs " + range.ToString("0") + ")");
                     continue;
                 }
+                if (w.Id == WeaponId.BumbleRemote)
+                {
+                    // No shots from you: the Bumble Bot flies at your cursor, no farther than BumbleLeash (BumbleRemote test); the aim line shows how far.
+                    if (Math.Abs(range - Game.BumbleLeash) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
+                    continue;
+                }
                 if (w.Id == WeaponId.WyvernStaff)
                 {
                     // No shots: the breath streams at your cursor, no farther than BreathReach (WyvernStaff test); the aim line shows how far.

@@ -22,7 +22,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Knight | x1.15 | x1 | Melee. Holding fire swings instead of shooting, hitting every enemy in the arc and cutting small bullets out of the air in front of you (big orbs, mines and red aimed shots still get through). Armoured for the thick of it: 115% health. |
 | Ninja | x0.85 | x1.12 | Thrown blades and quick melee with tricks and misdirection: stars that come back, stances, smoke and shadow clones. Fast (+12% move speed) but lightly protected (85% health): hit, slip away, hit again. |
 | Hemomancer | x1 | x1 | Blood magic: health is your resource. Every 1st ability costs a share of your health (never below 1 HP), every hit heals you for 3% of its damage, and you hit harder the lower your health (up to +40%). Shorter cooldowns make up for it. Full health and normal speed: live on the edge. |
-| Engineer | x1 | x0.95 | A builder who works in vectors: robots, walls, pylons and breaches drawn in cyan ink. Draftsman: +25% vectors. One robot weapon, ability and ultimate per role for now. Full health, a little slower (95%). |
+| Engineer | x1 | x0.95 | A builder who works in vectors: robots, walls, pylons and breaches drawn in cyan ink. Draftsman: +25% vectors. One robot weapon, ability and ultimate per role for now (the DPS also has the Bumble Remote). Full health, a little slower (95%). |
 | Arcanist | x0.9 | x1 | A mage of telekinesis, runes and enchantments: shards and blades that fly at your will, enemies lifted and thrown, sigils on the floor. Kinetic Field: enemy shots slow down near you. One weapon, ability and ultimate per role for now. 90% health. |
 
 ## Weapons
@@ -110,7 +110,8 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Nodachi | Tank | 0.3 s | 20 | - | 150 | 52 | Primary Fire: A tall katana with two five-step combo stances: wide sweeps, or fast jabs that block.  Alternative Fire: Switch stance. |
 | Medicine Darts | Healer | 0.18 s | 7 | 900 x 0.8 s | - | 50 | Primary Fire: Fast needles that poison enemies and heal allies. |
 | Spirit Fan | Healer | 0.4 s | 6 | 420 x 0.3 s | - | 75 | Primary Fire: A short gust that heals allies and pushes small bullets back. |
-| Ofuda | Healer | 0.5 s | 25 | 360 x 1.6 s | - | 50 | Primary Fire: Throw charms that sit as wards and burst when an enemy steps on them. |
+| Ofuda | Healer | 0.45 s | 45 | 380 x 1.1 s | - | 40 | Primary Fire: Healing Talisman: a paper charm that bends toward a hurt teammate at the end of its flight, heals them and bursts, healing teammates near, shoving enemies back and erasing small bullets.  Alternative Fire: Blast Ofuda: a charm that flies straight, sticks to the enemy it hits and blows up; one that misses lands and blows up a moment later. |
+| Twin Tessen | Healer | 0.2 s | 10 | - | 105 | 54 | Primary Fire: A five-step dance of two war fans that heals the allies it brushes and ends in a petal wave.  Alternative Fire: Hold to pull the fans back, let go for a massive gust that throws enemies back and heals allies. |
 | Shuriken | Dps | 0.35 s | 9 | 700 x 0.75 s | - | 140 | Primary Fire: Tight fans of stars that stick, then rip out and fly back.  Alternative Fire: Switch to a huge star thrown along a route you draw. |
 | Katana | Dps | 0.3 s | 20 | - | 120 | 65 | Primary Fire: Two stance combos: dashing slices, or cuts that end in caltrops.  Alternative Fire: Switch stance. |
 | Kunai | Dps | 0.7 s | 42 | 1400 x 0.5 s | - | 88 | Primary Fire: Slow, heavy throwing knives that leave a mark where they land.  Alternative Fire: Blink to the mark, and your next hit lands double. |
@@ -144,7 +145,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Stasis Gun | Healer | 0.1 s | 14 | - | 300 | 37 | Primary Fire: Summon a Medic Bot that shoots rivets and heals nearby allies.  Alternative Fire: With the bot out, hold to freeze enemies in place at your cursor. |
 | Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Primary Fire: Summon a fast Assault Bot with a rapid rivet gun.  Alternative Fire: With the bot out, swipe a cyan blade in front of you. |
 | Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Primary Fire: Summon a fast Assault Bot with a rapid rivet gun.  Alternative Fire: With the bot out, swipe a cyan blade in front of you. |
-| Vector Blade | Dps | 0.4 s | 24 | - | 88 | 64 | Primary Fire: Summon a fast Assault Bot with a rapid rivet gun.  Alternative Fire: With the bot out, swipe a cyan blade in front of you. |
+| Bumble Remote | Dps | 0.24 s | 7 | - | - | 105 | You can't attack: a giant robot bee follows your cursor and fights for you. Enemies still go for you.  Primary Fire: Hold to double its stinger rate.  Alternative Fire: Swarm Burst: it dives to your cursor, blasts enemies away and releases a swarm of bees. |
 
 ### Arcanist
 
@@ -276,6 +277,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Substitution | Healer | 1st, choice 2 | 12 s | - | You and your ally are both invulnerable for 1 s after the swap. | Swap places with an ally and shield them. |
 | Spirit Ward | Healer | 1st, choice 3 | 18 s | - | The ward follows you. | Plant a talisman that absorbs damage for allies, then heals them. |
 | Blossom Storm | Healer | ultimate | 80 s | - | Lasts 8 s. | Petals heal the whole party and erase enemy bullets. |
+| Astral Projection | Healer | ultimate | 70 s | - | Lasts 10 s and heals 40% more. | Leave your body safe and ignored for 8 s; your spirit rides a teammate, shoots astral bolts, and heals them and speeds them up. Right click: switch teammate. |
 | Shadow Step | Dps | 1st, choice 1 | 7 s | - | +1 charge. | Teleport behind an enemy and strike it hard. |
 | Vanish | Dps | 1st, choice 2 | 16 s | - | Erases enemy bullets around you when you vanish. | Enemies lose track of you and your next hit deals double. |
 | Blade Fan | Dps | 1st, choice 3 | 12 s | - | Throws twice as many kunai. | Spinning kunai cut enemies around you, then fly out in a ring. |
