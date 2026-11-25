@@ -96,6 +96,7 @@ namespace Arena
                     : shown == AbilityId.StoneColossus ? Game.ColRise + Game.ColTime + Game.ColRollTime + 1.5f  // (it crumbles before the next)
                     : shown == AbilityId.LivingBolt ? Game.BoltChannel + Game.BoltTime + 1.5f  // (the trails fade before the next)
                     : shown == AbilityId.BloodRavager ? Game.RvTime + 1.5f  // (the legs fold away before the next)
+                    : shown == AbilityId.BloodBoil ? Game.BoilTime + 2f  // (the steam clears before the next)
                     : shown == AbilityId.ForbiddenPath ? Game.FpShed + Game.FpTime + 1.5f  // (the beast sheds back before the next)
                     : shown == AbilityId.StaticBubble ? Game.BubTime + 1.5f  // (it pops before the next)
                     : shown == AbilityId.AstralProjection ? Game.ApTime + 1.5f  // (the spirit snaps back before the next)

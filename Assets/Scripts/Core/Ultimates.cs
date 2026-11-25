@@ -199,6 +199,9 @@ namespace Arena
                 case AbilityId.BloodRavager:  // DPS: Hemomancer, the second ultimate (BloodRavager.cs)
                     CastRavager(p, cap, castPower);
                     break;
+                case AbilityId.BloodBoil:  // DPS: Hemomancer, the third ultimate (BloodBoil.cs)
+                    CastBoil(p);
+                    break;
                 case AbilityId.ForbiddenPath:  // DPS: Ninja, the second ultimate (ForbiddenPath.cs)
                     CastForbiddenPath(p, cap);
                     break;
