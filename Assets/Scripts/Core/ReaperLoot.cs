@@ -252,7 +252,12 @@ namespace Arena
         void ApplyCooldownCut(Player p, AbilityId id, float share)
         {
             foreach (var s in p.Slots)
-                if (s.Id == id && s.Timer > 0f)
+                if (s.Id == id && share >= 1f)  // a whole share: back to full charges (Chakra Reserves, ChakraReserves.cs)
+                {
+                    s.Charges = s.MaxCharges;
+                    s.Timer = 0f;
+                }
+                else if (s.Id == id && s.Timer > 0f)
                     s.Timer *= 1f - share;
         }
     }

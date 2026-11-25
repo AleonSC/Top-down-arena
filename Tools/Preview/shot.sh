@@ -87,6 +87,7 @@
 # DEPLOYTURRET=<s since the cast> [DEPLOYCAP=1 mastered] (the DPS Soldier's Deployable Turret played through the game, shot.sh x hud 1 6 1: drop 0-0.55, unfolds to 1.1, fires to 11.1 (spool full by ~2.3), overheats, blows at 11.9; use 0.3, 0.8, 3, 6, 10, 11.5, 12; FXOFF=1 plain; ShotDeployTurret.cs).
 # THORNBLOOM=<s since the cast> [THORNCAP=1 mastered] (the DPS Hemomancer's Thorn Bloom played through the game, shot.sh x hud 1 6 1: needles fly 0-0.2, tendrils whip on to ~0.9; use 0.05, 0.15, 0.3, 0.5, 0.8; ShotThornBloom.cs).
 # BAMBOO=<s since the cast> [BAMBOOCAP=1 mastered] (the Tank Ninja's Bamboo Grove played through the game, ZOOM=2 shot.sh x hud 1 6 1: wind-up 0-0.35, rings burst 0.35-0.7, fence to 3.9; use 0.2, 0.42, 0.6, 1.0, 2.5; ShotBambooGrove.cs).
+# CHAKRA=<s since the cast> [CHAKRACAP=1 mastered] (the Healer Ninja's Chakra Reserves on a hurt teammate, ZOOM=2 shot.sh x hud 1 6 2: thread 0-0.22, lotus to 0.95, Surge to 5; use 0.1, 0.3, 0.6, 2.0; ShotChakra.cs).
 # ROD=<s since the cast> (you take Lightning Rod, the tank Elementalist's second ultimate, and cast it that long before the shot; mode hud).
 # TANKALT=<s> (the Tank Soldier's Alt fires: Double Barrel that long after firing, shells pips, Proximity Shells, Tear Gas; TankAltLook.cs).
 # HONEYBEE=<s> (the Summoner DPS Honeybee Staff that long into a scripted loop: clicks that swarm a dummy at 0-0.8 s, the honey spray held 1.0-1.9 s, a harvest at ~2.5 s; mode hud; HoneybeeLook.cs).

@@ -126,6 +126,7 @@ namespace Arena
             p.OverdriveT = 0f;
             p.AdrenalineT = 0f;
             p.OverchargeT = 0f;
+            p.CrSurgeT = 0f;  // a Chakra Surge (ChakraReserves.cs)
             p.RushT = 0f;  // Static Rush (StaticBubble.cs)
             p.ChitinHp = 0f;
             p.HiveOn = false;

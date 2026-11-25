@@ -11,7 +11,8 @@ namespace Arena
             * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f) * (p.SurgeT > 0f ? 1f + p.Stats.SurgeRate : 1f)  // Arcane Surge
             * (OverclockOn(p) ? OverclockMult : 1f)  // an Overclock Chip (Gadgets.cs)
             * (Supplied(p) ? SupplyFire : 1f)  // a Supply Drop (SupplyDrop.cs)
-            * BoilFireMult(p);  // Blood Boil (BloodBoil.cs)
+            * BoilFireMult(p)  // Blood Boil (BloodBoil.cs)
+            * CrFireMult(p);  // a Chakra Surge (ChakraReserves.cs)
 
         /// spread: each shot lands somewhere within this many radians of your aim.
         void FirePlayer(Player p, float spread = 0f)

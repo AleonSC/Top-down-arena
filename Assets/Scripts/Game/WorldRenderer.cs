@@ -580,6 +580,8 @@ namespace Arena
             DrawVanishSmoke(p, t);  // Vanish (NinjaLooks.cs)
             DrawCeremonialFloor(p, t);  // Ceremonial Armor's aura, rings and sigil (CeremonialArmorLook.cs)
             DrawSpiritBack(p, t);  // Spirit Avatar's ink body, seal, mask and the cleave's floor arc, under the model (SpiritAvatarLook.cs)
+            if (p.CrSurgeT > 0f)  // a Chakra Surge: its ring and jade wake (ChakraReservesLook.cs)
+                DrawChakraSurge(p, t);
             if (p.DashT > 0f)  // Healing Dash's sprint: speed lines and a mint wake (NinjaLooks.cs)
                 DrawDashWake(p, t);
             else if (p.Id == game.MyId ? game.SprintT > 0f : p.Sprint > 0)  // the Dodge's held sprint (NinjaLooks.cs)

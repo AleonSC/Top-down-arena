@@ -227,7 +227,7 @@ namespace Arena
                 case Msg.Sound:
                     Sounds.Add((Sfx)r.ReadUInt16());
                     break;
-                case Msg.CooldownCut:  // a caught Scythe Throw: that player's own game takes the share off (ReaperLoot.cs)
+                case Msg.CooldownCut:  // a caught Scythe Throw, Chakra Reserves' refresh: that player's own game takes the share off (ReaperLoot.cs)
                 {
                     int id = r.ReadInt32();
                     var ab = (AbilityId)r.ReadByte();
@@ -934,6 +934,9 @@ namespace Arena
             s.Float(ref p.TtCharge);
             s.Float(ref p.TtGustCd);
             s.Float(ref p.TtTailT);
+            s.Float(ref p.CrSurgeT);  // a Chakra Surge (ChakraReserves.cs)
+            if (p.CrSurgeT > 0f)
+                s.Float(ref p.CrSurgeMax);
             s.Byte(ref p.TtBreeze);
             s.Float(ref p.ChitinHp);  // the Hive Censer (HiveCenser.cs)
             s.Bool(ref p.HiveOn);

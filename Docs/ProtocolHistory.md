@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 523: Chakra Reserves (Healer Ninja 4th choice): `AbilityId.ChakraReserves` and `FxKind.ChakraThread` (at the end); the player sync adds `CrSurgeT` (and `CrSurgeMax` while it's on) after `TtTailT`; `Msg.CooldownCut` with a share of 1 now fills the ability back to full charges; the Rare card Deep Reserves (card ids shift).
 - 522: Armor Drop (Tank Soldier fourth ultimate, key 3): `AbilityId.ArmorDrop` and `ZoneKind.ArmorDrop` (at the end), `Player.Armor` in the player sync after `SupplyT`, `Orb.Vest` in the orb sync after `Blood`.
 - 521: the Hive Censer (Healer Summoner 4th weapon): `WeaponId.HiveCenser` and `FxKind.HiveCall` (both at the end, after the Twin Tessen's, Static Bubble's, Blood Boil's and the Bumble Remote's); the player sync adds `ChitinHp`, `HiveOn` and `HivePour`; the snapshot adds the swarm list (`SyncHive`: id, owner, position, insects, radius, kind, target, wrapping); `Msg.WeaponDash` kind 68 (Hive Call).
 - 520: Bumble Remote (DPS Engineer 2nd weapon): `WeaponId.BumbleRemote`, `MinionKind.BumbleBot`, `FxKind.BumbleBurst` (each at the end), `Msg.WeaponDash` kind 67.

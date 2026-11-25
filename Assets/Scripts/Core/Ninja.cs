@@ -331,6 +331,8 @@ namespace Arena
                 Apply = s => { s.MistHealMult += 0.5f; s.MistRadiusMult += 0.25f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Substitution, MaxStacks = 2, Name = "Body Double", Desc = "Substitution's shield is 60% stronger and lasts 2 s longer",
                 Apply = s => { s.SubShieldMult += 0.6f; s.SubBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ChakraReserves, MaxStacks = 2, Name = "Deep Reserves", Desc = "Chakra Reserves' Surge lasts 1.5 s longer and it heals 10 more",
+                Apply = s => { s.CrBonusTime += Game.CrCardTime; s.CrBonusHeal += Game.CrCardHeal; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SpiritWard, MaxStacks = 2, Name = "Sacred Seal", Desc = "Spirit Ward is 40% bigger and lasts 3 s longer",
                 Apply = s => { s.WardRadiusMult += 0.4f; s.WardBonusTime += 3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ShadowStep, MaxStacks = 2, Name = "Assassinate", Desc = "Shadow Step strikes 60% harder and reaches enemies 30% farther",
@@ -427,6 +429,13 @@ namespace Arena
             },
             new AbilityDef
             {
+                Id = AbilityId.ChakraReserves, Kit = Kit.Ninja, Role = Role.Healer, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (ChakraReserves.cs)
+                Name = "Chakra Reserves", Cooldown = CrCooldown, Desc = "Pour chakra into an ally: it heals them, speeds up their moving and attacks, and refreshes their cooldowns.",
+                Capstone = "A second thread reaches the next ally: half the heal and the full Surge.",
+                Bot = b => b.AllyHurt || b.AllyDown,
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.ShadowStep, Kit = Kit.Ninja, Role = Role.Dps, Choice = 0, CapstoneCharge = true,
                 Name = "Shadow Step", Cooldown = 7f, Desc = "Teleport behind an enemy and strike it hard.",
                 Capstone = "+1 charge.",
@@ -519,6 +528,9 @@ namespace Arena
                 }
                 case AbilityId.Substitution:
                     Substitute(p, target, SubShield * s.SubShieldMult * pw, SubShieldTime + s.SubBonusTime, cap);
+                    return true;
+                case AbilityId.ChakraReserves:  // Chakra Reserves (ChakraReserves.cs)
+                    CastChakraReserves(p, target, pw, cap);
                     return true;
                 case AbilityId.SpiritWard:
                 {

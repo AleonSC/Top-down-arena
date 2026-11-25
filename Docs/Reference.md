@@ -174,6 +174,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Fortress | Tank | ultimate | 70 s | - | Lasts 14 s. | A dome only players and their bullets can cross. |
 | Juggernaut Suit | Tank | ultimate | 75 s | - | 450 armour, and each shard does 18. | Heavy armour draws every enemy and throws flak back at shooters. |
 | A Literal Tank | Tank | ultimate | 80 s | - | 550 armour, and the shells blast 30% wider. | Drive an actual tank for 15 s: heavy armour, big explosive shells, and it runs enemies over. |
+| Armor Drop | Tank | ultimate | 80 s | - | The crate holds a 4th vest. | Call in a crate that hits enemies where it lands, then opens: 3 ballistic vests, 50 armor each. Armor never regenerates. |
 | Deployable Cover | Tank | 1st, choice 5 | 12 s (+1 charges) | - | Covers take 600 damage, and each charge comes back 25% sooner. | Plant steel cover that stops enemy bullets while your team shoots through. |
 | Shockwave | Tank | card | 14 s | - | The wave runs out 300 px. | A shockwave erases bullets and shoves enemies back. |
 | Overdrive | Tank | card | 18 s | - | +1 extra projectile while it lasts. | Double your fire rate for a few seconds. |
@@ -281,6 +282,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Spirit Ward | Healer | 1st, choice 3 | 18 s | - | The ward follows you. | Plant a talisman that absorbs damage for allies, then heals them. |
 | Blossom Storm | Healer | ultimate | 80 s | - | Lasts 8 s. | Petals heal the whole party and erase enemy bullets. |
 | Astral Projection | Healer | ultimate | 70 s | - | Lasts 10 s and heals 40% more. | Leave your body safe and ignored for 8 s; your spirit rides a teammate, shoots astral bolts, and heals them and speeds them up. Right click: switch teammate. |
+| Chakra Reserves | Healer | 1st, choice 5 | 28 s | - | A second thread reaches the next ally: half the heal and the full Surge. | Pour chakra into an ally: it heals them, speeds up their moving and attacks, and refreshes their cooldowns. |
 | Shadow Step | Dps | 1st, choice 1 | 7 s | - | +1 charge. | Teleport behind an enemy and strike it hard. |
 | Vanish | Dps | 1st, choice 2 | 16 s | - | Erases enemy bullets around you when you vanish. | Enemies lose track of you and your next hit deals double. |
 | Blade Fan | Dps | 1st, choice 3 | 12 s | - | Throws twice as many kunai. | Spinning kunai cut enemies around you, then fly out in a ring. |
