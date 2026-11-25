@@ -309,53 +309,11 @@ namespace Arena
             return GUI.TextField(r, value, maxLength, bareField);
         }
 
-        static GUIStyle area;
+        // --- Text picking (the Wiki key's eyedropper, WikiPick.cs) -----------------------
+        // Every label and button goes through Shown: while picking it notes the smallest text under the mouse
+        // and outlines the one picked last frame.
 
-        /// A multi-line text box (the dev text editor).
-        public static string Area(Rect r, string value)
-        {
-            if (area == null)
-                area = new GUIStyle(field) { wordWrap = true, alignment = TextAnchor.UpperLeft, padding = new RectOffset(10, 10, 8, 8), fontSize = 15 };
-            // The skin's own cursor and selection are hidden and drawn here, so they always show (and match the CRT look).
-            var st = GUI.skin.settings;
-            Color oldCursor = st.cursorColor, oldSel = st.selectionColor;
-            st.cursorColor = st.selectionColor = new Color(0f, 0f, 0f, 0f);
-            value = GUI.TextArea(r, value, area);
-            st.cursorColor = oldCursor;
-            st.selectionColor = oldSel;
-            int id = GUIUtility.keyboardControl;
-            var te = id != 0 && GUI.GetNameOfFocusedControl() == "textedit" ? GUIUtility.GetStateObject(typeof(TextEditor), id) as TextEditor : null;
-            if (te != null && Event.current.type == EventType.Repaint)
-            {
-                int cur = Mathf.Clamp(te.cursorIndex, 0, value.Length), sel = Mathf.Clamp(te.selectIndex, 0, value.Length);
-                var c = new GUIContent(value);
-                float lh = area.CalcSize(new GUIContent("Ag")).y;
-                if (cur != sel)
-                {
-                    for (int i = Mathf.Min(cur, sel); i < Mathf.Max(cur, sel); i++)
-                    {
-                        if (value[i] == '\n')
-                            continue;
-                        Vector2 a = area.GetCursorPixelPosition(r, c, i), b = area.GetCursorPixelPosition(r, c, i + 1);
-                        if (Mathf.Abs(a.y - b.y) < 1f && b.x > a.x)
-                            Fill(new Rect(a.x, a.y, b.x - a.x, lh), new Color(0.35f, 0.55f, 1f, 0.45f));
-                    }
-                }
-                if (Time.unscaledTime % 1f < 0.6f)
-                {
-                    Vector2 p = area.GetCursorPixelPosition(r, c, cur);
-                    Fill(new Rect(p.x, p.y, 2f, lh), Color.white);
-                }
-            }
-            return value;
-        }
-
-        // --- Dev text editing (DevTextEdit.cs) -----------------------------------------
-        // Every label and button goes through Shown: it swaps in edited text (TextOverrides), and in text-edit
-        // mode notes the smallest text under the mouse and outlines the one picked last frame.
-
-        public static bool PickText;   // text-edit mode is on
-        public static bool NoPick;     // drawing the editor itself: not pickable
+        public static bool PickText;   // picking is on
         public static string Hovered;  // the text under the mouse, as the code draws it (before any edit)
         static Rect hoveredRect, pickRect;
         static string pickText;
@@ -385,7 +343,7 @@ namespace Arena
         {
             if (string.IsNullOrEmpty(text))
                 return text;
-            if (PickText && !NoPick && Event.current.type == EventType.Repaint)
+            if (PickText && Event.current.type == EventType.Repaint)
             {
                 if (text == Hovered && !outlined && r.x == hoveredRect.x && r.y == hoveredRect.y && r.width == hoveredRect.width && r.height == hoveredRect.height)
                 {
@@ -407,7 +365,7 @@ namespace Arena
                     pickRect = r;
                 }
             }
-            return TextOverrides.Apply(text);
+            return text;
         }
 
         static bool HasLetter(string s)

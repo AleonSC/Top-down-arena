@@ -238,11 +238,11 @@ namespace Arena
         void BgHoloFloor(float t)
         {
             float hz = HoloHorizon;
-            GradQuad(new V2(0, 0), new V2(W, 0), new V2(W, hz), new V2(0, hz), new Rgba(0.043f, 0.016f, 0.02f), new Rgba(0.19f, 0.047f, 0.067f));
+            GradQuad(new V2(0, 0), new V2(W, 0), new V2(W, hz), new V2(0, hz), HoloHue(new Rgba(0.043f, 0.016f, 0.02f)), HoloHue(new Rgba(0.19f, 0.047f, 0.067f)));
             Stars(110, t, 0.55f, 4100);
-            GradQuad(new V2(0, hz), new V2(W, hz), new V2(W, H), new V2(0, H), new Rgba(0.25f, 0.075f, 0.09f), new Rgba(0.043f, 0.016f, 0.02f));
-            SoftGlow(new V2(W / 2f, hz), 560f, new Rgba(1f, 0.37f, 0.45f, 0.3f + 0.08f * Mathf.Sin(t * 0.9f)));
-            var grid = new Rgba(0.91f, 0.36f, 0.42f, 0.5f);
+            GradQuad(new V2(0, hz), new V2(W, hz), new V2(W, H), new V2(0, H), HoloHue(new Rgba(0.25f, 0.075f, 0.09f)), HoloHue(new Rgba(0.043f, 0.016f, 0.02f)));
+            SoftGlow(new V2(W / 2f, hz), 560f, HoloHue(new Rgba(1f, 0.37f, 0.45f, 0.3f + 0.08f * Mathf.Sin(t * 0.9f))));
+            var grid = HoloHue(new Rgba(0.91f, 0.36f, 0.42f, 0.5f));
             for (int i = -24; i <= 24; i++)  // lanes to the vanishing point
                 Line(new V2(W / 2f + i * 8f, hz), new V2(W / 2f + i * 150f, H), 1.2f, grid);
             float off = MathX.Fmod(t * 0.75f, 1f);
@@ -258,7 +258,7 @@ namespace Arena
                 int pass = Mathf.FloorToInt(run);
                 float z = (run - pass) * 1.05f;
                 int lane = Mathf.FloorToInt(Hash(s * 31 + pass * 17) * 36f) - 18;
-                var pc = Hash(s * 13 + pass * 7) < 0.2f ? new Rgba(0.95f, 0.76f, 0.31f) : new Rgba(1f, 0.59f, 0.62f);
+                var pc = Hash(s * 13 + pass * 7) < 0.2f ? HoloHue(new Rgba(0.95f, 0.76f, 0.31f)) : HoloHue(new Rgba(1f, 0.59f, 0.62f));
                 for (int j = 0; j < 6; j++)
                 {
                     float z0 = Mathf.Max(0f, z - 0.12f * (6 - j) / 6f), z1 = Mathf.Max(0f, z - 0.12f * (5 - j) / 6f);
@@ -269,14 +269,15 @@ namespace Arena
                     Line(p0, p1, 1f + e1 * 3f, pc.WithAlpha(0.95f * (j + 1) / 6f));
                 }
             }
-            FillRect(0, hz - 1f, W, 2f, new Rgba(1f, 0.55f, 0.6f, 0.75f));
-            GradQuad(new V2(0, hz), new V2(W, hz), new V2(W, hz + 60f), new V2(0, hz + 60f), new Rgba(0.25f, 0.075f, 0.09f, 0.8f), new Rgba(0.25f, 0.075f, 0.09f, 0f));
+            FillRect(0, hz - 1f, W, 2f, HoloHue(new Rgba(1f, 0.55f, 0.6f, 0.75f)));
+            GradQuad(new V2(0, hz), new V2(W, hz), new V2(W, hz + 60f), new V2(0, hz + 60f), HoloHue(new Rgba(0.25f, 0.075f, 0.09f, 0.8f)), HoloHue(new Rgba(0.25f, 0.075f, 0.09f, 0f)));
+            var mote = HoloHue(new Rgba(1f, 0.59f, 0.63f));  // (every colour turned to the picked hue, MenuBgHue.cs)
             for (int i = 0; i < 40; i++)  // motes drifting up off the floor
             {
                 float sp = 0.3f + Hash(i * 5 + 2), span = H - hz + 80f;
                 float y = H - MathX.Fmod(t * 12f * sp + Hash(i * 5 + 3) * span, span);
                 float x = Hash(i * 5 + 4) * W + Mathf.Sin(t + i) * 4f;
-                FillRect(x, y, 2f, 2f, new Rgba(1f, 0.59f, 0.63f, 0.25f + 0.25f * Mathf.Sin(t * 2f + i)));
+                FillRect(x, y, 2f, 2f, mote.WithAlpha(0.25f + 0.25f * Mathf.Sin(t * 2f + i)));
             }
         }
 

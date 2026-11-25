@@ -343,6 +343,12 @@ namespace Arena
                     m.Pos = ClampToArena(m.Pos, d.Radius);
                     continue;
                 }
+                if (m.Kind == MinionKind.BumbleBot)
+                {
+                    if (MoveBumble(m, owner, dt))  // re-armed: it goes (BumbleRemote.cs)
+                        expired.Add(m);
+                    continue;
+                }
                 if (m.Kind == MinionKind.Thrall)
                 {
                     TickThrall(m, owner, dt);  // ForcePact.cs
@@ -722,6 +728,11 @@ namespace Arena
                 if (z.Kind == ZoneKind.FieldHospital)
                 {
                     TickHospital(z, dt);  // orbs, shrine, laser gate (FieldHospital.cs)
+                    continue;
+                }
+                if (z.Kind == ZoneKind.ArmorDrop)
+                {
+                    TickArmorDrop(z, dt);  // the landing, the vests (ArmorDrop.cs)
                     continue;
                 }
                 if (z.Kind == ZoneKind.SupplyDrop)

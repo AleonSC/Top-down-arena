@@ -69,5 +69,8 @@ namespace Arena
         public const byte TessenOn = 64;          // Twin Tessen: on
         public const byte TessenOff = 65;         // Twin Tessen: off
         public const byte ArmBash = 66;           // Iron Armadillo: bash
+        public const byte BumbleBurst = 67;       // Bumble Remote: burst
+        public const byte HiveCall = 68;          // Hive Censer: call
+        public const byte Bloodlet = 69;          // Acupuncture Needles: bloodletting
     }
 }

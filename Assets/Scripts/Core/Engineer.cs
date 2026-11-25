@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Engineer (Docs/Engineer.md): a builder who works in vectors. Each role's weapon summons a robot Engineer
+    /// The Engineer (Docs/Engineer.md): a builder who works in vectors. The DPS's 2nd weapon, the Bumble Remote, is BumbleRemote.cs. Each role's weapon summons a robot Engineer
     /// (EngineerBots.cs: Iron Fist, Vector Blade, Stasis Gun) and stands in for the class's other lobby places (WeaponDef.FillsGaps).
     ///   Drag Pylon (DPS 1st ability): a pylon at the cursor whose field slows enemies inside; it stays until the next one, which folds it up.
     ///   Draftsman (passive): +25% vectors from every gain.
@@ -18,7 +18,7 @@ namespace Arena
         internal static readonly KitDef EngineerKit = new KitDef
         {
             Id = Kit.Engineer, Name = "Engineer", Icon = "class_engineer", HpMult = 1f, SpeedMult = 0.95f,
-            Blurb = "A builder who works in vectors: robots, walls, pylons and breaches drawn in cyan ink. Draftsman: +25% vectors. One robot weapon, ability and ultimate per role for now. Full health, a little slower (95%).",
+            Blurb = "A builder who works in vectors: robots, walls, pylons and breaches drawn in cyan ink. Draftsman: +25% vectors. One robot weapon, ability and ultimate per role for now (the DPS also has the Bumble Remote). Full health, a little slower (95%).",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => { },  // the robot weapons: the summon and the basic attacks are TickBotWeapon's (EngineerBots.cs)
             Ability = (g, p, id, target) => g.EngineerAbility(p, id, target),
             Tick = (g, dt) => g.TickEngineer(dt),
@@ -67,6 +67,10 @@ namespace Arena
                 FireInterval = 0.4f, BotRange = 75f, Name = "Vector Blade", Sound = Sfx.SwingLight,
                 Desc = "Primary Fire: Summon a fast Assault Bot with a rapid rivet gun.\n\nAlternative Fire: With the bot out, swipe a cyan blade in front of you.",
                 ExtraDesc = "the swipe reaches 12 px further" },
+            new WeaponDef { Id = WeaponId.BumbleRemote, Kit = Kit.Engineer, Role = Role.Dps, Choice = 1, Damage = 7f, FireInterval = BumbleAuto, BotRange = 260f,
+                Name = "Bumble Remote", KeyLabel = "Bumble\nRemote", Sound = Sfx.ShotSmg, Companion = MinionKind.BumbleBot, CompanionCount = 1,
+                Desc = "You can't attack: a giant robot bee follows your cursor and fights for you. Enemies still go for you.\n\nPrimary Fire: Hold to double its stinger rate.\n\nAlternative Fire: Swarm Burst: it dives to your cursor, blasts enemies away and releases a swarm of bees.",
+                ExtraDesc = "one more stinger a shot and one more bee in the Swarm Burst" },
         };
 
         internal static readonly AbilityDef[] EngineerAbilities =
@@ -150,6 +154,7 @@ namespace Arena
             foreach (var p in Players.Values)
             {
                 KeepBots(p, dt);  // the robots (EngineerBots.cs)
+                TickBumbleDive(p, dt);  // the Bumble Bot's Swarm Burst dive (BumbleRemote.cs)
                 if (p.Weapon.Id != WeaponId.StasisGun || p.Downed || !p.Firing)
                     EndStasis(p);
             }

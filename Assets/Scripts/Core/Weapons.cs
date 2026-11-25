@@ -10,7 +10,8 @@ namespace Arena
         float FireRate(Player p) => p.Stats.FireRateMult * MomentumMult(p) * Math.Max(p.OverdriveT > 0f ? 2f : 1f, p.AdrenalineT > 0f ? AdrenalineFire : 1f) * (Storming(p) ? 3f : 1f) * (p.OverchargeT > 0f ? OverchargeFire : 1f) * (p.RushT > 0f ? StaticRushFire : 1f)  // Overcharge (StaticShock.cs), Static Rush (StaticBubble.cs)
             * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f) * (p.SurgeT > 0f ? 1f + p.Stats.SurgeRate : 1f)  // Arcane Surge
             * (OverclockOn(p) ? OverclockMult : 1f)  // an Overclock Chip (Gadgets.cs)
-            * (Supplied(p) ? SupplyFire : 1f);  // a Supply Drop (SupplyDrop.cs)
+            * (Supplied(p) ? SupplyFire : 1f)  // a Supply Drop (SupplyDrop.cs)
+            * BoilFireMult(p);  // Blood Boil (BloodBoil.cs)
 
         /// spread: each shot lands somewhere within this many radians of your aim.
         void FirePlayer(Player p, float spread = 0f)
@@ -467,6 +468,8 @@ namespace Arena
                     return BladeReach * PierceReach(p);
                 case WeaponId.HoneybeeStaff:  // how far from you a bee can hatch (HoneybeeStaff.cs)
                     return HatchReach;
+                case WeaponId.BumbleRemote:  // how far from you the Bumble Bot flies (BumbleRemote.cs)
+                    return BumbleLeash;
                 case WeaponId.WyvernStaff:  // how far from you the breath can be aimed (WyvernStaff.cs)
                     return BreathReach;
                 case WeaponId.BloodBlast:  // the next step's reach (BloodBlast.cs)
@@ -495,6 +498,8 @@ namespace Arena
                     return StasisReach * p.Stats.ShotSpeedMult;
                 case WeaponId.LeechTendrils:  // Leech Tendrils reach from your edge (Hemomancer.cs)
                     return p.Def.BodyR + GraspReach(p);
+                case WeaponId.HiveCenser:  // how far from you the insects pour (HiveCenser.cs)
+                    return HiveReach;
                 case WeaponId.StaticShock:  // the cone (StaticShock.cs)
                     return StaticHand(p, p.Pos).DistanceTo(p.Pos) + StaticRangeOf(p);
                 case WeaponId.RadiantOrb:  // as far out as the orb can go (RadiantOrb.cs)

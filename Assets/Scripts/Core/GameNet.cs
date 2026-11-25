@@ -458,6 +458,7 @@ namespace Arena
                     SyncZone(s, z);
 
             SyncInk(s);      // Chalk.cs: everyone's spirit ink
+            SyncHive(s);     // HiveCenser.cs: everyone's Hive Censer swarms
             SyncHazards(s);  // LateGame.cs
             SyncCages(s);    // Singularity.cs
             SyncAccretion(s);  // the Accretion rings' bands (Infall.cs)
@@ -637,6 +638,9 @@ namespace Arena
             s.Float(ref p.RvT);  // Blood Ravager (BloodRavager.cs)
             if (p.RvT > 0f)
                 s.Float(ref p.RvLen);
+            s.Float(ref p.BoilT);  // Blood Boil (BloodBoil.cs)
+            if (p.BoilT > 0f)
+                s.Float(ref p.BoilLen);
             s.Float(ref p.FpT);  // Forbidden Path (ForbiddenPath.cs)
             if (p.FpT > 0f)
             {
@@ -842,7 +846,8 @@ namespace Arena
             s.Byte(ref p.RapierCharge);
             s.Byte(ref p.Light);
             s.Float(ref p.MercyT);  // a Lightbringer's ward (Lightbringer.cs)
-            s.Float(ref p.DoseT);
+            s.Float(ref p.NeedleT);  // Acupuncture Needles in you (AcupunctureNeedles.cs)
+            s.Byte(ref p.NeedleN);
             s.Vec(ref p.KunaiMark);
             s.Float(ref p.KunaiMarkT);
             s.Bool(ref p.BloodWallOn);  // Blood Wall (BloodWall.cs): the drain ring is drawn from how long it has been up
@@ -956,7 +961,11 @@ namespace Arena
             s.Float(ref p.TtGustCd);
             s.Float(ref p.TtTailT);
             s.Byte(ref p.TtBreeze);
+            s.Float(ref p.ChitinHp);  // the Hive Censer (HiveCenser.cs)
+            s.Bool(ref p.HiveOn);
+            s.Vec(ref p.HivePour);
             s.Float(ref p.SupplyT);  // Supply Drop (SupplyDrop.cs)
+            s.Float(ref p.Armor);  // an Armor Drop vest's armor (ArmorDrop.cs)
             for (int k = 0; k < 2; k++)  // the Embolus Spears (EmbolusSpears.cs)
             {
                 s.Byte(ref p.EsSt[k]);
@@ -1054,7 +1063,7 @@ namespace Arena
             float hp = 0f, maxHp = 0f, facing = 0f;
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
-            int bleedStacks = 0, stars = 0, traits = 0, bubble = 0, cells = 0;
+            int bleedStacks = 0, stars = 0, needlesIn = 0, traits = 0, bubble = 0, cells = 0;
             bool winding = false, penned = false, dormant = false, wet = false, hit = false, venom = false, charged = false, slowed = false;
             int bleedHits = 0, wetTenths = 0;
             if (!s.Reading)
@@ -1099,6 +1108,7 @@ namespace Arena
                 status = (byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0) | (e.Caged ? 32 : 0) | (e.Suppress >= SuppressShown ? 64 : 0) | (e.PoisonT > 0f ? 128 : 0));
                 bleedStacks = e.BleedStacks;
                 stars = e.StarsStuck;
+                needlesIn = e.NeedlesIn;
                 e.Suppressed = e.Suppress >= SuppressShown;
                 e.Poisoned = e.PoisonT > 0f;
                 e.Dazed = e.DazeT > 0f || e.StunT > 0f;  // (a Stun shows the same stars)
@@ -1115,6 +1125,7 @@ namespace Arena
             s.Byte(ref status);
             s.Byte(ref bleedStacks);  // bleed stacks on it, drawn as drops gathering on it
             s.Byte(ref stars);       // Shuriken stars stuck in it
+            s.Byte(ref needlesIn);   // Bloodletting needles stuck in it (AcupunctureNeedles.cs)
             s.Byte(ref traits);      // elite traits and a bubble (Variety.cs)
             s.Byte(ref bubble);
             if (bubble > 0)
@@ -1183,6 +1194,7 @@ namespace Arena
                 e.Poisoned = (status & 128) != 0;
                 e.BleedStacks = bleedStacks;
                 e.StarsStuck = stars;
+                e.NeedlesIn = needlesIn;
                 e.Traits = (byte)traits;
                 e.BubbleFrac = bubble / 255f;
                 e.Cells = bubble > 0 ? cells : 0;
@@ -1342,7 +1354,7 @@ namespace Arena
         int SyncOrb(NetSync s, Orb o)
         {
             int id = o != null ? o.Id : 0, owner = o != null ? o.Owner : 0;
-            bool big = o != null && o.Big, tiny = o != null && o.Tiny, med = o != null && o.Med, blood = o != null && o.Blood;
+            bool big = o != null && o.Big, tiny = o != null && o.Tiny, med = o != null && o.Med, blood = o != null && o.Blood, vest = o != null && o.Vest;
             V2 pos = o != null ? o.Pos : default(V2);
             float life = o != null ? o.Life : 0f;
             s.Int(ref id);
@@ -1350,6 +1362,7 @@ namespace Arena
             s.Bool(ref tiny);
             s.Bool(ref med);
             s.Bool(ref blood);
+            s.Bool(ref vest);
             s.Int(ref owner);
             s.Vec(ref pos);
             s.Float(ref life);
@@ -1357,7 +1370,7 @@ namespace Arena
             {
                 if (!Orbs.TryGetValue(id, out o))
                 {
-                    o = new Orb { Id = id, Big = big, Tiny = tiny, Med = med, Blood = blood, Owner = owner, Pos = pos, Disp = pos };
+                    o = new Orb { Id = id, Big = big, Tiny = tiny, Med = med, Blood = blood, Vest = vest, Owner = owner, Pos = pos, Disp = pos };
                     Orbs[id] = o;
                 }
                 o.Pos = pos;

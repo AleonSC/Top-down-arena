@@ -18,7 +18,8 @@ static partial class Program
         Check(Defs.Weapon(Role.Dps, Kit.Engineer, 0).Id == WeaponId.VectorBlade && !Defs.WeaponGap(Role.Dps, Kit.Engineer, 0)
             && Defs.Weapon(Role.Tank, Kit.Engineer, 0).Id == WeaponId.IronFist && !Defs.WeaponGap(Role.Tank, Kit.Engineer, 0)
             && Defs.Weapon(Role.Healer, Kit.Engineer, 0).Id == WeaponId.StasisGun && !Defs.WeaponGap(Role.Healer, Kit.Engineer, 0)
-            && Defs.WeaponGap(Role.Dps, Kit.Engineer, 1) && Defs.WeaponGap(Role.Dps, Kit.Engineer, 2), "each Engineer role's first weapon is its robot weapon (the other places stay locked)");
+            && Defs.Weapon(Role.Dps, Kit.Engineer, 1).Id == WeaponId.BumbleRemote && !Defs.WeaponGap(Role.Dps, Kit.Engineer, 1)
+            && Defs.WeaponGap(Role.Dps, Kit.Engineer, 2), "each Engineer role's first weapon is its robot weapon, the DPS's second the Bumble Remote (the other places stay locked)");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Eng", Role.Dps, 0, 0, Kit.Engineer);

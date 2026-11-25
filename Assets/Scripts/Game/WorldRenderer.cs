@@ -91,7 +91,6 @@ namespace Arena
             DrawJuiceFloor();  // scorch marks and shot trails (Juice.cs)
             DrawFrostNovaGround();  // Frost Nova's cracks and frosted ground, under everything (FrostNovaLook.cs)
             DrawLighting(t);  // shots, blasts and fire lighting the floor, their shadows cast (LightingLook.cs)
-            DrawHeroDummies(t);  // the Dev Arena's stand-in heroes (DevArenaUi.cs)
             DrawArenaContents(t, true);
             DrawJuiceParts();  // shards, rings and sparks
             DrawArenaOver(t);  // what stands or flies over the arena's contents (also in Practice and the loadout preview)
@@ -113,20 +112,6 @@ namespace Arena
 
             if (!fpView)  // (first person: none of it, FirstPerson.cs)
                 DrawPlayerOverlays(t, MouseArena(), aimLine);  // the aim line, and each weapon's pips, meters and charges
-
-            if (aimDebug && game.Me != null)
-            {
-                // Cyan: from you through the crosshair. Yellow: along your last shot as the host fired it.
-                var me = game.Me;
-                Line(me.Disp, me.Disp + V2.FromAngle(me.Aim) * 1100f, 1.5f, new Rgba(0.3f, 0.9f, 1f, 0.7f));
-                if (game.LastShotId != 0)
-                {
-                    Line(game.LastShotFrom, game.LastShotFrom + V2.FromAngle(game.LastShotAngle) * 1100f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.75f));
-                    Bullet shot;
-                    if (game.Bullets.TryGetValue(game.LastShotId, out shot))
-                        Arc(shot.Pos, shot.Radius + 5f, 1.5f, new Rgba(1f, 0.85f, 0.2f, 0.9f), 12);
-                }
-            }
 
             // Crosshair
             V2 m = fpView ? FpScreenMid() : MouseArena();  // (first person: the middle of the screen, FirstPerson.cs)
@@ -169,7 +154,7 @@ namespace Arena
                 if (p.Weapon.Id == WeaponId.OutOfAmmo)
                     DrawAmmoSmears(p, t);  // OutOfAmmoLook.cs
             foreach (var p in game.Players.Values)
-                if (p.Weapon.Id == WeaponId.Scattergun || p.Weapon.Id == WeaponId.FlakCannon || p.Weapon.Id == WeaponId.RiotRepeater || p.Weapon.Id == WeaponId.BoneGuard || p.Weapon.Id == WeaponId.Nimbus)
+                if (p.Weapon.Id == WeaponId.Scattergun || p.Weapon.Id == WeaponId.FlakCannon || p.Weapon.Id == WeaponId.RiotRepeater || p.Weapon.Id == WeaponId.BoneGuard || p.Weapon.Id == WeaponId.Nimbus || p.Weapon.Id == WeaponId.BumbleRemote)
                     DrawTankAltPips(p);  // TankAltLook.cs
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.GrenadeLauncher)
@@ -232,6 +217,7 @@ namespace Arena
             DrawOrbitalSky();  // Orbital Laser's lock-on, beam, shockwave and flash (OrbitalLaserLook.cs)
             DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon (DragonsDogmaLook.cs)
             DrawRavagerDrops();  // Blood Ravager's drops (BloodRavagerLook.cs)
+            DrawBoilOver();  // Blood Boil's bubbles and steam (BloodBoilLook.cs)
             DrawRodentAfter(t);  // the Rodent Minigun's rodents scampering off and its cheese crumbs (RodentMinigunLook.cs)
         }
 
@@ -243,6 +229,7 @@ namespace Arena
         {
             DrawRankTrails(t);  // a rank reward drawn under everyone (RankTrails.cs)
             DrawRavagerStains(t);  // Blood Ravager's footprints (BloodRavagerLook.cs)
+            DrawBoilFloor(t);  // Blood Boil's boiling puddles (BloodBoilLook.cs)
             foreach (var p in game.Players.Values)
                 if (!FpHidesMe(p))  // (first person: your own auras would fill the screen, FirstPerson.cs)
                     DrawPlayerAuras(p, t);
@@ -289,6 +276,7 @@ namespace Arena
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
             DrawInk(t);  // Spirit Chalk's lines and loops (ChalkLook.cs)
+            DrawHiveFloor(t);  // the Hive Censer's refill rings and reach; its insects fly here (HiveCenserLook.cs)
             foreach (var h in game.Hazards.Values)
                 DrawHazard(h, t);
             DrawPits(t);  // a pit variant's voids, gold-and-black rims (PitLook.cs)
@@ -359,6 +347,7 @@ namespace Arena
             DrawFlashFireFront(t);  // Flash Fire's near flames, in front of the enemies (FlashFireLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawBloodbathOver(t);  // enemies wading in a Bloodbath: tinted, bleeding drops (BloodbathLook.cs)
+            DrawHiveOver(t);  // the Hive Censer: wrapped enemies darkened, plain insects (HiveCenserLook.cs)
             DrawGlSmokeOver(t);  // the Grenade Launcher's clouds over the enemies, jammed ones greyed (GrenadeLauncherLook.cs)
             DrawWardenOver(t);  // the Warden blinded or stunned (WardenLook.cs)
             DrawWardenIntro(t);  // the Warden's entrance: its Lockdown cell (WardenIntro.cs)
@@ -528,22 +517,19 @@ namespace Arena
             DrawLivingBoltAura(p, t);  // Living Bolt's channel, halo and time ring (LivingBoltLook.cs)
             DrawRodentPortal(p, t);  // the Rodent Minigun's portal (RodentMinigunLook.cs)
             DrawRavagerUnder(p, t);  // Blood Ravager's glow, reach ring and back legs (BloodRavagerLook.cs)
+            DrawBoilUnder(p, t);  // Blood Boil's glow, heat rings and time arc (BloodBoilLook.cs)
             DrawForbiddenAura(p, t);  // Forbidden Path's time ring, lock chain, Spiral trail and Gate runes (ForbiddenPathLook.cs)
             DrawStaticBubble(p, t);  // Static Bubble round its caster, Static Rush on anyone (StaticBubbleLook.cs)
             DrawAstralUnder(p, t);  // Astral Projection's ward, silver cord, tether ring and beam (AstralProjectionLook.cs)
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)
             DrawTempest(p, t);  // Wind Clash's Tempest (WindClashLook.cs)
             DrawTessenUnder(p, t);  // the Twin Tessen's charging cone, Tailwind and Breeze arc (TwinTessenLook.cs)
+            DrawChitin(p, t);  // Hive Censer chitin (HiveCenserLook.cs)
             DrawStaticShockUnder(p, t);  // Overcharge's gold ring; the plain cone (StaticShockLook.cs)
             if (p.CoatT > 0f)
                 DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (HemomancerLook.cs)
-            if (p.DoseT > 0f)  // dosed by Medicine Darts: green motes rising off you while it heals
-                for (int k = 0; k < 4; k++)
-                {
-                    float f = MathX.Fmod(t * 1.1f + k * 0.25f + p.Id * 0.3f, 1f);
-                    V2 at = p.Disp + new V2((k - 1.5f) * p.Def.BodyR * 0.45f, p.Def.BodyR * 0.6f - f * p.Def.BodyR * 1.8f);
-                    Circle(at, 2.2f * (1f - f) + 0.8f, new Rgba(0.5f, 1f, 0.6f, 0.85f * (1f - f)), 6);
-                }
+            if (p.NeedleN > 0)
+                DrawNeedlesInPlayer(p, t);  // Acupuncture Needles in you, healing (AcupunctureLook.cs)
             if (p.Weapon.Id == WeaponId.Katana)  // both stances' combo pips over your head (KatanaLook.cs)
                 DrawKatanaHud(p, t);
             if (p.Weapon.Id == WeaponId.BoStaff)  // where you are in the slash, jab, spin chain (BoStaffLook.cs)
@@ -644,6 +630,8 @@ namespace Arena
                 DrawBloodShellOn(p, t);
             else if (p.ShieldHp > 0f && p.MercyT <= 0f)  // a shield, the plain ring (a Lightbringer's ward draws its own plates)
                 Arc(p.Disp, p.Def.BodyR + 5f, 3f, new Rgba(0.5f, 0.7f, 1f, 0.4f + 0.5f * Mathf.Min(1f, p.ShieldHp / 60f)), 32);
+            if (Game.Armored(p))  // an Armor Drop vest's armor: a steel half-shell (ArmorDropLook.cs)
+                DrawArmorShell(p, t);
             if (p.OverHp > 0f && !p.Downed)  // a health shrine's health past max: a gold ring with turning ticks (ShrineLook.cs)
                 DrawOverHealth(p, t);
             if (p.LegionT > 0f)  // Legion: the blood moon (LegionLook.cs)
@@ -805,6 +793,11 @@ namespace Arena
         /// A health orb: a green disc with a white cross; big ones get a gold ring.
         void DrawOrb(Orb o, float t)
         {
+            if (o.Vest)
+            {
+                DrawVest(o, t);  // an Armor Drop's ballistic vest (ArmorDropLook.cs)
+                return;
+            }
             if (o.Med)
             {
                 DrawMedOrb(o, t);  // HealerKitLooks.cs

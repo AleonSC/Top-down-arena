@@ -50,7 +50,6 @@ namespace Arena
         void DevUsed(string what)
         {
             devTouched = true;
-            Recorder?.Dev(this, what);
         }
 
         /// Host: write the run to its slot, if it's between waves with nothing left to choose.

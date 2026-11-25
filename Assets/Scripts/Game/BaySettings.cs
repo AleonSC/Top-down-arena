@@ -167,9 +167,9 @@ namespace Arena
             Ui.Fill(new Rect(scr.x + 12f, scr.y + 50f, scr.width - 24f, 1f), CrtStyle.Ink.WithAlpha(0.25f));
             var view = new Rect(scr.x + 12f, scr.y + 54f, scr.width - 24f, scr.height - 54f - 30f);
             var e = Event.current;
+            bool inView = view.Contains(e.mousePosition);  // (before BeginGroup: inside it the mouse is in the list's own coordinates)
             GUI.BeginGroup(view);
             float y = 2f - menuSetScroll, w = view.width - 10f;
-            bool inView = view.Contains(e.mousePosition);
             switch (g)
             {
                 case 0: y = SetAudio(y, w, live && inView, calm); break;
@@ -341,6 +341,9 @@ namespace Arena
             bool hover = SetToggle(ref y, w, "Enemy names on hover", "Point at an enemy for its name and job", hoverNames, live, calm);
             if (hover != hoverNames)
                 SetHoverNames(hover);
+            bool labels = SetToggle(ref y, w, "Name labels", "A name over you and every enemy", nameLabels, live, calm, "N");
+            if (labels != nameLabels)
+                SetNameLabels(labels);
             float mate = mateShotAlpha;
             y = SetBar(y, w, "Teammate shots", "How solid other players' bullets look", ref mate, live, calm, 0.25f);
             if (Mathf.Abs(mate - mateShotAlpha) > 0.0001f)

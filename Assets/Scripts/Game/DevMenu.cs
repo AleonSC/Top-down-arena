@@ -9,7 +9,6 @@ namespace Arena
     /// wave, and editing each player's stats by hand. Changes to the run are host only.
     public partial class ArenaApp
     {
-        int devWave = 1;          // the wave the "Go" button jumps to
         int devPlayer;            // whose stats are shown (player id; 0 = you)
         float devScroll;          // stat list scroll offset
         string devFocus = "";     // the stat field being typed in, and what's typed so far

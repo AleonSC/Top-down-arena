@@ -33,6 +33,9 @@ namespace Arena
         public const float ArmSlam = 90f, ArmSlamMastered = 130f, ArmSlamR = 180f, ArmSlamShove = 110f;
         public const float ArmRicochet = 15f / 12f;          // a ricochet hits for 15 (SendReflects' 12 x this)
         public const float ArmBotRange = 420f;
+        // The lobby preview (Showcase.cs): the ball rolls at the dummies in a pen the size of the preview's view, slower, and
+        // flings them less far, so it stays in the picture and the view doesn't zoom out after them.
+        public const float ArmShowTop = 300f, ArmShowFling = 0.35f, ArmShowHalfW = 160f, ArmShowAbove = 340f, ArmShowBelow = 90f;
         public static readonly Rgba ArmShell = new Rgba(0.79f, 0.71f, 0.54f), ArmSpirit = new Rgba(0.37f, 0.88f, 0.82f),
             ArmGold = new Rgba(1f, 0.8f, 0.35f);
 
@@ -154,7 +157,7 @@ namespace Arena
                 if (!Heavy(e))
                 {
                     // Bowled over: flung away, faster the faster you roll, armed to hurt what it meets.
-                    KnockEnemy(e, away * (ArmFling + p.ArmSpd * ArmFlingPerSpeed));
+                    KnockEnemy(e, away * ((ArmFling + p.ArmSpd * ArmFlingPerSpeed) * (ShowcaseMode ? ArmShowFling : 1f)));
                     e.ImpactBy = p.Id + 1;
                     e.ImpactLast = -1;
                     BroadcastFx(FxKind.Ring, e.Pos, ArmGold, e.Radius + 12f, 0.25f, Sfx.BruteBash);
@@ -222,7 +225,7 @@ namespace Arena
                 ArmHeading = me.Aim;
                 return;
             }
-            V2 toward = !move.IsZero ? move : aimAt - me.Pos;
+            V2 toward = !move.IsZero && !ShowcaseMode ? move : aimAt - me.Pos;  // (the preview strolls you round: the ball goes for the dummies instead)
             if (!armRolled)
             {
                 armRolled = true;
@@ -258,7 +261,7 @@ namespace Arena
                     armRevving = false;
                     armRev = 0f;
                 }
-                float cap = armBoost > 0f ? ArmBoostTop : ArmTop;
+                float cap = (armBoost > 0f ? ArmBoostTop : ArmTop) * (ShowcaseMode ? ArmShowTop / ArmTop : 1f);
                 speed = speed < cap ? Math.Min(cap, speed + ArmAccel * dt) : Math.Max(cap, speed - ArmOverDecel * dt);
             }
             ArmHeading = heading;
@@ -278,6 +281,20 @@ namespace Arena
 
             V2 want2 = me.Pos + armVel * dt;
             V2 kept = KeepInArena(want2, ArmR);
+            if (ShowcaseMode)
+            {
+                V2 pen = new V2(Math.Max(Showcase.Home.X - ArmShowHalfW + ArmR, Math.Min(Showcase.Home.X + ArmShowHalfW - ArmR, kept.X)),
+                    Math.Max(Showcase.Home.Y - ArmShowAbove + ArmR, Math.Min(Showcase.Home.Y + ArmShowBelow - ArmR, kept.Y)));
+                V2 lost = pen - kept;
+                if (lost.Length > 0.01f)
+                {
+                    V2 n = lost.Normalized();
+                    float vn = armVel.Dot(n);
+                    if (vn < 0f)
+                        armVel -= n * ((1f + ArmRestitution) * vn);  // (bounces off the pen's edge, no bash)
+                    kept = pen;
+                }
+            }
             if (Walled)
                 ArmWallBounce(me, want2, ref kept);
             if (Props.Count > 0 || LayoutOn)

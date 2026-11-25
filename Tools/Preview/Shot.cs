@@ -1155,11 +1155,11 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("WIKISCREEN") != null) { var wq = Environment.GetEnvironmentVariable("WIKISCREEN").Split(','); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); typeof(ArenaApp).GetMethod("OpenWiki", f2).Invoke(app, new object[] { wq.Length > 1 ? Wiki.Find(wq[1]) : null }); set("wikiQuery", wq[0]); set("wikiOpenedAt", -100f); }
     if (wikiPickEnv != null) { var wp = wikiPickEnv.Split(','); set("wikiPicking", true); Event.current.mousePosition = new Vector2(float.Parse(wp[0]), float.Parse(wp[1])); Input.mousePosition = new Vector3(float.Parse(wp[0]), Screen.height - float.Parse(wp[1]), 0f);
       int tris0 = GL.Tris.Count, log0 = GUI.Log.Count; Event.current.type = EventType.Repaint;
-      typeof(ArenaApp).GetMethod("TextEditBeginGui", f2).Invoke(app, null); DrawMode(); typeof(ArenaApp).GetMethod("TextEditEndGui", f2).Invoke(app, null);
+      typeof(ArenaApp).GetMethod("PickBeginGui", f2).Invoke(app, null); DrawMode(); typeof(ArenaApp).GetMethod("PickEndGui", f2).Invoke(app, null);
       GL.Tris.RemoveRange(tris0, GL.Tris.Count - tris0); GUI.Log.RemoveRange(log0, GUI.Log.Count - log0);
-      typeof(ArenaApp).GetMethod("TextEditBeginGui", f2).Invoke(app, null); Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("WikiPickBeginGui", f2).Invoke(app, null); }
+      typeof(ArenaApp).GetMethod("PickBeginGui", f2).Invoke(app, null); Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("WikiPickBeginGui", f2).Invoke(app, null); }
     DrawMode();
-    if (wikiPickEnv != null) typeof(ArenaApp).GetMethod("TextEditEndGui", f2).Invoke(app, null);
+    if (wikiPickEnv != null) typeof(ArenaApp).GetMethod("PickEndGui", f2).Invoke(app, null);
     if (Environment.GetEnvironmentVariable("WIKISCREEN") != null) { Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("DrawScreens", f2).Invoke(app, null); }
     if (wikiPickEnv != null) { Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("DrawWikiPickTag", f2).Invoke(app, null); }
     if (vtxBy.Count > 0) { Console.WriteLine("vertices {0}", System.Linq.Enumerable.Sum(vtxBy.Values)); foreach (var kv in System.Linq.Enumerable.Take(System.Linq.Enumerable.OrderByDescending(vtxBy, k => k.Value), 14)) Console.WriteLine("  {0,7} {1}", kv.Value, kv.Key); }

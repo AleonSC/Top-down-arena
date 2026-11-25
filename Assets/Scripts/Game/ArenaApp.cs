@@ -35,8 +35,6 @@ namespace Arena
         bool tabPaused;  // solo: holding Tab paused the run (released, it resumes)
         int tabScroll; // Tab screen: rows scrolled in the upgrade list
         bool fireOnMenu, parryOnMenu, fireBlocked, parryBlocked;  // a mouse press that belongs to a menu, not the game
-        bool recordSessions;             // dev: record each run for balancing (Settings or --record)
-        bool aimDebug;                   // F3: lines for where you're aiming and where your last shot went
         bool devKillAllKey;              // F1 dev tool: the discard key (B) kills every enemy on the field (host only; saved)
         bool aimLine = true;             // V: a soft line from your gun to the crosshair, at most your weapon's range (saved per player)
 
@@ -47,13 +45,6 @@ namespace Arena
             PlayerPrefs.Save();
         }
 
-        static string SessionsFolder => System.IO.Path.Combine(Application.persistentDataPath, "sessions");
-
-        /// Recording happens on the host (which decides every hit), so this only matters when you host.
-        void ApplyRecording()
-        {
-            game.RecordFolder = recordSessions ? SessionsFolder : null;
-        }
         bool tabHeld;  // Tab: your stats and loadout, shown only on this screen (the game keeps running)
         bool tabSuppress;  // a room card or buildable was used from the Tab screen's Inventory (InventoryUi.cs): the screen stays shut until Tab is let go
         int selectedCard = -1;  // upgrade card highlighted, waiting for Confirm
@@ -121,7 +112,6 @@ namespace Arena
             session = new Session();
             game = session.Game;
             game.Log = msg => Debug.Log(msg);
-            SessionRecorder.Log = msg => Debug.LogWarning("Arena: " + msg);
             Diag.Sink = msg => Debug.LogWarning("Arena: " + msg);  // (recovered file, save and sound failures, Diag.cs)
             sounds = new SoundBank(gameObject);
             MenuVhs.OnHover = calm => sounds.Play(Sfx.MenuHover, SoundBank.MenuSoundVolume * (calm ? 0.5f : 1f), Time.unscaledTime);
@@ -135,6 +125,7 @@ namespace Arena
             LoadCamLean();     // CameraLean.cs
             LoadCamZoom();     // CameraZoom.cs
             LoadHoverNames();  // EnemyTagLook.cs
+            LoadNameLabels();
             LoadLagChart();  // LagChartUi.cs
             SetHudMode(SavedHudMode(), false);  // the HUD mode, remembered (HudModes.cs)
             LoadMapView();  // minimap, full map or off, remembered (MapView.cs)
@@ -142,7 +133,6 @@ namespace Arena
             InitLobbyCrt();  // build the lobby CRT's textures now, not on the New run boot's first frame (LobbyCrt.cs)
             InitSaveFolders();  // saved runs and the profile (SavesUi.cs)
             LoadCellLayoutEdits();  // cell layouts edited in the Cell Editor (CellEditorUi.cs)
-            LoadTextOverrides();  // text edited with the dev text editor (DevTextEdit.cs)
             ParseCommandLine();
         }
 
@@ -194,9 +184,7 @@ namespace Arena
             if (opts.TryGetValue("autostart", out v)) int.TryParse(v, out session.AutoStart);
             if (opts.TryGetValue("start-wave", out v)) int.TryParse(v, out session.StartWave);
             game.Bot = opts.ContainsKey("bot");
-            recordSessions = PlayerPrefs.GetInt("record_sessions", 1) == 1 || opts.ContainsKey("record");
             devKillAllKey = PlayerPrefs.GetInt("dev_killall", 0) == 1;
-            ApplyRecording();
             if (opts.ContainsKey("host"))
                 HostGame();
             else if (opts.TryGetValue("join", out v))
@@ -261,7 +249,6 @@ namespace Arena
             session.Poll();
             PacmanUpdate();  // the Pac-Man game, when a Pac profile's Play opened it (PacmanUi.cs)
             game.Update(Time.deltaTime * EndSpeed);  // slowed as a run ends (RunEnding.cs)
-            LabUpdate(Time.deltaTime);  // Boss Lab bots (BossLabUi.cs)
             partyBots.Update(Time.deltaTime);  // bots in the lobby's open slots (PartyBots.cs)
             bool heard = !(session.Screen == AppScreen.Lobby && game.Practicing && !PracticeShown);  // (Practice is heard only while its window is up: HangoutUi.cs)
             foreach (var sfx in game.Sounds)
@@ -323,7 +310,7 @@ namespace Arena
             bool tabKey = session.Screen == AppScreen.Game && me != null && Input.GetKey(KeyCode.Tab) && GUIUtility.keyboardControl == 0;
             if (!tabKey)
                 tabSuppress = false;
-            bool soloTab = tabKey && !tabSuppress && game.Players.Count == 1 && !LabRunning && !pauseMenuOpen && !ModalScreenOpen
+            bool soloTab = tabKey && !tabSuppress && game.Players.Count == 1 && !pauseMenuOpen && !ModalScreenOpen
                 && (game.State == MatchState.Fighting || game.State == MatchState.Intermission);
             if (soloTab && !game.Paused)
             {
@@ -354,10 +341,9 @@ namespace Arena
             if (tabHeld && !wasTab)
                 tabOpens++;  // (the TAB hint in the corner retires once you've used it: Hud.cs)
             Keybinds.SetPickerNumbers(choosing && !tabHeld ? Mathf.Min(me.Offer.Length, CardKeys.Length) : 0);  // its card keys win over a bound number key
-            bool watching = LabRunning && !lab.Seats[0].Human;  // Boss Lab with only bots: the mouse is just for the panel
             bool pathChoice = session.Screen == AppScreen.Game && (game.PathOffer != null || game.HuntMapVoting || ExpandWindowUp);
             bool shopping = session.Screen == AppScreen.Game && ShopScreenUp(me);  // the Bazaar's shop covers the arena (ShopUi.cs)
-            bool overlay = menuUp || wikiPicking || choosing || tabHeld || pathChoice || shopping || game.State == MatchState.GameOver || game.State == MatchState.Victory || watching || MouseOnLab() || MouseOnDock() || WaveBoxShown(me) || MouseOnWcStrip(me) || MouseOnBuilderShop(me);  // (the Builder Shop's shelf, BuilderShopUi.cs; the Wave cleared box has buttons: a click on Ready must not fire, ping or emote)
+            bool overlay = menuUp || wikiPicking || choosing || tabHeld || pathChoice || shopping || game.State == MatchState.GameOver || game.State == MatchState.Victory || MouseOnDock() || WaveBoxShown(me) || MouseOnWcStrip(me) || MouseOnBuilderShop(me);  // (the Builder Shop's shelf, BuilderShopUi.cs; the Wave cleared box has buttons: a click on Ready must not fire, ping or emote)
             if (!(session.Screen == AppScreen.Lobby && lobbyTab == HangoutTab))  // (the Hangout ticks its own, in OnGUI)
                 TickEmoteBar(session.Screen == AppScreen.Game && me != null && !me.Downed && !overlay);  // EmoteBar.cs: while it's open a click picks an emote
             TickPing(session.Screen == AppScreen.Game && me != null && !me.Downed && !overlay && !emoteBarOpen);  // PingLooks.cs: tap to ping, hold for the wheel
@@ -386,7 +372,7 @@ namespace Arena
             fireBlocked = overlay || fireOnMenu || emoteBarOpen || pingWheelOpen || gadgetWheelOpen;
             parryBlocked = overlay || parryOnMenu;
             bool inMenus = session.Screen != AppScreen.Game;
-            bool overlayPointer = choosing || menuUp || wikiPicking || tabHeld || pathChoice || shopping || watching || MouseOnLab() || MouseOnDock() || WaveBoxShown(me) || MouseOnWcStrip(me) || MouseOnBuilderShop(me)
+            bool overlayPointer = choosing || menuUp || wikiPicking || tabHeld || pathChoice || shopping || MouseOnDock() || WaveBoxShown(me) || MouseOnWcStrip(me) || MouseOnBuilderShop(me)
                 || game.State == MatchState.GameOver || game.State == MatchState.Victory;  // the end screen and rank report need the pointer
             // The system pointer is always hidden: wherever a pointer is wanted we draw the Corner pointer of your cursor look, and it
             // morphs into the crosshair when the run takes over (CursorLooks.cs).
@@ -468,14 +454,11 @@ namespace Arena
             // Ignore the toggle keys while typing in a text box (e.g. a name with an "m" in it).
             if (Keybinds.Down(KeyAction.AimLine) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
                 SetAimLine(!aimLine);
-            if (Input.GetKeyDown(KeyCode.F3))
-                aimDebug = !aimDebug;  // aim debug overlay
             if (Input.GetKeyDown(KeyCode.N) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game && !(game.RetryReady && game.State == MatchState.GameOver))
-                devNames = !devNames;  // name labels over everyone (Hud.cs)
+                SetNameLabels(!nameLabels);  // name labels over you and every enemy (EnemyTagLook.cs)
             TickDevTrapClicks();  // click to place a Dev Kit trap (DevTrapUi.cs)
             if (Input.GetKeyDown(KeyCode.F2) && session.Screen != AppScreen.Game)
                 OpenLogFolder();  // outside a run F2 opens the folder holding Player.log
-            TextEditKeys();  // F4: the dev text editor
             SnapshotKeys();  // F6 / F7: take / load a run snapshot (SnapshotUi.cs)
             if (Keybinds.Down(KeyAction.ToggleHud) && GUIUtility.keyboardControl == 0 && session.Screen == AppScreen.Game)
                 SetHudMode(hudMode + 1);  // H: corner > on the player > hidden (HudModes.cs)
@@ -723,13 +706,8 @@ namespace Arena
                 input = new PlayerInput { AimAt = input.AimAt };  // no moving or shooting behind the menu
             if (session.Screen == AppScreen.Lobby && game.Practicing)
                 input = PracticeInput(input);  // Practice behind the lobby: your keys only while its window is up and the mouse is over it (HangoutUi.cs)
-            input = PossessStep(input);  // the Dev Arena: your keys drive the enemy you're playing instead (DevArenaUi.cs)
             game.FixedStep(Time.fixedDeltaTime * EndSpeed, input);
-            LabFixedStep(Time.fixedDeltaTime);
-            if (lab.Active)
-                partyBots.Clear();  // the Boss Lab hosts its own bots
-            else
-                partyBots.Step(session, Time.fixedDeltaTime);  // (PartyBots.cs)
+            partyBots.Step(session, Time.fixedDeltaTime);  // (PartyBots.cs)
             ShowcaseFixedStep(Time.fixedDeltaTime);  // the lobby's loadout preview (LobbyUi.cs)
         }
 
@@ -821,17 +799,17 @@ namespace Arena
             Ui.Alpha = 1f;  // a fade that was left unrestored (an early return or an error mid-draw) must not carry into this frame: it left the round windows' dark layer and the path cards invisible
             GUI.color = Color.white;
             GUI.matrix = Matrix4x4.TRS(new Vector3(offX, offY, 0f), Quaternion.identity, new Vector3(scale, scale, 1f));
-            // With the F1 menu or the Boss Lab setup open, the screen underneath is only drawn, not used:
+            // With the F1 menu or the Cell Editor open, the screen underneath is only drawn, not used:
             // IMGUI hands a click to the first control drawn under it, so buttons hidden behind the panel
             // (the main menu's fields and buttons) would otherwise take clicks meant for the panel.
             Ui.MenuFont = session.Screen != AppScreen.Game;  // the menus use the mockup fonts; the HUD keeps the default (Ui.cs)
             ClickLogBegin();  // ClickLog.cs (F9)
             if (Event.current.type == EventType.MouseDown)
                 Ui.ForgetPress();
-            TextEditBeginGui();
+            PickBeginGui();  // the text under the pointer, for the Wiki key's eyedropper (WikiPick.cs)
             WikiPickBeginGui();  // the Wiki key held: a click opens what's under the pointer (WikiPick.cs)
             Ui.BeginHoverFrame();
-            bool modal = ModalScreenOpen || textEditOpen;
+            bool modal = ModalScreenOpen;
             bool dockOwns = DockOwnsEvent();  // the F1 dock is drawn last but its clicks come first: the screen under it doesn't see them (DevDock.cs)
             Ui.NoHit = Event.current.type == EventType.Repaint && MouseOverDockRects(Event.current.mousePosition);  // (and nothing under it lights up on hover)
             if ((!modal && !dockOwns) || Event.current.type == EventType.Repaint)
@@ -899,8 +877,6 @@ namespace Arena
                     DrawLaunchWave();    // WAVE 1 popping in as a launched run's fight starts (LaunchIntro.cs)
                     DrawLobbyLeaving();  // the lobby sliding away as the run launches (LaunchIntro.cs)
                     DrawPickOutro();  // an upgrade just taken: the cards flying back into you (PickOutro.cs)
-                    if (LabRunning)
-                        DrawLabPanel();
                     if ((PauseMenuWanted || pauseAnim > 0f) && !ModalScreenOpen)
                     {
                         Ui.MenuFont = true;
@@ -914,12 +890,9 @@ namespace Arena
                     break;
             }
             Ui.NoHit = false;
-            if (!textEditOpen || Event.current.type == EventType.Repaint)
-            {
-                DrawScreens();  // the top tool screen: F1 menu or Boss Lab setup (UiScreens.cs)
-            }
+            DrawScreens();  // the top tool screen: the F1 menu or the Cell Editor (UiScreens.cs)
             DrawWikiPickTag();  // the eyedropper's tag by the pointer (WikiPick.cs)
-            TextEditEndGui();
+            Ui.EndPick();
             DrawCabEdges();  // the cabinet menus' soft edges, over them (CrtWindows.cs)
             DrawSkipStatic();  // an intro just skipped: the channel flip over everything (SkipStatic.cs)
             DrawMenuCursor();  // the equipped crosshair over the menus (CursorLooks.cs)

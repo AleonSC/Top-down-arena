@@ -3,7 +3,7 @@
 # triangles and IMGUI draw calls, and shot.py composites them with Pillow.
 #   Tools/Preview/shot.sh <out-name> <mode> [wave] [seconds] [players]
 # picker: GOLDINSTEAD=1 (on the Bazaar: the "Gold instead" key under the row).
-# Modes (see ShotModes.cs; flags in ShotScenes.cs): hud, dev, bg, lobby, labsetup, labpanel, tab, picker, legendary, ...
+# Modes (see ShotModes.cs; flags in ShotScenes.cs): hud, dev, bg, lobby, tab, picker, legendary, ...
 # Env flags tweak the scene, e.g. KNIGHT=1 (Knights), POSE=1 (fixed pose), THRUST=0.3 (Lance jab frame),
 # DAZE=1 (three enemies dazed round you; mode hud), BOW=0.9, MASTERY=1, BG=3 (background number for 'bg'), MOUSE=x,y (hover for lobby modes), SOLO=1,
 # menu: PLAY=1 (the Play picker; NOSAVES=1, MORE=1 extra saves, OLDER=1 the older runs, PAGE=n), MENUT=<s> (the clock: 3 = rooms built), BG=28 (Holo Floor).
@@ -13,6 +13,7 @@
 # QUICKMET=<n> (the lobby's Quick Play tab with n bosses beaten; mode lobby).
 # TUTORIAL=<lesson 0-4>,<steps done> (the first-run tutorial prompt; mode hud).
 # RAILGUN=<s> (the Railgun's scripted shot: RAILHOLD=<s> held, default 1.6; RAILAIM=<deg>; RAILHEAT=<0-100>; RAILDUMP=1 Heat Dump instead; mode hud).
+# NEEDLES=<s> (the Healer Ninja's Acupuncture Needles: healing needles through a grunt into a teammate, Bloodletting in two grunts; mode hud, 3 players, ZOOM=2.2).
 # OFUDA=<s> (the Healer Ninja's Ofuda: talismans bending onto a hurt teammate, a Blast Ofuda stuck to a grunt and one on the ground; mode hud, 3 players, ZOOM=1.6).
 # ARCLOCK=<s> (Arc Lightning's lock-on: hold from 0, let go at 1.5 s; ARCFORK=1 the Forked Volley instead; mode hud).
 # OATHPICK=1|0 (Guardian's Oath waiting for the click: cursor on an ally, or off; mode hud, 3 players).
@@ -97,6 +98,7 @@
 # BULWARK=<s> BBMODE=chain|guard|brace|bash|melee (the Tank Knight's Bulwark Barrier that long into a scene: Fire held (the chain, then the Shield Throw from about 1 s), shots at the plate, braced soaking them, a full-Ram Shield Bash at 0.3 s, or braced with Brutes walking into the plate; mode hud; BulwarkBarrierLook.cs).
 # FROSTLANCE=<s> (the Tank Elementalist's Frost Lance that long into its chain, Fire held: Shiver Crescent at 0, Backhand Rime 0.34 s, Frost Waltz 0.68 s, Crystal Fan 1.08 s, Avalanche Slam 1.5 s; FLALT=1: Absolute Zero at 0; FLCHILL=<n> chill on the grunts; mode hud; FrostLanceLook.cs).
 # BLOODBLAST=<s> (the Tank Hemomancer's Blood Blast chain that long in; BBSTEP=n start step, BBALT=1 Crimson Tide, BBSTACKS=n BBKILL=<s> the Blood Vortex; mode hud, ZOOM=1.8).
+# BUMBLE=<s> (the DPS Engineer's Bumble Remote that long into a fight: the Bumble Bot at the cursor by a pack, stinging it, Fire held from BUMFIRE s (0.6); BUMALT=<s>: the Swarm Burst pressed then; mode hud; BumbleRemoteLook.cs).
 # WYVERN=<s> (the Tank Summoner's Wyvern Staff that long into a loop: hovering with its gale until 1.0 s, then Fire held; WYALT=1: the Wyrm Slam at 1.0 s instead; mode hud).
 # TESSEN=<s> (the Healer Ninja's Twin Tessen that long into the Crane Dance, Fire held: the Crane Bloom about 1.25 s, its wave out by 1.45 s; TTALT=<s>: Alt held that long then let go, the Kamikaze Gust; TTBREEZE=100: a Typhoon; mode hud; TwinTessenLook.cs).
 # WINDCLASH=<s> (the Tank Elementalist's Wind Clash that long into its combo, Fire held: crescents at 0 and 0.34 s, lance at 0.68 s, ring at 1.12 s; WCALT=1: the Tempest at 0 with enemies shooting; mode hud; WindClashLook.cs).
@@ -104,13 +106,16 @@
 # GRENADE=<s> (the Tank Soldier's Grenade Launcher that long into a fight: fire held at a pack GLAT px ahead; GLSMOKE=1 Alt then smoke canisters from 0.6 s; GLSWAP=1 Alt only; GLIDLE=1; mode hud; GrenadeLauncherLook.cs).
 # DOUBLEBARREL=<s> (the Soldier DPS Double Barrel that long into a fight: fire held at three dummies in a line; DBBOTH=1 Alt both barrels at 0.3 s; DBIDLE=1 not firing; mode hud; DoubleBarrelLook.cs).
 # STATICSHOCK=<s> (the Healer Elementalist's Static Shock that long into a fight: fire held at a pack, a teammate in the cone gets Overcharge; SSALT=1 the Arc Cannon at 0.1 s through a teammate; SSHEAT=<s> every enemy already that long in the cone (the ramp); mode hud, 3 players; StaticShockLook.cs).
+# HIVECENSER=<s> (the Healer Summoner's Hive Censer that long into a scripted pour: on a pack until 1.2 s, by a teammate (chitin) until 2.0 s, then the pack again; HCALT=1 Hive Call at 2.4 s; HiveCenserLook.cs; shot.sh x hud 3 1 3).
 # TWINPISTOLS=<s> (the Healer Soldier Twin Pistols that long into a fight: fire held at a pack 260 px ahead; TPLASER=1 Alt (Laser Sights) at 0.1 s; TPIDLE=1 not firing; TwinPistolsLook.cs).
 # WHIP=<s> (the Revolver's Fan stance that long into a fight: grunts and enemy shots in front, a click (the whip) at 0.1 s; WHIPIDLE=1 no click; WHIPFAN=1 a second click (the fan) at 0.3 s; mode hud; PistolWhipLook.cs).
 # UNDERTOW=<meter>,<s held> (the Repulsion Cannon's Undertow meter, and its pull held that long on a pack of grunts; mode hud).
 # TWINNADES=<loaded>,<next tube 0/1>,<charge> (the Twin Rifle's grenade tubes and pips; with CAST=Airstrike CASTT=<s> for the Airstrike).
 # JUGG=<s since cast> JUGGARMOR=<0-1> (the Tank Soldier's Juggernaut Suit: plates, armour bar, flak tracers; mode hud).
+# ARMORDROP=<s since the cast> [ARMORCAP=1] [ARMORHIT=<armor left>] (the Tank Soldier's Armor Drop: crate, vests, armor shell and bar; mode hud).
 # VORTEX=<s since cast> VXMASTERED=1 (the Tank Elementalist's Vortex: wind-up, storm, grunts swept round, shots swept away; mode hud; VortexLook.cs).
 # RAVAGER=<s since cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (the DPS Hemomancer's Blood Ravager walking right through grunts, clicking over the last 0.4 s; ShotBloodRavager.cs; ZOOM=2.2, mode hud).
+# BOIL=<s since cast> [BOILHP=<0-1>] [BOILEND=1] (the DPS Hemomancer's Blood Boil circling and firing at grunts, health eased down to BOILHP; BOILEND=1 ends it 0.4 s before, for the steam; ShotBloodBoil.cs; ZOOM=1.8, mode hud).
 # BOLT=<s since cast> (the DPS Elementalist's Living Bolt: 0.3 the channel, 4 electrified with three dashes' residue, 9.5 the flicker; mode hud; LivingBoltLook.cs).
 # COLOSSUS=<s since cast> COLWIND=<0-1> COLEND=<s> (the Tank Elementalist's Stone Colossus: rising, standing, slamming, crumbling; mode hud; StoneColossusLook.cs).
 # BLOODBATH=<s since the cast> (the Tank Hemomancer's Bloodbath pool, wading enemies and heal numbers; BATHMASTERED=1 for 220 px; mode hud, 2 players).

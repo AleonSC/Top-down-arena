@@ -43,6 +43,11 @@ namespace Arena
                 EndRain(p, true);
                 return;
             }
+            if (BoilPress(p, slot))  // Blood Boil pressed again: it ends (no cooldown spent; BloodBoil.cs)
+            {
+                EndBoil(p);
+                return;
+            }
             if (BathPress(p, slot))  // Bloodbath pressed again: the channel ends and the pool dries up (no cooldown spent; Bloodbath.cs)
             {
                 EndBath(ActiveBath(p));
@@ -93,12 +98,10 @@ namespace Arena
             p.Run.AbilitiesUsed++;
             CellSkillUsed(p);  // in a Holding Cell: a second off its clock (HoldingCell.cs)
             var id0 = p.Slots[slot].Id;
-            Recorder?.AbilityUsed(p, id0);
             bool hadTargets = Battle && AnyTarget();
             PayAbilityCost(p, id0);  // Hemomancer abilities cost health (Hemomancer.cs)
             BeginCast(p, id0);
             CastAbility(p, slot, target);
-            Recorder?.CastHits(p, castHits);
             EndCast(p, slot, id0, hadTargets);
             if (id0 != AbilityId.None)  // its name over you, so everyone can tell what you just did (AbilityLooks.cs)
                 BroadcastFx(FxKind.Callout, p.Pos, new V2(p.Id, (float)id0), new Rgba(1f, 1f, 1f), 0f, CalloutTime, Sfx.None);

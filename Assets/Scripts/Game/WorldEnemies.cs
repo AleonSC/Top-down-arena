@@ -283,6 +283,9 @@ namespace Arena
                 case ZoneKind.SupplyDrop:
                     DrawSupplyDrop(z, t);  // SupplyDropLook.cs (its own time arc)
                     return;
+                case ZoneKind.ArmorDrop:
+                    DrawArmorDrop(z, t);  // ArmorDropLook.cs (no timer ring: it folds once the vests are gone)
+                    return;
                 case ZoneKind.FieldHospital:
                     DrawHospitalZone(z, t);  // FieldHospitalLook.cs (its gate and time are drawn over the walls)
                     return;
@@ -336,6 +339,11 @@ namespace Arena
             if (m.Kind == MinionKind.Wyvern)
             {
                 DrawWyvernMinion(m, t);  // WyvernStaffLook.cs
+                return;
+            }
+            if (m.Kind == MinionKind.BumbleBot)
+            {
+                DrawBumbleBot(m, t);  // BumbleRemoteLook.cs
                 return;
             }
             if (m.Kind == MinionKind.Bee)
@@ -693,6 +701,8 @@ namespace Arena
                 DrawBleedDrops(e, pos, r, t);  // HemomancerLook.cs
             if (e.BlastStacks > 0 && !spawning)
                 DrawBlastStacks(e, pos, r, t);  // BloodBlastLook.cs
+            if (e.NeedlesIn > 0)
+                DrawNeedlesInEnemy(e, pos, r);  // Bloodletting needles (AcupunctureLook.cs)
             for (int k = 0; k < e.StarsStuck && k < 8; k++)  // Shuriken stars stuck in it, waiting to be recalled
                 DrawStar(pos + V2.FromAngle(k * 2.4f + e.Id) * (r * 0.75f), 4f, k * 0.7f, Defs.BulletColor(Defs.StarShot));
             foreach (var hunter in game.Players.Values)
@@ -1248,7 +1258,7 @@ namespace Arena
                 Circle(c + new V2(-1.5f, 2f), size * 0.15f, new Rgba(1f, 0.6f, 0.6f), 6);
                 x += step;
             }
-            if (e.Poisoned)  // Medicine Darts' poison: green bubbles
+            if (e.Poisoned)  // Senbon Seekers' poison: green bubbles
             {
                 V2 c = new V2(x, center.Y);
                 Circle(c, size + 3f, bg, 12);

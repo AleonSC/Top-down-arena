@@ -30,6 +30,7 @@ namespace Arena
             bool live = !MenuIntroPlaying && !profTr;  // nothing takes a click until it has all landed
             DrawMenuMachine(T, live, t);
             DrawMenuSecondary(t, live);
+            DrawMenuBgHue(live);  // the background hue key, top right (MenuBgHue.cs)
             DrawMenuIntroFade();  // the short version of the intro: a fade (MenuIntro.cs)
         }
 

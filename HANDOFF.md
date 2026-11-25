@@ -66,9 +66,7 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
   (Glass Cannon, Tough Crowd, Frenzy, Swift Foes, Famine, Lucky, Simple Arena, ...).
 - **Profile:** rank XP and Cores, records per mode, **Recent runs** with graphs, saved loadouts.
 - **Dev tools (F1):** a dock over the live game (`DevDock.cs`: God / Full heal / Skip wave / Kill all, WAVE / PARTY /
-  VIEW / LABS drawers, stat editor, run snapshots, **Boss Lab**: bots fight any boss).
-- **Session recording:** the host's matches are saved as JSON (per-wave damage by source, picks, downs). The owner
-  uploads them for balance analysis; `Tools/SessionReport/report.py` summarises them.
+  VIEW / LABS drawers, stat editor, run snapshots). Bots fight any boss from the command line (`run.sh 1 1 lab`, `Core/BossLab.cs`).
 
 ## 2. How the code is organised
 
@@ -77,7 +75,6 @@ Assets/Scripts/Core/   plain C# game logic (namespace Arena); no UnityEngine dep
 Assets/Scripts/Game/   the Unity front end: rendering (GL), IMGUI menus/HUD, sound and music synthesis
 Assets/Editor/         ArenaEditor.cs: scene setup and the Windows build menu item
 Tools/SimTest/         headless test suite (mono) that drives real Sessions over localhost TCP
-Tools/SessionReport/   report.py: summarises recorded session JSON
 Tools/Preview/         renders screens to PNG without Unity (stubs + Pillow)         [added in the audit]
 Tools/CompileCheck/    fast compile check with Unity stubs                           [added in the audit]
 Tools/CodeMap/         check.py: CODEMAP.md names every source file once, and no deleted one (CI) [added Nov 2026]
@@ -110,7 +107,7 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
   Linear project, so there every colour and see-through layer comes out lighter and greyer and glows blend differently
   from the mockups. `ArenaEditor` sets `PlayerSettings.colorSpace = Gamma` when the project opens (ProjectSettings
   aren't in git), and the game logs a line at start if it's still Linear. It also turns on 4x MSAA.
-- **IMGUI gotcha:** with a modal open (F1 menu, Boss Lab setup) the screen underneath is drawn **only on
+- **IMGUI gotcha:** with a modal open (F1 menu, Cell Editor) the screen underneath is drawn **only on
   Repaint**, otherwise its buttons steal clicks (see `modal` in `OnGUI`).
 - **Knight melee:** swings are queued (`pendingSwings`) and resolved in `Collide` via a pseudo-bullet
   (`Defs.KnightSlash`) through `OnBulletHit`, so weapon mods apply. The Lance hits a box
@@ -202,7 +199,7 @@ A class is mostly two new files plus a line in each registry. Templates: `Docs/C
    (`KIT=<n> Tools/Preview/shot.sh <name> kitgrid`, `LOADOUT=...` in `lobby`), README.
 
 Things that already work for any class without edits: the lobby's class cards (they size themselves to
-`Defs.KitCount`), the Boss Lab's class picker, saves and records (by name), the session recorder.
+`Defs.KitCount`), saves and records (by name).
 The lobby fits about 8 class cards in a row before they get too small.
 
 ## 3. Testing and previewing (no Unity in the cloud container)
@@ -220,8 +217,7 @@ The lobby fits about 8 class cards in a row before they get too small.
   `Tools/Preview` sets (by reflection) gets `#pragma warning disable 0649` around it; `check.sh -w` lists them.
 - **Sim tests:** `Tools/SimTest/run.sh <wave> <seconds> [suite]` builds `Program.cs` (shared helpers, the **`Suites`
   table** and `Main`) and `Tests/*.cs` (one file per system: `Match`, `Upgrades`, `Weapons`, `Abilities`, `Parry`,
-  `Knight`, `Ninja`, `Hemomancer`, `Classes`, `Enemies`, `Bosses`, `Paths`, `BossLab`, `Reports`, `Music`,
-  `TextEdit`). `run.sh list` prints every suite.
+  `Knight`, `Ninja`, `Hemomancer`, `Classes`, `Enemies`, `Bosses`, `Paths`, `BossLab`, `Reports`, `Music`). `run.sh list` prints every suite.
   - **Setup helpers** (`Program.cs`): `HostAs(new Session { ... }, port, bot, name, role, ...)`, `JoinAs(port, bot, name,
     role, ...)`, `WaitForGame(host, client, dt)`, `WaitForLobby(host, client)` and `PollBoth(host, client)`. Use them in
     new tests instead of writing the loops out. Big systems span several files (`Weapons`, `WeaponsByKit`,
@@ -313,11 +309,10 @@ The lobby fits about 8 class cards in a row before they get too small.
   Arial (Liberation Sans). `SHOTW=<WeaponId>` fires that weapon three times (shots at 0.06 / 0.18 / 0.3 s) for comparing shot looks with
   `Docs/Mockups/projectiles.html`. `LINEAR=1` shows
   how a Linear-colour-space project would draw it (washed out); the game is meant for **Gamma** (see below). Modes: `hud`,
-  `tab`, `picker`, `dev`, `labsetup`, `labpanel`, `lobby`, `menu`, `bg` (with
+  `tab`, `picker`, `dev`, `lobby`, `menu`, `bg` (with
   `BG=0..9`), `pause`, `kitgrid`, `legendary`, ... Path flags: `PATHOFFER=1|2|3|4` (the choice screen with each pair
   of paths), `PATHON=<PathId number>` (in-arena look of that path; 8 = Fogbound, 9 = Narrow Pass), `PATCHES=1` (sample
-  fire/pools). Others: `TEXTEDIT=1` (lobby in text-edit mode, outline under `MOUSE`) or `TEXTEDIT=<text>` (its edit
-  box; `TEXTBUF` = typed), `LOBBYTAB=n` (lobby tab, e.g. Modifiers), `BOTS=1|edit` (a bot in Aleon's seat; `edit` also opens its loadout), 
+  fire/pools). Others: `LOBBYTAB=n` (lobby tab, e.g. Modifiers), `BOTS=1|edit` (a bot in Aleon's seat; `edit` also opens its loadout), 
   `DEVDRAWER=1..4` / `DEVSIDE=1` / `DEVSHEET=4..7` (F1 dock: drawer, stat editor, sheet: upgrades, enemies, snapshots, gadgets, chests and relics; `SPAWNERMODE=1` the enemy sheet's Spawner row), `DEVSPAWNER=1` (two dev spawner pads in the world), `SHOCK=<s>` (the Shockwave ability that long after the cast, played through the game; `SHOCKCAP=1` mastered), `HAMMER=1` (Storm
   Hammers in flight and an electrified enemy arcing), `BOULDER=<draw secs>` (the Golem Staff charging, with its
   landing marker, and boulders in flight), `CAGE=1` (a Bone Guard cage, with guard shots), `WYVERN=<s>` (the Wyvern Staff hovering, then breathing; `WYALT=1` the slam), `WEAPONS5=1` (Fuma
@@ -359,8 +354,7 @@ The October 2026 audit and its work plan are done; the full notes (and the Novem
   suite checks the counts) and bumping the protocol. The **simple test bot** in
   `LocalControl` (`Bot` without a `BotLevel`) is *not* dead: most sim tests and `--bot` rely on it.
 - **Paths** are built but untuned (Frozen Lake's grip, Fogbound's 350 px sight, Narrow Pass's 1120 x 720, fire
-  damage); planned but not built: a route strip in the Tab menu, the route in the run summary, `Tools/SessionReport`
-  grouping by path. Open: should waves 1-4 get a path choice? See [`Docs/Paths.md`](Docs/Paths.md).
+  damage); planned but not built: a route strip in the Tab menu, the route in the run summary. Open: should waves 1-4 get a path choice? See [`Docs/Paths.md`](Docs/Paths.md).
 - **Boss approaches:** see the status line of [`Docs/Approaches.md`](Docs/Approaches.md) for which factions are built.
 - **Campaign as a themed-enemy buildup (idea, not designed):** the campaign accumulates each boss's themed enemies;
   after a boss falls they phase out slowly while the next boss's faction phases in, and some squads or enemies can

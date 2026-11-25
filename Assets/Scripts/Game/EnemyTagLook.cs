@@ -25,6 +25,35 @@ namespace Arena
             PlayerPrefs.Save();
         }
 
+        // Settings -> Gameplay -> "Name labels" (or the N key): a name over you and over every enemy, all the time. Off by default.
+        bool nameLabels;
+        void LoadNameLabels() => nameLabels = PlayerPrefs.GetInt("name_labels", 0) == 1;
+
+        void SetNameLabels(bool on)
+        {
+            nameLabels = on;
+            PlayerPrefs.SetInt("name_labels", on ? 1 : 0);
+            PlayerPrefs.Save();
+        }
+
+        /// Hud: the name labels, when they're on.
+        void DrawNameLabels()
+        {
+            if (!nameLabels)
+                return;
+            foreach (var e in game.Enemies.Values)
+            {
+                V2 at = ToUi(e.Disp);
+                Ui.Label(new Rect(at.X - 70f, at.Y - e.Radius * UiWorldScale - 20f, 140f, 14f), Defs.ListName(e.Type), 10, CrtStyle.Danger, TextAnchor.MiddleCenter, true);
+            }
+            var me = game.Me;
+            if (me != null)
+            {
+                V2 at = ToUi(me.Disp);
+                Ui.Label(new Rect(at.X - 100f, at.Y - me.Def.BodyR * UiWorldScale - 30f, 200f, 16f), me.Name, 12, CrtStyle.Gold, TextAnchor.MiddleCenter, true);
+            }
+        }
+
         static readonly string[] JobNames = { "PRESSURE", "HUNTER", "ZONER", "DISRUPTOR", "ANCHOR" };
 
         /// Hud: count the enemies that just came into view and draw the tags that are up.

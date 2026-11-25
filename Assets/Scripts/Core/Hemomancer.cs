@@ -615,7 +615,6 @@ namespace Arena
                 return 0f;
             float paid = Math.Max(0f, Math.Min(cost, p.Hp - 1f));
             p.Hp -= paid;
-            Recorder?.HealthSpent(p, paid, what);
             return paid;
         }
 
@@ -635,13 +634,14 @@ namespace Arena
         }
 
         /// Blood Price: a Hemomancer deals up to 40% more damage the more health it's missing (full bonus at 10%
-        /// health). Applied in HurtEnemy.
+        /// health). Applied in HurtEnemy, with Blood Boil's share.
         float BloodDamageMult(Player p)
         {
+            float boil = BoilDmgMult(p);  // Blood Boil (BloodBoil.cs), whatever the class (a Wildcard can pick it)
             if (p.Kit != Kit.Hemomancer || p.MaxHp <= 0f)
-                return 1f;
+                return boil;
             float missing = Math.Max(0f, Math.Min(1f, (1f - p.Hp / p.MaxHp) / 0.9f));
-            return 1f + BloodPriceMax * missing;
+            return (1f + BloodPriceMax * missing) * boil;
         }
 
         /// Healing from damage dealt (HurtEnemy): a Hemomancer's 3%, Blood Debt's 15% while it runs, and a boss's blood

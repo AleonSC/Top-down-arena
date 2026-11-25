@@ -209,6 +209,11 @@ namespace Arena
                     MiniText(new Rect(extraX, hr.y + 30f, 90f, 26f), iron, 24, me.IronWait > 0f ? dim : CrtStyle.Steel, a);
                     extraX += CrtUi.TitleWidth(iron, 24) + 8f;
                 }
+                if (Game.Armored(me))  // an Armor Drop vest's armor (ArmorDrop.cs): on the title row after HEALTH, and five steel cells over the health cells
+                {
+                    MiniText(new Rect(hr.x + CrtUi.TitleWidth("HEALTH", 16) + 12f, hr.y, 120f, 16f), "ARMOR " + Mathf.CeilToInt(me.Armor), 16, CrtStyle.Steel, a);
+                    MiniCells(new Rect(hr.x, hr.y + (me.OverHp > 0f ? 55f : 59f), hr.width, 3f), Mathf.Clamp01(me.Armor / Game.ArmorCap), 5, CrtStyle.Steel, a);
+                }
                 if (me.OverHp > 0f)  // a health shrine's health past max (Shrines.cs): gold, after the max and as a gold strip over the cells
                 {
                     MiniText(new Rect(extraX, hr.y + 30f, 90f, 26f), "+" + Mathf.CeilToInt(me.OverHp), 24, CrtStyle.Gold, a);

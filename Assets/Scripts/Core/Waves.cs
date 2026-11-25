@@ -53,7 +53,6 @@ namespace Arena
             }
             BroadcastRunStats();
             RunOver(false);  // its save goes; profiles hear about it (RunSaves.cs)
-            Recorder?.End(this, "game over");
             DoLog("game over at wave " + Wave + ", score " + Score);
         }
 
@@ -120,11 +119,9 @@ namespace Arena
                         State = MatchState.Fighting;
                         SpringPendingAmbushes();  // ambush rooms opened between waves (MysteryDoors.cs)
                         spawnTimer = WaveNumbers.OpeningDelay;
-                        string bossName;
                         if (SurvivalOn)
                         {
                             BeginSurvival();  // no wave to build: the clock starts (SurvivalGame.cs)
-                            bossName = null;
                         }
                         else
                         {
@@ -149,13 +146,11 @@ namespace Arena
                             }
                             CapSentries();  // at most 3 Beam Sentries and 3 Pulsars (Variety.cs)
                             WaveProps();  // crates, barrels and now and then a chest (Props.cs)
-                            bossName = BossNow ? Defs.Get(BossAt(Wave)).Name : null;
                             BeginTimedWave();  // the wave's enemies arrive over a window (TimedWaves.cs)
                             HuntNodeWaveStart();  // an Ambush node: fewer, all at once (HuntMapGame.cs)
                         }
                         ModsWaveStart();  // Hunted's quarry, Second Wind back each boss cycle (Modifiers.cs)
                         MarkWaveStart();  // the wave's numbers start from here (WaveReady.cs)
-                        Recorder?.WaveStart(this, Wave, bossName);
                         DoLog("wave " + Wave + ": " + string.Join(",", spawnQueue));
                     }
                     break;
@@ -163,12 +158,6 @@ namespace Arena
                     if (Surv != null)
                     {
                         TickSurvival(dt);  // Survival: top the field up to the budget; no wave ever clears (SurvivalGame.cs)
-                        break;
-                    }
-                    if (DevArena)
-                    {
-                        spawnQueue.Clear();  // the Dev Arena: only what you spawn by hand, and the wave never clears (DevArena.cs)
-                        squadQueue.Clear();
                         break;
                     }
                     if (DevFreeze)
@@ -198,7 +187,6 @@ namespace Arena
         void WaveCleared()
         {
             EndRoomsWave();  // an unbeaten Gatekeeper duel ends with the wave (Rooms.cs)
-            Recorder?.WaveEnd(this);
             SummariseWave();  // clear time, each player's numbers and awards (WaveReady.cs)
             ResetBossState();
             ResetVariety(false);  // pending Volatile bursts and Mirrored shots die with the wave (Variety.cs)

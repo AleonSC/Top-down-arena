@@ -83,6 +83,7 @@ namespace Arena
             { WeaponId.BoneGuard, (g, me, t, dt) => Tap(t, dt, 8.5f, 1.5f) },       // an Ossuary Wall (8 s cooldown)
             // The Wolf Whistle: Alt merges the pack into the alpha; kills would grow the pack (10 each), too slow for a preview, so it is topped up first.
             { WeaponId.WolfWhistle, (g, me, t, dt) => Fill(Tap(t, dt, 6f, 2f), () => g.ShowcaseWolves(me, 4)) },
+            { WeaponId.BumbleRemote, (g, me, t, dt) => Tap(t, dt, 6.5f, 1.5f) },    // the Swarm Burst (6 s cooldown)
             { WeaponId.WyvernStaff, (g, me, t, dt) => Tap(t, dt, 7.5f, 1.5f) },     // the Wyrm Slam (7 s cooldown)
             // The Honeybee Staff: the honey spray, held while the meter lasts.
             { WeaponId.HoneybeeStaff, (g, me, t, dt) => Hold(t, 6f, 1.5f, 2f) },
@@ -118,7 +119,9 @@ namespace Arena
             { WeaponId.ArcKnuckles, (g, me, t, dt) => Tap(t, dt, 3f, 1.5f) },       // Rocket Dash
             { WeaponId.Stonespear, (g, me, t, dt) => Primed(t, dt, 4f, 2f, () => { if (me.SsMask == 0) { int n = g.SsSideCount(me); me.SsSide = n; me.SsMask = (1 << (2 * n)) - 1; me.SsAge = 0f; } }) },          // the spear volley
             { WeaponId.GrenadeLauncher, (g, me, t, dt) => Tap(t, dt, 8f, 1.5f) || Tap(t, dt, 8f, 5.5f) },  // the drum: smoke, then back to HE
+            { WeaponId.HiveCenser, (g, me, t, dt) => Tap(t, dt, 6.5f, 3f) },       // Hive Call (6 s cooldown)
             { WeaponId.StaticShock, (g, me, t, dt) => Tap(t, dt, 5.5f, 1.5f) },
+            { WeaponId.AcupunctureNeedles, (g, me, t, dt) => Tap(t, dt, 1.5f, 0.6f) },  // Bloodletting (0.9 s cooldown)
             { WeaponId.Ofuda, (g, me, t, dt) => Tap(t, dt, 2.5f, 1.2f) },            // a Blast Ofuda (1.1 s cooldown)     // the Arc Cannon (5 s cooldown)
             { WeaponId.WindClash, (g, me, t, dt) => Tap(t, dt, 9.5f, 1.5f) },       // the Tempest (9 s cooldown)
         };

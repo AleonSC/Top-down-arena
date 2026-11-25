@@ -511,7 +511,7 @@ namespace Arena
                 case WeaponId.Greatsword: hold = 1; offX = -8f; break;
                 case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: case WeaponId.EmbolusSpears: case WeaponId.TwinPistols: case WeaponId.TwinTessen: hold = 2; break;
                 case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.Waterball: case WeaponId.Earthball: case WeaponId.IceShards: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.FrostLance: case WeaponId.GoreMortar: case WeaponId.SanguineOrb: case WeaponId.Implosion: case WeaponId.BloodBrawler:
-                case WeaponId.GolemStaff: case WeaponId.WyvernStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: case WeaponId.StaticShock: hold = 3; break;
+                case WeaponId.GolemStaff: case WeaponId.WyvernStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: case WeaponId.StaticShock: case WeaponId.HiveCenser: hold = 3; break;
                 case WeaponId.OrbitShards: case WeaponId.DancingBlades: hold = 3; break;  // the Arcanist casts from an open palm (ArcanistLook.cs)
             }
         }
@@ -561,8 +561,9 @@ namespace Arena
             d[(int)WeaponId.EmbolusSpears] = (p, t, hold) => DrawEsHeld(p, mHeldTube, t);
             d[(int)WeaponId.Stonespear] = DrawHeldStonespear;
             d[(int)WeaponId.WindClash] = DrawHeldWindClash;
-            d[(int)WeaponId.StaticShock] = DrawHeldStaticShock;
-            d[(int)WeaponId.TwinTessen] = DrawHeldTessen;  // a war fan in each hand (TwinTessenLook.cs)  // a crackling spark on the palm
+            d[(int)WeaponId.StaticShock] = DrawHeldStaticShock;  // a crackling spark on the palm
+            d[(int)WeaponId.TwinTessen] = DrawHeldTessen;  // a war fan in each hand (TwinTessenLook.cs)
+            d[(int)WeaponId.HiveCenser] = DrawHeldHiveCenser;  // a small censer with insects round it (HiveCenserLook.cs)
             d[(int)WeaponId.IceShards] = DrawHeldIceShards;
             // ---- Summoner
             d[(int)WeaponId.GolemStaff] = DrawHeldGolemStaff;
@@ -591,7 +592,7 @@ namespace Arena
             d[(int)WeaponId.Kusarigama] = DrawHeldKusarigama;
             d[(int)WeaponId.BoStaff] = DrawHeldBoStaff;
             d[(int)WeaponId.FumaShuriken] = DrawHeldFumaShuriken;
-            d[(int)WeaponId.MedicineDarts] = DrawHeldMedicineDarts;
+            d[(int)WeaponId.AcupunctureNeedles] = DrawHeldAcupunctureNeedles;
             d[(int)WeaponId.SpiritFan] = DrawHeldSpiritFan;
             d[(int)WeaponId.Ofuda] = DrawHeldOfuda;
             d[(int)WeaponId.Shuriken] = DrawHeldShuriken;
@@ -781,6 +782,18 @@ namespace Arena
         {
             MCirc(9f, 0f, 6f, Hx(0x8fe3f2, 0.25f), 12); MCirc(9f, 0f, 2.4f, Hx(0xf2fdff), 8);
             for (int i = 0; i < 3; i++) { float a0 = t * 7f + i * 2.1f; MArc(9f, 0f, 4.2f + i * 1.4f, a0, a0 + 1.7f, 1.1f, Hx(0xbff3ff, 0.85f)); }
+        }
+
+        void DrawHeldHiveCenser(Player p, float t, int hold)
+        {
+            MLine(9f, -6f, 9f, -1.5f, 0.8f, Hx(0xc9a45a, 0.9f));  // its chain
+            MCirc(9f, 1.5f, 3.6f, Hx(0x8a6a2a), 10);  // the bowl
+            MCirc(9f, 1.5f, 2.2f, Hx(0xffcc59, 0.9f), 8);  // embers inside
+            for (int i = 0; i < 5; i++)  // insects circling it
+            {
+                float a = t * (3f + i * 0.7f) * (i % 2 == 0 ? 1f : -1f) + i * 1.3f, r = 5.5f + 1.5f * Mathf.Sin(t * 4f + i);
+                MCirc(9f + Mathf.Cos(a) * r, 1.5f + Mathf.Sin(a) * r * 0.8f, 0.7f, Hx(0xffe8aa, 0.9f), 4);
+            }
         }
 
         void DrawHeldStaticShock(Player p, float t, int hold)
@@ -1018,9 +1031,11 @@ namespace Arena
             }
         }
 
-        void DrawHeldMedicineDarts(Player p, float t, int hold)
+        void DrawHeldAcupunctureNeedles(Player p, float t, int hold)
         {
-            for (int i = -1; i <= 1; i++) { float a = i * 0.3f; MLine(0f, 0f, 12f * Mathf.Cos(a), 12f * Mathf.Sin(a), 1.3f, MSteel); MCirc(12f * Mathf.Cos(a), 12f * Mathf.Sin(a), 1.3f, Hx(0x7fffa3), 6); }
+            // three healing needles fanned between the fingers (jade beads), a long Bloodletting needle under them (red bead)
+            MLine(-2f, 3f, 16f, 5f, 1.1f, MSteel); MCirc(-2f, 3f, 1.6f, Hx(0xff4d61), 6);
+            for (int i = -1; i <= 1; i++) { float a = i * 0.3f; MLine(0f, 0f, 12f * Mathf.Cos(a), 12f * Mathf.Sin(a), 1.2f, MSteel); MCirc(-1.5f * Mathf.Cos(a), -1.5f * Mathf.Sin(a), 1.5f, Hx(0x5fe0a3), 6); }
         }
 
         void DrawHeldSpiritFan(Player p, float t, int hold)

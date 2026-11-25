@@ -199,6 +199,9 @@ namespace Arena
                 case AbilityId.BloodRavager:  // DPS: Hemomancer, the second ultimate (BloodRavager.cs)
                     CastRavager(p, cap, castPower);
                     break;
+                case AbilityId.BloodBoil:  // DPS: Hemomancer, the third ultimate (BloodBoil.cs)
+                    CastBoil(p);
+                    break;
                 case AbilityId.ForbiddenPath:  // DPS: Ninja, the second ultimate (ForbiddenPath.cs)
                     CastForbiddenPath(p, cap);
                     break;
@@ -250,6 +253,10 @@ namespace Arena
 
                 case AbilityId.SupplyDrop:  // Healer: Soldier, the third ultimate (SupplyDrop.cs)
                     CastSupplyDrop(p, target, cap);
+                    break;
+
+                case AbilityId.ArmorDrop:  // Tank: Soldier, the fourth ultimate (ArmorDrop.cs)
+                    CastArmorDrop(p, target, cap);
                     break;
 
                 case AbilityId.Sanctum:  // Healer: Elementalist

@@ -104,14 +104,14 @@ namespace Arena
                     }
                     break;
                 }
-                case WeaponId.MedicineDarts:
+                case WeaponId.AcupunctureNeedles:
                 {
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
                     {
                         float a = Fanned(aim, i, n, 0.08f);
                         var b = SpawnBullet(Defs.NeedleShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                        b.Medicine = true;  // poisons enemies, doses allies (Ninja.cs)
+                        b.Medicine = true;  // flies through enemies, sticks in a hurt teammate (AcupunctureNeedles.cs)
                     }
                     break;
                 }
@@ -292,8 +292,8 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Nodachi, Kit = Kit.Ninja, Role = Role.Tank, Choice = 3, Damage = 20f, Reach = 150f, Melee = true, BotRange = 140f, ExtraDesc = "+1 ring after Tenchi's slam, 45 px farther out (60%)", Name = "Nodachi", FireInterval = 0.3f,
                 Desc = "Primary Fire: A tall katana with two five-step combo stances: wide sweeps, or fast jabs that block.\n\nAlternative Fire: Switch stance." },
             // Healer
-            new WeaponDef { Id = WeaponId.MedicineDarts, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0, Speed = 900f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Medicine Darts", FireInterval = 0.18f,
-                Desc = "Primary Fire: Fast needles that poison enemies and heal allies." },
+            new WeaponDef { Id = WeaponId.AcupunctureNeedles, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0, Speed = 900f, Life = 0.8f, Damage = 10f, ExtraDesc = "+1 healing needle, fanned out, and +1 Bloodletting needle", Name = "Acupuncture Needles", FireInterval = 0.18f,
+                Desc = "Primary Fire: Fast needles that fly through enemies and stick in hurt teammates, healing over time. Five open the meridian for a burst of healing.\n\nAlternative Fire: Bloodletting, three needles that cut and bleed enemies. Five in one enemy burst at the pressure point; a dying enemy's needles fly back to heal the most hurt teammate." },
             new WeaponDef { Id = WeaponId.SpiritFan, Kit = Kit.Ninja, Role = Role.Healer, Choice = 1, Speed = 420f, Life = 0.3f, Damage = 6f, Grow = 0.25f, ExtraDesc = "+25% reach and +1 HP healed", Name = "Spirit Fan", FireInterval = 0.4f,
                 Desc = "Primary Fire: A short gust that heals allies and pushes small bullets back." },
             new WeaponDef { Id = WeaponId.Ofuda, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2, Speed = 380f, Life = 1.1f, Damage = 45f, ExtraDesc = "+1 talisman and +1 Blast Ofuda, fanned out", Name = "Ofuda", FireInterval = 0.45f,
@@ -353,7 +353,7 @@ namespace Arena
                 Apply = s => { s.BoKnockMult += 0.4f; s.BoSpinDmgMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.FumaShuriken }, MaxStacks = 2, Name = "Long Loop", Desc = "The Fuma Shuriken's thrown loop reaches 20% farther, and its Orbit circle is 20% wider",
                 Apply = s => { s.FumaLoopMult += 0.2f; s.FumaOrbitMult += 0.2f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.MedicineDarts }, MaxStacks = 2, Name = "Potent Dose", Desc = "Each Medicine Dart's poison and healing stack is 30% stronger",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.AcupunctureNeedles }, MaxStacks = 2, Name = "Potent Dose", Desc = "Each Acupuncture Needle heals 30% more, and Bloodletting bleeds 30% harder",
                 Apply = s => { s.DoseMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.SpiritFan }, MaxStacks = 2, Name = "Gale Fan", Desc = "The Spirit Fan's gust reaches 25% farther and heals 30% more",
                 Apply = s => { s.FanReachMult += 0.25f; s.FanHealMult += 0.3f; } },
@@ -865,40 +865,7 @@ namespace Arena
             b.LastHit = e.Id;
         }
 
-        // --- Medicine Darts: stacking doses --------------------------------------------------------
-
-        public const float DoseHeal = 2f, DoseTime = 3f, PoisonDps = 2f, PoisonTime = 3f, DoseStacks = 5f;  // a second, per dart; each dart renews it, stacking to DoseStacks
-
-        /// A Medicine Dart through a hurt ally: another dose of healing over time (it doesn't go on).
-        bool DoseAlly(Bullet b)
-        {
-            foreach (var q in Players.Values)
-            {
-                float r = q.Def.BodyR + b.Radius;
-                if (q.Id == b.Owner || q.Downed || q.Hp >= q.MaxHp || b.Pos.DistanceSq(q.Pos) >= r * r)
-                    continue;
-                float each = DoseHeal * b.Dmg / Defs.WeaponOf(WeaponId.MedicineDarts).Damage * DoseMultOf(b.Owner);  // damage upgrades dose harder too (Potent Dose)
-                q.DoseHps = Math.Min(q.DoseHps + each, each * DoseStacks);
-                q.DoseT = DoseTime;
-                q.DoseBy = b.Owner;
-                return true;
-            }
-            return false;
-        }
-
-        float DoseMultOf(int owner) => Players.ContainsKey(owner) ? Players[owner].Stats.DoseMult : 1f;
-
-        /// A Medicine Dart in an enemy: another dose of poison.
-        void PoisonHit(Bullet b, Enemy e)
-        {
-            if (!b.Medicine)
-                return;
-            float each = PoisonDps * b.Dmg / Defs.WeaponOf(WeaponId.MedicineDarts).Damage * DoseMultOf(b.Owner);
-            e.PoisonDps = Math.Min(e.PoisonDps + each, each * DoseStacks);
-            e.PoisonT = PoisonTime;
-            e.PoisonBy = b.Owner;
-        }
-
+        /// Senbon Seekers' poison ticking (SenbonSeekers.cs).
         void TickPoison(Enemy e, float dt)
         {
             if (e.PoisonT <= 0f)
@@ -965,6 +932,8 @@ namespace Arena
                 return;  // Wind Clash's Tempest (WindClash.cs)
             if (LocalWyvernSlam(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // the Wyvern Staff's Wyrm Slam (WyvernStaff.cs)
+            if (LocalBumbleBurst(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
+                return;  // the Bumble Remote's Swarm Burst (BumbleRemote.cs)
             if (LocalTide(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // the Blood Blast's Crimson Tide (BloodBlast.cs)
             if (LocalZero(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
@@ -1135,8 +1104,12 @@ namespace Arena
                 return;  // the Twin Pistols' Laser Sights (TwinPistols.cs)
             if (LocalOfudaBlast(me, pressed, aimAt, dt))
                 return;  // the Ofuda's Blast Ofuda (Ofuda.cs)
+            if (LocalBloodletting(me, pressed, aimAt, dt))
+                return;  // the Acupuncture Needles' Bloodletting (AcupunctureNeedles.cs)
             if (LocalArcCannon(me, pressed, aimAt, dt))
                 return;  // Static Shock's Arc Cannon (StaticShock.cs)
+            if (LocalHiveCall(me, pressed, aimAt, dt))
+                return;  // the Hive Censer's Hive Call (HiveCenser.cs)
             if (LocalHammerSlamReady(me, pressed, dt))
             {
                 if (IsHost)
@@ -1375,6 +1348,16 @@ namespace Arena
                 HostOfudaBlast(p, target);  // the Ofuda's Alt (Ofuda.cs)
                 return;
             }
+            if (kind == WeaponAlt.Bloodlet)
+            {
+                HostBloodletting(p, target);  // the Acupuncture Needles' Alt (AcupunctureNeedles.cs)
+                return;
+            }
+            if (kind == WeaponAlt.HiveCall)
+            {
+                HostHiveCall(p, target);  // the Hive Censer's Alt (HiveCenser.cs)
+                return;
+            }
             if (kind == WeaponAlt.ArcCannon)
             {
                 HostArcCannon(p, target);  // Static Shock's Alt (StaticShock.cs)
@@ -1448,6 +1431,11 @@ namespace Arena
             if (kind == WeaponAlt.Tempest)
             {
                 HostTempest(p);  // Wind Clash's Alt (WindClash.cs)
+                return;
+            }
+            if (kind == WeaponAlt.BumbleBurst)
+            {
+                HostBumbleBurst(p, target);  // the Bumble Remote's Alt (BumbleRemote.cs)
                 return;
             }
             if (kind == WeaponAlt.WyvernSlam)
@@ -1624,16 +1612,9 @@ namespace Arena
         void TickNinjas(float dt)
         {
             TickMists(dt);
-            foreach (var p in Players.Values)  // Medicine Darts' doses heal; a Kunai mark fades
+            foreach (var p in Players.Values)  // Acupuncture Needles heal; a Kunai mark fades
             {
-                if (p.DoseT > 0f)
-                {
-                    p.DoseT = p.Downed ? 0f : Math.Max(0f, p.DoseT - dt);
-                    if (p.DoseT > 0f)
-                        Heal(p, p.DoseHps * dt, PlayerOrNull(p.DoseBy));
-                    else
-                        p.DoseHps = 0f;
-                }
+                TickNeedlesInPlayer(p, dt);  // AcupunctureNeedles.cs
                 p.KunaiMarkT = Math.Max(0f, p.KunaiMarkT - dt);
                 TickKatana(p, dt);
                 p.ShoveCd = Math.Max(0f, p.ShoveCd - dt);
