@@ -143,21 +143,8 @@ namespace Arena
                     break;
                 }
                 case WeaponId.Ofuda:
-                {
-                    int n = 1 + extra;
-                    // Each charm flies to your cursor (over enemies) and lies there as a ward (PlaceWard), fanned apart.
-                    // Velocity Rounds speed charms up (SpawnBullet) and reach farther, but they still land at the cursor.
-                    float fast = w.Speed * p.Stats.ShotSpeedMult;
-                    float far = Math.Min(WardRange * p.Stats.ShotSpeedMult * PierceReach(p), Math.Max(40f, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
-                    for (int i = 0; i < n; i++)
-                    {
-                        float a = Fanned(aim, i, n, 0.4f);
-                        var b = SpawnBullet(Defs.OfudaShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, far / fast, w.Damage * dmg, p.Id);
-                        b.Ward = true;
-                        b.Burst = 1;  // marks it as landing (MoveBullets)
-                    }
+                    FireTalismans(p, aim, muzzle, dmg, extra);  // Healing Talismans (Ofuda.cs)
                     break;
-                }
                 case WeaponId.Shuriken:
                 {
                     int n = 3 + extra;
@@ -306,9 +293,9 @@ namespace Arena
                 Desc = "Primary Fire: Fast needles that poison enemies and heal allies." },
             new WeaponDef { Id = WeaponId.SpiritFan, Kit = Kit.Ninja, Role = Role.Healer, Choice = 1, Speed = 420f, Life = 0.3f, Damage = 6f, Grow = 0.25f, ExtraDesc = "+25% reach and +1 HP healed", Name = "Spirit Fan", FireInterval = 0.4f,
                 Desc = "Primary Fire: A short gust that heals allies and pushes small bullets back." },
-            new WeaponDef { Id = WeaponId.Ofuda, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2, Speed = 360f, Life = 1.6f, Damage = 25f, ExtraDesc = "+1 charm, fanned out", Name = "Ofuda", FireInterval = 0.5f,
-                Desc = "Primary Fire: Throw charms that sit as wards and burst when an enemy steps on them.",
-                AreaDesc = "bursts 25% wider, for damage and healing" },
+            new WeaponDef { Id = WeaponId.Ofuda, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2, Speed = 380f, Life = 1.1f, Damage = 45f, ExtraDesc = "+1 talisman and +1 Blast Ofuda, fanned out", Name = "Ofuda", FireInterval = 0.45f,
+                Desc = "Primary Fire: Healing Talisman: a paper charm that bends toward a hurt teammate at the end of its flight, heals them and bursts, healing teammates near, shoving enemies back and erasing small bullets.\n\nAlternative Fire: Blast Ofuda: a charm that flies straight, sticks to the enemy it hits and blows up; one that misses lands and blows up a moment later.",
+                AreaDesc = "the talisman's burst and the Blast Ofuda's blast 25% wider" },
             // DPS
             new WeaponDef { Id = WeaponId.Shuriken, Kit = Kit.Ninja, Role = Role.Dps, Choice = 0, Speed = 700f, Life = 0.75f, Damage = 9f, ExtraDesc = "+1 star in the fan", Name = "Shuriken", FireInterval = 0.35f,
                 Desc = "Primary Fire: Tight fans of stars that stick, then rip out and fly back.\n\nAlternative Fire: Switch to a huge star thrown along a route you draw." },
@@ -362,7 +349,7 @@ namespace Arena
                 Apply = s => { s.DoseMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.SpiritFan }, MaxStacks = 2, Name = "Gale Fan", Desc = "The Spirit Fan's gust reaches 25% farther and heals 30% more",
                 Apply = s => { s.FanReachMult += 0.25f; s.FanHealMult += 0.3f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Ofuda }, MaxStacks = 2, Name = "Blessed Paper", Desc = "Ofuda wards burst 25% wider and heal 30% more",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Ofuda }, MaxStacks = 2, Name = "Blessed Paper", Desc = "Ofuda talisman bursts and Blast Ofudas 25% wider, talismans heal 30% more",
                 Apply = s => { s.CharmBurstMult += 0.25f; s.CharmHealMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Shuriken }, MaxStacks = 2, Name = "Barbed Stars", Desc = "Stuck stars come back 1.5 s sooner, and their return hit is 40% harder",
                 Apply = s => { s.StarStickCut += 1.5f; s.StarReturnMult += 0.4f; } },
@@ -779,49 +766,6 @@ namespace Arena
             }
         }
 
-        // --- Ofuda: wards ---------------------------------------------------------------------
-
-        public const float WardRange = 460f, WardTrigger = 26f, WardBurst = 70f, WardHeal = 12f, WardHealReach = 110f, WardLast = 10f;
-        public const int WardCap = 5;
-
-        /// An Ofuda charm landed: it lies there as a ward (your oldest goes if you have WardCap).
-        void PlaceWard(Bullet b)
-        {
-            Player p;
-            if (!Players.TryGetValue(b.Owner, out p))
-                return;
-            Zone oldest = null;
-            int mine = 0;
-            foreach (var z in Zones.Values)
-                if (z.Kind == ZoneKind.OfudaWard && z.Owner == p.Id)
-                {
-                    mine++;
-                    if (oldest == null || z.T < oldest.T)
-                        oldest = z;
-                }
-            if (mine >= WardCap && oldest != null)
-                Zones.Remove(oldest.Id);
-            var w = AddZone(ZoneKind.OfudaWard, p, ClampToArena(b.Pos, 10f), WardTrigger, WardLast);
-            w.DmgMult = b.Dmg / Defs.WeaponOf(WeaponId.Ofuda).Damage;  // the charm's damage, upgrades and all
-        }
-
-        /// A ward an enemy stepped on bursts: damage round it, and healing for allies near it.
-        void BurstWard(Zone z)
-        {
-            var wardOwner = PlayerOrNull(z.Owner);
-            float r = WardBurst * (wardOwner != null ? AreaMult(wardOwner) * wardOwner.Stats.CharmBurstMult : 1f);  // (Blessed Paper: wider)
-            float dmg = Defs.WeaponOf(WeaponId.Ofuda).Damage * z.DmgMult;
-            foreach (var e in FoesInCircle(z.Pos, r, by: z.Owner))
-            {
-                WeaponHurt(e, dmg, z.Owner);
-                ModHit(e, z.Owner, dmg, Defs.OfudaShot, default(V2));  // weapon mods ride the burst
-            }
-            foreach (var q in Players.Values)
-                if (!q.Downed && q.Pos.DistanceTo(z.Pos) < WardHealReach * (wardOwner != null ? wardOwner.Stats.CharmBurstMult : 1f))
-                    Heal(q, WardHeal * (wardOwner != null ? wardOwner.Stats.CharmHealMult : 1f), wardOwner);
-            BroadcastFx(FxKind.Boom, z.Pos, z.Def.Color, r, 0.35f, Sfx.SpellHoly);
-        }
-
         // --- Shuriken: stars that stick, recalled -------------------------------------------------
 
         public const float StarStick = 5f, RecallSpeed = 700f, RecallBack = 0.5f;  // stuck this long (then it comes back on its own); recalled stars fly back this fast, hitting what they pass for this share
@@ -1177,6 +1121,8 @@ namespace Arena
                 return;  // the Mender's Bow's Scatter (BowFocus.cs)
             if (LocalTwinLaser(me, pressed, aimAt, dt))
                 return;  // the Twin Pistols' Laser Sights (TwinPistols.cs)
+            if (LocalOfudaBlast(me, pressed, aimAt, dt))
+                return;  // the Ofuda's Blast Ofuda (Ofuda.cs)
             if (LocalArcCannon(me, pressed, aimAt, dt))
                 return;  // Static Shock's Arc Cannon (StaticShock.cs)
             if (LocalHammerSlamReady(me, pressed, dt))
@@ -1401,6 +1347,11 @@ namespace Arena
             if (kind == DashNunGuard)
             {
                 HostNunSwitch(p);  // the Nunchaku's combo to Twin Windmill and back (Nunchaku.cs)
+                return;
+            }
+            if (kind == DashOfuda)
+            {
+                HostOfudaBlast(p, target);  // the Ofuda's Alt (Ofuda.cs)
                 return;
             }
             if (kind == DashArcCannon)

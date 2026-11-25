@@ -798,6 +798,7 @@ namespace Arena
             TankShell = 79,    // A Literal Tank's shell: bursts on what it hits, or at the cursor (LiteralTank.cs, Game/LiteralTankLook.cs)
             Senbon = 81,       // a Senbon Seekers needle curving in on an enemy (SenbonSeekers.cs, Game/SenbonSeekersLook.cs)
             RodentShot = 80,   // a Rodent Minigun rodent: a mouse, rat or hamster by its id (Game.RodentOf; RodentMinigun.cs, Game/RodentMinigunLook.cs)
+            BlastOfudaShot = 82, // the Ofuda's Blast Ofuda: a red-sealed charm that sticks to what it hits and blows up (Ofuda.cs, Game/WorldShots.cs)
             EarthballShot = 72; // the Earthball: stops on the first enemy, stuns it and breaks into rubble (ElementBalls.cs, Game/ElementBallLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark || kind == BottleShot;
@@ -856,7 +857,8 @@ namespace Arena
             Row(table, StarShot, radius: 5.5f, color: new Rgba(0.8f, 0.85f, 0.95f));
             Row(table, NeedleShot, radius: 3f, color: new Rgba(0.55f, 1f, 0.75f));
             Row(table, KunaiShot, radius: 4f, color: new Rgba(0.8f, 0.85f, 0.95f));
-            Row(table, OfudaShot, radius: 6f, color: new Rgba(1f, 0.92f, 0.75f));
+            Row(table, OfudaShot, radius: 6f, color: new Rgba(1f, 0.92f, 0.75f));  // the Ofuda's Healing Talisman
+            Row(table, BlastOfudaShot, radius: 6f, color: new Rgba(1f, 0.9f, 0.78f));
             Row(table, GustShot, radius: 9f, color: new Rgba(0.7f, 1f, 0.85f));
             Row(table, FumaStar, radius: 20f, color: new Rgba(0.8f, 0.85f, 0.95f));  // giant
             Row(table, GreatStar, radius: 24f, color: new Rgba(0.8f, 0.85f, 0.95f));  // huger
