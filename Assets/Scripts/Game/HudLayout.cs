@@ -77,7 +77,6 @@ namespace Arena
         const float HudObjectiveY = 22f, HudObjectiveUnderBossY = 92f;
         /// The "Hold TAB · H" hint pill (top right), and the ● REC tag under it.
         static readonly Rect HudHintPill = new Rect(W - 290f, 10f, 274f, 22f);
-        static readonly Rect HudRecTag = new Rect(W - 70f, 34f, 62f, 16f);
 
         // --- In the middle ------------------------------------------------------------------------------------------------------------
 

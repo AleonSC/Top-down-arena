@@ -147,7 +147,6 @@ namespace Arena
         {
             if (e.Hp <= 0f || e.Def.IsBoss || e.Def.Xp <= 0 || e.Hp >= e.MaxHp * p.Stats.ReapBelow)
                 return;
-            Recorder?.DamageDealt(p.Id, e, e.Hp);
             p.Run.DamageDealt += e.Hp;
             e.Hp = 0f;
             e.LastHitBy = p.Id;

@@ -112,7 +112,6 @@ namespace Arena
                 float paid = Math.Min(cost, Math.Max(0f, p.Hp));
                 p.Hp -= paid;
                 p.Run.DamageTaken += paid;
-                Recorder?.HealthSpent(p, paid, "Vein Tithe");
                 DownIfDead(p, "Vein Tithe");
             }
         }

@@ -39,8 +39,6 @@ namespace Arena
                 castHits++;
             if (source != null)
                 source.Run.HealingDone += applied;
-            Recorder?.Healed(source, applied);
-            Recorder?.HealReceived(target, applied, what ?? (source == null ? "other" : source == target ? "own abilities" : "allies"));
             return applied;
         }
 

@@ -250,16 +250,15 @@ namespace Arena
             return gameFields;
         }
 
-        /// Left as they are on the live game: the network, recorders, hooks and dev toggles.
+        /// Left as they are on the live game: the network, hooks and dev toggles.
         static bool Skip(FieldInfo f)
         {
             var t = f.FieldType;
-            if (typeof(Delegate).IsAssignableFrom(t) || t == typeof(Session) || t == typeof(SessionRecorder)
+            if (typeof(Delegate).IsAssignableFrom(t) || t == typeof(Session)
                 || t == typeof(LagStats) || t == typeof(System.Diagnostics.Stopwatch))
                 return true;
             switch (f.Name)
             {
-                case "RecordFolder":
                 case "Bot":
                 case "BotLevel":
                 case "Sounds":

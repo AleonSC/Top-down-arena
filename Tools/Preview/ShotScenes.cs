@@ -2323,12 +2323,6 @@ static partial class Shot {
       Input.mousePosition = new Vector3(target.X * ws, 720f - target.Y * ws, 0f);
       me.Aim = (target - me.Pos).Angle;
     }
-    if (Environment.GetEnvironmentVariable("AIMDEBUG") != null)
-    {
-      typeof(ArenaApp).GetField("aimDebug", f2).SetValue(app, true);
-      me.Aim = -0.6f;
-      host.Game.LastShotId = 1; host.Game.LastShotAngle = -0.62f; host.Game.LastShotAim = -0.6f; host.Game.LastShotFrom = me.Pos + V2.FromAngle(-0.62f) * 20f;
-    }
     if (Environment.GetEnvironmentVariable("REPULSE") != null) {
       // The Repulsion Cannon's blast REPULSE=<seconds> after the shot.
       float rt = float.Parse(Environment.GetEnvironmentVariable("REPULSE"));
@@ -2569,27 +2563,6 @@ static partial class Shot {
       var solo = Environment.GetEnvironmentVariable("CAPPHASE");  // CAPPHASE=<k 0-3>: only that one, 200 px left of you (close-ups)
       if (solo != null) { int k = int.Parse(solo); var c = cap(me.Pos + new V2(-200f, 0f), phases[k]); if (set == 1 && k == 3) c.Hp = c.MaxHp * 0.3f; }
       else for (int k = 0; k < 4; k++) { var c = cap(spots[k], phases[k]); if (set == 1 && k == 3) c.Hp = c.MaxHp * 0.3f; }
-    }
-    if (Environment.GetEnvironmentVariable("POSSESS") != null) {
-      // The Dev Arena (DevArena.cs): you playing as POSSESS=<EnemyType> (brackets, name, controls strip), your hero parked, two grunts.
-      // Mode hud for the play view; mode dev with DEVSHEET=5 for the dock's Spawn / Play as row; DUMMIES=1 adds two hero dummies.
-      var spe = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
-      var pg = host.Game; pg.Enemies.Clear(); pg.Bullets.Clear(); pg.Bot = false;
-      pg.DevArena = true;
-      me.Pos = me.Disp = new V2(520f, 470f);
-      var t = (EnemyType)Enum.Parse(typeof(EnemyType), Environment.GetEnvironmentVariable("POSSESS"));
-      var you = (Enemy)spe.Invoke(pg, new object[] { t, new V2(900f, 430f), 0f, 0, false });
-      you.SpawnT = 0f; you.Disp = you.Pos; you.Facing = (me.Pos - you.Pos).Angle;
-      pg.PossessId = you.Id;
-      // Two hero dummies, one just hit (DUMMIES=1).
-      if (Environment.GetEnvironmentVariable("DUMMIES") != null) {
-        pg.DevAddHeroDummy(new V2(700f, 300f)); pg.DevAddHeroDummy(new V2(700f, 580f));
-        var hd = pg.HeroDummies[0]; hd.Hits = 7; hd.Taken = 98f; hd.Last = 14f; hd.Flash = 0.12f;
-        hd.Recent.Add(new System.Collections.Generic.KeyValuePair<float, float>(pg.DevClock, 42f));
-      }
-      foreach (var at in new[] { new V2(1200f, 300f), new V2(1250f, 640f) }) {
-        var o = (Enemy)spe.Invoke(pg, new object[] { EnemyType.Grunt, at, 0f, 0, false }); o.SpawnT = 0f; o.Disp = o.Pos;
-      }
     }
     if (Environment.GetEnvironmentVariable("FLANKERS") != null) {
       // The Hive Queen's Swarm bombers: two swooping out to your sides (gold) and two diving in (red-hot).

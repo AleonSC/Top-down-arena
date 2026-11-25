@@ -1,6 +1,6 @@
 using System; using System.IO; using System.Reflection; using System.Threading; using Arena; using UnityEngine;
 // Shot.cs screens: DrawMode draws the screen named by the mode argument (hud, gameover, dev, pause, guide, bg,
-// lobby, kitgrid, labsetup, labpanel, tab, shop, picker, ...).
+// lobby, kitgrid, tab, shop, picker, ...).
 static partial class Shot {
   static void DrawMode() {
     if (mode == "hud") {
@@ -88,7 +88,6 @@ static partial class Shot {
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
       host.Game.DevSetStat(1, Array.FindIndex(Game.StatFields, x => x.Name == "DmgMult"), 2.5f);
       host.Game.DevSetGod(1, true);
-      set("devWave", 10);
       if (Environment.GetEnvironmentVariable("DEVMENU") != null) host.Screen = AppScreen.Menu;  // the dock as opened from the main menu
       // DEVDRAWER=1..4 (wave, party, view, labs), DEVSIDE=1 (stat editor), DEVSHEET=1 (DPS), 3 (balance), 4 (upgrades), 5 (enemies), 6 (snapshots), 7 (gadgets and relics), DEVMENU=1 (outside a run)
       if (Environment.GetEnvironmentVariable("DEVSHEET") == "6")  // run snapshots (SnapshotUi.cs): three in the profile's folder; SNAPDEL=1 asks to delete the second, SNAPREN=1 renames the first
@@ -393,19 +392,7 @@ static partial class Shot {
         }
         set("showcase", sc);
       }
-      // TEXTEDIT=1: the dev text editor's mode (outlines the text under MOUSE); TEXTEDIT=<text>: its edit box for that text
-      // (TEXTBUF = what's typed). Drawn twice, as in the game the outline is the text picked the frame before.
-      var te = Environment.GetEnvironmentVariable("TEXTEDIT");
-      var beginTe = typeof(ArenaApp).GetMethod("TextEditBeginGui", f2); var endTe = typeof(ArenaApp).GetMethod("TextEditEndGui", f2);
-      if (te != null) {
-        set("textEditMode", true);
-        GL.ToUi = true; beginTe.Invoke(app, null); typeof(ArenaApp).GetMethod("DrawLobby", f2).Invoke(app, null); endTe.Invoke(app, null); GL.ToUi = false;
-        GUI.Log.Clear(); GL.Tris.Clear();
-        typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 3.7f });
-        if (te != "1") { set("textEditOriginal", te); set("textEditBuffer", Environment.GetEnvironmentVariable("TEXTBUF") ?? te); set("textEditNote", ""); set("textEditOpen", true); }
-        GL.ToUi = true; beginTe.Invoke(app, null);
-      }
-      else GL.ToUi = true;
+      GL.ToUi = true;
       // LOBBYIN=<seconds>: that far into coming in from the main menu (LobbyEnter.cs), instead of the settled lobby.
       var lobbyIn = Environment.GetEnvironmentVariable("LOBBYIN");
       // LOBBYOUT=<seconds>: that far into leaving for the menu (the entrance backwards).
@@ -451,7 +438,6 @@ static partial class Shot {
       }
       if (Environment.GetEnvironmentVariable("LOBBYMENU") != null) { set("lobbyMenuOpen", true); set("cabInstant", true); set("drawerKey", "pause"); set("winOpenAt", Time.unscaledTime - (Environment.GetEnvironmentVariable("PAUSEAGE") != null ? float.Parse(Environment.GetEnvironmentVariable("PAUSEAGE"), System.Globalization.CultureInfo.InvariantCulture) : 10f)); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); if (Environment.GetEnvironmentVariable("LOBBYMENU") == "settings") set("pauseSettings", true); if (Environment.GetEnvironmentVariable("LOBBYMENU") == "howto") { set("pauseHowTo", true); typeof(ArenaApp).GetMethod("OpenCabWindow", f2).Invoke(app, new object[] { 2 }); set("cabWinInAt", Time.unscaledTime - 10f); } Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod("DrawLobbyMenu", f2).Invoke(app, null); }  // Esc's menu (MenuDrawer.cs)
       if (Environment.GetEnvironmentVariable("LOBBYSETTINGS") != null) { Ui.Fill(new Rect(0, 0, 1280, 720), new Color(0.01f, 0.01f, 0.03f, 0.75f)); typeof(ArenaApp).GetMethod("DrawSettings", f2).Invoke(app, null); }
-      if (te != null) endTe.Invoke(app, null);
       GL.ToUi = false;
     }
     else if (mode == "menu" || mode == "records" || mode == "cosmetics" || mode == "profile" || mode == "settings" || mode == "who" || mode == "whotr" || mode == "pacman")
@@ -658,13 +644,6 @@ static partial class Shot {
         Ui.Label(new Rect(63f + i * 427f, 640f, 300f, 24f), names[sheet][i], 18, Color.white, TextAnchor.MiddleCenter, true);
       GL.ToUi = false;
     }
-    else if (mode == "labsetup")
-    {
-      var lab = (BossLab)typeof(ArenaApp).GetField("lab", f2).GetValue(app);
-      lab.Wave = 20; lab.PlayerCount = 3; lab.Seats[1].Kit = Kit.Elementalist; lab.Seats[2].Kit = Kit.Knight; lab.Seats[2].Weapon = 1;
-      Event.current.type = EventType.Repaint; set("glMaterial", new Material(null));
-      typeof(ArenaApp).GetMethod("DrawLabSetup", f2).Invoke(app, null);
-    }
     else if (mode == "celled")
     {
       int ci = int.Parse(Environment.GetEnvironmentVariable("CELLED") ?? "0");
@@ -675,15 +654,6 @@ static partial class Shot {
       if (Environment.GetEnvironmentVariable("HUBID") != null) typeof(ArenaApp).GetField("hubId", f2).SetValue(app, (LayoutId)int.Parse(Environment.GetEnvironmentVariable("HUBID")));
       Event.current.type = EventType.Repaint; set("glMaterial", new Material(null));
       typeof(ArenaApp).GetMethod("DrawCellEditor", f2).Invoke(app, null);
-    }
-    else if (mode == "labpanel")
-    {
-      var lab = (BossLab)typeof(ArenaApp).GetField("lab", f2).GetValue(app);
-      lab.Host = host; lab.FightTime = 23.4f; lab.BossHpFrac = 0.41f; lab.BossName = "The Singularity"; lab.PeakBullets = 171;
-      foreach (var p in host.Game.Players.Values) { var st = new LabPlayerStats { Name = p.Name, BossDamage = 2140f, DamageTaken = 96f, Downs = 0 }; st.TakenFrom["The Singularity"] = 70f; st.TakenFrom["The Singularity (aimed)"] = 22f; st.TakenFrom["Grunt"] = 4f; lab.Stats[p.Id] = st; }
-      typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);
-      typeof(ArenaApp).GetMethod("DrawLabPanel", f2).Invoke(app, null);
-      if (Environment.GetEnvironmentVariable("RESULT") != null) { lab.Outcome = LabOutcome.Won; typeof(ArenaApp).GetMethod("DrawLabResult", f2).Invoke(app, null); }
     }
     else if (mode == "tab")
     {

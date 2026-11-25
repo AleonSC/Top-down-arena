@@ -60,7 +60,6 @@ namespace Arena
             if (p.Gold < price)
                 return false;
             p.Gold -= price;
-            Recorder?.Picked(this, p, ModIds, upgrade, "arms");
             GrantUpgrade(p.Id, upgrade);
             DoLog(p.Role + " bought " + Upgrades.All[upgrade].Name + " from the Arms Dealer for " + price);
             return true;

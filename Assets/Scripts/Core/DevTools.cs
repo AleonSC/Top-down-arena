@@ -266,7 +266,6 @@ namespace Arena
                     if (e.Def.IsBoss)
                         p.Run.BossDamage += e.Hp;
                 }
-                Recorder?.DamageDealt(id, e, e.Hp);
                 e.LastHitBy = id;
                 e.BubbleHp = 0f;
                 e.ShieldHp = 0f;
@@ -298,8 +297,6 @@ namespace Arena
                 return;
             wave = Math.Max(1, Math.Min(Endless ? 999 : MaxWave, wave));
             DevUsed((boss ? "jumped to the boss after wave " : "jumped to wave ") + wave);
-            if (State == MatchState.Fighting)
-                Recorder?.WaveEnd(this);
             spawnQueue.Clear();
             squadQueue.Clear();
             Enemies.Clear();
