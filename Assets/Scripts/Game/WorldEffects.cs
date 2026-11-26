@@ -97,6 +97,8 @@ namespace Arena
             d[(int)FxKind.StaticBurst] = (fx, f, t) => DrawStaticBurstFx(fx);  // StaticBubbleLook.cs  // LivingBoltLook.cs
             d[(int)FxKind.ForbiddenPath] = (fx, f, t) => DrawForbiddenFx(fx, t);  // ForbiddenPathLook.cs (the crescents, claw marks and black sun are the floor pass: DrawForbiddenFloor)
             d[(int)FxKind.BambooGrove] = (fx, f, t) => { };  // drawn in the floor and body passes (BambooGroveLook.cs)
+            d[(int)FxKind.OctoSlap] = (fx, f, t) => { };  // drawn with its octopus (OctopusFamiliarLook.cs)
+            d[(int)FxKind.OctoInk] = (fx, f, t) => DrawOctoInkFx(fx, f);  // OctopusFamiliarLook.cs
             d[(int)FxKind.SiegeBell] = (fx, f, t) => { };  // drawn in the floor, over and glow passes (SiegeBellLook.cs)
             d[(int)FxKind.FlashFire] = (fx, f, t) => { };  // drawn in the floor and body passes (FlashFireLook.cs)
             d[(int)FxKind.SpiritInk] = (fx, f, t) => DrawSpiritInkFx(fx);  // SpiritAvatarLook.cs (the strokes and stains are the floor pass: DrawSpiritFloor)

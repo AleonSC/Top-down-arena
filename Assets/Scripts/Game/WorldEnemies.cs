@@ -465,6 +465,11 @@ namespace Arena
                 DrawWardenGuard(m, t);  // WardenLook.cs
                 return;
             }
+            if (m.Kind == MinionKind.Octopus)
+            {
+                DrawOctopus(m, t);  // OctopusFamiliarLook.cs
+                return;
+            }
             if (m.Kind == MinionKind.SoulLantern)
             {
                 DrawSoulLantern(m, t);  // HealerKitLooks.cs

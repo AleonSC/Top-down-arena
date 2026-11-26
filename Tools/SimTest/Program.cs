@@ -464,6 +464,7 @@ static partial class Program
         Test("cannoncall", "Cannon Call, the DPS Knight's 4th choice: the 4th lobby key, the 420 px mark, one effect a ball on both screens, 70 in the core and 35 to the edge after the fall, the shove and stun, half the cooldown back for 3 kills, mastery (three balls) and Siege Powder", () => CannonCallTest(Dt)),
         Test("thornbloom", "Thorn Bloom, the DPS Hemomancer's 4th choice: the 4th lobby key, the 12% cost, twelve needles on both screens landing on arrival (45 and a bleed stack, the first enemy only), the tendril chain (30, 20% less a jump, 3 jumps, never the same enemy twice), mastery (5 jumps) and Thornwork", () => ThornBloomTest(Dt)),
         Test("chakra", "Chakra Reserves, the Healer Ninja's 4th choice: the 4th lobby key, the heal (40 + 15% missing), the Chakra Surge (faster moving and attacks, both screens), the teammate's cooldowns refreshed on their own game but not the ultimate, nobody in reach (half on you, no refresh), going down ending it, Deep Reserves and mastery", () => ChakraReservesTest(Dt)),
+        Test("octopus", "Octopus Familiar, the Healer Summoner's 4th choice: the 4th lobby key, the pick (press, click a player, the key again cancels), the octopus on that player on both screens, 8 slaps at once in reach (16 and a heal), its health (shots, the ink burst), its 60 s, one per caster, Three Hearts and mastery", () => OctopusFamiliarTest(Dt)),
         Test("bamboo", "Bamboo Grove, the Tank Ninja's 4th choice: the 4th lobby key, the wind-up, the wave reaching near before far (40 and a stun, heavy enemies less), the bleed once the stun ends, nothing past the radius, the fence holding enemies out and stopping shots, mastery (6 s fence) and Rhizome", () => BambooGroveTest(Dt)),
         Test("siegebell", "Siege Bell, the Tank Knight's 4th choice: the 4th lobby key, the sound, braced (rooted, 25% less damage) while it rings, tolls 1 and 2 (8 and a flinch within 120 px), the shockwave reaching near before far (20, a shove, a 2.5 s stun, heavy enemies less), nothing past 260 px, mastery (3.5 s, shots erased) and Great Bell", () => SiegeBellTest(Dt)),
         Test("bloodtotem", "Blood Totem, the Tank Hemomancer's 4th choice: the 4th lobby key, 6% health, a totem at the cursor (at most 420 px out), veins gripping within 180 px once risen (40% speed), 5 veins a totem, no stacking, both screens agreeing, 3 at most (a 4th bursts the oldest), 14 s, mastery drain, Bloodroot", () => BloodTotemTest(Dt)),
@@ -664,7 +665,7 @@ static partial class Program
         "stampede", "staticbubble", "staticshock", "stayin", "supplydrop", "survival", "thornbloom", "trojanhorse", "twintessen",
         "ultimates", "waterward", "wiki", "windclash", "wyvernstaff",
         "heartflail", "sanctumglass", "siegebell", "chakra", "honeyraid", "heartbeat", "tusker",
-        "contentfuzz", "caltroprun", "rocketdrop", "banners", "shadowgong", "bloodtotem",
+        "contentfuzz", "caltroprun", "rocketdrop", "banners", "shadowgong", "octopus", "bloodtotem",
     };
 
     static int Main(string[] args)
