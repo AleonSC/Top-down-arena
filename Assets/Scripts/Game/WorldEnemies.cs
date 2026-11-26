@@ -286,6 +286,8 @@ namespace Arena
                 case ZoneKind.SupplyDrop:
                     DrawSupplyDrop(z, t);  // SupplyDropLook.cs (its own time arc)
                     return;
+                case ZoneKind.HazardFoam:
+                    return;  // drawn all together after the zones (DrawHazardFoam, HazardFoamLook.cs)
                 case ZoneKind.RocketDrop:
                     DrawRocketDrop(z, t);  // RocketDropLook.cs (no timer ring: the pod waits, then folds)
                     return;
