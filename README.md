@@ -1734,16 +1734,19 @@ instead; Boss Hunts and runs saved before the Campaign use the open arena). Desi
   (the shelf is new each boss cycle). The **shop room** has no screen: its wares stand on **pedestals** along two facing walls, your shelf's
   unsold cards on one (up to 4) and Add stock, Sell upgrade, Vector pack and Floor kit on the other, each floating over a stone plinth lit in its colour,
   with a coin price beside it. Stand at one: a panel names it, says what it does and **F  BUY** buys it (Sell opens the sell list); sold-out spots
-  stand empty until you add stock. The room is bare (no cover) with a gold runner from door to door, and a shop cell has **only two doors**, on the
-  walls facing the room it was built from: nothing is built off, or opens through, its pedestal walls.
-  Walking into the other rooms opens its screen; after **Done shopping** (or Esc) a gold **F  OPEN THE ...** tag over you opens it again,
-  any time between waves (the room shops stay open until the wave starts, even once everyone is done).
-- **Arms Dealer** ([`Docs/ArmsDealer.md`](Docs/ArmsDealer.md)): a tiny green room with a gun rack and a rifle on its counter, from its service card or a
-  mystery door. While the shop is open, stand in it to buy **any weapon mod** for gold: **150** for your first stack of a mod, **250** the second,
-  **400** the third (3 stacks at most, as before). It sells nothing else. In the Expanding arena this is the only place to get weapon mods (bosses give the card pick instead).
+  stand empty until you add stock. **Every vendor room works this way** (shop, Black Market, Arms Dealer, Medic): no stall, no screen, no
+  cover, a runner in its colour from the door(s), its wares on pedestals along the walls without doors. On the grid, counted from the wall
+  facing the room it was built from: the **shop** has **two doors** (that wall and the one opposite), the **Black Market** and **Arms Dealer**
+  **one** (pedestals on the other three walls), the **Medic** **three** (pedestals on one side wall). Nothing is built off, or opens through,
+  a pedestal wall. Gold and the shop's open/closed state are as before: the room shops stay open until the wave starts.
+- **Black Market**: its four buildables (Teleporter pair 150, Turret 120, Landmine 80, Slow field 90) on pedestals, each greyed once your stash
+  of it is full (5).
+- **Arms Dealer** ([`Docs/ArmsDealer.md`](Docs/ArmsDealer.md)): a tiny green room from its service card or a mystery door, every weapon mod on a
+  pedestal. While the shop is open, buy **any weapon mod** for gold: **150** for your first stack of a mod, **250** the second,
+  **400** the third (3 stacks at most, as before; a maxed one greys out). It sells nothing else. In the Expanding arena this is the only place to get weapon mods (bosses give the card pick instead).
   Its card comes like the other service cards: wave drops, chests and the boss card pick.
-- **Medic**: a tiny rose room with a cot, an IV stand and a heartbeat line, from its service card (wave drops, chests, the boss pick) or a mystery door. While the shop is open, stand in it for a
-  **Full heal** (40) or a **Revive token** (120; one at a time). It is the only room shop that sells them (the Bazaar's shop, which has no rooms, still does).
+- **Medic**: a tiny rose room from its service card (wave drops, chests, the boss pick) or a mystery door, with a
+  **Full heal** (40) and a **Revive token** (120; one at a time) on its pedestals. It is the only room shop that sells them (the Bazaar's shop, which has no rooms, still does).
 - **Breaches**: a rare event: on wave 5 and every 8th wave after it (13, 21, 29, ...), once the first room is built, enemies come in through **breaches** in the outer wall: a stretch of wall cracks open
   and a **red holographic barrier** stands in the gap (you can't go out through it; red chevrons on the floor point where they come
   from, and a red dash marks each on the minimap). 2 open on a breach wave, one more per 3 rooms built (at most 6), 400 px apart or
