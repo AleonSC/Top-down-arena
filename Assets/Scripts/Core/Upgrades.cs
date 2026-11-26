@@ -74,6 +74,7 @@ namespace Arena
         SiegeBell,      // the Tank Knight's 4th choice (SiegeBell.cs), the lobby's 4th choice
         BloodGolem,     // the Tank Hemomancer's third ultimate (BloodGolem.cs), key 2 of the lobby's Ultimate row
         HoneyRaid,      // the Healer Summoner's second ultimate (HoneyRaid.cs), key 1 of the lobby's Ultimate row
+        ChakraReserves, // the Healer Ninja's 4th choice (ChakraReserves.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -141,6 +142,7 @@ namespace Arena
         public float TbDmgMult = 1f; public int TbExtraJumps;    // Thorn Bloom: Thornwork
         public float BgRadiusMult = 1f, BgBleedMult = 1f;        // Bamboo Grove: Rhizome
         public float BellRadiusMult = 1f, BellStunBonus;         // Siege Bell: Great Bell
+        public float CrBonusTime, CrBonusHeal;                    // Chakra Reserves: Deep Reserves
         public float SbDmgMult = 1f, SbStackBonus;               // Senbon Seekers: Hidden Needles
         public float FfRadiusMult = 1f, FfBurnMult = 1f;         // Flash Fire: Backdraft
         public bool ChalkWard;             // Warding Ink: Spirit Chalk blocks enemy bullets (at the cost of wearing the ink away)

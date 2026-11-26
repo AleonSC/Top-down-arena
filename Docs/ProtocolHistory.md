@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 532: Chakra Reserves (Healer Ninja 4th choice): `AbilityId.ChakraReserves` and `FxKind.ChakraThread` (at the end); the player sync adds `CrSurgeT` (and `CrSurgeMax` while it's on) after `TtTailT`; `Msg.CooldownCut` with a share of 1 now fills the ability back to full charges; the Rare card Deep Reserves (card ids shift).
 - 531: Honey Raid (Healer Summoner second ultimate, key 1): `AbilityId.HoneyRaid` and `ZoneKind.HoneyRaid` (each at the end); the zone sync sends its `Origin` (where the bee came in).
 - 530: Heart Flail (Healer Hemomancer 4th weapon): `WeaponId.HeartFlail`, `FxKind.HeartDrops`/`HeartPulse`/`HeartBurst` (at the end), `Player.HfMode`/`HfBpm`/`HfBeats`/`HfT`/`HfAng`/`HfCd`/`HfSide`/`HfAim0`/`HfPos` in the player sync after `TtBreeze`, `Msg.WeaponDash` kind 71 (`WeaponAlt.HeartThrow`), the Rare card Pacemaker (card ids shift).
 - 529: Blood Golem (the Tank Hemomancer's third ultimate): `Player.GolT`, `GolAge`, `GolCoats`, `GolPunch` in the player snapshot; `AbilityId.BloodGolem`; `FxKind.GolemFx`; Msg.WeaponDash kind 70 (Hurl Clot).

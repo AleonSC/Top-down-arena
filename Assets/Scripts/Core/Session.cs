@@ -22,7 +22,7 @@ namespace Arena
         ReverseEnemyBullets,  // host -> all: the Singularity's white hole turns every enemy bullet round (Singularity.cs)
         Record,      // host -> all: a boss beaten, the run ended, or a resumed run's state, for each player's profile (RunSaves.cs)
         SeatRequest, // client -> host: the saved seat this player wants when continuing a run (Session.cs)
-        CooldownCut, // host -> all: take a share off one player's ability cooldown (a caught Scythe Throw); only that player's own game applies it (ReaperLoot.cs)
+        CooldownCut, // host -> all: take a share off one player's ability cooldown (a caught Scythe Throw; a share of 1 fills it: Chakra Reserves); only that player's own game applies it (ReaperLoot.cs)
         RunStatsLive, // host -> all: the run's tallies so far, about once a second (RunStats.cs; the Run stats screen)
         Knock,       // host -> all: a player is knocked back (a Riot Shield's bash); only that player's own game moves them (WardenFaction.cs)
         Loot,         // client -> host: take or discard the chest item you're standing on (Props.cs)
@@ -145,7 +145,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 531;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 532;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
