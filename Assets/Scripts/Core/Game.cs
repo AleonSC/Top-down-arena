@@ -1145,6 +1145,7 @@ namespace Arena
                 if (nearest != null)
                 {
                     aimAt = nearest.Pos;
+                    me.Aim = (aimAt - me.Pos).Angle;
                 }
                 firing = !me.Downed && (!ChargeWeapon(me.Weapon.Id) || MathX.Fmod(botT, 1.2f) < 1f);  // bow and Warhammer: charge, then let go
                 for (int i = 0; i < held.Length; i++)
@@ -1179,9 +1180,7 @@ namespace Arena
                 move = V2.Zero;
                 firing = false;
                 if (PitFallT > 0f)
-                {
                     parry = weaponAction = dodgePress = dodgeHeld = false;
-                }
                 me.Parrying = false;
                 for (int i = 0; i < held.Length; i++)
                     held[i] = false;
