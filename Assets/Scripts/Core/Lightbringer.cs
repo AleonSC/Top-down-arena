@@ -283,11 +283,11 @@ namespace Arena
             }
             lanceLocalCd = LanceCooldown;
             if (IsHost)
-                HostWeaponDash(MyId, DashLance, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.Lance, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashLance);
+                w.Write(WeaponAlt.Lance);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

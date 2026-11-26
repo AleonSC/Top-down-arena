@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Arena;
 
-// The rule-changing modifiers: Hunted, Death Throes, Solid Walls and Second Wind (Modifiers.cs).
+// The rule-changing modifiers: Hunted, Death Throes and Second Wind (Modifiers.cs).
 static partial class Program
 {
     static void RuleModifiersTest(float dt)
@@ -14,7 +14,6 @@ static partial class Program
         var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
         var damage = typeof(Game).GetMethod("Damage", flags);
         var pick = typeof(Game).GetMethod("PickTarget", flags);
-        var keep = typeof(Game).GetMethod("KeepInArena", flags);
         var gameOver = typeof(Game).GetMethod("CheckGameOver", flags);
         int port = nextPort++;
         var host = HostAs(new Session(), port, false, "Host", Role.Tank);
@@ -23,7 +22,7 @@ static partial class Program
         Action Sync = () => PollBoth(host, client);
         WaitForLobby(host, client);
         Sync();
-        foreach (var m in new[] { RunMod.Hunted, RunMod.DeathThroes, RunMod.SolidWalls, RunMod.SecondWind })
+        foreach (var m in new[] { RunMod.Hunted, RunMod.DeathThroes, RunMod.SecondWind })
             host.SetModifier(m, true);
         Sync();
         client.RequestReady(true); host.RequestReady(true); Sync();
@@ -33,7 +32,7 @@ static partial class Program
         var c = client.Game;
         Run(s, dt, 6f, () => g.State == MatchState.Fighting);
         Run(s, dt, 0.3f);
-        Check(c.Has(RunMod.Hunted) && c.Has(RunMod.SecondWind) && Modifiers.Count(client.Modifiers) == 4, "the friend's game knows the new modifiers");
+        Check(c.Has(RunMod.Hunted) && c.Has(RunMod.SecondWind) && Modifiers.Count(client.Modifiers) == 3, "the friend's game knows the new modifiers");
         var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);
         // A frozen dummy in a corner keeps the wave going.
         var anchor = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(60f, 60f), 0f, 0, false });
@@ -77,13 +76,7 @@ static partial class Program
         Check(now == 0 && ring.Count == Modifiers.ThroesShots, "Death Throes: a killed enemy bursts into a ring of 8 a moment after");
         Run(s, dt, 0.2f, null, Quiet);
 
-        // Solid Walls: walking off an edge stops at it instead of wrapping round (on your own game too).
         var me = g.Players[1];
-        V2 kept = (V2)keep.Invoke(g, new object[] { new V2(-30f, 450f), me.Def.BodyR });
-        V2 keptClient = (V2)keep.Invoke(c, new object[] { new V2(Game.Width + 30f, 450f), me.Def.BodyR });
-        Console.WriteLine("  solid walls: walked off the left edge to x {0:0}, off the right on the friend's game to x {1:0}", kept.X, keptClient.X);
-        Check(g.Walled && c.Walled && kept.X >= 0f && kept.X < 40f && keptClient.X > Game.Width - 40f && keptClient.X <= Game.Width,
-            "Solid Walls: the edges are walls, not a way round (on every screen)");
 
         // Second Wind: everyone has one from the first wave; down, you're back up by yourself after a moment.
         Check(g.Players.Values.All(p => p.SecondWind) && c.Players.Values.All(p => p.SecondWind), "Second Wind: everyone has one from the start (and the friend's game shows it)");

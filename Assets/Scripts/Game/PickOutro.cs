@@ -43,7 +43,7 @@ namespace Arena
                 outroColors[i] = me.OfferCards ? BossCardRgba(me.Offer[i]) : Upgrades.RarityColor(Upgrades.All[me.Offer[i]].Rarity);
             }
             outroPicked = picked;
-            outroIcon = me.OfferCards ? (BossCards.IsKit(me.Offer[picked]) ? PixelArt.Get("floorkit") : null) : PixelArt.ForUpgrade(Upgrades.All[me.Offer[picked]].Name);
+            outroIcon = me.OfferCards ? (BossCards.IsKit(me.Offer[picked]) ? PixelArt.Get("floorkit") : null) : PixelArt.ForUpgrade(Upgrades.All[me.Offer[picked]]);
             outroTarget = PickHome(me);
             outroDim = me.PendingPicks + me.PendingLegendary + me.PendingMods + me.PendingCards + me.PendingMilestones + me.PrizePicks <= 1;
             pickOutroAt = Time.unscaledTime;

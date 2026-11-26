@@ -54,7 +54,7 @@
 1. **Core** (done, protocol 405): `WeaponId.BloodBlast`, the six-step chain in `Core/BloodBlast.cs` (each step a `Swing`;
    Crescent Flight is a 260 px, 80° cut until step 3 draws it flying), health costs, `Enemy.BlastStacks` + owner
    (replicated), the kill heal on arrival; suite `bloodblast`. Placeholder look: the red slash and a drain line home.
-2. **Alt** (done): Crimson Tide on the weapon-action key (`DashTide` 46; `LocalTide`, `HostTide`, `TickTide`): pay, gather
+2. **Alt** (done): Crimson Tide on the weapon-action key (`WeaponAlt.Tide` 46; `LocalTide`, `HostTide`, `TickTide`): pay, gather
    0.65 s (no cuts meanwhile), then the wave grows out (`TideRadius`) hitting each enemy once; local cooldown ring under
    your feet (`TankAltLook.cs`). Placeholder look: a ring while it gathers, a wide red slash as it goes.
 3. **Look** (done): `Game/BloodBlastLook.cs` from `FxKind.BlastCut` (each press), `BlastTide` (gather, wave) and `BlastReturn`

@@ -33,9 +33,6 @@ namespace Arena
             return null;
         }
 
-        /// A foe that belongs to a duel (the wave ends without it, as it does without the Wings vault's).
-        bool IsDuelFoe(Enemy e) => ExpandingOn && (FactionMinis.Duels(e.Type) || IsDuelAdd(e)) && IsDuelRoom(CurrentWorld.AreaAt(e.Disp));
-
         /// One a duel's mini-boss called in (the Riot Captain's Taser Guards): it fights in the locked room with it.
         bool IsDuelAdd(Enemy e)
         {

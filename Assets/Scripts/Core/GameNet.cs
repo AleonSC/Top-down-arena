@@ -120,6 +120,8 @@ namespace Arena
             AddFx(kind, pos, color, radius, dur);
             Effects[Effects.Count - 1].Pos2 = pos2;
             Sounds.Add(sound);
+            if (!session.HasPeers)
+                return;  // playing alone: nobody to tell (no message built)
             var w = Proto.Begin(Msg.Fx);
             w.Write((byte)kind);
             w.Write(pos);
@@ -131,11 +133,23 @@ namespace Arena
             session.Broadcast(Proto.End(w));
         }
 
+        MemoryStream snapBuf;  // reused by SendSnapshot: no new stream 20 times a second (not kept in a run save: RunSnapshot.Skip)
+        BinaryWriter snapWriter;
+
         void SendSnapshot()
         {
-            var w = Proto.Begin(Msg.Snapshot);
-            SyncSnapshot(new NetSync(w));
-            session.Broadcast(Proto.End(w));
+            if (snapBuf == null || snapWriter == null)
+            {
+                snapBuf = new MemoryStream();
+                snapWriter = new BinaryWriter(snapBuf);
+            }
+            snapBuf.SetLength(0);
+            var w = snapWriter;
+            w.Write((byte)Msg.Snapshot);
+            SyncSnapshot(new NetSync(w));  // (written even alone: a few fields the host draws from are worked out here, BarrierFrac and the like)
+            w.Flush();
+            if (session.HasPeers)
+                session.Broadcast(snapBuf.ToArray());
         }
 
         // --- Client-side replication ------------------------------------------
@@ -391,8 +405,13 @@ namespace Arena
             int count = Players.Count;
             s.Byte(ref count);
             if (s.Reading)
+            {
+                snapSeen.Clear();
                 for (int i = 0; i < count; i++)
-                    SyncPlayer(s, null);
+                    snapSeen.Add(SyncPlayer(s, null));
+                snapSeen.Add(MyId);  // (never your own)
+                RemoveUnseen(Players);  // someone who left: the host dropped them (OnPeerLeft), so they go here too
+            }
             else
                 foreach (var p in Players.Values)
                     SyncPlayer(s, p);
@@ -419,7 +438,7 @@ namespace Arena
                     SyncEnemy(s, e);
 
             count = Minions.Count;
-            s.Byte(ref count);
+            s.Short(ref count);
             if (s.Reading)
             {
                 snapSeen.Clear();
@@ -432,7 +451,7 @@ namespace Arena
                     SyncMinion(s, m);
 
             count = Zones.Count;
-            s.Byte(ref count);
+            s.Short(ref count);
             if (s.Reading)
             {
                 Zones.Clear();
@@ -479,9 +498,20 @@ namespace Arena
                 all.Remove(id);
         }
 
+        void RemoveUnseen<T>(SortedDictionary<int, T> all)  // (the players)
+        {
+            snapGone.Clear();
+            foreach (int id in all.Keys)
+                if (!snapSeen.Contains(id))
+                    snapGone.Add(id);
+            foreach (int id in snapGone)
+                all.Remove(id);
+        }
+
         /// A player. p is null when reading: the id picks who it is. Your own position, aim, cooldowns, parry, and
         /// bow draw are your game's own, so those aren't overwritten for you.
-        void SyncPlayer(NetSync s, Player p)
+        /// Returns the player's id.
+        int SyncPlayer(NetSync s, Player p)
         {
             int id = p != null ? p.Id : 0;
             s.Int(ref id);
@@ -583,6 +613,10 @@ namespace Arena
             s.Float(ref p.ColT);  // Stone Colossus (StoneColossus.cs)
             s.Float(ref p.ColAge);
             s.Float(ref p.ColWind);
+            s.Float(ref p.GolT);  // Blood Golem (BloodGolem.cs)
+            s.Float(ref p.GolAge);
+            s.Float(ref p.GolCoats);
+            s.Float(ref p.GolPunch);
             s.Float(ref p.SpT);  // Spirit Avatar (SpiritAvatar.cs)
             s.Float(ref p.SpAge);
             s.Float(ref p.SpWind);
@@ -613,6 +647,8 @@ namespace Arena
             s.Float(ref p.RvT);  // Blood Ravager (BloodRavager.cs)
             if (p.RvT > 0f)
                 s.Float(ref p.RvLen);
+            s.Int(ref p.HorseId);  // Trojan Horse (TrojanHorse.cs)
+            s.Float(ref p.SallyT);
             s.Float(ref p.BoilT);  // Blood Boil (BloodBoil.cs)
             if (p.BoilT > 0f)
                 s.Float(ref p.BoilLen);
@@ -720,6 +756,15 @@ namespace Arena
             }
             else if (s.Reading)
                 p.GaleDots.Clear();
+            s.Float(ref p.GlassT);  // Sanctum Glass (SanctumGlass.cs)
+            if (p.GlassT > 0f)
+            {
+                s.Vec(ref p.GlassPos);
+                s.Float(ref p.GlassAim);
+                s.Bool(ref p.GlassWide);
+                s.Float(ref p.GlassHealed);
+                s.Float(ref p.GlassCap);
+            }
             int drops = Math.Min(Game.WwMax, p.WwOff.Count);  // Water Ward (WaterWard.cs)
             s.Byte(ref drops);
             if (drops > 0)
@@ -821,7 +866,8 @@ namespace Arena
             s.Byte(ref p.RapierCharge);
             s.Byte(ref p.Light);
             s.Float(ref p.MercyT);  // a Lightbringer's ward (Lightbringer.cs)
-            s.Float(ref p.DoseT);
+            s.Float(ref p.NeedleT);  // Acupuncture Needles in you (AcupunctureNeedles.cs)
+            s.Byte(ref p.NeedleN);
             s.Vec(ref p.KunaiMark);
             s.Float(ref p.KunaiMarkT);
             s.Bool(ref p.BloodWallOn);  // Blood Wall (BloodWall.cs): the drain ring is drawn from how long it has been up
@@ -938,6 +984,15 @@ namespace Arena
             if (p.CrSurgeT > 0f)
                 s.Float(ref p.CrSurgeMax);
             s.Byte(ref p.TtBreeze);
+            s.Byte(ref p.HfMode);  // the Heart Flail (HeartFlail.cs)
+            s.Byte(ref p.HfBpm);
+            s.Byte(ref p.HfBeats);
+            s.Float(ref p.HfT);
+            s.Float(ref p.HfAng);
+            s.Float(ref p.HfCd);
+            s.SByte(ref p.HfSide);
+            s.Float(ref p.HfAim0);
+            s.Vec(ref p.HfPos);
             s.Float(ref p.ChitinHp);  // the Hive Censer (HiveCenser.cs)
             s.Bool(ref p.HiveOn);
             s.Vec(ref p.HivePour);
@@ -1004,7 +1059,7 @@ namespace Arena
             SyncVectors(s, p);         // ExpansionGame.cs
             SyncArcanist(s, p);        // Arcanist.cs
             if (!s.Reading || !known)
-                return;
+                return id;
 
             if (!mine)
             {
@@ -1029,6 +1084,7 @@ namespace Arena
             if (mine && RerollPending && (rerolls < rerollsAtRequest || offers == 0))
                 rerollsAtRequest = -1;
             p.Offer = offer == null || (mine && awaitingPick) ? null : offer;
+            return id;
         }
 
         /// An enemy; returns its id. Reading, a new id brings a new enemy.
@@ -1039,7 +1095,7 @@ namespace Arena
             float hp = 0f, maxHp = 0f, facing = 0f;
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
-            int bleedStacks = 0, stars = 0, traits = 0, bubble = 0, cells = 0;
+            int bleedStacks = 0, stars = 0, needlesIn = 0, traits = 0, bubble = 0, cells = 0;
             bool winding = false, penned = false, dormant = false, wet = false, hit = false, venom = false, charged = false, slowed = false;
             int bleedHits = 0, wetTenths = 0;
             if (!s.Reading)
@@ -1084,6 +1140,7 @@ namespace Arena
                 status = (byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0) | (e.Caged ? 32 : 0) | (e.Suppress >= SuppressShown ? 64 : 0) | (e.PoisonT > 0f ? 128 : 0));
                 bleedStacks = e.BleedStacks;
                 stars = e.StarsStuck;
+                needlesIn = e.NeedlesIn;
                 e.Suppressed = e.Suppress >= SuppressShown;
                 e.Poisoned = e.PoisonT > 0f;
                 e.Dazed = e.DazeT > 0f || e.StunT > 0f;  // (a Stun shows the same stars)
@@ -1100,6 +1157,7 @@ namespace Arena
             s.Byte(ref status);
             s.Byte(ref bleedStacks);  // bleed stacks on it, drawn as drops gathering on it
             s.Byte(ref stars);       // Shuriken stars stuck in it
+            s.Byte(ref needlesIn);   // Bloodletting needles stuck in it (AcupunctureNeedles.cs)
             s.Byte(ref traits);      // elite traits and a bubble (Variety.cs)
             s.Byte(ref bubble);
             if (bubble > 0)
@@ -1115,7 +1173,7 @@ namespace Arena
             s.Bool(ref slowed);     // slowed by anything (Chill.cs; Chilled, in the status bits, is ice only)
             s.Bool(ref hit);        // just hit: the white flash (not every drop in health, or a burning enemy would stay white)
             int challengeBy = !s.Reading && e.ChallengeT > 0f ? e.ChallengeBy : 0;
-            s.Byte(ref challengeBy);  // a Gauntlet's Challenge: who threw it (0: none) and how long it has left (Gauntlet.cs)
+            s.Short(ref challengeBy);  // (a player id: a long-hosted game's ids pass 255)  a Gauntlet's Challenge: who threw it (0: none) and how long it has left (Gauntlet.cs)
             float challengeT = !s.Reading && challengeBy > 0 ? e.ChallengeT : 0f;
             if (challengeBy > 0)
                 s.Float(ref challengeT);
@@ -1130,7 +1188,7 @@ namespace Arena
             int blastStacks = !s.Reading ? e.BlastStacks : 0, blastOwner = !s.Reading ? e.BlastOwner : 0;
             s.Byte(ref blastStacks);  // Blood Blast stacks on it, and whose (BloodBlast.cs)
             if (blastStacks > 0)
-                s.Byte(ref blastOwner);
+                s.Short(ref blastOwner);  // (a player id)
             int fpBrands = !s.Reading ? e.FpBrands : 0;
             s.Byte(ref fpBrands);  // Forbidden Path's Blood Brands on it (ForbiddenPath.cs)
             var kind = (EnemyType)type;
@@ -1168,6 +1226,7 @@ namespace Arena
                 e.Poisoned = (status & 128) != 0;
                 e.BleedStacks = bleedStacks;
                 e.StarsStuck = stars;
+                e.NeedlesIn = needlesIn;
                 e.Traits = (byte)traits;
                 e.BubbleFrac = bubble / 255f;
                 e.Cells = bubble > 0 ? cells : 0;
@@ -1283,7 +1342,7 @@ namespace Arena
             if (s.Reading)
                 z = new Zone();
             else
-                z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell || z.Kind == ZoneKind.Cover || z.Kind == ZoneKind.DecoyDummy || z.Kind == ZoneKind.DeployTurret || z.Kind == ZoneKind.Claymore ? z.GuardFrac  // (a cover's health left: DeployableCover.cs)  // (a smoke canister's flight distance: GrenadeLauncher.cs)
+                z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell || z.Kind == ZoneKind.Cover || z.Kind == ZoneKind.DecoyDummy || z.Kind == ZoneKind.DeployTurret || z.Kind == ZoneKind.Ballista || z.Kind == ZoneKind.Claymore || z.Kind == ZoneKind.TrojanHorse ? z.GuardFrac  // (a cover's health left: DeployableCover.cs)  // (a smoke canister's flight distance: GrenadeLauncher.cs)
                       // a Blood Wall node's place along its wall (BloodWall.cs)
                     : z.Kind == ZoneKind.Smoke ? (z.ExtraSlow > 0f ? 1f : 0f)  // a mastered Smoke Bomb (its slow on enemies), for drawing
                     : z.Kind == ZoneKind.Ward ? (z.SoakMax > 0f ? z.Soak / z.SoakMax : 0f) : z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
@@ -1300,6 +1359,14 @@ namespace Arena
             s.Float(ref z.Aim);
             if (z.Kind == ZoneKind.DecoyDummy || z.Kind == ZoneKind.Claymore)
                 s.Float(ref z.Marched);  // (a Claymore: 1 while a mastered spare blast is left; Claymore.cs)  // how far it was thrown, for the canister's flight (DecoyDummy.cs)
+            if (z.Kind == ZoneKind.Ballista)  // its rider, bolts left and reload (Ballista.cs)
+            {
+                s.Int(ref z.Rider);
+                int bolts = z.BoltsLeft;
+                s.Byte(ref bolts);
+                z.BoltsLeft = bolts;
+                s.Float(ref z.GunCd);
+            }
             if (z.Kind == ZoneKind.Phalanx)  // the line's walk and each skeleton's health (BonePhalanx.cs)
             {
                 s.Float(ref z.Marched);
@@ -1309,6 +1376,11 @@ namespace Arena
                     z.Bones = new byte[n];
                 for (int i = 0; i < n; i++)
                     s.Byte(ref z.Bones[i]);
+            }
+            if (z.Kind == ZoneKind.TrojanHorse)  // how far it has rolled, and parked (TrojanHorse.cs)
+            {
+                s.Float(ref z.Marched);
+                s.Bool(ref z.Quiet);
             }
             if (z.Kind == ZoneKind.Stampede)  // the herd's walk (Stampede.cs)
                 s.Float(ref z.Marched);

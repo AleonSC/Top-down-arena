@@ -154,7 +154,7 @@ namespace Arena
         {
             if (game == null || !fxNumbers)
                 return;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.RodGround))
             {
                 if (fx.Kind != FxKind.RodGround || fx.T > 1.1f)
                     continue;

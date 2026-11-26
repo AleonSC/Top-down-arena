@@ -34,7 +34,9 @@ namespace Arena
                 c = new Color(1f, 0.45f, 0.4f);
                 return "TOTALITY — kill it before the nova: " + s.NovaT.ToString("0.0") + " s (it takes +50%)";
             }
-            string stage = "STAGE " + ((int)s.Stage + 1) + " / 5 · " + EclipseStageName(s.Stage);
+            var stages = game.StagesOf(EnemyType.Eclipse);  // its stage table (BossStages.cs): counted without Totality
+            int shown = stages.Length - (stages.Length > 0 && stages[stages.Length - 1].Stage == (byte)EclipseStage.Totality ? 1 : 0);
+            string stage = "STAGE " + (Game.StageIndex(stages, (byte)s.Stage) + 1) + " / " + shown + " · " + EclipseStageName(s.Stage);
             switch (s.Turn)
             {
                 case EclipseTurn.Flares: return stage + " — SOLAR FLARES: step out of the lines";
@@ -255,35 +257,59 @@ namespace Arena
                 c = new Color(1f, 0.4f, 0.35f);
                 return WardenStageName(w.Stage) + " — SPOTTED!";
             }
-            int st = (int)w.Stage;
-            if (st < 3 && frac - WardenCellAt[st + 1] < WardenCellNear)  // the next gate is close
+            var stages = game.StagesOf(EnemyType.Warden);
+            var cellAt = WardenCellAt(game.MechTier);
+            int st = Game.StageIndex(stages, (byte)w.Stage);
+            if (st >= 0 && st + 1 < stages.Length && frac - cellAt[st + 1] < WardenCellNear)  // the next gate is close
             {
-                c = WardenCellCol[st + 1];
-                return WardenStageName(w.Stage) + " — " + WardenStageName((WardenStage)(st + 1)) + " IN " + Mathf.Max(1, Mathf.CeilToInt((frac - WardenCellAt[st + 1]) * 100f)) + "%";
+                var nx = (WardenStage)stages[st + 1].Stage;
+                c = WardenCellColor(nx);
+                return WardenStageName(w.Stage) + " — " + WardenStageName(nx) + " IN " + Mathf.Max(1, Mathf.CeilToInt((frac - cellAt[st + 1]) * 100f)) + "%";
             }
-            c = WardenCellCol[st];
+            c = WardenCellColor(w.Stage);
             return WardenStageName(w.Stage);
         }
 
         // The Warden's bar as Cell Blocks: a block per phase, sized to it, in its colour, with a barred gate and a padlock at
-        // each phase's start (Game.LockdownAt, RiotAt, LastStandAt). The gate ahead shakes when you're close, and a gate
-        // flashes while the Warden changes phase through it.
-        static readonly float[] WardenCellAt = { 1f, Game.LockdownAt, Game.RiotAt, Game.LastStandAt, 0f };
+        // each phase's start (its stage table on the run's tier, BossStages.cs: Easy has no Last Stand cell). The gate ahead
+        // shakes when you're close, and a gate flashes while the Warden changes phase through it.
         static readonly Color[] WardenCellCol = { new Color(1f, 0.92f, 0.65f), new Color(0.7f, 0.8f, 1f), new Color(1f, 0.55f, 0.3f), new Color(1f, 0.32f, 0.3f) };
+        static readonly float[][] wardenCellAt = new float[4][];
+
+        static Color WardenCellColor(WardenStage s) => WardenCellCol[Mathf.Clamp((int)s, 0, WardenCellCol.Length - 1)];
+
+        /// Where each cell starts on a tier (its stage's health share), then 0: one cell per stage in its table.
+        static float[] WardenCellAt(MechTier tier)
+        {
+            var a = wardenCellAt[(int)tier];
+            if (a == null)
+            {
+                var l = Game.StagesFor(EnemyType.Warden, tier);
+                a = new float[l.Length + 1];
+                for (int i = 0; i < l.Length; i++)
+                    a[i] = l[i].At;
+                wardenCellAt[(int)tier] = a;
+            }
+            return a;
+        }
         const float WardenCellNear = 0.04f;
         public const float WardenCellExtra = 20f;  // room for the padlocks over it and the row of phase names under it
 
         void DrawWardenCells(Rect bar, Enemy e, float frac)
         {
             var w = e.Warden;
-            int st = (int)(w.TransT > 0f ? w.TransTo : w.Stage);
+            var stages = game.StagesOf(EnemyType.Warden);
+            var cellAt = WardenCellAt(game.MechTier);
+            int n = stages.Length;
+            int st = Game.StageIndex(stages, (byte)(w.TransT > 0f ? w.TransTo : w.Stage));
             float g = fxOn ? Ghost(EnemyKey(e.Id) | 1L << 40, frac) : frac, t = Time.unscaledTime;
             Ui.Fill(bar, new Color(0f, 0f, 0f, 0.55f));
-            for (int k = 0; k < 4; k++)
+            for (int k = 0; k < n; k++)
             {
-                float lo = WardenCellAt[k + 1], hi = WardenCellAt[k];
-                float x0 = bar.x + bar.width * lo + (k < 3 ? 2f : 0f), x1 = bar.x + bar.width * hi - (k > 0 ? 2f : 0f);
-                var col = WardenCellCol[k];
+                var ks = (WardenStage)stages[k].Stage;
+                float lo = cellAt[k + 1], hi = cellAt[k];
+                float x0 = bar.x + bar.width * lo + (k < n - 1 ? 2f : 0f), x1 = bar.x + bar.width * hi - (k > 0 ? 2f : 0f);
+                var col = WardenCellColor(ks);
                 Ui.Fill(new Rect(x0, bar.y, x1 - x0, bar.height), col.WithAlpha(0.1f));
                 float gEnd = Mathf.Min(g, hi), fEnd = Mathf.Min(frac, hi);
                 if (gEnd > lo + 1e-4f)
@@ -298,21 +324,22 @@ namespace Arena
                 // Its name under it: lit for this phase, struck through once it's over.
                 var r = new Rect(x0, bar.yMax + 1f, x1 - x0, 12f);
                 Color lc = k == st ? col : k < st ? new Color(0.36f, 0.43f, 0.6f, 0.6f) : col.WithAlpha(0.55f);
-                Ui.Label(r, WardenStageName((WardenStage)k), 9, lc, TextAnchor.MiddleCenter, k == st);
+                Ui.Label(r, WardenStageName(ks), 9, lc, TextAnchor.MiddleCenter, k == st);
                 if (k < st)
-                    Ui.Fill(new Rect(r.center.x - WardenStageName((WardenStage)k).Length * 2.8f, r.center.y, WardenStageName((WardenStage)k).Length * 5.6f, 1f), lc);
+                    Ui.Fill(new Rect(r.center.x - WardenStageName(ks).Length * 2.8f, r.center.y, WardenStageName(ks).Length * 5.6f, 1f), lc);
             }
-            for (int k = 1; k < 4; k++)
+            for (int k = 1; k < n; k++)
             {
-                float gx = bar.x + bar.width * WardenCellAt[k];
-                bool crossed = st >= k, near = !crossed && k == st + 1 && frac - WardenCellAt[k] < WardenCellNear;
-                bool shifting = w.TransT > 0f && (int)w.TransTo == k;
+                var ks = (WardenStage)stages[k].Stage;
+                float gx = bar.x + bar.width * cellAt[k];
+                bool crossed = st >= k, near = !crossed && k == st + 1 && frac - cellAt[k] < WardenCellNear;
+                bool shifting = w.TransT > 0f && w.TransTo == ks;
                 float shake = near ? Mathf.Sin(t * 40f) * 1.3f : 0f, flash = shifting ? 0.5f + 0.5f * Mathf.Sin(t * 12f) : 0f;
-                Color gc = shifting ? Color.Lerp(WardenCellCol[k], Color.white, flash) : crossed ? new Color(0.36f, 0.43f, 0.6f, 0.7f) : new Color(0.81f, 0.85f, 0.94f);
+                Color gc = shifting ? Color.Lerp(WardenCellColor(ks), Color.white, flash) : crossed ? new Color(0.36f, 0.43f, 0.6f, 0.7f) : new Color(0.81f, 0.85f, 0.94f);
                 for (int side = -1; side <= 1; side += 2)  // the bars of the gate
                     Ui.Fill(new Rect(gx + side * 1.5f - 0.5f + shake, bar.y - 3f, 1f, bar.height + 6f), gc);
                 // The padlock over it: open once you're through.
-                Color lk = shifting ? gc : crossed ? gc : near ? WardenCellCol[k] : gc;
+                Color lk = shifting ? gc : crossed ? gc : near ? WardenCellColor(ks) : gc;
                 float px = gx + shake, py = bar.y - 8f;
                 Ui.Fill(new Rect(px - 3.5f, py, 7f, 5f), lk);
                 Ui.Fill(new Rect(px - 2.5f, py - 4f, 1.2f, crossed ? 2f : 4f), lk);

@@ -13,6 +13,7 @@
 # QUICKMET=<n> (the lobby's Quick Play tab with n bosses beaten; mode lobby).
 # TUTORIAL=<lesson 0-4>,<steps done> (the first-run tutorial prompt; mode hud).
 # RAILGUN=<s> (the Railgun's scripted shot: RAILHOLD=<s> held, default 1.6; RAILAIM=<deg>; RAILHEAT=<0-100>; RAILDUMP=1 Heat Dump instead; mode hud).
+# NEEDLES=<s> (the Healer Ninja's Acupuncture Needles: healing needles through a grunt into a teammate, Bloodletting in two grunts; mode hud, 3 players, ZOOM=2.2).
 # OFUDA=<s> (the Healer Ninja's Ofuda: talismans bending onto a hurt teammate, a Blast Ofuda stuck to a grunt and one on the ground; mode hud, 3 players, ZOOM=1.6).
 # ARCLOCK=<s> (Arc Lightning's lock-on: hold from 0, let go at 1.5 s; ARCFORK=1 the Forked Volley instead; mode hud).
 # OATHPICK=1|0 (Guardian's Oath waiting for the click: cursor on an ally, or off; mode hud, 3 players).
@@ -43,6 +44,7 @@
 # SENBON=<needles>[,<s since the last cast>[,<enemies>]] [SENBONCAP=1] (the DPS Ninja's Senbon Seekers: the ring of needles, new ones coming out under 0.35 s, needles curving in on enemies 170 px off; ZOOM=2, mode hud; ShotSenbon.cs).
 # LANDSHARK=<s since the cast> [LANDSHARKMASTERED=1] (the DPS Summoner's Land Shark: the puddle, the fin, the leap and bite, the drain; use 0.6, 1.0, 1.1, 1.25; mode hud).
 # HEMODPS=spray|debt|rush (the DPS Hemomancer's Arterial Spray, Blood Debt, Vein Rush; DEBTSETTLE=paid|forfeit, RUSHT=<s>; mode hud).
+# SANCTUM=<s into the scene> (the Healer Knight's Sanctum Glass like the mock-up: raised at 0.5 s, shots from 0.4 s, a hurt friend; SANCTUMCAP=1 mastered; mode hud, 2 players; ShotSanctumGlass.cs).
 # GALEWALL=<s into the scene> (Gale Wall like the mockup: cast at 0.5 s, shots from 0.4 s; GALEBLAST=<s> unleashes it then; GALECAP=1 mastered; ShotGaleWall.cs).
 # QUEENHOLD=swell,<0-1>|lay,<s>|dive,<s> (with FLANKERS=1: the Brood Mother swelling before her eggs, laying them, in a royal dive).
 # QUEENSTAGE=<0-3> (with FLANKERS=1: the Hive Queen's Brood Mother body in Swarm, Honeycomb, Frenzy, Last Stand; ZOOM=2.6 CAMAT=800,215, mode hud 3 1 1).
@@ -68,6 +70,7 @@
 # WILDCARD=1 (lobby: you as a Wildcard, Twin Blades, Shadow Step, Blade Fan on Q, Death Lotus; the class wheel).
 # NIMBUS=<s since a strike, -1 none> [NIMBUSSTORM=<s into the Eye of the Storm> NIMBUSBOLT=1] (the Nimbus, Anvil look; mode hud).
 # pacman (mode): PACKEYS=l1.7,u0.6 (steer left then up), PACFRIGHT=5 (ghosts blue), PACDIE=0.7, PACOVER=1, PACPAUSE=1 (PacmanUi.cs).
+# MECH=Easy|Normal|Hard|Nightmare (the run's mechanics tier, Docs/DifficultyTiers.md; e.g. the Warden's bar has no Last Stand cell on Easy).
 # WARDENTRANS=<to 1-3>,<s> (the Warden's 5 s phase change into Lockdown/Riot/Last Stand that far in; a negative s: in that phase; WARDENHP=<health>[,<armor>]; KNIGHT=1 ZOOM=2.6 CAMAT=800,470 shot.sh x hud 3 1 1).
 # RIOTERS=1 (a pack of Rioters with a Guard and a Thug; mode hud, ZOOM=3 for a close look).
 # THUGRAGE=1 (four Thugs at full, 2/3, 1/3 and 5% health: the red halo growing; NINJA=0 ZOOM=3).
@@ -84,12 +87,15 @@
 # MAPVIEW=<from>,<to>,<t> (the Map key's switch: 0 minimap, 1 full map, 2 off, t of the way; MapView.cs), MAPCYCLE=<s> (a scripted M, M, M for clip.sh); with EXPANDMAP=6 ZOOM=1.5.
 # NADET=<s> (the Twin Rifle's Rocket assist that long after a launch), NADELOAD=<s> (a tube loading; TwinNadeLook.cs);
 #   with RIFLEFIRE=1 (holding fire: the Twin Rifle held wide, Spread arms) and CROSSAT=<px> (the cursor's distance).
+# BALLISTA=<s since the cast> [BALLISTACAP=1 mastered] [BALLISTARIDE=<s>, -1 nobody] (the DPS Knight's Ballista played through the game, shot.sh x hud 1 6 1: falls 0-0.6, you climb on at 0.8 and fire a bolt every 0.9 s; use 0.3, 1, 3.2, 8.2; ShotBallista.cs).
 # DEPLOYTURRET=<s since the cast> [DEPLOYCAP=1 mastered] (the DPS Soldier's Deployable Turret played through the game, shot.sh x hud 1 6 1: drop 0-0.55, unfolds to 1.1, fires to 11.1 (spool full by ~2.3), overheats, blows at 11.9; use 0.3, 0.8, 3, 6, 10, 11.5, 12; FXOFF=1 plain; ShotDeployTurret.cs).
 # THORNBLOOM=<s since the cast> [THORNCAP=1 mastered] (the DPS Hemomancer's Thorn Bloom played through the game, shot.sh x hud 1 6 1: needles fly 0-0.2, tendrils whip on to ~0.9; use 0.05, 0.15, 0.3, 0.5, 0.8; ShotThornBloom.cs).
 # BAMBOO=<s since the cast> [BAMBOOCAP=1 mastered] (the Tank Ninja's Bamboo Grove played through the game, ZOOM=2 shot.sh x hud 1 6 1: wind-up 0-0.35, rings burst 0.35-0.7, fence to 3.9; use 0.2, 0.42, 0.6, 1.0, 2.5; ShotBambooGrove.cs).
+# BELL=<s since the cast> [BELLCAP=1 mastered] (the Tank Knight's Siege Bell played through the game, ZOOM=1.3 shot.sh x hud 1 6 1: bell down 0-0.22, tolls 0.3/0.8/1.3, shockwave 1.3-1.75, bell gone 2.45, stuns to ~3.8; use 0.4, 1.0, 1.45, 1.6, 2.4; ShotSiegeBell.cs).
 # CHAKRA=<s since the cast> [CHAKRACAP=1 mastered] (the Healer Ninja's Chakra Reserves on a hurt teammate, ZOOM=2 shot.sh x hud 1 6 2: thread 0-0.22, lotus to 0.95, Surge to 5; use 0.1, 0.3, 0.6, 2.0; ShotChakra.cs).
 # ROD=<s since the cast> (you take Lightning Rod, the tank Elementalist's second ultimate, and cast it that long before the shot; mode hud).
 # TANKALT=<s> (the Tank Soldier's Alt fires: Double Barrel that long after firing, shells pips, Proximity Shells, Tear Gas; TankAltLook.cs).
+# HORSE=<s since the cast> [HORSEALL=1] [HORSEWEAR=<0-1>] [HORSEEND=broke|sally] (the Tank Knight's Trojan Horse rolling out, teammates inside shooting arrows; HORSEALL: you too, enemies go for it; mode hud, 3 players, ZOOM=2; ShotTrojanHorse.cs).
 # HONEYBEE=<s> (the Summoner DPS Honeybee Staff that long into a scripted loop: clicks that swarm a dummy at 0-0.8 s, the honey spray held 1.0-1.9 s, a harvest at ~2.5 s; mode hud; HoneybeeLook.cs).
 # BONESPEAR=<s> (the Hemomancer DPS Blood Brawler that long into its loop: Pulse 0 s, Reel 0.45, Heart Lift 0.95, Marrow Burst 1.5, Alt (Sympathy) 2.4, Pulse 2.7 and Reel 3.1 echoing; BSAIM=<deg> tilts it; BSHAND=1 centres on the bleeding hand; BloodBrawlerLook.cs).
 # EMBOLUS=<s> (the Hemomancer DPS Embolus Spears that long into the mockup's loop: throws at 0 and 0.3 s, recall at 1.7 s, throws at 2.6 and 2.9 s, Alt burst at 4.1 s; ESAIM=<deg> tilts the aim; EmbolusLook.cs).
@@ -101,6 +107,7 @@
 # BUMBLE=<s> (the DPS Engineer's Bumble Remote that long into a fight: the Bumble Bot at the cursor by a pack, stinging it, Fire held from BUMFIRE s (0.6); BUMALT=<s>: the Swarm Burst pressed then; mode hud; BumbleRemoteLook.cs).
 # WYVERN=<s> (the Tank Summoner's Wyvern Staff that long into a loop: hovering with its gale until 1.0 s, then Fire held; WYALT=1: the Wyrm Slam at 1.0 s instead; mode hud).
 # TESSEN=<s> (the Healer Ninja's Twin Tessen that long into the Crane Dance, Fire held: the Crane Bloom about 1.25 s, its wave out by 1.45 s; TTALT=<s>: Alt held that long then let go, the Kamikaze Gust; TTBREEZE=100: a Typhoon; mode hud; TwinTessenLook.cs).
+# HEARTFLAIL=<s> (the Healer Hemomancer's Heart Flail that long in; HFMODE=swing|spin|throw|burst: a click, Fire held, Alt (Open Heart), the beat at 180 for a Cardiac Burst; mode hud; HeartFlailLook.cs).
 # WINDCLASH=<s> (the Tank Elementalist's Wind Clash that long into its combo, Fire held: crescents at 0 and 0.34 s, lance at 0.68 s, ring at 1.12 s; WCALT=1: the Tempest at 0 with enemies shooting; mode hud; WindClashLook.cs).
 # STONESPEAR=<s> (the Elementalist DPS Stonespear that long into the mockup's loop: slam at 0, throws at 1.3 and 1.85 s, Alt volley at 2.6 s; SSMOVE=1 walking down (the spears trail); SSTECT=1 with Tectonic; mode hud; StonespearLook.cs).
 # GRENADE=<s> (the Tank Soldier's Grenade Launcher that long into a fight: fire held at a pack GLAT px ahead; GLSMOKE=1 Alt then smoke canisters from 0.6 s; GLSWAP=1 Alt only; GLIDLE=1; mode hud; GrenadeLauncherLook.cs).
@@ -117,6 +124,7 @@
 # RAVAGER=<s since cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (the DPS Hemomancer's Blood Ravager walking right through grunts, clicking over the last 0.4 s; ShotBloodRavager.cs; ZOOM=2.2, mode hud).
 # BOIL=<s since cast> [BOILHP=<0-1>] [BOILEND=1] (the DPS Hemomancer's Blood Boil circling and firing at grunts, health eased down to BOILHP; BOILEND=1 ends it 0.4 s before, for the steam; ShotBloodBoil.cs; ZOOM=1.8, mode hud).
 # BOLT=<s since cast> (the DPS Elementalist's Living Bolt: 0.3 the channel, 4 electrified with three dashes' residue, 9.5 the flicker; mode hud; LivingBoltLook.cs).
+# GOLEM=<s since cast> GOLCOATS=<n> GOLPUNCH=<n.swing> GOLFX=shed|collapse|clot GOLFXT=<s> (the Tank Hemomancer's Blood Golem: gathering, standing, punching, shedding, bursting; mode hud; BloodGolemLook.cs).
 # COLOSSUS=<s since cast> COLWIND=<0-1> COLEND=<s> (the Tank Elementalist's Stone Colossus: rising, standing, slamming, crumbling; mode hud; StoneColossusLook.cs).
 # BLOODBATH=<s since the cast> (the Tank Hemomancer's Bloodbath pool, wading enemies and heal numbers; BATHMASTERED=1 for 220 px; mode hud, 2 players).
 # NEEDLESWARM=<s held> NSALT=<s> (the DPS Hemomancer's Needle Swarm: Fire held on a grunt, tendrils growing and wrapping, shots breaking needles; NSALT the Alt's fan; ShotNeedleSwarm.cs; mode hud).

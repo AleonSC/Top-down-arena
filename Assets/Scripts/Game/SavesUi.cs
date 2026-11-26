@@ -211,30 +211,6 @@ namespace Arena
 
         static string ClipName(string n, int max) => n == null ? "" : n.Length <= max ? n : n.Substring(0, max - 1) + "…";
 
-        /// The path, difficulty, modifier and dev-tools tags of a save, in a row (at most max).
-        void DrawSaveBadges(RunSave s, float x, float y, float w, float gap, int max)
-        {
-            int n = 0;
-            if (s.CurrentPath != PathId.None && s.PathTo > s.Wave && n < max)
-            {
-                DkTag(new Rect(x + n * (w + gap), y, w, 20f), Game.PathName(s.CurrentPath).ToUpperInvariant(), new Color(0.55f, 0.4f, 0.85f));
-                n++;
-            }
-            if (s.Diff.Level != DifficultyLevel.Normal && n < max)
-            {
-                DkTag(new Rect(x + n * (w + gap), y, w, 20f), s.Diff.Name.ToUpperInvariant(), DiffBadgeColor(s.Diff.Level));
-                n++;
-            }
-            int mods = Modifiers.Count(s.Mods);
-            if (mods > 0 && n < max)
-            {
-                DkTag(new Rect(x + n * (w + gap), y, w, 20f), mods + (mods == 1 ? " MODIFIER" : " MODIFIERS"), ModColor);
-                n++;
-            }
-            if (s.DevUsed && n < max)
-                DkTag(new Rect(x + n * (w + gap), y, w, 20f), "DEV TOOLS USED", Ui.Neutral);
-        }
-
         // --- What the profile's Records tab reads (ProfileUi.cs) ----------------------------------------
 
         static readonly EnemyType[] RecordBosses =

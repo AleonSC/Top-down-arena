@@ -35,7 +35,7 @@ namespace Arena
 
         public bool LayoutOn { get { return ActiveLayout != null; } }
 
-        /// The edge wall's gates only work while the arena wraps: Narrow Pass, Tiny Arena and Solid Walls close it.
+        /// The edge wall's gates only work while the arena wraps: Narrow Pass and Tiny Arena close it.
         public bool EdgesGated { get { var d = ActiveLayout; return d != null && d.Edge != EdgeGates.Open && !Walled; } }
 
         void ResetLayout()

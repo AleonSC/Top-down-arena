@@ -563,6 +563,7 @@ namespace Arena
             d[(int)WeaponId.WindClash] = DrawHeldWindClash;
             d[(int)WeaponId.StaticShock] = DrawHeldStaticShock;  // a crackling spark on the palm
             d[(int)WeaponId.TwinTessen] = DrawHeldTessen;  // a war fan in each hand (TwinTessenLook.cs)
+            d[(int)WeaponId.HeartFlail] = DrawHeldHeartFlail;  // an iron grip, the chain's first ring (HeartFlailLook.cs)
             d[(int)WeaponId.HiveCenser] = DrawHeldHiveCenser;  // a small censer with insects round it (HiveCenserLook.cs)
             d[(int)WeaponId.IceShards] = DrawHeldIceShards;
             // ---- Summoner
@@ -592,7 +593,7 @@ namespace Arena
             d[(int)WeaponId.Kusarigama] = DrawHeldKusarigama;
             d[(int)WeaponId.BoStaff] = DrawHeldBoStaff;
             d[(int)WeaponId.FumaShuriken] = DrawHeldFumaShuriken;
-            d[(int)WeaponId.MedicineDarts] = DrawHeldMedicineDarts;
+            d[(int)WeaponId.AcupunctureNeedles] = DrawHeldAcupunctureNeedles;
             d[(int)WeaponId.SpiritFan] = DrawHeldSpiritFan;
             d[(int)WeaponId.Ofuda] = DrawHeldOfuda;
             d[(int)WeaponId.Shuriken] = DrawHeldShuriken;
@@ -1031,9 +1032,11 @@ namespace Arena
             }
         }
 
-        void DrawHeldMedicineDarts(Player p, float t, int hold)
+        void DrawHeldAcupunctureNeedles(Player p, float t, int hold)
         {
-            for (int i = -1; i <= 1; i++) { float a = i * 0.3f; MLine(0f, 0f, 12f * Mathf.Cos(a), 12f * Mathf.Sin(a), 1.3f, MSteel); MCirc(12f * Mathf.Cos(a), 12f * Mathf.Sin(a), 1.3f, Hx(0x7fffa3), 6); }
+            // three healing needles fanned between the fingers (jade beads), a long Bloodletting needle under them (red bead)
+            MLine(-2f, 3f, 16f, 5f, 1.1f, MSteel); MCirc(-2f, 3f, 1.6f, Hx(0xff4d61), 6);
+            for (int i = -1; i <= 1; i++) { float a = i * 0.3f; MLine(0f, 0f, 12f * Mathf.Cos(a), 12f * Mathf.Sin(a), 1.2f, MSteel); MCirc(-1.5f * Mathf.Cos(a), -1.5f * Mathf.Sin(a), 1.5f, Hx(0x5fe0a3), 6); }
         }
 
         void DrawHeldSpiritFan(Player p, float t, int hold)

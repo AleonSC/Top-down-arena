@@ -28,11 +28,8 @@ namespace Arena
 
     /// Everything about the Lich's fight its body doesn't carry. The host runs it; clients get it in the snapshot
     /// (SyncLich) to draw the graves, the soul sweep, the prisons, the spirits and the phase change.
-    public class LichState
+    public class LichState : BossFight<LichStage, LichTurn>  // TransT: > 0 changing phase (can't be hurt), counting down
     {
-        public LichStage Stage, TransTo;
-        public LichTurn Turn;
-        public float TurnT, TransT;      // seconds into the turn; > 0: changing phase (can't be hurt), counting down
         public float Window;             // > 0: its phylacteries are broken and it can be hurt, for this long
         public byte SweepOn;             // the soul sweep: 0 off, 1 warning, 2 live
         public float SweepA;             // its angle
@@ -42,8 +39,8 @@ namespace Arena
         public readonly List<LichSpirit> Spirits = new List<LichSpirit>();
 
         // Host only.
-        public int Step = -1, Fired, PhylLeft;  // PhylLeft: phylacteries standing last tick (a drop cracks)
-        public float TurnLen, Rebuild, SweepFrom, SweepDir, SweepT, FanT, RingT, RiseT, HandT, HopT;
+        public int PhylLeft;  // PhylLeft: phylacteries standing last tick (a drop cracks)
+        public float Rebuild, SweepFrom, SweepDir, SweepT, FanT, RingT, RiseT, HandT, HopT;
     }
 
     /// The Lich (wave 35): a fight in three phases by its health, like the Warden's, then a last stand.
@@ -95,7 +92,7 @@ namespace Arena
             return new V2(lo.X + (hi.X - lo.X) * GraveFx[i], lo.Y + (hi.Y - lo.Y) * GraveFy[i]);
         }
 
-        LichState LichOf(Enemy e) => e.Lich ?? (e.Lich = new LichState());
+        LichState LichOf(Enemy e) => BossOf<LichState>(e);
 
         public static bool LichImmune(Enemy e) => e.Type == EnemyType.Lich && (e.Phase == LichGuarded || e.Phase == LichFaded || e.Phase == LichShift);
 
@@ -132,10 +129,12 @@ namespace Arena
                 e.Phase = LichPhaseOf(s, false);
                 return;
             }
-            if (s.Stage == LichStage.Crypt && frac <= LichHarvestAt) { StartLichTransition(e, LichStage.Harvest); return; }
-            if (s.Stage == LichStage.Harvest && frac <= LichUndeathAt) { StartLichTransition(e, LichStage.Undeath); return; }
-            if (s.Stage == LichStage.Undeath && frac <= LichLastAt)
-                EnterLichStage(e, LichStage.LastStand);  // straight away, as the others do
+            BossStage to;  // its stage table (BossStages.cs)
+            if (NextStage(e.Type, (byte)s.Stage, frac, out to))
+            {
+                if (to.How != StageEntry.Instant) { StartLichTransition(e, (LichStage)to.Stage); return; }
+                EnterLichStage(e, (LichStage)to.Stage);  // straight away, as the others' last stands do
+            }
 
             s.TurnT += dt;
 
@@ -299,11 +298,7 @@ namespace Arena
 
         void NextLichTurn(Enemy e, LichState s)
         {
-            var turns = LichTurns[(int)s.Stage];
-            s.Step = (s.Step + 1) % turns.Length;
-            s.Turn = turns[s.Step];
-            s.TurnLen = LichTimes[(int)s.Stage][s.Step];
-            s.TurnT = 0f;
+            s.NextTurn(this, LichTurns, LichTimes);
             s.Fired = 0;
             s.SweepOn = 0;
             s.HandT = s.HopT = 0f;
@@ -312,20 +307,22 @@ namespace Arena
             if (s.Turn == LichTurn.Raise)
             {
                 BroadcastSound(Sfx.BossGong);
-                // Three graves at random raise two of the dead each (at most 6 up).
+                // Three graves at random raise two of the dead each (at most 6 up; the tier's summons change both: BossRules.cs).
                 var order = new List<int> { 0, 1, 2, 3, 4, 5 };
+                int each = BossAdds(2);
                 for (int k = 0; k < 3; k++)
                 {
                     int pick = (int)Rand(0f, order.Count - 0.001f);
-                    RaiseDead(e, order[pick], 2, 6);
+                    RaiseDead(e, order[pick], each, 3 * each);
                     order.RemoveAt(pick);
                 }
             }
             if (s.Turn == LichTurn.Spirits)
             {
                 BroadcastSound(Sfx.BossWarp);  // the spirits gather
-                for (int k = 0; k < 6; k++)
-                    s.Spirits.Add(new LichSpirit { Pos = e.Pos, A = MathX.Tau * k / 6f, Delay = 1.3f + 0.4f * k });
+                int spirits = BossAdds(6);  // (the tier's summons: BossRules.cs)
+                for (int k = 0; k < spirits; k++)
+                    s.Spirits.Add(new LichSpirit { Pos = e.Pos, A = MathX.Tau * k / spirits, Delay = 1.3f + 0.4f * k });
             }
         }
 

@@ -32,7 +32,7 @@ Player reference: README "Arena layouts". Code: `Layouts.cs`, `LayoutRules.cs`, 
   gated, and the layout's allowed sides otherwise. Bosses and designed waves are unchanged.
 - **Steering** (`LayoutDir`, from `MoveEnemy`): if the straight line to the target crosses a wall, head for the visible
   waypoint with the shortest way round, and keep it for 0.5 s. Bosses don't steer (they only appear on open waves).
-- **Narrow Pass, Tiny Arena, Solid Walls** (`Walled`): the edge wall and the gates drop away; inner walls stay.
+- **Narrow Pass, Tiny Arena** (`Walled`): the edge wall and the gates drop away; inner walls stay.
 
 - **More enemies**: regular waves with a layout up have 30% more (`LayoutEnemyMult`, `Balance.cs`; applied in `BuildWave`
   before the party-size and difficulty multipliers).

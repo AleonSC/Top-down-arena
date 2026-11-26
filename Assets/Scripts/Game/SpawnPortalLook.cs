@@ -153,7 +153,7 @@ namespace Arena
             Player me;
             if (!game.Players.TryGetValue(game.MyId, out me) || me.Downed)
                 return;
-            foreach (var e in game.Enemies.Values)
+            foreach (var e in EnemiesOf(EnemyType.SpawnPortal))
             {
                 if (e.Type != EnemyType.SpawnPortal || !SpawnPortals.IsFlank(e.Phase) || e.Hp <= 0f)
                     continue;

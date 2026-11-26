@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Arena;
 
-// The newer run modifiers: Head Start, Practiced, Bloodlust, Gold Rush, Tiny Arena and Nightfall.
+// The newer run modifiers: Head Start, Practiced, Bloodlust, Tiny Arena and Nightfall.
 static partial class Program
 {
     static void MoreModifiersTest(float dt)
@@ -12,8 +12,6 @@ static partial class Program
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
-        var cleared = typeof(Game).GetMethod("WaveCleared", flags);
-        var closeShop = typeof(Game).GetMethod("CloseShop", flags);
         int port = nextPort++;
         var host = HostAs(new Session(), port, false, "Host", Role.Tank);
         var client = JoinAs(port, false, "Friend", Role.Dps);
@@ -21,7 +19,7 @@ static partial class Program
         Action Sync = () => PollBoth(host, client);
         WaitForLobby(host, client);
         Sync();
-        foreach (var m in new[] { RunMod.HeadStart, RunMod.Practiced, RunMod.Bloodlust, RunMod.GoldRush, RunMod.TinyArena, RunMod.Nightfall })
+        foreach (var m in new[] { RunMod.HeadStart, RunMod.Practiced, RunMod.Bloodlust, RunMod.TinyArena, RunMod.Nightfall })
             host.SetModifier(m, true);
         Sync();
         client.RequestReady(true); host.RequestReady(true); Sync();
@@ -29,7 +27,7 @@ static partial class Program
         WaitForGame(host, client, dt);
         var g = host.Game;
         var me = g.Players[1];
-        Check(client.Game.Has(RunMod.Nightfall) && Modifiers.Count(client.Modifiers) == 6, "the friend's game knows the new modifiers");
+        Check(client.Game.Has(RunMod.Nightfall) && Modifiers.Count(client.Modifiers) == 5, "the friend's game knows the new modifiers");
 
         // Head Start: level 3, its two picks waiting, and a legendary first.
         Console.WriteLine("  head start: level {0} (friend's screen {1}), picks {2}, legendary offer {3}", me.Level, client.Game.Players[1].Level, me.PendingPicks, me.OfferLegendary);
@@ -59,7 +57,7 @@ static partial class Program
         float hp0 = me.Hp;
         Run(s, dt, 2f, null, () => { Quiet(); g.Orbs.Clear(); });
         float afterWait = me.Hp;
-        int orbs = g.Orbs.Count, gold0 = me.Gold;
+        int orbs = g.Orbs.Count;
         for (int k = 0; k < 6; k++)
         {
             var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(700f + 20f * k, 400f), 0f, 0, false });
@@ -67,18 +65,9 @@ static partial class Program
             hurt.Invoke(g, new object[] { e, e.Hp + 1f, 1 });
         }
         Step(host, dt);
-        Console.WriteLine("  bloodlust: hp {0:0} -> {1:0} after 2 s of rest, {2:0} after 6 kills; orbs {3}; gold {4} -> {5}", hp0, afterWait, me.Hp, g.Orbs.Count - orbs, gold0, me.Gold);
+        Console.WriteLine("  bloodlust: hp {0:0} -> {1:0} after 2 s of rest, {2:0} after 6 kills; orbs {3}", hp0, afterWait, me.Hp, g.Orbs.Count - orbs);
         Check(afterWait <= hp0 + 0.01f, "Bloodlust: no regeneration");
         Check(me.Hp > afterWait + 5f && g.Orbs.Count == orbs, "Bloodlust: kills heal the killer, and no health orbs drop");
-
-        // Gold Rush: kills drop gold on any wave, a shop opens before the boss, and the gold left over is kept.
-        Check(me.Gold > gold0 && g.Players[2].Gold == me.Gold, "Gold Rush: every kill gives everyone gold");
-        g.Wave = 5; g.BossSlot = false;  // the boss comes next
-        cleared.Invoke(g, null);
-        Check(g.ShopOpen, "Gold Rush: a shop opens before the boss");
-        int kept = me.Gold;
-        closeShop.Invoke(g, null);
-        Check(!g.ShopOpen && me.Gold == kept && kept > 0, "Gold Rush: gold you don't spend is kept for the next shop");
 
         // Tiny Arena: walls after each boss, open for the bosses. Nightfall: dark on every screen.
         Func<Game, float> Room = x => (x.ArenaMax.X - x.ArenaMin.X) * (x.ArenaMax.Y - x.ArenaMin.Y) / (Game.Width * Game.Height);

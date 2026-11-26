@@ -339,7 +339,10 @@ namespace Arena
                 || shootAt.Devour != null && shootAt.Devour.Stage == DevourStage.Ravenous && InMaw(shootAt, me.Pos)));
             // --- Healing shots: an arrow heals the ally it passes and a dart heals the one it reaches, so a healer lines
             // the shot up on a hurt teammate close by (and sends it on toward the boss from there).
-            if (me.Role == Role.Healer && (me.Weapon.Id == WeaponId.MendersBow || me.Weapon.Id == WeaponId.TransfusionDarts)
+            bool needles = me.Weapon.Id == WeaponId.AcupunctureNeedles;  // healing needles do nothing to enemies: Bloodletting does (BotWeaponAlt.cs)
+            if (needles)
+                firing = false;
+            if (me.Role == Role.Healer && (me.Weapon.Id == WeaponId.MendersBow || me.Weapon.Id == WeaponId.TransfusionDarts || needles)
                 && (me.Weapon.Id == WeaponId.MendersBow || me.Hp > me.MaxHp * 0.4f))  // a dart costs the healer health
             {
                 Player healTo = null;
@@ -461,7 +464,7 @@ namespace Arena
                 Me = me, Danger = danger, AllyHurt = allyHurt, AllyDown = allyDown, TargetD = targetD, HaveTarget = haveTarget,
                 Players = Players.Count, BotDanger = BotDanger,
                 AllyThreatened = allyThreatened, DownedD = downedD, TargetMarked = targetMarked, NearEnemies = EnemiesNear(me.Pos, BotNearReach),
-                Crowd = id == AbilityId.JuggernautSuit || id == AbilityId.StoneColossus || id == AbilityId.SpiritAvatar || id == AbilityId.Vortex ? CrowdNear(me) : 0,
+                Crowd = id == AbilityId.JuggernautSuit || id == AbilityId.StoneColossus || id == AbilityId.BloodGolem || id == AbilityId.SpiritAvatar || id == AbilityId.Vortex ? CrowdNear(me) : 0,
                 Shooters = id == AbilityId.LightningRod ? ShootersAt(me) : 0,  // (only worked out for the one ability that asks)
             });
         }

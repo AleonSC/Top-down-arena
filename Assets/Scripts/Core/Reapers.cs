@@ -20,13 +20,9 @@ namespace Arena
     }
 
     /// Everything about the Reapers' fight; the host runs it, clients get it in the snapshot (SyncReapers).
-    public class ReaperFight
+    public class ReaperFight : BossFight<ReaperStage, ReaperTurn>  // TransT: seconds into the phase change (TransTo unused)
     {
-        public ReaperStage Stage;
-        public ReaperTurn Turn;
-        public float TurnT;
         public byte Trans;               // 0, or a phase change: 1 the fusion, 2 the split
-        public float TransT;             // seconds into the phase change
         public V2 SweepC;                // the tether sweep: the point they spin round (it follows you)
         public float SweepA;
         public float Laser;              // the Dual Reaper's lasers' angle
@@ -40,8 +36,7 @@ namespace Arena
         public readonly ReaperReap ReapA = new ReaperReap(), ReapB = new ReaperReap();
 
         // Host only.
-        public int Step = -1;
-        public float TurnLen, MaxA, MaxB, Shield, ShieldMax;
+        public float MaxA, MaxB, Shield, ShieldMax;
         public bool Fused, Blasted, Boomed;
         public V2 LeapFrom;
         public readonly List<V2> Blasts = new List<V2>();
@@ -150,14 +145,11 @@ namespace Arena
                 TickReaperChange(R, a, b, d, dt);
                 return;
             }
-            if (R.Stage == ReaperStage.Twilight && frac <= FuseAt && a != null && b != null)
+            BossStage to;  // their stage table (BossStages.cs): fusing needs both bodies, splitting the Dual Reaper on the ground
+            if (NextStage(EnemyType.ReaperOfDusk, (byte)R.Stage, frac, out to)
+                && (to.Stage == (byte)ReaperStage.Dual ? a != null && b != null : d != null && R.Leap <= 0f))
             {
-                StartReaperChange(R, 1);
-                return;
-            }
-            if (R.Stage == ReaperStage.Dual && d != null && frac <= SplitAt && R.Leap <= 0f)
-            {
-                StartReaperChange(R, 2);
+                StartReaperChange(R, (byte)(to.Stage == (byte)ReaperStage.Dual ? 1 : 2));
                 return;
             }
 
@@ -196,11 +188,7 @@ namespace Arena
 
         void NextReaperTurn(ReaperFight R)
         {
-            var turns = ReaperTurns[(int)R.Stage];
-            R.Step = (R.Step + 1) % turns.Length;
-            R.Turn = turns[R.Step];
-            R.TurnLen = ReaperTimes[(int)R.Stage][R.Step];
-            R.TurnT = 0f;
+            R.NextTurn(this, ReaperTurns, ReaperTimes);
             Enemy a = FindEnemy(EnemyType.ReaperOfDusk), b = FindEnemy(EnemyType.ReaperOfDawn), d = FindEnemy(EnemyType.DualReaper);
             foreach (var e in new[] { a, b, d })
                 if (e != null)

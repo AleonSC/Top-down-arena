@@ -43,8 +43,6 @@ namespace Arena
         int takenAtStart, boughtAtStart, goldBefore;
 
         public bool Done(TutorialStep s) => done.Contains(s);
-        public int StepsDone => done.Count;
-        public static int StepCount { get { int n = 0; foreach (var l in Lessons) n += l.Steps.Length; return n; } }
 
         /// The first lesson with a step left (-1: all done).
         public int Current

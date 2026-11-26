@@ -9,7 +9,7 @@ namespace Arena
         void HostAbility(int id, int slot, V2 target, bool consumed)
         {
             Player p;
-            if (!Players.TryGetValue(id, out p) || p.Downed || TankOn(p) || ArmOn(p))  // (in A Literal Tank or Iron Armadillo: no abilities, LiteralTank.cs, IronArmadillo.cs)
+            if (!Players.TryGetValue(id, out p) || p.Downed || TankOn(p) || ArmOn(p) || Riding(p))  // (in A Literal Tank or Iron Armadillo: no abilities, LiteralTank.cs, IronArmadillo.cs)
                 return;
             if (OrbitRelease(p, slot))  // Blade Fan pressed again: the kunai fly out (no cooldown spent)
             {

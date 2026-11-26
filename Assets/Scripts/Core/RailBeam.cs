@@ -11,7 +11,7 @@ namespace Arena
     ///     harder. From RailPathMin charge it leaves the line charged (the ion trail, KitWeapons.cs) for RailPathTime.
     ///     Each shot heats the gun (RailHeatGain, up to RailHeatMax; Player.RailHeat). Multishot: one more bounce per extra
     ///     projectile, and 12% harder.
-    ///   Alt (Msg.WeaponDash DashHeatDump): Heat Dump. With at least DumpMin heat, empties the meter into a cone of fire in
+    ///   Alt (Msg.WeaponDash WeaponAlt.HeatDump): Heat Dump. With at least DumpMin heat, empties the meter into a cone of fire in
     ///     front of you (DumpHalf either side of your aim): a hit, a burn and a shove that all grow with the heat dumped,
     ///     and it slows what it burns. DumpCd between dumps.
     /// Looks: FxKind.RailBeam (one per stretch of the beam) and FxKind.HeatDump in Game/RailBeamLook.cs; the gun and the
@@ -35,8 +35,6 @@ namespace Arena
         public const float DumpBurnBase = 6f, DumpBurnPer = 24f, DumpBurnTime = 3f, DumpBurnSlow = 0.6f;
         public const float DumpShoveBase = 60f, DumpShovePer = 200f;
         public const float DumpFx = 0.55f;
-
-        const byte DashHeatDump = 55;
 
         static readonly Rgba RailColor = new Rgba(0.55f, 0.91f, 1f), RailGold = new Rgba(1f, 0.8f, 0.35f);
         public static readonly Rgba HeatColor = new Rgba(1f, 0.48f, 0.18f);
@@ -235,11 +233,11 @@ namespace Arena
                 return false;
             dumpLocalCd = DumpCd;
             if (IsHost)
-                HostWeaponDash(MyId, DashHeatDump, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.HeatDump, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashHeatDump);
+                w.Write(WeaponAlt.HeatDump);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

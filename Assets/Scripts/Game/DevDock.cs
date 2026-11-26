@@ -94,12 +94,6 @@ namespace Arena
             return now;
         }
 
-        void CloseDockDrawers()
-        {
-            devDrawer = 0;
-            devSheet = 0;
-        }
-
         /// The screen: the dock bar and whatever is open under it.
         void DrawDevMenu()
         {

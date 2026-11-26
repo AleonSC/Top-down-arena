@@ -115,7 +115,7 @@ namespace Arena
             int n = plan.N;
             if (!(Bosses.Slotted ? BossSlot : IsBossWave(n)))
                 return false;
-            spawnQueue.AddRange(BossWaves.Queue(BossAt(n), n));  // (a hunt's boss on its last wave; Hunts.cs)
+            spawnQueue.AddRange(BossWaves.Queue(BossAt(n), n, EscortMult));  // (a hunt's boss on its last wave; Hunts.cs)
             return true;
         }
 
@@ -410,14 +410,14 @@ namespace Arena
             alive.Clear();
             tanks.Clear();
             foreach (var p in Players.Values)
-                if (!p.Downed && !Jailed(p) && (p.TauntT > 0f || JuggOn(p) || p.RodT > 0f || ColOn(p) || SpOn(p)))
+                if (!p.Downed && !Jailed(p) && !Riding(p) && (p.TauntT > 0f || JuggOn(p) || p.RodT > 0f || ColOn(p) || SpOn(p) || GolOn(p)))
                     return p.Id;  // Roar (or the Juggernaut Suit, or a Lightning Rod's charge): everyone goes for the tank
             Player hunted;
             if (Has(RunMod.Hunted) && Players.TryGetValue(HuntedId, out hunted) && !hunted.Downed && hunted.VanishT <= 0f && !Jailed(hunted))
                 return hunted.Id;  // Hunted: everyone goes for the quarry (Modifiers.cs)
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.VanishT > 0f || ApOn(p) || Jailed(p))  // (ApOn: Astral Projection's body is ignored, AstralProjection.cs); a vanished Ninja can't be picked out (Ninja.cs); nor someone in a Holding Cell
+                if (p.Downed || p.VanishT > 0f || ApOn(p) || Jailed(p) || Riding(p))  // (ApOn: Astral Projection's body is ignored, AstralProjection.cs); a vanished Ninja can't be picked out (Ninja.cs); nor someone in a Holding Cell
                     continue;
                 alive.Add(p.Id);
                 if (p.Role == Role.Tank)
@@ -425,7 +425,7 @@ namespace Arena
             }
             if (alive.Count == 0)
                 foreach (var p in Players.Values)
-                    if (!p.Downed && !Jailed(p))
+                    if (!p.Downed && !Jailed(p) && !Riding(p))  // (everyone up in a Trojan Horse: nobody to pick, they go for the horse: HorseTarget)
                         alive.Add(p.Id);  // everyone has vanished: they search where they last saw them
             if (alive.Count == 0)
                 return 0;
@@ -497,6 +497,8 @@ namespace Arena
             bool arenaHeld = ArenaHeld;  // everyone's in a Holding Cell: the arena holds still (HoldingCell.cs)
             foreach (var e in tickEnemies)  // copy: some enemies spawn others
             {
+                if (!StillIn(e))
+                    continue;  // removed earlier this tick (a boss's adds cleared, Rioters reaching the Warden, ...)
                 if (arenaHeld && !InCellZone(e.Pos))
                     continue;
                 actingEnemy = e;  // its shots are stamped with it (Lightning Rod; LightningRod.cs)
@@ -517,10 +519,13 @@ namespace Arena
                 TickBleed(e, dt);  // KitWeapons.cs
                 TickBoneCage(e, dt);  // KitWeapons.cs
                 TickPoison(e, dt);  // Ninja.cs
+                TickNeedlesIn(e, dt);  // AcupunctureNeedles.cs
                 TickVenom(e, dt);   // Poison Dart (PoisonDart.cs)
                 TickDaze(e, dt);    // Daze.cs
                 foreach (var tick in Classes.EnemyHooks)  // each class's KitDef.TickEnemy
                     tick(this, e, dt);
+                if (!StillIn(e))
+                    continue;  // removed by a class hook this tick
                 e.Suppress = Math.Max(0f, e.Suppress - SuppressFade * dt);
                 e.SmokeT = Math.Max(0f, e.SmokeT - dt);  // a Grenade Launcher smoke cloud's jam wears off out of it (GrenadeLauncher.cs)
                 KeepOutOfDuel(e);  // GatekeeperRoom.cs
@@ -567,7 +572,7 @@ namespace Arena
                     e.TargetId = cell != null ? cell.PlayerId : 0;
                     Players.TryGetValue(e.TargetId, out target);
                 }
-                else if (e.RetargetT <= 0f || target == null || target.Downed || ApAway(target) || HoldingCells.Count > 0 && Jailed(target))
+                else if (e.RetargetT <= 0f || target == null || target.Downed || ApAway(target) || Riding(target) || HoldingCells.Count > 0 && Jailed(target))
                 {
                     e.TargetId = PickTarget();
                     e.RetargetT = 3f;
@@ -577,6 +582,7 @@ namespace Arena
                 tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
                 tpos = RobotTarget(e, tpos);  // an Engineer's robot draws in enemies near it (Engineer.cs)
                 tpos = DecoyTarget(e, tpos);  // a Decoy Dummy draws in enemies near it (DecoyDummy.cs)
+                tpos = HorseTarget(e, target, tpos);  // everyone up is in a Trojan Horse: they go for it (TrojanHorse.cs)
                 tpos = RoomTarget(e, tpos);
                 tpos = GnawlingTarget(e, tpos);  // a Gnawling smells a morsel (LarderFaction.cs)  // a challenge room: the crystal, or the zone (Challenges.cs)
                 bool held = RoomsLeash(e, ref tpos);  // a Gatekeeper room's mini-boss keeps to its room (Rooms.cs)
@@ -619,7 +625,7 @@ namespace Arena
                             e.FireT = Rand(0.2f, 0.4f);  // not its turn: hold fire and reposition (Readability.cs)
                         else if (!e.Def.IsBoss && !Challenges.Own(e.Type) && !Zombies.Is(e.Type) && enemyShots >= RegularShotBudget())
                             e.FireT = Rand(0.2f, 0.4f);  // the screen is full: hold this volley and try again shortly
-                        else
+                        else if (e.Hp > 0f || e.Def.IsBoss)  // (killed by a burn, poison or bleed this tick: no last volley; a boss at 0 is changing phase)
                             EnemyFire(e, tpos);
                     }
                 }
@@ -635,7 +641,9 @@ namespace Arena
                     : e.Def.Contact > 0f ? e.Def.Contact * BruteDamageMult(e) : ContactDamage;
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
                 if (!e.Def.IsBoss && !e.Def.Mini)
-                    DecoyContact(e, contact);  // a Decoy Dummy in the way gets bitten (DecoyDummy.cs)
+                    DecoyContact(e, contact);
+                if (!e.Def.IsBoss)
+                    HorseContact(e, contact);  // a Trojan Horse in the way gets bitten (TrojanHorse.cs)  // a Decoy Dummy in the way gets bitten (DecoyDummy.cs)
                 if ((e.Def.IsBoss || e.Def.Mini) && !BossDashing(e))
                     continue;  // bosses' and mini-bosses' bodies don't hurt heroes, so melee can stand close; only their telegraphed charges do (a boss still shoves you out: Game.cs)
                 foreach (var p in Players.Values)
@@ -706,13 +714,15 @@ namespace Arena
                 {
                     Enemy a = list[i], b = list[j];
                     V2 d = b.Pos - a.Pos;
-                    float l = d.Length, minD = a.Radius + b.Radius;
-                    if (l < minD && l > 0.001f)
+                    float minD = a.Radius + b.Radius, l2 = d.LengthSq;
+                    if (l2 < minD * minD)  // (squared first: no square root for the pairs far apart)
                     {
+                        float l = (float)Math.Sqrt(l2);
+                        V2 dir = l > 0.001f ? d / l : V2.FromAngle((a.Id * 7 + b.Id * 13) * 0.618f);  // on the very same spot (both clamped into one corner): split them a set way
                         // Bosses don't get shoved around by small fry.
                         float wa = Heavy(a) ? 0f : (Heavy(b) ? 1f : 0.5f);
                         float wb = Heavy(b) ? 0f : (Heavy(a) ? 1f : 0.5f);
-                        V2 push = d / l * (minD - l);
+                        V2 push = dir * (minD - l);
                         a.Pos -= push * wa;
                         b.Pos += push * wb;
                     }

@@ -675,7 +675,8 @@ static partial class Program
             {
                 case WeaponId.SpriteStaff: ok = b[2] == a[2] + 2; break;                 // +1 sprite each
                 case WeaponId.SpiritChalk: ok = b[3] > a[3]; break;                      // more ink: a longer line
-                case WeaponId.Ofuda: ok = b[1] >= a[1] * 2.5f; break;                    // the Healing Talisman deals no damage (Ofuda.cs): more talismans
+                case WeaponId.Ofuda: ok = b[1] >= a[1] * 2.5f; break;
+                case WeaponId.AcupunctureNeedles: ok = b[1] >= a[1] * 2.5f; break;       // the healing needles deal no damage (AcupunctureNeedles.cs): more needles                    // the Healing Talisman deals no damage (Ofuda.cs): more talismans
                 case WeaponId.MendersBow: ok = b[1] >= a[1] * 2.5f && ratio > 1.2f; break;  // full draws loose extra arrows
                 case WeaponId.Greatsword: ok = b[1] > a[1] && ratio > 1.05f; break;      // Eclipse's sword waves: only one step in ten has them
                 case WeaponId.TwinBlades: ok = b[1] > a[1] && ratio > 1.1f; break;       // crescents off the Pirouette and the Shear: two steps in five have them
@@ -684,6 +685,16 @@ static partial class Program
                 case WeaponId.TreantRod: ok = Math.Abs(b[4] - 1.6f) < 0.01f; break;       // a bigger treant
                 case WeaponId.Quarterstaff: ok = me.StaffStacks == Game.StaffBaseStacks + 2; break;  // each extra projectile stores one more Jab stack (the swipes fill it)
                 case WeaponId.GolemStaff: ok = a[2] == 1 && b[2] == 3; break;
+                case WeaponId.HeartFlail:  // the heart swings and spins 10% farther each, and each swing hit squeezes one more blood drop (HeartFlail.cs)
+                {
+                    me.Stats.ExtraShots = 0;
+                    float r0 = g.HfSpinROf(me);
+                    me.Stats.ExtraShots = 2;
+                    float r2 = g.HfSpinROf(me);
+                    me.Stats.ExtraShots = 0;
+                    ok = r2 > r0 * 1.15f && a[0] > 0f;
+                    break;
+                }
                 case WeaponId.BoneGuard: ok = b[2] == a[2] + 2; break;                     // guards block bullets around you
                 case WeaponId.WolfWhistle: case WeaponId.WispLantern: ok = b[2] == a[2] + 2 && ratio > 1.1f; break;
                 case WeaponId.RadiantOrb: ok = a[2] == 0 && b[2] == 2 && ratio > 1.1f; break;  // the orbs mostly guard and heal you
@@ -911,6 +922,13 @@ static partial class Program
                 {
                     // No bullets: a spear flies until a wall stops it, or EsRange (EmbolusSpears test); the aim line shows that.
                     if (Math.Abs(range - Game.EsRange) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
+                    continue;
+                }
+                if (w.Id == WeaponId.HeartFlail)
+                {
+                    // No shots or swings: the heart spins round you at HfSpinR (10% more an extra projectile; HeartFlail test); the aim line shows its outer edge.
+                    float want = Game.HfSpinR * (1f + Game.HfExtraReach * extra) + Game.HfHeartR;
+                    if (Math.Abs(range - want) < 0.5f) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (" + want.ToString("0") + " vs " + range.ToString("0") + ")");
                     continue;
                 }
                 if (w.Id == WeaponId.FrostLance)

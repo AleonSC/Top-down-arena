@@ -13,7 +13,7 @@ namespace Arena
     ///   Every wave is a WindWave the host moves along its course (TickWindWaves); everyone draws it from one FxKind.WindWave
     ///   (Pos the origin, Pos2.X the aim, Pos2.Y owner * 4 + step, Radius its size scale, Dur its life; Game/WindClashLook.cs),
     ///   whose shape comes from the same functions as the hits (WcArc, WcLance, WcRing), so what you see is what hits.
-    ///   Alt (Msg.WeaponDash DashTempest): Tempest. For TempestTime a storm of wind (TempestRadius) blows round you: it hurts every
+    ///   Alt (Msg.WeaponDash WeaponAlt.Tempest): Tempest. For TempestTime a storm of wind (TempestRadius) blows round you: it hurts every
     ///     enemy in it TempestDmg x the damage each TempestTick with a light shove out, and every enemy shot that comes into it is
     ///     caught (FxKind.WindCatch: it spins round you and bursts); you move at TempestSlow and can't attack. TempestCd cooldown.
     ///   Extra projectiles: +20% damage and 10% more size each. Homing Rounds make the waves and the storm bigger (AreaDesc).
@@ -30,7 +30,6 @@ namespace Arena
         public const float TempestTime = 3f, TempestCd = 9f, TempestRadius = 120f, TempestTick = 0.2f, TempestDmg = 0.5f, TempestSlow = 0.7f, TempestShove = 10f;
         public const float TempestSpinUp = 0.22f, WindCatchTime = 0.3f;
         public static readonly Rgba WcColor = new Rgba(0.56f, 0.89f, 0.95f);
-        const byte DashTempest = 38;
 
         public static float WcEase(float x) { x = Math.Max(0f, Math.Min(1f, x)); return 1f - (1f - x) * (1f - x) * (1f - x); }
 
@@ -195,11 +194,11 @@ namespace Arena
             tempestLocalCd = TempestCd;
             me.WcTempestT = TempestTime;  // (the slow starts at once on your own screen; the host's snapshot agrees)
             if (IsHost)
-                HostWeaponDash(MyId, DashTempest, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.Tempest, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashTempest);
+                w.Write(WeaponAlt.Tempest);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

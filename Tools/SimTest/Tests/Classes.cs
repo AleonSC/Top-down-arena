@@ -68,7 +68,7 @@ static partial class Program
                     string an = who + " " + role + " ability " + a.Name;
                     need(a.Kit == k.Id && a.Role == role, an + ": belongs to its class and role");
                     need(core.Contains("case AbilityId." + id + ":"), an + ": a cast (a case AbilityId." + id + " in its class's switch)");
-                    need(a.Choice == AbilityDef.Ult || pixelArt.Contains("{ \"" + a.Name + "\", \""), an + ": an icon in PixelArt.cs (ByUpgrade maps its name to an icon; ultimates have none)");
+                    need(a.Choice == AbilityDef.Ult || a.Icon != null, an + ": an AbilityDef.Icon (ultimates have none)");
                 }
             }
         }
@@ -80,7 +80,51 @@ static partial class Program
             Console.WriteLine("  missing: " + p);
         Check(problems.Count == 0, "every class is complete: " + kits + " classes, each with a name, blurb, icon, look, 9 weapons that fire, 9 1st abilities and 3 ultimates that cast");
 
+        AbilityIconsTest(pixelArt);
+        WeaponAltIdsTest();
+
         var thrown = Defs.Weapons.Where(w => w.Sound == Sfx.Throw && !w.Melee).Select(w => w.Name);
         Console.WriteLine("  weapons with the default throw sound (set WeaponDef.Sound if that's wrong): " + string.Join(", ", thrown));
+    }
+
+    /// Every ability's icon is keyed by AbilityDef.Icon (not its name), so a rename can't drop it: every ability but the
+    /// ultimates has one, and each key is drawn in PixelArt.cs. The card table (PixelArt.ByUpgrade) is still by name,
+    /// so each name there must be a real card.
+    static void AbilityIconsTest(string pixelArt)
+    {
+        // Abilities still waiting for an icon of their own; the test fails when one gets one, so take it off the list then.
+        var noIconYet = new HashSet<AbilityId> { AbilityId.BambooGrove, AbilityId.SenbonSeekers, AbilityId.LandShark, AbilityId.Starburst, AbilityId.Flood, AbilityId.WaterWard, AbilityId.DeployableTurret, AbilityId.Stampede, AbilityId.ThornBloom };
+        var bad = new List<string>();
+        foreach (AbilityId id in Enum.GetValues(typeof(AbilityId)))
+        {
+            if (id == AbilityId.None)
+                continue;
+            var a = Upgrades.Ability(id);
+            if (a.Icon != null && !pixelArt.Contains("[\"" + a.Icon + "\"] = new[]"))
+                bad.Add(a.Name + ": its icon \"" + a.Icon + "\" isn't drawn in PixelArt.cs");
+            else if (a.Icon == null && a.Choice != AbilityDef.Ult && !noIconYet.Contains(id))
+                bad.Add(a.Name + " (AbilityId." + id + "): no AbilityDef.Icon");
+            else if (a.Icon != null && noIconYet.Contains(id))
+                bad.Add(a.Name + " has an icon now: take it off noIconYet");
+        }
+        int at = pixelArt.IndexOf("Dictionary<string, string> ByUpgrade");
+        string table = pixelArt.Substring(at, pixelArt.IndexOf("};", at) - at);
+        var cards = new HashSet<string>(Upgrades.All.Select(u => u.Name));
+        foreach (Match m in Regex.Matches(table, @"\{ ""([^""]+)"", ""[^""]+"" \}"))
+            if (!cards.Contains(m.Groups[1].Value))
+                bad.Add("PixelArt.ByUpgrade's \"" + m.Groups[1].Value + "\" is no card's name (renamed? or it grants an ability: use AbilityDef.Icon)");
+        foreach (var b in bad)
+            Console.WriteLine("  icon: " + b);
+        Check(bad.Count == 0, "every ability but the ultimates has an AbilityDef.Icon that PixelArt.cs draws, and every ByUpgrade name is a card");
+    }
+
+    /// The weapon Alt ids (WeaponAlt.cs) go over the network as Msg.WeaponDash's kind byte: no two may share a number.
+    static void WeaponAltIdsTest()
+    {
+        var ids = typeof(WeaponAlt).GetFields().Where(f => f.IsLiteral && f.FieldType == typeof(byte)).Select(f => new { f.Name, Value = (byte)f.GetRawConstantValue() }).ToList();
+        var twice = ids.GroupBy(f => f.Value).Where(g => g.Count() > 1).Select(g => g.Key + ": " + string.Join(", ", g.Select(f => f.Name))).ToList();
+        foreach (var t in twice)
+            Console.WriteLine("  WeaponAlt id used twice: " + t);
+        Check(ids.Count >= 50 && twice.Count == 0, "the " + ids.Count + " WeaponAlt ids are unique");
     }
 }

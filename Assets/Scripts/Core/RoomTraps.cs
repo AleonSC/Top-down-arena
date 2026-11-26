@@ -139,8 +139,6 @@ namespace Arena
 
         public static bool InRect(V2 centre, V2 p, float hx, float hy) => Math.Abs(p.X - centre.X) <= hx && Math.Abs(p.Y - centre.Y) <= hy;
 
-        public static bool InSquare(V2 centre, V2 p, float half) => Math.Abs(p.X - centre.X) <= half && Math.Abs(p.Y - centre.Y) <= half;
-
         /// What a slot holds: nothing, or a kind (a slot on a wall favours a turret, one on the floor gets a spike or a slow field, never a turret).
         public static TrapKind? Roll(DetRandom rng, bool onWall)
         {

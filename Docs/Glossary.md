@@ -21,6 +21,7 @@ Status: agreed with the owner (Nov 19 2026). One word per thing, in code comment
 | **alternative fire** | a weapon's secondary attack; "Alt" for short (the key label and weapon text) | `Alt` |
 | **level** | only your XP level in a run (level-ups bring upgrade cards); your profile's progress is **rank** | `Player.Level`, `Rank` |
 | **difficulty preset** | Normal, Hard, Nightmare... (never "difficulty level") | `DifficultyLevel` |
+| **mechanics tier** | which fights and enemies a run uses (Easy..Nightmare; the Mechanics knob); "tier" for short in difficulty code | `MechTier`, `Game.MechTier` |
 
 ## Abilities
 
@@ -28,7 +29,7 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 
 | Term | Means | Code |
 |---|---|---|
-| **1st ability** | picked in the lobby: 3 choices per role and class, sometimes a **4th choice** (Flood, Gale Wall, Stampede, Land Shark, Senbon Seekers, Chakra Reserves, Deployable Turret, Thorn Bloom...) | `Player.FirstAbility`, `Slots[0]`, `KeyAction.Ability1`, `AbilityDef.Choice` (`Fourth`) |
+| **1st ability** | picked in the lobby: 3 choices per role and class, sometimes a **4th choice** (Flood, Gale Wall, Stampede, Land Shark, Senbon Seekers, Chakra Reserves, Deployable Turret, Thorn Bloom, Sanctum Glass...) | `Player.FirstAbility`, `Slots[0]`, `KeyAction.Ability1`, `AbilityDef.Choice` (`Fourth`) |
 | **2nd, 3rd, 4th ability** | filled by very rare upgrade cards ("2nd–4th abilities" together) | `Player.CardAbilities`, `Slots[1..3]`, `KeyAction.Ability2..4` |
 | **Wildcard ability** | the Wildcard's extra starting ability, on the 2nd, 3rd or 4th slot | `Player.WildcardAbility` |
 | **Ultimate** | picked in the lobby, one per role and class (never "ult" in text; the key cap keeps "ULT") | `AbilityDef.Ult`, `Slots[4]`, `KeyAction.Ultimate` |

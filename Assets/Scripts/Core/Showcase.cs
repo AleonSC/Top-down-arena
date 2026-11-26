@@ -15,6 +15,7 @@ namespace Arena
         const float FirstCast = 1.2f;            // the dummies are up by then (Mark for Death needs a target)
 
         readonly Session session = new Session();
+        const float NeedlesHurtEvery = 4f;
         public bool AltFire;  // the lobby's ALT FIRE key: press the weapon's Alt on a loop (ShowcaseAlt.cs); with no trigger; off (MAIN FIRE) just the trigger. An ability or ultimate demo does neither.
         bool altShown;
         public bool Idle;  // the lobby's IDLE key: the character stands still and holds fire, and the dummies hold their spots
@@ -93,6 +94,7 @@ namespace Arena
                 var shown = ultimate ? Upgrades.Ultimate(role, Upgrades.UltKitOf(role, kit, ultPick), ultPick) : ability;
                 ultEvery = shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : shown == AbilityId.JuggernautSuit ? Game.JuggTime + 2f
                     : shown == AbilityId.StoneColossus ? Game.ColRise + Game.ColTime + Game.ColRollTime + 1.5f  // (it crumbles before the next)
+                    : shown == AbilityId.BloodGolem ? Game.GolGather + Game.GolTime + Game.GolCollapseDur + 1f  // (it bursts before the next)
                     : shown == AbilityId.LivingBolt ? Game.BoltChannel + Game.BoltTime + 1.5f  // (the trails fade before the next)
                     : shown == AbilityId.BloodRavager ? Game.RvTime + 1.5f  // (the legs fold away before the next)
                     : shown == AbilityId.BloodBoil ? Game.BoilTime + 2f  // (the steam clears before the next)
@@ -107,12 +109,15 @@ namespace Arena
                     : shown == AbilityId.OrbitalLaser ? Game.OrbFxDur + 1f  // (the crater cools before the next)
                     : shown == AbilityId.IronArmadillo ? Game.ArmCurl + Game.ArmRoll + 1.5f  // (it uncurls before the next)
                     : shown == AbilityId.LiteralTank ? Game.TankTime + 2f  // (the wreck clears before the next)
+                    : shown == AbilityId.TrojanHorse ? Game.HorseTime + 2f  // (it springs open before the next)
                     : shown == AbilityId.SupplyDrop ? Game.SupplyCallIn + Game.SupplyOpen + Game.SupplyTime + Game.SupplyFold + 1f  // (the crate folds away before the next)
+                    : shown == AbilityId.Ballista ? Game.BaFall + 9f  // (it climbs on and empties it, then the next)
                     : shown == AbilityId.ArmorDrop ? Game.ArmorCallIn + Game.ArmorOpen + 4f  // (the vests lie out a while, then the next)
                     : shown == AbilityId.DragonsDogma ? Game.DogmaTime + 1.5f  // (it coils back in before the next)
                     : shown == AbilityId.Bloodbath ? Game.BathTime + 1.5f  // (a Bloodbath dries up before the next)
                     : shown == AbilityId.BonePhalanx ? Game.PhalanxLife(Game.PhalanxCount) + 1.2f : UltimateEvery;  // (the line marches and crumbles before the next)
-                allies = TargetsAlly(shown) || ShowcaseAlt.NeedsAlly(Defs.Weapon(role, kit, weapon).Id);
+                allies = TargetsAlly(shown) || ShowcaseAlt.NeedsAlly(Defs.Weapon(role, kit, weapon).Id)
+                    || Defs.Weapon(role, kit, weapon).Id == WeaponId.AcupunctureNeedles && !demo;  // (its Fire heals teammates: AcupunctureNeedles.cs)
                 reviveDemo = allies && (shown == AbilityId.MendPulse || RevivesAlly(shown));
                 prepped = false;
                 castCount = 0;
@@ -167,12 +172,22 @@ namespace Arena
             }
             if (AltFire)
                 input.Fire = false;  // ALT FIRE: only the Alt, never the trigger
+            if (demoAbility && !Game.Seated(me) && Game.BallistaNear(me.Pos) != null)
+                Game.UseBallista();  // the Ballista: climb on (Ballista.cs)
             if (demoAbility && Game.Seated(me))
                 input.Fire = true;  // in the Deployable Turret: hold the trigger so it spools up and fires (DeployableTurret.cs)
             // ALT FIRE: weapons with an Alt press it on a loop (ShowcaseAlt.cs).
             input.WeaponAction = firing && AltFire && ShowcaseAlt.Held(Game, me, t, dt);
             if (input.WeaponAction && ShowcaseAlt.NeedsAlly(me.Weapon.Id))
                 input.AimAt = Game.ShowcaseAllyPos(0);  // the Sunlance goes through a teammate
+            if (input.Fire && allies && me.Weapon.Id == WeaponId.AcupunctureNeedles)
+            {
+                // The Acupuncture Needles' Fire heals: needles into a hurt teammate, hurt again every few seconds.
+                Game.ShowcaseHoldAllies();
+                if (MathX.Fmod(t, NeedlesHurtEvery) < dt)
+                    Game.ShowcaseHurtAllies(false);
+                input.AimAt = Game.ShowcaseAllyPos(0);
+            }
             if (demoAbility && !ultimate && ability == AbilityId.BladedDive && castT <= 0.1f)
                 Game.ShowcaseWoundDummies();  // Bladed Dive's demo kills them so its reset shows (BladedDive.cs); just before the cast, or your swings finish them first
             if (demoAbility)

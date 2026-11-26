@@ -118,7 +118,7 @@ namespace Arena
     ///     A click with no enemy in reach does nothing.
     ///   - It ends when the time runs out, you go down, the wave ends or the slot changes.
     /// All damage scales by your damage and the ultimate's power.
-    /// Like Living Bolt, your own game takes the click (LocalRavager) and sends Msg.WeaponDash (DashRavager); the host picks
+    /// Like Living Bolt, your own game takes the click (LocalRavager) and sends Msg.WeaponDash (WeaponAlt.Ravager); the host picks
     /// the leg and the enemy (HostRavagerLash) from its own copy of the walk (Player.RvGait).
     /// Replicated: Player.RvT (seconds since the cast; 0 = off) and RvLen (its length). FxKind.RavagerLash is one lash: Pos
     /// the foot where it starts, Pos2 (leg, enemy id) as numbers, Radius the owner's id. Drawn by Game/BloodRavagerLook.cs.
@@ -130,7 +130,6 @@ namespace Arena
         public const float RvLashR = 140f, RvLashDmg = 20f, RvLashSplash = 16f, RvLashShove = 18f;
         public const float RvLashTime = 0.2f, RvLashHitAt = 0.4f, RvLashGap = 0.07f, RvBotGap = 0.25f;
         public const int RvLashMax = 3;
-        const byte DashRavager = 61;  // Msg.WeaponDash kind (the rest are listed in Ninja.cs)
         public static readonly Rgba RvBlood = new Rgba(0.66f, 0.06f, 0.13f), RvBloodHi = new Rgba(1f, 0.29f, 0.36f);
         public static readonly Rgba RvBloodDk = new Rgba(0.29f, 0.02f, 0.06f);
 
@@ -283,7 +282,7 @@ namespace Arena
             }
         }
 
-        /// Host: a click (Msg.WeaponDash DashRavager, or the host's own game). Picks the enemy and the leg, starts the lash.
+        /// Host: a click (Msg.WeaponDash WeaponAlt.Ravager, or the host's own game). Picks the enemy and the leg, starts the lash.
         void HostRavagerLash(Player p)
         {
             if (!RavagerOn(p) || p.RvLashCd > 0f || p.RvLashes.Count >= RvLashMax || State == MatchState.GameOver || p.RvGait == null)
@@ -346,7 +345,7 @@ namespace Arena
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashRavager);
+                w.Write(WeaponAlt.Ravager);
                 w.Write(me.Pos);
                 session.SendToHost(Proto.End(w));
             }

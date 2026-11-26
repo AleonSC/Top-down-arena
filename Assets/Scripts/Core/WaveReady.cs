@@ -180,13 +180,15 @@ namespace Arena
         // What a player's screen shows in the break (kind 2 of Msg.WaveReady): the wave box, the build window, the shop, or out in the arena.
         public const byte BreakUiBox = 0, BreakUiBuild = 1, BreakUiShop = 2, BreakUiOut = 3;
         byte myBreakUiSent = 255;
+        Player myBreakUiFor;  // who it was sent for: a new run or a Practice restart makes a new Player (BreakUi back to Box), so send again
 
         /// The app, each frame in the break: tells the host what this screen shows (sent only when it changes).
         public void SetMyBreakUi(byte ui)
         {
-            if (Me == null || ui == myBreakUiSent)
+            if (Me == null || ui == myBreakUiSent && Me == myBreakUiFor)
                 return;
             myBreakUiSent = ui;
+            myBreakUiFor = Me;
             if (IsHost)
             {
                 Me.BreakUi = ui;

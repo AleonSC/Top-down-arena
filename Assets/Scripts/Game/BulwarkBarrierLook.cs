@@ -89,7 +89,7 @@ namespace Arena
         /// A thrown shield of player `id` still in the air, or null.
         Effect BbThrown(int id)
         {
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.BulwarkThrow))
                 if (fx.Kind == FxKind.BulwarkThrow && fx.T < Game.BbThrowFlight && Mathf.RoundToInt(fx.Radius) == id)
                     return fx;
             return null;
@@ -223,7 +223,7 @@ namespace Arena
             d.Half = a.Half * (1f + 0.14f * o.Smear);
             d.Th = a.Th * (1f - 0.22f * o.Smear);
             d.Rad = a.Rad;
-            foreach (var fx in game.Effects)  // the newest block knocks it back a little and flashes where it struck
+            foreach (var fx in FxOf(FxKind.BulwarkBlock))  // the newest block knocks it back a little and flashes where it struck
                 if (fx.Kind == FxKind.BulwarkBlock && fx.T < 0.14f && fx.Pos2.Y < 2.5f && Mathf.RoundToInt(fx.Pos2.X) == p.Id)
                 {
                     float k = 1f - fx.T / 0.14f;

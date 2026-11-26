@@ -210,7 +210,7 @@ namespace Arena
                 for (int k = 0; k < 8; k++)
                     Arc(e.Disp, e.Radius + 6f, 1.6f, Game.KatanaSteel.WithAlpha(0.75f), 4, t * 2f + k * MathX.Tau / 8f, MathX.Tau / 16f);
             }
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.KatanaBurst))
             {
                 if (fx.Kind != FxKind.KatanaBurst)
                     continue;

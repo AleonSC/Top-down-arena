@@ -46,6 +46,13 @@ namespace Arena
             UpdateDownedLooks();  // who went down or stood back up (DownedLooks.cs)
             if (ReplayHeldFrame())
                 return;  // hit-pause: last frame again
+            FillLookBuckets();  // each effect kind's and enemy type's list, once a frame (FxOf, EnemiesOf)
+            try { DrawWorldFrame(); }
+            finally { lookBucketsLive = false; }
+        }
+
+        void DrawWorldFrame()
+        {
             BeginJuiceFrame();
             float t = game.AnimT;
             // Behind the arena: the background this player picked in the lobby, dimmed so the fight stays easy to read.
@@ -183,6 +190,9 @@ namespace Arena
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.Kusarigama)
                     DrawKusarigama(p);  // KusarigamaLook.cs
+            foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.HeartFlail)
+                    DrawHeartFlail(p, t);  // the heart, its chain and beat (HeartFlailLook.cs)
             DrawFumaWorld(t);  // the Fuma Shuriken's Orbit stance (FumaLook.cs)
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
@@ -258,6 +268,7 @@ namespace Arena
             DrawTombFloor(t);        // the Glacial Tomb's frost lattice and mandala (GlacialTombLook.cs)
             DrawBloodFreezeFloor(t); // Blood Freeze's frost, cracks, rune circle and wave (BloodFreezeLook.cs)
             DrawBambooGroveFloor(t); // Bamboo Grove's wash, cracks, front and shadows (BambooGroveLook.cs)
+            DrawSiegeBellFloor(t);  // Siege Bell's reach ring, tolls and shockwave (SiegeBellLook.cs)
             DrawFlashFireFloor(t);   // Flash Fire's kindle, rolling ring, scorched band and embers (FlashFireLook.cs)
             DrawShockwaveFloor();    // the Shockwave ability's scorch (ShockwaveLook.cs)
             DrawTitanFloor();        // the Titan golem's slam cracks and rubble (TitanLook.cs)
@@ -337,6 +348,7 @@ namespace Arena
             DrawDormantMarks(t);  // sleeping groups in unseen rooms: drifting z's (RoomFogLook.cs)
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
             DrawBambooGroveFront(t);  // Bamboo Grove's near stalks, in front of the enemies (BambooGroveLook.cs)
+            DrawSiegeBellOver(t);  // Siege Bell's bell and its stun marks (SiegeBellLook.cs)
             DrawFlashFireFront(t);  // Flash Fire's near flames, in front of the enemies (FlashFireLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawBloodbathOver(t);  // enemies wading in a Bloodbath: tinted, bleeding drops (BloodbathLook.cs)
@@ -412,6 +424,77 @@ namespace Arena
                 DrawEffect(fx, t);
         }
 
+        // --- Per-frame buckets: the looks ask for their own kind instead of each filtering the whole list ---------------
+
+        List<Effect>[] fxBuckets;
+        List<Enemy>[] enemyBuckets;
+        bool lookBucketsLive;  // true while DrawWorld draws: the buckets match the game this frame
+        readonly List<Effect>[] fxScratch = NewLists<Effect>(8);
+        readonly List<Enemy>[] enemyScratch = NewLists<Enemy>(8);
+        int fxScratchAt, enemyScratchAt;
+
+        static List<T>[] NewLists<T>(int n)
+        {
+            var a = new List<T>[n];
+            for (int i = 0; i < n; i++)
+                a[i] = new List<T>();
+            return a;
+        }
+
+        static int EnumSize(Type t)
+        {
+            int max = 0;
+            foreach (var v in Enum.GetValues(t))
+                max = Math.Max(max, Convert.ToInt32(v));
+            return max + 1;
+        }
+
+        /// Sorts this frame's effects by FxKind and enemies by EnemyType, in their list order (the lists are kept and reused).
+        void FillLookBuckets()
+        {
+            if (fxBuckets == null)
+            {
+                fxBuckets = NewLists<Effect>(EnumSize(typeof(FxKind)));
+                enemyBuckets = NewLists<Enemy>(EnumSize(typeof(EnemyType)));
+            }
+            foreach (var l in fxBuckets)
+                l.Clear();
+            foreach (var l in enemyBuckets)
+                l.Clear();
+            foreach (var fx in game.Effects)
+                fxBuckets[(int)fx.Kind].Add(fx);
+            foreach (var e in game.Enemies.Values)
+                enemyBuckets[(int)e.Type].Add(e);
+            lookBucketsLive = true;
+        }
+
+        /// This frame's effects of one kind, in game.Effects order. Outside DrawWorld (the HUD, tools) it filters the
+        /// list there and then, into one of a few reused lists.
+        List<Effect> FxOf(FxKind kind)
+        {
+            if (lookBucketsLive)
+                return fxBuckets[(int)kind];
+            var l = fxScratch[fxScratchAt++ & 7];
+            l.Clear();
+            foreach (var fx in game.Effects)
+                if (fx.Kind == kind)
+                    l.Add(fx);
+            return l;
+        }
+
+        /// This frame's enemies of one type, in game.Enemies order (as FxOf).
+        List<Enemy> EnemiesOf(EnemyType type)
+        {
+            if (lookBucketsLive)
+                return enemyBuckets[(int)type];
+            var l = enemyScratch[enemyScratchAt++ & 7];
+            l.Clear();
+            foreach (var e in game.Enemies.Values)
+                if (e.Type == type)
+                    l.Add(e);
+            return l;
+        }
+
         /// Enemy bullets, drawn last in the arena (after effects, sparks and the additive glow; before Fogbound's mist and
         /// the mood tint): whatever the players' weapons are doing, the shots you have to dodge stay on top.
         void DrawEnemyShots(float t)
@@ -450,13 +533,8 @@ namespace Arena
             DrawStaticShockUnder(p, t);  // Overcharge's gold ring; the plain cone (StaticShockLook.cs)
             if (p.CoatT > 0f)
                 DrawHealingCoat(p, t);  // a Sanguine Orb's healing blood (HemomancerLook.cs)
-            if (p.DoseT > 0f)  // dosed by Medicine Darts: green motes rising off you while it heals
-                for (int k = 0; k < 4; k++)
-                {
-                    float f = MathX.Fmod(t * 1.1f + k * 0.25f + p.Id * 0.3f, 1f);
-                    V2 at = p.Disp + new V2((k - 1.5f) * p.Def.BodyR * 0.45f, p.Def.BodyR * 0.6f - f * p.Def.BodyR * 1.8f);
-                    Circle(at, 2.2f * (1f - f) + 0.8f, new Rgba(0.5f, 1f, 0.6f, 0.85f * (1f - f)), 6);
-                }
+            if (p.NeedleN > 0)
+                DrawNeedlesInPlayer(p, t);  // Acupuncture Needles in you, healing (AcupunctureLook.cs)
             if (p.Weapon.Id == WeaponId.Katana)  // both stances' combo pips over your head (KatanaLook.cs)
                 DrawKatanaHud(p, t);
             if (p.Weapon.Id == WeaponId.BoStaff)  // where you are in the slash, jab, spin chain (BoStaffLook.cs)
@@ -596,6 +674,8 @@ namespace Arena
                 DrawRain(p, t);
             if (p.GaleT > 0f)  // Gale Wall's lens and the shots hung in it (GaleWallLook.cs)
                 DrawGaleWall(p, t);
+            if (p.GlassT > 0f)  // Sanctum Glass's pane (SanctumGlassLook.cs)
+                DrawSanctumGlass(p, t);
             if (p.HarvestHold > 0f)  // Crimson Harvest's ball and tendrils (CrimsonHarvestLook.cs)
                 DrawHarvest(p, t);
             if (p.OrbitT > 0f)  // Blade Fan's circling kunai (NinjaLooks.cs)
@@ -1082,12 +1162,29 @@ namespace Arena
             segs = SegsFor(center, r, MathX.Tau, segs);
             SetColor(c);
             V2 prev = center + new V2(r, 0);
+            var unit = UnitCircle(segs);
             for (int i = 1; i <= segs; i++)
             {
-                V2 next = center + V2.FromAngle(MathX.Tau * i / segs) * r;
+                V2 next = center + (unit != null ? unit[i] : V2.FromAngle(MathX.Tau * i / segs)) * r;
                 Tri(center, prev, next);
                 prev = next;
             }
+        }
+
+        /// The unit circle cut into `segs` points (0 to segs, the same angles Circle used to work out each time), kept per count.
+        static readonly V2[][] unitCircles = new V2[257][];
+        static V2[] UnitCircle(int segs)
+        {
+            if (segs <= 0 || segs >= unitCircles.Length)
+                return null;
+            var u = unitCircles[segs];
+            if (u == null)
+            {
+                u = unitCircles[segs] = new V2[segs + 1];
+                for (int i = 0; i <= segs; i++)
+                    u[i] = V2.FromAngle(MathX.Tau * i / segs);
+            }
+            return u;
         }
 
         void Arc(V2 center, float r, float width, Rgba c, int segs, float start = 0f, float sweep = MathX.Tau)

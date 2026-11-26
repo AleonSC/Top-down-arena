@@ -7,7 +7,7 @@ namespace Arena
     ///     Each pellet pierces DbPierce enemies and does less the farther it has flown: full to DbFull px, falling to DbMinMult at DbReach.
     ///   Two shells (Player.DbUsed counts the spent ones), then a break-open reload of DbReloadTime (Player.DbReload counts it down; it
     ///     speeds up with fire rate). No firing while it is open.
-    ///   Alt (Msg.WeaponDash, DashBoth): with both shells loaded, fires both barrels at once, 2 x the pellets in a wider cone, then reloads.
+    ///   Alt (Msg.WeaponDash, WeaponAlt.Both): with both shells loaded, fires both barrels at once, 2 x the pellets in a wider cone, then reloads.
     ///   Extra projectiles add DbExtraPellets a barrel. Player.DbBarrel is the barrel that fires next (0 left, 1 right): replicated,
     ///   the look reads it with DbUsed and DbReload (Game/DoubleBarrelLook.cs).
     public partial class Game

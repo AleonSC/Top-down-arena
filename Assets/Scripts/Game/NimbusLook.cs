@@ -209,7 +209,7 @@ namespace Arena
             if (R < 4f)
                 return;
             bool flash = false;
-            foreach (var e in game.Effects)
+            foreach (var e in FxOf(FxKind.Bolt))
                 if (e.Kind == FxKind.Bolt && e.T < 0.06f && e.Pos.DistanceTo(c) < R)
                     flash = true;  // a bolt from the arms lights the whole storm
             // Ground: shadow, wind streaks racing round underneath, rain under the bands.

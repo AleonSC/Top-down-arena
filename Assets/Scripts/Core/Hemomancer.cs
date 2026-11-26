@@ -111,6 +111,8 @@ namespace Arena
                         pendingImplosions.Add(new Implode { Owner = p.Id, Target = e.Id, Extra = extra, Dmg = dmg * (casting && !firingWeapon ? castPower : 1f) });
                     break;
                 }
+                case WeaponId.HeartFlail:
+                    break;  // never a volley: HfTrigger and TickHeartFlail swing and spin it (HeartFlail.cs)
                 case WeaponId.BloodBrawler:
                     FireBloodBrawler(p, dmg, extra);  // the Marionette string on the enemy under the cursor (BloodBrawler.cs)
                     break;
@@ -688,7 +690,7 @@ namespace Arena
             Ability = (g, p, id, target) => g.BloodAbility(p, id, target),
             Tick = (g, dt) => g.TickHemomancers(dt),
             OnShotHit = (g, b, e, hit) => g.BloodShotHit(b, e, hit),  // Hemomancer shots drain, pool and drop orbs
-            OnKill = (g, e) => { g.DebtKill(e); g.BlastKill(e); },  // a kill pays back Blood Debt (BloodDebt.cs) and sends Blood Blast stacks home (BloodBlast.cs)
+            OnKill = (g, e) => { g.DebtKill(e); g.BlastKill(e); g.GolemKill(e); },  // a kill pays back Blood Debt (BloodDebt.cs), sends Blood Blast stacks home (BloodBlast.cs) and grows a Blood Golem a coat (BloodGolem.cs)
         };
 
         /// The Hemomancer's weapons (Kit.Hemomancer; FireBloodWeapon).
@@ -715,6 +717,9 @@ namespace Arena
             new WeaponDef { Id = WeaponId.VeinTether, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 2, Damage = 4f, Reach = 350f, Grow = 0.25f, ExtraDesc = "+25% beam length and +25% damage", Name = "Vein Tether", FireInterval = 0.08f,
                 Desc = "Primary Fire: A draining beam that hurts enemies and heals you and the nearest ally.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the beam 25% wider" },
+            new WeaponDef { Id = WeaponId.HeartFlail, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 3, Damage = 18f, Reach = 105f, Melee = true, BotRange = 110f, ExtraDesc = "+1 blood drop a hit and 10% more reach", Name = "Heart Flail", FireInterval = 0.45f,
+                Desc = "Primary Fire: Click to swing a living heart that makes enemies bleed and sprays healing blood; hold to spin it, healing allies near you with every heartbeat. Hits quicken the beat: at 180 the next beat is a Cardiac Burst.\n\nAlternative Fire: Open Heart: throw the heart to your cursor, where it roots and heals every ally near it through its veins.",
+                Sound = Sfx.SwingHeavy, AreaDesc = "the heartbeat pulses, the Cardiac Burst and Open Heart's veins reach 25% farther" },
             // DPS
             new WeaponDef { Id = WeaponId.NeedleSwarm, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0, Damage = 4f, Reach = Game.NsReach, ExtraDesc = "+20 needles in the swarm, +5 wrapped round each enemy and 10% harder cuts, +4 in the burst", Name = "Needle Swarm", FireInterval = 0.1f, BotRange = 220f,
                 Desc = "A swarm of blood needles circles you, blocking shots. Lost needles are siphoned from your health.\n\nPrimary Fire: Hold to grow a tendril to the enemy nearest your cursor; it wraps them and cuts until they die.\n\nAlternative Fire: Throw a fan of needles from the swarm.",
@@ -772,6 +777,8 @@ namespace Arena
                 Apply = s => { s.ReserveGainMult += 0.3f; s.CoatHealMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.VeinTether }, MaxStacks = 2, Name = "Red Thread", Desc = "15% more of the Vein Tether's damage heals",
                 Apply = s => { s.VeinStealBonus += 0.15f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.HeartFlail }, MaxStacks = 2, Name = "Pacemaker", Desc = "The Heart Flail's beat quickens 50% faster with each hit, and its pulses and Cardiac Burst heal 50% more",
+                Apply = s => { s.HfBpmMult += 0.5f; s.HfPulseMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.NeedleSwarm }, MaxStacks = 2, Name = "Hemophilia", Desc = "The Needle Swarm bursts an enemy one bleed stack sooner, 30% wider",
                 Apply = s => { s.HemoHitCut += 1; s.HemoRadiusMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Implosion }, MaxStacks = 2, Name = "Event Horizon", Desc = "Implosion pulls enemies in from 30% farther, and the crush hits 40% harder",
@@ -786,63 +793,63 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.BloodShell, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0,
-                Name = "Blood Shell", Cooldown = 9f, Desc = "Hold to wrap yourself and allies in a bubble that blocks bullets.",
+                Name = "Blood Shell", Icon = "bloodshell", Cooldown = 9f, Desc = "Hold to wrap yourself and allies in a bubble that blocks bullets.",
                 Capstone = "The burst also erases enemy bullets within 160 px.",
                 Bot = b => b.Danger && b.Me.Hp > b.Me.MaxHp * 0.55f,
             },
             new AbilityDef
             {
                 Id = AbilityId.BloodWall, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1,
-                Name = "Blood Wall", Cooldown = 8f, Desc = "Toggle a wall of blood behind you that blocks bullets and hurts enemies.",
+                Name = "Blood Wall", Icon = "pact", Cooldown = 8f, Desc = "Toggle a wall of blood behind you that blocks bullets and hurts enemies.",
                 Capstone = "Enemies against the wall take double and are slowed 40%.",
                 Bot = b => b.HaveTarget && b.TargetD < 320f && b.Me.Hp > b.Me.MaxHp * 0.7f,
             },
             new AbilityDef
             {
                 Id = AbilityId.Exsanguinate, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2,
-                Name = "Exsanguinate", Cooldown = 8f, HealthCost = 0.1f, Desc = "Yank every nearby enemy in, stunned, and drain them.",
+                Name = "Exsanguinate", Icon = "drain", Cooldown = 8f, HealthCost = 0.1f, Desc = "Yank every nearby enemy in, stunned, and drain them.",
                 Capstone = "Also slows the enemies it drains by 50% for 2 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 220f && b.Me.Hp > b.Me.MaxHp * 0.35f,
             },
             new AbilityDef
             {
                 Id = AbilityId.BloodGift, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 0,
-                Name = "Blood Gift", Cooldown = 8f, HealthCost = 0.25f, CostsCurrent = true, Desc = "Pay health to heal the most hurt ally twice as much.",
+                Name = "Blood Gift", Icon = "gift", Cooldown = 8f, HealthCost = 0.25f, CostsCurrent = true, Desc = "Pay health to heal the most hurt ally twice as much.",
                 Capstone = "Also heals everyone else within 200 px of them for half as much.",
                 Bot = b => b.AllyHurt && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
                 Id = AbilityId.BloodFreeze, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 1,
-                Name = "Blood Freeze", Cooldown = 14f, HealthCost = 0.25f, Desc = "Freeze every enemy near you at a cost of health.",
+                Name = "Blood Freeze", Icon = "bloodfreeze", Cooldown = 14f, HealthCost = 0.25f, Desc = "Freeze every enemy near you at a cost of health.",
                 Capstone = "Frozen enemies take 25% more damage.",
                 Bot = b => b.Danger && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
                 Id = AbilityId.Martyr, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 2,
-                Name = "Martyr", Cooldown = 16f, HealthCost = 0.4f, Desc = "Pay health to revive a downed ally, or ward the most hurt one.",
+                Name = "Martyr", Icon = "martyr", Cooldown = 16f, HealthCost = 0.4f, Desc = "Pay health to revive a downed ally, or ward the most hurt one.",
                 Capstone = "You're invulnerable for 2 s after the sacrifice.",
                 Bot = b => b.AllyDown || b.Players == 1 && b.Danger && b.Me.WardT <= 0f && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
                 Id = AbilityId.ArterialSpray, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0,
-                Name = "Arterial Spray", Cooldown = 8f, Desc = "Open a vein: a jet of blood hurts and bleeds everything in front of you.",
+                Name = "Arterial Spray", Icon = "spray", Cooldown = 8f, Desc = "Open a vein: a jet of blood hurts and bleeds everything in front of you.",
                 Capstone = "The spray also washes away enemy bullets it touches.",
                 Bot = b => b.HaveTarget && b.TargetD < 190f && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
                 Id = AbilityId.BloodDebt, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1,
-                Name = "Blood Debt", Cooldown = 16f, Desc = "Borrow health to heal on hit, and pay it back with kills.",
+                Name = "Blood Debt", Icon = "debt", Cooldown = 16f, Desc = "Borrow health to heal on hit, and pay it back with kills.",
                 Capstone = "Kills repay 50% more.",
                 Bot = b => b.HaveTarget && b.TargetD < 350f && b.Me.Hp > b.Me.MaxHp * 0.7f,
             },
             new AbilityDef
             {
                 Id = AbilityId.VeinRush, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Instant = true,
-                Name = "Vein Rush", Cooldown = 6f, HealthCost = 0.1f, Desc = "Rush toward your cursor untouchable, bleeding enemies on the way.",
+                Name = "Vein Rush", Icon = "veinrush", Cooldown = 6f, HealthCost = 0.1f, Desc = "Rush toward your cursor untouchable, bleeding enemies on the way.",
                 Capstone = "The trail bursts after 1 s for 20 to everything on it.",
                 Bot = b => b.HaveTarget && b.TargetD < 260f && b.Me.Hp > b.Me.MaxHp * 0.3f,
             },
@@ -983,6 +990,9 @@ namespace Arena
                     CastTithe(p, cap);  // VeinTithe.cs
                     return true;
                 }
+                case AbilityId.BloodGolem:
+                    CastGolem(p, cap);  // BloodGolem.cs
+                    return true;
                 case AbilityId.Bloodbath:
                     CastBloodbath(p, cap);  // Bloodbath.cs
                     return true;

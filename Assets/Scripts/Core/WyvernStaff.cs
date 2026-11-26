@@ -13,7 +13,7 @@ namespace Arena
     ///   Fire (held): the Wyvern flies out to BreathStand short of your cursor (at most BreathReach from you) and streams fire at it
     ///     while you hold Fire and Player.Cinder lasts (CinderDrain a second; it needs CinderMin to start). Every BreathTick the stream
     ///     hurts each enemy near the line from it to your cursor for the weapon's damage a second and sets it burning.
-    ///   Alt (Msg.WeaponDash DashWyvernSlam, WyvernSlamCd cooldown): Wyrm Slam: it dives to your cursor and slams the ground:
+    ///   Alt (Msg.WeaponDash WeaponAlt.WyvernSlam, WyvernSlamCd cooldown): Wyrm Slam: it dives to your cursor and slams the ground:
     ///     WyvernSlamDmg to every enemy within WyvernSlamR, stunned (heavies and bosses for less), the small enemy shots in it cleared,
     ///     and CinderBack Cinder back for each enemy stunned (up to CinderBackMax).
     ///   Extra projectiles: +25% breath damage and 10% bigger gale and slam each. Homing Rounds widen the gale and the slam (AreaMult).
@@ -26,7 +26,6 @@ namespace Arena
         public const float WyvernSlamCd = 7f, WyvernSlamR = 130f, WyvernSlamDmg = 30f, SlamStun = 1.2f, SlamStunHeavy = 0.6f, SlamStunBoss = 0.4f;
         public const float CinderBack = 10f, CinderBackMax = 4f, WyvDiveSpeed = 1400f, WyvFollow = 240f, WyvReturn = 90f, WyvFly = 420f;
         public static readonly Rgba WyvColor = new Rgba(0.44f, 0.88f, 0.81f);
-        const byte DashWyvernSlam = 49;  // (48 is the Nodachi's stance)
 
         /// How hard Stormwing and extra projectiles make the gale's shove and slow.
         static float WyvGaleBoost(Player p) => 1f + p.Stats.WyvernPower;
@@ -239,11 +238,11 @@ namespace Arena
                 return false;
             wyvLocalCd = WyvernSlamCd;
             if (IsHost)
-                HostWeaponDash(MyId, DashWyvernSlam, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.WyvernSlam, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashWyvernSlam);
+                w.Write(WeaponAlt.WyvernSlam);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

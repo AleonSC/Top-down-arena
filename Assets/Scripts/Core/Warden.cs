@@ -29,13 +29,9 @@ namespace Arena
 
     /// Everything about the Warden's fight that its body doesn't already carry. The host runs it; clients get it
     /// in the snapshot (WriteWarden / ReadWarden) to draw the searchlight, gates, doors, shield and charge.
-    public class WardenState
+    public class WardenState : BossFight<WardenStage, WardenTurn>  // TransT: > 0 changing phase (can't be hurt), counting down
     {
-        public WardenStage Stage;
-        public WardenTurn Turn;
-        public float TurnT;              // seconds into the current turn
-        public float TransT;             // > 0: changing phase (can't be hurt), counting down
-        public WardenStage TransTo;
+        public WardenState() { Step = 0; }
         public V2 Light, LightDisp;      // the searchlight's pool (LightDisp is smoothed for drawing)
         public WardenLight LightMode;
         public float LightT;             // seconds in the current light mode
@@ -47,9 +43,9 @@ namespace Arena
         public readonly List<WardenGate> Gates = new List<WardenGate>();
 
         // Host only.
-        public int Step, Plant = -1, GatesSent, DoorsOpened;
+        public int Plant = -1, GatesSent, DoorsOpened;
         public bool GuardsCalled;        // the riot: rioters were left at 10 s, so the guards came
-        public float TurnLen, Caught, RingT, GasTickT, ChargeLeft, ExposeHold, ExposeCd;
+        public float Caught, RingT, GasTickT, ChargeLeft, ExposeHold, ExposeCd;
         public float StunShotAt;         // the last stand: when its next stun round fires (TurnT)
         public float Armor, ArmorMax;    // replicated: the armor it puts on for its last stand, which takes hits before its health
         public float RiotShield, RiotShieldMax;  // replicated: the riot shield's strength this riot turn (0 = broken: it's exposed)
@@ -153,8 +149,8 @@ namespace Arena
         /// The Warden in play, if any (there's only ever one).
         public Enemy TheWarden()
         {
-            foreach (var e in Enemies.Values)
-                if (e.Type == EnemyType.Warden)
+            foreach (var e in EnemiesOf(EnemyType.Warden))  // (EnemyIndex.cs)
+                if (StillIn(e))
                     return e;
             return null;
         }
@@ -247,19 +243,10 @@ namespace Arena
                 e.Phase = (byte)w.Turn;
                 return;
             }
-            if (w.Stage == WardenStage.Count && frac <= LockdownAt)
+            BossStage to;  // its stage table (BossStages.cs)
+            if (NextStage(e.Type, (byte)w.Stage, frac, out to) && (to.Stage != (byte)WardenStage.LastStand || w.Turn != WardenTurn.Charge))
             {
-                StartWardenTransition(e, WardenStage.Lockdown);
-                return;
-            }
-            if (w.Stage == WardenStage.Lockdown && frac <= RiotAt)
-            {
-                StartWardenTransition(e, WardenStage.Riot);
-                return;
-            }
-            if (w.Stage == WardenStage.Riot && frac <= LastStandAt && w.Turn != WardenTurn.Charge)
-            {
-                StartWardenTransition(e, WardenStage.LastStand);  // it puts on its armor (a charge finishes first); the rioters scatter
+                StartWardenTransition(e, (WardenStage)to.Stage);  // (into the Last Stand it puts on its armor, a charge finishing first; the rioters scatter)
                 return;
             }
 
@@ -426,13 +413,9 @@ namespace Arena
 
         void NextWardenTurn(Enemy e, WardenState w, Player target)
         {
-            var turns = StageTurns[(int)w.Stage];
-            w.Step = (w.Step + 1) % turns.Length;
             if (w.Turn == WardenTurn.Rioters)
                 ClearRioters();  // whoever's left scatters
-            w.Turn = turns[w.Step];
-            w.TurnLen = StageTimes[(int)w.Stage][w.Step];
-            w.TurnT = 0f;
+            w.NextTurn(this, StageTurns, StageTimes);
             w.Dashing = false;
             w.Plant = -1;
             w.StunShotAt = 1.5f;  // the last stand's first stun round
@@ -1029,7 +1012,8 @@ namespace Arena
                 doors.Remove(pick);
                 V2 d = RiotDoors[pick];
                 V2 inward = d.X <= 0f ? new V2(1f, 0f) : d.X >= Width ? new V2(-1f, 0f) : new V2(0f, -1f);
-                for (int i = 0; i < RiotersPerDoor; i++)  // three rows of three, pouring in
+                int perDoor = BossAdds(RiotersPerDoor);  // (the tier's summons: BossRules.cs)
+                for (int i = 0; i < perDoor; i++)  // three rows of three, pouring in
                     SpawnEnemyAt(EnemyType.Rioter, d + inward * (40f + (i / 3) * 30f) + inward.Orthogonal() * ((i % 3 - 1) * 30f), 0.3f + (i / 3) * 0.25f, 0);
                 BroadcastFx(FxKind.Boom, d + inward * 20f, new Rgba(1f, 0.55f, 0.2f), 70f, 0.5f, Sfx.BossCrack);
                 w.DoorsOpened++;
@@ -1059,7 +1043,7 @@ namespace Arena
         void CallGuards(WardenState w, int rioters)
         {
             w.GuardsCalled = true;
-            int n = Math.Max(GuardsMin, Math.Min(GuardsMax, (rioters + 3) / 4));
+            int n = BossAdds(Math.Max(GuardsMin, Math.Min(GuardsMax, (rioters + 3) / 4)));  // (the tier's summons: BossRules.cs)
             for (int i = 0; i < n; i++)
             {
                 V2 d = RiotDoors[(i + rng.Next(RiotDoors.Length)) % RiotDoors.Length];
@@ -1107,8 +1091,8 @@ namespace Arena
             if (TheWarden() == null || InCellZone(e.Pos))  // (in a Holding Cell: straight for its prisoner)
                 return RouteTo(e, goal);  // a boss approach (Approaches.cs): no riot to put down, just you
             float best = float.MaxValue;
-            foreach (var r in Enemies.Values)
-                if (r.Type == EnemyType.Rioter && r.SpawnT <= 0f)
+            foreach (var r in EnemiesOf(EnemyType.Rioter))  // (EnemyIndex.cs)
+                if (r.SpawnT <= 0f && StillIn(r))
                 {
                     float d = r.Pos.DistanceSq(e.Pos);
                     if (d < best)

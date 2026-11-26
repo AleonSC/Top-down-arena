@@ -1,0 +1,463 @@
+<title>Siege Bell</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600&display=swap">
+<style>
+/* Layout: one CRT "stage" card with the live canvas, controls under it, then the proposed numbers. Single dark look, like the game's lobby. */
+:root{
+  --bg:#08111f; --panel:#0e1c33; --line:#1f3558; --ink:#d8e6ff; --dim:#7f97bd;
+  --gold:#ffcf6b; --danger:#ff6b6b; --steel:#cfe6ff;
+  --display:"Chakra Petch",ui-sans-serif,system-ui,sans-serif;
+  --body:"Inter",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
+header{display:grid;gap:4px}
+.eyebrow{font:600 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+h1{font:700 clamp(30px,5vw,44px)/1.05 var(--display);margin:0;color:var(--gold);letter-spacing:.02em;text-wrap:balance}
+.lede{margin:0;color:var(--dim);max-width:65ch}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+canvas{display:block;width:100%;aspect-ratio:16/9;max-width:100%;background:#0b1630}
+.controls{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
+button,.chip{font:600 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:3px;padding:8px 10px;cursor:pointer}
+button:hover,.chip:hover{border-color:var(--dim)}
+button:focus-visible,.chip:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.group{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.label{font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.scrub{flex:1 1 260px;min-width:0;position:relative;padding-bottom:16px}
+.scrub input{width:100%;accent-color:var(--gold)}
+.marks{position:absolute;left:0;right:0;bottom:0;height:14px;font:600 10px/14px var(--mono);color:var(--dim)}
+.marks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.marks .stunbar{position:absolute;top:2px;height:3px;background:var(--gold);opacity:.55;border-radius:2px}
+.grid{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;min-width:0}
+.card h2{font:700 16px/1.2 var(--display);margin:0 0 10px;letter-spacing:.04em;text-transform:uppercase;color:var(--steel)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td{padding:7px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{color:var(--dim);width:38%;padding-right:12px;font:600 12px/1.6 var(--mono);text-transform:uppercase;letter-spacing:.06em}
+td b{color:var(--gold);font-variant-numeric:tabular-nums}
+ol{margin:0;padding-left:20px;display:grid;gap:8px;font-size:14px}
+.note{font-size:13px;color:var(--dim);margin:12px 0 0}
+.looks{display:grid;gap:8px;font-size:14px}
+.looks div b{color:var(--ink)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Tank Knight · ability mock-up</div>
+    <h1>Siege Bell</h1>
+    <p class="lede">Plant a war bell, ring it three times, and the third toll throws a shockwave that stuns every enemy in the radius.</p>
+  </header>
+
+  <section class="stage">
+    <canvas id="cv" width="960" height="540" aria-label="Animated mock-up of the Siege Bell ability"></canvas>
+    <div class="controls">
+      <div class="group">
+        <button id="play" type="button">Pause</button>
+        <button id="replay" type="button">Replay</button>
+      </div>
+      <div class="scrub">
+        <input id="t" type="range" min="0" max="6.4" step="0.01" value="0" aria-label="Timeline">
+        <div class="marks" id="marks"></div>
+      </div>
+      <div class="group" role="group" aria-label="Look">
+        <span class="label">Look</span>
+        <button class="chip" data-look="bronze" aria-pressed="true" type="button">A Bronze</button>
+        <button class="chip" data-look="iron" aria-pressed="false" type="button">B Iron</button>
+        <button class="chip" data-look="ghost" aria-pressed="false" type="button">C Cathedral</button>
+      </div>
+      <div class="group">
+        <button class="chip" id="mastered" aria-pressed="false" type="button">Mastered</button>
+        <button class="chip" id="slow" aria-pressed="false" type="button">Slow-mo</button>
+        <button class="chip" id="sound" aria-pressed="false" type="button">Sound</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <h2>Proposed numbers</h2>
+      <table>
+        <tr><td>Slot</td><td>Tank Knight ability, beside Leap Slam, Shield Wall and Cavalry Call</td></tr>
+        <tr><td>Cooldown</td><td><b>22 s</b></td></tr>
+        <tr><td>Ringing</td><td><b>1.3 s</b> rooted while the bell rings, taking <b>25%</b> less damage</td></tr>
+        <tr><td>Tolls 1–2</td><td><b>120 px</b> ring, <b>8</b> damage, cancels enemy wind-ups</td></tr>
+        <tr><td>Toll 3</td><td><b>260 px</b> shockwave, <b>20</b> damage, <b>24 px</b> shove</td></tr>
+        <tr><td>Stun</td><td><b>2.5 s</b> (bosses <b>0.8 s</b>)</td></tr>
+        <tr><td>Mastered</td><td>Stun <b>3.5 s</b>; the shockwave erases enemy bullets it passes</td></tr>
+        <tr><td>Bots</td><td>Ring it with <b>4+</b> enemies within <b>220 px</b></td></tr>
+      </table>
+    </section>
+    <section class="card">
+      <h2>Three looks</h2>
+      <div class="looks">
+        <div><b>A Bronze:</b> a gold bell on a timber yoke, warm rings, dust on the third toll.</div>
+        <div><b>B Iron:</b> a black-iron tocsin, segmented steel sound bars, a hard white crack.</div>
+        <div><b>C Cathedral:</b> a spectral bell lowered from above, rune rings, no frame.</div>
+      </div>
+      <p class="note">Approximate HTML mock-up: once you pick a look and numbers, it gets ported to the real draw code and shown as <code>Tools/Preview</code> renders.</p>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const W = 960, H = 540;
+const T = [0.30, 0.80, 1.30];          // tolls
+const WAVE = 0.45, R3 = 260, R12 = 120, BOSS = null;
+const ORIGIN = {x:480, y:232}, KN = {x:480, y:300};
+let LOOP = 6.4;
+const S = {t:0, playing:true, look:'bronze', mastered:false, slow:false, sound:false};
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const stunDur = () => S.mastered ? 3.5 : 2.5;
+
+const LOOKS = {
+  bronze:{bell:'#c9973f', shade:'#6e4a1a', hi:'#ffe3a6', ring:'255,207,107', stun:'#ffd76a', crack:'255,240,200'},
+  iron:  {bell:'#5d6772', shade:'#262d35', hi:'#e6eef7', ring:'207,230,255', stun:'#9fd4ff', crack:'255,255,255'},
+  ghost: {bell:'rgba(150,240,230,0.55)', shade:'rgba(40,120,130,0.5)', hi:'#e0fffb', ring:'127,240,224', stun:'#a8fff0', crack:'200,255,250'}
+};
+
+// seeded random
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const enemies = [];
+for (let i = 0; i < 18; i++) {
+  const a = (i / 18) * Math.PI * 2 + rnd() * 0.25, d = (i % 3 === 0 ? 300 : 150) + rnd() * 110;
+  enemies.push({a, d0:d, sp: 18 + rnd()*16, kind: rnd() < .35 ? 'runner' : 'grunt', ph: rnd()*6});
+}
+const bullets = [];
+for (let i = 0; i < 12; i++) bullets.push({a: rnd()*Math.PI*2, s: -0.6 + rnd()*3.2, sp: 130 + rnd()*40});
+
+const easeOut = x => 1 - Math.pow(1 - x, 3);
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const waveR = t => (t < T[2]) ? -1 : (t < T[2] + WAVE ? R3 * easeOut((t - T[2]) / WAVE) : R3);
+const distOrigin = (x,y) => Math.hypot(x - ORIGIN.x, y - ORIGIN.y);
+
+function enemyHit(e){ // time the shockwave reaches it, or null
+  const d = e.d0 - e.sp * T[2];
+  const p = polar(e, Math.max(d, 40));
+  const dd = distOrigin(p.x, p.y);
+  if (dd > R3) return null;
+  return T[2] + WAVE * (1 - Math.cbrt(1 - dd / R3));
+}
+function polar(e, d){ return {x: KN.x + Math.cos(e.a)*d, y: KN.y + Math.sin(e.a)*d*0.92}; }
+function enemyAt(e, t){
+  const h = enemyHit(e), sd = stunDur();
+  const frozen = h == null ? 0 : clamp(t - h, 0, sd);
+  let d = Math.max(e.d0 - e.sp * (t - frozen), 44);
+  let knock = h != null && t > h ? 24 * easeOut(clamp((t - h) / 0.25, 0, 1)) : 0;
+  const p = polar(e, d + knock);
+  const stunned = h != null && t >= h && t < h + sd;
+  return {...p, h, stunned, left: stunned ? 1 - (t - h) / sd : 0};
+}
+function bulletDist(b, t){ return 400 - b.sp * (t - b.s); }
+function bulletErase(b){
+  if (!S.mastered) return null;
+  for (let x = T[2]; x <= T[2] + WAVE; x += 0.005) {
+    const d = bulletDist(b, x); if (x < b.s || d < 26) continue;
+    const p = {x: KN.x + Math.cos(b.a)*d, y: KN.y + Math.sin(b.a)*d};
+    if (distOrigin(p.x, p.y) <= waveR(x)) return {x, p};
+  }
+  return null;
+}
+
+// ---------- drawing ----------
+function arena(){
+  ctx.fillStyle = '#0b1630'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle = 'rgba(90,130,200,0.10)'; ctx.lineWidth = 1;
+  for (let x = 0; x <= W; x += 40){ ctx.beginPath(); ctx.moveTo(x+.5,0); ctx.lineTo(x+.5,H); ctx.stroke(); }
+  for (let y = 0; y <= H; y += 40){ ctx.beginPath(); ctx.moveTo(0,y+.5); ctx.lineTo(W,y+.5); ctx.stroke(); }
+  const g = ctx.createRadialGradient(W/2,H/2,H*0.3,W/2,H/2,H*0.95);
+  g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,0.55)');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+}
+
+function knight(t){
+  const x = KN.x, y = KN.y;
+  const ringing = t > 0.1 && t < T[2] + 0.25;
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(0, 14, 20, 8, 0, 0, 7); ctx.fill();
+  // arm swing on each toll
+  let sw = 0; for (const ti of T){ const a = t - ti + 0.12; if (a > 0 && a < 0.3) sw = Math.sin(a / 0.3 * Math.PI); }
+  ctx.strokeStyle = '#8fa3bf'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(10, -4); ctx.lineTo(16 + sw*4, -26 - sw*10); ctx.stroke();
+  // hammer
+  ctx.save(); ctx.translate(16 + sw*4, -26 - sw*10); ctx.rotate(-0.4 + sw*0.8);
+  ctx.fillStyle = '#c8d4e6'; ctx.fillRect(-7, -6, 14, 8); ctx.restore();
+  // body
+  ctx.fillStyle = '#5c7090'; ctx.beginPath(); ctx.arc(0, 0, 17, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#b9c9e2'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#8fa3bf'; ctx.beginPath(); ctx.arc(0, -3, 9, 0, 7); ctx.fill();
+  ctx.fillStyle = '#ff6b6b'; ctx.fillRect(-2, -16, 4, 9); // plume
+  // tower shield on the left
+  ctx.fillStyle = '#3b4c68'; ctx.strokeStyle = '#ffcf6b'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.roundRect(-30, -12, 12, 26, 3); ctx.fill(); ctx.stroke();
+  if (ringing){ // rooted brace ring
+    ctx.strokeStyle = 'rgba(255,207,107,0.35)'; ctx.setLineDash([4,5]); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, 4, 26, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  }
+  ctx.restore();
+}
+
+function bellPath(){ // local coords, pivot at (0,0), lip at y=50
+  ctx.beginPath();
+  ctx.moveTo(-6, 0); ctx.lineTo(6, 0);
+  ctx.bezierCurveTo(16, 4, 16, 16, 17, 26);
+  ctx.bezierCurveTo(18, 38, 24, 44, 30, 50);
+  ctx.lineTo(-30, 50);
+  ctx.bezierCurveTo(-24, 44, -18, 38, -17, 26);
+  ctx.bezierCurveTo(-16, 16, -16, 4, -6, 0);
+  ctx.closePath();
+}
+
+function bell(t){
+  const L = LOOKS[S.look];
+  const appear = clamp(t / 0.22, 0, 1);
+  const gone = clamp((t - (T[2] + 0.7)) / 0.45, 0, 1);
+  if (appear <= 0 || gone >= 1) return;
+  const drop = S.look === 'ghost' ? (1 - easeOut(appear)) * -140 : (1 - easeOut(appear)) * -70;
+  const alpha = (1 - gone);
+  let ang = 0; for (const ti of T){ const a = t - ti; if (a > 0) ang += Math.sin(a * 22) * Math.exp(-a * 5) * (ti === T[2] ? 0.35 : 0.22); }
+  const px = ORIGIN.x, py = ORIGIN.y - 52 + drop + gone * (S.look === 'ghost' ? -40 : 12);
+  ctx.save(); ctx.globalAlpha = alpha;
+  if (S.look !== 'ghost'){
+    // yoke
+    ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(px, ORIGIN.y + 4, 46, 9, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = S.look === 'bronze' ? '#5a3b1e' : '#2b3038';
+    ctx.fillRect(px - 44, py - 6, 8, 64 - drop*0); ctx.fillRect(px + 36, py - 6, 8, 64);
+    ctx.fillRect(px - 50, py - 10, 100, 9);
+    ctx.fillStyle = S.look === 'bronze' ? '#8a5f32' : '#59636f'; ctx.fillRect(px - 50, py - 10, 100, 3);
+  } else {
+    const g = ctx.createRadialGradient(px, py + 28, 4, px, py + 28, 80);
+    g.addColorStop(0, 'rgba(127,240,224,0.35)'); g.addColorStop(1, 'rgba(127,240,224,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py + 28, 80, 0, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(127,240,224,0.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(px, py - 120); ctx.lineTo(px, py); ctx.stroke();
+  }
+  ctx.translate(px, py); ctx.rotate(ang);
+  // clapper
+  ctx.fillStyle = L.shade; ctx.beginPath(); ctx.arc(Math.sin(-ang*2.2)*14, 48, 5, 0, 7); ctx.fill();
+  bellPath();
+  const g = ctx.createLinearGradient(-30, 0, 30, 0);
+  g.addColorStop(0, L.shade); g.addColorStop(0.35, L.bell); g.addColorStop(0.55, L.hi); g.addColorStop(1, L.shade);
+  ctx.fillStyle = g; ctx.fill();
+  ctx.strokeStyle = S.look === 'iron' ? '#11161c' : L.shade; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = L.shade; ctx.fillRect(-28, 44, 56, 3); ctx.fillRect(-17, 22, 34, 2);
+  ctx.fillStyle = L.hi; ctx.fillRect(-4, -7, 8, 8); // crown
+  // flash on toll
+  for (const ti of T){ const a = t - ti; if (a >= 0 && a < 0.12){ ctx.globalAlpha = alpha * (1 - a/0.12); ctx.fillStyle = '#fff'; bellPath(); ctx.fill(); } }
+  ctx.restore();
+}
+
+function ring(r, w, a, rgb, style){
+  if (r <= 0 || a <= 0) return;
+  ctx.strokeStyle = `rgba(${rgb},${a})`; ctx.lineWidth = w;
+  if (style === 'iron'){
+    const n = Math.max(12, Math.round(r / 9));
+    for (let i = 0; i < n; i++){ const s = i / n * Math.PI * 2; ctx.beginPath(); ctx.arc(ORIGIN.x, ORIGIN.y, r, s, s + Math.PI*2/n*0.62); ctx.stroke(); }
+  } else {
+    ctx.beginPath(); ctx.ellipse(ORIGIN.x, ORIGIN.y, r, r*0.92, 0, 0, 7); ctx.stroke();
+    if (style === 'ghost'){
+      ctx.fillStyle = `rgba(${rgb},${a})`;
+      for (let i = 0; i < 16; i++){ const s = i/16*Math.PI*2 + r*0.004; ctx.fillRect(ORIGIN.x + Math.cos(s)*r - 2, ORIGIN.y + Math.sin(s)*r*0.92 - 2, 4, 4); }
+    }
+  }
+}
+
+function waves(t){
+  const L = LOOKS[S.look];
+  // tolls 1 and 2
+  for (let i = 0; i < 2; i++){
+    const a = t - T[i]; if (a < 0 || a > 0.55) continue;
+    const k = a / 0.55;
+    ring(R12 * easeOut(k), 6 * (1 - k) + 1, 0.9 * (1 - k), L.ring, S.look);
+    ring(R12 * 0.6 * easeOut(k), 3 * (1 - k) + 1, 0.5 * (1 - k), L.ring, S.look);
+  }
+  // toll 3 shockwave
+  const a = t - T[2]; if (a < 0) return;
+  if (a < WAVE + 0.5){
+    const r = waveR(t), k = clamp(a / WAVE, 0, 1), fade = a < WAVE ? 1 : 1 - (a - WAVE) / 0.5;
+    // filled blast
+    const g = ctx.createRadialGradient(ORIGIN.x, ORIGIN.y, 0, ORIGIN.x, ORIGIN.y, Math.max(r, 1));
+    g.addColorStop(0, `rgba(${L.ring},${0.05*fade})`); g.addColorStop(0.8, `rgba(${L.ring},${0.16*fade})`); g.addColorStop(1, `rgba(${L.ring},0)`);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(ORIGIN.x, ORIGIN.y, r, r*0.92, 0, 0, 7); ctx.fill();
+    ring(r, 14 * (1 - k) + 3, 0.95 * fade, L.ring, S.look);
+    ring(r - 16, 3, 0.45 * fade, L.crack, S.look === 'iron' ? 'iron' : 'plain');
+    ring(r * 0.7, 2, 0.3 * fade, L.ring, S.look);
+  }
+  // edge marker of the radius, lingers
+  if (a < 1.4){ ctx.setLineDash([6,8]); ring(R3, 1.2, 0.35 * (1 - a/1.4), L.ring, 'plain'); ctx.setLineDash([]); }
+  // white crack at the moment of toll 3
+  if (a < 0.14){
+    ctx.fillStyle = `rgba(${L.crack},${0.55*(1-a/0.14)})`; ctx.beginPath(); ctx.arc(ORIGIN.x, ORIGIN.y, 40 + a*300, 0, 7); ctx.fill();
+  }
+  // debris / dust
+  if (a < 0.9 && S.look !== 'ghost'){
+    let s2 = 99; const r2 = () => (s2 = (s2 * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 36; i++){
+      const ang = r2() * Math.PI * 2, sp = 140 + r2() * 260, life = 0.5 + r2() * 0.4;
+      if (a > life) continue;
+      const d = sp * a * (1 - a/(life*2));
+      ctx.fillStyle = S.look === 'bronze' ? `rgba(210,170,110,${0.8*(1-a/life)})` : `rgba(220,230,245,${0.8*(1-a/life)})`;
+      const sz = 2 + r2()*3;
+      ctx.fillRect(ORIGIN.x + Math.cos(ang)*d, ORIGIN.y + Math.sin(ang)*d*0.92, sz, sz);
+    }
+  }
+}
+
+function enemyShape(e, p, t){
+  const L = LOOKS[S.look];
+  let flinch = 0;
+  for (let i = 0; i < 2; i++){ const a = t - T[i]; if (a > 0 && a < 0.2 && distOrigin(p.x,p.y) < R12) flinch = 1 - a/0.2; }
+  const wob = p.stunned ? Math.sin(t*28 + e.ph) * 2 * p.left : 0;
+  ctx.save(); ctx.translate(p.x + wob, p.y);
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(0, 10, 12, 5, 0, 0, 7); ctx.fill();
+  const face = Math.atan2(KN.y - p.y, KN.x - p.x);
+  const col = p.stunned ? '#8a7a86' : (e.kind === 'runner' ? '#ff9a4d' : '#ff5a5a');
+  ctx.fillStyle = col;
+  if (e.kind === 'runner'){
+    ctx.rotate(face); ctx.beginPath(); ctx.moveTo(13,0); ctx.lineTo(-9,-9); ctx.lineTo(-9,9); ctx.closePath(); ctx.fill(); ctx.rotate(-face);
+  } else {
+    ctx.beginPath(); ctx.roundRect(-11,-11,22,22,5); ctx.fill();
+    ctx.fillStyle = '#2a0d14'; ctx.fillRect(-6 + Math.cos(face)*3, -3 + Math.sin(face)*3, 4, 4); ctx.fillRect(2 + Math.cos(face)*3, -3 + Math.sin(face)*3, 4, 4);
+  }
+  if (flinch > 0){ ctx.globalAlpha = flinch; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0,0,13,0,7); ctx.fill(); ctx.globalAlpha = 1; }
+  // just hit by shockwave: white pop
+  if (p.h != null && t >= p.h && t < p.h + 0.12){ ctx.globalAlpha = 1 - (t - p.h)/0.12; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0,0,16,0,7); ctx.fill(); ctx.globalAlpha = 1; }
+  if (p.stunned){
+    // draining ring
+    ctx.strokeStyle = L.stun; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.9;
+    ctx.beginPath(); ctx.arc(0, 0, 18, -Math.PI/2, -Math.PI/2 + Math.PI*2*p.left); ctx.stroke();
+    // little bell over the head, shaking, with sound arcs
+    ctx.translate(0, -27); ctx.rotate(Math.sin(t*18 + e.ph)*0.35);
+    ctx.fillStyle = L.stun; ctx.beginPath();
+    ctx.moveTo(-2,-6); ctx.lineTo(2,-6); ctx.quadraticCurveTo(6,-5,6,2); ctx.lineTo(8,5); ctx.lineTo(-8,5); ctx.lineTo(-6,2); ctx.quadraticCurveTo(-6,-5,-2,-6); ctx.fill();
+    ctx.beginPath(); ctx.arc(0,7,2,0,7); ctx.fill();
+    ctx.strokeStyle = L.stun; ctx.lineWidth = 1.5; const k = (t*2 + e.ph) % 1;
+    ctx.globalAlpha = 0.9 * (1 - k);
+    ctx.beginPath(); ctx.arc(0, 0, 9 + k*6, -0.6, 0.6); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, 9 + k*6, Math.PI-0.6, Math.PI+0.6); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawBullets(t){
+  for (const b of bullets){
+    if (t < b.s) continue;
+    const d = bulletDist(b, t); if (d < 24) continue;
+    const er = bulletErase(b);
+    const p = {x: KN.x + Math.cos(b.a)*d, y: KN.y + Math.sin(b.a)*d};
+    if (er && t >= er.x){
+      const a = t - er.x; if (a < 0.22){ ctx.strokeStyle = `rgba(255,255,255,${1 - a/0.22})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(er.p.x, er.p.y, 4 + a*40, 0, 7); ctx.stroke(); }
+      continue;
+    }
+    ctx.fillStyle = '#ff7ad9'; ctx.beginPath(); ctx.arc(p.x, p.y, 4.5, 0, 7); ctx.fill();
+    ctx.fillStyle = '#ffe0f6'; ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, 7); ctx.fill();
+  }
+}
+
+function hud(t){
+  const L = LOOKS[S.look];
+  ctx.font = '700 16px "Chakra Petch", sans-serif'; ctx.fillStyle = '#ffcf6b'; ctx.fillText('SIEGE BELL', 22, 34);
+  for (let i = 0; i < 3; i++){
+    const on = t >= T[i];
+    ctx.beginPath(); ctx.arc(30 + i*20, 52, 6, 0, 7);
+    if (on){ ctx.fillStyle = L.stun; ctx.fill(); } else { ctx.strokeStyle = 'rgba(200,215,240,0.5)'; ctx.lineWidth = 1.5; ctx.stroke(); }
+  }
+  let phase = 'PLANTING';
+  const n = enemies.filter(e => enemyAt(e, t).stunned).length;
+  if (t >= T[0]) phase = 'RINGING';
+  if (t >= T[2]) phase = 'SHOCKWAVE';
+  if (t >= T[2] + WAVE) phase = n ? 'STUNNED' : 'RECOVERING';
+  ctx.font = '600 12px "IBM Plex Mono", monospace'; ctx.fillStyle = 'rgba(200,215,240,0.75)';
+  ctx.fillText(phase + (n ? `  ·  ${n} stunned` : ''), 22, 78);
+  ctx.textAlign = 'right'; ctx.fillText(`t = ${t.toFixed(2)} s`, W - 22, 34); ctx.textAlign = 'left';
+}
+
+function frame(t){
+  ctx.save();
+  const a = t - T[2];
+  if (!reduce && a > 0 && a < 0.35){ const m = 7 * Math.exp(-a*10); ctx.translate(Math.sin(a*90)*m, Math.cos(a*77)*m); }
+  for (let i = 0; i < 2; i++){ const b = t - T[i]; if (!reduce && b > 0 && b < 0.12){ ctx.translate(Math.sin(b*120)*2, 0); } }
+  arena();
+  waves(t);
+  const list = enemies.map(e => ({e, p: enemyAt(e, t)})).sort((u,v) => u.p.y - v.p.y);
+  for (const {e,p} of list) if (p.y < ORIGIN.y) enemyShape(e, p, t);
+  bell(t);
+  knight(t);
+  for (const {e,p} of list) if (p.y >= ORIGIN.y) enemyShape(e, p, t);
+  drawBullets(t);
+  ctx.restore();
+  hud(t);
+}
+
+// ---------- sound ----------
+let ac = null;
+function toll(big){
+  if (!ac) return;
+  const now = ac.currentTime, base = big ? 147 : 196;
+  const out = ac.createGain(); out.gain.value = big ? 0.5 : 0.32; out.connect(ac.destination);
+  [[0.5,1,4],[1,0.8,3],[1.183,0.5,2.2],[1.506,0.45,1.8],[2,0.35,1.4],[2.514,0.25,1],[2.662,0.2,0.9],[3.011,0.15,0.7]].forEach(([r, amp, dec]) => {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.frequency.value = base * r; o.type = 'sine';
+    g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(amp * 0.18, now + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dec * (big ? 1.6 : 1));
+    o.connect(g); g.connect(out); o.start(now); o.stop(now + dec * 1.7);
+  });
+  if (big){ // low thump of the shockwave
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.frequency.setValueAtTime(90, now); o.frequency.exponentialRampToValueAtTime(35, now + 0.4);
+    g.gain.setValueAtTime(0.6, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+    o.connect(g); g.connect(out); o.start(now); o.stop(now + 0.55);
+  }
+}
+
+// ---------- UI ----------
+const range = document.getElementById('t'), playBtn = document.getElementById('play');
+function marks(){
+  const m = document.getElementById('marks'); m.innerHTML = '';
+  const pct = v => (v / LOOP * 100) + '%';
+  T.forEach((v,i) => { const s = document.createElement('span'); s.style.left = pct(v); s.textContent = '♪' + (i+1); m.appendChild(s); });
+  const bar = document.createElement('div'); bar.className = 'stunbar';
+  bar.style.left = pct(T[2] + 0.2); bar.style.width = (stunDur() / LOOP * 100) + '%'; m.appendChild(bar);
+}
+function setPressed(btn, on){ btn.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+document.querySelectorAll('[data-look]').forEach(b => b.addEventListener('click', () => {
+  S.look = b.dataset.look; document.querySelectorAll('[data-look]').forEach(x => setPressed(x, x === b));
+}));
+document.getElementById('mastered').addEventListener('click', e => { S.mastered = !S.mastered; setPressed(e.currentTarget, S.mastered); marks(); });
+document.getElementById('slow').addEventListener('click', e => { S.slow = !S.slow; setPressed(e.currentTarget, S.slow); });
+document.getElementById('sound').addEventListener('click', e => {
+  S.sound = !S.sound; setPressed(e.currentTarget, S.sound);
+  if (S.sound && !ac){ try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch(_){} }
+  if (ac && ac.state === 'suspended') ac.resume();
+});
+playBtn.addEventListener('click', () => { S.playing = !S.playing; playBtn.textContent = S.playing ? 'Pause' : 'Play'; });
+document.getElementById('replay').addEventListener('click', () => { S.t = 0; S.playing = true; playBtn.textContent = 'Pause'; });
+range.addEventListener('input', () => { S.t = +range.value; S.playing = false; playBtn.textContent = 'Play'; });
+
+let last = performance.now();
+function loop(now){
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (S.playing){
+    const prev = S.t;
+    S.t += dt * (S.slow ? 0.35 : 1);
+    if (S.t >= LOOP) S.t = 0;
+    if (S.sound) T.forEach((ti, i) => { if (prev < ti && S.t >= ti) toll(i === 2); });
+    range.value = S.t;
+  }
+  frame(S.t);
+  requestAnimationFrame(loop);
+}
+// crisp canvas
+const dpr = Math.min(2, window.devicePixelRatio || 1);
+cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+const _save = ctx.save.bind(ctx);
+marks();
+if (reduce){ S.t = 2.2; S.playing = false; playBtn.textContent = 'Play'; }
+frame(S.t);
+requestAnimationFrame(loop);
+})();
+</script>

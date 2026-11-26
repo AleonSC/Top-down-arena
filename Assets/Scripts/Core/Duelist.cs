@@ -21,11 +21,8 @@ namespace Arena
 
     /// Everything about the Duelist's fight its body doesn't carry. The host runs it; clients get it in the
     /// snapshot (SyncDuel) to draw the warning lines, the guard, the salute, the stagger, the blades and the circle.
-    public class DuelState
+    public class DuelState : BossFight<DuelStage, DuelTurn>  // TransT: > 0 changing phase (can't be hurt), counting down; Fired: the moves made
     {
-        public DuelStage Stage, TransTo;
-        public DuelTurn Turn;
-        public float TurnT, TransT;      // seconds into the turn; > 0: changing phase (can't be hurt), counting down
         public DuelDash Dash;
         public float DashWarn;           // > 0: the warning line is showing, the dash hasn't started
         public V2 DashFrom;
@@ -36,8 +33,8 @@ namespace Arena
         public readonly List<DuelBlade> Blades = new List<DuelBlade>();
 
         // Host only.
-        public int Step = -1, Done, Volley, RealSlot, MaskShot, Diagonal;
-        public float TurnLen, MaskAng, MaskT, FlourishT;
+        public int Volley, RealSlot, MaskShot, Diagonal;
+        public float MaskAng, MaskT, FlourishT;
         public bool Connected;           // the salute's strike reached someone (so no rake at the end)
     }
 
@@ -87,7 +84,7 @@ namespace Arena
         static readonly float[] LungeAt = { 0f, 1.3f, 2.6f }, ChainAt = { 0f, 1f, 2f }, CrossAt = { 0f, 2.4f }, SaluteAt = { 0f, 2.2f },
             FlurryAt = { 0f, 0.2f, 0.4f, 0.6f, 0.8f, 2f, 2.2f, 2.4f, 2.6f, 2.8f }, BlinkAt = { 0f }, NoMoves = new float[0];
 
-        DuelState DuelOf(Enemy e) => e.Duel ?? (e.Duel = new DuelState());
+        DuelState DuelOf(Enemy e) => BossOf<DuelState>(e);
 
         public static bool DuelImmune(Enemy e) => e.Type == EnemyType.Duelist && e.Duel != null && e.Duel.TransT > 0f;
 
@@ -164,10 +161,12 @@ namespace Arena
                 return;
             }
             bool busy = s.Dash != DuelDash.None || s.SaluteT > 0f;
-            if (s.Stage == DuelStage.EnGarde && frac <= DuelMasqueradeAt && !busy) { StartDuelTransition(e, DuelStage.Masquerade); return; }
-            if (s.Stage == DuelStage.Masquerade && frac <= DuelDeathAt && !busy) { StartDuelTransition(e, DuelStage.ToTheDeath); return; }
-            if (s.Stage == DuelStage.ToTheDeath && frac <= DuelLastAt && !busy)
-                EnterDuelStage(e, DuelStage.LastStand);  // straight away, as the others do
+            BossStage to;  // its stage table (BossStages.cs)
+            if (!busy && NextStage(e.Type, (byte)s.Stage, frac, out to))
+            {
+                if (to.How != StageEntry.Instant) { StartDuelTransition(e, (DuelStage)to.Stage); return; }
+                EnterDuelStage(e, (DuelStage)to.Stage);  // straight away, as the others' last stands do
+            }
 
             s.TurnT += dt;
             if (s.StaggerT > 0f)
@@ -183,11 +182,11 @@ namespace Arena
 
             // This turn's moves, on time (missed while it reels from a parry).
             var moves = DuelMoves(s.Turn);
-            while (s.Done < moves.Length && s.TurnT >= moves[s.Done])
+            while (s.Fired < moves.Length && s.TurnT >= moves[s.Fired])
             {
                 if (s.StaggerT <= 0f)
-                    DuelMove(e, s, s.Done, tpos);
-                s.Done++;
+                    DuelMove(e, s, s.Fired, tpos);
+                s.Fired++;
             }
             if (s.Turn == DuelTurn.Flourish && s.StaggerT <= 0f && !busy && (s.FlourishT -= dt) <= 0f)
             {
@@ -462,12 +461,8 @@ namespace Arena
         {
             if (s.Turn == DuelTurn.Masquerade)
                 ClearDuelDecoys(e, true);
-            var turns = DuelTurns[(int)s.Stage];
-            s.Step = (s.Step + 1) % turns.Length;
-            s.Turn = turns[s.Step];
-            s.TurnLen = DuelTimes[(int)s.Stage][s.Step];
-            s.TurnT = 0f;
-            s.Done = 0;
+            s.NextTurn(this, DuelTurns, DuelTimes);
+            s.Fired = 0;
             e.FireT = 0.4f;
             if (s.Turn == DuelTurn.Guard)
                 BroadcastSound(Sfx.Clang);  // blade up

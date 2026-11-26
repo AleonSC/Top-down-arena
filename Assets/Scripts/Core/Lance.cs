@@ -327,11 +327,11 @@ namespace Arena
                 return false;
             hookLocalCd = HookCooldown;
             if (IsHost)
-                HostWeaponDash(MyId, DashHook, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.Hook, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashHook);
+                w.Write(WeaponAlt.Hook);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

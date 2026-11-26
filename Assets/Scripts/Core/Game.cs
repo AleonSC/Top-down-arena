@@ -396,6 +396,8 @@ namespace Arena
         public void OnPeerLeft(int id)
         {
             Players.Remove(id);
+            if (MapVotes.Remove(id) | MapLocked.Remove(id))
+                BroadcastHuntMap();  // a hunt-map vote from someone who left no longer counts (HuntMapGame.cs)
         }
 
         // --- Upgrades ----------------------------------------------------------
@@ -503,7 +505,7 @@ namespace Arena
             for (int i = 0; i < p.Slots.Length; i++)
             {
                 var s = p.Slots[i];
-                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.ArterialSpray && p.SprayOn || s.Id == AbilityId.BloodWall && p.BloodWallOn || s.Id == AbilityId.LastStand && p.StandOn || s.Id == AbilityId.CaughtSteel && p.SteelT > 0f)
+                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.ArterialSpray && p.SprayOn || s.Id == AbilityId.BloodWall && p.BloodWallOn || s.Id == AbilityId.LastStand && p.StandOn || s.Id == AbilityId.TrojanHorse && HorseOut(p) || s.Id == AbilityId.CaughtSteel && p.SteelT > 0f)
                     continue;  // (the Stun Gun's cooldown waits until its shots are spent)
                 if (HangoutOn)
                 {
@@ -945,6 +947,7 @@ namespace Arena
                 session.SendToHost(Proto.End(pw));
             }
             NoteDuelBetweenWaves();  // GatekeeperRoom.cs (every game: enemies and kits fight in a duel between waves)
+            StaleEnemyIndex();  // EnemyIndex.cs: regather the enemies by type this tick
             if (IsHost)
             {
                 hostClock += dt;  // (every host tick, whatever the state: Dodge.cs times clients' dodges by it)
@@ -1160,6 +1163,7 @@ namespace Arena
                 else if (me.Offer == null && ShopOpen && !me.ShopDone && MathX.Fmod(botT, 0.5f) < dt)
                     BotShop(me);  // Shop.cs
                 BotGate(me, ref move);      // into the boss gate (BossGate.cs)
+                BotHorse(me, ref move, dt); // climb into a Trojan Horse (TrojanHorse.cs)
                 BotMysteryDoor(me, ref move);  // open a mystery door it can pay for, between waves (MysteryDoors.cs)
                 BotTreasure(me, ref move);  // open the chest and take your item (Props.cs)
                 BotRoom(me, ref move);      // a portal, a zone, the crystal, the altar (Challenges.cs)
@@ -1180,16 +1184,26 @@ namespace Arena
                 move = V2.Zero;  // the Katana's Momentum Burst: planted for a moment (Katana.cs)
                 firing = false;
             }
+            if (BellRooted(me))
+                move = V2.Zero;  // braced under your Siege Bell while it rings (SiegeBell.cs)
+            if (Riding(me))
+            {
+                move = V2.Zero;  // inside a Trojan Horse: it carries you (TrojanHorse.cs)
+                DashT = 0f;
+            }
             if (Seated(me))
             {
                 move = V2.Zero;  // sitting in your Deployable Turret: rooted, and it fires instead of your weapon (DeployableTurret.cs)
                 DashT = 0f;
+                var ba = BallistaOf(me);
+                if (ba != null)
+                    me.Pos = BaSeat(ba);  // on a Ballista: in its seat, behind the bow (Ballista.cs)
             }
             if (me.Weapon.Id == WeaponId.ArcKnuckles && (me.KnuckleChain == 2 || me.KnuckleChain == 4 || me.KnuckleRooted) && DashT <= 0f)
                 move = V2.Zero;  // the Arc Knuckles' Flurry, Grab & Throw and Barrage: rooted while they run (ArcKnucklesChain.cs, ArcKnucklesBrawl.cs)
             bool oathClick = LocalOathPick(me, aimAt, input.Fire && !Bot, ref firing);  // Guardian's Oath: Fire picks the ally instead of shooting (GuardiansOath.cs)
             bool hospClick = LocalHospPick(me, aimAt, input.Fire && !Bot, ref firing);  // Field Hospital: Fire picks the door instead of shooting (FieldHospital.cs)
-            float bowRelease = LocalBow(me, firing, dt);
+            float bowRelease = LocalBow(me, firing && !Riding(me), dt);  // (in a Trojan Horse: arrows, no charge: TrojanHorse.cs)
             if (me.Downed)
                 DashT = 0f;
             else if (DashT > 0f)
@@ -1280,6 +1294,14 @@ namespace Arena
             }
             else
                 PitLocal(me, before);  // over a pit: fall, climb out on the rim (Pits.cs)
+            var myHorse = HorseOf(me);
+            if (myHorse != null)
+            {
+                me.Pos = myHorse.Pos;  // inside a Trojan Horse: you go where it goes (TrojanHorse.cs)
+                DashT = 0f;
+                shoveT = 0f;
+                knockLeft = 0f;
+            }
 
             for (int slot = 0; slot < held.Length; slot++)
             {
@@ -1325,7 +1347,7 @@ namespace Arena
                     continue;  // Senbon Seekers holding all its needles (SenbonSeekers.cs)
                 if ((me.StandOn || Seated(me)) && MovesYou(me.Slots[slot].Id))
                     continue;
-                if (TankOn(me) || ArmOn(me))
+                if (TankOn(me) || ArmOn(me) || Riding(me))
                     continue;  // curled up in Iron Armadillo (IronArmadillo.cs), or in A Literal Tank: no abilities (LiteralTank.cs)  // planted: nothing that would carry you off (LastStand.cs)
                 bool orbitOut = OrbitRelease(me, slot);  // Blade Fan pressed again: the host throws the kunai (Ninja.cs)
                 bool harvestOut = HarvestPress(me, slot);  // Crimson Harvest pressed again: the host throws the ball (CrimsonHarvest.cs)
@@ -1431,7 +1453,7 @@ namespace Arena
 
             LocalDodge(me, move, dodgePress, dodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
             me.Sprint = (byte)Math.Round(SprintFade * 255f);  // for everyone else's wake (sent in Msg.Input, then the snapshot)
-            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me) && !ArmOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
+            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me) && !ArmOn(me) && !Riding(me), dt);  // weapon secondaries on their own key (Ninja.cs)
             if (LocalLivingBolt(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // electrified: Fire is the dash (LivingBolt.cs)
             if (LocalRavager(me, firing && !HoldControls, dt))
@@ -1519,10 +1541,13 @@ namespace Arena
             TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickTanks(dt);      // LiteralTank.cs: the tank's time, running enemies over, getting out
+            TickHorseRiders(dt);  // TrojanHorse.cs: riders of a horse that's gone, Sally Forth's time
             TickArmadillo(dt);  // IronArmadillo.cs: the ball's time, its speed and hits, the uncurl slam
             TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders
+            TickGolem(dt);      // BloodGolem.cs: the gather, the golem's swings, shedding, clots and collapse
             TickSpirit(dt);     // SpiritAvatar.cs: the spirit's time, Moon Cleaves and swallowed shots
             TickGaleWalls(dt);  // GaleWall.cs: lenses run down and unleash
+            TickSanctumGlass(dt);  // SanctumGlass.cs: panes run down and shatter, motes land and heal
             TickWaterWards(dt);    // WaterWard.cs: the drops circle, land, spread and splash
             TickHarvest(dt);    // CrimsonHarvest.cs: blood torn out, the ball held and thrown
             TickBloodFreeze(dt);  // BloodFreeze.cs: the shockwave freezing what it reaches
@@ -1546,6 +1571,7 @@ namespace Arena
             TickStaff(dt);      // Quarterstaff.cs: the jab's cooldown, stacks dropped with the staff
             TickScatter(dt);    // BowFocus.cs: the Mender's Bow's Alt cooling down
             TickBowWind(dt);    // BowFocus.cs: Focus arrows' wind shoving what they pass
+            TickBallistaBolts(dt);  // Ballista.cs: its bolts knocking what they pass and the shots in their path
             dmgSrc = tickSrc;
             TickRepulsion(dt);  // Repulsion.cs: the Undertow pulling and draining its meter
             TickTwinRifle(dt);  // TwinGrenades.cs: the grenade tubes' cooldown, emptied with the rifle
@@ -1554,6 +1580,7 @@ namespace Arena
             TickWindWaves(dt);  // WindClash.cs: Wind Clash's waves and Tempests
             TickArcBalls(dt);   // StaticShock.cs: Arc Cannon balls and bursts
             TickTessenPetals(dt);  // TwinTessen.cs: the Petal Spin's petals landing
+            TickHeartDrops(dt);  // HeartFlail.cs: the Heart Flail's blood drops landing
             TickHive(dt);       // HiveCenser.cs: the Hive Censer's insects settling, swarms hunting and wrapping, chitin
             TickBloodBlast(dt);  // BloodBlast.cs: Blood Blast's returning blood
             TickTide(dt);       // BloodBlast.cs: Crimson Tides gathering and rolling out
@@ -1733,6 +1760,7 @@ namespace Arena
                 TickNodachi(p, dt);  // the Nodachi's step clock and the Guard's cone (Nodachi.cs)
                 TickTwinPistols(p, dt);  // Laser Sights running down, its key cooling down (TwinPistols.cs)
                 TickTessen(p, dt);  // the Twin Tessen's gust charge and cooldown, Tailwind (TwinTessen.cs)
+                TickHeartFlail(p, dt);  // the Heart Flail's swing, spin, thrown heart and beat (HeartFlail.cs)
                 p.DumpCd = Math.Max(0f, p.DumpCd - dt);  // the Railgun's Heat Dump (RailBeam.cs)
                 if (p.Weapon.Id != WeaponId.StaticShock && p.StaticOn)
                     ClearStaticShock(p);  // (StaticShock.cs)
@@ -1757,8 +1785,10 @@ namespace Arena
                     continue;  // (nothing to shoot from inside the Devourer, or mid beam-in)
                 if (Seated(p))
                 {
-                    // sitting in a Deployable Turret: it fires (TickDeployTurret), not your weapon
+                    // sitting in a Deployable Turret or riding a Ballista: it fires (TickDeployTurret, TickBallista), not your weapon
                 }
+                else if (Riding(p))
+                    TickHorseBow(p, dt);  // in a Trojan Horse: arrows out of its slits, not your weapon (TrojanHorse.cs)
                 else if (TankOn(p))
                     TickTankGun(p, dt);
                 else if (ArmOn(p))
@@ -1783,6 +1813,8 @@ namespace Arena
                 }
                 else if (ColOn(p))
                     ColossusTrigger(p);  // the golem: Fire slams, the weapon is put away (StoneColossus.cs)
+                else if (GolOn(p))
+                    GolemTrigger(p);  // Blood Golem: Fire punches, the weapon is put away (BloodGolem.cs)
                 else if (SpOn(p))
                     SpiritTrigger(p);  // Spirit Avatar: Fire is the Moon Cleave, the weapon is put away (SpiritAvatar.cs)
                 else if (p.StunShots > 0)
@@ -1791,6 +1823,8 @@ namespace Arena
                     RevolverTrigger(p, dt);  // a single-action gun, or the Fan stance's whip and fan (Weapons.cs, PistolWhip.cs)
                 else if (p.Weapon.Id == WeaponId.DoubleBarrel)
                     TickDoubleBarrel(p, dt);
+                else if (p.Weapon.Id == WeaponId.HeartFlail)
+                    HfTrigger(p, dt);  // a click swings, held spins; never a volley (HeartFlail.cs)
                 else if (p.Weapon.Id == WeaponId.GrenadeLauncher)
                     TickGrenadeLauncher(p, dt);  // the drums, the reload, the smoke (GrenadeLauncher.cs)  // two shells, a break-open reload (DoubleBarrel.cs)
                 else if (p.Weapon.Id == WeaponId.Stonespear)

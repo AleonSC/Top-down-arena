@@ -52,9 +52,6 @@ namespace Arena
         readonly Dictionary<int, float> dogmaBit = new Dictionary<int, float>();  // host: (player id * 100000 + enemy id) -> seconds until it can bite that big one again
         readonly List<int> dogmaBitKeys = new List<int>();
 
-        /// It's out (hunting or heading home).
-        public static bool DogmaOut(Player p) => p.DogmaOn;
-
         void CastDogma(Player p, bool mastered)
         {
             float time = mastered ? DogmaTimeMastered : DogmaTime;

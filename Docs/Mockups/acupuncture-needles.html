@@ -53,7 +53,7 @@ ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-wid
 <main>
 <header>
   <h1>Acupuncture Needles</h1>
-  <p>Healer Ninja weapon rework, replacing Medicine Darts. Fire places healing needles in teammates' pressure points. Alt drives bloodletting needles into enemies that cut and bleed them. Animated sketch; shapes and speeds are approximate, not the game's draw code.</p>
+  <p>Healer Ninja weapon rework, replacing Medicine Darts. Built in the game (protocol 516). Fire places healing needles in teammates' pressure points. Alt drives bloodletting needles into enemies that cut and bleed them. Animated sketch; shapes and speeds are approximate, not the game's draw code.</p>
 </header>
 
 <section class="stage" aria-labelledby="stage-h">
@@ -83,11 +83,11 @@ ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-wid
       <p>A fast needle that passes through enemies and sticks in the first teammate it meets. Each needle heals over time; up to five at once.</p>
       <dl><dt>Fire rate</dt><dd>0.18 s</dd><dt>Speed</dt><dd>900 px/s</dd><dt>Heal</dt><dd>3 HP/s per needle, 4 s</dd><dt>Max needles</dt><dd>5 per teammate</dd></dl></div>
     <div class="card"><span class="tag heal">Fire, 5th needle</span><h3>Meridian Open</h3>
-      <p>The fifth needle pulls all five out in a jade ring: the healing they had left lands at once, plus a burst.</p>
-      <dl><dt>Burst</dt><dd>+15 HP</dd><dt>Also</dt><dd>+ remaining dose</dd><dt>Then</dt><dd>needles reset to 0</dd></dl></div>
+      <p>The fifth needle pulls all five out in a jade ring for a burst of healing.</p>
+      <dl><dt>Burst</dt><dd>+15 HP</dd><dt>Then</dt><dd>needles reset to 0</dd></dl></div>
     <div class="card"><span class="tag bleed">Alt</span><h3>Bloodletting</h3>
       <p>Three long needles thrown in a tight fan. Each cuts on hit, sticks, and adds a bleed stack (the game's existing bleed).</p>
-      <dl><dt>Cooldown</dt><dd>0.9 s</dd><dt>Damage</dt><dd>10 per needle</dd><dt>Bleed</dt><dd>3 /s per needle, 4 s</dd><dt>Max needles</dt><dd>5 per enemy</dd></dl></div>
+      <dl><dt>Cooldown</dt><dd>0.9 s</dd><dt>Damage</dt><dd>10 per needle</dd><dt>Bleed</dt><dd>3 /s a stack, 3 s</dd><dt>Max needles</dt><dd>5 per enemy</dd></dl></div>
     <div class="card"><span class="tag bleed">Alt, 5th needle</span><h3>Pressure Point</h3>
       <p>The fifth needle in one enemy bursts them all out of the wound: a hit, and the bleed refreshed at full stacks.</p>
       <dl><dt>Burst</dt><dd>25 damage</dd><dt>Bleed</dt><dd>refreshed, 4 s</dd><dt>Bosses</dt><dd>burst 15</dd></dl></div>
@@ -213,8 +213,7 @@ function throwNeedle(tx, ty, kind, spread = 0) {
 function stickAlly(a, s) {
   a.needles.push({ ang: s.ang + Math.PI + (Math.random() - .5) * .5, t: 4 });
   if (a.needles.length >= 5) {
-    const left = a.needles.reduce((m, n) => m + n.t * 3, 0);
-    const amt = Math.round(15 + left); a.hp = Math.min(100, a.hp + amt);
+    const amt = 15; a.hp = Math.min(100, a.hp + amt);
     fx.push({ k: 'ring', x: a.x, y: a.y, t: 0, c: JADE });
     a.needles.forEach(n => fx.push({ k: 'shard', x: a.x + Math.cos(n.ang) * 12, y: a.y + Math.sin(n.ang) * 12, vx: Math.cos(n.ang) * 90, vy: Math.sin(n.ang) * 90, ang: n.ang, t: 0, c: JADE }));
     a.needles = []; text(a.x, a.y - 26, 'MERIDIAN +' + amt, JADE);

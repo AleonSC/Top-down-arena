@@ -344,8 +344,6 @@ namespace Arena
             return c;
         }
 
-        public static Category CategoryOf(Sfx s) => categories[(int)s];
-
         float CategoryVolume(Sfx s)
         {
             switch (categories[(int)s])
@@ -420,6 +418,7 @@ namespace Arena
                 BuildFrost();  // FrostSoundBank.cs
                 BuildBloodBlast();  // BloodBlastSoundBank.cs
                 BuildWarhorn();  // WarhornSoundBank.cs
+                BuildSiegeBell();  // SiegeBellSoundBank.cs
                 BuildOrbital();  // OrbitalSoundBank.cs
                 BuildRodent();  // RodentSoundBank.cs
                 BuildRioter();  // RioterSoundBank.cs

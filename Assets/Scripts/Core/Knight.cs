@@ -721,10 +721,14 @@ namespace Arena
                 Apply = s => { s.SlamRadiusMult += 0.4f; s.SlamStunBonus += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CavalryCall, MaxStacks = 2, Name = "Iron Will", Desc = "Cavalry Call blocks 10% more damage while the lancers ride and every lance hits for 10 more",
                 Apply = s => { s.UnbreakBonus += 0.1f; s.CavalryDmgBonus += 10f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SiegeBell, MaxStacks = 2, Name = "Great Bell", Desc = "Siege Bell's shockwave reaches 25% farther and stuns for 0.5 s longer",
+                Apply = s => { s.BellRadiusMult += 0.25f; s.BellStunBonus += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Consecrate, MaxStacks = 2, Name = "Sacred Ground", Desc = "Consecrate flies 40% farther and its Swiftness lasts 2 s longer",
                 Apply = s => { s.HolyRangeMult += 0.4f; s.HolySwiftBonus += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GuardiansOath, MaxStacks = 2, Name = "Bulwark", Desc = "Guardian's Oath ward cuts 15% more damage", Apply = s => s.OathCut += 0.15f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LayOnHands, MaxStacks = 2, Name = "Miracle", Desc = "Lay on Hands heals 60% more and reaches 30% further", Apply = s => s.LayMult += 0.6f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SanctumGlass, MaxStacks = 2, Name = "Rose Window", Desc = "Sanctum Glass can heal 40% more before it shatters",
+                Apply = s => s.GlassCapMult += 0.4f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BladedDive, MaxStacks = 2, Name = "Coup de Grace", Desc = "Bladed Dive's cuts deal 25% more damage and it rushes 40 px further",
                 Apply = s => { s.BladedDamage += 0.25f; s.BladedReach += 40f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Gauntlet, MaxStacks = 2, Name = "Iron Grip", Desc = "The Gauntlet flies 40% further and its charge hits 50% harder",
@@ -733,6 +737,8 @@ namespace Arena
                 Apply = s => { s.SteelDamage += 8f; s.SteelReach += 6f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.WarhornVolley, MaxStacks = 2, Name = "Bodkin Points", Desc = "Warhorn Volley's arrows hit 25% harder and the volley is 20% wider",
                 Apply = s => { s.VolleyDamage += 0.25f; s.VolleyWide += 0.2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Ballista, MaxStacks = 2, Name = "Windlass", Desc = "The Ballista holds 2 more bolts and reloads 25% faster",
+                Apply = s => { s.BaWindlass++; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Knight, MaxStacks = 2, Name = "Plate Armour", Desc = "Take 8% less damage, and your swings cut bullets out of the air 20% farther out",
                 Apply = s => { s.DamageTaken *= 0.92f; s.CutReachMult += 0.2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Warhammer }, MaxStacks = 2, Name = "Quake Hammer", Desc = "The Warhammer's slam is 20% wider and stuns 0.3 s longer",
@@ -765,63 +771,77 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ShieldWall, Kit = Kit.Knight, Role = Role.Tank, Choice = 0,
-                Name = "Shield Wall", Cooldown = 12f, Desc = "Raise a wall of steel plates that blocks bullets at your front.",
+                Name = "Shield Wall", Icon = "towershield", Cooldown = 12f, Desc = "Raise a wall of steel plates that blocks bullets at your front.",
                 Capstone = "Bullets that hit the shield are reflected back as your own.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.LeapSlam, Kit = Kit.Knight, Role = Role.Tank, Choice = 1,
-                Name = "Leap Slam", Cooldown = 9f, Desc = "Leap to your cursor untouchable, then slam and stun.",
+                Name = "Leap Slam", Icon = "earthshaker", Cooldown = 9f, Desc = "Leap to your cursor untouchable, then slam and stun.",
                 Capstone = "The landing also erases enemy bullets within 160 px.",
                 Bot = b => b.HaveTarget && b.TargetD > 140f && b.TargetD < 340f || b.BotDanger > 2.5f,
             },
             new AbilityDef
             {
                 Id = AbilityId.CavalryCall, Kit = Kit.Knight, Role = Role.Tank, Choice = 2,
-                Name = "Cavalry Call", Cooldown = 18f, Desc = "Two lancers charge across the map, shoving and slowing enemies.",
+                Name = "Cavalry Call", Icon = "ironwill", Cooldown = 18f, Desc = "Two lancers charge across the map, shoving and slowing enemies.",
                 Capstone = "Two more lancers ride outside the first pair, and the guard lasts 5 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 700f,
             },
             new AbilityDef
             {
+                Id = AbilityId.SiegeBell, Kit = Kit.Knight, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (SiegeBell.cs)
+                Name = "Siege Bell", Icon = "siegebell", Cooldown = BellCooldown, Desc = "Ring a ghostly bell three times; the last toll's shockwave stuns enemies around it.",
+                Capstone = "The stun lasts 3.5 s and the shockwave erases enemy bullets.",
+                Bot = b => b.NearEnemies >= 4 && b.TargetD < 220f,
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.Consecrate, Kit = Kit.Knight, Role = Role.Healer, Choice = 0,
-                Name = "Consecrate", Cooldown = 14f, Desc = "Throw a Holy Cross that heals and speeds allies and hurts enemies.",
+                Name = "Consecrate", Icon = "sacredground", Cooldown = 14f, Desc = "Throw a Holy Cross that heals and speeds allies and hurts enemies.",
                 Capstone = "Two more crosses fly out at 22 degrees either side (each target is hit once).",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.GuardiansOath, Kit = Kit.Knight, Role = Role.Healer, Choice = 1,
-                Name = "Guardian's Oath", Cooldown = 15f, Desc = "Haul an ally to safety and protect everyone in a ward of light.",
+                Name = "Guardian's Oath", Icon = "bulwark", Cooldown = 15f, Desc = "Haul an ally to safety and protect everyone in a ward of light.",
                 Capstone = "Charges up to 800 px. The ward is wider, follows you, and stands a downed ally back up at 25% health.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.LayOnHands, Kit = Kit.Knight, Role = Role.Healer, Choice = 2,
-                Name = "Lay on Hands", Cooldown = 18f, Desc = "Heal the most hurt ally, or revive a downed one.",
+                Name = "Lay on Hands", Icon = "miracle", Cooldown = 18f, Desc = "Heal the most hurt ally, or revive a downed one.",
                 Capstone = "Also heals everyone else near them for half as much.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
+                Id = AbilityId.SanctumGlass, Kit = Kit.Knight, Role = Role.Healer, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (SanctumGlass.cs)
+                Name = "Sanctum Glass", Icon = "sanctumglass", Cooldown = 16f, Desc = "Raise a pane of stained glass ahead that turns enemy shots passing through into healing.",
+                Capstone = "The pane is 40% wider and its motes heal 50% more.",
+                Bot = b => b.Danger || b.AllyHurt,
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.BladedDive, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Instant = true,  // Bladed Dive (BladedDive.cs) so the numbers stay put
-                Name = "Bladed Dive", Cooldown = 10f, Desc = "Rush forward untouchable with a spinning blade; a kill resets the cooldown.",
+                Name = "Bladed Dive", Icon = "bladeddive", Cooldown = 10f, Desc = "Rush forward untouchable with a spinning blade; a kill resets the cooldown.",
                 Capstone = "Each kill heals you 5% of your health.",
                 Bot = b => b.HaveTarget && b.TargetD < 260f,
             },
             new AbilityDef
             {
                 Id = AbilityId.Gauntlet, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Instant = true,  // The Gauntlet (Gauntlet.cs); the id is Lunge's
-                Name = "The Gauntlet", Cooldown = 9f, Desc = "Challenge an enemy and charge it; kill it in time to reset the cooldown.",
+                Name = "The Gauntlet", Icon = "gauntlet", Cooldown = 9f, Desc = "Challenge an enemy and charge it; kill it in time to reset the cooldown.",
                 Capstone = "The Challenge lasts 8 s, and the charge's impact stuns for 1 s.",
                 Bot = b => b.HaveTarget && b.TargetD > 90f && b.TargetD < 380f,
             },
             new AbilityDef
             {
                 Id = AbilityId.CaughtSteel, Kit = Kit.Knight, Role = Role.Dps, Choice = 2,  // Caught Steel (CaughtSteel.cs)
-                Name = "Caught Steel", Cooldown = 16f, Desc = "Catch passing bullets as steel, then hurl them back.",
+                Name = "Caught Steel", Icon = "caughtsteel", Cooldown = 16f, Desc = "Catch passing bullets as steel, then hurl them back.",
                 Capstone = "Holds up to 18 shards.",
                 Bot = b => b.Danger,
             },
@@ -848,7 +868,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.WarhornVolley, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult, UltKey = 1,  // picked instead of the Drawbridge on the lobby's Ultimate row (WarhornVolley.cs)
-                Name = "Warhorn Volley", Cooldown = 70f,
+                Name = "Warhorn Volley", Icon = "firearrows", Cooldown = 70f,
                 Desc = "A volley of fire arrows sweeps the field, burning and pinning enemies.",
                 Capstone = "The volley is 40% wider and the fire burns for 8 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 900f,
@@ -883,6 +903,9 @@ namespace Arena
                     return true;
                 case AbilityId.CavalryCall:
                     CastCavalryCall(p, target, cap, pw);  // CavalryCall.cs
+                    return true;
+                case AbilityId.SiegeBell:  // Siege Bell (SiegeBell.cs)
+                    CastSiegeBell(p, pw, cap);
                     return true;
                 case AbilityId.Consecrate:
                 {
@@ -919,6 +942,9 @@ namespace Arena
                     }
                     return true;
                 }
+                case AbilityId.SanctumGlass:
+                    CastSanctumGlass(p, cap);  // SanctumGlass.cs
+                    return true;
                 case AbilityId.BladedDive:
                     CastBladedDive(p, target, pw, cap);  // BladedDive.cs
                     return true;
@@ -955,6 +981,9 @@ namespace Arena
                 case AbilityId.WarhornVolley:
                     CastWarhornVolley(p, target, cap, pw);  // WarhornVolley.cs (picked instead of the Drawbridge)
                     return true;
+                case AbilityId.Ballista:
+                    CastBallista(p, target, cap);  // Ballista.cs (key 2)
+                    return true;
             }
             return false;
         }
@@ -978,6 +1007,7 @@ namespace Arena
             TickSteel(dt);      // CaughtSteel.cs
             TickGauntlets(dt);  // Gauntlet.cs
             TickBladed(dt);      // BladedDive.cs
+            TickBells(dt);       // SiegeBell.cs: the tolls and the shockwave
             foreach (var p in Players.Values)
             {
                 p.UnbreakT = Math.Max(0f, p.UnbreakT - dt);

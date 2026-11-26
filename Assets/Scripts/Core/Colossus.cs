@@ -65,11 +65,9 @@ namespace Arena
 
     /// Everything about the Colossus's fight its body doesn't carry. The host runs it; clients get it in the snapshot
     /// (SyncColossus) to draw the rings, landings, fissures, plates, pillars, the charge line and the phase change.
-    public class ColossusState
+    public class ColossusState : BossFight<ColStage, ColTurn>
     {
-        public ColStage Stage, TransTo;
-        public ColTurn Turn;
-        public float TurnT, TransT, DazeT, ChargeWarn, ChargeLeft, ChargeDir;
+        public float DazeT, ChargeWarn, ChargeLeft, ChargeDir;
         public bool Stagger;  // replicated: kneeling, stunned, at the end of a phase; hits fill Break instead of hurting it
         public float Break;   // replicated: 0-1, how broken (at 1 its shell blasts off and TransTo starts)
         public float HoldT;   // replicated: lifting a boulder over its head (seconds left before the throw)
@@ -82,9 +80,9 @@ namespace Arena
         public readonly List<ColPillar> Pillars = new List<ColPillar>();
 
         // Host only.
-        public int Step = -1, Fired, SlideEdge, SlideGap, NextTarget, StompSide = 1, HoldTarget;
+        public int SlideEdge, SlideGap, NextTarget, StompSide = 1, HoldTarget;
         public bool Cycling;  // a Fissures turn waking the five scars on the floor in turn
-        public float TurnLen, ActT, GapA, ShockA, MeteorT, LavaTickT;
+        public float GapA, ShockA, MeteorT, LavaTickT;
         public readonly Dictionary<int, V2> LastPos = new Dictionary<int, V2>(), Vel = new Dictionary<int, V2>();
     }
 
@@ -143,7 +141,7 @@ namespace Arena
             new[] { 999f },
         };
 
-        ColossusState ColOf(Enemy e) => e.Colossus ?? (e.Colossus = new ColossusState());
+        ColossusState ColOf(Enemy e) => BossOf<ColossusState>(e);
 
         public static bool ColossusImmune(Enemy e) => e.Type == EnemyType.Colossus && e.Colossus != null && e.Colossus.TransT > 0f;
 
@@ -233,9 +231,12 @@ namespace Arena
                 e.Phase = ColShift;
                 return;
             }
-            if (c.Stage == ColStage.Awakening && frac <= ColCrumbleAt) { StartColStagger(e, ColStage.Crumbling, ColCrumbleAt); return; }
-            if (c.Stage == ColStage.Crumbling && frac <= ColMoltenAt && c.ChargeLeft <= 0f) { StartColStagger(e, ColStage.MoltenCore, ColMoltenAt); return; }
-            if (c.Stage == ColStage.MoltenCore && frac <= ColLastAt) { StartColStagger(e, ColStage.LastStand, ColLastAt); return; }
+            BossStage to;  // its stage table (BossStages.cs): each change is a stagger you break (into the Molten Core, a charge finishes first)
+            if (NextStage(e.Type, (byte)c.Stage, frac, out to) && (to.Stage != (byte)ColStage.MoltenCore || c.ChargeLeft <= 0f))
+            {
+                StartColStagger(e, (ColStage)to.Stage, to.At);
+                return;
+            }
 
             c.TurnT += dt;
             c.DazeT = Math.Max(0f, c.DazeT - dt);
@@ -342,11 +343,7 @@ namespace Arena
 
         void NextColTurn(Enemy e, ColossusState c)
         {
-            var turns = ColTurns[(int)c.Stage];
-            c.Step = (c.Step + 1) % turns.Length;
-            c.Turn = turns[c.Step];
-            c.TurnLen = ColTimes[(int)c.Stage][c.Step];
-            c.TurnT = 0f;
+            c.NextTurn(this, ColTurns, ColTimes);
             c.ActT = 0.3f;
             c.Fired = 0;
             if (c.Turn == ColTurn.Stomps || c.Turn == ColTurn.Last)

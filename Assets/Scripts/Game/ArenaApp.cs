@@ -517,6 +517,14 @@ namespace Arena
                 else if (Keybinds.Down(KeyAction.DiscardItem))
                     game.ResolveLoot(false);
             }
+            // By or in a Trojan Horse: F climbs in or drops out (TrojanHorse.cs).
+            else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.HorseInteractable(game.Me)
+                     && Keybinds.Down(KeyAction.Interact))
+                game.HorseInteract();
+            // By a Ballista, or on one: F climbs on or gets off (Ballista.cs).
+            else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.Me != null && !game.Me.Downed
+                     && (game.BallistaOf(game.Me) != null || game.BallistaNear(game.Me.Pos) != null) && Keybinds.Down(KeyAction.Interact))
+                game.UseBallista();
             // By a sealed mystery door (the Expanding arena): F pays to open it, B saves it from expiring (MysteryDoors.cs).
             else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.Me != null && game.MysteryNear(game.Me.Pos) >= 0
                      && (Keybinds.Down(KeyAction.Interact) || Keybinds.Down(KeyAction.DiscardItem)))

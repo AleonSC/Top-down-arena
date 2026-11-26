@@ -9,7 +9,7 @@ namespace Arena
     ///     (SteerTalisman; clients get the course through Bullet.Pulled). It bursts on a teammate (+TalismanHeal to them),
     ///     on an enemy, or where its flight ends: TalismanBurstR round it, teammates (you too) heal TalismanBurstHeal,
     ///     enemies are shoved TalismanShove (not heavies) and small enemy shots are erased. It deals no damage.
-    ///   Alt (Msg.WeaponDash DashOfuda): a Blast Ofuda (Defs.BlastOfudaShot), straight, no homing, BlastRange out, its own
+    ///   Alt (Msg.WeaponDash WeaponAlt.Ofuda): a Blast Ofuda (Defs.BlastOfudaShot), straight, no homing, BlastRange out, its own
     ///     BlastCd cooldown. It sticks to the first enemy it touches and blows BlastFuse later; one that hits nothing lands
     ///     and blows BlastGroundFuse later. The stuck or landed charm is a ZoneKind.BlastOfuda (Zone.Side: the enemy it
     ///     rides, replicated; 0 on the ground). The blast: BlastR round it, the weapon's Damage, BlastEdge of it at the rim,
@@ -24,7 +24,6 @@ namespace Arena
         public const float BlastSpeed = 460f, BlastRange = 380f, BlastFuse = 0.8f, BlastGroundFuse = 1.5f, BlastR = 75f, BlastEdge = 0.6f, BlastCd = 1.1f;
         public const float OfudaFan = 0.4f;  // radians between fanned charms (extra projectiles)
         public static readonly Rgba TalismanGreen = new Rgba(0.44f, 0.94f, 0.63f), OfudaRed = new Rgba(1f, 0.35f, 0.3f);
-        const byte DashOfuda = 63;
 
         public static float TalismanBurstOf(Player p) => TalismanBurstR * AreaMult(p) * p.Stats.CharmBurstMult;
         public static float BlastROf(Player p) => BlastR * AreaMult(p) * p.Stats.CharmBurstMult;
@@ -138,11 +137,11 @@ namespace Arena
             {
                 ofudaLocalCd = BlastCd;
                 if (IsHost)
-                    HostWeaponDash(MyId, DashOfuda, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.Ofuda, aimAt);
                 else
                 {
                     var w = Proto.Begin(Msg.WeaponDash);
-                    w.Write(DashOfuda);
+                    w.Write(WeaponAlt.Ofuda);
                     w.Write(aimAt);
                     session.SendToHost(Proto.End(w));
                 }

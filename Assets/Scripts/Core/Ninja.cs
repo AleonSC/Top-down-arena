@@ -104,14 +104,14 @@ namespace Arena
                     }
                     break;
                 }
-                case WeaponId.MedicineDarts:
+                case WeaponId.AcupunctureNeedles:
                 {
                     int n = 1 + extra;
                     for (int i = 0; i < n; i++)
                     {
                         float a = Fanned(aim, i, n, 0.08f);
                         var b = SpawnBullet(Defs.NeedleShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                        b.Medicine = true;  // poisons enemies, doses allies (Ninja.cs)
+                        b.Medicine = true;  // flies through enemies, sticks in a hurt teammate (AcupunctureNeedles.cs)
                     }
                     break;
                 }
@@ -292,8 +292,8 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Nodachi, Kit = Kit.Ninja, Role = Role.Tank, Choice = 3, Damage = 20f, Reach = 150f, Melee = true, BotRange = 140f, ExtraDesc = "+1 ring after Tenchi's slam, 45 px farther out (60%)", Name = "Nodachi", FireInterval = 0.3f,
                 Desc = "Primary Fire: A tall katana with two five-step combo stances: wide sweeps, or fast jabs that block.\n\nAlternative Fire: Switch stance." },
             // Healer
-            new WeaponDef { Id = WeaponId.MedicineDarts, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0, Speed = 900f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 dart, fanned out", Name = "Medicine Darts", FireInterval = 0.18f,
-                Desc = "Primary Fire: Fast needles that poison enemies and heal allies." },
+            new WeaponDef { Id = WeaponId.AcupunctureNeedles, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0, Speed = 900f, Life = 0.8f, Damage = 10f, ExtraDesc = "+1 healing needle, fanned out, and +1 Bloodletting needle", Name = "Acupuncture Needles", FireInterval = 0.18f,
+                Desc = "Primary Fire: Fast needles that fly through enemies and stick in hurt teammates, healing over time. Five open the meridian for a burst of healing.\n\nAlternative Fire: Bloodletting, three needles that cut and bleed enemies. Five in one enemy burst at the pressure point; a dying enemy's needles fly back to heal the most hurt teammate." },
             new WeaponDef { Id = WeaponId.SpiritFan, Kit = Kit.Ninja, Role = Role.Healer, Choice = 1, Speed = 420f, Life = 0.3f, Damage = 6f, Grow = 0.25f, ExtraDesc = "+25% reach and +1 HP healed", Name = "Spirit Fan", FireInterval = 0.4f,
                 Desc = "Primary Fire: A short gust that heals allies and pushes small bullets back." },
             new WeaponDef { Id = WeaponId.Ofuda, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2, Speed = 380f, Life = 1.1f, Damage = 45f, ExtraDesc = "+1 talisman and +1 Blast Ofuda, fanned out", Name = "Ofuda", FireInterval = 0.45f,
@@ -355,7 +355,7 @@ namespace Arena
                 Apply = s => { s.BoKnockMult += 0.4f; s.BoSpinDmgMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.FumaShuriken }, MaxStacks = 2, Name = "Long Loop", Desc = "The Fuma Shuriken's thrown loop reaches 20% farther, and its Orbit circle is 20% wider",
                 Apply = s => { s.FumaLoopMult += 0.2f; s.FumaOrbitMult += 0.2f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.MedicineDarts }, MaxStacks = 2, Name = "Potent Dose", Desc = "Each Medicine Dart's poison and healing stack is 30% stronger",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.AcupunctureNeedles }, MaxStacks = 2, Name = "Potent Dose", Desc = "Each Acupuncture Needle heals 30% more, and Bloodletting bleeds 30% harder",
                 Apply = s => { s.DoseMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.SpiritFan }, MaxStacks = 2, Name = "Gale Fan", Desc = "The Spirit Fan's gust reaches 25% farther and heals 30% more",
                 Apply = s => { s.FanReachMult += 0.25f; s.FanHealMult += 0.3f; } },
@@ -381,21 +381,21 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ShadowClone, Kit = Kit.Ninja, Role = Role.Tank, Choice = 0,
-                Name = "Shadow Clone", Cooldown = 14f, Desc = "A wall of clones that every enemy attacks.",
+                Name = "Shadow Clone", Icon = "clone", Cooldown = 14f, Desc = "A wall of clones that every enemy attacks.",
                 Capstone = "Every clone has double the health.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.SmokeBomb, Kit = Kit.Ninja, Role = Role.Tank, Choice = 1,
-                Name = "Smoke Bomb", Cooldown = 14f, Desc = "A smoke cloud that slows enemy bullets and shields allies.",
+                Name = "Smoke Bomb", Icon = "smoke", Cooldown = 14f, Desc = "A smoke cloud that slows enemy bullets and shields allies.",
                 Capstone = "Enemies inside the smoke are also slowed by 40%.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.CeremonialArmor, Kit = Kit.Ninja, Role = Role.Tank, Choice = 2,
-                Name = "Ceremonial Armor", Cooldown = 2.5f, Desc = "Armour plates circle you, blocking bullets and shoving enemies.",
+                Name = "Ceremonial Armor", Icon = "ironbody", Cooldown = 2.5f, Desc = "Armour plates circle you, blocking bullets and shoving enemies.",
                 Capstone = "A plate that breaks bursts for 30 damage to enemies within 60 px.",
                 Bot = b => b.Me.PlateN < Game.CerePlateMax,
             },
@@ -409,21 +409,21 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.HealingDash, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0,
-                Name = "Healing Dash", Cooldown = 15f, Desc = "Sprint, leaving footprints that heal you and allies.",
+                Name = "Healing Dash", Icon = "dew", Cooldown = 15f, Desc = "Sprint, leaving footprints that heal you and allies.",
                 Capstone = "The sprint lasts 4.5 s.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.Substitution, Kit = Kit.Ninja, Role = Role.Healer, Choice = 1,
-                Name = "Substitution", Cooldown = 12f, Desc = "Swap places with an ally and shield them.",
+                Name = "Substitution", Icon = "swap", Cooldown = 12f, Desc = "Swap places with an ally and shield them.",
                 Capstone = "You and your ally are both invulnerable for 1 s after the swap.",
                 Bot = b => b.AllyDown || b.AllyHurt && b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.SpiritWard, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2,
-                Name = "Spirit Ward", Cooldown = 18f, Desc = "Plant a talisman that absorbs damage for allies, then heals them.",
+                Name = "Spirit Ward", Icon = "talisman", Cooldown = 18f, Desc = "Plant a talisman that absorbs damage for allies, then heals them.",
                 Capstone = "The ward follows you.",
                 Bot = b => b.AllyHurt,
             },
@@ -437,21 +437,21 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ShadowStep, Kit = Kit.Ninja, Role = Role.Dps, Choice = 0, CapstoneCharge = true,
-                Name = "Shadow Step", Cooldown = 7f, Desc = "Teleport behind an enemy and strike it hard.",
+                Name = "Shadow Step", Icon = "assassin", Cooldown = 7f, Desc = "Teleport behind an enemy and strike it hard.",
                 Capstone = "+1 charge.",
                 Bot = b => b.HaveTarget && b.TargetD > 120f && b.TargetD < 440f || b.BotDanger > 2.5f,
             },
             new AbilityDef
             {
                 Id = AbilityId.Vanish, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1,
-                Name = "Vanish", Cooldown = 16f, Desc = "Enemies lose track of you and your next hit deals double.",
+                Name = "Vanish", Icon = "vanish", Cooldown = 16f, Desc = "Enemies lose track of you and your next hit deals double.",
                 Capstone = "Erases enemy bullets around you when you vanish.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.BladeFan, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2,
-                Name = "Blade Fan", Cooldown = 12f, Desc = "Spinning kunai cut enemies around you, then fly out in a ring.",
+                Name = "Blade Fan", Icon = "bladefan", Cooldown = 12f, Desc = "Spinning kunai cut enemies around you, then fly out in a ring.",
                 Capstone = "Throws twice as many kunai.",
                 Bot = b => b.Danger || b.HaveTarget && b.TargetD < 260f,
             },
@@ -764,7 +764,7 @@ namespace Arena
         // As with Lunge, the player's own game moves them (LocalWeaponDash) and tells the host (Msg.WeaponDash),
         // which does the damage (HostWeaponDash).
 
-        const byte DashWhirlOn = 1, DashWhirlOff = 10, DashStrike = 2, DashBlink = 3, DashRecall = 4, DashKatanaStance = 5, DashShove = 6, DashJab = 7, DashHammerSlam = 11, DashLance = 12, DashCast = 13, DashHook = 14, DashNade = 15, DashFlourish = 16, DashRapierOn = 17, DashRapierOff = 18, DashPullOn = 19, DashPullOff = 20, DashDouble = 21, DashMine = 22, DashGas = 23, DashFumaStance = 24, DashKnuckleStance = 25, DashLock = 26, DashSpin = 27, DashBoth = 28, DashBoneWall = 29, DashDrum = 34;  // (30-33: DashVolley in Stonespear.cs, DashPack in WolfPack.cs, DashFork in ArcLock.cs, DashStorm in Nimbus.cs; 35-36: DashHoneyOn/Off in HoneybeeStaff.cs; 37: DashNunGuard in Nunchaku.cs; 38: DashTempest in WindClash.cs; 39: DashEmbolus in EmbolusSpears.cs; 40-41: DashBraceOn/Off in BulwarkBarrier.cs; 58-59: DashPikeOn/Off in Halberd.cs; 42: DashWhip in PistolWhip.cs; 43: free (was the Strider); 44: DashZero in FrostLance; 45: DashSympathy in BloodBrawler.cs; 46: DashTide in BloodBlast.cs; 47: DashIgnite in Chalk.cs; 48: DashNodStance in Nodachi.cs; 49: DashWyvernSlam in WyvernStaff.cs; 50: DashLaser in TwinPistols.cs; 51: DashVgStance in Vowguard.cs; 52-54: DashShardOn/Off, DashBladeRecall in Arcanist.cs; 55: DashHeatDump in RailBeam.cs; 56: DashArcCannon in StaticShock.cs; 57: DashScatter in BowFocus.cs; 60: DashBolt in LivingBolt.cs; 61: DashRavager in BloodRavager.cs; 62: DashNeedles in NeedleSwarm.cs; 63: DashOfuda in Ofuda.cs; 64-65: DashTessenOn/Off in TwinTessen.cs)
+        // The Alt ids (the kind byte of Msg.WeaponDash) are all in WeaponAlt.cs.
 
         // --- Spirit Fan: push and pull -----------------------------------------------------------
 
@@ -877,40 +877,7 @@ namespace Arena
             b.LastHit = e.Id;
         }
 
-        // --- Medicine Darts: stacking doses --------------------------------------------------------
-
-        public const float DoseHeal = 2f, DoseTime = 3f, PoisonDps = 2f, PoisonTime = 3f, DoseStacks = 5f;  // a second, per dart; each dart renews it, stacking to DoseStacks
-
-        /// A Medicine Dart through a hurt ally: another dose of healing over time (it doesn't go on).
-        bool DoseAlly(Bullet b)
-        {
-            foreach (var q in Players.Values)
-            {
-                float r = q.Def.BodyR + b.Radius;
-                if (q.Id == b.Owner || q.Downed || q.Hp >= q.MaxHp || b.Pos.DistanceSq(q.Pos) >= r * r)
-                    continue;
-                float each = DoseHeal * b.Dmg / Defs.WeaponOf(WeaponId.MedicineDarts).Damage * DoseMultOf(b.Owner);  // damage upgrades dose harder too (Potent Dose)
-                q.DoseHps = Math.Min(q.DoseHps + each, each * DoseStacks);
-                q.DoseT = DoseTime;
-                q.DoseBy = b.Owner;
-                return true;
-            }
-            return false;
-        }
-
-        float DoseMultOf(int owner) => Players.ContainsKey(owner) ? Players[owner].Stats.DoseMult : 1f;
-
-        /// A Medicine Dart in an enemy: another dose of poison.
-        void PoisonHit(Bullet b, Enemy e)
-        {
-            if (!b.Medicine)
-                return;
-            float each = PoisonDps * b.Dmg / Defs.WeaponOf(WeaponId.MedicineDarts).Damage * DoseMultOf(b.Owner);
-            e.PoisonDps = Math.Min(e.PoisonDps + each, each * DoseStacks);
-            e.PoisonT = PoisonTime;
-            e.PoisonBy = b.Owner;
-        }
-
+        /// Senbon Seekers' poison ticking (SenbonSeekers.cs).
         void TickPoison(Enemy e, float dt)
         {
             if (e.PoisonT <= 0f)
@@ -979,6 +946,8 @@ namespace Arena
                 return;  // the Wyvern Staff's Wyrm Slam (WyvernStaff.cs)
             if (LocalBumbleBurst(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // the Bumble Remote's Swarm Burst (BumbleRemote.cs)
+            if (LocalGolemClot(me, aimAt, pressed && !me.Downed, dt))
+                return;  // Blood Golem: Alt is Hurl Clot, the weapon's own is put away (BloodGolem.cs)
             if (LocalTide(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // the Blood Blast's Crimson Tide (BloodBlast.cs)
             if (LocalZero(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
@@ -993,6 +962,8 @@ namespace Arena
                 return;  // the Orbit Shards' Shard Guard, held, and the Dancing Blades' recall (Arcanist.cs)
             if (LocalTessenGust(me, pressed, released, aimAt))
                 return;  // the Twin Tessen's Kamikaze Gust, held (TwinTessen.cs)
+            if (LocalHeartThrow(me, pressed, aimAt))
+                return;  // the Heart Flail's Open Heart (HeartFlail.cs)
             if (LocalHoneySpray(me, pressed, released, aimAt))
                 return;  // the Honeybee Staff's honey spray, held (HoneybeeStaff.cs)
             if (LocalNunGuard(me, aimAt, pressed, dt))
@@ -1003,7 +974,7 @@ namespace Arena
                 return;  // the Nodachi's stance switch, Nagi's walk and Hiki-zuki's hop (Nodachi.cs)
             if (me.Weapon.Id == WeaponId.Kusarigama && (pressed || released))  // the Kusarigama's whirl: held, so both edges go to the host (Kusarigama.cs)
             {
-                byte whirlKind = pressed ? DashWhirlOn : DashWhirlOff;
+                byte whirlKind = pressed ? WeaponAlt.WhirlOn : WeaponAlt.WhirlOff;
                 if (IsHost)
                     HostWeaponDash(MyId, whirlKind, aimAt);
                 else
@@ -1017,7 +988,7 @@ namespace Arena
             }
             if ((me.Weapon.Id == WeaponId.RepulsionCannon || me.Weapon.Id == WeaponId.BloodLash) && (pressed || released))  // the Repulsion Cannon's Undertow and the Blood Lash's Martyr's Leash: held, so both edges go to the host (Repulsion.cs, BloodLash.cs)
             {
-                byte pullKind = pressed ? DashPullOn : DashPullOff;
+                byte pullKind = pressed ? WeaponAlt.PullOn : WeaponAlt.PullOff;
                 if (IsHost)
                     HostWeaponDash(MyId, pullKind, aimAt);
                 else
@@ -1033,11 +1004,11 @@ namespace Arena
             {
                 fangLocalCd = me.Weapon.Id == WeaponId.Greatsword ? WheelCooldown : FangCooldown;  // Twin Fang (TwinBlades.cs) or the Moonwheel (GreatswordChain.cs): no move, the host throws at the cursor
                 if (IsHost)
-                    HostWeaponDash(MyId, DashStrike, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.Strike, aimAt);
                 else
                 {
                     var fw = Proto.Begin(Msg.WeaponDash);
-                    fw.Write(DashStrike);
+                    fw.Write(WeaponAlt.Strike);
                     fw.Write(aimAt);
                     session.SendToHost(Proto.End(fw));
                 }
@@ -1045,8 +1016,8 @@ namespace Arena
             }
             if (me.Weapon.Id == WeaponId.Rapier && pressed)
             {
-                // Riposte (Rapier.cs): one press switches the stance on, the next drops it; a click while it is up lunges; the host decides which (the Flourish is still there: DashFlourish)
-                byte rapierKind = DashRapierOn;
+                // Riposte (Rapier.cs): one press switches the stance on, the next drops it; a click while it is up lunges; the host decides which (the Flourish is still there: WeaponAlt.Flourish)
+                byte rapierKind = WeaponAlt.RapierOn;
                 if (IsHost)
                     HostWeaponDash(MyId, rapierKind, aimAt);
                 else
@@ -1062,11 +1033,11 @@ namespace Arena
             {
                 censerLocalCd = CastCooldown;  // Censer Cast (Censer.cs): no move, the host throws the head at the cursor
                 if (IsHost)
-                    HostWeaponDash(MyId, DashCast, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.Cast, aimAt);
                 else
                 {
                     var cw = Proto.Begin(Msg.WeaponDash);
-                    cw.Write(DashCast);
+                    cw.Write(WeaponAlt.Cast);
                     cw.Write(aimAt);
                     session.SendToHost(Proto.End(cw));
                 }
@@ -1077,11 +1048,11 @@ namespace Arena
             {
                 fumaSwitchLocalCd = FumaSwitchCd;  // the Fuma Shuriken's stance switch (FumaOrbit.cs)
                 if (IsHost)
-                    HostWeaponDash(MyId, DashFumaStance, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.FumaStance, aimAt);
                 else
                 {
                     var fsw = Proto.Begin(Msg.WeaponDash);
-                    fsw.Write(DashFumaStance);
+                    fsw.Write(WeaponAlt.FumaStance);
                     fsw.Write(aimAt);
                     session.SendToHost(Proto.End(fsw));
                 }
@@ -1105,11 +1076,11 @@ namespace Arena
             {
                 starSwitchLocalCd = StarSwitchCd;  // the fan to the Great Star and back (GreatStar.cs)
                 if (IsHost)
-                    HostWeaponDash(MyId, DashRecall, me.Pos);  // no move: the stars come back to you
+                    HostWeaponDash(MyId, WeaponAlt.Recall, me.Pos);  // no move: the stars come back to you
                 else
                 {
                     var rw = Proto.Begin(Msg.WeaponDash);
-                    rw.Write(DashRecall);
+                    rw.Write(WeaponAlt.Recall);
                     rw.Write(me.Pos);
                     session.SendToHost(Proto.End(rw));
                 }
@@ -1122,11 +1093,11 @@ namespace Arena
                 AddFx(FxKind.Ring, me.Pos, new Rgba(0.45f, 0.4f, 0.65f), 26f, 0.3f);
                 me.Pos = mark;
                 if (IsHost)
-                    HostWeaponDash(MyId, DashBlink, mark);  // (it uses up the mark; on the host your player is the host's own)
+                    HostWeaponDash(MyId, WeaponAlt.Blink, mark);  // (it uses up the mark; on the host your player is the host's own)
                 else
                 {
                     var bw = Proto.Begin(Msg.WeaponDash);
-                    bw.Write(DashBlink);
+                    bw.Write(WeaponAlt.Blink);
                     bw.Write(mark);
                     session.SendToHost(Proto.End(bw));
                 }
@@ -1149,6 +1120,8 @@ namespace Arena
                 return;  // the Twin Pistols' Laser Sights (TwinPistols.cs)
             if (LocalOfudaBlast(me, pressed, aimAt, dt))
                 return;  // the Ofuda's Blast Ofuda (Ofuda.cs)
+            if (LocalBloodletting(me, pressed, aimAt, dt))
+                return;  // the Acupuncture Needles' Bloodletting (AcupunctureNeedles.cs)
             if (LocalArcCannon(me, pressed, aimAt, dt))
                 return;  // Static Shock's Arc Cannon (StaticShock.cs)
             if (LocalHiveCall(me, pressed, aimAt, dt))
@@ -1156,11 +1129,11 @@ namespace Arena
             if (LocalHammerSlamReady(me, pressed, dt))
             {
                 if (IsHost)
-                    HostWeaponDash(MyId, DashHammerSlam, aimAt);  // no move: the hammer lands ahead of where you stand
+                    HostWeaponDash(MyId, WeaponAlt.HammerSlam, aimAt);  // no move: the hammer lands ahead of where you stand
                 else
                 {
                     var hw = Proto.Begin(Msg.WeaponDash);
-                    hw.Write(DashHammerSlam);
+                    hw.Write(WeaponAlt.HammerSlam);
                     hw.Write(aimAt);
                     session.SendToHost(Proto.End(hw));
                 }
@@ -1169,11 +1142,11 @@ namespace Arena
             if (me.Weapon.Id == WeaponId.BoStaff && pressed)
             {
                 if (IsHost)
-                    HostWeaponDash(MyId, DashShove, aimAt);  // no move: the shove lands where you stand, along your aim (the host checks its cooldown)
+                    HostWeaponDash(MyId, WeaponAlt.Shove, aimAt);  // no move: the shove lands where you stand, along your aim (the host checks its cooldown)
                 else
                 {
                     var sw = Proto.Begin(Msg.WeaponDash);
-                    sw.Write(DashShove);
+                    sw.Write(WeaponAlt.Shove);
                     sw.Write(aimAt);
                     session.SendToHost(Proto.End(sw));
                 }
@@ -1183,11 +1156,11 @@ namespace Arena
             {
                 twinNadeLocalCd = TwinNadeCd;  // one grenade a press, the tubes taking turns (TwinGrenades.cs)
                 if (IsHost)
-                    HostWeaponDash(MyId, DashNade, aimAt);  // no move: the grenade flies to where the streams cross
+                    HostWeaponDash(MyId, WeaponAlt.Nade, aimAt);  // no move: the grenade flies to where the streams cross
                 else
                 {
                     var nw = Proto.Begin(Msg.WeaponDash);
-                    nw.Write(DashNade);
+                    nw.Write(WeaponAlt.Nade);
                     nw.Write(aimAt);
                     session.SendToHost(Proto.End(nw));
                 }
@@ -1197,11 +1170,11 @@ namespace Arena
             {
                 twinNadeLocalCd = AutoLockCd;  // one press locks the enemy nearest your cursor, the next lets go (TwinAuto.cs)
                 if (IsHost)
-                    HostWeaponDash(MyId, DashLock, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.Lock, aimAt);
                 else
                 {
                     var lw = Proto.Begin(Msg.WeaponDash);
-                    lw.Write(DashLock);
+                    lw.Write(WeaponAlt.Lock);
                     lw.Write(aimAt);
                     session.SendToHost(Proto.End(lw));
                 }
@@ -1210,11 +1183,11 @@ namespace Arena
             if (me.Weapon.Id == WeaponId.DoubleBarrel && pressed && me.DbUsed == 0 && me.DbReload <= 0f)
             {
                 if (IsHost)
-                    HostWeaponDash(MyId, DashBoth, aimAt);  // Alt: both barrels at once (the host checks the rest; DoubleBarrel.cs)
+                    HostWeaponDash(MyId, WeaponAlt.Both, aimAt);  // Alt: both barrels at once (the host checks the rest; DoubleBarrel.cs)
                 else
                 {
                     var bw = Proto.Begin(Msg.WeaponDash);
-                    bw.Write(DashBoth);
+                    bw.Write(WeaponAlt.Both);
                     bw.Write(aimAt);
                     session.SendToHost(Proto.End(bw));
                 }
@@ -1224,11 +1197,11 @@ namespace Arena
             {
                 twinNadeLocalCd = AutoLockCd;  // Alt: the spin (the host checks its cooldown; OutOfAmmo.cs)
                 if (IsHost)
-                    HostWeaponDash(MyId, DashSpin, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.Spin, aimAt);
                 else
                 {
                     var spw = Proto.Begin(Msg.WeaponDash);
-                    spw.Write(DashSpin);
+                    spw.Write(WeaponAlt.Spin);
                     spw.Write(aimAt);
                     session.SendToHost(Proto.End(spw));
                 }
@@ -1238,11 +1211,11 @@ namespace Arena
             {
                 staffJabLocalCd = StaffJabCd;  // (held, the key jabs again as soon as the host would let it)
                 if (IsHost)
-                    HostWeaponDash(MyId, DashJab, aimAt);  // no move: the jab lands where you stand, along your aim
+                    HostWeaponDash(MyId, WeaponAlt.Jab, aimAt);  // no move: the jab lands where you stand, along your aim
                 else
                 {
                     var jw = Proto.Begin(Msg.WeaponDash);
-                    jw.Write(DashJab);
+                    jw.Write(WeaponAlt.Jab);
                     jw.Write(aimAt);
                     session.SendToHost(Proto.End(jw));
                 }
@@ -1254,21 +1227,26 @@ namespace Arena
         void HostWeaponDash(int id, int kind, V2 target)
         {
             Player p;
-            if (!Players.TryGetValue(id, out p) || p.Downed || TankOn(p))  // (in A Literal Tank: no Alt, LiteralTank.cs)
+            if (!Players.TryGetValue(id, out p) || p.Downed || TankOn(p) || Riding(p))  // (in A Literal Tank or a Trojan Horse: no Alt, LiteralTank.cs)
                 return;
-            if (kind == DashArmBash)
+            if (kind == WeaponAlt.ArmBash)
             {
                 HostArmBash(p, target);  // an Iron Armadillo wall bash (IronArmadillo.cs)
                 return;
             }
             if (ArmOn(p))
                 return;  // (curled up: no Alt)
-            if (kind == DashRavager)
+            if (kind == WeaponAlt.Ravager)
             {
                 HostRavagerLash(p);  // a Blood Ravager lash (BloodRavager.cs)
                 return;
             }
-            if (kind == DashBolt)
+            if (kind == WeaponAlt.Clot)
+            {
+                HostClot(p, target);  // Blood Golem's Hurl Clot (BloodGolem.cs)
+                return;
+            }
+            if (kind == WeaponAlt.Bolt)
             {
                 HostBoltDash(p, target);  // a Living Bolt dash (LivingBolt.cs)
                 return;
@@ -1278,57 +1256,59 @@ namespace Arena
                 return;  // Shard Guard and the blades' recall (Arcanist.cs)
             if (HostTessenDash(p, kind))
                 return;  // the Twin Tessen's gust, held then let go (TwinTessen.cs)
+            if (HostHeartDash(p, kind, target))
+                return;  // the Heart Flail's Open Heart (HeartFlail.cs)
             if (HostHoneyDash(p, kind))
                 return;  // the Honeybee Staff's spray (HoneybeeStaff.cs)
-            if (kind == DashWhirlOn || kind == DashWhirlOff)
+            if (kind == WeaponAlt.WhirlOn || kind == WeaponAlt.WhirlOff)
             {
-                HostKusariWhirl(p, kind == DashWhirlOn);
+                HostKusariWhirl(p, kind == WeaponAlt.WhirlOn);
                 return;
             }
-            if (kind == DashPikeOn || kind == DashPikeOff)
+            if (kind == WeaponAlt.PikeOn || kind == WeaponAlt.PikeOff)
             {
-                HostPike(p, kind == DashPikeOn);  // the Halberd's Set the Pike (Halberd.cs)
+                HostPike(p, kind == WeaponAlt.PikeOn);  // the Halberd's Set the Pike (Halberd.cs)
                 return;
             }
-            if (kind == DashBraceOn || kind == DashBraceOff)
+            if (kind == WeaponAlt.BraceOn || kind == WeaponAlt.BraceOff)
             {
-                HostBrace(p, kind == DashBraceOn);  // the Bulwark Barrier's Brace (BulwarkBarrier.cs)
+                HostBrace(p, kind == WeaponAlt.BraceOn);  // the Bulwark Barrier's Brace (BulwarkBarrier.cs)
                 return;
             }
-            if (kind == DashKnuckleStance)
+            if (kind == WeaponAlt.KnuckleStance)
             {
                 SwapKnuckleStance(p);  // the Arc Knuckles: Brawl to Rocket and back (ArcKnucklesBrawl.cs)
                 return;
             }
-            if (kind == DashFumaStance)
+            if (kind == WeaponAlt.FumaStance)
             {
                 HostFumaSwitch(p);  // Throw stance to Orbit and back (FumaOrbit.cs)
                 return;
             }
-            if (kind == DashPullOn || kind == DashPullOff)
+            if (kind == WeaponAlt.PullOn || kind == WeaponAlt.PullOff)
             {
                 if (w.Id == WeaponId.BloodLash)
-                    HostLeash(p, kind == DashPullOn);  // Martyr's Leash (BloodLash.cs)
+                    HostLeash(p, kind == WeaponAlt.PullOn);  // Martyr's Leash (BloodLash.cs)
                 else
-                    HostRepelPull(p, kind == DashPullOn);  // (Repulsion.cs)
+                    HostRepelPull(p, kind == WeaponAlt.PullOn);  // (Repulsion.cs)
                 return;
             }
-            if (kind == DashKatanaStance)
+            if (kind == WeaponAlt.KatanaStance)
             {
                 HostKatanaSwitch(p);  // the stance switch (Katana.cs)
                 return;
             }
-            if (kind == DashHammerSlam)
+            if (kind == WeaponAlt.HammerSlam)
             {
                 HostHammerSlam(p, target);  // (target: where they were aiming)
                 return;
             }
-            if (kind == DashHook)
+            if (kind == WeaponAlt.Hook)
             {
                 HostLanceHook(p, target);  // (target: where they were aiming; Lance.cs)
                 return;
             }
-            if (kind == DashRapierOn || kind == DashRapierOff)
+            if (kind == WeaponAlt.RapierOn || kind == WeaponAlt.RapierOff)
             {
                 if (p.RapierGuard)
                     RapierDropStance(p);  // (a press toggles; the click lunges)
@@ -1336,17 +1316,17 @@ namespace Arena
                     HostRapierStance(p, true, target);  // (Rapier.cs)
                 return;
             }
-            if (kind == DashFlourish)
+            if (kind == WeaponAlt.Flourish)
             {
                 HostRapierFlourish(p, target);  // (target: where they were aiming; Rapier.cs)
                 return;
             }
-            if (kind == DashCast)
+            if (kind == WeaponAlt.Cast)
             {
                 HostCenserCast(p, target);  // (target: where they were aiming)
                 return;
             }
-            if (kind == DashStrike)
+            if (kind == WeaponAlt.Strike)
             {
                 if (p.Weapon.Id == WeaponId.Greatsword)
                     HostMoonwheel(p, target);  // GreatswordChain.cs
@@ -1354,180 +1334,185 @@ namespace Arena
                     HostTwinFang(p, target);  // (target: where they were aiming)
                 return;
             }
-            if (kind == DashLance)
+            if (kind == WeaponAlt.Lance)
             {
                 HostSunlance(p, target);  // (target: where they were aiming)
                 return;
             }
-            if (kind == DashDouble || kind == DashMine || kind == DashGas)
+            if (kind == WeaponAlt.Double || kind == WeaponAlt.Mine || kind == WeaponAlt.Gas)
             {
-                if (kind == DashDouble) HostDoubleBarrel(p, target);  // the Tank Soldier's Alt fires (TankAlts.cs)
-                else if (kind == DashMine) HostFlakMine(p, target);
+                if (kind == WeaponAlt.Double) HostDoubleBarrel(p, target);  // the Tank Soldier's Alt fires (TankAlts.cs)
+                else if (kind == WeaponAlt.Mine) HostFlakMine(p, target);
                 else HostTearGas(p, target);
                 return;
             }
-            if (kind == DashFork)
+            if (kind == WeaponAlt.Fork)
             {
                 HostForkVolley(p, target);  // Arc Lightning's Forked Volley (ArcLock.cs)
                 return;
             }
-            if (kind == DashVgStance)
+            if (kind == WeaponAlt.VgStance)
             {
                 HostVgSwitch(p);  // the Vowguard's Valor to Sanctuary and back (Vowguard.cs)
                 return;
             }
-            if (kind == DashNodStance)
+            if (kind == WeaponAlt.NodStance)
             {
                 HostNodSwitch(p);  // the Nodachi's Storm to Guard and back (Nodachi.cs)
                 return;
             }
-            if (kind == DashNunGuard)
+            if (kind == WeaponAlt.NunGuard)
             {
                 HostNunSwitch(p);  // the Nunchaku's combo to Twin Windmill and back (Nunchaku.cs)
                 return;
             }
-            if (kind == DashOfuda)
+            if (kind == WeaponAlt.Ofuda)
             {
                 HostOfudaBlast(p, target);  // the Ofuda's Alt (Ofuda.cs)
                 return;
             }
-            if (kind == DashHiveCall)
+            if (kind == WeaponAlt.Bloodlet)
+            {
+                HostBloodletting(p, target);  // the Acupuncture Needles' Alt (AcupunctureNeedles.cs)
+                return;
+            }
+            if (kind == WeaponAlt.HiveCall)
             {
                 HostHiveCall(p, target);  // the Hive Censer's Alt (HiveCenser.cs)
                 return;
             }
-            if (kind == DashArcCannon)
+            if (kind == WeaponAlt.ArcCannon)
             {
                 HostArcCannon(p, target);  // Static Shock's Alt (StaticShock.cs)
                 return;
             }
-            if (kind == DashLaser)
+            if (kind == WeaponAlt.Laser)
             {
                 HostTwinLaser(p);  // the Twin Pistols' Alt (TwinPistols.cs)
                 return;
             }
-            if (kind == DashRevStance)
+            if (kind == WeaponAlt.RevStance)
             {
                 HostRevStance(p);  // the Revolver's Alt: Gunslinger or Fan stance (PistolWhip.cs)
                 return;
             }
-            if (kind == DashScatter)
+            if (kind == WeaponAlt.Scatter)
             {
                 HostScatter(p, target);  // the Mender's Bow's Alt (BowFocus.cs)
                 return;
             }
-            if (kind == DashSympathy)
+            if (kind == WeaponAlt.Sympathy)
             {
                 HostSympathy(p);  // the Blood Brawler's Alt (BloodBrawler.cs)
                 return;
             }
-            if (kind == DashEmbolus)
+            if (kind == WeaponAlt.Embolus)
             {
                 HostEmbolusBlast(p);  // the Embolus Spears' Alt (EmbolusSpears.cs)
                 return;
             }
-            if (kind == DashNeedles)
+            if (kind == WeaponAlt.Needles)
             {
                 HostNeedleBurst(p, target);  // the Needle Swarm's Alt (NeedleSwarm.cs)
                 return;
             }
-            if (kind == DashVolley)
+            if (kind == WeaponAlt.Volley)
             {
                 HostStoneVolley(p, target);  // the Stonespear's Alt (Stonespear.cs)
                 return;
             }
-            if (kind == DashPack)
+            if (kind == WeaponAlt.Pack)
             {
                 HostPackMerge(p);  // the Wolf Whistle's Alt (WolfPack.cs)
                 return;
             }
-            if (kind == DashIgnite)
+            if (kind == WeaponAlt.Ignite)
             {
                 HostChalkIgnite(p);  // the Spirit Chalk's Alt (Chalk.cs)
                 return;
             }
-            if (kind == DashStorm)
+            if (kind == WeaponAlt.Storm)
             {
                 HostNimbusStorm(p);  // the Nimbus's Alt (Nimbus.cs)
                 return;
             }
-            if (kind == DashHeatDump)
+            if (kind == WeaponAlt.HeatDump)
             {
                 HostHeatDump(p, target);  // the Railgun's Alt (RailBeam.cs)
                 return;
             }
-            if (kind == DashZero)
+            if (kind == WeaponAlt.Zero)
             {
                 HostAbsoluteZero(p);  // the Frost Lance's Alt (FrostLance.cs)
                 return;
             }
-            if (kind == DashTide)
+            if (kind == WeaponAlt.Tide)
             {
                 HostTide(p, target);  // the Blood Blast's Alt (BloodBlast.cs)
                 return;
             }
-            if (kind == DashTempest)
+            if (kind == WeaponAlt.Tempest)
             {
                 HostTempest(p);  // Wind Clash's Alt (WindClash.cs)
                 return;
             }
-            if (kind == DashBumbleBurst)
+            if (kind == WeaponAlt.BumbleBurst)
             {
                 HostBumbleBurst(p, target);  // the Bumble Remote's Alt (BumbleRemote.cs)
                 return;
             }
-            if (kind == DashWyvernSlam)
+            if (kind == WeaponAlt.WyvernSlam)
             {
                 HostWyvernSlam(p, target);  // the Wyvern Staff's Alt (WyvernStaff.cs)
                 return;
             }
-            if (kind == DashDrum)
+            if (kind == WeaponAlt.Drum)
             {
                 HostSmokeLob(p, target);  // the Grenade Launcher's Alt (GrenadeLauncher.cs)
                 return;
             }
-            if (kind == DashBoneWall)
+            if (kind == WeaponAlt.BoneWall)
             {
                 HostOssuaryWall(p, target);  // the Bone Guard's Alt (BoneGuard.cs)
                 return;
             }
-            if (kind == DashBoth)
+            if (kind == WeaponAlt.Both)
             {
                 HostBothBarrels(p, target);  // the Double Barrel's Alt (DoubleBarrel.cs)
                 return;
             }
-            if (kind == DashSpin)
+            if (kind == WeaponAlt.Spin)
             {
                 HostAmmoSpin(p);  // (OutOfAmmo.cs)
                 return;
             }
-            if (kind == DashLock)
+            if (kind == WeaponAlt.Lock)
             {
                 HostTwinAutoLock(p, target);  // (target: where they were aiming; TwinAuto.cs)
                 return;
             }
-            if (kind == DashNade)
+            if (kind == WeaponAlt.Nade)
             {
                 HostTwinGrenade(p, target);  // (target: where they were aiming; TwinGrenades.cs)
                 return;
             }
-            if (kind == DashJab)
+            if (kind == WeaponAlt.Jab)
             {
                 HostStaffJab(p, target);  // (target: where they were aiming)
                 return;
             }
-            if (kind == DashShove)
+            if (kind == WeaponAlt.Shove)
             {
                 HostBoShove(p, target);  // (target: where they were aiming)
                 return;
             }
-            if (kind == DashRecall)
+            if (kind == WeaponAlt.Recall)
             {
                 if (w.Id == WeaponId.Shuriken)
                     HostStarSwitch(p);  // the fan to the Great Star (recalling stuck stars) and back (GreatStar.cs)
                 return;
             }
-            if (kind == DashBlink)
+            if (kind == WeaponAlt.Blink)
             {
                 if (w.Id != WeaponId.Kunai || p.KunaiMarkT <= 0f || p.KunaiMark.FartherThan(target, 40f))
                     return;
@@ -1650,16 +1635,9 @@ namespace Arena
         void TickNinjas(float dt)
         {
             TickMists(dt);
-            foreach (var p in Players.Values)  // Medicine Darts' doses heal; a Kunai mark fades
+            foreach (var p in Players.Values)  // Acupuncture Needles heal; a Kunai mark fades
             {
-                if (p.DoseT > 0f)
-                {
-                    p.DoseT = p.Downed ? 0f : Math.Max(0f, p.DoseT - dt);
-                    if (p.DoseT > 0f)
-                        Heal(p, p.DoseHps * dt, PlayerOrNull(p.DoseBy));
-                    else
-                        p.DoseHps = 0f;
-                }
+                TickNeedlesInPlayer(p, dt);  // AcupunctureNeedles.cs
                 p.KunaiMarkT = Math.Max(0f, p.KunaiMarkT - dt);
                 TickKatana(p, dt);
                 p.ShoveCd = Math.Max(0f, p.ShoveCd - dt);

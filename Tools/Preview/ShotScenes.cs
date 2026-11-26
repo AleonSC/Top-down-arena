@@ -57,6 +57,7 @@ static partial class Shot {
     ClaymoreScene();  // CLAYMORE=<s into the scene> [CLAYTRIP=<s>] [CLAYCAP=1] (ShotClaymore.cs)
     DecoyScene();  // DECOY=<s into the scene> [DECOYWEAR=1] [DECOYPOP=<s>] (ShotDecoy.cs)
     GrazeScene();  // GRAZE=<s into the scene> (ShotGraze.cs)
+    SanctumGlassScene();  // SANCTUM=<s into the scene> [SANCTUMCAP=1] (ShotSanctumGlass.cs)
     GaleWallScene();  // GALEWALL=<s into the scene> [GALEBLAST=<s>] [GALECAP=1] (ShotGaleWall.cs)
     WaterWardScene();  // WWARD=<s into the scene> [WWENEMY=<s>] [WWSHOOT=1] (ShotWaterWard.cs)
     GustGateScene();  // GUSTGATE=<s into the scene> (ShotGustGate.cs)
@@ -884,6 +885,44 @@ static partial class Shot {
           gm.Effects.Add(new Effect { Kind = FxKind.VortexWisp, Pos = at, Pos2 = from, Color = Defs.BulletColor(Defs.SmallShot), Radius = 5f, Dur = Game.VortexWispTime, T = 0.08f + 0.1f * i });
         }
     }
+    if (Environment.GetEnvironmentVariable("GOLEM") != null) {
+      // A Tank Hemomancer's Blood Golem (BloodGolemLook.cs): GOLEM=<seconds since the cast> (the gather runs to 2 s; use 1.2 or 5),
+      // GOLCOATS=<coats, default 12 formed / 7 gathering>, GOLPUNCH=<punch number + swing> (2.15: a fist out, 3.2: a Slam),
+      // GOLFX=shed|collapse|clot (with GOLFXT=<s into it>). Enemies round it. Use with mode hud.
+      var gm = host.Game; gm.Bot = false;
+      foreach (var e in gm.Enemies.Values) e.Hp = 0f;
+      gm.Bullets.Clear(); gm.Effects.Clear();
+      me.Kit = Kit.Hemomancer; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Slots[Upgrades.UltSlot].Id = AbilityId.BloodGolem;
+      V2 from = new V2(620f, 470f);
+      me.Pos = me.Disp = from; me.Aim = -0.25f; me.AimAt = from + new V2(300f, -75f); me.Hp = me.MaxHp * 0.8f;
+      me.BarrierT = 0f; me.AegisT = 0f; me.OverdriveT = 0f; me.ShieldHp = 0f;
+      float gt = float.Parse(Environment.GetEnvironmentVariable("GOLEM"));
+      string fx = Environment.GetEnvironmentVariable("GOLFX");
+      if (fx != "collapse") {
+        me.GolAge = gt; me.GolT = Math.Max(0.1f, Game.GolGather + Game.GolTime - gt); me.UltT = me.GolT;
+        me.GolCoats = float.Parse(Environment.GetEnvironmentVariable("GOLCOATS") ?? (gt < Game.GolGather ? "7" : "12"));
+        me.GolPunch = float.Parse(Environment.GetEnvironmentVariable("GOLPUNCH") ?? "0");
+      }
+      var rnd = new System.Random(4);
+      for (int i = 0; i < 9; i++) {
+        float ang = -1.4f + i * 0.42f + (float)rnd.NextDouble() * 0.2f;
+        V2 at = from + V2.FromAngle(ang) * (130f + (float)rnd.NextDouble() * 170f);
+        var en = (Enemy)typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, new object[] { i == 4 ? EnemyType.Brute : EnemyType.Grunt, at, 0f, 0, false });
+        en.Hp = en.MaxHp = 1e6f; en.SpawnT = 0f; en.Pos = en.Disp = at; en.FrozenT = 99f; en.Frozen = true;
+        if (gt < Game.GolGather && i < 3) {
+          en.BlastStacks = 0;
+          gm.Effects.Add(new Effect { Kind = FxKind.Drain, Pos = at, Pos2 = from, Color = Game.GolRed, Radius = 3f, Dur = 0.45f, T = 0.12f + 0.1f * i });
+        } else if (i % 2 == 0) en.BlastStacks = (byte)(1 + i % 3);
+      }
+      float ft = float.Parse(Environment.GetEnvironmentVariable("GOLFXT") ?? "0.25");
+      if (fx == "shed")
+        for (int i = 0; i < 2; i++)
+          gm.Effects.Add(new Effect { Kind = FxKind.GolemFx, Pos = from, Pos2 = from + V2.FromAngle(0.6f + i * 2.2f), Color = Game.GolRed, Radius = Game.GolFxShed, Dur = Game.GolShedDur, T = ft });
+      else if (fx == "collapse")
+        gm.Effects.Add(new Effect { Kind = FxKind.GolemFx, Pos = from, Pos2 = new V2(float.Parse(Environment.GetEnvironmentVariable("GOLCOATS") ?? "6"), me.Id), Color = Game.GolRed, Radius = Game.GolFxCollapse, Dur = Game.GolCollapseDur, T = ft });
+      else if (fx == "clot")
+        gm.Effects.Add(new Effect { Kind = FxKind.GolemFx, Pos = from + new V2(30f, -8f), Pos2 = from + new V2(290f, -70f), Color = Game.GolRed, Radius = Game.GolFxClot, Dur = Game.GolClotFlight + Game.GolClotTail, T = ft });
+    }
     if (Environment.GetEnvironmentVariable("COLOSSUS") != null) {
       // A Tank Elementalist's Stone Colossus (StoneColossusLook.cs): COLOSSUS=<seconds since the cast> (the rise runs to 1 s; use 0.5 or 4),
       // COLWIND=<the slam, 0-1> (0.3: fists up, 0.7: down), COLEND=1: the crumble (rubble and boulders COLEND s in); with enemies round
@@ -1130,15 +1169,19 @@ static partial class Shot {
     HeliScene();  // HELI=<s since the cast> [HELICAP=1] [FXOFF=1] (ShotHeli.cs)
     OrbitalScene();  // ORBITAL=<s since the cast> [ORBCAP=1] [FXOFF=1] (ShotOrbital.cs)
     TankScene();  // TANK=<s since the cast> [TANKCAP=1] [FXOFF=1] (ShotTank.cs)
+    HorseScene();  // HORSE=<s since the cast> [HORSEALL=1] [HORSEWEAR=<0-1>] [HORSEEND=broke|sally] (ShotTrojanHorse.cs)
     ArmadilloScene();  // ARMADILLO=<s since the cast> [ARMREV=<s>] [FXOFF=1] (ShotArmadillo.cs)
     SupplyScene();  // SUPPLY=<s since the cast> [SUPPLYCAP=1] [FXOFF=1] (ShotSupply.cs)
     ArmorDropScene();  // ARMORDROP=<s since the cast> [ARMORCAP=1] [ARMORHIT=<armor>] [FXOFF=1] (ShotArmorDrop.cs)
     HospitalScene();  // HOSP=pick|<s since the cast> [HOSPTENT=1] (ShotHospital.cs)
+    BallistaScene();  // BALLISTA=<s since the cast> [BALLISTACAP=1] [BALLISTARIDE=<s>|-1] [FXOFF=1] (ShotBallista.cs)
     DeployTurretScene();  // DEPLOYTURRET=<s since the cast> [FXOFF=1] (ShotDeployTurret.cs)
     NeedleSwarmScene();  // NEEDLESWARM=<s held> [NSALT=<s>] (ShotNeedleSwarm.cs)
     OfudaScene();  // OFUDA=<s> (ShotOfuda.cs)
+    NeedlesScene();  // NEEDLES=<s> (ShotNeedles.cs)
     ThornBloomScene();  // THORNBLOOM=<s since the cast> [THORNCAP=1] (ShotThornBloom.cs)
     BambooGroveScene();  // BAMBOO=<s since the cast> [BAMBOOCAP=1] (ShotBambooGrove.cs)
+    SiegeBellScene();  // BELL=<s since the cast> [BELLCAP=1] (ShotSiegeBell.cs)
     ChakraScene();  // CHAKRA=<s since the cast> [CHAKRACAP=1] (ShotChakra.cs)
     FlashFireScene();  // FLASHFIRE=<s since the cast> [FLASHCAP=1] (ShotFlashFire.cs)
     BloodRavagerScene();  // RAVAGER=<s since the cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (ShotBloodRavager.cs)
@@ -1734,6 +1777,47 @@ static partial class Shot {
         me.Pos = home; me.Disp = me.Pos; me.Aim = 0f; me.AimAt = cursor; me.Hp = me.MaxHp;
         for (int i = 0; i < mates.Count && i < 2; i++) { mates[i].Pos = mates[i].Disp = home + mateAt[i]; }
         foreach (var e in foes) e.Disp = e.Pos; draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
+    // HEARTFLAIL=<s>: the Healer Hemomancer's Heart Flail (Core/HeartFlail.cs, Game/HeartFlailLook.cs) that long in. HFMODE: swing (a click at 0:
+    // the swing lands about 0.15 s), spin (Fire held from 0; spinning from 0.22 s), throw (Alt at 0: rooted from 0.25 s, veins to the hurt
+    // teammate by the cursor), burst (the beat at 180: the Cardiac Burst on the next beat). Hurt teammates, dummy enemies round you.
+    if (Environment.GetEnvironmentVariable("HEARTFLAIL") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Healer; me.Kit = Kit.Hemomancer; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.Weapon(Role.Healer, Kit.Hemomancer, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      string mode = Environment.GetEnvironmentVariable("HFMODE") ?? "swing";
+      V2 home = new V2(500f, 420f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var mates = new System.Collections.Generic.List<Player>();
+      foreach (var q in gm.Players.Values) if (q != me) mates.Add(q);
+      var mateAt = mode == "throw" ? new[] { new V2(250f, 110f), new V2(-90f, -120f) } : new[] { new V2(-40f, 110f), new V2(-110f, -90f) };
+      for (int i = 0; i < mates.Count && i < 2; i++) { mates[i].Pos = mates[i].Disp = home + mateAt[i]; mates[i].Firing = false; mates[i].Hp = mates[i].MaxHp * 0.4f; }
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      var spots = mode == "throw" ? new[] { new V2(290f, -20f), new V2(330f, 40f), new V2(150f, -120f) }
+                : new[] { new V2(100f, -30f), new V2(95f, 45f), new V2(-110f, 20f), new V2(20f, -118f), new V2(210f, 0f) };
+      foreach (var at0 in spots) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      if (mode == "burst") {
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(300f, 0f) });
+        var hf = (System.Collections.IDictionary)typeof(Game).GetField("hfHost", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(gm);
+        var h = hf[me.Id]; h.GetType().GetField("BpmF").SetValue(h, Game.HfBpmMax); h.GetType().GetField("Beat").SetValue(h, 0.55f);
+      }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("HEARTFLAIL"), ci) * 60f));
+      V2 cursor = mode == "throw" ? home + new V2(280f, 30f) : home + new V2(300f, 0f);
+      for (int f = 0; f < frames; f++) {
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; Time.deltaTime = 1f / 60f;
+        bool fire = mode == "spin" || mode == "burst" ? true : mode == "swing" && f < 2;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = fire, WeaponAction = mode == "throw" && f < 2 });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Disp = me.Pos; me.Aim = 0f; me.AimAt = cursor; me.Hp = me.MaxHp;
+        for (int i = 0; i < mates.Count && i < 2; i++) { mates[i].Pos = mates[i].Disp = home + mateAt[i]; }
+        foreach (var e in foes) { e.Pos = e.Disp = home + spots[foes.IndexOf(e)]; }
+        draw.Invoke(app, null);
       }
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
