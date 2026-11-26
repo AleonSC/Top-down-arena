@@ -1184,6 +1184,7 @@ static partial class Shot {
     BambooGroveScene();  // BAMBOO=<s since the cast> [BAMBOOCAP=1] (ShotBambooGrove.cs)
     SiegeBellScene();  // BELL=<s since the cast> [BELLCAP=1] (ShotSiegeBell.cs)
     ChakraScene();  // CHAKRA=<s since the cast> [CHAKRACAP=1] (ShotChakra.cs)
+    OctopusScene();  // OCTO=<s since the cast> [OCTOHP=<0-1>] or OCTOPICK=1 (ShotOctopus.cs)
     FlashFireScene();  // FLASHFIRE=<s since the cast> [FLASHCAP=1] (ShotFlashFire.cs)
     BloodRavagerScene();  // RAVAGER=<s since the cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (ShotBloodRavager.cs)
     BloodBoilScene();  // BOIL=<s since the cast> [BOILHP=<0-1>] [BOILEND=1] (ShotBloodBoil.cs)

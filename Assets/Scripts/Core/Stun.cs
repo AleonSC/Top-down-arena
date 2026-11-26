@@ -119,7 +119,7 @@ namespace Arena
         }
 
         /// Minions with health that enemies can hurt: Warden's Guards and Force Pact thralls (ForcePact.cs).
-        static bool HasHealth(Minion m) => m.Kind == MinionKind.WardenGuard || m.Kind == MinionKind.Thrall || IsBot(m.Kind);  // (and the Engineer's robots, EngineerBots.cs)
+        static bool HasHealth(Minion m) => m.Kind == MinionKind.WardenGuard || m.Kind == MinionKind.Thrall || IsBot(m.Kind) || m.Kind == MinionKind.Octopus;  // (and the Engineer's robots, EngineerBots.cs, and Octopus Familiar's octopus, OctopusFamiliar.cs)
 
         /// Damage to a guard (or a thrall); at zero it falls, and a guard's owner has the next one on the way.
         void HurtGuard(Minion m, float dmg)
@@ -129,6 +129,11 @@ namespace Arena
             m.Hp -= dmg;
             if (m.Hp > 0f)
                 return;
+            if (m.Kind == MinionKind.Octopus)
+            {
+                OctoGone(m);  // broken: it bursts into ink (OctopusFamiliar.cs)
+                return;
+            }
             Minions.Remove(m.Id);
             Player owner;
             if (m.Kind == MinionKind.WardenGuard && Players.TryGetValue(m.Owner, out owner))

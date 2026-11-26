@@ -2441,6 +2441,21 @@ namespace Arena
                 "G..G........",
                 "............",
             },
+            ["octopus"] = new[]  // Octopus Familiar: a violet octopus with big eyes and curling arms (Summoner.cs)
+            {
+                "....vvvv....",
+                "...vwvvvv...",
+                "..vwvvvvvv..",
+                "..vvvvvvvv..",
+                "..vwkvvwkv..",
+                "..vwwvvwwv..",
+                "..VvvvvvvV..",
+                ".VvVvVVvVvV.",
+                "Vv.Vv..vV.vV",
+                "V..v.VV.v..V",
+                ".V.V.V..V.V.",
+                "..V...V...V.",
+            },
             ["landshark"] = new[]  // Land Shark: a grey fin cutting through its puddle (Summoner.cs)
             {
                 "............",
