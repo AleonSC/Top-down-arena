@@ -133,13 +133,18 @@ namespace Arena
             session.Broadcast(Proto.End(w));
         }
 
-        readonly MemoryStream snapBuf = new MemoryStream();  // reused by SendSnapshot: no new stream 20 times a second
+        MemoryStream snapBuf;  // reused by SendSnapshot: no new stream 20 times a second (not kept in a run save: RunSnapshot.Skip)
         BinaryWriter snapWriter;
 
         void SendSnapshot()
         {
+            if (snapBuf == null || snapWriter == null)
+            {
+                snapBuf = new MemoryStream();
+                snapWriter = new BinaryWriter(snapBuf);
+            }
             snapBuf.SetLength(0);
-            var w = snapWriter ?? (snapWriter = new BinaryWriter(snapBuf));
+            var w = snapWriter;
             w.Write((byte)Msg.Snapshot);
             SyncSnapshot(new NetSync(w));  // (written even alone: a few fields the host draws from are worked out here, BarrierFrac and the like)
             w.Flush();
