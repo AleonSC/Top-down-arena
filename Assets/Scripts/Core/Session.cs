@@ -80,6 +80,7 @@ namespace Arena
         PracticePlayer,   // host -> all: one player's loadout changed in the lobby while Practice is up: their Start record (Game.WriteStartPlayer); their character is swapped in place (HangoutGame.cs)
         DrillKick,    // client -> host: your own game saw you wall-kick (Dodge.cs WallKick), for the Wall Kick drill (DrillGame.cs)
         HorseBoard,   // client -> host: Interact by or in a Trojan Horse (bool: true climb in, false drop out; TrojanHorse.cs)
+        BallistaMount, // client -> host: Interact by a Ballista: get on it, or off the one you ride (Ballista.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -144,7 +145,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 524;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 525;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -652,6 +653,9 @@ namespace Arena
                     break;
                 case Msg.GateUse:
                     Game.OnGateUse(peer, r);
+                    break;
+                case Msg.BallistaMount:
+                    Game.OnBallistaMount(peer, r);  // Ballista.cs
                     break;
                 case Msg.PitFall:
                     Game.OnPitFall(peer, r);  // Pits.cs

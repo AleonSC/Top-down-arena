@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 525: Ballista (DPS Knight third ultimate, key 2): `AbilityId.Ballista` and `ZoneKind.Ballista` (at the end), `Msg.BallistaMount` (after `HorseBoard`), bullet kind `Defs.BallistaBolt` = 86, a Ballista zone syncs `Rider` (int), `BoltsLeft` (byte) and `GunCd` (float) after `Aim`.
 - 524: Trojan Horse (Tank Knight second ultimate, key 1): `AbilityId.TrojanHorse`, `ZoneKind.TrojanHorse`, `FxKind.TrojanEnd`, `Msg.HorseBoard`, bullet kind `Defs.HorseArrow` = 85 (each at the end); `Player.HorseId` and `SallyT` in the player sync before `BoilT`; a Trojan Horse zone sends `Marched` and `Quiet`.
 - 523: Acupuncture Needles (was Medicine Darts; `WeaponId.MedicineDarts` renamed in place): `Player.NeedleN` (byte) and `NeedleT` replace `DoseT` in the player sync, `Enemy.NeedlesIn` (byte) after the stuck stars, `Defs.BloodNeedle` (84), `FxKind.NeedleBurst` (at the end), `Msg.WeaponDash` kind 69 (Bloodletting).
 - 522: Armor Drop (Tank Soldier fourth ultimate, key 3): `AbilityId.ArmorDrop` and `ZoneKind.ArmorDrop` (at the end), `Player.Armor` in the player sync after `SupplyT`, `Orb.Vest` in the orb sync after `Blood`.

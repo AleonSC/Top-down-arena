@@ -912,6 +912,7 @@ namespace Arena
         public bool ShadowKunai;  // host only: a shadow kunai, which leaves a mark where it lands to blink to
         public bool Sticks;       // host only: a Shuriken star, which sticks in what it hits (to be recalled)
         public bool Talisman;     // host only: an Ofuda Healing Talisman (Ofuda.cs)
+        public bool Pins;         // host only: a mastered Ballista bolt pins what it passes (Ballista.cs)
         public bool Bolts;        // host only: a piercing shot whose hits fling Ricochet's bounce bolts instead of it bouncing (Combat.cs)
         public bool FanRound;     // host only: a Revolver's Fan the Hammer round (harder on stunned enemies: PistolWhip.cs)
         public bool Crossfire;    // host only: a Twin Rifle round, double near Cross (where the streams meet)
@@ -1006,6 +1007,8 @@ namespace Arena
         public HashSet<int> Trampled, Slammed;  // host, a Stampede: enemy ids already hurt, and already slammed, on this charge
         public Dictionary<int, float> HitAt;  // host, a Mammoth Fall: when (its age) it last trampled each enemy (MammothFall.cs)
         public float Spool, GunCd; public int Side; public bool Quiet, Cap;  // host, a Deployable Turret: Quiet folded away with no blast, Cap mastered; how far the barrels have spun up (0-1), time to its next round, which barrel fires next (DeployableTurret.cs)
+        public int Rider, BoltsLeft;  // replicated, a Ballista: who rides it (0 = nobody), bolts left (Ballista.cs)
+        public float BaReloadT;      // host, a Ballista: seconds between bolts (Windlass shortens it)
         public ZoneDef Def => Kits.Get(Kind);
     }
 

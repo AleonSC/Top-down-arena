@@ -792,6 +792,11 @@ namespace Arena
                     TickHorse(z, dt);  // TrojanHorse.cs
                     continue;  // (not a circle: nothing below applies)
                 }
+                if (z.Kind == ZoneKind.Ballista)
+                {
+                    TickBallista(z, dt);  // Ballista.cs
+                    continue;  // (its own tick: nothing below applies)
+                }
                 if (z.Kind == ZoneKind.DeployTurret)
                 {
                     TickDeployTurret(z, dt);  // DeployableTurret.cs

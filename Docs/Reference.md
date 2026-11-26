@@ -256,6 +256,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Leap Slam | Tank | 1st, choice 2 | 9 s | - | The landing also erases enemy bullets within 160 px. | Leap to your cursor untouchable, then slam and stun. |
 | Cavalry Call | Tank | 1st, choice 3 | 18 s | - | Two more lancers ride outside the first pair, and the guard lasts 5 s. | Two lancers charge across the map, shoving and slowing enemies. |
 | Last Stand | Tank | ultimate | 70 s | - | You take 5% of the damage instead of 10%. | Plant yourself behind a wall of steel plates that blocks every bullet in front. |
+| Trojan Horse | Tank | ultimate | 75 s | - | 40% more health, and the arrows pierce one more enemy. | A wooden horse rolls out to the arena's edge. Players press Interact to climb in: safe inside, they shoot arrows out of it. When everyone's in, enemies go for the horse. |
 | Consecrate | Healer | 1st, choice 1 | 14 s | - | Two more crosses fly out at 22 degrees either side (each target is hit once). | Throw a Holy Cross that heals and speeds allies and hurts enemies. |
 | Guardian's Oath | Healer | 1st, choice 2 | 15 s | - | Charges up to 800 px. The ward is wider, follows you, and stands a downed ally back up at 25% health. | Haul an ally to safety and protect everyone in a ward of light. |
 | Lay on Hands | Healer | 1st, choice 3 | 18 s | - | Also heals everyone else near them for half as much. | Heal the most hurt ally, or revive a downed one. |
@@ -265,6 +266,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Caught Steel | Dps | 1st, choice 3 | 16 s | - | Holds up to 18 shards. | Catch passing bullets as steel, then hurl them back. |
 | Drawbridge | Dps | ultimate | 75 s | - | The bridge stands for 8 s. | A drawbridge crushes the lane ahead, then blocks enemies and shots. |
 | Warhorn Volley | Dps | ultimate | 70 s | - | The volley is 40% wider and the fire burns for 8 s. | A volley of fire arrows sweeps the field, burning and pinning enemies. |
+| Ballista | Dps | ultimate | 75 s | - | 10 bolts, and each one pins what it hits. | A giant ballista drops in front of you. Anyone can mount it (Interact) and fire 8 giant bolts that go through everything. |
 
 ### Ninja
 
