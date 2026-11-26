@@ -323,6 +323,9 @@ namespace Arena
                 case ZoneKind.Claymore:
                     DrawClaymore(z, t);  // ClaymoreLook.cs
                     return;  // no timer ring: the mine shows its own state
+                case ZoneKind.Caltrop:
+                    DrawCaltrop(z, t);  // CaltropRunLook.cs
+                    return;  // no timer ring: it fades on its own
                 case ZoneKind.LandShark:
                     DrawLandSharkPuddle(z, t);  // LandSharkLook.cs (the shark is drawn over the enemies: DrawLandSharks)
                     return;  // no timer ring: the puddle is its own clock

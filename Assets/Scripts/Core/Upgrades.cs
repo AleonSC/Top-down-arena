@@ -17,7 +17,8 @@ namespace Arena
         // Ultimates (F): one per role and class
         Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, ArtilleryAssault, BulletRain, Legion,
         // Knight (1st ability), then the Knight ultimates
-        ShieldWall, LeapSlam, CavalryCall, Consecrate, GuardiansOath, LayOnHands, BladedDive, Gauntlet, CaughtSteel,
+        ShieldWall, LeapSlam, CavalryCall, Consecrate, GuardiansOath, LayOnHands, BladedDive, Gauntlet, CaltropRun,  // Caltrop Run (CaltropRun.cs) took Caught Steel's place (and number)
+       
         LastStand, HallowedBlade, Drawbridge,
         // Ninja (1st ability), then the Ninja ultimates
         ShadowClone, SmokeBomb, CeremonialArmor, HealingDash, Substitution, SpiritWard, ShadowStep, Vanish, BladeFan,
@@ -124,7 +125,7 @@ namespace Arena
         public float SlamRadiusMult = 1f, SlamStunBonus;
         public float UnbreakBonus, CavalryDmgBonus;  // Cavalry Call: extra damage blocked while the guard is up, extra damage per lance
         public float HolyRangeMult = 1f, HolySwiftBonus, OathCut, LayMult = 1f;
-        public float BladedDamage, BladedReach, GauntletRange = 1f, GauntletDamage = 1f, SteelDamage, SteelReach;  // the DPS Knight's cards: Coup de Grace, Iron Grip, Forged Edge
+        public float BladedDamage, BladedReach, GauntletRange = 1f, GauntletDamage = 1f, CaltropDamage; public int CaltropMore;  // the DPS Knight's cards: Coup de Grace, Iron Grip, Barbed Iron
         public float CannonDamage, CannonWide;  // Siege Powder (CannonCall.cs): +25% damage, +15% blast radius a stack
         public float ApBonusTime, ApDmgMult = 1f;  // Astral Bond (AstralProjection.cs): +2 s, +25% bolt damage a stack
         public float FpDmgMult = 1f, FpKillHealMult = 1f;  // Forbidden Hunger (ForbiddenPath.cs): +20% combo damage, kills heal twice as much, a stack

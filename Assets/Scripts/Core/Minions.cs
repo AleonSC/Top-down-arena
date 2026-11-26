@@ -823,6 +823,11 @@ namespace Arena
                     TickMammoth(z, dt);  // MammothFall.cs
                     continue;  // (its own tick: nothing below applies)
                 }
+                if (z.Kind == ZoneKind.Caltrop)
+                {
+                    TickCaltrop(z);  // CaltropRun.cs
+                    continue;  // (its own tick: nothing below applies)
+                }
                 if (z.Kind == ZoneKind.LandShark)
                 {
                     TickLandShark(z);  // LandShark.cs

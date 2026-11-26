@@ -8,7 +8,7 @@ namespace Arena
         void ResetRunLists()
         {
             // Knight and Soldier weapons
-            pendingSwings.Clear(); steelWalls.Clear(); slams.Clear(); steelLaunches.Clear();
+            pendingSwings.Clear(); steelWalls.Clear(); slams.Clear();
             hookRuns.Clear(); lanceRuns.Clear(); gauntlets.Clear(); boShoves.Clear(); cavalry.Clear(); volleys.Clear(); cannonBalls.Clear(); cannonCalls.Clear(); oaths.Clear();
             holyCrosses.Clear(); bladedRuns.Clear(); castRuns.Clear(); grabRuns.Clear(); airRuns.Clear();
             hammerThrows.Clear(); hammerSlams.Clear(); hammerSlamCd.Clear(); shieldThrows.Clear(); bashShards.Clear();

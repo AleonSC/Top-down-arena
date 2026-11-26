@@ -505,7 +505,7 @@ namespace Arena
             for (int i = 0; i < p.Slots.Length; i++)
             {
                 var s = p.Slots[i];
-                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.ArterialSpray && p.SprayOn || s.Id == AbilityId.BloodWall && p.BloodWallOn || s.Id == AbilityId.LastStand && p.StandOn || s.Id == AbilityId.TrojanHorse && HorseOut(p) || s.Id == AbilityId.CaughtSteel && p.SteelT > 0f)
+                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.ArterialSpray && p.SprayOn || s.Id == AbilityId.BloodWall && p.BloodWallOn || s.Id == AbilityId.LastStand && p.StandOn || s.Id == AbilityId.TrojanHorse && HorseOut(p) || s.Id == AbilityId.CaltropRun && p.CaltropT > 0f)
                     continue;  // (the Stun Gun's cooldown waits until its shots are spent)
                 if (HangoutOn)
                 {
@@ -1363,12 +1363,11 @@ namespace Arena
                 bool boilOut = BoilPress(me, slot);  // Blood Boil pressed again: the host ends it (BloodBoil.cs)
                 bool bathOut = BathPress(me, slot);  // Bloodbath pressed again: the host ends the channel (Bloodbath.cs)
                 bool sprayOut = SprayRelease(me, slot);  // Arterial Spray pressed again: the host closes the vein (ArterialSpray.cs)
-                bool steelOut = SteelRelease(me, slot);  // Caught Steel pressed again: the host throws the shards (CaughtSteel.cs)
                 bool wallOut = WallRelease(me, slot);  // Blood Wall pressed again: the host stops it (BloodWall.cs)
                 bool galeOut = GalePress(me, slot);  // Gale Wall pressed again: the host unleashes it (GaleWall.cs)
                 bool turretOut = TurretPress(me, slot);  // Deployable Turret pressed again: the host lets you out (DeployableTurret.cs)
                 bool graspOut = GraspRelease(me, slot);  // Kinetic Grasp pressed again: the host throws the held enemy (Arcanist.cs)
-                if (!graspOut && !turretOut && !galeOut && !orbitOut && !standOut && !harvestOut && !rainOut && !boilOut && !bathOut && !shellOut && !sprayOut && !steelOut && !wallOut && !Consume(me, slot, false))
+                if (!graspOut && !turretOut && !galeOut && !orbitOut && !standOut && !harvestOut && !rainOut && !boilOut && !bathOut && !shellOut && !sprayOut && !wallOut && !Consume(me, slot, false))
                     continue;
                 V2 target = aimAt, castFrom = me.Pos;  // (where you stood, for the Shadow Step's look)
                 switch (me.Slots[slot].Id)
