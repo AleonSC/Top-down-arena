@@ -410,14 +410,14 @@ namespace Arena
             alive.Clear();
             tanks.Clear();
             foreach (var p in Players.Values)
-                if (!p.Downed && !Jailed(p) && (p.TauntT > 0f || JuggOn(p) || p.RodT > 0f || ColOn(p) || SpOn(p)))
+                if (!p.Downed && !Jailed(p) && !Riding(p) && (p.TauntT > 0f || JuggOn(p) || p.RodT > 0f || ColOn(p) || SpOn(p)))
                     return p.Id;  // Roar (or the Juggernaut Suit, or a Lightning Rod's charge): everyone goes for the tank
             Player hunted;
             if (Has(RunMod.Hunted) && Players.TryGetValue(HuntedId, out hunted) && !hunted.Downed && hunted.VanishT <= 0f && !Jailed(hunted))
                 return hunted.Id;  // Hunted: everyone goes for the quarry (Modifiers.cs)
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.VanishT > 0f || ApOn(p) || Jailed(p))  // (ApOn: Astral Projection's body is ignored, AstralProjection.cs); a vanished Ninja can't be picked out (Ninja.cs); nor someone in a Holding Cell
+                if (p.Downed || p.VanishT > 0f || ApOn(p) || Jailed(p) || Riding(p))  // (ApOn: Astral Projection's body is ignored, AstralProjection.cs); a vanished Ninja can't be picked out (Ninja.cs); nor someone in a Holding Cell
                     continue;
                 alive.Add(p.Id);
                 if (p.Role == Role.Tank)
@@ -425,7 +425,7 @@ namespace Arena
             }
             if (alive.Count == 0)
                 foreach (var p in Players.Values)
-                    if (!p.Downed && !Jailed(p))
+                    if (!p.Downed && !Jailed(p) && !Riding(p))  // (everyone up in a Trojan Horse: nobody to pick, they go for the horse: HorseTarget)
                         alive.Add(p.Id);  // everyone has vanished: they search where they last saw them
             if (alive.Count == 0)
                 return 0;
@@ -572,7 +572,7 @@ namespace Arena
                     e.TargetId = cell != null ? cell.PlayerId : 0;
                     Players.TryGetValue(e.TargetId, out target);
                 }
-                else if (e.RetargetT <= 0f || target == null || target.Downed || ApAway(target) || HoldingCells.Count > 0 && Jailed(target))
+                else if (e.RetargetT <= 0f || target == null || target.Downed || ApAway(target) || Riding(target) || HoldingCells.Count > 0 && Jailed(target))
                 {
                     e.TargetId = PickTarget();
                     e.RetargetT = 3f;
@@ -582,6 +582,7 @@ namespace Arena
                 tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
                 tpos = RobotTarget(e, tpos);  // an Engineer's robot draws in enemies near it (Engineer.cs)
                 tpos = DecoyTarget(e, tpos);  // a Decoy Dummy draws in enemies near it (DecoyDummy.cs)
+                tpos = HorseTarget(e, target, tpos);  // everyone up is in a Trojan Horse: they go for it (TrojanHorse.cs)
                 tpos = RoomTarget(e, tpos);
                 tpos = GnawlingTarget(e, tpos);  // a Gnawling smells a morsel (LarderFaction.cs)  // a challenge room: the crystal, or the zone (Challenges.cs)
                 bool held = RoomsLeash(e, ref tpos);  // a Gatekeeper room's mini-boss keeps to its room (Rooms.cs)
@@ -640,7 +641,9 @@ namespace Arena
                     : e.Def.Contact > 0f ? e.Def.Contact * BruteDamageMult(e) : ContactDamage;
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
                 if (!e.Def.IsBoss && !e.Def.Mini)
-                    DecoyContact(e, contact);  // a Decoy Dummy in the way gets bitten (DecoyDummy.cs)
+                    DecoyContact(e, contact);
+                if (!e.Def.IsBoss)
+                    HorseContact(e, contact);  // a Trojan Horse in the way gets bitten (TrojanHorse.cs)  // a Decoy Dummy in the way gets bitten (DecoyDummy.cs)
                 if ((e.Def.IsBoss || e.Def.Mini) && !BossDashing(e))
                     continue;  // bosses' and mini-bosses' bodies don't hurt heroes, so melee can stand close; only their telegraphed charges do (a boss still shoves you out: Game.cs)
                 foreach (var p in Players.Values)

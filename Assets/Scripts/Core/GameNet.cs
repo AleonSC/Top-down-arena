@@ -643,6 +643,8 @@ namespace Arena
             s.Float(ref p.RvT);  // Blood Ravager (BloodRavager.cs)
             if (p.RvT > 0f)
                 s.Float(ref p.RvLen);
+            s.Int(ref p.HorseId);  // Trojan Horse (TrojanHorse.cs)
+            s.Float(ref p.SallyT);
             s.Float(ref p.BoilT);  // Blood Boil (BloodBoil.cs)
             if (p.BoilT > 0f)
                 s.Float(ref p.BoilLen);
@@ -1315,7 +1317,7 @@ namespace Arena
             if (s.Reading)
                 z = new Zone();
             else
-                z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell || z.Kind == ZoneKind.Cover || z.Kind == ZoneKind.DecoyDummy || z.Kind == ZoneKind.DeployTurret || z.Kind == ZoneKind.Claymore ? z.GuardFrac  // (a cover's health left: DeployableCover.cs)  // (a smoke canister's flight distance: GrenadeLauncher.cs)
+                z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell || z.Kind == ZoneKind.Cover || z.Kind == ZoneKind.DecoyDummy || z.Kind == ZoneKind.DeployTurret || z.Kind == ZoneKind.Claymore || z.Kind == ZoneKind.TrojanHorse ? z.GuardFrac  // (a cover's health left: DeployableCover.cs)  // (a smoke canister's flight distance: GrenadeLauncher.cs)
                       // a Blood Wall node's place along its wall (BloodWall.cs)
                     : z.Kind == ZoneKind.Smoke ? (z.ExtraSlow > 0f ? 1f : 0f)  // a mastered Smoke Bomb (its slow on enemies), for drawing
                     : z.Kind == ZoneKind.Ward ? (z.SoakMax > 0f ? z.Soak / z.SoakMax : 0f) : z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
@@ -1341,6 +1343,11 @@ namespace Arena
                     z.Bones = new byte[n];
                 for (int i = 0; i < n; i++)
                     s.Byte(ref z.Bones[i]);
+            }
+            if (z.Kind == ZoneKind.TrojanHorse)  // how far it has rolled, and parked (TrojanHorse.cs)
+            {
+                s.Float(ref z.Marched);
+                s.Bool(ref z.Quiet);
             }
             if (z.Kind == ZoneKind.Stampede)  // the herd's walk (Stampede.cs)
                 s.Float(ref z.Marched);

@@ -134,17 +134,18 @@ static partial class Program
         Check(me.ArmRicochets == 1 && !g.Bullets.ContainsKey(shot.Id) && g.Bullets.Values.Any(b => b.Owner == 1 && b.Kind == Defs.ArcaneShot), "an enemy shot ricochets off the shell as yours");
         Check(me.Hp == hp0, "and doesn't hurt you");
 
-        // A fast wall hit bashes (an arena with walls: Solid Walls; a plain arena wraps round).
-        g.Mods |= RunMod.SolidWalls;
-        me.Pos = new V2(1000f, 450f);
+        // A fast wall hit bashes (an arena with walls: Tiny Arena's after a boss; a plain arena wraps round).
+        int wave0 = g.Wave;
+        g.Mods |= RunMod.TinyArena; g.Wave = 6;
+        me.Pos = new V2(800f, 450f);
         aim = new V2(3000f, 450f);
         step(1f);
-        var nearWall = make(EnemyType.Grunt, new V2(Game.Width - 20f, me.Pos.Y), 1e6f);
+        var nearWall = make(EnemyType.Grunt, new V2(g.ArenaMax.X - 20f, me.Pos.Y), 1e6f);
         for (int i = 0; i < 30 && me.ArmBashes == 0; i++) step(0.1f);
         Check(me.ArmBashes >= 1 && g.ArmBashesSent >= 1, "rolling hard into the wall bashes (" + me.ArmBashes + ")");
         Check(1e6f - nearWall.Hp >= Game.ArmBash * dm - 1f, "50 round where it hit (" + (1e6f - nearWall.Hp).ToString("0.0") + ")");
-        Check(me.Pos.X <= Game.Width - Game.ArmR + 1f, "and the ball bounces off, never into the wall");
-        g.Mods &= ~RunMod.SolidWalls;
+        Check(g.Walled && me.Pos.X <= g.ArenaMax.X - Game.ArmR + 1f, "and the ball bounces off, never into the wall");
+        g.Mods &= ~RunMod.TinyArena; g.Wave = wave0;
         g.Enemies.Remove(nearWall.Id); mine.Clear();
 
         // It ends on time with the uncurl slam.

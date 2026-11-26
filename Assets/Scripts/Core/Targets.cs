@@ -101,6 +101,6 @@ namespace Arena
         static bool Targetable(Enemy e) => e.SpawnT <= 0f && e.Hp > 0f;
 
         /// A player an enemy attack can land on: up and not in their hit grace.
-        static bool Hittable(Player p) => !p.Downed && p.InvulnT <= 0f;
+        static bool Hittable(Player p) => !p.Downed && p.InvulnT <= 0f && p.HorseId == 0;  // (in a Trojan Horse: TrojanHorse.cs)
     }
 }

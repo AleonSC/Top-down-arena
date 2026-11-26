@@ -203,8 +203,6 @@ namespace Arena
             HuntMapNodeCleared();  // the hunt map moves on (HuntMapGame.cs)
             if (CurrentPath != PathId.None && Wave >= PathTo && LegDone)
                 FinishPath();  // its prize, then the plain arena for the boss (Paths.cs)
-            if (Has(RunMod.GoldRush) && BossNext && !ShopOpen && ModeRules.Extras)
-                OpenShop();  // Gold Rush: a shop before every boss
             foreach (var p in Players.Values)
             {
                 if (BossSlot)

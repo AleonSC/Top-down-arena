@@ -2,7 +2,7 @@ namespace Arena
 {
     /// The Medic: a tiny service room (RoomKind.Medic, from its service card or a mystery door) and the only room shop that sells a full
     /// heal and a revive token (Shop.cs: HealPrice, RevivePrice) while the room shops are open. The shop room, the Black Market and the
-    /// Arms Dealer don't sell them; the Bazaar's and Gold Rush's shops (no rooms) still do.
+    /// Arms Dealer don't sell them; the Bazaar's shop (no rooms) still does.
     public partial class Game
     {
         /// The map has an open Medic room.

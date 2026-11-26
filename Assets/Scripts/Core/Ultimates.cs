@@ -154,6 +154,10 @@ namespace Arena
                     CastTank(p, cap);
                     break;
 
+                case AbilityId.TrojanHorse:  // Tank: Knight, the second ultimate (TrojanHorse.cs)
+                    CastHorse(p, cap);
+                    break;
+
                 case AbilityId.IronArmadillo:  // Tank: Summoner, the third ultimate (IronArmadillo.cs)
                     CastArmadillo(p, cap);
                     break;

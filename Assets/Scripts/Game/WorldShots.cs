@@ -264,7 +264,7 @@ namespace Arena
                 DrawScatterArrow(b);  // BowFocusLook.cs
                 return;
             }
-            if (b.Kind == Defs.ArrowShot)  // a Mender's Bow arrow: wooden shaft, steel head, green fletching
+            if (b.Kind == Defs.ArrowShot || b.Kind == Defs.HorseArrow)  // a Mender's Bow arrow: wooden shaft, steel head, green fletching (a Trojan Horse's: gold, TrojanHorse.cs)
             {
                 V2 dir = b.Vel.Normalized(), side = dir.Orthogonal();
                 V2 tip = b.Pos + dir * 9f, neck = b.Pos + dir * 3f, tail = b.Pos - dir * 15f;

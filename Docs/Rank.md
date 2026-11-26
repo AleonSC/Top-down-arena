@@ -55,7 +55,7 @@ The point of the modifiers brainstorm: **harder modifiers pay more**.
 |---|---|
 | Harder | +25% |
 | Risky | +15% |
-| Easier | +0% (Gold Rush, Lucky, ... don't add; they don't cost XP either) |
+| Easier | +0% (Lucky, Second Wind, ... don't add; they don't cost XP either) |
 
 - Capped at x3 so a stack of every Harder switch isn't an XP exploit.
 - Difficulty adds its own step on top: Easy x0.75, Normal x1, Hard x1.25, Nightmare x1.5 (Custom x1).

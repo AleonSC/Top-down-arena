@@ -79,6 +79,7 @@ namespace Arena
         HangoutSpawners,  // host -> all: every Hangout spawner (count byte; each: enemy index byte, on bool)
         PracticePlayer,   // host -> all: one player's loadout changed in the lobby while Practice is up: their Start record (Game.WriteStartPlayer); their character is swapped in place (HangoutGame.cs)
         DrillKick,    // client -> host: your own game saw you wall-kick (Dodge.cs WallKick), for the Wall Kick drill (DrillGame.cs)
+        HorseBoard,   // client -> host: Interact by or in a Trojan Horse (bool: true climb in, false drop out; TrojanHorse.cs)
 
         // Fixed value so every version can understand it, whatever else changes.
         Reject = 200,
@@ -687,6 +688,9 @@ namespace Arena
                     break;
                 case Msg.RoleRequest:
                     { int v = r.ReadByte(); if (!Game.InRun) SetRole(peer, v); }  // (a late lobby request mid-run is ignored; Practice is no run)
+                    break;
+                case Msg.HorseBoard:
+                    Game.OnHorseBoard(peer, r);  // TrojanHorse.cs
                     break;
                 case Msg.HangoutSpawner:
                     Game.OnHangoutSpawner(peer, r);  // HangoutSpawners.cs
