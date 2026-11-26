@@ -2441,6 +2441,21 @@ namespace Arena
                 "G..G........",
                 "............",
             },
+            ["octopus"] = new[]  // Octopus Familiar: a violet octopus with big eyes and curling arms (Summoner.cs)
+            {
+                "....vvvv....",
+                "...vwvvvv...",
+                "..vwvvvvvv..",
+                "..vvvvvvvv..",
+                "..vwkvvwkv..",
+                "..vwwvvwwv..",
+                "..VvvvvvvV..",
+                ".VvVvVVvVvV.",
+                "Vv.Vv..vV.vV",
+                "V..v.VV.v..V",
+                ".V.V.V..V.V.",
+                "..V...V...V.",
+            },
             ["landshark"] = new[]  // Land Shark: a grey fin cutting through its puddle (Summoner.cs)
             {
                 "............",
@@ -2575,6 +2590,9 @@ namespace Arena
         }
 
         /// The rows of an upgrade's icon, for drawing it in the world with GL (a chest item, PropsLook.cs), or null.
+        /// The rows of a named icon, for drawing it in the world with GL, or null.
+        public static string[] RowsOf(string key) { string[] rows; return Icons.TryGetValue(key, out rows) ? rows : null; }
+
         public static string[] RowsFor(UpgradeDef u)
         {
             string key = IconKey(u);

@@ -88,6 +88,8 @@ namespace Arena
                 Apply = s => { s.TuskReachMult += Game.TkDeepReach; s.TuskWet += Game.TkDeepWet; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LandShark, MaxStacks = 2, Name = "Great White", Desc = "Land Shark bites 40% harder",
                 Apply = s => s.LandSharkDmgMult += 0.4f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.OctopusFamiliar, MaxStacks = 2, Name = "Three Hearts", Desc = "Octopus Familiar has 50% more health and slaps 25% harder",
+                Apply = s => { s.OctoHpMult += 0.5f; s.OctoDmgMult += 0.25f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SpiritSwarm, MaxStacks = 2, Name = "Sprite Choir", Desc = "Spirit Swarm's sprites heal 40% more and last 2 s longer",
                 Apply = s => { s.SpriteHealMult += 0.4f; s.SpriteBonusTime += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Phoenix, MaxStacks = 2, Name = "Rebirth Flame", Desc = "The phoenix stays 4 s longer, and whoever it revives gets 25% more health",
@@ -173,6 +175,13 @@ namespace Arena
                 Name = "Soul Lantern", Icon = "halo", Cooldown = 18f, Desc = "A lantern links to an ally, healing them and burning nearby enemies.",
                 Capstone = "Lasts 9 s, and the linked player can't go down.",
                 Bot = b => b.AllyHurt && b.HaveTarget,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.OctopusFamiliar, Kit = Kit.Summoner, Role = Role.Healer, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (OctopusFamiliar.cs)
+                Name = "Octopus Familiar", Icon = "octopus", Cooldown = Game.OctoCooldown, Desc = "Click a player: a spirit octopus guards them for 60 s, slapping up to 8 enemies near them at once and healing them a little each slap.",
+                Capstone = "The octopus has 380 health and slaps for 22.",
+                Bot = b => b.AllyThreatened || b.AllyHurt && b.HaveTarget,
             },
             new AbilityDef
             {

@@ -553,6 +553,8 @@ namespace Arena
                 DrawGreatStarRoute(p, t);  // the Great Star's ink route as you draw it (GreatStarLook.cs)
             if (p.Id == game.MyId && game.OathPickSlot >= 0)
                 DrawOathPick(p, t);  // Guardian's Oath waiting for you to click the ally to grab (GuardiansOathLook.cs)
+            if (p.Id == game.MyId && game.OctoPickSlot >= 0)
+                DrawOctoPick(p, t);  // Octopus Familiar waiting for you to click a player (OctopusFamiliarLook.cs)
             if (p.Weapon.Id == WeaponId.Kunai && p.KunaiMarkT > 0f)  // the shadow kunai's mark: blink there with a double-tap
             {
                 var shade = new Rgba(0.55f, 0.45f, 0.85f);
@@ -834,6 +836,7 @@ namespace Arena
             if (LaunchHides(p))
                 return;  // still on its way down in a pillar of light (LaunchIntro.cs)
             DrawNeedleSwarm(p, t);  // the Needle Swarm's ring and tendrils, under the player (NeedleSwarmLook.cs)
+            DrawMoveGhosts(p, t);  // a dash's fading copies (MoveFeel.cs)
             DrawPlayer(p, t);
             if (!p.Downed)
                 DrawStonespears(p, t);  // the hovering spears (StonespearLook.cs)
@@ -872,6 +875,8 @@ namespace Arena
         {
             if (fpProject)
                 return FpPx(p);  // first person: through your eyes (FirstPerson.cs)
+            if (bodyXfOn)
+                p = BodyFeelPoint(p);  // a moving body's stretch and lean (MoveFeel.cs)
             if (camZoomOn)
                 p = ZoomPoint(p);  // the scroll-wheel zoom (CameraZoom.cs)
             var v = CanvasPx(glShift + p * glZoom);

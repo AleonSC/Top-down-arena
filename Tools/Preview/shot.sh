@@ -17,6 +17,7 @@
 # OFUDA=<s> (the Healer Ninja's Ofuda: talismans bending onto a hurt teammate, a Blast Ofuda stuck to a grunt and one on the ground; mode hud, 3 players, ZOOM=1.6).
 # ARCLOCK=<s> (Arc Lightning's lock-on: hold from 0, let go at 1.5 s; ARCFORK=1 the Forked Volley instead; mode hud).
 # OATHPICK=1|0 (Guardian's Oath waiting for the click: cursor on an ally, or off; mode hud, 3 players).
+# MOVEFEEL=walk|stop|dash [MFOFF=1] (movement feel, MoveFeel.cs: the stretch, dust, dash ghosts; MFOFF the before; mode hud, 2 players, ZOOM=2.5).
 # SPRINT=<s> (the Dodge's held sprint that long in, running right with its fading wake; mode hud).
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
 # MOMENTUM=<0-5> (the DPS passive's stack pips round you; mode hud, 2 players).
@@ -95,6 +96,7 @@
 # BAMBOO=<s since the cast> [BAMBOOCAP=1 mastered] (the Tank Ninja's Bamboo Grove played through the game, ZOOM=2 shot.sh x hud 1 6 1: wind-up 0-0.35, rings burst 0.35-0.7, fence to 3.9; use 0.2, 0.42, 0.6, 1.0, 2.5; ShotBambooGrove.cs).
 # BELL=<s since the cast> [BELLCAP=1 mastered] (the Tank Knight's Siege Bell played through the game, ZOOM=1.3 shot.sh x hud 1 6 1: bell down 0-0.22, tolls 0.3/0.8/1.3, shockwave 1.3-1.75, bell gone 2.45, stuns to ~3.8; use 0.4, 1.0, 1.45, 1.6, 2.4; ShotSiegeBell.cs).
 # CHAKRA=<s since the cast> [CHAKRACAP=1 mastered] (the Healer Ninja's Chakra Reserves on a hurt teammate, ZOOM=2 shot.sh x hud 1 6 2: thread 0-0.22, lotus to 0.95, Surge to 5; use 0.1, 0.3, 0.6, 2.0; ShotChakra.cs).
+# OCTO=<s since the cast> [OCTOHP=<0-1>] or OCTOPICK=1 (the Healer Summoner's Octopus Familiar guarding a teammate among grunts, ZOOM=2 shot.sh x hud 1 6 2: pops out by 0.45, arms slap from then; use 0.2, 0.5, 1.4; ShotOctopus.cs).
 # ROD=<s since the cast> (you take Lightning Rod, the tank Elementalist's second ultimate, and cast it that long before the shot; mode hud).
 # TANKALT=<s> (the Tank Soldier's Alt fires: Double Barrel that long after firing, shells pips, Proximity Shells, Tear Gas; TankAltLook.cs).
 # HORSE=<s since the cast> [HORSEALL=1] [HORSEWEAR=<0-1>] [HORSEEND=broke|sally] (the Tank Knight's Trojan Horse rolling out, teammates inside shooting arrows; HORSEALL: you too, enemies go for it; mode hud, 3 players, ZOOM=2; ShotTrojanHorse.cs).

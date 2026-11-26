@@ -464,6 +464,7 @@ static partial class Program
         Test("cannoncall", "Cannon Call, the DPS Knight's 4th choice: the 4th lobby key, the 420 px mark, one effect a ball on both screens, 70 in the core and 35 to the edge after the fall, the shove and stun, half the cooldown back for 3 kills, mastery (three balls) and Siege Powder", () => CannonCallTest(Dt)),
         Test("thornbloom", "Thorn Bloom, the DPS Hemomancer's 4th choice: the 4th lobby key, the 12% cost, twelve needles on both screens landing on arrival (45 and a bleed stack, the first enemy only), the tendril chain (30, 20% less a jump, 3 jumps, never the same enemy twice), mastery (5 jumps) and Thornwork", () => ThornBloomTest(Dt)),
         Test("chakra", "Chakra Reserves, the Healer Ninja's 4th choice: the 4th lobby key, the heal (40 + 15% missing), the Chakra Surge (faster moving and attacks, both screens), the teammate's cooldowns refreshed on their own game but not the ultimate, nobody in reach (half on you, no refresh), going down ending it, Deep Reserves and mastery", () => ChakraReservesTest(Dt)),
+        Test("octopus", "Octopus Familiar, the Healer Summoner's 4th choice: the 4th lobby key, the pick (press, click a player, the key again cancels), the octopus on that player on both screens, 8 slaps at once in reach (16 and a heal), its health (shots, the ink burst), its 60 s, one per caster, Three Hearts and mastery", () => OctopusFamiliarTest(Dt)),
         Test("bamboo", "Bamboo Grove, the Tank Ninja's 4th choice: the 4th lobby key, the wind-up, the wave reaching near before far (40 and a stun, heavy enemies less), the bleed once the stun ends, nothing past the radius, the fence holding enemies out and stopping shots, mastery (6 s fence) and Rhizome", () => BambooGroveTest(Dt)),
         Test("siegebell", "Siege Bell, the Tank Knight's 4th choice: the 4th lobby key, the sound, braced (rooted, 25% less damage) while it rings, tolls 1 and 2 (8 and a flinch within 120 px), the shockwave reaching near before far (20, a shove, a 2.5 s stun, heavy enemies less), nothing past 260 px, mastery (3.5 s, shots erased) and Great Bell", () => SiegeBellTest(Dt)),
         Test("flashfire", "Flash Fire, the DPS Elementalist's third ultimate (key 2): the kindle, the ring reaching near before far (100, slowed 40%, heavy enemies less), nothing past the radius, the ground hurting 25 a second for 8 s, going out and leaving what is in it burning, mastery (11 s) and Backdraft", () => FlashFireTest(Dt)),
@@ -559,6 +560,7 @@ static partial class Program
         Test("celllayouts", "cell layouts (Docs/Mockups/cell-layouts.html): hand-made walls per grid cell, open door lanes and middle, clear sleeper slots, the same on every build", () => CellLayoutsTest()),
         Test("pits", "cell variants and pits (Docs/CellVariants.md): the pit variants keep the middle and doors clear, rolled per cell; an enemy shoved in dies, a player climbs out with 15% less health", () => PitsTest(Dt)),
         Test("layouttest", "the Cell Editor's hub edits and TEST LAYOUT (HubLayoutEdits.cs, LayoutTest.cs): a hub plan's walls and crates change and revert, a tested piece is built with the layouts asked for", () => LayoutTestTest(Dt)),
+        Test("shoppedestals", "the pedestal shop (ShopPedestals.cs): two doors, pedestals on the other walls, nothing built or linked through them, no cover", () => ShopPedestalsTest()),
         Test("gridrooms", "grid rooms (Docs/GridRooms.md): the core, door spots on the lattice, nodes and chests at a cell's middle; pieces, cards and mini-boss rooms", () => GridRoomsTest(), () => GridRoomsGameTest(Dt), () => PieceShapesTest(), () => PieceCardsTest(), () => GridMiniTest(), () => GridSurpriseTest(), () => PieceShapesGameTest(Dt)),
         Test("lighting", "dynamic lighting's shadows (Core/LightCast.cs): walls and bodies stop a light, sharp corners, a light's own body ignored, casters out of reach skipped", () => LightingTest()),
         Test("turret", "the Black Market's Turret (Turret.cs): placed from the stash, it shoots enemies in range for 5 waves, 3 each", () => TurretTest(Dt)),
@@ -663,7 +665,8 @@ static partial class Program
         "stampede", "staticbubble", "staticshock", "stayin", "supplydrop", "survival", "thornbloom", "trojanhorse", "twintessen",
         "ultimates", "waterward", "wiki", "windclash", "wyvernstaff",
         "heartflail", "sanctumglass", "siegebell", "chakra", "honeyraid", "heartbeat", "tusker",
-        "contentfuzz", "caltroprun", "rocketdrop", "banners", "shadowgong",
+        "contentfuzz", "caltroprun", "rocketdrop", "banners", "shadowgong", "octopus",
+        "shoppedestals",
     };
 
     static int Main(string[] args)

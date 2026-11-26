@@ -494,6 +494,7 @@ namespace Arena
                 case AbilityId.Medkit:
                 case AbilityId.HealingRain:
                 case AbilityId.SoulLantern:
+                case AbilityId.OctopusFamiliar:
                 case AbilityId.Consecrate:
                 case AbilityId.LumenWard:
                     return true;

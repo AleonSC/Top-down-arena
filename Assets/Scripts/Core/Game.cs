@@ -77,7 +77,7 @@ namespace Arena
         public bool RerollPending => rerollsAtRequest >= 0;
 
         public bool Bot;  // drive the local player automatically (testing)
-        V2 iceVel;        // your sliding velocity on the Frozen Lake path (Paths.cs)
+        V2 iceVel;        // your walking velocity: eased (WalkStartTime/WalkStopTime), and sliding on the Frozen Lake path (Paths.cs)
         public bool HoldParry;  // keep the parry up (testing)
 
         /// Round trip to the host in milliseconds (0 when you're the host), measured four times a second (Game.PingEvery).
@@ -1210,6 +1210,7 @@ namespace Arena
                 move = V2.Zero;  // the Arc Knuckles' Flurry, Grab & Throw and Barrage: rooted while they run (ArcKnucklesChain.cs, ArcKnucklesBrawl.cs)
             bool oathClick = LocalOathPick(me, aimAt, input.Fire && !Bot, ref firing);  // Guardian's Oath: Fire picks the ally instead of shooting (GuardiansOath.cs)
             bool hospClick = LocalHospPick(me, aimAt, input.Fire && !Bot, ref firing);  // Field Hospital: Fire picks the door instead of shooting (FieldHospital.cs)
+            bool octoClick = LocalOctoPick(me, aimAt, input.Fire && !Bot, ref firing);  // Octopus Familiar: Fire picks the player instead of shooting (OctopusFamiliar.cs)
             float bowRelease = LocalBow(me, firing && !Riding(me), dt);  // (in a Trojan Horse: arrows, no charge: TrojanHorse.cs)
             if (me.Downed)
                 DashT = 0f;
@@ -1218,7 +1219,8 @@ namespace Arena
                 KickReachOn(me, dt);  // a Dodge ending just short of a wall reaches on to it (Dodge.cs)
                 DashT -= dt;
                 me.Pos += DashDir * dashSpeed * dt;
-                iceVel = DashDir * me.Speed * Paths.IceTopSpeed;  // on ice you slide out of a dash
+                bool iceDash = OnPathOf(PathId.FrozenLake) || FloorAt(me.Pos) == PathId.FrozenLake;
+                iceVel = iceDash ? DashDir * me.Speed * Paths.IceTopSpeed : V2.Zero;  // on ice you slide out of a dash; elsewhere a dash ends where it lands
             }
             else if (ArmOn(me))
                 LocalArmRoll(me, move, aimAt, firing && !HoldControls, dt);  // Iron Armadillo: rolling, not walking (IronArmadillo.cs)
@@ -1233,8 +1235,15 @@ namespace Arena
                 }
                 else
                 {
-                    iceVel = want;
-                    me.Pos += want * dt;
+                    // A little weight (WalkStartTime, WalkStopTime in Balance.cs): speed builds and falls fast, but not at once.
+                    // (Not for the test bot: its dodging plans with instant speed, so it would dodge worse and fights would drag.)
+                    bool braking = want.IsZero || want.Dot(iceVel) < 0f;
+                    float top = Math.Max(me.Speed, want.Length);
+                    if (Bot)
+                        iceVel = want;
+                    else
+                        iceVel += (want - iceVel).LimitLength(top * dt / (braking ? WalkStopTime : WalkStartTime));
+                    me.Pos += iceVel * dt;
                 }
             }
             if (!ArmOn(me))
@@ -1332,6 +1341,21 @@ namespace Arena
                     }
                     pressed = hospClick;  // the click on a lit door is the cast
                 }
+                else if (OctoPickSlot == slot)
+                {
+                    if (pressed)
+                    {
+                        OctoPickSlot = -1;  // the key again: never mind
+                        continue;
+                    }
+                    pressed = octoClick;  // the click on a player is the cast
+                }
+                else if (pressed && !Bot && me.Slots[slot].Id == AbilityId.OctopusFamiliar && !me.Downed && Players.Count > 1)
+                {
+                    if (me.Slots[slot].Charges > 0)
+                        OctoPickSlot = slot;  // now click a player (alone: cast on you at once)
+                    continue;
+                }
                 else if (pressed && !Bot && me.Slots[slot].Id == AbilityId.FieldHospital && !me.Downed && HospOnGrid)
                 {
                     if (me.Slots[slot].Charges > 0 && AnyHospSpot(me))
@@ -1388,6 +1412,13 @@ namespace Arena
                         target = LocalOathCharge(me, aimAt, Bot ? OathTarget(me, aimAt, OathRangeFor(me)) : OathPickTarget(me, aimAt));  // GuardiansOath.cs: charge to the ally you clicked
                         OathPickSlot = -1;
                         break;
+                    case AbilityId.OctopusFamiliar:
+                    {
+                        var q = Bot || OctoPickSlot < 0 ? null : OctoPickTarget(me, aimAt);
+                        target = q != null ? q.Pos : Bot ? aimAt : me.Pos;  // OctopusFamiliar.cs: the player you clicked (alone: you)
+                        OctoPickSlot = -1;
+                        break;
+                    }
                     case AbilityId.FieldHospital:
                     {
                         var spot = Bot || HospPickSlot < 0 ? (HospSpot?)null : HospPickTarget(me, aimAt);
