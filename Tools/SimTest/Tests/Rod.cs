@@ -25,18 +25,19 @@ static partial class Program
         Check(def.Name == "Lightning Rod" && def.Cooldown == 70f && def.Choice == AbilityDef.Ult && def.UltKey == 1
             && Upgrades.Ultimate(Role.Tank, Kit.Elementalist) == AbilityId.GlacialTomb && Upgrades.Ultimate(Role.Tank, Kit.Elementalist, 0) == AbilityId.GlacialTomb
             && Upgrades.Ultimate(Role.Tank, Kit.Elementalist, 1) == AbilityId.LightningRod, "Lightning Rod is the tank Elementalist's second ultimate (70 s); Glacial Tomb stays the default");
-        Check(Upgrades.ClampUlt(Role.Tank, Kit.Elementalist, 1) == 1 && Upgrades.ClampUlt(Role.Healer, Kit.Knight, 1) == 0 && Upgrades.ClampUlt(Role.Wildcard, Kit.Arcanist, Upgrades.WildUlt(Kit.Arcanist, 1)) == Upgrades.WildUlt(Kit.Arcanist, 0)
-            && Upgrades.Ultimate(Role.Healer, Kit.Knight, 1) == Upgrades.Ultimate(Role.Healer, Kit.Knight), "key 1 is the tank Elementalist's Lightning Rod; a Healer Knight (and a Wildcard from a class without a DPS key 1) fall back to their default");
+        Check(Upgrades.ClampUlt(Role.Tank, Kit.Elementalist, 1) == 1 && Content.UltFallsBack(1) && Content.WildUltFallsBack(1),
+            "key 1 is the tank Elementalist's Lightning Rod; a role and class without a key 1 (and a Wildcard from a class without a DPS key 1) fall back to their default");
 
+        var bare = Content.RoleWithoutUlt(1);  // (a role and class with no ultimate on key 1)
         int port = nextPort++;
         var host = new Session { AutoStart = 3, StartWave = 3 };  // (3: it never starts on its own with two, but StartMatch needs no Ready)
         host.Host(port, "Rod", Role.Tank, 0, 0, Kit.Elementalist, 0, 1);
         var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Healer, 0, 0, Kit.Knight, 0, 1);  // (a Healer Knight has no key 1; the Healer Elementalist has Static Bubble)
+        client.Join("127.0.0.1", port, "Friend", bare.Role, 0, 0, bare.Kit, 0, 1);
         var s = new[] { host, client };
         Run(s, dt, 3, () => host.Lobby.Count == 2 && client.Lobby.Count == 2 && !host.Game.Running);
         LobbyEntry hostMe = host.Lobby[1], friend = host.Lobby.Values.First(e => e.Id != 1);
-        Check(hostMe.Ult == 1 && friend.Ult == 0, "the host keeps its pick; a Healer Knight asking for a second ultimate is clamped to its default");
+        Check(hostMe.Ult == 1 && friend.Ult == 0, "the host keeps its pick; " + bare + " asking for a second ultimate is clamped to its default");
         Check(client.Lobby[1].Ult == 1, "the other player's lobby sees the host's pick");
         client.RequestRole(Role.Tank);
         Run(s, dt, 2, () => host.Lobby[friend.Id].Role == Role.Tank);

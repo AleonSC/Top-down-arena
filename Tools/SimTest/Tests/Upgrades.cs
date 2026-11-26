@@ -28,7 +28,8 @@ static partial class Program
     // Every ability has one complete entry, and every lobby place (1st ability choice, ultimate) holds exactly one.
     static void CheckAbilityRegistry()
     {
-        var ids = Enum.GetValues(typeof(AbilityId)).Cast<AbilityId>().Where(a => a != AbilityId.None).ToList();
+        var ids = Upgrades.Abilities.Select(a => a.Id).ToList();  // (the registry; that it holds every AbilityId is checked just below)
+        bool everyId = Enum.GetValues(typeof(AbilityId)).Cast<AbilityId>().All(a => a == AbilityId.None || ids.Contains(a));
         bool complete = ids.All(a => Upgrades.Ability(a).Id == a && !string.IsNullOrEmpty(Upgrades.Ability(a).Name)
             && !string.IsNullOrEmpty(Upgrades.Ability(a).Desc) && !string.IsNullOrEmpty(Upgrades.Ability(a).Capstone));
         var placed = new List<AbilityId>();
@@ -47,7 +48,7 @@ static partial class Program
         bool lobby = placed.Distinct().Count() == placed.Count && placed.All(a => a != AbilityId.None)
             && placed.All(a => Upgrades.Ability(a).Choice != AbilityDef.CardOnly)
             && ids.Count(a => Upgrades.Ability(a).Choice != AbilityDef.CardOnly) == placed.Count;
-        Check(complete && lobby, "every ability has a complete entry, and each lobby place holds exactly one");
+        Check(everyId && complete && lobby, "every ability has a complete entry, and each lobby place holds exactly one");
         // Kits.Zones and Kits.Minions are read by kind number: an enum value added or removed without its entry shifts
         // every later kind's numbers (it compiles, and only some zone tests notice).
         int zoneKinds = Enum.GetValues(typeof(ZoneKind)).Length;
@@ -429,11 +430,8 @@ static partial class Program
 
         var rng = new Random(7);
         int veryRare = 0, cls = 0;
-        Role triRole = Role.Healer; Kit triKit = Kit.Soldier;  // a class with exactly three 1st abilities and no gaps: two cards (a 4th, like the Decoy Dummy, makes three)
-        foreach (var r in new[] { Role.Healer, Role.Tank, Role.Dps })
-            for (int k = Defs.KitCount - 1; k >= 0; k--)
-                if (Upgrades.AbilityLimit(r, (Kit)k) == Upgrades.FirstAbilityChoices && !Enumerable.Range(0, Upgrades.FirstAbilityChoices).Any(o => Upgrades.AbilityGap(r, (Kit)k, o)))
-                { triRole = r; triKit = (Kit)k; }
+        var tri = Content.RoleWithAbilityChoices(Upgrades.FirstAbilityChoices);  // a class with exactly three 1st abilities and no gaps: two cards (a 4th, like the Decoy Dummy, makes three)
+        Role triRole = tri.Role; Kit triKit = tri.Kit;
         var triAbility = Upgrades.FirstAbility(triRole, triKit, 0);
         Console.WriteLine("  odds measured on " + triRole + " " + triKit + " (" + triAbility + ")");
         for (int n = 0; n < 4000; n++)

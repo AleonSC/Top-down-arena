@@ -24,8 +24,8 @@ static partial class Program
         Check(Upgrades.Ultimate(Role.Dps, Kit.Hemomancer, 2) == AbilityId.BloodBoil && Upgrades.Ultimate(Role.Dps, Kit.Hemomancer, 1) == AbilityId.BloodRavager
             && Upgrades.Ultimate(Role.Dps, Kit.Hemomancer) == AbilityId.CrimsonHarvest,
             "key 2 is Blood Boil; key 1 is still Blood Ravager and Crimson Harvest the default");
-        Check(Upgrades.ClampUlt(Role.Dps, Kit.Hemomancer, 2) == 2 && Upgrades.ClampUlt(Role.Healer, Kit.Hemomancer, 2) == 0,
-            "key 2 is the DPS's; the healer falls back to the default");
+        Check(Upgrades.ClampUlt(Role.Dps, Kit.Hemomancer, 2) == 2 && Upgrades.Ultimate(Role.Healer, Kit.Hemomancer, 2) != AbilityId.BloodBoil && Content.UltFallsBack(2),
+            "key 2 is the DPS's; a class without a key 2 falls back to the default");
 
         int port = nextPort++;
         var host = new Session { AutoStart = 3, StartWave = 3 };

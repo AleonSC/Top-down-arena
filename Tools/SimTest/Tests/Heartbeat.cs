@@ -20,8 +20,8 @@ static partial class Program
         Check(def.Name == "Heartbeat" && def.Cooldown == 80f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Role == Role.Healer && def.Kit == Kit.Hemomancer && def.Capstone != null,
             "Heartbeat is the Healer Hemomancer's ultimate on key 1, 80 s");
         Check(Upgrades.Ultimate(Role.Healer, Kit.Hemomancer, 1) == AbilityId.Heartbeat && Upgrades.Ultimate(Role.Healer, Kit.Hemomancer) == AbilityId.SanguineRain
-            && Upgrades.ClampUlt(Role.Healer, Kit.Hemomancer, 1) == 1 && Upgrades.ClampUlt(Role.Healer, Kit.Hemomancer, 2) == 0,
-            "key 1 is Heartbeat; Sanguine Rain stays the default; key 2 falls back to it");
+            && Upgrades.ClampUlt(Role.Healer, Kit.Hemomancer, 1) == 1 && Content.UltFallsBack(2),
+            "key 1 is Heartbeat; Sanguine Rain stays the default; a key a class lacks falls back to its default");
         Check(Math.Abs(Game.HbTotal - (0.35f + 2f * 0.9f + 0.6f)) < 1e-4f && Game.HbFired(0.34f) == 0 && Game.HbFired(0.36f) == 1 && Game.HbFired(2.2f) == 3,
             "the beats come at 0.35 s, 1.25 s and 2.15 s; the last wave ends at 2.75 s");
 

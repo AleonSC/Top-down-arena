@@ -23,8 +23,8 @@ static partial class Program
             "Armor Drop is the Tank Soldier's ultimate on key 3, 80 s");
         Check(Upgrades.Ultimate(Role.Tank, Kit.Soldier) == AbilityId.Fortress && Upgrades.Ultimate(Role.Tank, Kit.Soldier, 1) == AbilityId.JuggernautSuit
             && Upgrades.Ultimate(Role.Tank, Kit.Soldier, 2) == AbilityId.LiteralTank && Upgrades.Ultimate(Role.Tank, Kit.Soldier, 3) == AbilityId.ArmorDrop
-            && Upgrades.ClampUlt(Role.Tank, Kit.Soldier, 3) == 3 && Upgrades.ClampUlt(Role.Dps, Kit.Soldier, 3) == 0,
-            "Fortress stays the default, the Juggernaut Suit key 1, A Literal Tank key 2; key 3 is the Armor Drop, only for the Tank Soldier");
+            && Upgrades.ClampUlt(Role.Tank, Kit.Soldier, 3) == 3 && Upgrades.Ultimate(Role.Dps, Kit.Soldier, 3) != AbilityId.ArmorDrop && Content.UltFallsBack(3),
+            "Fortress stays the default, the Juggernaut Suit key 1, A Literal Tank key 2; key 3 is the Armor Drop, only for the Tank Soldier (a class without a key 3 falls back)");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 9, StartWave = 6 }, port, false, "Quartermaster", Role.Tank, 0, 0, Kit.Soldier);
