@@ -469,7 +469,7 @@ namespace Arena
             var turns = HeraldTurns[(int)s.Stage];
             s.Step = (s.Step + 1) % turns.Length;
             s.Turn = turns[s.Step];
-            s.TurnLen = HeraldTimes[(int)s.Stage][s.Step];
+            s.TurnLen = BossTurnLen((byte)s.Turn, HeraldTimes[(int)s.Stage][s.Step]);  // (the tier's rest pace: BossRules.cs)
             s.TurnT = 0f;
             s.ActT = 0.3f;
             s.Fired = 0;

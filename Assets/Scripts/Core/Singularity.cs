@@ -292,7 +292,7 @@ namespace Arena
                 ClearShards();
             s.Step = (s.Step + 1) % turns.Length;
             s.Turn = turns[s.Step];
-            s.TurnLen = SingTimes[(int)s.Stage][s.Step];
+            s.TurnLen = BossTurnLen((byte)s.Turn, SingTimes[(int)s.Stage][s.Step]);  // (the tier's rest pace: BossRules.cs)
             s.TurnT = 0f;
             s.RingT = 0f;
             s.Reversed = false;

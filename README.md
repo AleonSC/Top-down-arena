@@ -1783,7 +1783,10 @@ Blend / Fully themed picker is gone (Nov 18).
 the one it had and the host can pick another (slider or type the name). Normal plays as balanced. **Easy**: bosses have no
 last stand (the Warden, Hive Queen, Singularity, Colossus, Duelist, Lich, Storm Herald and Devourer stay in their third stage
 until they die, the Eclipse never reaches Totality; the Twin Reapers have none to lose), and the Warden's bar shows three
-cells. Hard and Nightmare will add boss stages, attacks and enemy variants (Docs/DifficultyTiers.md lists the steps).
+cells. Boss summons and escorts follow the tier too: each summon brings one fewer on Easy, one more on Hard and two more on
+Nightmare (the Warden's rioters per door and guards, the Hive Queen's drones and eggs, the Lich's risen dead and spirits, the
+Devourer's morsels, the Eclipse's court), and a boss wave's escort is 75% / 125% / 150% (Easy / Hard / Nightmare). Hard and
+Nightmare will add boss stages and enemy variants (Docs/DifficultyTiers.md lists the steps).
 The arena isn't picked here any more: the Campaign is the Expanding arena, the **Simple Arena** modifier keeps the open
 arena with its floor plans (always on). (The Rooms arena prototype was removed Nov 18.) A run saved before the
 Campaign keeps the arena it was saved with.

@@ -459,7 +459,8 @@ namespace Arena
 
         void SpitMorsels(Enemy e)
         {
-            for (int k = 0; k < 4; k++)
+            int morsels = BossAdds(4);  // (the tier's summons: BossRules.cs)
+            for (int k = 0; k < morsels; k++)
             {
                 V2 at = ClampToArena(e.Pos + RandDir() * Rand(220f, 440f), 60f);
                 var m = SpawnEnemyAt(EnemyType.Morsel, at, 0.3f, e.Id);
@@ -701,7 +702,7 @@ namespace Arena
             var turns = DevourTurns[(int)s.Stage];
             s.Step = (s.Step + 1) % turns.Length;
             s.Turn = turns[s.Step];
-            s.TurnLen = DevourTimes[(int)s.Stage][s.Step];
+            s.TurnLen = BossTurnLen((byte)s.Turn, DevourTimes[(int)s.Stage][s.Step]);  // (the tier's rest pace: BossRules.cs)
             s.TurnT = 0f;
             s.ActT = 0.3f;
             s.Fired = 0;

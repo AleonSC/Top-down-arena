@@ -1,6 +1,6 @@
 # Difficulty tiers: mechanics that change with difficulty
 
-**Status: steps 1-2 built** (protocol 525): the Mechanics knob and `Game.MechTier`; every boss's stage table (`Core/BossStages.cs`), Easy without last stands. Steps 3-6 planned; build one at a time ("start on step N").
+**Status: steps 1-3 built** (protocol 525): the Mechanics knob and `Game.MechTier`; every boss's stage table (`Core/BossStages.cs`), Easy without last stands; boss numbers by tier (`Core/BossRules.cs`: summons and escorts). Steps 4-6 planned; build one at a time ("start on step N").
 
 Today a difficulty only changes numbers (`Core/Difficulty.cs`: 27 knobs, 5 retired). No gameplay code reads the level,
 so a harder mode can't add a boss phase, swap an enemy's behaviour or bring in an enemy type. This plan adds a
@@ -48,10 +48,17 @@ The boss phase number already goes over the network as one byte (`Enemy.Phase`) 
 - HUD: the Warden's Cell Blocks bar (one cell per row) and the Eclipse's "STAGE n / N" read the table. The Eclipse's "/ 5" was right (five stages, then Totality shown on its own), so it counts the rows without Totality. Other bosses' bars have no stage ticks; RenderCheck IDENTICAL on Normal.
 - Tests: suite `stages` (tables on every tier, Normal's thresholds unchanged, a Hive Queen fight on Normal and on Easy). The ~47 inline HP fractions in the older boss tests stay: they test Normal, which is unchanged.
 
-### Step 3: per-tier boss rules
-- `BossRules` per boss, filled at spawn from the tier: named counts and beats that are inline now (Queen drones `3 + players`, Lich graves 3 / 2 each / cap 6 and Spirits 6, Colossus meteor every 3 s, ...), plus one shared enrage multiplier on turn times.
-- Boss variants: `BossAt` returns a type and a variant; `RollVariant` allows a boss variant picked by tier (not random). Escort rows get `MinTier` and an extra-escort count.
-- First content: one Hard-only stage on one boss, picked with the owner.
+### Step 3: per-tier boss rules (built)
+- As built: `BossRules` (Core/BossRules.cs), one row per tier in `Game.TierBossRules`: `RestPace` (x every boss's Rest turn, through `BossTurnLen` where each boss sets its turn length), `ExtraAdds` (+ each summon, `BossAdds(normal, min)`), `EscortMult` (x a boss wave's escort, `BossWaves.Queue`).
+- Owner's picks (Nov 26): summons -1 / 0 / +1 / +2 and escorts 75% / 100% / 125% / 150% (Easy, Normal, Hard, Nightmare); rest pace 1x on every tier for now, to tune later.
+- Summons that follow `ExtraAdds`: the Warden's rioters per riot door (9) and guards (3-8), the Hive Queen's drones (3 + players; her drone cap moves with it) and eggs (4), the Lich's dead per grave (2, cap 3 graves' worth) and spirits (6), the Devourer's morsels (4), the Eclipse's court (2 Embers, 2 Corona Priests). Attack objects (bombers, wells, pillars, decoys, ball lightning, Singularity shards) stay as they are.
+- Not built here: a boss variant picked by tier (goes with step 4's variant table) and a Hard-only stage (the owner will add stages later). Rest pace is a field per tier, so tuning it is one number.
+
+**Adding a Hard-only stage later** (e.g. a fourth stage before a last stand):
+1. Add its value at the **end** of the boss's `XStage` enum (the snapshot sends it as a byte).
+2. Add its row in `Game.StageRows` (Core/BossStages.cs) between the stages it sits between, with `min: MechTier.Hard`.
+3. Add its turn loop and times as the matching row of the boss's `XTurns`/`XTimes` (indexed by the enum value).
+4. Give it a name in the boss's `XStageName` (Game/HudBossBars.cs) and check the boss's code and look for `Stage >= ...` comparisons, which go by enum order, not table order.
 
 ### Step 4: tier filters on enemies and waves
 - `EnemyVariantDef` gets `MinTier`/`MaxTier`, a per-tier chance (`float[] ChanceByTier`) and an optional `Brain` (an override for `BrainOf`: `BrainOf(e)` checks the variant first).

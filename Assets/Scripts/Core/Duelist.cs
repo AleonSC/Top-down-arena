@@ -467,7 +467,7 @@ namespace Arena
             var turns = DuelTurns[(int)s.Stage];
             s.Step = (s.Step + 1) % turns.Length;
             s.Turn = turns[s.Step];
-            s.TurnLen = DuelTimes[(int)s.Stage][s.Step];
+            s.TurnLen = BossTurnLen((byte)s.Turn, DuelTimes[(int)s.Stage][s.Step]);  // (the tier's rest pace: BossRules.cs)
             s.TurnT = 0f;
             s.Done = 0;
             e.FireT = 0.4f;

@@ -422,7 +422,7 @@ namespace Arena
             if (w.Turn == WardenTurn.Rioters)
                 ClearRioters();  // whoever's left scatters
             w.Turn = turns[w.Step];
-            w.TurnLen = StageTimes[(int)w.Stage][w.Step];
+            w.TurnLen = BossTurnLen((byte)w.Turn, StageTimes[(int)w.Stage][w.Step]);  // (the tier's rest pace: BossRules.cs)
             w.TurnT = 0f;
             w.Dashing = false;
             w.Plant = -1;
@@ -1020,7 +1020,8 @@ namespace Arena
                 doors.Remove(pick);
                 V2 d = RiotDoors[pick];
                 V2 inward = d.X <= 0f ? new V2(1f, 0f) : d.X >= Width ? new V2(-1f, 0f) : new V2(0f, -1f);
-                for (int i = 0; i < RiotersPerDoor; i++)  // three rows of three, pouring in
+                int perDoor = BossAdds(RiotersPerDoor);  // (the tier's summons: BossRules.cs)
+                for (int i = 0; i < perDoor; i++)  // three rows of three, pouring in
                     SpawnEnemyAt(EnemyType.Rioter, d + inward * (40f + (i / 3) * 30f) + inward.Orthogonal() * ((i % 3 - 1) * 30f), 0.3f + (i / 3) * 0.25f, 0);
                 BroadcastFx(FxKind.Boom, d + inward * 20f, new Rgba(1f, 0.55f, 0.2f), 70f, 0.5f, Sfx.BossCrack);
                 w.DoorsOpened++;
@@ -1050,7 +1051,7 @@ namespace Arena
         void CallGuards(WardenState w, int rioters)
         {
             w.GuardsCalled = true;
-            int n = Math.Max(GuardsMin, Math.Min(GuardsMax, (rioters + 3) / 4));
+            int n = BossAdds(Math.Max(GuardsMin, Math.Min(GuardsMax, (rioters + 3) / 4)));  // (the tier's summons: BossRules.cs)
             for (int i = 0; i < n; i++)
             {
                 V2 d = RiotDoors[(i + rng.Next(RiotDoors.Length)) % RiotDoors.Length];

@@ -375,6 +375,7 @@ static partial class Program
         Test("spinner", "Spinners", () => SpinnerTest(Dt)),
         Test("shielder", "Shielders' shields wearing down", () => ShielderTest(Dt)),
         Test("warden", "the Warden", () => WardenTest(Dt)),
+        Test("bossrules", "boss numbers by mechanics tier (BossRules.cs): summons, escorts, rest pace", () => BossRulesTest(Dt)),
         Test("stages", "boss stage tables (BossStages.cs): Normal as balanced, Easy without the last stands, fights following their tier", () => BossStagesTest(Dt)),
         Test("holdingcell", "the Warden's net and Holding Cells: guards, the padlock, abilities, the fight pausing, next door, downed inside", () => HoldingCellTest(Dt)),
         Test("botdodge", "smart bots dodge walls of shots and sprint to cross the arena, without overusing either", () => BotDodgeTest(Dt)),
@@ -613,7 +614,7 @@ static partial class Program
         "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "railgun", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "vowguard", "embolus", "needleswarm", "bloodbrawler", "arclock", "twinauto", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
         "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "hangoutmode", "training", "foequery", "pvp", "three", "wrap", "ready", "wavekinds", "landmarks",
-        "arcanist", "stages", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
+        "arcanist", "stages", "bossrules", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };
 
     static int Main(string[] args)

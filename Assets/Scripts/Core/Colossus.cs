@@ -348,7 +348,7 @@ namespace Arena
             var turns = ColTurns[(int)c.Stage];
             c.Step = (c.Step + 1) % turns.Length;
             c.Turn = turns[c.Step];
-            c.TurnLen = ColTimes[(int)c.Stage][c.Step];
+            c.TurnLen = BossTurnLen((byte)c.Turn, ColTimes[(int)c.Stage][c.Step]);  // (the tier's rest pace: BossRules.cs)
             c.TurnT = 0f;
             c.ActT = 0.3f;
             c.Fired = 0;

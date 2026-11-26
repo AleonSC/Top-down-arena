@@ -196,7 +196,7 @@ namespace Arena
             var turns = ReaperTurns[(int)R.Stage];
             R.Step = (R.Step + 1) % turns.Length;
             R.Turn = turns[R.Step];
-            R.TurnLen = ReaperTimes[(int)R.Stage][R.Step];
+            R.TurnLen = BossTurnLen((byte)R.Turn, ReaperTimes[(int)R.Stage][R.Step]);  // (the tier's rest pace: BossRules.cs)
             R.TurnT = 0f;
             Enemy a = FindEnemy(EnemyType.ReaperOfDusk), b = FindEnemy(EnemyType.ReaperOfDawn), d = FindEnemy(EnemyType.DualReaper);
             foreach (var e in new[] { a, b, d })

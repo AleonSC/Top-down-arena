@@ -90,3 +90,45 @@ static partial class Program
         }
     }
 }
+
+static partial class Program
+{
+    // Boss numbers by mechanics tier (Core/BossRules.cs, Docs/DifficultyTiers.md step 3): summons -1/+1/+2, escorts 75/125/150%.
+    static void BossRulesTest(float dt)
+    {
+        var n = Game.TierBossRules[(int)MechTier.Normal];
+        Check(n.RestPace == 1f && n.ExtraAdds == 0 && n.EscortMult == 1f, "Normal's boss numbers change nothing");
+        Check(Game.TierBossRules.All(r => r.RestPace == 1f)
+              && Game.TierBossRules[(int)MechTier.Easy].ExtraAdds == -1 && Game.TierBossRules[(int)MechTier.Hard].ExtraAdds == 1 && Game.TierBossRules[(int)MechTier.Nightmare].ExtraAdds == 2,
+            "summons: Easy one fewer, Hard one more, Nightmare two more; rests 1x on every tier (to tune later)");
+        int guards = BossWaves.Queue(EnemyType.Warden, 20).Count(t => t == EnemyType.SecurityGuard);
+        Check(guards == 10 && BossWaves.Queue(EnemyType.Warden, 20, 0.75f).Count(t => t == EnemyType.SecurityGuard) == 8
+              && BossWaves.Queue(EnemyType.Warden, 20, 1.5f).Count(t => t == EnemyType.SecurityGuard) == 15
+              && BossWaves.Queue(EnemyType.HiveQueen, 20, 1.5f).Count == 1,
+            "escorts: the Warden's 10 Security Guards at wave 20 are 8 on Easy and 15 on Nightmare; a boss with none still has none");
+        var g = new Session().Game;
+        g.Diff.Set(DiffKnob.Mechanics, (float)MechTier.Hard);
+        bool hard = g.BossAdds(4) == 5 && g.BossTurnLen(0, 2f) == 2f && g.EscortMult == 1.25f;
+        g.Diff.Set(DiffKnob.Mechanics, (float)MechTier.Easy);
+        Check(hard && g.BossAdds(4) == 3 && g.BossAdds(1) == 1 && g.BossAdds(1, 0) == 0, "a summon of 4 is 5 on Hard and 3 on Easy, never under its minimum");
+
+        // A live fight: the Hive Queen's first drones (3 + players: 5 with two players) on each tier.
+        foreach (var tier in new[] { MechTier.Easy, MechTier.Normal, MechTier.Nightmare })
+        {
+            var s = StartBuffed(dt, 10, 0, h => h.Diff.Set(DiffKnob.Mechanics, (float)tier));
+            var hg = s[0].Game;
+            hg.Bot = s[1].Game.Bot = false;
+            hg.DevSetGod(1, true);
+            hg.DevSetGod(2, true);
+            Run(s, dt, 12, () => { var b = Find(s[0], EnemyType.HiveQueen); return b != null && b.SpawnT <= 0f; });
+            var q = Find(s[0], EnemyType.HiveQueen);
+            int most = 0;
+            if (q != null)
+                Run(s, dt, 2f, null, () => most = Math.Max(most, hg.Enemies.Values.Count(e => e.Type == EnemyType.Shard && e.ParentId == q.Id)));
+            int want = 5 + Game.TierBossRules[(int)tier].ExtraAdds;
+            Console.WriteLine("  {0}: the Queen's first drones {1} (want {2})", tier, most, want);
+            Check(q != null && most == want, tier + ": the Hive Queen's first drones are " + want);
+            s[0].Leave(""); s[1].Leave("");
+        }
+    }
+}
