@@ -17,8 +17,8 @@ static partial class Program
         var masteredField = typeof(Game).GetField("castMastered", flags);
 
         Check(Upgrades.AbilityLimit(Role.Dps, Kit.Elementalist) == 4 && Upgrades.FirstAbility(Role.Dps, Kit.Elementalist, 3) == AbilityId.GaleWall
-            && Upgrades.AbilityLimit(Role.Healer, Kit.Ninja) == 3
-            && Upgrades.FirstAbility(Role.Healer, Kit.Ninja, 3) == Upgrades.FirstAbility(Role.Healer, Kit.Ninja, 0),  // (the Healer Ninja has no 4th choice; every Knight role now has one)
+            && Upgrades.AbilityLimit(Role.Healer, Kit.Hemomancer) == 3
+            && Upgrades.FirstAbility(Role.Healer, Kit.Hemomancer, 3) == Upgrades.FirstAbility(Role.Healer, Kit.Hemomancer, 0),  // (the Healer Hemomancer has no 4th choice; every Knight and Ninja role now has one)
             "the Elementalist DPS has a 4th choice, Gale Wall; classes without a 4th keep three");
 
         int port = nextPort++;

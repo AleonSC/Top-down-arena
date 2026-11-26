@@ -21,10 +21,10 @@ static partial class Program
         Check(Upgrades.Ultimate(Role.Tank, Kit.Summoner) == AbilityId.Titan && Upgrades.Ultimate(Role.Tank, Kit.Summoner, 1) == AbilityId.BonePhalanx
             && Upgrades.AltUltimate(Role.Tank, Kit.Summoner, 2) == AbilityId.IronArmadillo && Upgrades.AltUltimate(Role.Tank, Kit.Summoner, 3) == AbilityId.None,
             "the Tank Summoner's Ultimate row: Titan (key 0, the default), then Bone Phalanx, then Iron Armadillo (IronArmadillo.cs), then a locked key");
-        Check(Upgrades.AltUltimate(Role.Healer, Kit.Summoner, 1) == AbilityId.None && Upgrades.AltUltimate(Role.Dps, Kit.Summoner, 1) != AbilityId.BonePhalanx
+        Check(Upgrades.AltUltimate(Role.Healer, Kit.Knight, 1) == AbilityId.None && Upgrades.AltUltimate(Role.Dps, Kit.Summoner, 1) != AbilityId.BonePhalanx
             && Upgrades.AltUltimate(Role.Tank, Kit.Soldier, 1) != AbilityId.BonePhalanx, "it is only the Tank Summoner's");
         Check(Upgrades.Ultimate(Role.Wildcard, Kit.Summoner, 1) == Upgrades.Ultimate(Role.Dps, Kit.Summoner, 1) && Upgrades.Ultimate(Role.Wildcard, Kit.Summoner, 1) != AbilityId.BonePhalanx
-            && Upgrades.ClampUlt(Role.Tank, Kit.Summoner, 7) == 0 && Upgrades.ClampUlt(Role.Tank, Kit.Summoner, 1) == 1 && Upgrades.ClampUlt(Role.Healer, Kit.Summoner, 1) == 0,
+            && Upgrades.ClampUlt(Role.Tank, Kit.Summoner, 7) == 0 && Upgrades.ClampUlt(Role.Tank, Kit.Summoner, 1) == 1 && Upgrades.ClampUlt(Role.Healer, Kit.Knight, 1) == 0,  // (the Healer Knight has one ultimate; the Healer Summoner now has Honey Raid on key 1)
             "a Wildcard takes its class's DPS row, never the Tank's Bone Phalanx; picks the class doesn't have fall back to 0");
 
         // --- The saved run keeps the pick ---
