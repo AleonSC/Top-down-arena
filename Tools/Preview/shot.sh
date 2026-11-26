@@ -122,6 +122,7 @@
 # RAVAGER=<s since cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (the DPS Hemomancer's Blood Ravager walking right through grunts, clicking over the last 0.4 s; ShotBloodRavager.cs; ZOOM=2.2, mode hud).
 # BOIL=<s since cast> [BOILHP=<0-1>] [BOILEND=1] (the DPS Hemomancer's Blood Boil circling and firing at grunts, health eased down to BOILHP; BOILEND=1 ends it 0.4 s before, for the steam; ShotBloodBoil.cs; ZOOM=1.8, mode hud).
 # BOLT=<s since cast> (the DPS Elementalist's Living Bolt: 0.3 the channel, 4 electrified with three dashes' residue, 9.5 the flicker; mode hud; LivingBoltLook.cs).
+# GOLEM=<s since cast> GOLCOATS=<n> GOLPUNCH=<n.swing> GOLFX=shed|collapse|clot GOLFXT=<s> (the Tank Hemomancer's Blood Golem: gathering, standing, punching, shedding, bursting; mode hud; BloodGolemLook.cs).
 # COLOSSUS=<s since cast> COLWIND=<0-1> COLEND=<s> (the Tank Elementalist's Stone Colossus: rising, standing, slamming, crumbling; mode hud; StoneColossusLook.cs).
 # BLOODBATH=<s since the cast> (the Tank Hemomancer's Bloodbath pool, wading enemies and heal numbers; BATHMASTERED=1 for 220 px; mode hud, 2 players).
 # NEEDLESWARM=<s held> NSALT=<s> (the DPS Hemomancer's Needle Swarm: Fire held on a grunt, tendrils growing and wrapping, shots breaking needles; NSALT the Alt's fan; ShotNeedleSwarm.cs; mode hud).

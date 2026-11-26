@@ -67,6 +67,7 @@ namespace Arena
             amount = LeashSoak(p, amount);  // Martyr's Leash sends a share down the chains (BloodLash.cs)
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
             amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
+            amount = GolSoak(p, amount);  // then Blood Golem's coats (BloodGolem.cs)
             amount = TankSoak(p, amount);  // or A Literal Tank's (LiteralTank.cs)
             amount = TurretSoak(p, amount);  // the Deployable Turret you sit in takes the rest first (DeployableTurret.cs)
             amount = BallistaSoak(p, amount);  // the Ballista you ride takes a share (Ballista.cs)

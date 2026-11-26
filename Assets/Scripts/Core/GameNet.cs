@@ -613,6 +613,10 @@ namespace Arena
             s.Float(ref p.ColT);  // Stone Colossus (StoneColossus.cs)
             s.Float(ref p.ColAge);
             s.Float(ref p.ColWind);
+            s.Float(ref p.GolT);  // Blood Golem (BloodGolem.cs)
+            s.Float(ref p.GolAge);
+            s.Float(ref p.GolCoats);
+            s.Float(ref p.GolPunch);
             s.Float(ref p.SpT);  // Spirit Avatar (SpiritAvatar.cs)
             s.Float(ref p.SpAge);
             s.Float(ref p.SpWind);
