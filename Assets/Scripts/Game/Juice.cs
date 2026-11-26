@@ -198,6 +198,7 @@ namespace Arena
             radiantTrails.Clear();
             ClearAmbience();  // Ambience.cs
             ClearJuiceMoments();  // JuiceMoments.cs
+            ClearMoveFeel();  // MoveFeel.cs
         }
 
         void AddPart(Part p)
@@ -348,6 +349,7 @@ namespace Arena
             }
             juiceClock += dt;
             juiceFrame++;
+            TickMoveFeel(dt);  // stretch, dust, dash ghosts (MoveFeel.cs)
             UpdateRadiantStardust(dt);  // the Radiant Orb's trail (RadiantOrbLooks.cs)
             UpdateAirTrails(dt);  // the air trail behind fast movers (AirTrailLooks.cs)
             float t = game.AnimT;

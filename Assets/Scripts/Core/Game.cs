@@ -77,7 +77,7 @@ namespace Arena
         public bool RerollPending => rerollsAtRequest >= 0;
 
         public bool Bot;  // drive the local player automatically (testing)
-        V2 iceVel;        // your sliding velocity on the Frozen Lake path (Paths.cs)
+        V2 iceVel;        // your walking velocity: eased (WalkStartTime/WalkStopTime), and sliding on the Frozen Lake path (Paths.cs)
         public bool HoldParry;  // keep the parry up (testing)
 
         /// Round trip to the host in milliseconds (0 when you're the host), measured four times a second (Game.PingEvery).
@@ -1217,7 +1217,8 @@ namespace Arena
                 KickReachOn(me, dt);  // a Dodge ending just short of a wall reaches on to it (Dodge.cs)
                 DashT -= dt;
                 me.Pos += DashDir * dashSpeed * dt;
-                iceVel = DashDir * me.Speed * Paths.IceTopSpeed;  // on ice you slide out of a dash
+                bool iceDash = OnPathOf(PathId.FrozenLake) || FloorAt(me.Pos) == PathId.FrozenLake;
+                iceVel = DashDir * me.Speed * (iceDash ? Paths.IceTopSpeed : 1f);  // you come out of a dash moving (on ice, sliding)
             }
             else if (ArmOn(me))
                 LocalArmRoll(me, move, aimAt, firing && !HoldControls, dt);  // Iron Armadillo: rolling, not walking (IronArmadillo.cs)
@@ -1232,8 +1233,11 @@ namespace Arena
                 }
                 else
                 {
-                    iceVel = want;
-                    me.Pos += want * dt;
+                    // A little weight (WalkStartTime, WalkStopTime in Balance.cs): speed builds and falls fast, but not at once.
+                    bool braking = want.IsZero || want.Dot(iceVel) < 0f;
+                    float top = Math.Max(me.Speed, want.Length);
+                    iceVel += (want - iceVel).LimitLength(top * dt / (braking ? WalkStopTime : WalkStartTime));
+                    me.Pos += iceVel * dt;
                 }
             }
             if (!ArmOn(me))
