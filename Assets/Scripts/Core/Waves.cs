@@ -82,6 +82,8 @@ namespace Arena
                 Remaining = Enemies.Count;
                 return;
             }
+            if (State != MatchState.Intermission)
+                openingBreak = openingHeld = false;  // (whatever started the first fight: the opening is over)
             switch (State)
             {
                 case MatchState.Intermission:
