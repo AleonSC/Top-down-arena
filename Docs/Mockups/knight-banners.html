@@ -53,7 +53,7 @@ li::marker{color:var(--dim)}
   <header>
     <div class="eyebrow">Knight · new ultimates mockup</div>
     <h1>Knight Banners</h1>
-    <p class="lede">One planted standard per role, as an ultimate. It has no timer: it stands until you press the ultimate again, and the cooldown starts when you lift it. Allies standing in its ring get the buff; step out and it fades. Pick a banner to watch it in play.</p>
+    <p class="lede">One planted standard per role, as an ultimate. It stands for 60 s, or until you press the ultimate again; the cooldown starts when it comes down. (The demo lifts it early.) Allies standing in its ring get the buff; step out and it fades. Pick a banner to watch it in play.</p>
   </header>
 
   <div class="tabs" role="tablist" id="tabs"></div>
@@ -81,19 +81,19 @@ const BANNERS = {
   tank: {
     key:'tank', role:'Tank Knight', name:'Aegis Standard', short:'Ultimate: allies inside get an 80-point shield that regenerates.',
     R:220, D:15, c:'#9cc8ff', cloth:'#2f5a96', cloth2:'#1d3a66', trim:'#d6ebff', glow:'159,200,255',
-    nums:[['Slot','Tank Knight ultimate, key 3'],['Cooldown','75 s'],['Lasts','<b>until you press Q again</b>; the cooldown starts then (also comes down if you go down or the wave ends)'],['Ring','220 px'],['Shield','<b>80</b> while inside (fills on entering)'],['Regen','<b>25/s</b> after 1.5 s without a hit'],['Leaving','the shield fades over 1.5 s'],['Mastered','120 shield, regen after 0.75 s'],['Rare card','Tower Standard: ring 25% wider']],
-    look:['Steel-blue standard with a silver kite shield','Hex-plated rim with turning steel ticks; no timer, it stands until you lift it','Each ally wears a hex bubble that flashes and cracks where shots land','Broken bubble shatters; regen sweeps an arc back round it']
+    nums:[['Slot','Tank Knight ultimate, key 3'],['Cooldown','75 s'],['Lasts','<b>60 s</b>, or press Q again to lift it sooner; the cooldown starts when it comes down (also if you go down or the wave ends)'],['Ring','220 px'],['Shield','<b>80</b> while inside (fills on entering)'],['Regen','<b>25/s</b> after 1.5 s without a hit'],['Leaving','the shield fades over 1.5 s'],['Mastered','120 shield, regen after 0.75 s'],['Rare card','Tower Standard: ring 25% wider']],
+    look:['Steel-blue standard with a silver kite shield','Hex-plated rim with turning steel ticks, a time arc draining over 60 s','Each ally wears a hex bubble that flashes and cracks where shots land','Broken bubble shatters; regen sweeps an arc back round it']
   },
   healer: {
     key:'healer', role:'Healer Knight', name:"Pilgrim's Standard", short:'Ultimate: allies inside heal 4% of max health a second.',
     R:230, D:18, c:'#ffe39a', cloth:'#eee3c2', cloth2:'#c9b884', trim:'#ffcf6b', glow:'255,227,154',
-    nums:[['Slot','Healer Knight ultimate, key 1'],['Cooldown','80 s'],['Lasts','<b>until you press Q again</b>; the cooldown starts then (also comes down if you go down or the wave ends)'],['Ring','230 px'],['Heal','<b>4%</b> of max health a second'],['Downed','revives inside go 50% faster'],['Mastered','5% a second'],['Rare card','Long Road: heals keep going 3 s after you step out']],
+    nums:[['Slot','Healer Knight ultimate, key 1'],['Cooldown','80 s'],['Lasts','<b>60 s</b>, or press Q again to lift it sooner; the cooldown starts when it comes down (also if you go down or the wave ends)'],['Ring','230 px'],['Heal','<b>4%</b> of max health a second'],['Downed','revives inside go 50% faster'],['Mastered','5% a second'],['Rare card','Long Road: heals keep going 3 s after you step out']],
     look:['Ivory standard with a gold sun','Soft gold floor light, motes drifting up from the ring','A thin light thread from the finial to each ally being healed','Small gold +numbers tick up; bars fill slowly']
   },
   dps: {
     key:'dps', role:'DPS Knight', name:'War Standard', short:'Ultimate: allies inside attack 40% faster and hit 25% harder.',
     R:210, D:15, c:'#ff6b5a', cloth:'#a3202f', cloth2:'#62121d', trim:'#ffcf6b', glow:'255,107,90',
-    nums:[['Slot','DPS Knight ultimate, key 2'],['Cooldown','70 s'],['Lasts','<b>until you press Q again</b>; the cooldown starts then (also comes down if you go down or the wave ends)'],['Ring','210 px'],['Attack speed','<b>+40%</b> (swing 0.5 s → 0.36 s)'],['Damage','<b>+25%</b> (16 → 20)'],['Mastered','+55% speed, +35% damage'],['Rare card','Blood Oriflamme: +10% crit inside']],
+    nums:[['Slot','DPS Knight ultimate, key 2'],['Cooldown','70 s'],['Lasts','<b>60 s</b>, or press Q again to lift it sooner; the cooldown starts when it comes down (also if you go down or the wave ends)'],['Ring','210 px'],['Attack speed','<b>+40%</b> (swing 0.5 s → 0.36 s)'],['Damage','<b>+25%</b> (16 → 20)'],['Mastered','+55% speed, +35% damage'],['Rare card','Blood Oriflamme: +10% crit inside']],
     look:['Crimson standard with crossed gold swords','Crimson rim with chevrons turning outward, embers rising','Allies inside: a red aura under their feet and crimson swing trails','Damage numbers turn gold and bigger inside the ring']
   }
 };
@@ -215,7 +215,7 @@ function place(t){
 function ring(t){
   const b = BANNERS[cur];
   if (t < TH) return {r:0, a:0, phase:'fly'};
-  if (t < TH + b.D) return {r: b.R * ease((t - TH) / GROW), a:1, lift: t > TH + b.D - 0.8, phase:'on'};
+  if (t < TH + b.D) return {r: b.R * ease((t - TH) / GROW), a:1, lift: t > TH + b.D - 0.8, left: 1 - (t - TH) / 60, phase:'on'};
   if (t < TH + b.D + FOLD){ const f = (t - TH - b.D) / FOLD; return {r: b.R * (1 - 0.25 * f), a: 1 - f, fold: f, phase:'fold'}; }
   return {r:0, a:0, phase:'gone'};
 }
@@ -469,7 +469,7 @@ function render(){
   g.strokeStyle = b.c; g.lineWidth = 1; g.strokeRect(14.5, 14.5, 329, 43);
   g.fillStyle = b.c; g.font = '700 15px "Chakra Petch", sans-serif'; g.fillText(b.name.toUpperCase(), 24, 33);
   g.fillStyle = '#9fb3d6'; g.font = '600 11px "IBM Plex Mono", monospace';
-  const st = rg.phase === 'fly' ? 'PLANTING' : rg.phase === 'on' ? (rg.lift ? 'Q PRESSED · LIFTING' : `PLANTED · ${S.players.filter(p => p.inside).length}/3 INSIDE · Q TO LIFT`) : rg.phase === 'fold' ? 'LIFTED · COOLDOWN STARTS' : 'ON COOLDOWN';
+  const st = rg.phase === 'fly' ? 'PLANTING' : rg.phase === 'on' ? (rg.lift ? 'Q PRESSED · LIFTING' : `${Math.ceil(60 - (t - TH))} S LEFT · ${S.players.filter(p => p.inside).length}/3 INSIDE · Q TO LIFT`) : rg.phase === 'fold' ? 'LIFTED · COOLDOWN STARTS' : 'ON COOLDOWN';
   g.fillText(st, 24, 50);
 }
 
