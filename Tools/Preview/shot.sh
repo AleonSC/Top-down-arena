@@ -29,6 +29,7 @@
 # DEVOURAT=x,y[,deg] (pin the Devourer there facing deg, default 90, and clear shots: its Lamprey body, DevourerBodyLook.cs; with DEVOUR=<health> [DEVOURTURN=<turn>] ZOOM=3 CAMAT=640,345 shot.sh x hud -50 9 1).
 # HERALDSHEET=1 (the Storm Herald's body in its four phases, HeraldBodyLook.cs; ZOOM=1.38 CAMAT=640,360 shot.sh x hud 3 1 1); HERALDSHEET=poses:<1-12> one of its poses (ZOOM=2.2 CAMAT=herald). CAMAT=herald: a zoom centred on the Herald.
 # WARDENSHEET=all|<1-15> (the Warden's poses, WardenBodyLook.cs: all fifteen in a grid, or one in the middle; NINJA=0 ZOOM=2 shot.sh x hud 3 1 1).
+# TUSKER=<s since the cast> [TUSKERCAP=1] (Tidal Tusker, ShotTusker.cs; ZOOM=1.6 CAMAT=640,450 shot.sh x hud 1 6 1).
 # FORBIDDEN=<s since the cast> [FPNEXT=<1-5>] (Forbidden Path, ShotForbiddenPath.cs; ZOOM=2.2 CAMAT=630,460 shot.sh x hud 1 6 1).
 # CROWD=<n> (a Warden mob of n round you, for a crowd's draw cost; NINJA=0, e.g. shot.sh x hud 3 1 2). VTXTRACE=1 (any shot: print the world frame's top vertex sources; run mono shot.exe in out/ to see it). VTXDEPTH=<n>: that many stack frames a source (default 5).
 # PERFRUN=<secs>[,boss] PERFIDLE=<secs> [PERFMAP=<pieces>] (draw cost: a Quick Play breach wave drawn every frame, printing vertices and draw ms; PERFMAP: a grown map; ShotPerf.cs; e.g. shot.sh x hud 7 1 2; with SURVIVAL=840 SURVMARKS=55: Survival's room).
@@ -66,7 +67,7 @@
 # WOLFPACK=pack|alpha|merge WOLFT=<s> (the Wolf Whistle's pack hunting three grunts: four wolves with two hurt and kill pips, an alpha of three, or five merging at 0.6 s; ShotWolfPack.cs).
 # BONEGUARD=<s into the scene> (the Bone Guard's Marrow Tether, then its Ossuary Wall Alt at 1.6 s; ShotBoneGuard.cs).
 # PHALANX=<s since the cast> (Bone Phalanx played through the game; PHALANXCAP=1 mastered; ShotPhalanx.cs). FXOFF=1: Visual effects off (plain looks).
-# KNIGHTDPS=steel|gauntlet|mercy|bridge KDT=<s> (the DPS Knight's abilities replaying the mockup's scenes through the game; KDW=<0-2> the weapon; crop (352,200)-(928,520) to set beside the mockup; ShotKnightDps.cs).
+# KNIGHTDPS=caltrops|gauntlet|dive|bridge KDT=<s> (the DPS Knight's abilities replaying the mockup's scenes through the game; KDW=<0-2> the weapon; crop (352,200)-(928,520) to set beside the mockup; ShotKnightDps.cs).
 # WILDCARD=1 (lobby: you as a Wildcard, Twin Blades, Shadow Step, Blade Fan on Q, Death Lotus; the class wheel).
 # NIMBUS=<s since a strike, -1 none> [NIMBUSSTORM=<s into the Eye of the Storm> NIMBUSBOLT=1] (the Nimbus, Anvil look; mode hud).
 # pacman (mode): PACKEYS=l1.7,u0.6 (steer left then up), PACFRIGHT=5 (ghosts blue), PACDIE=0.7, PACOVER=1, PACPAUSE=1 (PacmanUi.cs).

@@ -5,11 +5,8 @@ namespace Arena
 {
     /// The DPS Knight's 1st abilities, ported from Docs/Mockups/knight-dps-abilities.html (its drawing code, shape for
     /// shape and in world units, the mockup's stage being drawn at about the arena's own scale):
-    ///   Caught Steel, look Forge II (Core/CaughtSteel.cs; Docs/Mockups/caught-steel-forge.html, look B): a heat-shimmer
-    ///     graze ring with embers lifting off it, a white-hot burst, hammer ring and falling anvil sparks where a bullet is
-    ///     caught, faceted shards cooling white, yellow, cherry, grey with a puff of steam, a layered fire crescent shedding
-    ///     embers, each shard reheated into the blade and flying off as a molten streak (the SteelShard bullet), a molten
-    ///     splash where it strikes, shards knocked loose by a hit clattering down in steam, and twelve pips over your head.
+    ///   The steel shard (Defs.SteelShard, the Bulwark Barrier's burst; Caught Steel's Forge II look, kept when Caltrop Run
+    ///     took its place): a faceted diamond in the colour of its heat, flying as a molten streak.
     ///   The Gauntlet, look Heraldic (Core/Gauntlet.cs): the spinning gauntlet and its glow trail, the clang (sparks, ring,
     ///     glint), the crest over the Challenged enemy with its timer ring and the gold ring turning under it, the crimson
     ///     and gold ribbon from you to it, the gauntlet lying where it hit, the charge's afterimages, bow wave and dust, the
@@ -20,8 +17,7 @@ namespace Arena
     public partial class ArenaApp
     {
         // Forge
-        static readonly Rgba ForgeGlow = C255(255, 110, 25), ForgeTrail = C255(255, 150, 60),
-            ForgeRing = C255(255, 175, 80), ForgePip = C255(255, 160, 70), ForgeSpark = C255(255, 170, 70);
+        static readonly Rgba ForgeGlow = C255(255, 110, 25), ForgeTrail = C255(255, 150, 60);
         // Heraldic
         static readonly Rgba HeraldGlow = C255(255, 200, 90), HeraldKnuckle = C255(216, 173, 78), HeraldAccent = C255(214, 170, 74), HeraldField = C255(142, 27, 40),
             HeraldRibbon = C255(200, 40, 55), HeraldDust = C255(150, 132, 108), HeraldSpark = C255(255, 214, 140);
@@ -120,6 +116,7 @@ namespace Arena
         void DrawKnightDpsUnder(float t)
         {
             DrawGauntletGround(t);
+            DrawCaltropRunners(t);  // CaltropRunLook.cs
             DrawBridgeShake();  // DrawbridgeLook.cs
         }
 
@@ -133,12 +130,11 @@ namespace Arena
         {
             foreach (var p in game.Players.Values)
             {
-                DrawSteel(p, t);
                 DrawGauntletLying(p, t);
             }
         }
 
-        /// The DPS Knight's moments on the HUD: READY, RESET, and your own shard pips.
+        /// The DPS Knight's moments on the HUD: READY and RESET.
         void DrawKnightDpsPops()
         {
             if (!ReferenceEquals(game, session.Game))
@@ -167,32 +163,8 @@ namespace Arena
                     Ui.Shadowed(new Rect(at.X - 40f, at.Y - 10f, 80f, 20f), "RESET", Mathf.RoundToInt(13f * pop), UiCol(DiveLight, 1f - Mathf.Clamp01((a - 0.55f) / 0.35f)));
                 }
             }
-            var me = game.Me;
-            if (me != null && !me.Downed && (me.SteelT > 0f || me.Steel > 0))
-            {
-                int cap = Game.SteelCapOf(me, Game.Mastered(me, AbilityId.CaughtSteel)), n = me.Steel;
-                V2 at = ToUi(me.Disp);
-                float y = at.Y - me.Def.BodyR * UiWorldScale - 30f, x0 = at.X - (cap - 1) * 6.5f;
-                for (int i = 0; i < cap; i++)
-                {
-                    bool on = i < n;
-                    UiDiamond(x0 + i * 13f, y, 5.1f, on ? new Color(1f, 1f, 1f, 0.7f) : new Color(1f, 1f, 1f, 0.25f));
-                    UiDiamond(x0 + i * 13f, y, 4.1f, on ? UiCol(ForgePip, 0.95f) : new Color(0.1f, 0.1f, 0.12f, 0.6f));
-                }
-            }
         }
 
-
-        /// A small diamond on the HUD (rows of 1 px fills), centred at (x, y), `r` from the centre to a point.
-        static void UiDiamond(float x, float y, float r, Color c)
-        {
-            for (float dy = -r; dy < r; dy += 1f)
-            {
-                float w = 2f * (r - Mathf.Abs(dy + 0.5f));
-                if (w > 0f)
-                    Ui.Fill(new Rect(x - w / 2f, y + dy, w, 1f), c);
-            }
-        }
 
         /// Your own screen kicks and holds for the big moments.
         void KnightDpsFeel(Effect fx, Player me)
@@ -201,10 +173,6 @@ namespace Arena
                 return;
             switch (fx.Kind)
             {
-                case FxKind.SteelRelease:
-                    if ((int)fx.Pos2.X == game.MyId)
-                        Shake(0.12f);
-                    break;
                 case FxKind.GauntletImpact:
                     if ((int)fx.Radius == game.MyId)
                     {
@@ -227,30 +195,8 @@ namespace Arena
         }
 
         // =============================================================================================================
-        // Caught Steel (Forge)
+        // The steel shard (Forge)
         // =============================================================================================================
-
-        class SteelBit
-        {
-            public Effect Fx;        // the catch that made it (null: made up for one we never saw)
-            public float T0;         // AnimT when it was caught
-            public float Ang, R;     // where it was caught, round the knight
-            public int K;
-        }
-
-        readonly Dictionary<int, List<SteelBit>> steelBits = new Dictionary<int, List<SteelBit>>();
-        readonly List<SteelBit> steelScratch = new List<SteelBit>();
-        const float SteelOmega = 1.8f;
-
-        static float SteelOrbitR(SteelBit b) => 40f + (b.K % 3) * 7f;
-
-        V2 SteelOrbitAt(Player p, SteelBit b, float now)
-        {
-            float age = now - b.T0, r = Mathf.Lerp(b.R, SteelOrbitR(b), KEo(age / 0.35f)) + Mathf.Sin(now * 3f + b.K) * 1.5f;
-            return p.Disp + V2.FromAngle(b.Ang + SteelOmega * age) * r;
-        }
-
-        float SteelOrbitAng(SteelBit b, float now) => b.Ang + SteelOmega * (now - b.T0);
 
         /// Forge II's heat ramp (Docs/Mockups/caught-steel-forge.html, look B): grey steel, cherry, orange, yellow, white-hot.
         static Rgba ForgeHeat(float h)
@@ -282,16 +228,23 @@ namespace Arena
             }
         }
 
-        /// Steam lifting off a quenched shard: a few grey puffs, `f` 0 to 1 through it.
-        void ForgeSteam(V2 at, float f, float seed, float alpha)
+        /// A steel shard striking (FxKind.SteelHit): on an enemy (Radius 1) a molten splash, a burn ring and droplets
+        /// falling away; on a bullet a small flash and sparks.
+        void DrawSteelHitFx(Effect fx)
         {
-            for (int i = 0; i < 3; i++)
+            float a = fx.T;
+            if (fx.Radius > 0.5f)
             {
-                float ph = Mathf.Clamp01(f * 1.2f - i * 0.12f);
-                if (ph <= 0f || ph >= 1f)
-                    continue;
-                FanGradient(at + new V2((KHash(seed + i) - 0.5f) * 8f, -4f - ph * 16f), 2f + ph * 5f,
-                    C255(200, 206, 216).WithAlpha(0.3f * (1f - ph) * alpha), C255(200, 206, 216).WithAlpha(0f), 8);
+                float g = Mathf.Clamp01(a / 0.25f), f = Mathf.Clamp01(a / 0.5f);
+                GlowDisc(fx.Pos, 24f * (1f - g), C255(255, 150, 50), 0.9f * (1f - g));
+                Arc(fx.Pos, 3f + 15f * KEo(f), 2f, C255(255, 120, 40).WithAlpha(0.6f * (1f - f)), 18);
+                ForgeFallSparks(fx.Pos, a, 12, fx.Pos.X + fx.Pos.Y * 0.7f, fx.Pos2.Angle + MathX.Pi, 2.6f, 270f, 0.5f, 380f, C255(255, 180, 70), 2f);
+            }
+            else
+            {
+                float f = Mathf.Clamp01(a / 0.35f);
+                GlowDisc(fx.Pos, 16f * (1f - f), C255(255, 160, 60), 0.9f * (1f - f));
+                ForgeFallSparks(fx.Pos, a, 8, fx.Pos.X * 0.37f + fx.Pos.Y, fx.Pos2.Angle, 2f, 200f, 0.35f, 200f, C255(255, 200, 90));
             }
         }
 
@@ -316,166 +269,6 @@ namespace Arena
                 Line(a, b, 0.9f, C255(255, 90, 40).WithAlpha(0.4f * (1f - heat * 4f) * alpha));
         }
 
-        /// A player's shards: caught, orbiting and cooling; drawn into the blade and away when the cut throws them; a few
-        /// knocked loose by a hit; and the graze ring while they're catching.
-        void DrawSteel(Player p, float t)
-        {
-            float now = game.AnimT;
-            List<SteelBit> bits;
-            if (!steelBits.TryGetValue(p.Id, out bits))
-                steelBits[p.Id] = bits = new List<SteelBit>();
-            Effect release = null, drop = null;
-            foreach (var fx in game.Effects)
-            {
-                if (fx.Kind == FxKind.SteelCatch && (int)fx.Pos2.X == p.Id)
-                {
-                    bool known = false;
-                    foreach (var b in bits)
-                        if (ReferenceEquals(b.Fx, fx))
-                            known = true;
-                    if (!known && bits.Count < Game.SteelCapMastered)
-                    {
-                        V2 rel = fx.Pos - p.Disp;
-                        bits.Add(new SteelBit { Fx = fx, T0 = now - fx.T, Ang = rel.Angle, R = rel.Length, K = bits.Count });
-                    }
-                    // the catch: a white-hot burst, a hammer ring and anvil sparks that fall
-                    float a = fx.T, f = a / 0.5f;
-                    if (f < 1f)
-                    {
-                        GlowDisc(fx.Pos, 28f * (1f - f), C255(255, 235, 200), 1f - f);
-                        Circle(fx.Pos, 5f * (1f - f), C255(255, 255, 240).WithAlpha(1f - f), 10);
-                        Arc(fx.Pos, 4f + 24f * KEo(f), 1.6f, C255(255, 200, 120).WithAlpha(0.7f * (1f - f)), 20);
-                        ForgeFallSparks(fx.Pos, a, 11, fx.Pos.X * 0.13f + fx.Pos.Y, -MathX.Pi / 2f, 3.6f, 240f, 0.5f, 320f, C255(255, 190, 80));
-                    }
-                }
-                if (fx.Kind == FxKind.SteelRelease && (int)fx.Pos2.X == p.Id)
-                    release = fx;
-                if (fx.Kind == FxKind.SteelDrop && (int)fx.Pos2.X == p.Id)
-                    drop = fx;
-                if (fx.Kind == FxKind.SteelHit)
-                {
-                    float a = fx.T;
-                    if (fx.Radius > 0.5f)
-                    {
-                        // a molten splash: flash, a burn ring and droplets falling away
-                        float g = Mathf.Clamp01(a / 0.25f), f = Mathf.Clamp01(a / 0.5f);
-                        GlowDisc(fx.Pos, 24f * (1f - g), C255(255, 150, 50), 0.9f * (1f - g));
-                        Arc(fx.Pos, 3f + 15f * KEo(f), 2f, C255(255, 120, 40).WithAlpha(0.6f * (1f - f)), 18);
-                        ForgeFallSparks(fx.Pos, a, 12, fx.Pos.X + fx.Pos.Y * 0.7f, fx.Pos2.Angle + MathX.Pi, 2.6f, 270f, 0.5f, 380f, C255(255, 180, 70), 2f);
-                    }
-                    else
-                    {
-                        float f = Mathf.Clamp01(a / 0.35f);
-                        GlowDisc(fx.Pos, 16f * (1f - f), C255(255, 160, 60), 0.9f * (1f - f));
-                        ForgeFallSparks(fx.Pos, a, 8, fx.Pos.X * 0.37f + fx.Pos.Y, fx.Pos2.Angle, 2f, 200f, 0.35f, 200f, C255(255, 200, 90));
-                    }
-                }
-            }
-            // The graze ring while catching: heat shimmer with embers lifting off it, pulsing in the last second.
-            if (p.SteelT > 0f && !p.Downed)
-            {
-                float ra = Mathf.Clamp01((Game.SteelTime - p.SteelT) / 0.3f) * Mathf.Clamp01(p.SteelT / 0.3f + (release == null ? 1f : 0f));
-                if (p.SteelT < 1.2f)
-                    ra *= 0.6f + 0.4f * Mathf.Sin(t * 22f);
-                float gr = Game.SteelReach(p, 4f);
-                GlowDisc(p.Disp, gr + 18f, ForgeGlow, 0.09f * ra);
-                const int segs = 48;
-                V2 prev = V2.Zero;
-                for (int i = 0; i <= segs; i++)
-                {
-                    float an = MathX.Tau * i / segs, r = gr + Mathf.Sin(an * 9f + t * 6f) * 1.3f + Mathf.Sin(an * 4f - t * 3f) * 0.8f;
-                    V2 at = p.Disp + V2.FromAngle(an) * r;
-                    if (i > 0)
-                        Line(prev, at, 1.3f, C255(255, 170, 80).WithAlpha(0.45f * ra));
-                    prev = at;
-                }
-                for (int i = 0; i < 12; i++)
-                {
-                    float ph = Mathf.Repeat(t * 0.9f + KHash(i) * 3f, 1f), an = KHash(i * 3.3f) * MathX.Tau, fl = 0.6f + 0.4f * Mathf.Sin(t * 30f + i);
-                    V2 at = p.Disp + V2.FromAngle(an) * gr + new V2(Mathf.Sin(t * 4f + i) * 2f, -ph * 22f);
-                    Circle(at, 1.1f, ForgeHeat(0.8f - ph * 0.5f).WithAlpha(ra * (1f - ph) * fl), 5);
-                }
-            }
-            // The cut: a layered fire crescent shedding embers and its ring, and each shard reheated as it's drawn into
-            // the blade, gone as its bullet leaves.
-            if (release != null)
-            {
-                float a = release.T, aim = release.Radius;
-                float sweep = Game.SteelSweep;
-                if (a < 0.5f)
-                {
-                    float fa = 1f - Mathf.Clamp01((a - sweep) / 0.3f), a0 = aim - 1.55f, a1 = aim + Mathf.Lerp(-1.55f, 1.5f, KEo(a / sweep));
-                    KCrescent(release.Pos, a0, a1, 18f, 74f, C255(255, 80, 15), 0.6f * fa, false);
-                    KCrescent(release.Pos, a0, a1, 32f, 68f, C255(255, 150, 50), 1f * fa, false);
-                    KCrescent(release.Pos, a0, a1, 48f, 64f, C255(255, 235, 180), fa);
-                    for (int i = 0; i < 14; i++)
-                    {
-                        float s = KHash(i * 2.1f), ph = Mathf.Clamp01((a - s * sweep) / 0.4f);
-                        if (ph <= 0f || ph >= 1f)
-                            continue;
-                        float an = Mathf.Lerp(a0, a1, s);
-                        Circle(release.Pos + V2.FromAngle(an) * (60f + ph * 24f) + new V2(0f, ph * ph * 20f), 1.3f, ForgeHeat(1f - ph * 0.6f).WithAlpha(1f - ph), 5);
-                    }
-                    float rf = a / 0.5f;
-                    Arc(release.Pos, 20f + 95f * KEo(rf), 2f, ForgeRing.WithAlpha(0.45f * (1f - rf)), 40);
-                }
-                int n = Mathf.RoundToInt(release.Pos2.Y), cap = Game.SteelCapOf(p, Game.Mastered(p, AbilityId.CaughtSteel));
-                steelScratch.Clear();
-                steelScratch.AddRange(bits);
-                steelScratch.Sort((x, y) => Mathf.Sin(SteelOrbitAng(x, now - a) - aim).CompareTo(Mathf.Sin(SteelOrbitAng(y, now - a) - aim)));
-                for (int i = 0; i < steelScratch.Count && i < n; i++)
-                {
-                    var b = steelScratch[i];
-                    float tl = 0.03f + sweep * 0.85f * (n > 1 ? i / (float)(n - 1) : 0f);
-                    if (a >= tl)
-                        continue;  // its bullet is flying now
-                    int fi = i + (cap - n + 1) / 2;
-                    float fa = aim - Game.SteelFan / 2f + Game.SteelFan * fi / (cap - 1);
-                    V2 lp = release.Pos + V2.FromAngle(fa) * Game.SteelLaunchFrom;
-                    V2 orbit = SteelOrbitAt(p, b, now - a);
-                    float k = KEo((a - (tl - 0.06f)) / 0.06f), heat = Mathf.Max(SteelHeat(b, now - a), Mathf.Clamp01(a / tl));
-                    DrawSteelShard(V2.Lerp(orbit, lp, a > tl - 0.06f ? k : 0f), a > tl - 0.06f ? fa : SteelOrbitAng(b, now) + MathX.Pi / 2f, heat, 1f, 1f);
-                }
-                if (a > 0.01f)
-                    bits.Clear();
-                return;
-            }
-            // Knocked loose: the last few go grey, clatter to the floor in a puff of steam, and fade.
-            if (drop != null)
-            {
-                int lost = Mathf.RoundToInt(drop.Pos2.Y);
-                float a = drop.T, f = Mathf.Clamp01(a / 0.8f);
-                for (int i = 0; i < lost; i++)
-                {
-                    float h = KHash(drop.Pos.X + i * 3.1f), ang = h * MathX.Tau;
-                    V2 at = drop.Pos + V2.FromAngle(ang) * (44f + 26f * KEo(f)) + new V2(0f, 14f * f * f);
-                    DrawSteelShard(at, ang + f * 9f * (KHash(i + 1.7f) - 0.5f), 0f, 1f - f, 1f);
-                    ForgeSteam(at, f, i * 7.3f, 1f);
-                    if (a < 0.2f)
-                        KSparks(at, a, 3, i * 7.3f + drop.Pos.Y, 0f, MathX.Tau, 90f, 0.2f, ForgeSpark);
-                }
-            }
-            // Keep the shards in step with the count the host sends (a missed catch, or some knocked loose).
-            int want = p.Steel;
-            while (bits.Count > want)
-                bits.RemoveAt(bits.Count - 1);
-            while (bits.Count < want)
-                bits.Add(new SteelBit { T0 = now - 2f, Ang = KHash(bits.Count + p.Id * 13f) * MathX.Tau, R = 44f, K = bits.Count });
-            foreach (var b in bits)
-            {
-                float age = now - b.T0, heat = SteelHeat(b, now);
-                V2 at = SteelOrbitAt(p, b, now);
-                if (age > 0.75f && age < 1.5f)  // quenched: a puff of steam
-                    ForgeSteam(at, (age - 0.75f) / 0.75f, b.K, 1f);
-                if (heat < 0.6f && KHash(b.K + Mathf.Floor(now * 14f)) > 0.86f)  // a spark drips off a cooling shard
-                    Circle(at + new V2(0f, Mathf.Repeat(now * 14f, 1f) * 7f), 1.2f, ForgeSpark.WithAlpha(0.9f), 5);
-                DrawSteelShard(at, SteelOrbitAng(b, now) + MathX.Pi / 2f, heat, 1f, 1f);
-            }
-        }
-
-        /// A shard's heat: white-hot when caught, cooled to grey steel a second later.
-        static float SteelHeat(SteelBit b, float now) => Mathf.Clamp01(1f - (now - b.T0) / 1f);
-
         /// A thrown shard (Defs.SteelShard): a molten streak with a white core, embers dropping off behind it, and the
         /// shard at its head, white-hot again.
         void DrawSteelShardShot(Bullet b)
@@ -483,7 +276,7 @@ namespace Arena
             if (b.Vel.IsZero)
                 return;
             V2 d = b.Vel.Normalized(), side = new V2(-d.Y, d.X);
-            float flown = (b.Life0 - b.Life) * Game.SteelSpeed, tl = Mathf.Min(56f, flown);
+            float flown = (b.Life0 - b.Life) * b.Vel.Length, tl = Mathf.Min(56f, flown);
             V2 tail = b.Pos - d * tl;
             VTri(tail, ForgeGlow.WithAlpha(0f), b.Pos + side * 2.2f, ForgeTrail.WithAlpha(0.8f), b.Pos - side * 2.2f, ForgeTrail.WithAlpha(0.8f));  // the clear tail first: the preview leaves it out like glow
             Line(b.Pos - d * (tl * 0.6f), b.Pos, 1.1f, C255(255, 240, 200).WithAlpha(0.9f));

@@ -19,7 +19,7 @@ static partial class Program
         Check(def.Name == "Cannon Call" && def.Choice == AbilityDef.Fourth && def.Kit == Kit.Knight && def.Role == Role.Dps && def.Cooldown == 12f,
             "Cannon Call: a 12 s DPS Knight 1st ability on the 4th key");
         Check(Upgrades.AbilityLimit(Role.Dps, Kit.Knight) == 4 && Upgrades.FirstAbility(Role.Dps, Kit.Knight, 3) == AbilityId.CannonCall
-            && Upgrades.FirstAbility(Role.Dps, Kit.Knight, 0) == AbilityId.BladedDive && Upgrades.FirstAbility(Role.Dps, Kit.Knight, 2) == AbilityId.CaughtSteel,
+            && Upgrades.FirstAbility(Role.Dps, Kit.Knight, 0) == AbilityId.BladedDive && Upgrades.FirstAbility(Role.Dps, Kit.Knight, 2) == AbilityId.CaltropRun,
             "the DPS Knight's 4th key is Cannon Call; its first three are unchanged");
         Check(Upgrades.All.Any(u => u.ClassAbility && u.Grants == AbilityId.CannonCall) && Upgrades.All.Any(u => u.Name == "Siege Powder" && u.RequiresAbility == AbilityId.CannonCall && u.Rarity == Rarity.Rare),
             "Cannon Call is a very rare card for DPS Knights who picked another, and Siege Powder a Rare card for it");

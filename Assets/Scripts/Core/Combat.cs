@@ -90,8 +90,6 @@ namespace Arena
             }
             p.Run.DamageTaken += Math.Min(amount, Math.Max(0f, p.Hp));
             DamageEvent?.Invoke(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
-            if (amount > 0f && !tickDamage)
-                SteelHurt(p);  // a hit knocks a third of Caught Steel's shards loose (CaughtSteel.cs)
             lastTaken = Math.Max(0f, amount);
             p.Wound = Math.Min(p.MaxHp * WoundCap, p.Wound + WoundShare * Math.Min(amount, Math.Max(0f, p.Hp)));  // a share no heal brings back until a boss falls or a shrine, Medic or Rest clears it (capped)
             p.Hp -= amount;
@@ -749,6 +747,11 @@ namespace Arena
                 scratchIds.Add(b.Id);  // a Trojan Horse: every enemy shot that touches it stops there and wears it (TrojanHorse.cs)
                 return;
             }
+            if (TuskerStops(b))
+            {
+                scratchIds.Add(b.Id);  // a Tidal Tusker: enemy shots that reach the elephant stop there and wear it (TidalTusker.cs)
+                return;
+            }
             if (DecoyStops(b))
             {
                 scratchIds.Add(b.Id);  // a Decoy Dummy: every enemy shot that touches it stops there and wears it (DecoyDummy.cs)
@@ -770,7 +773,7 @@ namespace Arena
             }
         }
 
-        /// Player p's parry, Shield Wall, Last Stand, Bulwark, Blood Shell, Aeroaegis, barrier or Caught Steel: true if one stopped the shot.
+        /// Player p's parry, Shield Wall, Last Stand, Bulwark, Blood Shell, Aeroaegis, barrier: true if one stopped the shot.
         bool ShieldsStop(Player p, Bullet b)
         {
             bool blockable = !Defs.Unblockable(b.Kind);
@@ -847,11 +850,6 @@ namespace Arena
                     p.BarrierT = 0f;  // shattered
                     BroadcastFx(FxKind.Boom, p.Pos, new Rgba(0.5f, 0.8f, 1f), p.BarrierRadius, 0.4f, Sfx.Hit);
                 }
-                return true;
-            }
-            if (SteelGraze(p, b))
-            {
-                scratchIds.Add(b.Id);  // Caught Steel: it skimmed past and hangs round them now (CaughtSteel.cs)
                 return true;
             }
             return false;

@@ -19,8 +19,8 @@ static partial class Program
         Check(def.Name == "Bone Phalanx" && def.Cooldown == 75f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Capstone != null,
             "Bone Phalanx is an ultimate, 75 s, on key 1 of the Ultimate row, with a capstone");
         Check(Upgrades.Ultimate(Role.Tank, Kit.Summoner) == AbilityId.Titan && Upgrades.Ultimate(Role.Tank, Kit.Summoner, 1) == AbilityId.BonePhalanx
-            && Upgrades.AltUltimate(Role.Tank, Kit.Summoner, 2) == AbilityId.IronArmadillo,
-            "the Tank Summoner's Ultimate row: Titan (key 0, the default), then Bone Phalanx, then Iron Armadillo (IronArmadillo.cs)");
+            && Upgrades.AltUltimate(Role.Tank, Kit.Summoner, 2) == AbilityId.IronArmadillo && Upgrades.AltUltimate(Role.Tank, Kit.Summoner, 3) == AbilityId.TidalTusker,
+            "the Tank Summoner's Ultimate row: Titan (key 0, the default), then Bone Phalanx, then Iron Armadillo (IronArmadillo.cs), then Tidal Tusker (TidalTusker.cs)");
         Check(Content.All().Count(rk => Enumerable.Range(1, Upgrades.UltKeys - 1).Any(u => Upgrades.AltUltimate(rk.Role, rk.Kit, u) == AbilityId.BonePhalanx)) == 1,
             "it is only the Tank Summoner's (on no other Ultimate row)");
         Check(Upgrades.Ultimate(Role.Wildcard, Kit.Summoner, 1) == Upgrades.Ultimate(Role.Dps, Kit.Summoner, 1) && Upgrades.Ultimate(Role.Wildcard, Kit.Summoner, 1) != AbilityId.BonePhalanx

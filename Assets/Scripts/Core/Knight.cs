@@ -675,7 +675,7 @@ namespace Arena
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireKnightWeapon(p, aim, dmg, extra),
             Ability = (g, p, id, target) => g.KnightAbility(p, id, target),
             OnKill = (g, e) => g.GauntletKill(e),  // a Challenged enemy's death sends the gauntlet back (Gauntlet.cs)
-            OnShotHit = (g, b, e, hit) => g.SteelShardHit(b, e),  // Caught Steel's shards striking (CaughtSteel.cs)
+            OnShotHit = (g, b, e, hit) => g.SteelShardHit(b, e),  // the Bulwark Barrier's steel shards striking (BulwarkBarrier.cs)
         };
 
         /// The Knight's weapons (swung in FireKnightWeapon).
@@ -733,8 +733,8 @@ namespace Arena
                 Apply = s => { s.BladedDamage += 0.25f; s.BladedReach += 40f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Gauntlet, MaxStacks = 2, Name = "Iron Grip", Desc = "The Gauntlet flies 40% further and its charge hits 50% harder",
                 Apply = s => { s.GauntletRange += 0.4f; s.GauntletDamage += 0.5f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CaughtSteel, MaxStacks = 2, Name = "Forged Edge", Desc = "Caught Steel's shards hit 8 harder, and it catches bullets passing 6 px further out",
-                Apply = s => { s.SteelDamage += 8f; s.SteelReach += 6f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CaltropRun, MaxStacks = 2, Name = "Barbed Iron", Desc = "Caltrop Run drops 4 more caltrops, and each hits 4 harder",
+                Apply = s => { s.CaltropMore += 4; s.CaltropDamage += 4f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CannonCall, MaxStacks = 2, Name = "Siege Powder", Desc = "Cannon Call hits 25% harder and its blast is 15% wider",
                 Apply = s => { s.CannonDamage += 0.25f; s.CannonWide += 0.15f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.WarhornVolley, MaxStacks = 2, Name = "Bodkin Points", Desc = "Warhorn Volley's arrows hit 25% harder and the volley is 20% wider",
@@ -842,10 +842,10 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.CaughtSteel, Kit = Kit.Knight, Role = Role.Dps, Choice = 2,  // Caught Steel (CaughtSteel.cs)
-                Name = "Caught Steel", Icon = "caughtsteel", Cooldown = 16f, Desc = "Catch passing bullets as steel, then hurl them back.",
-                Capstone = "Holds up to 18 shards.",
-                Bot = b => b.Danger,
+                Id = AbilityId.CaltropRun, Kit = Kit.Knight, Role = Role.Dps, Choice = 2,  // Caltrop Run (CaltropRun.cs; took Caught Steel's place and number)
+                Name = "Caltrop Run", Icon = "caltroprun", Cooldown = CaltropCooldown, Desc = "Sprint and scatter caltrops behind you that cut, bleed and slow enemies.",
+                Capstone = "Caltrops last 9 s and each catches 3 enemies.",
+                Bot = b => b.HaveTarget && b.TargetD < 300f,
             },
             new AbilityDef
             {
@@ -960,8 +960,8 @@ namespace Arena
                 case AbilityId.Gauntlet:
                     CastGauntlet(p, target, pw, cap);  // Gauntlet.cs
                     return true;
-                case AbilityId.CaughtSteel:
-                    CastCaughtSteel(p, pw, cap);  // CaughtSteel.cs
+                case AbilityId.CaltropRun:
+                    CastCaltropRun(p, pw, cap);  // CaltropRun.cs
                     return true;
                 case AbilityId.CannonCall:
                     CastCannonCall(p, target, cap, pw);  // CannonCall.cs (the 4th choice)
@@ -1016,7 +1016,7 @@ namespace Arena
         void TickKnights(float dt)
         {
             TickOath(dt);  // GuardiansOath.cs
-            TickSteel(dt);      // CaughtSteel.cs
+            TickCaltropRuns(dt);  // CaltropRun.cs: the run dropping caltrops
             TickGauntlets(dt);  // Gauntlet.cs
             TickBladed(dt);      // BladedDive.cs
             TickBells(dt);       // SiegeBell.cs: the tolls and the shockwave

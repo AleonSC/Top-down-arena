@@ -116,7 +116,7 @@ namespace Arena
             { "Rose Window", "sanctumglass" },
             { "Coup de Grace", "bladeddive" },
             { "Iron Grip", "gauntlet" },
-            { "Forged Edge", "caughtsteel" },
+            { "Barbed Iron", "caltroprun" },
             { "Siege Powder", "cannonball" },
             { "Bodkin Points", "firearrows" },
             // Ninja: each ability's upgrade card shares its ability's icon (AbilityDef.Icon); they never meet in an offer.
@@ -1270,20 +1270,20 @@ namespace Arena
                 "...kkkkkk...",
                 "....kkkk....",
             },
-            ["caughtsteel"] = new[]
+            ["caltroprun"] = new[]  // Caltrop Run: iron caltrops scattered behind a running boot, a red tip on one
             {
                 "............",
-                ".....w......",
-                "....wgk..o..",
-                ".....k..ooo.",
-                ".o........o.",
-                "ooo..kk.....",
-                ".o..kYYk..w.",
-                ".....kk..wgk",
-                "..w.......k.",
-                ".wgk...o....",
-                "..k...ooo...",
-                ".......o....",
+                "..........y.",
+                "..MMM....yy.",
+                "..MmmMM.yy..",
+                "..MMMMMM....",
+                "............",
+                ".....g......",
+                "....gGg...r.",
+                ".g...g...wGg",
+                "gGg.......g.",
+                ".g...g......",
+                "....gGg.....",
             },
             ["cyclone"] = new[]
             {
