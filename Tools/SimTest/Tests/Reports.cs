@@ -86,7 +86,7 @@ static partial class Program
         var me = g.Players[1];
         g.DevSetGod(1, true);
         foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
-            foreach (Kit kit in new[] { Kit.Soldier, Kit.Elementalist, Kit.Summoner, Kit.Knight })
+            foreach (Kit kit in Classes.All.Select(c => c.Id))
             {
                 var line = new List<string>();
                 for (int w = 0; w < 3; w++)

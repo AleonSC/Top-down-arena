@@ -7,7 +7,7 @@ static partial class Program
 {
     static void FactionRelicsTest(float dt)
     {
-        Check(Relics.PerFaction.Length == 10 && Relics.PerFaction.Sum() == Relics.Count - Relics.Classic - 1 && Relics.PerFaction.All(c => c >= 1 && c <= 3), "10 factions hold 1-3 relics each, 20 in all");
+        Check(Relics.PerFaction.Length == Game.BossCycle.Length && Relics.PerFaction.Sum() == Relics.Count - Relics.Classic - 1 && Relics.PerFaction.All(c => c >= 1 && c <= 3), "each boss faction holds 1-3 relics");
         bool ok = true;
         for (int f = 0; f < 10; f++)
             for (int i = 0; i < Relics.PerFaction[f]; i++)

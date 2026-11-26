@@ -78,7 +78,7 @@ static partial class Program
             g.State = MatchState.Fighting;
         };
         Action cast = () => hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, mePos, false });
-        EnemyType heavy = Enum.GetValues(typeof(EnemyType)).Cast<EnemyType>().First(t => (int)t < Defs.Enemies.Length && Defs.Get(t) != null && Defs.Get(t).Heavy && !Defs.Get(t).IsBoss);
+        EnemyType heavy = HeavyFoe();
 
         // In, the armour, the slow.
         reset();

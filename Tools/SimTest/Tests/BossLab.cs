@@ -180,8 +180,7 @@ static partial class Program
         var seats = args.Length > 6 ? args.Skip(6).ToArray() : new[] { "T/S/0", "D/S/0" };
         Console.WriteLine("  Quick Play boss fights: {0} [{1}], {2} run(s) each; target ~{3:0} s", skill, string.Join(" ", seats), runs, QuickPlay.FightSeconds);
         Console.WriteLine("  {0,-16} {1,5} {2,9} {3,9} {4,8} {5,8} {6,7}", "boss", "after", "won/runs", "avg fight", "HP left", "downs", "HP");
-        foreach (var boss in new[] { EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity, EnemyType.Colossus,
-                                     EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse })
+        foreach (var boss in Defs.Bosses)
             foreach (int wave in waves)
             {
                 int won = 0, downs = 0;

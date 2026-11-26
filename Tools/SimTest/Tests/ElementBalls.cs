@@ -78,7 +78,7 @@ static partial class Program
             }
             return peak;
         };
-        var heavyType = Enum.GetValues(typeof(EnemyType)).Cast<EnemyType>().First(t => (int)t < Defs.Enemies.Length && Defs.Get(t).Heavy && !Defs.Get(t).IsBoss && Defs.Get(t).Speed > 0f);
+        var heavyType = HeavyFoe(moving: true);
         float grunt = stunOn(EnemyType.Grunt), heavy = stunOn(heavyType);
         Console.WriteLine("  earthball stun: grunt {0:0.00} s, {1} (heavy) {2:0.00} s", grunt, heavyType, heavy);
         Check(grunt > 0.6f, "it stuns a regular enemy for about 0.8 s");

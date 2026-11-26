@@ -36,7 +36,7 @@ no Unity in the cloud container: check changes with the tools below.
   short report that names the protocol version and what's next.
 - The **very last line** of every session's final message is `Branch used: <branch>`, e.g. `Branch used: claude/xyz (PR #n, auto-merge on)` or
   `Branch used: claude/xyz (not merged to main)`, so the owner knows whether it's queued.
-- **Bump `Session.ProtocolVersion`** (`Core/Session.cs`) whenever a network message or snapshot format changes. Add a line for the new number at the top of `Docs/ProtocolHistory.md`; the code keeps only the number. New
+- **Bump `Session.ProtocolVersion`** (`Core/Session.cs`) whenever a network message or snapshot format changes. Add a line for the new number at the top of `Docs/ProtocolHistory.md`; the code keeps only the number. Then `PROTOCOL=update Tools/SimTest/run.sh 1 1 protocol` (the `protocol` suite fails on any Core enum or wire read/write change without a bump). New
   enum values (`Msg`, `Kit`, `WeaponId`, `AbilityId`, `EnemyType`, ...) go at the **end**, before `None`.
 - Ask every question to the owner through the in-chat question box (`AskUserQuestion`), never as plain text or an artifact form. Batch related questions into one box. Ask before deleting code.
 - The Bestiary, Armory and Field guide are gone and retired (the owner will regenerate them later): don't recreate, update or mention them in code, docs, tests or reports.

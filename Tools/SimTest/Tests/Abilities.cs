@@ -154,12 +154,13 @@ static partial class Program
         Check(anyChain, "lightning chains between enemies (seen on the client)");
     }
 
-    // Every role and class has its own ultimate on right click, and each one works over the network.
+    // Every role and class has its own ultimate on right click, and each one is cast and synced over the network (what
+    // it does is checked here for the first three classes, and in each later class's own suite).
     static void UltimateSweep(float dt)
     {
         domesAllowed = true;  // Fortress has to be able to go off here
         var seenUlts = new HashSet<AbilityId>();
-        foreach (var kit in new[] { Kit.Soldier, Kit.Elementalist, Kit.Summoner })
+        foreach (var kit in Classes.All.Select(c => c.Id))  // every class, so a new one is cast and synced here too
         foreach (var roles in new[] { new[] { Role.Tank, Role.Healer }, new[] { Role.Dps, Role.Dps } })
         {
             int port = nextPort++;
@@ -216,7 +217,7 @@ static partial class Program
                 bool used = hp.Slots[Upgrades.UltSlot].Charges == 0 && hp.Slots[Upgrades.UltSlot].Timer > 0f;
                 Func<MinionKind, int> M = k => minions.ContainsKey(k) ? minions[k] : 0;
                 Func<ZoneKind, int> Z = k => zones.ContainsKey(k) ? zones[k] : 0;
-                bool effect = false;
+                bool effect = true;  // an ultimate not listed below: its own class suite checks what it does
                 switch (ult)
                 {
                     case AbilityId.Fortress: case AbilityId.ArtilleryAssault: effect = ultT.Contains(id); break;
@@ -234,7 +235,7 @@ static partial class Program
             host.Leave("");
             client.Leave("");
         }
-        Check(seenUlts.Count == 9, "all 9 role and class combinations have their own ultimate");
+        Check(seenUlts.Count == 3 * Classes.All.Length, "all " + 3 * Classes.All.Length + " role and class combinations have their own ultimate (" + seenUlts.Count + ")");
         domesAllowed = false;
     }
 

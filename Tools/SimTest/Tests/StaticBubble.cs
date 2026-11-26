@@ -114,7 +114,7 @@ static partial class Program
         Check(me.BubFed == 2, "after 0.6 s it feeds again");
 
         // Heavies are put out and shoved like everyone else.
-        var heavyType = Enum.GetValues(typeof(EnemyType)).Cast<EnemyType>().First(t => (int)t < 250 && Defs.Get(t).Heavy && !Defs.Get(t).IsBoss && Defs.Get(t).Speed > 0f);
+        var heavyType = HeavyFoe(moving: true);
         var heavy = make(home + new V2(0f, 25f), heavyType);
         step(dt);
         Check(me.Pos.DistanceTo(heavy.Pos) - heavy.Radius >= me.BubR - 0.5f && me.BubFed == 3, "a heavy is put out at the edge too, and feeds it");

@@ -125,7 +125,7 @@ static partial class Program
 
         // A heavy is hurt but not moved.
         reset();
-        var heavyType = Enum.GetValues(typeof(EnemyType)).Cast<EnemyType>().First(t => (int)t < 250 && Defs.Get(t).Heavy && !Defs.Get(t).IsBoss && Defs.Get(t).Speed > 0f);
+        var heavyType = HeavyFoe(moving: true);
         var heavy = make(mePos + new V2(0f, 140f), heavyType);
         V2 heavyAt = heavy.Pos;
         cast();

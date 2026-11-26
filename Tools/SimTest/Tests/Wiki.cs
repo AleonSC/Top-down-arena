@@ -67,7 +67,7 @@ static partial class Program
         Check(Wiki.PhaseIn("LAST STAND", EnemyType.Warden)?.Name == WikiPhases.LastStandName && Wiki.PhaseIn("LAST STAND", EnemyType.Lich) == null, "LAST STAND opens the shared last stand for a boss that has one");
         Check(Wiki.PhaseIn("FRENZY", EnemyType.HiveQueen)?.Name == "Frenzy" && Wiki.PhaseIn("FRENZY", EnemyType.Devourer) == null, "a phase belongs to its own boss");
         Check(Wiki.PhaseIn("SUNDERED", EnemyType.ReaperOfDawn)?.Name == "Sundered", "either Reaper finds the Reapers' phases");
-        foreach (var b in new[] { EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity, EnemyType.Colossus, EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse })
+        foreach (var b in Defs.Bosses)
             Check(WikiPhases.All.Count(p => p.Boss == b) >= 3, "the " + Defs.Get(b).Name + " has its phases in the wiki");
         // Boss attacks (WikiAttacks.cs): each under its boss and phase, found from a boss bar's text.
         foreach (var at in WikiAttacks.All)
