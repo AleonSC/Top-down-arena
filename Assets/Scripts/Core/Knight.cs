@@ -790,7 +790,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.SiegeBell, Kit = Kit.Knight, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (SiegeBell.cs)
-                Name = "Siege Bell", Cooldown = BellCooldown, Desc = "Ring a ghostly bell three times; the last toll's shockwave stuns enemies around it.",
+                Name = "Siege Bell", Icon = "siegebell", Cooldown = BellCooldown, Desc = "Ring a ghostly bell three times; the last toll's shockwave stuns enemies around it.",
                 Capstone = "The stun lasts 3.5 s and the shockwave erases enemy bullets.",
                 Bot = b => b.NearEnemies >= 4 && b.TargetD < 220f,
             },
