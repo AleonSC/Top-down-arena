@@ -23,8 +23,8 @@ static partial class Program
             "Vortex is the Tank Elementalist's ultimate on key 3, 80 s");
         Check(Upgrades.Ultimate(Role.Tank, Kit.Elementalist, 3) == AbilityId.Vortex && Upgrades.Ultimate(Role.Tank, Kit.Elementalist) == AbilityId.GlacialTomb,
             "key 3 is Vortex; Glacial Tomb stays the default");
-        Check(Upgrades.ClampUlt(Role.Tank, Kit.Elementalist, 3) == 3 && Upgrades.ClampUlt(Role.Dps, Kit.Elementalist, 3) == 0 && Upgrades.ClampUlt(Role.Healer, Kit.Elementalist, 3) == 0,
-            "key 3 is only the tank's; other roles fall back to their default");
+        Check(Upgrades.ClampUlt(Role.Tank, Kit.Elementalist, 3) == 3 && Upgrades.Ultimate(Role.Dps, Kit.Elementalist, 3) != AbilityId.Vortex && Upgrades.Ultimate(Role.Healer, Kit.Elementalist, 3) != AbilityId.Vortex && Content.UltFallsBack(3),
+            "key 3 is only the tank's; a role and class without a key 3 falls back to its default");
 
         int port = nextPort++;
         var host = new Session { AutoStart = 3, StartWave = 3 };
@@ -44,7 +44,8 @@ static partial class Program
             "in the run both players' ultimate is Vortex, on both games");
         var save = new RunSave { Wave = 4 };
         save.Seats.Add(new SeatSave { Name = "Storm", Role = Role.Tank, Kit = Kit.Elementalist, Ult = 3 });
-        save.Seats.Add(new SeatSave { Name = "Dps", Role = Role.Dps, Kit = Kit.Elementalist, Ult = 3 });
+        var bare = Content.RoleWithoutUlt(3);  // (a role and class with no key 3)
+        save.Seats.Add(new SeatSave { Name = "Bare", Role = bare.Role, Kit = bare.Kit, Ult = 3 });
         var back = RunSave.Parse(save.ToText());
         Check(back.Seats[0].Ult == 3 && back.Seats[1].Ult == 0, "a saved run keeps key 3 (clamped for a class without it)");
 

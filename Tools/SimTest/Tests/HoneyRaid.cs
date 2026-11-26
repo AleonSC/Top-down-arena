@@ -20,8 +20,8 @@ static partial class Program
         Check(def.Name == "Honey Raid" && def.Cooldown == 80f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Kit == Kit.Summoner && def.Role == Role.Healer && def.Capstone != null,
             "Honey Raid is the Healer Summoner's ultimate on key 1, 80 s");
         Check(Upgrades.Ultimate(Role.Healer, Kit.Summoner) == AbilityId.WorldTree && Upgrades.Ultimate(Role.Healer, Kit.Summoner, 1) == AbilityId.HoneyRaid
-            && Upgrades.ClampUlt(Role.Healer, Kit.Summoner, 1) == 1 && Upgrades.ClampUlt(Role.Healer, Kit.Summoner, 2) == 0,
-            "World Tree stays the default, key 1 Honey Raid, no key 2");
+            && Upgrades.ClampUlt(Role.Healer, Kit.Summoner, 1) == 1 && Content.UltFallsBack(2),
+            "World Tree stays the default, key 1 Honey Raid; a key a class lacks falls back");
 
         // --- Into a run -----------------------------------------------------------------------------------------------------
         int port = nextPort++;

@@ -25,8 +25,8 @@ static partial class Program
         Check(Upgrades.Ultimate(Role.Dps, Kit.Knight, 2) == AbilityId.Ballista && Upgrades.Ultimate(Role.Dps, Kit.Knight, 1) == AbilityId.WarhornVolley
             && Upgrades.Ultimate(Role.Dps, Kit.Knight) == AbilityId.Drawbridge,
             "key 2 is the Ballista; key 1 is still Warhorn Volley and the Drawbridge the default");
-        Check(Upgrades.ClampUlt(Role.Dps, Kit.Knight, 2) == 2 && Upgrades.ClampUlt(Role.Healer, Kit.Knight, 2) == 0,
-            "key 2 is the DPS's; the healer falls back to the default");
+        Check(Upgrades.ClampUlt(Role.Dps, Kit.Knight, 2) == 2 && Upgrades.Ultimate(Role.Healer, Kit.Knight, 2) != AbilityId.Ballista && Content.UltFallsBack(2),
+            "key 2 is the DPS's; a class without a key 2 falls back to the default");
         Check(Upgrades.All.Any(u => u.Name == "Windlass" && u.RequiresAbility == AbilityId.Ballista && u.Rarity == Rarity.Rare),
             "Windlass is a Rare card for it");
 

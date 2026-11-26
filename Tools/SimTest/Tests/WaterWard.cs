@@ -19,8 +19,8 @@ static partial class Program
         Check(def.Name == "Water Ward" && def.Choice == AbilityDef.Fourth && def.Kit == Kit.Elementalist && def.Role == Role.Healer && def.Cooldown == 3f,
             "Water Ward: a 3 s Healer Elementalist 1st ability on the 4th key");
         Check(Upgrades.AbilityLimit(Role.Healer, Kit.Elementalist) == 4 && Upgrades.FirstAbility(Role.Healer, Kit.Elementalist, 3) == AbilityId.WaterWard
-            && Upgrades.FirstAbility(Role.Healer, Kit.Elementalist, 0) == AbilityId.HealingRain && Upgrades.AbilityLimit(Role.Healer, Kit.Summoner) == 3,
-            "the Healer Elementalist's 4th key is Water Ward; its first three are unchanged, and a healer without a 4th (the Summoner) still has three");
+            && Upgrades.FirstAbility(Role.Healer, Kit.Elementalist, 0) == AbilityId.HealingRain && Content.ThreeAbilitiesFallBack(),
+            "the Healer Elementalist's 4th key is Water Ward; its first three are unchanged, and a class without a 4th still has three");
         Check(Upgrades.All.Any(u => u.RequiresAbility == AbilityId.WaterWard && u.Name == "Deep Current"), "Water Ward has its Rare card, Deep Current");
 
         int port = nextPort++;

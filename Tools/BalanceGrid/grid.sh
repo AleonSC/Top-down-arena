@@ -11,7 +11,7 @@ cd "$(dirname "$0")"
 mkdir -p out
 JOBS=${JOBS:-$(nproc 2>/dev/null || echo 2)}
 export GRIDTEAM=${GRIDTEAM-auto}
-( cd ../SimTest && mcs -langversion:7.2 -nologo -nowarn:414,169,649,219,618 -out:SimTest.exe Program.cs Tests/*.cs ../../Assets/Scripts/Core/*.cs ../../Assets/Scripts/Game/MenuMusic.cs ../../Assets/Scripts/Game/GameMusic.cs ../../Assets/Scripts/Game/MusicLibrary.cs ../../Assets/Scripts/Game/CustomMusic.cs >/dev/null ) \
+( cd ../SimTest && mcs -langversion:7.2 -nologo -nowarn:414,169,649,219,618 -out:SimTest.exe Program.cs Content.cs Tests/*.cs ../../Assets/Scripts/Core/*.cs ../../Assets/Scripts/Game/MenuMusic.cs ../../Assets/Scripts/Game/GameMusic.cs ../../Assets/Scripts/Game/MusicLibrary.cs ../../Assets/Scripts/Game/CustomMusic.cs >/dev/null ) \
   || { echo "compile failed (run Tools/SimTest/run.sh list to see why)" >&2; exit 1; }
 echo "fighting on $JOBS cores..."
 for i in $(seq 0 $((JOBS - 1))); do
