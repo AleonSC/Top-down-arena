@@ -482,6 +482,7 @@ static partial class Program
         Test("heartbeat", "Heartbeat: key 1 of the Healer Hemomancer's Ultimate row; three beats each paying 8% of max health down to 15%, each wave hitting an enemy in reach once (not past 320 px), a wave's kill always dropping a blood orb, the end on time and going down, mastered, the client", () => HeartbeatTest(Dt)),
         Test("staticbubble", "Static Bubble: key 1 of the Healer Elementalist's Ultimate row; enemies put out, shoved, hurt and feeding it (heavies too), shots eaten, allies inside safe, the growth, the full burst and Static Rush for those in it, the smaller pop on time, going down, mastered, the client's view", () => StaticBubbleTest(Dt)),
         Test("astral", "Astral Projection: key 1 of the Healer Ninja's Ultimate row; the body can't be hurt, can't move and enemies drop it, the host healed and sped up, the spirit's lean and astral bolts (the weapon away), right click switching round the team, a host going down, riding your own body alone, the end, mastered and Astral Bond", () => AstralProjectionTest(Dt)),
+        Test("shadowgong", "Five Shadow Gong: key 3 of the Tank Ninja's Ultimate row, the gong and the strike, enemies in reach stunned (not heavies), 5 shadows x 3 cuts on the 15 nearest landing at once on the sheathe (120, heavies 60), a client seeing it, spare cuts going round fewer enemies, the smoke slowing moves and shots 40%, the wave ending it, mastered (4 cuts each), Temple Bronze, the bot", () => FiveShadowGongTest(Dt)),
         Test("spiritavatar", "Spirit Avatar: key 2 of the Tank Ninja's Ultimate row, the rise, 60% cut, taunt, shots swallowed, the Moon Cleave (wind-up, 200° sweep, 80, stun, push, heavies half, bosses unpushed), the release, going down, mastered and Kami Vessel", () => SpiritAvatarTest(Dt)),
         Test("juggernaut", "the Juggernaut Suit and the lobby's Ultimate row: the pick reaching everyone and clamped, armour before health, a flak shard per bullet, the slow and taunt, ending on time, armour 0, going down and between waves, saved runs", () => JuggernautTest(Dt)),
         Test("hospital", "the Field Hospital: the Healer Soldier's key 1, the pick's free and taken door spots, the cell opened as a room on every game, its shrine (once each, 25% past max), orbs that stay inside and come back, the gate keeping enemies and shots out, nothing built off it, a full minute through the wave's end, gone with a map reset, everyone put out and the room taken off with parents kept, the tent outside a Grid run", () => FieldHospitalTest(Dt)),
@@ -663,7 +664,7 @@ static partial class Program
         "stampede", "staticbubble", "staticshock", "stayin", "supplydrop", "survival", "thornbloom", "trojanhorse", "twintessen",
         "ultimates", "waterward", "wiki", "windclash", "wyvernstaff",
         "heartflail", "sanctumglass", "siegebell", "chakra", "honeyraid", "heartbeat", "tusker",
-        "contentfuzz", "caltroprun", "rocketdrop", "banners", "shoppedestals",
+        "contentfuzz", "caltroprun", "rocketdrop", "banners", "shadowgong", "shoppedestals",
     };
 
     static int Main(string[] args)

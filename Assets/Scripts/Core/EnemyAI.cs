@@ -529,6 +529,7 @@ namespace Arena
                 if (!StillIn(e))
                     continue;  // removed by a class hook this tick
                 e.Suppress = Math.Max(0f, e.Suppress - SuppressFade * dt);
+                e.FsgSmokeT = Math.Max(0f, e.FsgSmokeT - dt);  // a Five Shadow Gong cloud's slow wears off out of it (FiveShadowGong.cs)
                 e.SmokeT = Math.Max(0f, e.SmokeT - dt);  // a Grenade Launcher smoke cloud's jam wears off out of it (GrenadeLauncher.cs)
                 KeepOutOfDuel(e);  // GatekeeperRoom.cs
                 if (e.SpawnT > 0f)
@@ -613,7 +614,7 @@ namespace Arena
                     if (guardFar)
                         e.FireT = Math.Max(e.FireT, SecurityEvery);  // it opens fire a full gap after it gets close, not at once
                     else
-                        e.FireT -= dt * mult * (1f - e.Suppress);  // the Riot Repeater's suppression (Weapons.cs)
+                        e.FireT -= dt * mult * (1f - e.Suppress) * (e.FsgSmokeT > 0f ? 1f - FsgSmokeSlow : 1f);  // the Riot Repeater's suppression (Weapons.cs); Five Shadow Gong's smoke (FiveShadowGong.cs)
                     // A regular shooter glows just before it fires (Readability.cs).
                     float rateNow = mult * (1f - e.Suppress);
                     e.Winding = (IsSecurity(e.Type) ? e.Phase > 0 : TakesTurns(e) && (HasTurn(e))) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;

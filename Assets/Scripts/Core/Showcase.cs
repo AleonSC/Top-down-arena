@@ -102,6 +102,7 @@ namespace Arena
                     : shown == AbilityId.HoneyRaid ? Game.HrTotal + 1.5f  // (the pool dries up before the next)
                     : shown == AbilityId.StaticBubble ? Game.BubTime + 1.5f  // (it pops before the next)
                     : shown == AbilityId.Heartbeat ? Game.HbTotal + 1.5f  // (the stains dry before the next)
+                    : shown == AbilityId.FiveShadowGong ? Game.FsgEndAt(Game.FsgPer) + Game.FsgSmokeLife + 0.5f  // (the smoke clears before the next)
                     : shown == AbilityId.AstralProjection ? Game.ApTime + 1.5f  // (the spirit snaps back before the next)
                     : shown == AbilityId.RodentMinigun ? Game.RmTotal(Game.RmFull) + 1.5f  // (the portal closes before the next)
                     : shown == AbilityId.MammothFall ? Game.MfTotal(Game.MfRampage) + 1.5f  // (it has run off before the next)

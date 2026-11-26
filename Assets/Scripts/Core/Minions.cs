@@ -880,6 +880,8 @@ namespace Arena
                             e.BurnDps = Math.Max(e.BurnDps, d.Dps * z.DmgMult * FlameWallBurnShare);
                             e.BurnBy = z.Owner;
                         }
+                        if (z.Kind == ZoneKind.GongSmoke)
+                            e.FsgSmokeT = FsgSmokeHold;  // it shoots slower too (EnemyAI.cs; FiveShadowGong.cs)
                         float slow = Math.Max(d.Slow, z.ExtraSlow);
                         if (z.Kind == ZoneKind.Blizzard)
                             Chill(e, 1, 0.3f, 1f - slow, gated: true);  // ice: chilled too, a stack a second (Chill.cs)
