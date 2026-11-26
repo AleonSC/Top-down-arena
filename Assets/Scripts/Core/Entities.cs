@@ -1033,7 +1033,7 @@ namespace Arena
         public bool Congealed;      // host: a Blood Pool that has set (Hemomancer.cs)
         public bool Bursts;         // host: a mastered Vein Rush trail that hasn't burst yet (VeinRush.cs)
         public float Soak, SoakMax, Soaked;  // host: a Spirit Ward's damage left to take for allies, its most, and what it has taken (Ninja.cs)
-        public float TickT, HealBack;        // host: a Bloodbath's time toward its next bleed tick, and the share of it that heals its owner (Bloodbath.cs)
+        public float TickT, HealBack;        // host: a Bloodbath's (a mastered Blood Totem's) time toward its next bleed (drain) tick, and the share of it that heals its owner (Bloodbath.cs)
         public byte[] Bones;        // replicated, a Bone Phalanx: each skeleton's health as a fraction of 255 (0 = broken); its length is how many (BonePhalanx.cs)
         public float Marched;       // replicated, a Bone Phalanx or a Stampede: px the line has walked from the gate
         public float[] BoneHp, SpearT;  // host, a Bone Phalanx: each skeleton's health and time to its next spear
@@ -1044,7 +1044,7 @@ namespace Arena
         public float Blast;         // host, a Decoy Dummy: how far its confetti blast reaches when it pops (DecoyDummy.cs)
         public HashSet<int> Trampled, Slammed;  // host, a Stampede: enemy ids already hurt, and already slammed, on this charge
         public Dictionary<int, float> HitAt;  // host, a Mammoth Fall: when (its age) it last trampled each enemy (MammothFall.cs)
-        public float Spool, GunCd; public int Side; public bool Quiet, Cap;  // host, a Deployable Turret: Quiet folded away with no blast, Cap mastered; how far the barrels have spun up (0-1), time to its next round, which barrel fires next (DeployableTurret.cs)
+        public float Spool, GunCd; public int Side; public bool Quiet, Cap;  // host, a Deployable Turret (Cap also a mastered Blood Totem): Quiet folded away with no blast, Cap mastered; how far the barrels have spun up (0-1), time to its next round, which barrel fires next (DeployableTurret.cs)
         public V2 Origin2;          // replicated, a Tidal Tusker: where its second (mastered) stream ends; Origin the first's (TidalTusker.cs)
         public V2 OwnerAt;          // host, a Tidal Tusker: where its owner was last tick (the way they walk)
         public int Rider, BoltsLeft;  // replicated, a Ballista: who rides it (0 = nobody), bolts left (Ballista.cs)

@@ -294,6 +294,9 @@ namespace Arena
                 case ZoneKind.WarStandard:
                     DrawKnightBanner(z, t);  // KnightBannersLook.cs (its own time arc)
                     return;
+                case ZoneKind.BloodTotem:
+                    DrawBloodTotemFloor(z, t);  // BloodTotemLook.cs (the wash, reach ring and roots; the totem and veins over the enemies)
+                    return;
                 case ZoneKind.GongSmoke:
                     DrawGongSmoke(z, t);  // FiveShadowGongLook.cs (it thins out instead of a timer ring)
                     return;

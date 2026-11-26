@@ -2531,6 +2531,21 @@ namespace Arena
                 "...Nnnnnn...",
                 "....NNNN....",
             },
+            ["bloodtotem"] = new[]  // Blood Totem: a clot spike with a beating heart on top, veins reaching out (BloodTotem.cs)
+            {
+                "r...........",
+                ".r...rr...r.",
+                "..r.rprr.r..",
+                "...rrrrrr...",
+                ".....rr....r",
+                "....kRRk..r.",
+                "r...kRrk.r..",
+                ".r.kRRRRk...",
+                "..rkRrRRk...",
+                "..kRRRRrRk..",
+                "..kRrRRRRk..",
+                ".kkkkkkkkkk.",
+            },
             ["thornbloom"] = new[]  // Thorn Bloom: blood needles bursting out all round (Hemomancer.cs)
             {
                 "p....p.....p",

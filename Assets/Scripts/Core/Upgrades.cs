@@ -84,6 +84,7 @@ namespace Arena
         PilgrimsStandard,  // the Healer Knight's second ultimate (KnightBanners.cs), key 1
         WarStandard,    // the DPS Knight's third ultimate (KnightBanners.cs), key 2
         FiveShadowGong,  // the Tank Ninja's fourth ultimate (FiveShadowGong.cs), key 3 of the lobby's Ultimate row
+        BloodTotem,     // the Tank Hemomancer's 4th choice (BloodTotem.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -151,6 +152,7 @@ namespace Arena
         public float DebtRepay, DebtBonusTime;                 // Blood Debt: Usury
         public float RushReach = 1f, RushRefund;               // Vein Rush: Crimson Tide
         public float TbDmgMult = 1f; public int TbExtraJumps;    // Thorn Bloom: Thornwork
+        public float BtReachMult = 1f, BtBonusTime;             // Blood Totem: Bloodroot
         public float BgRadiusMult = 1f, BgBleedMult = 1f;        // Bamboo Grove: Rhizome
         public float BellRadiusMult = 1f, BellStunBonus;         // Siege Bell: Great Bell
         public float CrBonusTime, CrBonusHeal;                    // Chakra Reserves: Deep Reserves
