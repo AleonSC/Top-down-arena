@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// Warhorn Volley, the DPS Knight's second ultimate (key 1 on the lobby's Ultimate row, picked instead of the Drawbridge), the Fire Arrows look of
+    /// Warhorn Volley, the DPS Knight's default ultimate (key 0 on the lobby's Ultimate row; the Drawbridge moved to the Tank Knight), the Fire Arrows look of
     /// Docs/Mockups/warhorn-volley.html. You blow a warhorn (VolHornT s; you keep moving and fighting) and archers you never see
     /// answer it: burning arrows fall in a front that lands VolBehind px behind you at VolLandT and crosses the field along your
     /// aim at VolSpeed px/s, out to VolRange px ahead, VolHalf px to either side. Every enemy the front reaches is hit once:

@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Arena
 {
-    /// Ballista: the DPS Knight's third ultimate (key 2 of the lobby's Ultimate row; the Drawbridge stays the default), from the
+    /// Ballista: the DPS Knight's second ultimate (key 1 of the lobby's Ultimate row; Warhorn Volley is the default), from the
     /// mockup (claude.ai artifact "Knight Ballista Ultimate"). A `ZoneKind.Ballista` zone:
     ///   - The Knight calls it down BaAhead px in front of them along the aim (or where it fits). Its shadow grows for BaFall s,
     ///     then it lands: BaSlam to every enemy within BaSlamR px (times the cast's power).
@@ -31,12 +31,12 @@ namespace Arena
         public const int BaBolts = 8, BaBoltsMastered = 10, BaWindlassBolts = 2;
         public static readonly Rgba BaGold = Rgba.Gold, BaWood = new Rgba(0.54f, 0.35f, 0.2f);
 
-        /// Ballista's entry: key 2 of the DPS Knight's Ultimate row. Upgrades.Abilities gathers it.
+        /// Ballista's entry: key 1 of the DPS Knight's Ultimate row. Upgrades.Abilities gathers it.
         internal static readonly AbilityDef[] BallistaUltimates =
         {
             new AbilityDef
             {
-                Id = AbilityId.Ballista, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult, UltKey = 2,
+                Id = AbilityId.Ballista, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult, UltKey = 1,
                 Name = "Ballista", Cooldown = BaCooldown,
                 Desc = "A giant ballista drops in front of you. Anyone can mount it (Interact) and fire 8 giant bolts that go through everything.",
                 Capstone = "10 bolts, and each one pins what it hits.",

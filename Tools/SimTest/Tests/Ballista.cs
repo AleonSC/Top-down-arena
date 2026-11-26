@@ -18,21 +18,20 @@ static partial class Program
         var damage = typeof(Game).GetMethod("Damage", flags);
         var spawnBullet = typeof(Game).GetMethod("SpawnBullet", flags);
 
-        // --- The lobby: key 2 of the DPS Knight's Ultimate row ------------------------------------------------------------
+        // --- The lobby: key 1 of the DPS Knight's Ultimate row ------------------------------------------------------------
         var def = Upgrades.Ability(AbilityId.Ballista);
-        Check(def.Name == "Ballista" && def.Cooldown == 75f && def.Choice == AbilityDef.Ult && def.UltKey == 2 && def.Role == Role.Dps && def.Kit == Kit.Knight,
-            "Ballista is the DPS Knight's ultimate on key 2, 75 s");
-        Check(Upgrades.Ultimate(Role.Dps, Kit.Knight, 2) == AbilityId.Ballista && Upgrades.Ultimate(Role.Dps, Kit.Knight, 1) == AbilityId.WarhornVolley
-            && Upgrades.Ultimate(Role.Dps, Kit.Knight) == AbilityId.Drawbridge,
-            "key 2 is the Ballista; key 1 is still Warhorn Volley and the Drawbridge the default");
-        Check(Upgrades.ClampUlt(Role.Dps, Kit.Knight, 2) == 2 && Upgrades.Ultimate(Role.Healer, Kit.Knight, 2) != AbilityId.Ballista && Content.UltFallsBack(2),
-            "key 2 is the DPS's; a class without a key 2 falls back to the default");
+        Check(def.Name == "Ballista" && def.Cooldown == 75f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Role == Role.Dps && def.Kit == Kit.Knight,
+            "Ballista is the DPS Knight's ultimate on key 1, 75 s");
+        Check(Upgrades.Ultimate(Role.Dps, Kit.Knight, 1) == AbilityId.Ballista && Upgrades.Ultimate(Role.Dps, Kit.Knight) == AbilityId.WarhornVolley,
+            "key 1 is the Ballista, Warhorn Volley the default");
+        Check(Upgrades.ClampUlt(Role.Dps, Kit.Knight, 1) == 1 && Upgrades.Ultimate(Role.Healer, Kit.Knight, 1) != AbilityId.Ballista && Content.UltFallsBack(1),
+            "key 1 is the DPS's; a class without a key 1 falls back to the default");
         Check(Upgrades.All.Any(u => u.Name == "Windlass" && u.RequiresAbility == AbilityId.Ballista && u.Rarity == Rarity.Rare),
             "Windlass is a Rare card for it");
 
         int port = nextPort++;
         var host = new Session { AutoStart = 3, StartWave = 3 };
-        host.Host(port, "Knight", Role.Dps, 0, 0, Kit.Knight, 0, 2);
+        host.Host(port, "Knight", Role.Dps, 0, 0, Kit.Knight, 0, 1);
         var client = new Session();
         client.Join("127.0.0.1", port, "Friend", Role.Healer, 0, 0, Kit.Soldier);
         var s = new[] { host, client };

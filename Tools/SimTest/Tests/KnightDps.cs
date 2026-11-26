@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Arena;
 
-// The DPS Knight's 1st abilities and ultimate: the Gauntlet, Bladed Dive and the Drawbridge.
+// The DPS Knight's 1st abilities (the Gauntlet, Bladed Dive) and the Drawbridge (now the Tank Knight's key-2 ultimate).
 static partial class Program
 {
     static void KnightDpsTest(float dt)
@@ -17,8 +17,8 @@ static partial class Program
 
         Check(Upgrades.FirstAbility(Role.Dps, Kit.Knight, 0) == AbilityId.BladedDive && Upgrades.Ability(AbilityId.BladedDive).Name == "Bladed Dive"
             && Upgrades.Ability(AbilityId.Gauntlet).Name == "The Gauntlet" && Upgrades.Ability(AbilityId.CaltropRun).Name == "Caltrop Run"
-            && Upgrades.Ability(AbilityId.Drawbridge).Name == "Drawbridge" && Upgrades.Ultimate(Role.Dps, Kit.Knight) == AbilityId.Drawbridge,
-            "the DPS Knight's abilities keep their slots under their new names");
+            && Upgrades.Ability(AbilityId.Drawbridge).Name == "Drawbridge" && Upgrades.Ultimate(Role.Tank, Kit.Knight, 2) == AbilityId.Drawbridge,
+            "the DPS Knight's abilities keep their slots under their new names; the Drawbridge is the Tank Knight's key 2");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 2, StartWave = 3 }, port, false, "Dps", Role.Dps, 0, 0, Kit.Knight);
