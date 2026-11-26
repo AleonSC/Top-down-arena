@@ -1234,9 +1234,13 @@ namespace Arena
                 else
                 {
                     // A little weight (WalkStartTime, WalkStopTime in Balance.cs): speed builds and falls fast, but not at once.
+                    // (Not for the test bot: its dodging plans with instant speed, so it would dodge worse and fights would drag.)
                     bool braking = want.IsZero || want.Dot(iceVel) < 0f;
                     float top = Math.Max(me.Speed, want.Length);
-                    iceVel += (want - iceVel).LimitLength(top * dt / (braking ? WalkStopTime : WalkStartTime));
+                    if (Bot)
+                        iceVel = want;
+                    else
+                        iceVel += (want - iceVel).LimitLength(top * dt / (braking ? WalkStopTime : WalkStartTime));
                     me.Pos += iceVel * dt;
                 }
             }
