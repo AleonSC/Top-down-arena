@@ -721,6 +721,8 @@ namespace Arena
                 Apply = s => { s.SlamRadiusMult += 0.4f; s.SlamStunBonus += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CavalryCall, MaxStacks = 2, Name = "Iron Will", Desc = "Cavalry Call blocks 10% more damage while the lancers ride and every lance hits for 10 more",
                 Apply = s => { s.UnbreakBonus += 0.1f; s.CavalryDmgBonus += 10f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SiegeBell, MaxStacks = 2, Name = "Great Bell", Desc = "Siege Bell's shockwave reaches 25% farther and stuns for 0.5 s longer",
+                Apply = s => { s.BellRadiusMult += 0.25f; s.BellStunBonus += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Consecrate, MaxStacks = 2, Name = "Sacred Ground", Desc = "Consecrate flies 40% farther and its Swiftness lasts 2 s longer",
                 Apply = s => { s.HolyRangeMult += 0.4f; s.HolySwiftBonus += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GuardiansOath, MaxStacks = 2, Name = "Bulwark", Desc = "Guardian's Oath ward cuts 15% more damage", Apply = s => s.OathCut += 0.15f },
@@ -786,6 +788,13 @@ namespace Arena
                 Name = "Cavalry Call", Icon = "ironwill", Cooldown = 18f, Desc = "Two lancers charge across the map, shoving and slowing enemies.",
                 Capstone = "Two more lancers ride outside the first pair, and the guard lasts 5 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 700f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.SiegeBell, Kit = Kit.Knight, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (SiegeBell.cs)
+                Name = "Siege Bell", Icon = "siegebell", Cooldown = BellCooldown, Desc = "Ring a ghostly bell three times; the last toll's shockwave stuns enemies around it.",
+                Capstone = "The stun lasts 3.5 s and the shockwave erases enemy bullets.",
+                Bot = b => b.NearEnemies >= 4 && b.TargetD < 220f,
             },
             new AbilityDef
             {
@@ -895,6 +904,9 @@ namespace Arena
                 case AbilityId.CavalryCall:
                     CastCavalryCall(p, target, cap, pw);  // CavalryCall.cs
                     return true;
+                case AbilityId.SiegeBell:  // Siege Bell (SiegeBell.cs)
+                    CastSiegeBell(p, pw, cap);
+                    return true;
                 case AbilityId.Consecrate:
                 {
                     CastHolyCross(p, target, cap, pw);  // HolyCross.cs
@@ -995,6 +1007,7 @@ namespace Arena
             TickSteel(dt);      // CaughtSteel.cs
             TickGauntlets(dt);  // Gauntlet.cs
             TickBladed(dt);      // BladedDive.cs
+            TickBells(dt);       // SiegeBell.cs: the tolls and the shockwave
             foreach (var p in Players.Values)
             {
                 p.UnbreakT = Math.Max(0f, p.UnbreakT - dt);
