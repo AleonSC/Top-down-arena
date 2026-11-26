@@ -714,6 +714,8 @@ namespace Arena
         public bool OfferCards;      // the current offer is a card pick (boss or wave): Offer holds BossCards codes, not upgrade ids
         public int WavePicks;        // how many of PendingCards are wave card picks (2 cards after each wave, taken after the boss's; Hand.cs)
         public bool OfferWave;       // the current card offer is a wave card pick (no reroll)
+        public bool StartPick;       // host: the starting piece pick (one of two, the first build round) is still to make; it is one of PendingCards (Hand.cs)
+        public bool OfferStart;      // the current card offer is the starting piece pick (OfferWave is set too: no reroll; the picker rolls the cards in, HudPicker.cs)
         public int PendingMilestones;  // milestone picks still to take: one every 10 levels, and lucky ones from the Milestone Compass
         public bool OfferMilestone;  // the current offer is from the milestone pool
         public int PrizePicks;       // challenge room prizes still to pick: rare or better (Challenges.cs)

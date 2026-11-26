@@ -693,7 +693,7 @@ namespace Arena
                     return;
                 }
                 if (p.OfferWave)
-                    GiveCard(p, BossCards.CardOf(code), "wave pick");
+                    GiveCard(p, BossCards.CardOf(code), p.OfferStart ? "starting pick" : "wave pick");
                 else
                     GrantBossCard(p, code);
                 UseCardPick(p);
@@ -736,6 +736,7 @@ namespace Arena
             p.OfferMod = false;
             p.OfferCards = false;
             p.OfferWave = false;
+            p.OfferStart = false;
             p.WavePicks = Math.Min(p.WavePicks, p.PendingCards);
             p.OfferMilestone = false;
             p.OfferPrize = false;
@@ -748,15 +749,19 @@ namespace Arena
             }
             if (!p.OfferLegendary && mods == null && p.PendingCards > 0)
             {
-                bool wave = p.PendingCards <= p.WavePicks;  // the boss's picks first, then the wave's (Hand.cs)
-                cards = wave ? WaveCardOffer(p) : BossCardOffer(p);
+                bool start = p.StartPick, wave = start || p.PendingCards <= p.WavePicks;  // the starting piece first, then the boss's picks, then the wave's (Hand.cs)
+                cards = start ? StartCardOffer(p) : wave ? WaveCardOffer(p) : BossCardOffer(p);
                 if (!AnyBossCardUsable(p, cards))
                 {
                     p.PendingCards = p.WavePicks = 0;  // a full hand and full kits: nothing to take
+                    p.StartPick = false;
                     cards = null;
                 }
                 else
+                {
                     p.OfferWave = wave;
+                    p.OfferStart = start;
+                }
             }
             if (p.OfferLegendary)
                 p.Offer = Upgrades.LegendaryOffer(rng, p.LegendaryQueue[0], OfferFor(p));

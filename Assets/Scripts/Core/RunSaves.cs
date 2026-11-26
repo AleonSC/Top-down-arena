@@ -163,6 +163,7 @@ namespace Arena
                 p.PendingMods = 0;
                 p.PendingCards = 0;
                 p.WavePicks = 0;
+                p.StartPick = false;
                 p.PendingMilestones = 0;
                 p.Offer = null;
                 NextOffer(p);

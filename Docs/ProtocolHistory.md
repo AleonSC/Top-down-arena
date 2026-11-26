@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 542: starting piece pick: `Player.OfferStart` (a bool after `OfferWave` in the player snapshot); the first build round offers two pieces instead of dealing one.
 - 541: Octopus Familiar (Healer Summoner 4th choice): `AbilityId.OctopusFamiliar`, `MinionKind.Octopus`, `FxKind.OctoSlap` and `FxKind.OctoInk` (all at the end); no new snapshot fields (the octopus rides the minion sync).
 - 540: Five Shadow Gong (Tank Ninja fourth ultimate): `AbilityId.FiveShadowGong`, `ZoneKind.GongSmoke`, `FxKind.GongShow`, `GongCut`, `GongSplit` (all at the end); no player or snapshot fields.
 
