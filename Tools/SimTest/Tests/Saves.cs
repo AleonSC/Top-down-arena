@@ -128,18 +128,18 @@ static partial class Program
             host.HostResume(two, port, "Friend");
             var c2 = new Session();
             c2.Join("127.0.0.1", port, "Late", Role.Dps);  // no seat has this name: it takes the free one...
-            for (int i = 0; i < 100; i++) { Step(host, dt); Step(c2, dt); Thread.Sleep(1); }
+            for (int i = 0; i < 100; i++) { Step(host, dt); Step(c2, dt); Nap(1); }
             bool lateSat = host.Lobby.Values.Any(e => e.Name == "Late" && e.Seat == 0);
             var c1 = new Session();
             c1.Join("127.0.0.1", port, "Anthony", Role.Dps);  // ...until the seat's owner arrives
-            for (int i = 0; i < 200; i++) { Step(host, dt); Step(c1, dt); Step(c2, dt); Thread.Sleep(1); }
+            for (int i = 0; i < 200; i++) { Step(host, dt); Step(c1, dt); Step(c2, dt); Nap(1); }
             var hostSeat = host.Lobby[1].Seat;
             var anthony = host.Lobby.Values.FirstOrDefault(e => e.Name == "Anthony");
             Console.WriteLine("  seats: host 'Friend' took seat {0}; 'Late' sat in the free seat {1}; 'Anthony' took it back, seat {2} as a {3}; 'Late' was {4} ({5})", hostSeat, lateSat, anthony?.Seat, anthony?.Role, c2.Screen, c2.Status);
             Check(hostSeat == 1 && anthony?.Seat == 0 && anthony.Role == Role.Healer && anthony.Kit == Kit.Ninja && c1.Resume != null && c1.Resume.Seats.Count == 2, "players take back the seats with their names (and see the run's seats)");
             Check(lateSat && c2.Screen == AppScreen.Menu && c2.Status.Contains("belongs to Anthony"), "someone without a seat of their own sits in a free one, and makes way for its owner");
             c1.RequestRole(Role.Tank);
-            for (int i = 0; i < 30; i++) { Step(host, dt); Step(c1, dt); Thread.Sleep(1); }
+            for (int i = 0; i < 30; i++) { Step(host, dt); Step(c1, dt); Nap(1); }
             Check(host.Lobby.Values.First(e => e.Name == "Anthony").Role == Role.Healer, "a seat's class can't be changed in the lobby");
             host.Leave(""); c1.Leave(""); c2.Leave("");
 
@@ -151,9 +151,9 @@ static partial class Program
             host.HostResume(two, port, "Nobody");  // no seat has this name: the host sits in seat 0 (Anthony's)
             var friend = new Session();
             friend.Join("127.0.0.1", port, "Friend", Role.Dps);  // takes back seat 1, so none is free
-            for (int i = 0; i < 100; i++) { Step(host, dt); Step(friend, dt); Thread.Sleep(1); }
+            for (int i = 0; i < 100; i++) { Step(host, dt); Step(friend, dt); Nap(1); }
             var owner = JoinAs(port, false, "Anthony", Role.Dps);
-            for (int i = 0; i < 200; i++) { Step(host, dt); Step(friend, dt); Step(owner, dt); Thread.Sleep(1); }
+            for (int i = 0; i < 200; i++) { Step(host, dt); Step(friend, dt); Step(owner, dt); Nap(1); }
             Console.WriteLine("  host in someone's seat: host still in the lobby {0} (seat {1}); 'Anthony' was {2} ({3})", host.Lobby.ContainsKey(1), host.Lobby.ContainsKey(1) ? host.Lobby[1].Seat : -1, owner.Screen, owner.Status);
             Check(host.Lobby.ContainsKey(1) && host.Lobby[1].Seat == 0 && host.Lobby.Count == 2 && owner.Screen == AppScreen.Menu && owner.Status.Contains("seats are taken"),
                 "the host keeps their seat in a full saved run; its owner is turned away instead");

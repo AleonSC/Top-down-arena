@@ -270,9 +270,9 @@ static partial class Program
         host.Host(port, "Host", Role.Healer, 0, 0, Kit.Knight);
         var client = new Session();
         client.Join("127.0.0.1", port, "Blood", Role.Tank, 0, 0, Kit.Hemomancer, 0, 1);
-        for (int i = 0; i < 300 && !(client.Lobby.Count == 2 && host.Lobby.Count == 2); i++) { Step(host, dt); Step(client, dt); System.Threading.Thread.Sleep(2); }
+        for (int i = 0; i < 300 && !(client.Lobby.Count == 2 && host.Lobby.Count == 2); i++) { Step(host, dt); Step(client, dt); Nap(2); }
         int cid = client.MyId;
-        Func<int, bool> settle = want => { for (int i = 0; i < 200; i++) { Step(host, dt); Step(client, dt); if (host.Lobby[cid].Ult == want && client.Lobby[cid].Ult == want) return true; System.Threading.Thread.Sleep(1); } return false; };
+        Func<int, bool> settle = want => { for (int i = 0; i < 200; i++) { Step(host, dt); Step(client, dt); if (host.Lobby[cid].Ult == want && client.Lobby[cid].Ult == want) return true; Nap(1); } return false; };
         Check(host.Lobby.ContainsKey(cid) && settle(1) && host.Lobby[cid].UltId == AbilityId.Bloodbath, "a pick made before joining reaches the host and comes back to everyone");
         client.RequestUlt(0);
         Check(settle(0) && client.Lobby[cid].UltId == AbilityId.VeinTithe, "picking key 0 goes back to Vein Tithe");

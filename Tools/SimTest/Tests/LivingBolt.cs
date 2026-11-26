@@ -24,7 +24,7 @@ static partial class Program
         Check(Upgrades.Ultimate(Role.Dps, Kit.Elementalist, 1) == AbilityId.LivingBolt && Upgrades.Ultimate(Role.Dps, Kit.Elementalist) == AbilityId.BulletRain
             && Upgrades.Ultimate(Role.Tank, Kit.Elementalist, 1) == AbilityId.LightningRod,
             "key 1 is Living Bolt; Bullet Rain stays the default; the tank's key 1 is still Lightning Rod");
-        Check(Upgrades.ClampUlt(Role.Dps, Kit.Elementalist, 1) == 1 && Upgrades.ClampUlt(Role.Dps, Kit.Elementalist, 3) == 0 && Upgrades.ClampUlt(Role.Healer, Kit.Elementalist, 1) == 0,
+        Check(Upgrades.ClampUlt(Role.Dps, Kit.Elementalist, 1) == 1 && Upgrades.ClampUlt(Role.Dps, Kit.Elementalist, 3) == 0 && Upgrades.ClampUlt(Role.Healer, Kit.Knight, 1) == 0,  // (the Healer Knight has one ultimate)
             "key 1 is the DPS's; other keys and roles fall back to the default");
 
         int port = nextPort++;
@@ -217,7 +217,7 @@ static partial class Program
                 host.Poll(); client.Poll();
                 g.FixedStep(dt, new PlayerInput { AimAt = aim });
                 cg.FixedStep(dt, new PlayerInput { AimAt = cHome + new V2(240f, 0f), Fire = cFire });
-                Thread.Sleep(1);
+                Nap(1);
             }
         };
         cme.Pos = cHome; ally.Pos = cHome;

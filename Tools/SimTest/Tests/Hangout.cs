@@ -79,7 +79,7 @@ static partial class Program
         client.MoveMyAvatar(new V2(1400f, 900f), 0f);
         PollBoth(host, client, 40);
         Check((host.Avatars[cid].Pos - downAt).Length < 0.01f, "a knocked out player can't be moved from where they fell");
-        PollBoth(host, client, (int)(Session.DownSeconds * 460f));
+        PollBoth(host, client, (int)(Session.DownSeconds * 500f) + 60);  // (2 ms a poll: the whole down time and a little more; 460 a second only worked because real polls ran slower)
         Check(host.Avatars[cid].Hp == Session.RoomHp && client.Avatars[cid].Hp == Session.RoomHp && host.Avatars[cid].Pos.Y > 1400f && Math.Abs(client.Avatars[cid].Pos.Y - host.Avatars[cid].Pos.Y) < 1f, "after a few seconds they return at a spawn spot, full health, on both screens");
 
         // turning PvP off heals, and the host wipes nonsense aims

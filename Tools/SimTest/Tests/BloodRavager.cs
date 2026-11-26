@@ -24,8 +24,8 @@ static partial class Program
         Check(Upgrades.Ultimate(Role.Dps, Kit.Hemomancer, 1) == AbilityId.BloodRavager && Upgrades.Ultimate(Role.Dps, Kit.Hemomancer) == AbilityId.CrimsonHarvest
             && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath,
             "key 1 is Blood Ravager; Crimson Harvest stays the default; the tank's key 1 is still Bloodbath");
-        Check(Upgrades.ClampUlt(Role.Dps, Kit.Hemomancer, 1) == 1 && Upgrades.ClampUlt(Role.Healer, Kit.Hemomancer, 1) == 0,
-            "key 1 is the DPS's; the healer falls back to the default");
+        Check(Upgrades.ClampUlt(Role.Dps, Kit.Hemomancer, 1) == 1 && Upgrades.Ultimate(Role.Healer, Kit.Hemomancer, 1) != AbilityId.BloodRavager,
+            "key 1 is the DPS's; the healer's key 1 is its own (Heartbeat), never Blood Ravager");
 
         int port = nextPort++;
         var host = new Session { AutoStart = 3, StartWave = 3 };
@@ -194,7 +194,7 @@ static partial class Program
                 host.Poll(); client.Poll();
                 g.FixedStep(dt, new PlayerInput { AimAt = me.Pos });
                 cg.FixedStep(dt, new PlayerInput { AimAt = cHome + new V2(240f, 0f), Fire = cFire });
-                Thread.Sleep(1);
+                Nap(1);
             }
         };
         cme.Pos = cHome; ally.Pos = cHome;

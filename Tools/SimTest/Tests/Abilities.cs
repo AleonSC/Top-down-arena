@@ -38,7 +38,7 @@ static partial class Program
                         claymore |= z.Kind == ZoneKind.Claymore;
                     if (++frame % 60 == 0)
                     {
-                        for (int k = 0; k < 5; k++) { Thread.Sleep(2); client.Poll(); }
+                        for (int k = 0; k < 5; k++) { Nap(2); client.Poll(); }
                         ghosts += Ghosts(s);
                     }
                 });
@@ -104,7 +104,7 @@ static partial class Program
                     boltShot |= b.Kind == Defs.BoltShot || b.Kind == Defs.HammerShot;
                 if (++frame % 60 == 0)
                 {
-                    for (int k = 0; k < 5; k++) { Thread.Sleep(2); client.Poll(); }
+                    for (int k = 0; k < 5; k++) { Nap(2); client.Poll(); }
                     ghosts += Ghosts(s);
                 }
             };

@@ -48,7 +48,7 @@ static partial class Program
         for (int i = 0; i < 600 && (a.Screen != AppScreen.Game || c.Screen != AppScreen.Game); i++)
         {
             foreach (var x in all) Step(x, dt);
-            System.Threading.Thread.Sleep(2);
+            Nap(2);
         }
         bool three = a.Game.Players.Count == 3;
         int leftId = c.Game.MyId;

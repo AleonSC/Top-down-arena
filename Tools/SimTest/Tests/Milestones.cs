@@ -129,7 +129,7 @@ static partial class Program
         me.PendingMilestones = 2; me.OfferMilestone = true; me.Offer = new[] { U("Scholar"), U("Fortune"), U("Quickening") };
         g.Bot = false;  // (the bot would pick the offer before it was sent)
         typeof(Game).GetMethod("SendSnapshot", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(g, null);
-        for (int k = 0; k < 40; k++) { Thread.Sleep(5); s[1].Poll(); }
+        for (int k = 0; k < 40; k++) { Nap(5); s[1].Poll(); }
         var seen = s[1].Game.Players.ContainsKey(1) ? s[1].Game.Players[1] : null;
         Check(seen != null && seen.PendingMilestones == 2 && seen.OfferMilestone, "a friend sees your milestone picks and that the offer is a milestone one (client sees " + (seen == null ? "nothing" : seen.PendingMilestones + " / " + seen.OfferMilestone) + ", host has " + me.PendingMilestones + " / " + me.OfferMilestone + ", state " + g.State + ")");
         s[0].Leave(""); s[1].Leave("");

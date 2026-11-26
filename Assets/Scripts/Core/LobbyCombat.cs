@@ -94,7 +94,7 @@ namespace Arena
             LobbyEntry e;
             if (Game.Running || !Avatars.TryGetValue(MyId, out a) || !Lobby.TryGetValue(MyId, out e) || !a.Pvp || a.Hp <= 0f)
                 return false;
-            double now = avatarClock.Elapsed.TotalSeconds;
+            double now = AvatarNow;
             if (now < a.NextFire || float.IsNaN(aim) || float.IsInfinity(aim))
                 return false;
             float interval, speed, life, dmg;
@@ -132,7 +132,7 @@ namespace Arena
             {
                 float interval, speed, life, dmg;
                 ShotStats(e, out interval, out speed, out life, out dmg);
-                double now = avatarClock.Elapsed.TotalSeconds;
+                double now = AvatarNow;
                 if (now < a.NextFire - 0.06)
                     return;  // faster than its weapon allows
                 a.NextFire = Math.Max(a.NextFire, now + interval * 0.9);
@@ -181,7 +181,7 @@ namespace Arena
             if (!Avatars.TryGetValue(MyId, out a) || !Lobby.TryGetValue(MyId, out e))
                 return 0f;
             total = AbilityCooldown(AbilityFor(e.Role));
-            return (float)Math.Max(0.0, a.AbilityReady - avatarClock.Elapsed.TotalSeconds);
+            return (float)Math.Max(0.0, a.AbilityReady - AvatarNow);
         }
 
         /// Cast your own ability (the 1st ability key or right click in the Hangout). `aim` is the way a dash goes. False when it can't: PvP off, knocked out, cooling down.
@@ -191,7 +191,7 @@ namespace Arena
             LobbyEntry e;
             if (Game.Running || !Avatars.TryGetValue(MyId, out a) || !Lobby.TryGetValue(MyId, out e) || !a.Pvp || a.Hp <= 0f || float.IsNaN(aim) || float.IsInfinity(aim))
                 return false;
-            double now = avatarClock.Elapsed.TotalSeconds;
+            double now = AvatarNow;
             if (now < a.AbilityReady)
                 return false;
             var kind = AbilityFor(e.Role);
@@ -234,7 +234,7 @@ namespace Arena
             if (Game.Running || !Avatars.TryGetValue(id, out a) || !Lobby.TryGetValue(id, out e) || !a.Pvp || a.Hp <= 0f || float.IsNaN(aim) || float.IsInfinity(aim))
                 return;
             var kind = AbilityFor(e.Role);
-            double now = avatarClock.Elapsed.TotalSeconds;
+            double now = AvatarNow;
             V2 at = TrustedPos(a, from);
             if (check)
             {
@@ -301,7 +301,7 @@ namespace Arena
         /// Called from Poll, so it runs whatever tab a screen is on.
         void StepLobbyCombat()
         {
-            double now = avatarClock.Elapsed.TotalSeconds;
+            double now = AvatarNow;
             float dt = lastCombatStep < 0 ? 0f : (float)Math.Min(0.1, now - lastCombatStep);
             lastCombatStep = now;
             if (Screen != AppScreen.Lobby)

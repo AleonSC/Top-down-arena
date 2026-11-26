@@ -20,14 +20,14 @@ static partial class Program
         Check(def.Name == "Warhorn Volley" && def.Cooldown == 70f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Kit == Kit.Knight && def.Role == Role.Dps && def.Capstone != null,
             "Warhorn Volley is the DPS Knight's ultimate on key 1, 70 s");
         Check(Upgrades.Ultimate(Role.Dps, Kit.Knight) == AbilityId.Drawbridge && Upgrades.Ultimate(Role.Dps, Kit.Knight, 1) == AbilityId.WarhornVolley
-            && Upgrades.AbilityLimit(Role.Dps, Kit.Knight) == 3,
-            "the Drawbridge stays the default; key 1 is Warhorn Volley; the 1st ability keeps three choices");
+            && Upgrades.AbilityLimit(Role.Dps, Kit.Knight) == 4,
+            "the Drawbridge stays the default; key 1 is Warhorn Volley; the 1st ability has four choices (the 4th is Cannon Call)");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 9, StartWave = 3 }, port, false, "Knight", Role.Dps, 0, 0, Kit.Knight);
         var client = JoinAs(port, false, "Friend", Role.Tank, 0, 0, Kit.Knight);
         WaitForLobby(host, client);
-        Action settle = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); System.Threading.Thread.Sleep(1); } };
+        Action settle = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Nap(1); } };
         host.RequestUlt(1);
         settle();
         Check(host.Lobby[1].Ult == 1 && client.Lobby[1].Ult == 1 && host.Lobby[1].UltId == AbilityId.WarhornVolley, "the pick reaches everyone");

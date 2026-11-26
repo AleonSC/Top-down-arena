@@ -21,10 +21,10 @@ static partial class Program
         Check(Upgrades.Ultimate(Role.Tank, Kit.Summoner) == AbilityId.Titan && Upgrades.Ultimate(Role.Tank, Kit.Summoner, 1) == AbilityId.BonePhalanx
             && Upgrades.AltUltimate(Role.Tank, Kit.Summoner, 2) == AbilityId.IronArmadillo && Upgrades.AltUltimate(Role.Tank, Kit.Summoner, 3) == AbilityId.None,
             "the Tank Summoner's Ultimate row: Titan (key 0, the default), then Bone Phalanx, then Iron Armadillo (IronArmadillo.cs), then a locked key");
-        Check(Upgrades.AltUltimate(Role.Healer, Kit.Summoner, 1) == AbilityId.None && Upgrades.AltUltimate(Role.Dps, Kit.Summoner, 1) != AbilityId.BonePhalanx
+        Check(Upgrades.AltUltimate(Role.Healer, Kit.Knight, 1) == AbilityId.None && Upgrades.AltUltimate(Role.Dps, Kit.Summoner, 1) != AbilityId.BonePhalanx
             && Upgrades.AltUltimate(Role.Tank, Kit.Soldier, 1) != AbilityId.BonePhalanx, "it is only the Tank Summoner's");
         Check(Upgrades.Ultimate(Role.Wildcard, Kit.Summoner, 1) == Upgrades.Ultimate(Role.Dps, Kit.Summoner, 1) && Upgrades.Ultimate(Role.Wildcard, Kit.Summoner, 1) != AbilityId.BonePhalanx
-            && Upgrades.ClampUlt(Role.Tank, Kit.Summoner, 7) == 0 && Upgrades.ClampUlt(Role.Tank, Kit.Summoner, 1) == 1 && Upgrades.ClampUlt(Role.Healer, Kit.Summoner, 1) == 0,
+            && Upgrades.ClampUlt(Role.Tank, Kit.Summoner, 7) == 0 && Upgrades.ClampUlt(Role.Tank, Kit.Summoner, 1) == 1 && Upgrades.ClampUlt(Role.Healer, Kit.Knight, 1) == 0,  // (the Healer Knight has one ultimate; the Healer Summoner now has Honey Raid on key 1)
             "a Wildcard takes its class's DPS row, never the Tank's Bone Phalanx; picks the class doesn't have fall back to 0");
 
         // --- The saved run keeps the pick ---
@@ -42,24 +42,24 @@ static partial class Program
         host.Host(port, "Bones", Role.Tank, 0, 0, Kit.Summoner, ult: 1);
         var client = new Session();
         client.Join("127.0.0.1", port, "Tank2", Role.Tank, 0, 0, Kit.Summoner, ult: 1);
-        for (int i = 0; i < 300 && !(host.Lobby.Count == 2 && client.Lobby.Count == 2); i++) { Program.Step(host, dt); Program.Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 300 && !(host.Lobby.Count == 2 && client.Lobby.Count == 2); i++) { Program.Step(host, dt); Program.Step(client, dt); Nap(2); }
         Check(host.Lobby[1].Ult == 1 && host.Lobby[2].Ult == 1 && client.Lobby[1].Ult == 1, "the pick reaches the host's lobby and everyone's (from Host and from a joining player's hello)");
         client.RequestUlt(0);
-        for (int i = 0; i < 60 && host.Lobby[2].Ult != 0; i++) { Program.Step(host, dt); Program.Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 60 && host.Lobby[2].Ult != 0; i++) { Program.Step(host, dt); Program.Step(client, dt); Nap(2); }
         Check(host.Lobby[2].Ult == 0, "a client's Ultimate key reaches the host (Msg.UltRequest)");
         client.RequestUlt(1);
-        for (int i = 0; i < 60 && client.Lobby[2].Ult != 1; i++) { Program.Step(host, dt); Program.Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 60 && client.Lobby[2].Ult != 1; i++) { Program.Step(host, dt); Program.Step(client, dt); Nap(2); }
         Check(host.Lobby[2].Ult == 1 && client.Lobby[2].Ult == 1, "...and back to everyone");
         client.RequestKit(Kit.Arcanist);  // (a class with no second Tank ultimate yet)
-        for (int i = 0; i < 60 && client.Lobby[2].Kit != Kit.Arcanist; i++) { Program.Step(host, dt); Program.Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 60 && client.Lobby[2].Kit != Kit.Arcanist; i++) { Program.Step(host, dt); Program.Step(client, dt); Nap(2); }
         Check(host.Lobby[2].Ult == 0, "changing class resets the pick");
         client.RequestUlt(1);
-        for (int i = 0; i < 30; i++) { Program.Step(host, dt); Program.Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 30; i++) { Program.Step(host, dt); Program.Step(client, dt); Nap(2); }
         Check(host.Lobby[2].Ult == 0, "the host clamps a pick the class doesn't have");
         client.RequestKit(Kit.Summoner);
-        for (int i = 0; i < 60 && client.Lobby[2].Kit != Kit.Summoner; i++) { Program.Step(host, dt); Program.Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 60 && client.Lobby[2].Kit != Kit.Summoner; i++) { Program.Step(host, dt); Program.Step(client, dt); Nap(2); }
         client.RequestUlt(1);
-        for (int i = 0; i < 60 && host.Lobby[2].Ult != 1; i++) { Program.Step(host, dt); Program.Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 60 && host.Lobby[2].Ult != 1; i++) { Program.Step(host, dt); Program.Step(client, dt); Nap(2); }
         host.AutoStart = 2;  // (nobody pressed Ready)
         host.StartMatch();
         WaitForGame(host, client, dt);
@@ -90,7 +90,7 @@ static partial class Program
         {
             for (int f = 0; f < secs * 60; f++)
             {
-                Thread.Sleep(1);
+                Nap(1);
                 me.Pos = home;
                 g.Minions.Clear();  // (the staff's golem would hit what the skeletons spear)
                 foreach (var e in keep) e.FireT = 99f;

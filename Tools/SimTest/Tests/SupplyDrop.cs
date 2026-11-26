@@ -28,7 +28,7 @@ static partial class Program
         var host = HostAs(new Session { AutoStart = 9, StartWave = 6 }, port, false, "Medic", Role.Healer, 0, 0, Kit.Soldier);
         var client = JoinAs(port, false, "Friend", Role.Dps);
         WaitForLobby(host, client);
-        Action settle = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Thread.Sleep(1); } };
+        Action settle = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Nap(1); } };
         host.RequestUlt(2);
         settle();
         Check(host.Lobby[1].UltId == AbilityId.SupplyDrop && client.Lobby[1].Ult == 2, "the pick reaches everyone");

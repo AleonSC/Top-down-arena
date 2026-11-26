@@ -145,7 +145,7 @@ namespace Arena
 
         /// Bump this whenever the messages the two games send each other change.
         /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 533;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 534;  // history: Docs/ProtocolHistory.md
         public static string VersionText => "Version " + ProtocolVersion;
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
@@ -365,7 +365,7 @@ namespace Arena
         readonly Dictionary<int, double> emoteLast = new Dictionary<int, double>();
         double emoteReadyAt;
         static readonly System.Diagnostics.Stopwatch clock = System.Diagnostics.Stopwatch.StartNew();
-        public static double Clock => clock.Elapsed.TotalSeconds;
+        public static double Clock => TestClock != null ? TestClock() : clock.Elapsed.TotalSeconds;  // (tests: their own clock, LobbyAvatars.cs TestClock)
 
         public bool AnyEmote;  // a lobby bot (PartyBots.cs): every emote is its own, whatever its rank
         public readonly HashSet<int> BotSeats = new HashSet<int>();  // host: the lobby seats that belong to lobby bots (they may play any emote)

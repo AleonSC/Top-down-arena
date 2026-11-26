@@ -140,7 +140,7 @@ static partial class Program
         me.InvulnT = 0f;
         shoot.Invoke(g, new object[] { Defs.BigShot, new V2(330f, 450f), new V2(300f, 0f), 0f, 5f, 10f, 0, false, 0f });
         for (int f = 0; f < 30; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
-        for (int f = 0; f < 10; f++) { Thread.Sleep(2); client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); }
+        for (int f = 0; f < 10; f++) { Nap(2); client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); }
         Console.WriteLine("  shield wall: front shot gone {0}, damage from front {1:0}, from behind {2:0}", !g.Bullets.ContainsKey(front.Id), tookFront, me.Run.DamageTaken - tookFront);
         Check(!g.Bullets.ContainsKey(front.Id) && tookFront == 0f && me.Run.DamageTaken > tookFront, "Shield Wall stops bullets from the front but not from behind");
         Check(client.Game.Players[1].WallUp, "the other player sees the Shield Wall go up");
@@ -178,7 +178,7 @@ static partial class Program
         float plainT0 = me.Run.DamageTaken; damage.Invoke(g, new object[] { me, 10f, "test" }); float plainTen = me.Run.DamageTaken - plainT0;
         me.Hp = me.MaxHp; me.InvulnT = 0f;
         cast.Invoke(g, new object[] { 1, Upgrades.UltSlot, me.Pos, true });
-        for (int f = 0; f < 10; f++) { Thread.Sleep(2); client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
+        for (int f = 0; f < 10; f++) { Nap(2); client.Poll(); client.Game.FixedStep(dt, new PlayerInput()); host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
         Check(me.StandOn && client.Game.Players[1].StandOn, "Last Stand plants you, and the other player sees it");
         for (int f = 0; f < 40; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(600f, 450f) }); Clear(); }
         me.InvulnT = 0f; float standT0 = me.Run.DamageTaken;

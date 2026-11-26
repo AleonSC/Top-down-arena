@@ -119,7 +119,7 @@ static partial class Program
             Step(host, dt);
             Step(client, dt);
             if (i % 2 == 0)
-                Thread.Sleep(1);
+                Nap(1);
             bool bossAlive = false;
             foreach (var e in host.Game.Enemies.Values)
                 bossAlive |= e.Def.IsBoss;
@@ -134,7 +134,7 @@ static partial class Program
         {
             Step(host, dt);
             Step(client, dt);
-            Thread.Sleep(2);
+            Nap(2);
             foreach (var o in client.Game.Orbs.Values)
                 bigOrb |= o.Big;
         }
@@ -184,7 +184,7 @@ static partial class Program
                 swarm |= b.Kind == Defs.SwarmShot;
             if (++frame % 60 == 0)
             {
-                for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+                for (int k = 0; k < 5; k++) { Nap(2); s[1].Poll(); }
                 ghosts += Ghosts(s);
             }
         });
@@ -294,7 +294,7 @@ static partial class Program
     // (saves find cards by name).
     static void ClassCardListsTest()
     {
-        var lists = new[] { Game.SoldierCards, Game.ElementalistCards, Game.SummonerCards, Game.KnightCards, Game.NinjaCards, Game.HemomancerCards, Game.EngineerCards };
+        var lists = new[] { Game.SoldierCards, Game.ElementalistCards, Game.SummonerCards, Game.KnightCards, Game.NinjaCards, Game.HemomancerCards, Game.EngineerCards, new UpgradeDef[0] /* the Arcanist has no cards of its own yet */ };
         bool own = lists.Length == Defs.KitCount, inAll = true;
         var bad = new List<string>();
         for (int k = 0; k < lists.Length; k++)
@@ -379,7 +379,7 @@ static partial class Program
             }
             if (++frame % 60 == 0)
             {
-                for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+                for (int k = 0; k < 5; k++) { Nap(2); s[1].Poll(); }
                 ghosts += Ghosts(s);
                 foreach (var b in s[1].Game.Bullets.Values)
                 {

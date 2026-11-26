@@ -178,10 +178,10 @@ static partial class Program
         {
             host.Poll(); g.FixedStep(dt, new PlayerInput()); g.Update(dt);
             client.Poll(); client.Game.FixedStep(dt, new PlayerInput { WeaponAction = true, AimAt = cme.Pos + new V2(100f, 0f) }); client.Game.Update(dt);
-            Thread.Sleep(1);
+            Nap(1);
             clear(); aside.FireT = 99f; aside.FrozenT = 5f;
         }
-        for (int f = 0; f < 25; f++) { Thread.Sleep(2); host.Poll(); g.FixedStep(dt, new PlayerInput()); client.Poll(); clear(); aside.FireT = 99f; aside.FrozenT = 5f; }
+        for (int f = 0; f < 25; f++) { Nap(2); host.Poll(); g.FixedStep(dt, new PlayerInput()); client.Poll(); clear(); aside.FireT = 99f; aside.FrozenT = 5f; }
         Console.WriteLine("  bo staff (joined player): hit for {0:0.0}, pushed {1:0} px, chain step {2} (host sees them at {3:0},{4:0}, weapon {5}, cooldown {6:0.00})", asideHp - aside.Hp, aside.Pos.X - ax0, cp.BoStep, cp.Pos.X, cp.Pos.Y, cp.Weapon.Id, cp.ShoveCd);
         Check(asideHp - aside.Hp > 0f && aside.Pos.X - ax0 > 30f && cp.BoStep == 0, "a joined player's shove reaches the host, which lands it and starts their chain over");
         cp.Weapon = cme.Weapon = Defs.Weapon(Role.Healer, Kit.Ninja, 0);

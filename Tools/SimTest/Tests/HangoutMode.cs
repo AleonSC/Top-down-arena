@@ -139,7 +139,7 @@ static partial class Program
         // Someone joining while it's up: the room starts over with them in it.
         var third = new Session();
         third.Join("127.0.0.1", port, "Third", Role.Healer);
-        for (int i = 0; i < 400 && !(third.Game.Practicing && host.Game.Players.Count == 3); i++) { Step(host, dt); Step(client, dt); Step(third, dt); Thread.Sleep(1); }
+        for (int i = 0; i < 400 && !(third.Game.Practicing && host.Game.Players.Count == 3); i++) { Step(host, dt); Step(client, dt); Step(third, dt); Nap(1); }
         Check(third.Screen == AppScreen.Lobby && third.Game.Practicing && host.Game.Players.Count == 3 && client.Game.Players.Count == 3, "a newcomer joins the room (it starts over with them)");
         var three = new[] { host, client, third };
 
@@ -147,7 +147,7 @@ static partial class Program
         host.RequestReady(true); client.RequestReady(true); third.RequestReady(true);
         Run(three, dt, 0.3f);
         host.StartMatch();
-        for (int i = 0; i < 300 && (client.Screen != AppScreen.Game || third.Screen != AppScreen.Game); i++) { Step(host, dt); Step(client, dt); Step(third, dt); Thread.Sleep(1); }
+        for (int i = 0; i < 300 && (client.Screen != AppScreen.Game || third.Screen != AppScreen.Game); i++) { Step(host, dt); Step(client, dt); Step(third, dt); Nap(1); }
         Check(host.Screen == AppScreen.Game && client.Screen == AppScreen.Game && third.Screen == AppScreen.Game && host.Game.InRun && !host.Game.HangoutOn && !client.Game.PvpOn, "Start from the lobby replaces Practice with the real run");
         third.Leave("");
 

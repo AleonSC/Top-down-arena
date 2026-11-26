@@ -19,7 +19,7 @@ static partial class Program
         solo.Host(port, "Host", Role.Tank);
         solo.SetMode(GameMode.Hunt);
         solo.RequestReady(true);
-        for (int i = 0; i < 20; i++) { solo.Poll(); Thread.Sleep(2); }
+        for (int i = 0; i < 20; i++) { solo.Poll(); Nap(2); }
         solo.StartMatch();
         Check(solo.HuntMode && solo.LobbyHunt == null && !solo.Game.Running && solo.Screen == AppScreen.Lobby,
             "a Boss Hunt is locked until its boss is beaten in a run: picking it, the run won't start");

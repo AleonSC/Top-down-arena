@@ -38,7 +38,7 @@ static partial class Program
                 foreach (var e in keep) { e.FireT = 9f; e.Speed = 0f; }
                 s[0].Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(800f, 100f) }); g.Update(dt);
                 s[1].Poll(); s[1].Game.FixedStep(dt, new PlayerInput { Fire = fire, AimAt = at }); s[1].Game.Update(dt);
-                if (f % 2 == 0) Thread.Sleep(1);
+                if (f % 2 == 0) Nap(1);
             }
         };
         clear(); drive(0.3f, false, new V2(0f, 0f));
@@ -104,7 +104,7 @@ static partial class Program
         guard.Hp = guard.MaxHp;
         float gh = guard.Hp;
         shoot.Invoke(g, new object[] { Defs.SmallShot, guard.Pos - new V2(40f, 0f), new V2(400f, 0f), 0f, 1f, 10f, 0, false, 0f });
-        for (int f = 0; f < 18; f++) { s[0].Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(800f, 100f) }); g.Update(dt); s[1].Poll(); s[1].Game.FixedStep(dt, new PlayerInput { AimAt = new V2(800f, 100f) }); s[1].Game.Update(dt); Thread.Sleep(1); }
+        for (int f = 0; f < 18; f++) { s[0].Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(800f, 100f) }); g.Update(dt); s[1].Poll(); s[1].Game.FixedStep(dt, new PlayerInput { AimAt = new V2(800f, 100f) }); s[1].Game.Update(dt); Nap(1); }
         Console.WriteLine("  guard: {0:0} of {1:0} health after an enemy shot; it shows {2:0.00} on the friend's screen", guard.Hp, guard.MaxHp, Guards(s[1].Game).Select(m => m.GuardFrac).FirstOrDefault());
         Check(guard.Hp < gh - 5f && Guards(s[1].Game).Count == 1 && Guards(s[1].Game)[0].GuardFrac < 0.99f, "enemy shots hurt the guard (its health shows for everyone)");
         typeof(Game).GetMethod("HurtGuard", flags).Invoke(g, new object[] { guard, 1e4f });

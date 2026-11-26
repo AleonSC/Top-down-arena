@@ -146,7 +146,7 @@ static partial class Program
         Run(s, dt, 0.2f);
         g.Patches.Clear();
         Run(s, dt, Paths.FireEvery + 0.3f);
-        for (int k = 0; k < 20; k++) { client.Poll(); Thread.Sleep(2); }
+        for (int k = 0; k < 20; k++) { client.Poll(); Nap(2); }
         Check(g.Patches.Count >= 1 && g.Patches.Keys.All(k => client.Game.Patches.ContainsKey(k)), "Burning Grounds starts fires, and everyone sees them");
         var fire = g.Patches.Values.First();
         var me = g.Players[1];
@@ -306,7 +306,7 @@ static partial class Program
             client.Poll();
             client.Game.FixedStep(dt, new PlayerInput { Move = new V2(-1f, 0.3f), AimAt = new V2(640, 360) });
             client.Game.Update(dt);
-            if (f % 2 == 0) Thread.Sleep(1);
+            if (f % 2 == 0) Nap(1);
         }
         Run(s, dt, 0.2f, null, Hold);
         float r = friend.Def.BodyR, hostX = g.Players[2].Pos.X;

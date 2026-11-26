@@ -391,7 +391,7 @@ static partial class Program
                     p.InvulnT = 1f;
                 if (++frame % 60 == 0)
                 {
-                    for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+                    for (int k = 0; k < 5; k++) { Nap(2); s[1].Poll(); }
                     foreach (var b in s[1].Game.Bullets.Values)
                     {
                         Bullet hb;

@@ -27,17 +27,17 @@ static partial class Program
         client.Join("127.0.0.1", port, "Friend", Role.Dps, 0);
         var s = new[] { host, client };
         WaitForLobby(host, client);
-        for (int i = 0; i < 50; i++) { host.Poll(); client.Poll(); System.Threading.Thread.Sleep(2); }
+        for (int i = 0; i < 50; i++) { host.Poll(); client.Poll(); Nap(2); }
         Check(host.Lobby[2].PerkIds.Length == 1 && client.Lobby[1].PerkIds.Length == 1, "a player's perks reach the host's lobby and everyone's lobby (Msg.Cosmetics, Msg.Lobby)");
         // Changing perks in the lobby tells everyone (the Perks tab calls ShareCosmetics): off, then on again.
         Perks.Unequip(cprof, PerkId.RiotGear); client.ShareCosmetics();
-        for (int i = 0; i < 50; i++) { host.Poll(); client.Poll(); System.Threading.Thread.Sleep(2); }
+        for (int i = 0; i < 50; i++) { host.Poll(); client.Poll(); Nap(2); }
         Check(host.Lobby[2].PerkIds.Length == 0 && client.Lobby[2].PerkIds.Length == 0, "taking a perk off in the lobby reaches the host and everyone");
         Perks.Equip(cprof, PerkId.RiotGear); client.ShareCosmetics();
-        for (int i = 0; i < 50; i++) { host.Poll(); client.Poll(); System.Threading.Thread.Sleep(2); }
+        for (int i = 0; i < 50; i++) { host.Poll(); client.Poll(); Nap(2); }
         Check(host.Lobby[2].PerkIds.Length == 1, "and putting it back does too");
         client.RequestReady(true); host.RequestReady(true);
-        for (int i = 0; i < 50; i++) { host.Poll(); client.Poll(); System.Threading.Thread.Sleep(2); }
+        for (int i = 0; i < 50; i++) { host.Poll(); client.Poll(); Nap(2); }
         host.StartMatch();
         WaitForGame(host, client, dt);
         var g = host.Game;

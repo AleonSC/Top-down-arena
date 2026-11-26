@@ -36,6 +36,12 @@ namespace Arena
         public readonly SortedDictionary<int, Avatar> Avatars = new SortedDictionary<int, Avatar>();
 
         readonly Stopwatch avatarClock = Stopwatch.StartNew();
+
+        /// Tests: a clock to read instead of the real one (seconds), so a test can move time on without sleeping (Tools/SimTest's Nap).
+        public static Func<double> TestClock;
+
+        /// The Hangout room's clock, in seconds: sends, fire rates, abilities and respawns run on it.
+        double AvatarNow => TestClock != null ? TestClock() : avatarClock.Elapsed.TotalSeconds;
         double lastAvatarSend;
         bool avatarsDirty;  // the host: something moved since the last broadcast. A client: our own position hasn't gone out yet
 
@@ -104,7 +110,7 @@ namespace Arena
         {
             if (Net == null || Screen != AppScreen.Lobby || !avatarsDirty)
                 return;
-            double now = avatarClock.Elapsed.TotalSeconds;
+            double now = AvatarNow;
             if (now - lastAvatarSend < AvatarSendEvery)
                 return;
             lastAvatarSend = now;
