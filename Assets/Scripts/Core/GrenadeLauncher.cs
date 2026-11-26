@@ -229,5 +229,18 @@ namespace Arena
             }
             return true;
         }
+
+        // --- Network: the player's Grenade Launcher fields (SyncPlayer) ---
+
+        void SyncGrenadeLauncher(NetSync s, Player p)
+        {
+            s.Byte(ref p.GlMode);  // the Grenade Launcher
+            s.Byte(ref p.GlUsed);
+            s.Byte(ref p.GlSmokeUsed);
+            s.Byte(ref p.GlShot);
+            s.Float(ref p.GlReload);
+            s.Float(ref p.GlSwap);
+            s.Float(ref p.GlCharge);
+        }
     }
 }

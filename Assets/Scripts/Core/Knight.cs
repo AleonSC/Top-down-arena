@@ -1048,5 +1048,14 @@ namespace Arena
             else
                 p.WallPlate[plate] = (byte)Math.Max(1, (int)Math.Ceiling(255f * p.WallPlateHp[plate] / p.WallPlateMax));
         }
+
+        // --- Network: the player's Knight fields (SyncPlayer) ---
+
+        void SyncKnight(NetSync s, Player p)
+        {
+            for (int k = 0; k < Player.WallPlates; k++)
+                s.Byte(ref p.WallPlate[k]);
+            s.Float(ref p.UnbreakT);
+        }
     }
 }

@@ -269,5 +269,13 @@ namespace Arena
             p.WcStep = 0;
             p.WcTempestT = 0f;
         }
+
+        // --- Network: the player's Wind Clash fields (SyncPlayer) ---
+
+        void SyncWindClash(NetSync s, Player p)
+        {
+            s.Float(ref p.WcTempestT);  // Wind Clash's Tempest
+            s.Float(ref p.WcTempestCd);
+        }
     }
 }

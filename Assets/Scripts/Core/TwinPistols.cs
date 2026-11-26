@@ -124,5 +124,14 @@ namespace Arena
             p.FireCd = Math.Min(p.FireCd, 0f);  // both guns are ready right away
             Sounds.Add(Sfx.Pick);
         }
+
+        // --- Network: the player's Twin Pistols fields (SyncPlayer) ---
+
+        void SyncTwinPistols(NetSync s, Player p)
+        {
+            s.Byte(ref p.TpSide);  // the Twin Pistols
+            s.Float(ref p.TpLaserT);
+            s.Float(ref p.TpCd);
+        }
     }
 }

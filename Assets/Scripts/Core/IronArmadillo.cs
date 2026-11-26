@@ -334,5 +334,13 @@ namespace Arena
                 session.SendToHost(Proto.End(w));
             }
         }
+
+        // --- Network: the player's Iron Armadillo fields (SyncPlayer) ---
+
+        void SyncArmadillo(NetSync s, Player p)
+        {
+            s.Float(ref p.ArmT);  // Iron Armadillo
+            s.Float(ref p.ArmAge);
+        }
     }
 }

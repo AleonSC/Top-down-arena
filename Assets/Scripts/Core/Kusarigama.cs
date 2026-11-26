@@ -276,5 +276,18 @@ namespace Arena
             if (hitAny)
                 p.MeleeGraceT = MeleeContactGrace;  // you're in the thick of it: the bodies you've pulled in don't hurt
         }
+
+        // --- Network: the player's Kusarigama fields (SyncPlayer) ---
+
+        void SyncKusarigama(NetSync s, Player p)
+        {
+            s.Int(ref p.HookId);
+            s.Float(ref p.HookT);
+            s.Byte(ref p.KusariStep);  // the Kusarigama's combo, throw and whirl
+            s.Float(ref p.KusariAim);
+            s.Bool(ref p.KusariWhirl);
+            s.Float(ref p.KusariHeld);
+            s.Float(ref p.KusariAng);
+        }
     }
 }

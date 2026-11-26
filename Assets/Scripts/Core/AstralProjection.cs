@@ -180,5 +180,18 @@ namespace Arena
             SpawnBullet(Defs.AstralBolt, p.ApPos + d * 10f, d * ApBoltSpeed, 0f, ApBoltLife, ApDamage * p.Stats.DmgMult * p.Stats.ApDmgMult, p.Id);
             p.ApBolts++;
         }
+
+        // --- Network: the player's Astral Projection fields (SyncPlayer) ---
+
+        void SyncAstralProjection(NetSync s, Player p)
+        {
+            s.Float(ref p.ApT);  // Astral Projection
+            if (p.ApT > 0f)
+            {
+                s.Int(ref p.ApHost);
+                s.Vec(ref p.ApPos);
+            }
+            s.Float(ref p.ApLinkT);
+        }
     }
 }

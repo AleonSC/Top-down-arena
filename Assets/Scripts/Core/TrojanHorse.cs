@@ -415,5 +415,13 @@ namespace Arena
             }
             move = (best.Pos - me.Pos).Normalized();
         }
+
+        // --- Network: the player's Trojan Horse fields (SyncPlayer) ---
+
+        void SyncTrojanHorse(NetSync s, Player p)
+        {
+            s.Int(ref p.HorseId);  // Trojan Horse
+            s.Float(ref p.SallyT);
+        }
     }
 }

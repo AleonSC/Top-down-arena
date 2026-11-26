@@ -186,5 +186,14 @@ namespace Arena
             p.TankArmor -= soak;
             return amount - soak;
         }
+
+        // --- Network: the player's Literal Tank fields (SyncPlayer) ---
+
+        void SyncLiteralTank(NetSync s, Player p)
+        {
+            s.Float(ref p.TankT);  // A Literal Tank
+            s.Float(ref p.TankArmor);
+            s.Float(ref p.TankMax);
+        }
     }
 }

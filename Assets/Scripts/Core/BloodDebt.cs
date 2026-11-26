@@ -81,5 +81,14 @@ namespace Arena
             p.DebtT = 0f;
             p.Debt = 0f;
         }
+
+        // --- Network: the player's Blood Debt fields (SyncPlayer) ---
+
+        void SyncBloodDebt(NetSync s, Player p)
+        {
+            s.Float(ref p.DebtT);   // Blood Debt: the window, what's owed and what the cast took
+            s.Float(ref p.Debt);
+            s.Float(ref p.DebtOwed);
+        }
     }
 }

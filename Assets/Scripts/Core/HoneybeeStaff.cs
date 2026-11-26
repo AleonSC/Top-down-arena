@@ -248,5 +248,13 @@ namespace Arena
             HostHoney(p, kind == WeaponAlt.HoneyOn);
             return true;
         }
+
+        // --- Network: the player's Honeybee Staff fields (SyncPlayer) ---
+
+        void SyncHoneybee(NetSync s, Player p)
+        {
+            s.Float(ref p.HoneyFill);  // the Honeybee Staff
+            s.Bool(ref p.HoneyOn);
+        }
     }
 }

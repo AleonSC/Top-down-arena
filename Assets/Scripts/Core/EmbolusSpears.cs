@@ -238,5 +238,17 @@ namespace Arena
             }
             return true;
         }
+
+        // --- Network: the player's Embolus Spears fields (SyncPlayer) ---
+
+        void SyncEmbolus(NetSync s, Player p)
+        {
+            for (int k = 0; k < 2; k++)  // the Embolus Spears
+            {
+                s.Byte(ref p.EsSt[k]);
+                s.Vec(ref p.EsPos[k]);
+                s.Vec(ref p.EsDir[k]);
+            }
+        }
     }
 }

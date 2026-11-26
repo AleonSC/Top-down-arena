@@ -224,5 +224,15 @@ namespace Arena
             p.SpAng = p.Aim;
             p.SpCd = SpEvery;
         }
+
+        // --- Network: the player's Spirit Avatar fields (SyncPlayer) ---
+
+        void SyncSpiritAvatar(NetSync s, Player p)
+        {
+            s.Float(ref p.SpT);  // Spirit Avatar
+            s.Float(ref p.SpAge);
+            s.Float(ref p.SpWind);
+            s.Float(ref p.SpAng);
+        }
     }
 }

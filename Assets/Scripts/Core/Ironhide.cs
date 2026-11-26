@@ -76,5 +76,14 @@ namespace Arena
             else if (p.IronLost > 0f)
                 p.IronLost = Math.Max(0f, p.IronLost - IronRegenOf(p) * dt);
         }
+
+        // --- Network: the player's Ironhide fields (SyncPlayer) ---
+
+        void SyncIronhide(NetSync s, Player p)
+        {
+            s.Float(ref p.IronLost);  // Ironhide.cs
+            s.Float(ref p.IronWait);
+            s.Float(ref p.IronCap);
+        }
     }
 }

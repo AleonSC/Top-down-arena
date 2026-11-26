@@ -167,5 +167,14 @@ namespace Arena
             p.TwinLock = best.Id;
             BroadcastFx(FxKind.Ring, best.Pos, new Rgba(1f, 0.36f, 0.36f), best.Radius + 14f, 0.25f, Sfx.Pick);
         }
+
+        // --- Network: the player's Twin Rifle Auto fields (SyncPlayer) ---
+
+        void SyncTwinAuto(NetSync s, Player p)
+        {
+            s.Float(ref p.TwinAimL);    // the Twin Rifle Auto's guns and lock
+            s.Float(ref p.TwinAimR);
+            s.Int(ref p.TwinLock);
+        }
     }
 }

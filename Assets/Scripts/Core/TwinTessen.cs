@@ -353,5 +353,16 @@ namespace Arena
             p.TtTailT = Math.Max(p.TtTailT, TtGustTail);
             BroadcastFx(FxKind.TessenGust, p.Pos, new V2(aim, half), typhoon ? TtGold : TtWind, reach, TtGustFx, Sfx.BossWhoosh);
         }
+
+        // --- Network: the player's Twin Tessen fields (SyncPlayer) ---
+
+        void SyncTwinTessen(NetSync s, Player p)
+        {
+            s.Bool(ref p.TtCharging);  // the Twin Tessen
+            s.Float(ref p.TtCharge);
+            s.Float(ref p.TtGustCd);
+            s.Float(ref p.TtTailT);
+            s.Byte(ref p.TtBreeze);
+        }
     }
 }

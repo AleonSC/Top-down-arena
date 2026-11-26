@@ -57,5 +57,13 @@ namespace Arena
             BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.85f, 0.35f), 60f, 0.5f, Sfx.None);
             DoLog("player " + p.Id + " used a health shrine: +" + (int)p.OverHp + " health past max");
         }
+
+        // --- Network: the player's shrine fields (SyncPlayer) ---
+
+        void SyncShrineBuffs(NetSync s, Player p)
+        {
+            s.Float(ref p.OverHp);       // a health shrine's health past max
+            s.ULong(ref p.ShrinesUsed);
+        }
     }
 }

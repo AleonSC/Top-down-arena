@@ -299,5 +299,13 @@ namespace Arena
             dashSpeed = d.Fwd / time;
             DashT = to.DistanceTo(me.Pos) / dashSpeed;
         }
+
+        // --- Network: the player's Twin Fang fields (SyncPlayer) ---
+
+        void SyncTwinFang(NetSync s, Player p)
+        {
+            s.Byte(ref p.FangOut);      // Twin Fang's spinning sabres and where they are
+            s.Vec(ref p.FangAt);
+        }
     }
 }

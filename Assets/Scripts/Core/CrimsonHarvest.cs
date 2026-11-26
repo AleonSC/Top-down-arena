@@ -154,5 +154,14 @@ namespace Arena
             }
             Sounds.Add(Sfx.BigExplode);
         }
+
+        // --- Network: the player's Crimson Harvest fields (SyncPlayer) ---
+
+        void SyncHarvest(NetSync s, Player p)
+        {
+            s.Float(ref p.HarvestClock);  // Crimson Harvest
+            s.Float(ref p.HarvestBlood);
+            s.Float(ref p.HarvestHold);
+        }
     }
 }

@@ -591,5 +591,16 @@ namespace Arena
             }
             return true;
         }
+
+        // --- Network: the player's Katana fields (SyncPlayer) ---
+
+        void SyncKatana(NetSync s, Player p)
+        {
+            s.Byte(ref p.KatanaStance);  // the Katana's stance, where each combo waits, the last step and the moving steps
+            s.Byte(ref p.KatanaHay);
+            s.Byte(ref p.KatanaSen);
+            s.Byte(ref p.KatanaStep);
+            s.Byte(ref p.KatanaDashes);
+        }
     }
 }

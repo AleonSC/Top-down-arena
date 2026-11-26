@@ -86,5 +86,14 @@ namespace Arena
                 }
             }
         }
+
+        // --- Network: the player's Twin Rifle grenade fields (SyncPlayer) ---
+
+        void SyncTwinGrenades(NetSync s, Player p)
+        {
+            s.Byte(ref p.TwinNades);    // the Twin Rifle's grenade tubes
+            s.Byte(ref p.TwinNext);
+            s.Byte(ref p.TwinCharge);
+        }
     }
 }

@@ -492,5 +492,18 @@ namespace Arena
             }
             return true;
         }
+
+        // --- Network: the player's Vowguard fields (SyncPlayer) ---
+
+        void SyncVowguard(NetSync s, Player p)
+        {
+            s.Byte(ref p.VgStance);  // the Vowguard
+            s.Byte(ref p.VgAtV);
+            s.Byte(ref p.VgAtS);
+            s.Byte(ref p.VgMoveId);
+            s.Byte(ref p.VgCount);
+            s.Byte(ref p.VgFaith);
+            s.Vec(ref p.VgDashTo);
+        }
     }
 }

@@ -199,5 +199,20 @@ namespace Arena
                     EndStaticBubble(p, true);
             }
         }
+
+        // --- Network: the player's Static Bubble fields (SyncPlayer) ---
+
+        void SyncStaticBubble(NetSync s, Player p)
+        {
+            s.Float(ref p.BubT);  // Static Bubble
+            if (p.BubT > 0f)
+            {
+                s.Float(ref p.BubR);
+                s.Float(ref p.BubCharge);
+            }
+            s.Float(ref p.RushT);
+            if (p.RushT > 0f)
+                s.Float(ref p.RushLen);
+        }
     }
 }

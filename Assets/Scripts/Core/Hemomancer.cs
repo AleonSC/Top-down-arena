@@ -1033,5 +1033,41 @@ namespace Arena
                 TickSpray(p, dt);  // ArterialSpray.cs
             }
         }
+
+        // --- Network: the player's Leech Tendrils fields (SyncPlayer) ---
+
+        void SyncGrasp(NetSync s, Player p)
+        {
+            int grasped = p.Grasp.Count;  // Leech Tendrils' held enemies
+            s.Byte(ref grasped);
+            if (s.Reading)
+            {
+                p.Grasp.Clear();
+                p.GraspCharge.Clear();
+            }
+            for (int k = 0; k < grasped; k++)
+            {
+                int held = s.Reading ? 0 : p.Grasp[k];
+                float charge = s.Reading || k >= p.GraspCharge.Count ? 0f : p.GraspCharge[k];
+                s.Int(ref held);
+                s.Float(ref charge);  // how far this one has built up toward its blast
+                if (s.Reading)
+                {
+                    p.Grasp.Add(held);
+                    p.GraspCharge.Add(charge);
+                }
+            }
+        }
+
+        // --- Network: the player's Hemomancer fields (SyncPlayer) ---
+
+        void SyncHemomancer(NetSync s, Player p)
+        {
+            int reserve = (int)p.BloodReserve;
+            s.Byte(ref reserve);
+            if (s.Reading)
+                p.BloodReserve = reserve;
+            s.Float(ref p.CoatT);
+        }
     }
 }

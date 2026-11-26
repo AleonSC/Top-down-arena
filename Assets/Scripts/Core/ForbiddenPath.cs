@@ -340,5 +340,21 @@ namespace Arena
             if (p.FpShades[0] < 0 && target != null)
                 p.FpShades[0] = target.Id;  // alone: one shade tears the target itself
         }
+
+        // --- Network: the player's Forbidden Path fields (SyncPlayer) ---
+
+        void SyncForbiddenPath(NetSync s, Player p)
+        {
+            s.Float(ref p.FpT);  // Forbidden Path
+            if (p.FpT > 0f)
+            {
+                s.Float(ref p.FpAge);
+                s.Byte(ref p.FpStage);
+                s.Float(ref p.FpStageT);
+                s.Int(ref p.FpTarget);
+                s.Vec(ref p.FpAt);
+                s.Vec(ref p.FpFrom);
+            }
+        }
     }
 }

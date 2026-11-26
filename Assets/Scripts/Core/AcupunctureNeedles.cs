@@ -197,5 +197,13 @@ namespace Arena
             b.Vel = b.Vel.Rotated(turn);
             b.Pulled = true;  // the host sends its new course
         }
+
+        // --- Network: the player's Acupuncture Needles fields (SyncPlayer) ---
+
+        void SyncNeedles(NetSync s, Player p)
+        {
+            s.Float(ref p.NeedleT);  // Acupuncture Needles in you
+            s.Byte(ref p.NeedleN);
+        }
     }
 }

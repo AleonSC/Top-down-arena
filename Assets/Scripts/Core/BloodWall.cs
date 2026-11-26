@@ -232,5 +232,13 @@ namespace Arena
             }
             return false;
         }
+
+        // --- Network: the player's Blood Wall fields (SyncPlayer) ---
+
+        void SyncBloodWall(NetSync s, Player p)
+        {
+            s.Bool(ref p.BloodWallOn);  // Blood Wall: the drain ring is drawn from how long it has been up
+            s.Float(ref p.BloodWallClock);
+        }
     }
 }

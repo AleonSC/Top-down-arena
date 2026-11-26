@@ -256,5 +256,19 @@ namespace Arena
             }
             return true;
         }
+
+        // --- Network: the player's Needle Swarm fields (SyncPlayer) ---
+
+        void SyncNeedleSwarm(NetSync s, Player p)
+        {
+            s.Short(ref p.NsCount);  // the Needle Swarm
+            s.Float(ref p.NsBurstCd);
+            for (int k = 0; k < Game.NsTendrils; k++)
+            {
+                s.Int(ref p.NsTen[k]);
+                s.Float(ref p.NsLen[k]);
+                s.Byte(ref p.NsBound[k]);
+            }
+        }
     }
 }

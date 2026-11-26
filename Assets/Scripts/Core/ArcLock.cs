@@ -236,5 +236,22 @@ namespace Arena
             }
             return true;
         }
+
+        // --- Network: the player's Arc Lightning fields (SyncPlayer) ---
+
+        void SyncArcTags(NetSync s, Player p)
+        {
+            int tagged = Math.Min(Game.ArcTagCap, p.ArcTags.Count);  // Arc Lightning's tags
+            s.Byte(ref tagged);
+            if (s.Reading)
+                p.ArcTags.Clear();
+            for (int k = 0; k < tagged; k++)
+            {
+                int tagId = s.Reading ? 0 : p.ArcTags[k];
+                s.Int(ref tagId);
+                if (s.Reading)
+                    p.ArcTags.Add(tagId);
+            }
+        }
     }
 }

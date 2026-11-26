@@ -123,5 +123,25 @@ namespace Arena
                     return true;
             return false;
         }
+
+        // --- Network: the player's Ceremonial Armor fields (SyncPlayer) ---
+
+        void SyncCeremonialArmor(NetSync s, Player p)
+        {
+            s.Byte(ref p.PlateN);  // Ceremonial Armor
+            if (p.PlateN > 0)
+            {
+                s.Float(ref p.PlateClock);
+                s.Float(ref p.PlateNewT);
+                s.Float(ref p.PlateMax);
+                for (int k = 0; k < p.PlateN && k < Game.CerePlateMax; k++)
+                {
+                    int q = s.Reading ? 0 : (int)Math.Round(MathX.Clamp01(p.PlateHp[k] / Math.Max(1f, p.PlateMax)) * 255f);
+                    s.Byte(ref q);
+                    if (s.Reading)
+                        p.PlateHp[k] = q / 255f * p.PlateMax;
+                }
+            }
+        }
     }
 }

@@ -269,5 +269,26 @@ namespace Arena
                     LandBsMove(p, e, h);
             }
         }
+
+        // --- Network: the player's Blood Brawler fields (SyncPlayer) ---
+
+        void SyncBloodBrawler(NetSync s, Player p)
+        {
+            s.Int(ref p.BsTarget);  // the Blood Brawler's mark, thread and Sympathy
+            s.Float(ref p.BsT);
+            s.Float(ref p.SympT);
+            s.Int(ref p.SympSrc);
+            int bound = Math.Min(255, p.SympBound.Count);
+            s.Byte(ref bound);
+            if (s.Reading)
+                p.SympBound.Clear();
+            for (int k = 0; k < bound; k++)
+            {
+                int boundId = s.Reading ? 0 : p.SympBound[k];
+                s.Int(ref boundId);
+                if (s.Reading)
+                    p.SympBound.Add(boundId);
+            }
+        }
     }
 }

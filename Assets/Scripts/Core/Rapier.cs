@@ -223,5 +223,15 @@ namespace Arena
             b.Pierce += 99;
             p.Run.ShotsFired++;
         }
+
+        // --- Network: the player's Rapier fields (SyncPlayer) ---
+
+        void SyncRapier(NetSync s, Player p)
+        {
+            s.Byte(ref p.RapierTempo);  // the Rapier's Tempo and its grace period, drawn as diamonds behind you (Game/MeleeLooks.cs)
+            s.Byte(ref p.RapierGraceLeft);
+            s.Bool(ref p.RapierGuard);  // the Rapier's Riposte stance and its charge
+            s.Byte(ref p.RapierCharge);
+        }
     }
 }

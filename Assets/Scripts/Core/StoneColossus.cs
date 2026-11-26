@@ -249,5 +249,14 @@ namespace Arena
                     boulders[i] = b;
             }
         }
+
+        // --- Network: the player's Stone Colossus fields (SyncPlayer) ---
+
+        void SyncStoneColossus(NetSync s, Player p)
+        {
+            s.Float(ref p.ColT);  // Stone Colossus
+            s.Float(ref p.ColAge);
+            s.Float(ref p.ColWind);
+        }
     }
 }

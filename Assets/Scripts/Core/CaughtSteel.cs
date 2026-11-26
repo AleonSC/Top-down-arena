@@ -158,5 +158,13 @@ namespace Arena
             if (b.Kind == Defs.SteelShard)
                 BroadcastFx(FxKind.SteelHit, b.Pos, b.Vel.Normalized(), new Rgba(1f, 0.59f, 0.24f), 1f, 0.35f, Sfx.None);
         }
+
+        // --- Network: the player's Caught Steel fields (SyncPlayer) ---
+
+        void SyncCaughtSteel(NetSync s, Player p)
+        {
+            s.Float(ref p.SteelT);  // Caught Steel
+            s.Byte(ref p.Steel);
+        }
     }
 }

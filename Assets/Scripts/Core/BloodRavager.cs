@@ -352,5 +352,14 @@ namespace Arena
             ravLocalCd = Bot ? RvBotGap : RvLashGap;
             return true;
         }
+
+        // --- Network: the player's Blood Ravager fields (SyncPlayer) ---
+
+        void SyncRavager(NetSync s, Player p)
+        {
+            s.Float(ref p.RvT);  // Blood Ravager
+            if (p.RvT > 0f)
+                s.Float(ref p.RvLen);
+        }
     }
 }

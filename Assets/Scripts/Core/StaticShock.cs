@@ -340,5 +340,13 @@ namespace Arena
 
         /// Off when you put it away or go down: the cone stops.
         void ClearStaticShock(Player p) => p.StaticOn = false;
+
+        // --- Network: the player's Static Shock fields (SyncPlayer) ---
+
+        void SyncStaticShock(NetSync s, Player p)
+        {
+            s.Bool(ref p.StaticOn);  // Static Shock
+            s.Float(ref p.OverchargeT);
+        }
     }
 }

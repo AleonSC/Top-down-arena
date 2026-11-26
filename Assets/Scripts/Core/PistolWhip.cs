@@ -177,5 +177,17 @@ namespace Arena
 
         /// A Fan the Hammer round against a stunned enemy hits RevFanStunMult harder.
         float FanStunBonus(Bullet b, Enemy e) => b.FanRound && e.StunT > 0f ? RevFanStunMult : 1f;
+
+        // --- Network: the player's Revolver fields (SyncPlayer) ---
+
+        void SyncRevolver(NetSync s, Player p)
+        {
+            s.Byte(ref p.RevStance);  // the Revolver (Weapons.cs, PistolWhip.cs)
+            s.Byte(ref p.RevStep);
+            s.Bool(ref p.RevCocked);
+            s.Float(ref p.RevCockT);
+            s.Float(ref p.RevT);
+            s.Float(ref p.RevFanReload);
+        }
     }
 }

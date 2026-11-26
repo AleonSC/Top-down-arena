@@ -268,5 +268,13 @@ namespace Arena
             }
             return true;
         }
+
+        // --- Network: the player's Nunchaku fields (SyncPlayer) ---
+
+        void SyncNunchaku(NetSync s, Player p)
+        {
+            s.Bool(ref p.NunGuard);  // the Nunchaku
+            s.Byte(ref p.NunSwats);
+        }
     }
 }

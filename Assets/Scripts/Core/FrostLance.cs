@@ -299,5 +299,14 @@ namespace Arena
             p.FlZeroT = 0f;
             p.FlRime = false;
         }
+
+        // --- Network: the player's Frost Lance fields (SyncPlayer) ---
+
+        void SyncFrostLance(NetSync s, Player p)
+        {
+            s.Float(ref p.FlZeroT);  // the Frost Lance's Absolute Zero and Rime Counter
+            s.Float(ref p.FlZeroCd);
+            s.Bool(ref p.FlRime);
+        }
     }
 }

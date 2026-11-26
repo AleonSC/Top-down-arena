@@ -276,5 +276,20 @@ namespace Arena
             }
             Free(snap6);
         }
+
+        // --- Network: the player's Out of Ammo fields (SyncPlayer) ---
+
+        void SyncOutOfAmmo(NetSync s, Player p)
+        {
+            s.Byte(ref p.AmmoMove);     // Out of Ammo's knife chain, swats and spin
+            s.Byte(ref p.AmmoSeq);
+            s.Byte(ref p.KnifeMove);
+            s.Byte(ref p.KnifeSeq);
+            s.Byte(ref p.SwatSeqL);
+            s.Byte(ref p.SwatSeqR);
+            s.Float(ref p.SwatAngL);
+            s.Float(ref p.SwatAngR);
+            s.Float(ref p.AmmoSpin);
+        }
     }
 }

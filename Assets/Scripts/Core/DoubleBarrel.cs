@@ -90,5 +90,15 @@ namespace Arena
             firingWeapon = false;
             p.FireCd = DbInterval / FireRate(p);
         }
+
+        // --- Network: the player's Double Barrel fields (SyncPlayer) ---
+
+        void SyncDoubleBarrel(NetSync s, Player p)
+        {
+            s.Byte(ref p.DbUsed);
+            s.Byte(ref p.DbBarrel);
+            s.Byte(ref p.DbShot);
+            s.Float(ref p.DbReload);
+        }
     }
 }

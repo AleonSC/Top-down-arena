@@ -270,5 +270,13 @@ namespace Arena
             }
             return true;
         }
+
+        // --- Network: the player's Halberd fields (SyncPlayer) ---
+
+        void SyncHalberd(NetSync s, Player p)
+        {
+            s.Bool(ref p.HbSet);  // the Halberd's set pike
+            s.Float(ref p.HbPikeA);
+        }
     }
 }

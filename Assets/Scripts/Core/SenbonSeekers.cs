@@ -174,5 +174,18 @@ namespace Arena
                     return true;
             return false;
         }
+
+        // --- Network: the player's Senbon Seekers fields (SyncPlayer) ---
+
+        void SyncSenbon(NetSync s, Player p)
+        {
+            s.Byte(ref p.SbN);  // Senbon Seekers
+            if (p.SbN > 0)
+            {
+                s.Float(ref p.SbClock);
+                s.Float(ref p.SbNewT);
+                s.Bool(ref p.SbCap);
+            }
+        }
     }
 }

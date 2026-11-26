@@ -292,5 +292,14 @@ namespace Arena
             }
             return true;
         }
+
+        // --- Network: the player's Stonespear fields (SyncPlayer) ---
+
+        void SyncStonespear(NetSync s, Player p)
+        {
+            s.Short(ref p.SsMask);  // the Stonespear
+            s.Byte(ref p.SsSide);
+            s.Int(ref p.SsLock);
+        }
     }
 }

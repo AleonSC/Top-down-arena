@@ -244,5 +244,16 @@ namespace Arena
             }
             return true;
         }
+
+        // --- Network: the player's Nodachi fields (SyncPlayer) ---
+
+        void SyncNodachi(NetSync s, Player p)
+        {
+            s.Byte(ref p.NodStance);  // the Nodachi
+            s.Byte(ref p.NodStorm);
+            s.Byte(ref p.NodGuard);
+            s.Byte(ref p.NodCode);
+            s.Byte(ref p.NodCount);
+        }
     }
 }

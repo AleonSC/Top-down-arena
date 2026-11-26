@@ -195,5 +195,13 @@ namespace Arena
                     HurtEnemy(e, dmg, p.Id);
             }
         }
+
+        // --- Network: the player's Repulsion Cannon fields (SyncPlayer) ---
+
+        void SyncRepulsion(NetSync s, Player p)
+        {
+            s.Byte(ref p.RepelMeter);   // the Repulsion Cannon's Undertow
+            s.Bool(ref p.RepelPull);
+        }
     }
 }

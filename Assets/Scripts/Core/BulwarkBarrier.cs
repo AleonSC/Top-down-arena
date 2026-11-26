@@ -517,5 +517,15 @@ namespace Arena
             dashSpeed = bulwarkStepFwd / bulwarkStepTime;
             DashT = to.DistanceTo(me.Pos) / dashSpeed;
         }
+
+        // --- Network: the player's Bulwark Barrier fields (SyncPlayer) ---
+
+        void SyncBulwark(NetSync s, Player p)
+        {
+            s.Bool(ref p.BbBrace);  // the Bulwark Barrier
+            s.Float(ref p.BbRam);
+            s.Byte(ref p.BbBashes);
+            s.Vec(ref p.BbBashTo);
+        }
     }
 }

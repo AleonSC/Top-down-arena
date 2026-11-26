@@ -465,5 +465,14 @@ namespace Arena
             hivePuffs.Clear();
             hiveLastPour.Clear();
         }
+
+        // --- Network: the player's Hive Censer fields (SyncPlayer) ---
+
+        void SyncHiveCenser(NetSync s, Player p)
+        {
+            s.Float(ref p.ChitinHp);  // the Hive Censer
+            s.Bool(ref p.HiveOn);
+            s.Vec(ref p.HivePour);
+        }
     }
 }
