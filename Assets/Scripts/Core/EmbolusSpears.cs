@@ -238,5 +238,29 @@ namespace Arena
             }
             return true;
         }
+
+        // --- Network: the player's Embolus Spears fields (SyncPlayer) ---
+
+        void SyncEmbolus(NetSync s, Player p)
+        {
+            for (int k = 0; k < 2; k++)  // the Embolus Spears
+            {
+                s.Byte(ref p.EsSt[k]);
+                s.Vec(ref p.EsPos[k]);
+                s.Vec(ref p.EsDir[k]);
+            }
+        }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): burst the spears where they sit among enemies
+        static bool EmbolusSpearsBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            if (late || !(EsOut(me.EsSt[0]) || EsOut(me.EsSt[1])))
+                return false;
+            foreach (var en in g.Enemies.Values)
+                if (!g.IsSpawning(en) && en.Hp > 0f && g.EnemiesNear(en.Pos, 90f) >= 2 && EsNear(me, en.Pos, 90f))
+                    return g.Tap(true, 1f);
+            return false;
+        }
     }
 }

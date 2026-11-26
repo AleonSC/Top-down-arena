@@ -363,7 +363,7 @@ namespace Arena
         void DrawRailgunFx()
         {
             float flash = mDAge < RailFlash ? (1f - mDAge / RailFlash) * (0.4f + 0.6f * mRailShotC) : 0f, kick = mDAge < RailKick ? (3f + 9f * mRailShotC) * Sq(1f - mDAge / RailKick) : 0f, sp = 3f + 0.12f * kick;
-            var lit3 = mRailPerfect ? new Rgba(1f, 0.8f, 0.35f) : RailCyan;
+            var lit3 = mRailPerfect ? Rgba.Gold : RailCyan;
             var rail = MSteel.Mix(RailHot, Mathf.Clamp01(mRailHeat * 1.4f)).Mix(RailWhiteHot, Mathf.Clamp01(mRailHeat * 2.5f - 1.5f));  // the rails heat up with the meter
             MRect(-8f, -3f, 10f, 6f, MDark);
             MLine(2f, -sp, 38f, -sp, 2.2f, rail); MLine(2f, sp, 38f, sp, 2.2f, rail);  // the rails shove apart on a shot

@@ -755,8 +755,7 @@ namespace Arena
                     if (e.PhaseT <= 0f)
                     {
                         int n = enraged ? 18 : 14;
-                        for (int i = 0; i < n; i++)
-                            EnemyShot(e, MathX.Tau * i / n + e.Facing, 190f, Defs.SmallShot);
+                        EnemyRing(e, n, e.Facing, 190f, Defs.SmallShot);
                         BroadcastFx(FxKind.Ring, e.Pos, Defs.Get(EnemyType.Gatekeeper).Color, 120f, 0.4f, Sfx.BossSlam);
                         e.Phase = 0;
                         e.T2 = 2.1f;

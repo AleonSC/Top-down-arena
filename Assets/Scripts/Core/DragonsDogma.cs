@@ -240,5 +240,19 @@ namespace Arena
                 }
             }
         }
+
+        // --- Network: the player's Dragon's Dogma fields (SyncPlayer) ---
+
+        void SyncDogma(NetSync s, Player p)
+        {
+            s.Bool(ref p.DogmaOn);  // Dragon's Dogma: the head and its quarry while it's out
+            if (p.DogmaOn)
+            {
+                s.Vec(ref p.DogmaHead);
+                s.Int(ref p.DogmaTgt);
+            }
+            else if (s.Reading)
+                p.DogmaTgt = 0;
+        }
     }
 }

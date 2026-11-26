@@ -7,7 +7,7 @@ namespace Arena
     /// the team purse chip under the wave plate. The map and the minimap are drawn by RoomsLook.cs.
     public partial class ArenaApp
     {
-        static readonly Rgba CombatInk = new Rgba(1f, 0.3f, 0.36f), ShopInk = new Rgba(1f, 0.82f, 0.4f);
+        static readonly Rgba CombatInk = new Rgba(1f, 0.3f, 0.36f), ShopInk = Rgba.Gold;
 
         static readonly Rgba BlackMarketInk = new Rgba(0.3f, 0.9f, 0.8f), GateInk = new Rgba(1f, 0.5f, 0.2f), ArmsInk = new Rgba(0.66f, 0.9f, 0.36f), MedicInk = new Rgba(1f, 0.52f, 0.68f);
 

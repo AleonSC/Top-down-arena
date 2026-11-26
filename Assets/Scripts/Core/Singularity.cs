@@ -406,26 +406,22 @@ namespace Arena
                 case SingTurn.Pull:  // gravity pull: slow three-armed spiral
                     e.FireT = 0.13f;
                     e.Ang += 0.21f;
-                    for (int k = 0; k < 3; k++)
-                        EnemyShot(e, e.Ang + MathX.Tau * k / 3f, 110f, Defs.SmallShot);
+                    EnemyRing(e, 3, e.Ang, 110f, Defs.SmallShot);
                     break;
                 case SingTurn.Collapse:  // rings, each turned half a gap
                     e.FireT = 0.9f;
                     e.Ang += MathX.Pi / 26f;
-                    for (int i = 0; i < 26; i++)
-                        EnemyShot(e, e.Ang + MathX.Tau * i / 26f, 170f, Defs.SmallShot);
+                    EnemyRing(e, 26, e.Ang, 170f, Defs.SmallShot);
                     break;
                 case SingTurn.Lasers:  // the purple spiral (the lasers are separate)
                     e.FireT = 0.65f;
                     e.Ang += 0.3f;
-                    for (int d = 0; d < 4; d++)
-                        EnemyShot(e, e.Ang + MathX.Tau * d / 4f, 150f, Defs.BigShot);
+                    EnemyRing(e, 4, e.Ang, 150f, Defs.BigShot);
                     break;
                 case SingTurn.Hawking:  // radiation off the horizon's edge
                     e.FireT = 0.6f;
                     e.Ang += 0.17f;
-                    for (int i = 0; i < 18; i++)
-                        EnemyShot(e, e.Ang + MathX.Tau * i / 18f, 160f, Defs.SmallShot);
+                    EnemyRing(e, 18, e.Ang, 160f, Defs.SmallShot);
                     break;
                 case SingTurn.Split:  // each shard a two-armed spiral
                     e.FireT = 0.22f;
@@ -441,14 +437,12 @@ namespace Arena
                 case SingTurn.Last:  // a three-armed spiral and a ring of big orbs every 1.6 s
                     e.FireT = 0.1f;
                     e.Ang += 0.19f;
-                    for (int k = 0; k < 3; k++)
-                        EnemyShot(e, e.Ang + MathX.Tau * k / 3f, 150f, Defs.SmallShot);
+                    EnemyRing(e, 3, e.Ang, 150f, Defs.SmallShot);
                     s.RingT -= 0.1f;
                     if (s.RingT <= 0f)
                     {
                         s.RingT = 1.6f;
-                        for (int i = 0; i < 18; i++)
-                            EnemyShot(e, e.Ang * 0.5f + MathX.Tau * i / 18f, 110f, Defs.BigShot);
+                        EnemyRing(e, 18, e.Ang * 0.5f, 110f, Defs.BigShot);
                     }
                     break;
                 default:  // it holds fire (the cage, the slingshot, the white hole, breathers)

@@ -124,5 +124,21 @@ namespace Arena
             p.FireCd = Math.Min(p.FireCd, 0f);  // both guns are ready right away
             Sounds.Add(Sfx.Pick);
         }
+
+        // --- Network: the player's Twin Pistols fields (SyncPlayer) ---
+
+        void SyncTwinPistols(NetSync s, Player p)
+        {
+            s.Byte(ref p.TpSide);  // the Twin Pistols
+            s.Float(ref p.TpLaserT);
+            s.Float(ref p.TpCd);
+        }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Laser Sights on the boss or a crowd in reach
+        static bool TwinPistolsBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var e = v.ShootAt;
+            return !late && e != null && v.InReach && v.Me.TpCd <= 0f && g.Tap(e.Def.IsBoss || g.EnemiesNear(e.Pos, 140f) >= 3, 1f);
+        }
     }
 }

@@ -193,7 +193,7 @@ namespace Arena
                     break;
                 case "name-pixel":  // chunky colour blocks stepping along the name (a clipped column of the text each)
                 {
-                    var pal = new[] { new Color(1f, 0.3f, 0.43f), new Color(1f, 0.82f, 0.4f), new Color(0.02f, 0.84f, 0.63f), new Color(0.3f, 0.79f, 0.94f) };
+                    var pal = new[] { new Color(1f, 0.3f, 0.43f), CrtStyle.Gold, new Color(0.02f, 0.84f, 0.63f), new Color(0.3f, 0.79f, 0.94f) };
                     int step = t > 0f ? Mathf.FloorToInt(t * 6f) : 0;
                     float block = Mathf.Max(5f, size * 0.3f);
                     NOutline(r, x, text, size, new Color(0.04f, 0.05f, 0.1f), 0.7f);

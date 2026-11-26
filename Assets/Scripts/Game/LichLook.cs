@@ -95,7 +95,7 @@ namespace Arena
                 Arc(pos, r + 14f, 3f, aura.WithAlpha(0.8f), 32);
             }
             else if (s.Window > 0f)
-                Arc(pos, r + 12f, 4f, new Rgba(1f, 0.8f, 0.35f, 0.6f + 0.4f * Mathf.Sin(t * 14f)), 32, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(s.Window / Game.LichWindow));
+                Arc(pos, r + 12f, 4f, Rgba.Gold.WithAlpha(0.6f + 0.4f * Mathf.Sin(t * 14f)), 32, -MathX.Pi / 2f, MathX.Tau * MathX.Clamp01(s.Window / Game.LichWindow));
             if (s.Stage == LichStage.Undeath)
             {
                 float a = s.FadeT > 0f ? s.FadeT / 0.5f * 0.6f : 0.75f + 0.15f * Mathf.Sin(t * 4f);

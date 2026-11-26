@@ -194,5 +194,18 @@ namespace Arena
 
         /// Your own game: the cast's cooldown, for the key and the ring under your feet.
         void LocalCenserTick(float dt) => censerLocalCd = Math.Max(0f, censerLocalCd - dt);
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): the Cast on a crowd once a few Embers are lit (sooner with an ally to heal)
+        static bool CenserBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            var e = v.ShootAt;
+            if (e == null || v.ShootD > 270f || me.Embers == 0 || g.CenserCastCd > 0f)
+                return false;
+            if (!g.Tap(me.Embers >= 3 || v.Downed != null || v.Lowest != null && v.Lowest.Hp < v.Lowest.MaxHp * 0.6f, 1f))
+                return false;
+            aimAt = e.Pos;
+            return true;
+        }
     }
 }

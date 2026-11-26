@@ -283,33 +283,33 @@ namespace Arena
         internal static readonly WeaponDef[] NinjaWeapons =
         {
             // Tank
-            new WeaponDef { Id = WeaponId.Kusarigama, Kit = Kit.Ninja, Role = Role.Tank, Choice = 0, Damage = 26f, Reach = 280f, Grow = 40f, Melee = true, ExtraDesc = "+40 px throw and +20% damage", Name = "Kusarigama", FireInterval = 0.55f,
+            new WeaponDef { Id = WeaponId.Kusarigama, BotAlt = KusarigamaBotAlt, BotAltHold = true, Kit = Kit.Ninja, Role = Role.Tank, Choice = 0, Damage = 26f, Reach = 280f, Grow = 40f, Melee = true, ExtraDesc = "+40 px throw and +20% damage", Name = "Kusarigama", FireInterval = 0.55f,
                 Desc = "Primary Fire: Cut with the sickle, then throw the weight to drag an enemy to you.\n\nAlternative Fire: Whirl the weight around you, pulling enemies in." },
-            new WeaponDef { Id = WeaponId.BoStaff, Kit = Kit.Ninja, Role = Role.Tank, Choice = 1, Damage = 16f, Reach = 105f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +15% damage on every swing and the shove, and +20 px on the shove's push", Name = "Bo Staff", FireInterval = 0.47f,
+            new WeaponDef { Id = WeaponId.BoStaff, BotAlt = BoStaffBotAlt, Kit = Kit.Ninja, Role = Role.Tank, Choice = 1, Damage = 16f, Reach = 105f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach and +15% damage on every swing and the shove, and +20 px on the shove's push", Name = "Bo Staff", FireInterval = 0.47f,
                 Desc = "Primary Fire: A three-swing staff combo that cuts small bullets.\n\nAlternative Fire: Shove a wall of staff ahead of you." },
-            new WeaponDef { Id = WeaponId.FumaShuriken, Kit = Kit.Ninja, Role = Role.Tank, Choice = 2, Life = 1.1f, Damage = 30f, BotRange = 300f, ExtraDesc = "+1 shuriken, looping the other way", Name = "Fuma Shuriken", FireInterval = 0.7f,
+            new WeaponDef { Id = WeaponId.FumaShuriken, BotAlt = FumaShurikenBotAlt, Kit = Kit.Ninja, Role = Role.Tank, Choice = 2, Life = 1.1f, Damage = 30f, BotRange = 300f, ExtraDesc = "+1 shuriken, looping the other way", Name = "Fuma Shuriken", FireInterval = 0.7f,
                 Desc = "Primary Fire: A giant star thrown in a loop that cuts everything both ways." },
             new WeaponDef { Id = WeaponId.Nodachi, Kit = Kit.Ninja, Role = Role.Tank, Choice = 3, Damage = 20f, Reach = 150f, Melee = true, BotRange = 140f, ExtraDesc = "+1 ring after Tenchi's slam, 45 px farther out (60%)", Name = "Nodachi", FireInterval = 0.3f,
                 Desc = "Primary Fire: A tall katana with two five-step combo stances: wide sweeps, or fast jabs that block.\n\nAlternative Fire: Switch stance." },
             // Healer
-            new WeaponDef { Id = WeaponId.AcupunctureNeedles, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0, Speed = 900f, Life = 0.8f, Damage = 10f, ExtraDesc = "+1 healing needle, fanned out, and +1 Bloodletting needle", Name = "Acupuncture Needles", FireInterval = 0.18f,
+            new WeaponDef { Id = WeaponId.AcupunctureNeedles, BotAlt = AcupunctureNeedlesBotAlt, Kit = Kit.Ninja, Role = Role.Healer, Choice = 0, Speed = 900f, Life = 0.8f, Damage = 10f, ExtraDesc = "+1 healing needle, fanned out, and +1 Bloodletting needle", Name = "Acupuncture Needles", FireInterval = 0.18f,
                 Desc = "Primary Fire: Fast needles that fly through enemies and stick in hurt teammates, healing over time. Five open the meridian for a burst of healing.\n\nAlternative Fire: Bloodletting, three needles that cut and bleed enemies. Five in one enemy burst at the pressure point; a dying enemy's needles fly back to heal the most hurt teammate." },
             new WeaponDef { Id = WeaponId.SpiritFan, Kit = Kit.Ninja, Role = Role.Healer, Choice = 1, Speed = 420f, Life = 0.3f, Damage = 6f, Grow = 0.25f, ExtraDesc = "+25% reach and +1 HP healed", Name = "Spirit Fan", FireInterval = 0.4f,
                 Desc = "Primary Fire: A short gust that heals allies and pushes small bullets back." },
-            new WeaponDef { Id = WeaponId.Ofuda, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2, Speed = 380f, Life = 1.1f, Damage = 45f, ExtraDesc = "+1 talisman and +1 Blast Ofuda, fanned out", Name = "Ofuda", FireInterval = 0.45f,
+            new WeaponDef { Id = WeaponId.Ofuda, BotAlt = OfudaBotAlt, Kit = Kit.Ninja, Role = Role.Healer, Choice = 2, Speed = 380f, Life = 1.1f, Damage = 45f, ExtraDesc = "+1 talisman and +1 Blast Ofuda, fanned out", Name = "Ofuda", FireInterval = 0.45f,
                 Desc = "Primary Fire: Healing Talisman: a paper charm that bends toward a hurt teammate at the end of its flight, heals them and bursts, healing teammates near, shoving enemies back and erasing small bullets.\n\nAlternative Fire: Blast Ofuda: a charm that flies straight, sticks to the enemy it hits and blows up; one that misses lands and blows up a moment later.",
                 AreaDesc = "the talisman's burst and the Blast Ofuda's blast 25% wider" },
-            new WeaponDef { Id = WeaponId.TwinTessen, Kit = Kit.Ninja, Role = Role.Healer, Choice = 3, Damage = 10f, Reach = 105f, Melee = true, BotRange = 110f, ExtraDesc = "+15% damage, +2 petals a Petal Spin and a 10% wider gust", Name = "Twin Tessen", FireInterval = 0.2f,
+            new WeaponDef { Id = WeaponId.TwinTessen, BotAlt = TwinTessenBotAlt, BotAltHold = true, Kit = Kit.Ninja, Role = Role.Healer, Choice = 3, Damage = 10f, Reach = 105f, Melee = true, BotRange = 110f, ExtraDesc = "+15% damage, +2 petals a Petal Spin and a 10% wider gust", Name = "Twin Tessen", FireInterval = 0.2f,
                 Desc = "Primary Fire: A five-step dance of two war fans that heals the allies it brushes and ends in a petal wave.\n\nAlternative Fire: Hold to pull the fans back, let go for a massive gust that throws enemies back and heals allies.",
                 AreaDesc = "a 25% longer gust" },
             // DPS
             new WeaponDef { Id = WeaponId.Shuriken, Kit = Kit.Ninja, Role = Role.Dps, Choice = 0, Speed = 700f, Life = 0.75f, Damage = 9f, ExtraDesc = "+1 star in the fan", Name = "Shuriken", FireInterval = 0.35f,
                 Desc = "Primary Fire: Tight fans of stars that stick, then rip out and fly back.\n\nAlternative Fire: Switch to a huge star thrown along a route you draw." },
-            new WeaponDef { Id = WeaponId.Katana, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1, Damage = 20f, Reach = 120f, Melee = true, ExtraDesc = "+1: each dash strikes once more (60%), two more caltrops and a wider Momentum Burst", Name = "Katana", FireInterval = 0.3f,
+            new WeaponDef { Id = WeaponId.Katana, BotAlt = KatanaBotAlt, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1, Damage = 20f, Reach = 120f, Melee = true, ExtraDesc = "+1: each dash strikes once more (60%), two more caltrops and a wider Momentum Burst", Name = "Katana", FireInterval = 0.3f,
                 Desc = "Primary Fire: Two stance combos: dashing slices, or cuts that end in caltrops.\n\nAlternative Fire: Switch stance." },
-            new WeaponDef { Id = WeaponId.Kunai, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 1400f, Life = 0.5f, Damage = 42f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.7f, Sound = Sfx.ShotKunai,
+            new WeaponDef { Id = WeaponId.Kunai, BotAlt = KunaiBotAlt, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 1400f, Life = 0.5f, Damage = 42f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.7f, Sound = Sfx.ShotKunai,
                 Desc = "Primary Fire: Slow, heavy throwing knives that leave a mark where they land.\n\nAlternative Fire: Blink to the mark, and your next hit lands double." },
-            new WeaponDef { Id = WeaponId.Nunchaku, Kit = Kit.Ninja, Role = Role.Dps, Choice = 3, Damage = 20f, Reach = 95f, Melee = true, ExtraDesc = "+1 aftershock ring after the Twin Crush, 40 px farther out (60%)", Name = "Nunchaku", FireInterval = 0.3f,
+            new WeaponDef { Id = WeaponId.Nunchaku, BotAlt = NunchakuBotAlt, Kit = Kit.Ninja, Role = Role.Dps, Choice = 3, Damage = 20f, Reach = 95f, Melee = true, ExtraDesc = "+1 aftershock ring after the Twin Crush, 40 px farther out (60%)", Name = "Nunchaku", FireInterval = 0.3f,
                 Desc = "Primary Fire: A four-step twin-nunchaku combo that ends in a stunning slam.\n\nAlternative Fire: Guard with spinning discs that swat shots back." },
         };
 
@@ -402,7 +402,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.BambooGrove, Kit = Kit.Ninja, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (BambooGrove.cs)
-                Name = "Bamboo Grove", Cooldown = BgCooldown, Desc = "Bamboo bursts from the ground around you, stunning enemies, then bleeding them.",
+                Name = "Bamboo Grove", Icon = "bamboogrove", Cooldown = BgCooldown, Desc = "Bamboo bursts from the ground around you, stunning enemies, then bleeding them.",
                 Capstone = "The bamboo fence lasts 6 s.",
                 Bot = b => b.NearEnemies >= 3 && b.TargetD < BgRadius,
             },
@@ -430,7 +430,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ChakraReserves, Kit = Kit.Ninja, Role = Role.Healer, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (ChakraReserves.cs)
-                Name = "Chakra Reserves", Icon = "pulse", Cooldown = CrCooldown, Desc = "Pour chakra into an ally: it heals them, speeds up their moving and attacks, and refreshes their cooldowns.",
+                Name = "Chakra Reserves", Icon = "chakra", Cooldown = CrCooldown, Desc = "Pour chakra into an ally: it heals them, speeds up their moving and attacks, and refreshes their cooldowns.",
                 Capstone = "A second thread reaches the next ally: half the heal and the full Surge.",
                 Bot = b => b.AllyHurt || b.AllyDown,
             },
@@ -458,7 +458,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.SenbonSeekers, Kit = Kit.Ninja, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (SenbonSeekers.cs)
-                Name = "Senbon Seekers", Cooldown = SbCooldown, Desc = "Three poisoned needles circle you and fly at enemies that come close. Stacks to 9.",
+                Name = "Senbon Seekers", Icon = "senbon", Cooldown = SbCooldown, Desc = "Three poisoned needles circle you and fly at enemies that come close. Stacks to 9.",
                 Capstone = "Holds up to 12 needles.",
                 Bot = b => !SbFull(b.Me),
             },

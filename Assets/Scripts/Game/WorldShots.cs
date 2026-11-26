@@ -425,7 +425,7 @@ namespace Arena
             bool full = c >= 1f, perfect = mine && game.BowInZone(p, p.DrawT);
             float r = p.Def.BodyR + 11f;
             var role = p.Def.Color;
-            var gold = new Rgba(1f, 0.82f, 0.3f);
+            var gold = Rgba.Gold;
             Arc(p.Disp, r, 2.5f, new Rgba(1f, 1f, 1f, 0.12f), 32);
             Arc(p.Disp, r, perfect ? 4f : 2.5f, (full ? gold : role).WithAlpha(perfect ? 0.75f + 0.25f * Mathf.Sin(t * 30f) : 0.85f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(0.02f, c));
             DrawBowFullPop(p);  // a gold ring as the draw reaches full (GunBowLooks.cs)
@@ -439,7 +439,7 @@ namespace Arena
             float c = game.BowCharge(p, p.DrawT);
             bool full = c >= 1f;
             DrawHammerRaised(p, c);  // raised over the shoulder, with Visual effects on (MeleeLooks.cs)
-            var gold = new Rgba(1f, 0.82f, 0.3f);
+            var gold = Rgba.Gold;
             float r = p.Def.BodyR + 11f;
             Arc(p.Disp, r, 2.5f, new Rgba(1f, 1f, 1f, 0.12f), 32);
             Arc(p.Disp, r + (fxOn && c > 0.2f ? Mathf.Sin(t * 70f) * 1.2f * c : 0f), full ? 4f : 2.5f, (full ? gold : p.Def.Color).WithAlpha(full ? 0.75f + 0.25f * Mathf.Sin(t * 20f) : 0.85f), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Max(0.02f, c));  // (Quake: the ring trembles as it fills)
@@ -469,7 +469,7 @@ namespace Arena
         {
             float c = game.BowCharge(p, p.DrawT);
             bool full = c >= 1f;
-            var gold = new Rgba(1f, 0.82f, 0.3f);
+            var gold = Rgba.Gold;
             var stone = new Rgba(0.85f, 0.78f, 0.65f);
             float r = p.Def.BodyR + 11f;
             Arc(p.Disp, r, 2.5f, new Rgba(1f, 1f, 1f, 0.12f), 32);

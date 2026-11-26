@@ -67,7 +67,7 @@ namespace Arena
                 FireInterval = 0.4f, BotRange = 75f, Name = "Vector Blade", Sound = Sfx.SwingLight,
                 Desc = "Primary Fire: Summon a fast Assault Bot with a rapid rivet gun.\n\nAlternative Fire: With the bot out, swipe a cyan blade in front of you.",
                 ExtraDesc = "the swipe reaches 12 px further" },
-            new WeaponDef { Id = WeaponId.BumbleRemote, Kit = Kit.Engineer, Role = Role.Dps, Choice = 1, Damage = 7f, FireInterval = BumbleAuto, BotRange = 260f,
+            new WeaponDef { Id = WeaponId.BumbleRemote, BotAlt = BumbleRemoteBotAlt, Kit = Kit.Engineer, Role = Role.Dps, Choice = 1, Damage = 7f, FireInterval = BumbleAuto, BotRange = 260f,
                 Name = "Bumble Remote", KeyLabel = "Bumble\nRemote", Sound = Sfx.ShotSmg, Companion = MinionKind.BumbleBot, CompanionCount = 1,
                 Desc = "You can't attack: a giant robot bee follows your cursor and fights for you. Enemies still go for you.\n\nPrimary Fire: Hold to double its stinger rate.\n\nAlternative Fire: Swarm Burst: it dives to your cursor, blasts enemies away and releases a swarm of bees.",
                 ExtraDesc = "one more stinger a shot and one more bee in the Swarm Burst" },

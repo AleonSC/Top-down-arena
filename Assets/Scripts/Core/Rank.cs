@@ -125,7 +125,7 @@ namespace Arena
 
         public static readonly Rgba[] TierColors =
         {
-            new Rgba(0.54f, 0.58f, 0.69f), new Rgba(0.35f, 0.59f, 1f), new Rgba(0.31f, 0.82f, 0.71f), new Rgba(0.71f, 0.45f, 1f), new Rgba(1f, 0.8f, 0.35f),
+            new Rgba(0.54f, 0.58f, 0.69f), new Rgba(0.35f, 0.59f, 1f), new Rgba(0.31f, 0.82f, 0.71f), new Rgba(0.71f, 0.45f, 1f), Rgba.Gold,
             new Rgba(1f, 0.55f, 0.35f), new Rgba(0.95f, 0.38f, 0.45f), new Rgba(0.93f, 0.4f, 0.8f), new Rgba(0.6f, 0.45f, 1f), new Rgba(0.4f, 0.7f, 1f), new Rgba(0.45f, 0.95f, 0.95f),
             new Rgba(0.5f, 0.95f, 0.6f), new Rgba(0.8f, 0.95f, 0.4f), new Rgba(1f, 0.9f, 0.4f), new Rgba(1f, 0.7f, 0.3f), new Rgba(1f, 0.5f, 0.3f), new Rgba(1f, 0.35f, 0.4f), new Rgba(1f, 0.4f, 0.7f), new Rgba(0.85f, 0.5f, 1f),
             new Rgba(0.6f, 0.6f, 1f), new Rgba(0.5f, 0.85f, 1f), new Rgba(0.7f, 1f, 0.95f), new Rgba(1f, 0.95f, 0.75f), new Rgba(1f, 1f, 1f),
@@ -327,7 +327,7 @@ namespace Arena
                 case "frame-ember": return new Rgba(1f, 0.48f, 0.1f);
                 case "frame-void": return new Rgba(0.71f, 0.45f, 1f);
                 case "frame-gold":
-                case "frame-foil": return new Rgba(1f, 0.8f, 0.35f);
+                case "frame-foil": return Rgba.Gold;
                 case "frame-prism": return new Rgba(0.9f, 0.95f, 1f);
                 case "frame-neon": return new Rgba(1f, 0.27f, 0.75f);
                 case "frame-hazard": return new Rgba(0.95f, 0.76f, 0f);

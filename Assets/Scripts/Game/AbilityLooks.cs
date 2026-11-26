@@ -83,7 +83,7 @@ namespace Arena
             Buff(p => p.UnbreakT, new Rgba(1f, 0.85f, 0.5f)),      // Cavalry Call: the guard
             Buff(p => p.SteelT, new Rgba(1f, 0.59f, 0.24f)),       // Caught Steel's catching time
             Buff(p => p.VanishT, new Rgba(0.6f, 0.5f, 0.85f)),     // Vanish
-            Buff(p => p.DebtT, new Rgba(1f, 0.8f, 0.35f)),         // Blood Debt
+            Buff(p => p.DebtT, Rgba.Gold),         // Blood Debt
             Buff(p => p.WardT, new Rgba(0.95f, 0.25f, 0.35f)),     // Martyr's ward
             Buff(p => p.SwiftT, new Rgba(0.31f, 0.82f, 0.91f)),    // Consecrate's Swiftness
             Buff(p => p.UltT, new Rgba(1f, 0.84f, 0.35f)),         // any ultimate

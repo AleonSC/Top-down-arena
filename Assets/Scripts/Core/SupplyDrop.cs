@@ -94,7 +94,7 @@ namespace Arena
                 if (!e.Def.IsBoss)
                     Stun(e, SupplyStagger);
             }
-            BroadcastFx(FxKind.Ring, z.Pos, new Rgba(1f, 0.8f, 0.35f), SupplyBlast, 0.45f, Sfx.Explode);
+            BroadcastFx(FxKind.Ring, z.Pos, Rgba.Gold, SupplyBlast, 0.45f, Sfx.Explode);
         }
 
         /// One health pack out of the crate, unless there are already enough of its own on the floor.

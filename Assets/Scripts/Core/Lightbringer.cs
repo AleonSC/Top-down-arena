@@ -293,5 +293,18 @@ namespace Arena
             }
             return true;
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): the Sunlance through a downed or hurt ally
+        static bool LightbringerBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            Player ally = v.Downed ?? (v.Lowest != null && v.Lowest.Hp < v.Lowest.MaxHp * 0.6f ? v.Lowest : null);
+            if (ally == null || me.Light < LanceNeed || g.SunlanceCd > 0f || ally.Pos.FartherThan(me.Pos, 440f) || !g.BotSees(me.Pos, ally.Pos))
+                return false;
+            if (g.SunlanceTarget(me, ally.Pos) != ally || !g.Tap(true, 1f))
+                return false;
+            aimAt = ally.Pos;
+            return true;
+        }
     }
 }

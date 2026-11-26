@@ -29,7 +29,7 @@ namespace Arena
         public const float BaReload = 0.9f, BaDamage = 260f, BaRange = 1600f, BaSpeed = 1500f, BaKnock = 90f, BaHeavyKnock = 0.5f, BaShotBand = 40f;
         public const float BaPin = 0.4f, BaPinTime = 3f, BaWindlassReload = 0.25f, BaMuzzle = 64f;
         public const int BaBolts = 8, BaBoltsMastered = 10, BaWindlassBolts = 2;
-        public static readonly Rgba BaGold = new Rgba(1f, 0.8f, 0.35f), BaWood = new Rgba(0.54f, 0.35f, 0.2f);
+        public static readonly Rgba BaGold = Rgba.Gold, BaWood = new Rgba(0.54f, 0.35f, 0.2f);
 
         /// Ballista's entry: key 2 of the DPS Knight's Ultimate row. Upgrades.Abilities gathers it.
         internal static readonly AbilityDef[] BallistaUltimates =

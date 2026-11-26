@@ -272,5 +272,27 @@ namespace Arena
                 }
             }
         }
+
+        // --- Network: the player's Fuma Shuriken fields (SyncPlayer) ---
+
+        void SyncFumaOrbit(NetSync s, Player p)
+        {
+            s.Byte(ref p.FumaStance);  // the Fuma Shuriken's Orbit stance
+            if (p.FumaStance != 0)  // (both ends read the stance first, so they agree)
+            {
+                s.Byte(ref p.FumaMove);
+                s.Byte(ref p.FumaStep);
+                s.Byte(ref p.FumaStars);
+                s.Byte(ref p.FumaMinis);
+                s.Float(ref p.FumaClock);
+                s.Float(ref p.FumaAng0);
+                s.Float(ref p.FumaClk0);
+                s.Float(ref p.FumaSpin);
+                s.Float(ref p.FumaR0);
+                s.Float(ref p.FumaMoveAt);
+                s.Float(ref p.FumaLashAim);
+                s.Float(ref p.FumaMiniAt);
+            }
+        }
     }
 }

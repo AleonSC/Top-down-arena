@@ -462,8 +462,7 @@ namespace Arena
                 case QueenTurn.Rings:
                     e.FireT = 1.6f;
                     e.Ang += 0.15f;
-                    for (int i = 0; i < 20; i++)
-                        EnemyShot(e, e.Ang + MathX.Tau * i / 20f, 100f, Defs.BigShot);
+                    EnemyRing(e, 20, e.Ang, 100f, Defs.BigShot);
                     break;
                 case QueenTurn.Spray:  // honey globs; every third leaves a sticky puddle where it lands
                 {
@@ -500,8 +499,7 @@ namespace Arena
                     if (e.Pos.FartherThan(ArenaMid, 8f))
                         break;
                     e.Ang += 0.21f;
-                    for (int k = 0; k < 3; k++)
-                        EnemyShot(e, e.Ang + MathX.Tau * k / 3f, 150f, Defs.SmallShot);
+                    EnemyRing(e, 3, e.Ang, 150f, Defs.SmallShot);
                     if (q.BombT <= 0f)
                     {
                         q.BombT = 2f;
@@ -781,8 +779,7 @@ namespace Arena
                     if (Hittable(p) && p.Pos.CloserThan(e.Pos, DiveRadius + p.Def.HitR))
                         Damage(p, DiveDamage, "Hive Queen (dive)");
                 e.Ang += 0.17f;
-                for (int i = 0; i < 18; i++)
-                    EnemyShot(e, e.Ang + MathX.Tau * i / 18f, 110f, Defs.BigShot);
+                EnemyRing(e, 18, e.Ang, 110f, Defs.BigShot);
                 BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.45f, 0.25f), DiveRadius + 60f, 0.45f, Sfx.BossSlam);
             }
             if (q.DiveT >= DiveTime)

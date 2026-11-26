@@ -169,5 +169,14 @@ namespace Arena
                     n++;
             return n;
         }
+
+        // --- Network: the player's Juggernaut Suit fields (SyncPlayer) ---
+
+        void SyncJuggernaut(NetSync s, Player p)
+        {
+            s.Float(ref p.JuggT);  // the Juggernaut Suit
+            s.Float(ref p.JuggArmor);
+            s.Float(ref p.JuggMax);
+        }
     }
 }

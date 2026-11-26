@@ -1016,6 +1016,13 @@ namespace Arena
             NoteVolley(e, b);  // a ring or a spray stays round all the way round
         }
 
+        /// A ring of n evenly spaced shots, the first at `offset` (the enemy-side Combat.SpawnRing), fired in order.
+        void EnemyRing(Enemy e, int n, float offset, float speed, byte kind, float angVel = 0f)
+        {
+            for (int i = 0; i < n; i++)
+                EnemyShot(e, offset + MathX.Tau * i / n, speed, kind, angVel);
+        }
+
         /// Death side effects. Returns true when this kill earns the boss rewards
         /// (rerolls and the big orb drop).
         bool OnEnemyKilled(Enemy e)

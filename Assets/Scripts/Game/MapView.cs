@@ -169,7 +169,7 @@ namespace Arena
         static readonly Rgba[] MapLegendInk =  // (Team is drawn in each teammate's colour: its swatch is split)
         {
             new Rgba(1f, 1f, 1f, 0.9f), new Rgba(0.4f, 1f, 0.55f), new Rgba(1f, 0.32f, 0.36f), new Rgba(1f, 0.62f, 0.3f),
-            new Rgba(1f, 0.82f, 0.3f), new Rgba(0.373f, 0.941f, 1f),
+            Rgba.Gold, new Rgba(0.373f, 0.941f, 1f),
         };
         static float LegendStep(int i) => 14f + MapLegend[i].Length * 6.2f + 18f;
 

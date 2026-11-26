@@ -23,13 +23,13 @@ namespace Arena
             new WeaponDef { Id = WeaponId.Flamethrower, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 0, Speed = 480f, Life = 0.4f, Damage = 3f, Grow = 0.25f, BotRange = 160f, ExtraDesc = "+1 flame a burst and 25% more reach", Name = "Flamethrower", KeyLabel = "Flame-\nthrower", FireInterval = 0.06f,
                 Desc = "Primary Fire: A short stream of fire that burns everything it hits.",
                 Sound = Sfx.SpellFire },
-            new WeaponDef { Id = WeaponId.FrostLance, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 1, Damage = 18f, Reach = 178f, BotRange = 160f, ExtraDesc = "20% more damage and 10% more reach", Name = "Frost Lance", FireInterval = 0.4f,
+            new WeaponDef { Id = WeaponId.FrostLance, BotAlt = FrostLanceBotAlt, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 1, Damage = 18f, Reach = 178f, BotRange = 160f, ExtraDesc = "20% more damage and 10% more reach", Name = "Frost Lance", FireInterval = 0.4f,
                 Desc = "Primary Fire: A five-step lance combo that chills, freezes, then shatters frozen enemies.\n\nAlternative Fire: Absolute Zero: a freezing burst around you.",
                 Sound = Sfx.SpellFrost, AreaDesc = "every sweep, crystal and blast is 25% bigger" },
-            new WeaponDef { Id = WeaponId.WindClash, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 3, Damage = 18f, Reach = 170f, BotRange = 150f, ExtraDesc = "+20% damage and 10% bigger waves", Name = "Wind Clash", FireInterval = 0.34f,
+            new WeaponDef { Id = WeaponId.WindClash, BotAlt = WindClashBotAlt, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 3, Damage = 18f, Reach = 170f, BotRange = 150f, ExtraDesc = "+20% damage and 10% bigger waves", Name = "Wind Clash", FireInterval = 0.34f,
                 Desc = "Primary Fire: Hold for a wind combo that hurts and shoves every enemy it passes.\n\nAlternative Fire: A storm around you hurts enemies and catches their shots, but slows you.",
                 Sound = Sfx.None, AreaDesc = "the waves and the Tempest 25% bigger" },
-            new WeaponDef { Id = WeaponId.StormHammer, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 2, Speed = 460f, Life = 1.1f, Damage = 40f, BotRange = 260f, ExtraDesc = "+15% hammer damage, and the electrified enemy arcs to 1 more enemy", Name = "Storm Hammer", FireInterval = 0.7f,
+            new WeaponDef { Id = WeaponId.StormHammer, BotAlt = StormHammerBotAlt, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 2, Speed = 460f, Life = 1.1f, Damage = 40f, BotRange = 260f, ExtraDesc = "+15% hammer damage, and the electrified enemy arcs to 1 more enemy", Name = "Storm Hammer", FireInterval = 0.7f,
                 Desc = "Primary Fire: Throw a hammer that smashes one enemy and arcs lightning to its neighbours.",
                 Sound = Sfx.SpellZap, AreaDesc = "the electrified enemy's lightning reaches 25% farther" },
             // Healer
@@ -39,24 +39,24 @@ namespace Arena
             new WeaponDef { Id = WeaponId.ChainLight, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 1, Damage = 40f, BotRange = 240f, ExtraDesc = "+25% damage and a 15% longer cone", Name = "Chain Light", FireInterval = 0.5f,
                 Desc = "Primary Fire: A cone of light whose damage is shared between every enemy in it.",
                 Sound = Sfx.SpellZap, AreaDesc = "the cone of light 25% wider", HomingDesc = "the cone of light 15% narrower and 10% stronger per stack, instead of bending shots: fewer enemies share its damage", BarrageDesc = "+1 cone of light beside the first, sharing its own damage. Reaches more enemies; a lone one is still in one cone" },
-            new WeaponDef { Id = WeaponId.Nimbus, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 2, Damage = 16f, Reach = 380f, BotRange = 300f, ExtraDesc = "+1 lightning strike on every click, landing in a ring round the cloud", Name = "Nimbus", FireInterval = 0.6f,
+            new WeaponDef { Id = WeaponId.Nimbus, BotAlt = NimbusBotAlt, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 2, Damage = 16f, Reach = 380f, BotRange = 300f, ExtraDesc = "+1 lightning strike on every click, landing in a ring round the cloud", Name = "Nimbus", FireInterval = 0.6f,
                 Desc = "Primary Fire: A storm cloud over your cursor: click to call lightning, and its rain heals allies and soaks enemies.\n\nAlternative Fire: The cloud becomes a hurricane that drags enemies in and heals allies.",
                 Sound = Sfx.SpellZap, AreaDesc = "the strike, the rain and the hurricane are 25% wider",
                 Companion = MinionKind.Nimbus, CompanionCount = 1 },
-            new WeaponDef { Id = WeaponId.StaticShock, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 3, Damage = 24f, Reach = Game.StaticRange, BotRange = 190f, ExtraDesc = "+1 enemy wired into the circuit and 15% more shock", Name = "Static Shock", FireInterval = Game.StaticTick,
+            new WeaponDef { Id = WeaponId.StaticShock, BotAlt = StaticShockBotAlt, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 3, Damage = 24f, Reach = Game.StaticRange, BotRange = 190f, ExtraDesc = "+1 enemy wired into the circuit and 15% more shock", Name = "Static Shock", FireInterval = Game.StaticTick,
                 Desc = "Primary Fire: Hold for a short cone of static that wires enemies into one circuit and shocks them, harder the longer they stay. Teammates it touches get Overcharge: faster movement and shots for 10 s.\n\nAlternative Fire: Arc Cannon: a giant ball of lightning rolls through everyone to your cursor and bursts into a stunning shock.",
                 Sound = Sfx.SpellZap, AreaDesc = "the cone and the Arc Cannon's burst 25% bigger" },
             // DPS
             new WeaponDef { Id = WeaponId.Fireball, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 0, Speed = 430f, Life = 1.4f, Damage = 32f, BotRange = 390f, ExtraDesc = "+1 fireball, fanned out", Name = "Fireball", FireInterval = 0.5f,
                 Desc = "Primary Fire: A big, slow fireball that rolls through enemies and sets them burning.",
                 Sound = Sfx.ShotFireball },
-            new WeaponDef { Id = WeaponId.ArcLightning, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 1, Damage = 16f, BotRange = 320f, ExtraDesc = "+25% damage", Name = "Arc Lightning", FireInterval = 0.25f,
+            new WeaponDef { Id = WeaponId.ArcLightning, BotAlt = ArcLightningBotAlt, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 1, Damage = 16f, BotRange = 320f, ExtraDesc = "+25% damage", Name = "Arc Lightning", FireInterval = 0.25f,
                 Desc = "Primary Fire: Hold to tag up to 10 enemies, let go to chain lightning through them and stun.\n\nAlternative Fire: Three forked bolts at the enemies nearest your cursor.",
                 Sound = Sfx.SpellZap, AreaDesc = "the tagging cone 25% wider", BarrageDesc = "+2 tags a stack (up to 16), and the chain grows with them" },
             new WeaponDef { Id = WeaponId.IceShards, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 2, Speed = 520f, Life = 1f, Damage = 7f, ExtraDesc = "+1 shard a cast, +2 in orbit, and faster launches", Name = "Ice Shards", FireInterval = 0.3f,
                 Desc = "Primary Fire: Ice shards orbit you, then launch homing at nearby enemies.",
                 Sound = Sfx.SpellArcane },
-            new WeaponDef { Id = WeaponId.Stonespear, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 3, Speed = 900f, Life = 0.6f, Damage = 24f, BotRange = 420f, ExtraDesc = "+1 spear a side, and each click throws one more", Name = "Stonespear", FireInterval = 0.18f,
+            new WeaponDef { Id = WeaponId.Stonespear, BotAlt = StonespearBotAlt, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 3, Speed = 900f, Life = 0.6f, Damage = 24f, BotRange = 420f, ExtraDesc = "+1 spear a side, and each click throws one more", Name = "Stonespear", FireInterval = 0.18f,
                 Desc = "Primary Fire: Slam the ground, then throw the earth spears that rise from it, one per click.\n\nAlternative Fire: Hurl every spear at once.",
                 Sound = Sfx.None, BarrageDesc = "each throw also flings a fanned copy of the spear (60% damage) that uses none up" },
             // The Flamethrower's variants (Variants.cs; ElementGuns.cs)
@@ -159,7 +159,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Flood, Kit = Kit.Elementalist, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (Flood.cs)
-                Name = "Flood", Cooldown = FloodCooldown, Desc = "Flood the ground around you: it throws enemies back, slows them and soaks them.",
+                Name = "Flood", Icon = "flood", Cooldown = FloodCooldown, Desc = "Flood the ground around you: it throws enemies back, slows them and soaks them.",
                 Capstone = "Deluge: the flood is 30% wider and lasts 9 s.",
                 Bot = b => b.NearEnemies >= 3 || b.Danger && b.HaveTarget && b.TargetD < 260f,
             },
@@ -187,7 +187,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.WaterWard, Kit = Kit.Elementalist, Role = Role.Healer, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (WaterWard.cs)
-                Name = "Water Ward", Cooldown = WwCooldown,
+                Name = "Water Ward", Icon = "waterward", Cooldown = WwCooldown,
                 Desc = "Water drops orbit you and splash enemies and eat shots.",
                 Capstone = "Splashes and bursts reach 40% farther.",
                 Bot = b => b.HaveTarget && b.TargetD < 300f || b.Danger,

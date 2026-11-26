@@ -102,5 +102,14 @@ namespace Arena
                     PayHealth(p, Math.Min(room / p.Stats.HealthCostMult, p.MaxHp * BoilDrain * dt), "Blood Boil");
             }
         }
+
+        // --- Network: the player's Blood Boil fields (SyncPlayer) ---
+
+        void SyncBloodBoil(NetSync s, Player p)
+        {
+            s.Float(ref p.BoilT);  // Blood Boil
+            if (p.BoilT > 0f)
+                s.Float(ref p.BoilLen);
+        }
     }
 }

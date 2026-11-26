@@ -92,7 +92,7 @@ namespace Arena
                 V2 at = ToUi(c.Pos + new V2(0f, -(Game.ChestH / 2f + 30f))) + new V2(0f, -16f + bob);  // (over the lid and its glow, at any zoom)
                 if (at.X < -80f || at.X > W + 80f || at.Y < -30f || at.Y > H + 30f)
                     continue;
-                var ink = vec ? new Color(0.3f, 0.88f, 1f) : new Color(1f, 0.82f, 0.3f);
+                var ink = vec ? new Color(0.3f, 0.88f, 1f) : CrtStyle.Gold;
                 string text = "+" + n + (vec ? " VECTORS" : " GOLD");
                 float tw = Ui.TextWidth(text, 14, true) + 30f;
                 var r = new Rect(at.X - tw / 2f, at.Y - 12f, tw, 24f);

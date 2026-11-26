@@ -59,7 +59,7 @@ namespace Arena
             float a = Mathf.Clamp01(Mathf.Min(age / 0.3f, (5f - age) / 0.6f));
             var box = new Rect(W / 2f - 190f, 96f, 380f, 54f);
             Ui.Pill(box, new Color(0f, 0f, 0f, 0.55f * a));
-            Ui.Label(new Rect(box.x, box.y + 6f, box.width, 18f), "NEW ENEMIES", 12, new Color(1f, 0.8f, 0.35f, a), TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(box.x, box.y + 6f, box.width, 18f), "NEW ENEMIES", 12, CrtStyle.Gold.WithAlpha(a), TextAnchor.MiddleCenter, true);
             Ui.Label(new Rect(box.x, box.y + 24f, box.width, 24f), SurvFactionName(f) + " JOINS THE FIGHT", 15, new Color(1f, 1f, 1f, a), TextAnchor.MiddleCenter, true);
         }
 

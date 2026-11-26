@@ -685,29 +685,29 @@ namespace Arena
             // Tank
             new WeaponDef { Id = WeaponId.Warhammer, Kit = Kit.Knight, Role = Role.Tank, Choice = 0, Damage = 80f, Reach = 130f, Grow = 40f, Melee = true, ExtraDesc = "+1 aftershock: another slam 0.2 s later, 40 px further out, at 60% damage", Name = "Warhammer", FireInterval = 0.75f,
                 Desc = "Primary Fire: Hold to charge, let go to slam the ground: longer charges hit harder and stun longer." },
-            new WeaponDef { Id = WeaponId.Lance, Kit = Kit.Knight, Role = Role.Tank, Choice = 1, Damage = 14f, Reach = 178f, Grow = 30f, Melee = true, ExtraDesc = "The Breaching Thrust: +30 px reach, 24 px wider and +60 px knockback", Name = "Lance", FireInterval = 0.24f,
+            new WeaponDef { Id = WeaponId.Lance, BotAlt = LanceBotAlt, Kit = Kit.Knight, Role = Role.Tank, Choice = 1, Damage = 14f, Reach = 178f, Grow = 30f, Melee = true, ExtraDesc = "The Breaching Thrust: +30 px reach, 24 px wider and +60 px knockback", Name = "Lance", FireInterval = 0.24f,
                 Desc = "Primary Fire: A four-step lance combo that ends in a thrust that shoves and stuns.\n\nAlternative Fire: Hook the nearest enemy and haul it in." },
-            new WeaponDef { Id = WeaponId.Halberd, Kit = Kit.Knight, Role = Role.Tank, Choice = 2, Damage = 30f, Reach = 200f, Grow = 30f, Melee = true, ExtraDesc = "+30 px reach and +10% damage on every step and poke", Name = "Halberd", FireInterval = 0.6f,
+            new WeaponDef { Id = WeaponId.Halberd, BotAlt = HalberdBotAlt, BotAltHold = true, Kit = Kit.Knight, Role = Role.Tank, Choice = 2, Damage = 30f, Reach = 200f, Grow = 30f, Melee = true, ExtraDesc = "+30 px reach and +10% damage on every step and poke", Name = "Halberd", FireInterval = 0.6f,
                 Desc = "Primary Fire: A long, thin sweep that hits each enemy once." },
-            new WeaponDef { Id = WeaponId.BulwarkBarrier, Kit = Kit.Knight, Role = Role.Tank, Choice = 3, Damage = 12f, Reach = 80f, Grow = 15f, Melee = true, ExtraDesc = "+15 px reach and +10% damage on the chain, and +20% Shield Bash damage", Name = "Bulwark Barrier", FireInterval = 0.3f,
+            new WeaponDef { Id = WeaponId.BulwarkBarrier, BotAlt = BulwarkBarrierBotAlt, BotAltHold = true, Kit = Kit.Knight, Role = Role.Tank, Choice = 3, Damage = 12f, Reach = 80f, Grow = 15f, Melee = true, ExtraDesc = "+15 px reach and +10% damage on the chain, and +20% Shield Bash damage", Name = "Bulwark Barrier", FireInterval = 0.3f,
                 Desc = "Primary Fire: A shield that stops every shot at your front, plus a three-hit combo that ends in a stun.\n\nAlternative Fire: Hold to brace, then bash with a dash." },
             // Healer
-            new WeaponDef { Id = WeaponId.Quarterstaff, Kit = Kit.Knight, Role = Role.Healer, Choice = 0, Damage = 18f, Reach = 120f, Melee = true, ExtraDesc = "+1 Jab stack limit (3 to start)", Name = "Quarterstaff", FireInterval = 0.5f,
+            new WeaponDef { Id = WeaponId.Quarterstaff, BotAlt = QuarterstaffBotAlt, BotAltHold = true, Kit = Kit.Knight, Role = Role.Healer, Choice = 0, Damage = 18f, Reach = 120f, Melee = true, ExtraDesc = "+1 Jab stack limit (3 to start)", Name = "Quarterstaff", FireInterval = 0.5f,
                 Desc = "Primary Fire: Staff swipes that knock enemies and bullets back, and heal you and allies.\n\nAlternative Fire: Spend a Jab stack on a cone jab." },
-            new WeaponDef { Id = WeaponId.Lightbringer, Kit = Kit.Knight, Role = Role.Healer, Choice = 1, Damage = 17f, Reach = 80f, Melee = true, ExtraDesc = "+1 crescent of light on Dawn and Mercy, fanned out, and +30 px on the Sunburst", Name = "Lightbringer", FireInterval = 0.5f,
+            new WeaponDef { Id = WeaponId.Lightbringer, BotAlt = LightbringerBotAlt, Kit = Kit.Knight, Role = Role.Healer, Choice = 1, Damage = 17f, Reach = 80f, Melee = true, ExtraDesc = "+1 crescent of light on Dawn and Mercy, fanned out, and +30 px on the Sunburst", Name = "Lightbringer", FireInterval = 0.5f,
                 Desc = "Primary Fire: A three-step sword combo that heals allies it passes and ends in a healing ring.\n\nAlternative Fire: Fire a Sunlance that heals the ally nearest your cursor." },
-            new WeaponDef { Id = WeaponId.Censer, Kit = Kit.Knight, Role = Role.Healer, Choice = 2, Damage = 13f, Reach = 85f, Grow = 15f, Melee = true, ExtraDesc = "+15 px reach, +1 HP on every heal and +1 Ember", Name = "Censer", FireInterval = 0.26f,
+            new WeaponDef { Id = WeaponId.Censer, BotAlt = CenserBotAlt, Kit = Kit.Knight, Role = Role.Healer, Choice = 2, Damage = 13f, Reach = 85f, Grow = 15f, Melee = true, ExtraDesc = "+15 px reach, +1 HP on every heal and +1 Ember", Name = "Censer", FireInterval = 0.26f,
                 Desc = "Primary Fire: A three-step censer swing that heals allies and leaves incense that makes enemy shots stray.\n\nAlternative Fire: Throw the censer to your cursor for a burst and a big healing cloud." },
             new WeaponDef { Id = WeaponId.Vowguard, Kit = Kit.Knight, Role = Role.Healer, Choice = 3, Damage = 16f, Reach = 115f, Melee = true, BotRange = 100f, ExtraDesc = "+15% damage and healing on every step", Name = "Vowguard", FireInterval = 0.3f,
                 Desc = "Primary Fire: A sword and shield with two stances and chains you build in the lobby.\n\nAlternative Fire: Switch stance." },
             // DPS
-            new WeaponDef { Id = WeaponId.TwinBlades, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Damage = 16f, Reach = 90f, Melee = true, ExtraDesc = "+1 crescent: the Pirouette and the Crescent Shear each launch one more wave, fanned out", Name = "Twin Blades", FireInterval = 0.18f,
+            new WeaponDef { Id = WeaponId.TwinBlades, BotAlt = TwinFangBotAlt, Kit = Kit.Knight, Role = Role.Dps, Choice = 0, Damage = 16f, Reach = 90f, Melee = true, ExtraDesc = "+1 crescent: the Pirouette and the Crescent Shear each launch one more wave, fanned out", Name = "Twin Blades", FireInterval = 0.18f,
                 Desc = "Primary Fire: A five-step sabre combo that carries you forward and ends in a crescent wave.\n\nAlternative Fire: Hurl both sabres to cross at your cursor and fly back." },
-            new WeaponDef { Id = WeaponId.Greatsword, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Damage = 40f, Reach = 125f, Melee = true, ExtraDesc = "+1 sword wave: Eclipse launches a piercing crescent", Name = "Greatsword", FireInterval = 0.5f,
+            new WeaponDef { Id = WeaponId.Greatsword, BotAlt = TwinFangBotAlt, Kit = Kit.Knight, Role = Role.Dps, Choice = 1, Damage = 40f, Reach = 125f, Melee = true, ExtraDesc = "+1 sword wave: Eclipse launches a piercing crescent", Name = "Greatsword", FireInterval = 0.5f,
                 Desc = "Primary Fire: A ten-step sword combo that drags in, stuns, leaps and ends in a golden lance.\n\nAlternative Fire: Throw the sword spinning to your cursor and back." },
-            new WeaponDef { Id = WeaponId.Rapier, Kit = Kit.Knight, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 130f, Melee = true, ExtraDesc = "Skewers 1 more enemy behind the first", Name = "Rapier", FireInterval = 0.48f,  // the first thrust; Tempo makes them quicker (Rapier.cs)
+            new WeaponDef { Id = WeaponId.Rapier, BotAlt = RapierBotAlt, Kit = Kit.Knight, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 130f, Melee = true, ExtraDesc = "Skewers 1 more enemy behind the first", Name = "Rapier", FireInterval = 0.48f,  // the first thrust; Tempo makes them quicker (Rapier.cs)
                 Desc = "Primary Fire: Fast thrusts at the nearest enemy that skewer bullets and build Tempo.\n\nAlternative Fire: Spend Tempo on a Flourish: a whipping blade that throws crescent waves." },
-            new WeaponDef { Id = WeaponId.ArcKnuckles, Kit = Kit.Knight, Role = Role.Dps, Choice = 3, Damage = 22f, Reach = 80f, Melee = true, ExtraDesc = "+1 aftershock: the Quake Punch and the Counter Hammer slam again 0.2 s later, 40 px wider (60% damage)", Name = "Arc Knuckles", FireInterval = 0.24f,
+            new WeaponDef { Id = WeaponId.ArcKnuckles, BotAlt = ArcKnucklesBotAlt, Kit = Kit.Knight, Role = Role.Dps, Choice = 3, Damage = 22f, Reach = 80f, Melee = true, ExtraDesc = "+1 aftershock: the Quake Punch and the Counter Hammer slam again 0.2 s later, 40 px wider (60% damage)", Name = "Arc Knuckles", FireInterval = 0.24f,
                 Desc = "Primary Fire: Brawl stance: a Pull Punch opens a click wheel; click its sides to send punches and dashes that way, then pin, barrage and quake.\n\nAlternative Fire: Swap to the Rocket stance: Rocket Dash, Flurry, Grab & Throw, Rocket Punch, one click each." },
         };
 
@@ -1084,6 +1084,15 @@ namespace Arena
             }
             else
                 p.WallPlate[plate] = (byte)Math.Max(1, (int)Math.Ceiling(255f * p.WallPlateHp[plate] / p.WallPlateMax));
+        }
+
+        // --- Network: the player's Knight fields (SyncPlayer) ---
+
+        void SyncKnight(NetSync s, Player p)
+        {
+            for (int k = 0; k < Player.WallPlates; k++)
+                s.Byte(ref p.WallPlate[k]);
+            s.Float(ref p.UnbreakT);
         }
     }
 }

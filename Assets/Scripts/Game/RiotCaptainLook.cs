@@ -4,7 +4,7 @@ namespace Arena
 {
     public partial class ArenaApp
     {
-        static readonly Rgba CaptainNavy = new Rgba(0.13f, 0.17f, 0.32f), CaptainSteel = new Rgba(0.62f, 0.74f, 0.98f), CaptainGold = new Rgba(1f, 0.8f, 0.35f);
+        static readonly Rgba CaptainNavy = new Rgba(0.13f, 0.17f, 0.32f), CaptainSteel = new Rgba(0.62f, 0.74f, 0.98f), CaptainGold = Rgba.Gold;
 
         /// The Riot Captain (RiotCaptain.cs): a heavy officer in navy with gold epaulettes and a peaked cap, behind a curved tower
         /// shield. Winding up a charge: its lane on the floor and the shield flashing; charging: after-images; dazed: the shield

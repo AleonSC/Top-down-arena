@@ -145,7 +145,7 @@ namespace Arena
             V2 dir = V2.FromAngle(p.Aim);
             game.RailLine(p.Disp + dir * (p.Def.BodyR + 14f), dir, Game.RailBounces(c, game.ExtraShots(p)), railPts);
             float half = Game.RailWidth(c) * p.Stats.ShotSizeMult * 0.5f;
-            var col = perfect ? new Rgba(1f, 0.8f, 0.35f) : new Rgba(0.55f, 0.91f, 1f);
+            var col = perfect ? Rgba.Gold : new Rgba(0.55f, 0.91f, 1f);
             for (int i = 0; i + 1 < railPts.Count; i++)
             {
                 V2 a = railPts[i], b = railPts[i + 1], d = b - a;

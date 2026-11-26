@@ -99,7 +99,7 @@ namespace Arena
         float BiteDamage => 13f;  // the difficulty's per-wave damage growth scales it (Difficulty.cs)
 
         /// Is `from` inside the Maw, the 90-degree cone its mouth faces?
-        public static bool InMaw(Enemy e, V2 from) => Math.Abs(MathX.WrapPi((from - e.Pos).Angle - e.Facing)) < MawHalf;
+        public static bool InMaw(Enemy e, V2 from) => MathX.AngleWithin((from - e.Pos).Angle, e.Facing, MawHalf);
 
         static Rgba DevourColor(DevourStage stage) => stage == DevourStage.Gorging ? new Rgba(0.78f, 0.88f, 0.35f)
             : stage == DevourStage.Ravenous ? new Rgba(1f, 0.24f, 0.37f) : stage == DevourStage.LastStand ? new Rgba(1f, 0.16f, 0.29f) : new Rgba(1f, 0.35f, 0.48f);
@@ -364,15 +364,14 @@ namespace Arena
             s.Lunging = false;
             foreach (var p in Players.Values)
                 if (Hittable(p) && p.SwallowT <= 0f && p.Pos.CloserThan(e.Pos, e.Radius + BiteReach + p.Def.HitR)
-                    && Math.Abs(MathX.WrapPi((p.Pos - e.Pos).Angle - s.LungeAng)) < MathX.Pi / 2f + 0.2f)
+                    && MathX.AngleWithin((p.Pos - e.Pos).Angle, s.LungeAng, MathX.Pi / 2f + 0.2f))
                 {
                     Damage(p, BiteDamage, "The Devourer (bite)");
                     RodTouched(p, e);  // LightningRod.cs
                 }
             BroadcastFx(FxKind.Ring, e.Pos + dir * e.Radius, new Rgba(1f, 0.55f, 0.63f), BiteReach, 0.3f, Sfx.BossChomp);
             if (s.LungeRing)
-                for (int i = 0; i < 12; i++)
-                    EnemyShot(e, s.LungeAng + MathX.Tau * i / 12f, 170f, Defs.SmallShot);
+                EnemyRing(e, 12, s.LungeAng, 170f, Defs.SmallShot);
         }
 
         /// Host: underground, a ripple chases its target, stops, flashes, then it erupts.
@@ -399,8 +398,7 @@ namespace Arena
                 if (Hittable(p) && p.SwallowT <= 0f && p.Pos.CloserThan(e.Pos, EruptRadius + p.Def.HitR))
                     Damage(p, BiteDamage, "The Devourer (eruption)");
             float off = RandAngle();
-            for (int i = 0; i < 16; i++)
-                EnemyShot(e, off + MathX.Tau * i / 16f, 170f, Defs.SmallShot);
+            EnemyRing(e, 16, off, 170f, Defs.SmallShot);
             BroadcastFx(FxKind.Boom, e.Pos, new Rgba(0.85f, 0.64f, 0.35f), EruptRadius + 20f, 0.45f, Sfx.BossSlam);  // it erupts
         }
 
@@ -526,8 +524,7 @@ namespace Arena
             p.InvulnT = Math.Max(p.InvulnT, 1f);
             V2 dir = V2.FromAngle(e.Facing);
             MovePlayer(p, ClampToArena(e.Pos + dir * (e.Radius + 170f), p.Def.BodyR + 4f));
-            for (int i = 0; i < 12; i++)
-                EnemyShot(e, e.Facing + MathX.Tau * i / 12f, 170f, Defs.SmallShot);
+            EnemyRing(e, 12, e.Facing, 170f, Defs.SmallShot);
             BroadcastFx(FxKind.Ring, p.Pos, DevourColor(DevourStage.Gorging), 60f, 0.4f, Sfx.BossSplat);
             DoLog(p.Name + " was spat out by the Devourer");
         }

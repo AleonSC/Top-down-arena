@@ -16,7 +16,7 @@ namespace Arena
     public partial class ArenaApp
     {
         static readonly Rgba ClayPlate = new Rgba(0.36f, 0.47f, 0.3f), ClayEdge = new Rgba(0.62f, 0.76f, 0.54f), ClayLeg = new Rgba(0.1f, 0.12f, 0.1f),
-            ClayRed = new Rgba(1f, 0.25f, 0.25f), ClayWash = new Rgba(1f, 0.48f, 0.3f), ClayGold = new Rgba(1f, 0.8f, 0.35f),
+            ClayRed = new Rgba(1f, 0.25f, 0.25f), ClayWash = new Rgba(1f, 0.48f, 0.3f), ClayGold = Rgba.Gold,
             ClayHot = new Rgba(1f, 0.95f, 0.8f), ClayBall = new Rgba(0.85f, 0.88f, 0.95f);
 
         /// Under the enemies (WorldEnemies.cs): the cone and the mine.

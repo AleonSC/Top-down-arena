@@ -183,5 +183,14 @@ namespace Arena
                 p.VortexSwept++;
             }
         }
+
+        // --- Network: the player's Vortex fields (SyncPlayer) ---
+
+        void SyncVortex(NetSync s, Player p)
+        {
+            s.Float(ref p.VortexT);  // Vortex
+            s.Float(ref p.VortexAge);
+            s.Float(ref p.VortexR);
+        }
     }
 }

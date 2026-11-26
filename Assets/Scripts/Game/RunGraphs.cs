@@ -20,7 +20,7 @@ namespace Arena
         const int RecentCards = 4;
         const int TrendRuns = 12;
 
-        static readonly Rgba GGold = new Rgba(1f, 0.8f, 0.35f), GCyan = new Rgba(0.35f, 0.82f, 0.95f), GGreen = new Rgba(0.37f, 0.85f, 0.54f),
+        static readonly Rgba GGold = Rgba.Gold, GCyan = new Rgba(0.35f, 0.82f, 0.95f), GGreen = new Rgba(0.37f, 0.85f, 0.54f),
             GRed = new Rgba(1f, 0.36f, 0.42f), GPurple = new Rgba(0.69f, 0.55f, 1f);
         static readonly Rgba[] GPlayers = { GGold, GCyan, GPurple, GGreen };
         static readonly Color GridLine = new Color(1f, 1f, 1f, 0.08f);
@@ -94,7 +94,7 @@ namespace Arena
                 var l = runs[ri];
                 bool on = ri == recentSel, won = RunWon(l);
                 var r = new Rect(x + arrow + 8f + i * (cw + 8f), sy, cw, 66f);
-                Ui.Pill(r, on ? new Color(1f, 0.8f, 0.35f, 0.16f) : new Color(1f, 1f, 1f, r.Contains(Event.current.mousePosition) ? 0.07f : 0.04f));
+                Ui.Pill(r, on ? CrtStyle.Gold.WithAlpha(0.16f) : new Color(1f, 1f, 1f, r.Contains(Event.current.mousePosition) ? 0.07f : 0.04f));
                 if (on)
                     Ui.Fill(new Rect(r.x, r.yMax - 3f, r.width, 3f), CrtStyle.Gold);
                 Ui.Label(new Rect(r.x + 10f, r.y + 4f, r.width - 20f, 20f), RunTitle(l), 14, on ? CrtStyle.Gold : Color.white, TextAnchor.MiddleLeft, true);

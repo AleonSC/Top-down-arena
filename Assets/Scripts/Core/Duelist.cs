@@ -95,7 +95,7 @@ namespace Arena
 
         /// Its raised blade stops shots (and swings) from in front of it.
         bool DuelGuardBlocks(Enemy e, V2 from) =>
-            DuelGuarding(e) && Math.Abs(MathX.WrapPi((from - e.Pos).Angle - e.Facing)) < GuardHalfArc;
+            DuelGuarding(e) && MathX.AngleWithin((from - e.Pos).Angle, e.Facing, GuardHalfArc);
 
         static float[] DuelMoves(DuelTurn t)
         {
@@ -309,7 +309,7 @@ namespace Arena
         void StartSalute(Enemy e, DuelState s, float tell)
         {
             s.SaluteT = tell;
-            BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.8f, 0.35f), 70f, tell, Sfx.BossGong);  // the salute
+            BroadcastFx(FxKind.Ring, e.Pos, Rgba.Gold, 70f, tell, Sfx.BossGong);  // the salute
         }
 
         void StartDash(Enemy e, DuelState s, DuelDash kind, float ang, float len, float warn)
@@ -365,7 +365,7 @@ namespace Arena
                         s.StaggerT = StaggerTime;
                         s.Dash = DuelDash.None;
                         s.Connected = true;
-                        BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.8f, 0.35f), 90f, 0.4f, Sfx.Clang);
+                        BroadcastFx(FxKind.Ring, p.Pos, Rgba.Gold, 90f, 0.4f, Sfx.Clang);
                         DoLog(p.Name + " parried the " + (e.Type == EnemyType.Gallant ? "Gallant's" : "Duelist's") + " salute");
                         return;
                     }
@@ -508,8 +508,7 @@ namespace Arena
 
         void DecoyRing(Enemy d, int n, float speed)
         {
-            for (int i = 0; i < n; i++)
-                EnemyShot(d, MathX.Tau * i / n, speed, Defs.SmallShot);
+            EnemyRing(d, n, 0f, speed, Defs.SmallShot);
             BroadcastFx(FxKind.Ring, d.Pos, new Rgba(0.71f, 0.61f, 1f), 50f, 0.3f, Sfx.Blink);
         }
 
@@ -562,8 +561,7 @@ namespace Arena
                 case DuelTurn.Flourish:  // a three-armed spiral of blades
                     e.FireT = 0.12f;
                     e.Ang += 0.25f;
-                    for (int k = 0; k < 3; k++)
-                        EnemyShot(e, e.Ang + MathX.Tau * k / 3f, 150f, Defs.SmallShot);
+                    EnemyRing(e, 3, e.Ang, 150f, Defs.SmallShot);
                     break;
                 default:  // the rest are timed moves (DuelistSpecial)
                     e.FireT = 0.2f;

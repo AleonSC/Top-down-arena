@@ -23,13 +23,13 @@ namespace Arena
             new WeaponDef { Id = WeaponId.GolemStaff, Kit = Kit.Summoner, Role = Role.Tank, Choice = 0, Damage = 40f, BotRange = 380f, ExtraDesc = "+1 Golem (up to 3)", Name = "Golem Staff", FireInterval = 0.5f, Desc = "Primary Fire: Hold to heave a boulder that crushes where it lands; a stone Golem fights beside you.",
                 Companion = MinionKind.Golem, CompanionCount = 1,
                 AreaDesc = "the boulder crushes 25% wider" },
-            new WeaponDef { Id = WeaponId.BoneGuard, Kit = Kit.Summoner, Role = Role.Tank, Choice = 1, Speed = 720f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 Skeleton Guard", Name = "Bone Guard", FireInterval = 0.3f,
+            new WeaponDef { Id = WeaponId.BoneGuard, BotAlt = BoneGuardBotAlt, Kit = Kit.Summoner, Role = Role.Tank, Choice = 1, Speed = 720f, Life = 0.8f, Damage = 7f, ExtraDesc = "+1 Skeleton Guard", Name = "Bone Guard", FireInterval = 0.3f,
                 Desc = "Primary Fire: Bone darts that cage enemies; skeleton guards block bullets and shoot caged enemies.\n\nAlternative Fire: Raise an Ossuary Wall.",
                 Companion = MinionKind.Guard, CompanionCount = 2 },
             new WeaponDef { Id = WeaponId.BearTotem, Kit = Kit.Summoner, Role = Role.Tank, Choice = 2, Damage = 11f, Reach = 85f, Grow = 15f, Melee = true, ExtraDesc = "+15 px reach, 25% more bleed, and your Bear's bites hit enemies around its target", Name = "Bear Totem", FireInterval = 0.45f,
                 Desc = "Primary Fire: Quick claw swipes that make enemies bleed; a Bear mauls nearby enemies.",
                 Companion = MinionKind.Bear, CompanionCount = 1 },
-            new WeaponDef { Id = WeaponId.WyvernStaff, Kit = Kit.Summoner, Role = Role.Tank, Choice = 3, Damage = 22f, BotRange = 300f, ExtraDesc = "+25% breath damage, and a 10% bigger gale and slam", Name = "Wyvern Staff", FireInterval = 0.1f,
+            new WeaponDef { Id = WeaponId.WyvernStaff, BotAlt = WyvernStaffBotAlt, Kit = Kit.Summoner, Role = Role.Tank, Choice = 3, Damage = 22f, BotRange = 300f, ExtraDesc = "+25% breath damage, and a 10% bigger gale and slam", Name = "Wyvern Staff", FireInterval = 0.1f,
                 Desc = "Primary Fire: A Wyvern slows and shoves enemies under it; hold to make it breathe fire.\n\nAlternative Fire: Wyrm Slam: a stunning dive.",
                 Companion = MinionKind.Wyvern, CompanionCount = 1,
                 Sound = Sfx.SpellFire, AreaDesc = "the gale and the slam are 15% wider" },
@@ -44,7 +44,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.SpiritChalk, Kit = Kit.Summoner, Role = Role.Healer, Choice = 2, Damage = 26f, Reach = 450f, BotRange = 300f, ExtraDesc = "+20% ink, so a longer line before the start rubs out", Name = "Spirit Chalk", FireInterval = 0.1f,
                 Desc = "Primary Fire: Hold and drag to draw ink that burns enemies and heals allies; circle enemies to trap them.\n\nAlternative Fire: Ignite your loops to burn what they hold.",
                 Sound = Sfx.None, AreaDesc = "the line is 25% wider" },
-            new WeaponDef { Id = WeaponId.HiveCenser, Kit = Kit.Summoner, Role = Role.Healer, Choice = 3, Damage = 18f, Reach = Game.HiveReach, BotRange = 380f, ExtraDesc = "+1 swarm and 20% more insects", Name = "Hive Censer", FireInterval = 0.1f,
+            new WeaponDef { Id = WeaponId.HiveCenser, BotAlt = HiveCenserBotAlt, Kit = Kit.Summoner, Role = Role.Healer, Choice = 3, Damage = 18f, Reach = Game.HiveReach, BotRange = 380f, ExtraDesc = "+1 swarm and 20% more insects", Name = "Hive Censer", FireInterval = 0.1f,
                 Desc = "Primary Fire: Hold to pour insects from your cursor. They gather into swarms that wrap enemies (damage and slow) and shell allies in chitin, a barrier that wears off and is topped up near a swarm.\n\nAlternative Fire: Hive Call: every swarm rushes to your cursor.",
                 Sound = Sfx.None },
             // DPS
@@ -59,7 +59,7 @@ namespace Arena
                 Desc = "Primary Fire: Imps wait by you: tap to send one to explode at your cursor.\n\nAlternative Fire: Hold to merge them into one big imp.",
                 Companion = MinionKind.Imp, CompanionCount = 5, CompanionRespawn = 1f,
                 HomingDesc = "imps pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack" },
-            new WeaponDef { Id = WeaponId.HoneybeeStaff, Kit = Kit.Summoner, Role = Role.Dps, Choice = 3, Damage = 22f, BotRange = 360f, ExtraDesc = "+1 bee a click, and 2 more can be out", Name = "Honeybee Staff", FireInterval = 0.4f,
+            new WeaponDef { Id = WeaponId.HoneybeeStaff, BotAlt = HoneybeeStaffBotAlt, BotAltHold = true, Kit = Kit.Summoner, Role = Role.Dps, Choice = 3, Damage = 22f, BotRange = 360f, ExtraDesc = "+1 bee a click, and 2 more can be out", Name = "Honeybee Staff", FireInterval = 0.4f,
                 Desc = "Primary Fire: Click to hatch a bee that stings the nearest enemy; three stings in a row swarm it.\n\nAlternative Fire: Spray slowing honey; enemies that die in it burst into bees.",
                 HomingDesc = "bees look for enemies 25% farther out per stack",
                 BarrageDesc = "each click hatches one more bee (full damage)" },
@@ -147,7 +147,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Stampede, Kit = Kit.Summoner, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (Stampede.cs)
-                Name = "Stampede", Cooldown = StampedeCooldown, Desc = "A line of spirit beasts tramples everything ahead.",
+                Name = "Stampede", Icon = "stampede", Cooldown = StampedeCooldown, Desc = "A line of spirit beasts tramples everything ahead.",
                 Capstone = "9 beasts, and the herd turns and charges back.",
                 Bot = b => b.HaveTarget && b.TargetD < 380f,
             },
@@ -194,7 +194,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.LandShark, Kit = Kit.Summoner, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (LandShark.cs)
-                Name = "Land Shark", Cooldown = LandSharkCooldown, Desc = "A puddle opens at your cursor and a shark leaps out, biting everything in it.",
+                Name = "Land Shark", Icon = "landshark", Cooldown = LandSharkCooldown, Desc = "A puddle opens at your cursor and a shark leaps out, biting everything in it.",
                 Capstone = "A 30% wider puddle, and the bite hits for 160.",
                 Bot = b => b.HaveTarget && b.TargetD < LandSharkRange,
             },

@@ -280,8 +280,7 @@ namespace Arena
                 e.Disp = e.Pos;
                 BroadcastFx(FxKind.Ring, from, e.Def.Color, 30f, 0.3f, Sfx.None);
                 BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 40f, 0.3f, Sfx.Blink);
-                for (int i = 0; i < 8; i++)  // the blink ring: 8 at 115 (was 12 at 130)
-                    EnemyShot(e, MathX.Tau * i / 8f, 115f, Defs.SmallShot);
+                EnemyRing(e, 8, 0f, 115f, Defs.SmallShot);  // the blink ring: 8 at 115 (was 12 at 130)
             }
         }
 
@@ -291,8 +290,7 @@ namespace Arena
             e.PhaseT -= dt;
             if (e.PhaseT <= 0f)
             {
-                for (int i = 0; i < 16; i++)
-                    EnemyShot(e, MathX.Tau * i / 16f, 140f, Defs.SmallShot);
+                EnemyRing(e, 16, 0f, 140f, Defs.SmallShot);
                 e.Hp = 0f;  // pops; decoys give no score, XP or drops
             }
         }

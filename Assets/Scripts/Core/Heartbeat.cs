@@ -130,5 +130,12 @@ namespace Arena
                     EndHeartbeat(p);
             }
         }
+
+        // --- Network: the player's Heartbeat fields (SyncPlayer) ---
+
+        void SyncHeartbeat(NetSync s, Player p)
+        {
+            s.Float(ref p.HbT);
+        }
     }
 }

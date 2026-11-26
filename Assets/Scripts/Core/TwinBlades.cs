@@ -299,5 +299,31 @@ namespace Arena
             dashSpeed = d.Fwd / time;
             DashT = to.DistanceTo(me.Pos) / dashSpeed;
         }
+
+        // --- Network: the player's Twin Fang fields (SyncPlayer) ---
+
+        void SyncTwinFang(NetSync s, Player p)
+        {
+            s.Byte(ref p.FangOut);      // Twin Fang's spinning sabres and where they are
+            s.Vec(ref p.FangAt);
+        }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Twin Fang (Twin Blades) or the Moonwheel (Greatsword) at an enemy out of the chain's reach
+        static bool TwinFangBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            // The nearest enemy it can see 150-400 px off: thrown while closing in, or into a crowd.
+            Enemy far = null;
+            foreach (var en in g.Enemies.Values)
+            {
+                float d = en.Pos.DistanceTo(me.Pos);
+                if (!g.IsSpawning(en) && !SoulBound(en) && en.Hp > 0f && d >= 150f && d <= 400f && (far == null || d < far.Pos.DistanceTo(me.Pos)) && g.BotSees(me.Pos, en.Pos))
+                    far = en;
+            }
+            if (far == null || me.FangOut != 0 || g.TwinFangCd > 0f || !g.Tap(!v.InReach || g.EnemiesNear(me.Pos, 400f) >= 4, 1f))
+                return false;
+            aimAt = far.Pos;
+            return true;
+        }
     }
 }

@@ -5,7 +5,7 @@ namespace Arena
     /// The Arcanist's looks (Core/Arcanist.cs): violet telekinesis and gold runes. Over the model: the Kinetic Field's faint ring,
     /// Shard Guard, Kinetic Grasp's hold and Runic Array's sigils (KitLook.Body); its rune bolts and spectral blades (KitLook.Shot);
     /// the Orbit Shards and Dancing Blades (DrawMinion); the Grand Sigil, Sanctum Sigil and Telekinetic Crush (DrawZone); the held
-    /// stylus and casting glyphs (BuildHeldDraws). Preview: `ARCANIST=tank|healer|dps shot.sh x hud` (Tools/Preview/ShotArcanist.cs).
+    /// stylus and casting glyphs (WeaponLook.Held, WeaponLooks.cs). Preview: `ARCANIST=tank|healer|dps shot.sh x hud` (Tools/Preview/ShotArcanist.cs).
     public partial class ArenaApp
     {
         public static readonly Rgba ArcViolet = new Rgba(0.72f, 0.55f, 1f), ArcGold = new Rgba(1f, 0.85f, 0.45f), ArcInk = new Rgba(0.16f, 0.12f, 0.32f);

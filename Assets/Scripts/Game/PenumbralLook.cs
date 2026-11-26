@@ -18,7 +18,7 @@ namespace Arena
     ///   faint ring shows how far the nova will reach.
     public partial class ArenaApp
     {
-        static readonly Rgba PenGold = new Rgba(1f, 0.82f, 0.4f), PenOrange = new Rgba(1f, 0.54f, 0.24f), PenSun = new Rgba(1f, 0.95f, 0.8f),
+        static readonly Rgba PenGold = Rgba.Gold, PenOrange = new Rgba(1f, 0.54f, 0.24f), PenSun = new Rgba(1f, 0.95f, 0.8f),
             PenRed = new Rgba(1f, 0.31f, 0.23f), PenCloth = new Rgba(0.15f, 0.11f, 0.07f), PenTrim = new Rgba(0.55f, 0.42f, 0.24f);
 
         /// On the floor, under the enemies: a Heliograph's line.

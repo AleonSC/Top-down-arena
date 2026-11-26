@@ -19,7 +19,7 @@ namespace Arena
         static readonly Rgba CellFloor = new Rgba(0.075f, 0.1f, 0.13f), CellTile = new Rgba(0.11f, 0.14f, 0.18f);
         static readonly Rgba CellBar = new Rgba(0.5f, 0.57f, 0.64f), CellBarHi = new Rgba(0.78f, 0.84f, 0.9f), CellRail = new Rgba(0.28f, 0.33f, 0.4f);
         static readonly Rgba CellGapGlow = new Rgba(1f, 0.68f, 0.28f), PadlockCol = new Rgba(0.95f, 0.28f, 0.25f), NetCol = new Rgba(0.82f, 0.74f, 0.55f);
-        static readonly Color CellInk = new Color(1f, 0.8f, 0.35f);
+        static readonly Color CellInk = CrtStyle.Gold;
 
         bool camCell;  // your view is on the cell block (CameraZoom.cs)
 

@@ -152,7 +152,7 @@ namespace Arena
             float shift = ((n + 1) / 2) * 40f * (n % 2 == 1 ? 1f : -1f);
             var gad = SpawnGadget(kind, ClampToArena(p.Pos + fwd * 80f + side * shift, 14f), GadgetTime(kind));
             gad.Owner = id;
-            BroadcastFx(FxKind.Ring, gad.Pos, new Rgba(1f, 0.82f, 0.3f), 36f, 0.4f, Sfx.None);
+            BroadcastFx(FxKind.Ring, gad.Pos, Rgba.Gold, 36f, 0.4f, Sfx.None);
             DevUsed(p.Name + ": spawned a " + GadgetName(kind));
             SendSnapshot();
             return true;
@@ -170,7 +170,7 @@ namespace Arena
             for (int i = 0; i < 8 && ChestNear(at); i++)  // (several in a row: side by side, not stacked)
                 at = ClampToArena(at + new V2(-fwd.Y, fwd.X) * (ChestW + 16f), ChestW);
             var c = SpawnChest(at, kind, null, false);
-            BroadcastFx(FxKind.Ring, c.Pos, new Rgba(1f, 0.82f, 0.3f), 50f, 0.4f, Sfx.None);
+            BroadcastFx(FxKind.Ring, c.Pos, Rgba.Gold, 50f, 0.4f, Sfx.None);
             DevUsed(p.Name + ": spawned a " + kind + " chest");
             SendSnapshot();
             return true;
@@ -192,7 +192,7 @@ namespace Arena
                 left -= v;
                 AddCoin(id, v, vectors, at, 0f, 38f);
             }
-            BroadcastFx(FxKind.Ring, at, vectors ? new Rgba(0.3f, 0.88f, 1f) : new Rgba(1f, 0.82f, 0.3f), 46f, 0.4f, Sfx.None);
+            BroadcastFx(FxKind.Ring, at, vectors ? new Rgba(0.3f, 0.88f, 1f) : Rgba.Gold, 46f, 0.4f, Sfx.None);
             DevUsed(p.Name + ": spawned " + amount + (vectors ? " vectors" : " gold"));
             SendSnapshot();
             return true;
@@ -216,7 +216,7 @@ namespace Arena
             p.Relic = relic;
             Recalc(p);  // (a faction relic changes stats)
             if (relic != RelicId.None)
-                BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.82f, 0.3f), 90f, 0.5f, Sfx.Pick);
+                BroadcastFx(FxKind.Ring, p.Pos, Rgba.Gold, 90f, 0.5f, Sfx.Pick);
             DevUsed(p.Name + ": relic " + (relic == RelicId.None ? "removed" : "set to " + Relics.Name(relic)));
             SendSnapshot();
             return true;

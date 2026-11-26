@@ -20,7 +20,7 @@ namespace Arena
         public const float GlassTime = 6f, GlassFront = 110f, GlassHalfWidth = 110f, GlassHalfWidthMastered = 155f, GlassBand = 9f;
         public const float GlassCap = 120f, GlassSmallHeal = 4f, GlassBigHeal = 10f, GlassMasteredHeal = 1.5f, GlassReach = 400f, GlassMoteT = 0.45f;
         public const int GlassPanels = 7;
-        public static readonly Rgba GlassGold = new Rgba(1f, 0.82f, 0.4f), GlassHealColor = new Rgba(0.49f, 1f, 0.69f);
+        public static readonly Rgba GlassGold = Rgba.Gold, GlassHealColor = new Rgba(0.49f, 1f, 0.69f);
 
         /// The panes' colours, left to right across the glass (as the caster faces it): ruby, cobalt, amber, emerald, violet, ...
         public static readonly Rgba[] GlassColors =
@@ -131,6 +131,21 @@ namespace Arena
                 Player to, from;
                 if (Players.TryGetValue(m.Target, out to) && !to.Downed)
                     Heal(to, m.Amount, Players.TryGetValue(m.Caster, out from) ? from : null);
+            }
+        }
+
+        // --- Network: the player's Sanctum Glass fields (SyncPlayer) ---
+
+        void SyncSanctumGlass(NetSync s, Player p)
+        {
+            s.Float(ref p.GlassT);
+            if (p.GlassT > 0f)
+            {
+                s.Vec(ref p.GlassPos);
+                s.Float(ref p.GlassAim);
+                s.Bool(ref p.GlassWide);
+                s.Float(ref p.GlassHealed);
+                s.Float(ref p.GlassCap);
             }
         }
     }

@@ -698,5 +698,25 @@ namespace Arena
             }
             return id;
         }
+
+        // --- Network: the player's gadget slot and bag fields (SyncPlayer) ---
+
+        void SyncGadgetBag(NetSync s, Player p)
+        {
+            byte gadget = (byte)p.Gadget;  // Gadgets.cs
+            s.Byte(ref gadget);
+            p.Gadget = (GadgetId)gadget;
+            s.Float(ref p.GadgetLeft);
+            s.Bool(ref p.GadgetOn);
+            s.Byte(ref p.GadgetUses);
+            for (int i = 0; i < p.BagKind.Length; i++)  // the gadget bag
+            {
+                byte bk = (byte)p.BagKind[i];
+                s.Byte(ref bk);
+                p.BagKind[i] = (GadgetId)bk;
+                s.Float(ref p.BagLeft[i]);
+                s.Byte(ref p.BagUses[i]);
+            }
+        }
     }
 }

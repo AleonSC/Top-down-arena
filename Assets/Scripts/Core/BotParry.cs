@@ -134,7 +134,7 @@ namespace Arena
                 float vv = rv.LengthSq;
                 float t = vv < 1f ? -1f : -rel.Dot(rv) / vv;
                 if (t >= 0f && t <= BotParryLook && (rel + rv * t).Length <= hitR + b.Radius + 3f
-                    && Math.Abs(MathX.WrapPi(rel.Angle - from)) < arc)
+                    && MathX.AngleWithin(rel.Angle, from, arc))
                     hits++;
             }
             hits = Math.Max(hits, 1);

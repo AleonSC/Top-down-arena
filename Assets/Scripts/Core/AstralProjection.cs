@@ -26,7 +26,7 @@ namespace Arena
         public const float ApSwapCd = 0.4f;
         public const float ApBondTime = 2f, ApBondDmg = 0.25f;  // the Rare card Astral Bond, a stack
 
-        public static readonly Rgba ApSpirit = new Rgba(0.73f, 0.96f, 1f), ApViolet = new Rgba(0.71f, 0.55f, 1f), ApWard = new Rgba(1f, 0.8f, 0.35f), ApMend = new Rgba(0.44f, 0.89f, 0.6f);
+        public static readonly Rgba ApSpirit = new Rgba(0.73f, 0.96f, 1f), ApViolet = new Rgba(0.71f, 0.55f, 1f), ApWard = Rgba.Gold, ApMend = new Rgba(0.44f, 0.89f, 0.6f);
 
         /// Astral Projection's entry: key 1 of the Healer Ninja's Ultimate row. Upgrades.Abilities gathers it.
         internal static readonly AbilityDef[] AstralUltimates =
@@ -179,6 +179,19 @@ namespace Arena
             d = d.Length < 1f ? V2.FromAngle(p.Aim) : d.Normalized();
             SpawnBullet(Defs.AstralBolt, p.ApPos + d * 10f, d * ApBoltSpeed, 0f, ApBoltLife, ApDamage * p.Stats.DmgMult * p.Stats.ApDmgMult, p.Id);
             p.ApBolts++;
+        }
+
+        // --- Network: the player's Astral Projection fields (SyncPlayer) ---
+
+        void SyncAstralProjection(NetSync s, Player p)
+        {
+            s.Float(ref p.ApT);  // Astral Projection
+            if (p.ApT > 0f)
+            {
+                s.Int(ref p.ApHost);
+                s.Vec(ref p.ApPos);
+            }
+            s.Float(ref p.ApLinkT);
         }
     }
 }

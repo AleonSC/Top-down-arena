@@ -184,7 +184,7 @@ namespace Arena
                 WithAlpha(a, () =>
                 {
                     if (kind == 3)
-                        Ui.Pill(rr, new Color(1f, 0.8f, 0.35f, 0.12f));
+                        Ui.Pill(rr, CrtStyle.Gold.WithAlpha(0.12f));
                     else if (kind == 2)
                         Ui.Pill(rr, new Color(0.7f, 0.45f, 1f, 0.12f));
                     Ui.Label(new Rect(rr.x + 14f, rr.y, 230f, rr.height), row[0], kind == 3 ? 18 : 15, kind == 3 ? CrtStyle.Gold : kind == 1 ? Ui.Muted : Ui.Text, TextAnchor.MiddleLeft, true);

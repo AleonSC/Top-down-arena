@@ -60,7 +60,7 @@ namespace Arena
                 return;
             p.Debt = 0f;  // paid in full: a gold stamp, and the lifesteal stays a little longer
             p.DebtT += DebtPaidBonus;
-            BroadcastFx(FxKind.DebtSettle, p.Pos, new V2(p.Id, 1f), new Rgba(1f, 0.8f, 0.35f), p.DebtOwed, DebtPaidFx, Sfx.SpellHoly);
+            BroadcastFx(FxKind.DebtSettle, p.Pos, new V2(p.Id, 1f), Rgba.Gold, p.DebtOwed, DebtPaidFx, Sfx.SpellHoly);
         }
 
         /// Host, every tick: the window runs out; whatever is still owed is lost.
@@ -80,6 +80,15 @@ namespace Arena
                 BroadcastFx(FxKind.DebtSettle, p.Pos, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), p.Debt, DebtForfeitFx, Sfx.Hit);
             p.DebtT = 0f;
             p.Debt = 0f;
+        }
+
+        // --- Network: the player's Blood Debt fields (SyncPlayer) ---
+
+        void SyncBloodDebt(NetSync s, Player p)
+        {
+            s.Float(ref p.DebtT);   // Blood Debt: the window, what's owed and what the cast took
+            s.Float(ref p.Debt);
+            s.Float(ref p.DebtOwed);
         }
     }
 }

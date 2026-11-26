@@ -235,7 +235,7 @@ namespace Arena
             if (frac < 0.33f)
                 Line(c + new V2(R * 0.35f, -R * 0.1f), c + new V2(-R * 0.1f, R * 0.6f), 1.5f, new Rgba(0.1f, 0.05f, 0.15f, 0.9f));
             // Its health, as a ring round it.
-            var hpCol = frac > 0.5f ? new Rgba(0.4f, 1f, 0.6f) : frac > 0.25f ? new Rgba(1f, 0.82f, 0.3f) : new Rgba(1f, 0.35f, 0.4f);
+            var hpCol = frac > 0.5f ? new Rgba(0.4f, 1f, 0.6f) : frac > 0.25f ? Rgba.Gold : new Rgba(1f, 0.35f, 0.4f);
             Arc(at, R + 26f, 4f, new Rgba(1f, 1f, 1f, 0.12f), 48);
             Arc(at, R + 26f, 5f, hpCol, 48, -MathX.Pi / 2f, MathX.Tau * frac);
         }

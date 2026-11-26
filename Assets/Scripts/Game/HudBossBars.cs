@@ -101,12 +101,12 @@ namespace Arena
             }
             if (s.StaggerT > 0f)
             {
-                col = new Color(1f, 0.8f, 0.35f);
+                col = CrtStyle.Gold;
                 return "OPEN — it takes 50% more damage!";
             }
             if (s.SaluteT > 0f || s.Dash == DuelDash.Salute)
             {
-                col = new Color(1f, 0.8f, 0.35f);
+                col = CrtStyle.Gold;
                 return "SALUTE — perfect-parry the lunge to open it up";
             }
             if (s.Turn == DuelTurn.Guard)
@@ -357,7 +357,7 @@ namespace Arena
                 c = new Color(0.9f, 0.92f, 1f);
                 return "CAN'T BE HURT — " + QueenStageName(q.TransTo) + " is coming";
             }
-            c = q.Stage == QueenStage.Swarm ? new Color(1f, 0.82f, 0.3f) : q.Stage == QueenStage.Honeycomb ? new Color(1f, 0.65f, 0.15f) : new Color(1f, 0.45f, 0.3f);
+            c = q.Stage == QueenStage.Swarm ? CrtStyle.Gold : q.Stage == QueenStage.Honeycomb ? new Color(1f, 0.65f, 0.15f) : new Color(1f, 0.45f, 0.3f);
             if (e.Phase == 1)
                 return "SWARM — SHIELDED, kill her drones!";
             if (q.Turn == QueenTurn.Eggs)
@@ -390,7 +390,7 @@ namespace Arena
                 c = new Color(1f, 0.4f, 0.4f);
                 return "SUNDERED";
             }
-            c = new Color(1f, 0.8f, 0.35f);
+            c = CrtStyle.Gold;
             if (R.Trapped)
                 return R.ShieldFrac > 0f ? "TRAPPED — BREAK ITS SHIELD!" : "OPEN — HIT IT NOW!";
             if (R.Turn == ReaperTurn.Chase)
@@ -469,7 +469,7 @@ namespace Arena
                 else if (e.Type == EnemyType.Lich && e.Lich != null && e.Lich.Window > 0f)
                 {
                     note = "OPEN — " + Mathf.CeilToInt(e.Lich.Window) + " s before its phylacteries rise again";
-                    noteColor = new Color(1f, 0.8f, 0.35f);
+                    noteColor = CrtStyle.Gold;
                 }
                 else if (e.Type == EnemyType.Lich && e.Lich != null)
                     note = LichStageName(e.Lich.Stage);

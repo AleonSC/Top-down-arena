@@ -11,7 +11,7 @@ namespace Arena
         static readonly string[] QuickRules = { "ROOM BUILDING", "NO PATHS", "NO DATA GATES", "NO LIVES", "NO SAVING", "MODIFIERS + DIFFICULTY APPLY" };
 
         const int QuickTab = 8;
-        static readonly Color QuickColor = new Color(1f, 0.82f, 0.4f);
+        static readonly Color QuickColor = CrtStyle.Gold;
 
         /// The Boss Hunt tab's layout (ModeTabKit.cs): the boss pool as a list on the left, a scope on the right that rolls
         /// through the bosses you've met (the hovered one while the mouse is on a row), then the run's ladder, records and rules.

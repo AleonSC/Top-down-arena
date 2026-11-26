@@ -208,5 +208,12 @@ namespace Arena
                 KnockEnemy(e, (rel.Length > 1f ? rel / rel.Length : RandDir()) * NimbusBurstShove);
             }
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Eye of the Storm on a crowd
+        static bool NimbusBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var e = v.ShootAt;
+            return e != null && v.InReach && g.Tap(g.StormLocalCd <= 0f && (g.EnemiesNear(e.Pos, 160f) >= 2 || e.Def.IsBoss), 2f);
+        }
     }
 }

@@ -10,7 +10,7 @@ namespace Arena
     {
         const float PhoenixPulse = Game.PhoenixPulse, PhoenixPulseRange = Game.PhoenixPulseRange;
         static readonly Rgba PhxRed = new Rgba(0.93f, 0.25f, 0.12f), PhxOrange = new Rgba(1f, 0.55f, 0.15f),
-            PhxGold = new Rgba(1f, 0.82f, 0.3f), PhxCore = new Rgba(1f, 0.96f, 0.75f);
+            PhxGold = Rgba.Gold, PhxCore = new Rgba(1f, 0.96f, 0.75f);
 
         void DrawPhoenix(Minion m, float t)
         {

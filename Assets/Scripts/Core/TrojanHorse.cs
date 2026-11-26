@@ -31,7 +31,7 @@ namespace Arena
         public const int HorseArrowPierce = 1;
         public const float HorseBreakInvuln = 1f, HorseSallyR = 120f, HorseSallyShove = 110f, HorseSallyTime = 4f, HorseSallyMult = 1.25f;
         public const float HorseBotReach = 420f;
-        public static readonly Rgba HorseWood = new Rgba(0.69f, 0.48f, 0.27f), HorseGold = new Rgba(1f, 0.8f, 0.35f);
+        public static readonly Rgba HorseWood = new Rgba(0.69f, 0.48f, 0.27f), HorseGold = Rgba.Gold;
 
         /// Its entry: key 1 of the Tank Knight's Ultimate row (Last Stand stays the default). Upgrades.Abilities gathers it.
         internal static readonly AbilityDef[] HorseUltimates =
@@ -414,6 +414,14 @@ namespace Arena
                 return;
             }
             move = (best.Pos - me.Pos).Normalized();
+        }
+
+        // --- Network: the player's Trojan Horse fields (SyncPlayer) ---
+
+        void SyncTrojanHorse(NetSync s, Player p)
+        {
+            s.Int(ref p.HorseId);  // Trojan Horse
+            s.Float(ref p.SallyT);
         }
     }
 }

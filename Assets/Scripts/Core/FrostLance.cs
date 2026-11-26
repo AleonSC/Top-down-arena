@@ -299,5 +299,21 @@ namespace Arena
             p.FlZeroT = 0f;
             p.FlRime = false;
         }
+
+        // --- Network: the player's Frost Lance fields (SyncPlayer) ---
+
+        void SyncFrostLance(NetSync s, Player p)
+        {
+            s.Float(ref p.FlZeroT);  // the Frost Lance's Absolute Zero and Rime Counter
+            s.Float(ref p.FlZeroCd);
+            s.Bool(ref p.FlRime);
+        }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Absolute Zero round you, with nothing about to hit during the charge
+        static bool FrostLanceBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            return g.Tap(g.ZeroLocalCd <= 0f && me.FlZeroT <= 0f && g.EnemiesNear(me.Pos, 250f) >= 3 && g.IncomingShots(me, 0.8f) == 0, 1f);
+        }
     }
 }
