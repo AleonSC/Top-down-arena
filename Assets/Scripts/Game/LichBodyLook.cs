@@ -438,8 +438,8 @@ namespace Arena
             // the way out: a gold chevron in the gap, pointing out
             V2 g = V2.FromAngle(q.Gap), gs = g.Orthogonal(), gc = q.Center + g * R;
             float gp = 0.55f + 0.45f * Mathf.Sin(t * 10f);
-            Rgba gold = new Rgba(1f, 0.8f, 0.35f, gp);
-            GlowDisc(gc, 16f, new Rgba(1f, 0.8f, 0.35f), 0.35f * gp);
+            Rgba gold = Rgba.Gold.WithAlpha(gp);
+            GlowDisc(gc, 16f, Rgba.Gold, 0.35f * gp);
             Line(gc - g * 5f + gs * 7f, gc + g * 4f, 3f, gold);
             Line(gc - g * 5f - gs * 7f, gc + g * 4f, 3f, gold);
         }

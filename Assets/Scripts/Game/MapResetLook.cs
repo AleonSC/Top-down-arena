@@ -100,7 +100,7 @@ namespace Arena
             int back = game.MapRefunds.TryGetValue(game.MyId, out int b) ? b : 0;
             string kept = game.KeptHead >= 0 && game.KeptHead < game.Expanded.Count ? "ROOM KEPT" : "FRESH MAP";
             string line = "+" + back + " VECTORS BACK  ·  " + kept + "  ·  KITS KEPT";
-            CrtUi.Text(new Rect(r.x, r.y + 32f, r.width, 20f), line, 12, new Color(1f, 0.82f, 0.4f, 0.85f), TextAnchor.MiddleCenter, true, FxCalm);
+            CrtUi.Text(new Rect(r.x, r.y + 32f, r.width, 20f), line, 12, CrtStyle.Gold.WithAlpha(0.85f), TextAnchor.MiddleCenter, true, FxCalm);
             GUI.color = old;
         }
     }

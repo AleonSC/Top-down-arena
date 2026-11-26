@@ -389,7 +389,7 @@ namespace Arena
                 case EclipseStage.Echoes: return new Rgba(1f, 0.44f, 0.64f);
                 case EclipseStage.LastLight: return new Rgba(1f, 0.54f, 0.24f);
                 case EclipseStage.Totality: return new Rgba(1f, 0.3f, 0.3f);
-                default: return new Rgba(1f, 0.82f, 0.4f);
+                default: return Rgba.Gold;
             }
         }
 

@@ -10,7 +10,7 @@ namespace Arena
     /// off: the plain ring and its timer, and one speed line. Drawing only, from the replicated zone and GustT.
     public partial class ArenaApp
     {
-        static readonly Rgba GustPale = new Rgba(0.86f, 0.98f, 1f), GustMint = new Rgba(0.5f, 0.9f, 0.82f), GustDim = new Rgba(0.4f, 0.64f, 1f), GustGold = new Rgba(1f, 0.82f, 0.4f);
+        static readonly Rgba GustPale = new Rgba(0.86f, 0.98f, 1f), GustMint = new Rgba(0.5f, 0.9f, 0.82f), GustDim = new Rgba(0.4f, 0.64f, 1f), GustGold = Rgba.Gold;
 
         readonly Dictionary<int, V2> gustLastDisp = new Dictionary<int, V2>();   // per player: where it was drawn last frame
         readonly Dictionary<int, V2> gustHeading = new Dictionary<int, V2>();    // per player: its smoothed way of travel

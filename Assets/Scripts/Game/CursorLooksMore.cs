@@ -71,7 +71,7 @@ namespace Arena
 
         void CurPixel(V2 m, float t, float f)
         {
-            var pal = new[] { new Rgba(1f, 0.3f, 0.43f), new Rgba(1f, 0.82f, 0.4f), new Rgba(0.02f, 0.84f, 0.63f), new Rgba(0.3f, 0.79f, 0.94f) };
+            var pal = new[] { new Rgba(1f, 0.3f, 0.43f), Rgba.Gold, new Rgba(0.02f, 0.84f, 0.63f), new Rgba(0.3f, 0.79f, 0.94f) };
             const float u = 3f;
             int n2 = 4 + Mathf.RoundToInt(f * 2f), st = Mathf.FloorToInt(t / 0.15f);
             var ink = new Rgba(0.02f, 0.03f, 0.04f);

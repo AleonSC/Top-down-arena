@@ -146,7 +146,7 @@ namespace Arena
             float wob = left < 0.25f ? Mathf.Sin(t * 30f) * 2f : 0f;
             Circle(pos + new V2(wob, 3f), r * 0.5f, new Rgba(0.47f, 0.67f, 0.24f, 0.55f), 12);
             Circle(pos + new V2(-r * 0.3f, -r * 0.35f), r * 0.18f, new Rgba(1f, 1f, 1f, 0.6f), 8);
-            Arc(pos, r + 12f, 3f, left < 0.25f ? new Rgba(1f, 0.35f, 0.24f, 0.9f) : new Rgba(1f, 0.82f, 0.4f, 0.85f), 32, -MathX.Pi / 2f, MathX.Tau * left);
+            Arc(pos, r + 12f, 3f, left < 0.25f ? new Rgba(1f, 0.35f, 0.24f, 0.9f) : Rgba.Gold.WithAlpha(0.85f), 32, -MathX.Pi / 2f, MathX.Tau * left);
         }
 
         /// A honey glob: amber, with a glint.
@@ -166,7 +166,7 @@ namespace Arena
             bool diving = e.Phase == 2;
             V2.Axes(e.Facing, out V2 dir, out V2 side);
             var amber = new Rgba(1f, 0.72f, 0.18f);
-            var hot = diving ? new Rgba(1f, 0.28f, 0.12f) : new Rgba(1f, 0.82f, 0.3f);
+            var hot = diving ? new Rgba(1f, 0.28f, 0.12f) : Rgba.Gold;
             float a = spawning ? 0.4f : 1f;
             // The trail: fading puffs behind it.
             for (int k = 1; k <= 5; k++)

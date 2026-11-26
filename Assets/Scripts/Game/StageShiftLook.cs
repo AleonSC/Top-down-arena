@@ -37,7 +37,7 @@ namespace Arena
                         Boss = boss, Progress = Mathf.Clamp01(R.TransT / (fuse ? Game.FuseTime : Game.SplitTime)), Number = fuse ? 2 : 3, Reapers = true,
                         Name = fuse ? "THE DUAL REAPER" : "SUNDERED",
                         Line = fuse ? "Dusk and Dawn become one" : "The tether snaps",
-                        Color = fuse ? new Rgba(1f, 0.8f, 0.35f) : new Rgba(1f, 0.35f, 0.35f),
+                        Color = fuse ? Rgba.Gold : new Rgba(1f, 0.35f, 0.35f),
                         Second = fuse ? new Rgba(1f, 0.95f, 0.75f) : new Rgba(1f, 0.6f, 0.75f),
                     };
                     return true;
@@ -105,7 +105,7 @@ namespace Arena
                             : to == EclipseStage.Echoes ? "The fallen return" : "The sun is dying",
                         Color = to == EclipseStage.Penumbra ? new Rgba(1f, 0.7f, 0.36f) : to == EclipseStage.Umbra ? new Rgba(0.61f, 0.48f, 1f)
                             : to == EclipseStage.Echoes ? new Rgba(1f, 0.44f, 0.64f) : new Rgba(1f, 0.54f, 0.24f),
-                        Second = to == EclipseStage.Umbra ? new Rgba(1f, 0.82f, 0.4f) : new Rgba(0.79f, 0.82f, 0.89f),
+                        Second = to == EclipseStage.Umbra ? Rgba.Gold : new Rgba(0.79f, 0.82f, 0.89f),
                     };
                     return true;
                 }
@@ -118,7 +118,7 @@ namespace Arena
                         Name = mask ? "MASQUERADE" : "TO THE DEATH",
                         Line = mask ? "Which one is real?" : "It draws the dueling circle",
                         Color = mask ? new Rgba(0.71f, 0.61f, 1f) : new Rgba(1f, 0.42f, 0.5f),
-                        Second = mask ? new Rgba(0.85f, 0.87f, 1f) : new Rgba(1f, 0.8f, 0.35f),
+                        Second = mask ? new Rgba(0.85f, 0.87f, 1f) : Rgba.Gold,
                     };
                     return true;
                 }
@@ -145,7 +145,7 @@ namespace Arena
                         Name = crumble ? "CRUMBLING" : "MOLTEN CORE",
                         Line = crumble ? "Its armour falls away" : "The shell splits open",
                         Color = crumble ? new Rgba(0.88f, 0.64f, 0.35f) : new Rgba(1f, 0.48f, 0.23f),
-                        Second = crumble ? new Rgba(1f, 0.9f, 0.7f) : new Rgba(1f, 0.82f, 0.4f),
+                        Second = crumble ? new Rgba(1f, 0.9f, 0.7f) : Rgba.Gold,
                     };
                     return true;
                 }
@@ -227,7 +227,7 @@ namespace Arena
                     V2 dir = V2.FromAngle(a), at = c + dir * (900f * (1f - Ease(f)) + 70f);
                     float alpha = 0.6f * Mathf.Sin(f * MathX.Pi);
                     Line(at, at + dir * 46f, 2.5f, s.Second.WithAlpha(alpha));
-                    Line(at + dir * 40f - dir.Orthogonal() * 7f, at + dir * 40f + dir.Orthogonal() * 7f, 3f, new Rgba(1f, 0.8f, 0.35f, alpha));
+                    Line(at + dir * 40f - dir.Orthogonal() * 7f, at + dir * 40f + dir.Orthogonal() * 7f, 3f, Rgba.Gold.WithAlpha(alpha));
                 }
             }
             else

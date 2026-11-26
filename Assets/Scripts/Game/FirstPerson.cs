@@ -270,7 +270,7 @@ namespace Arena
                 return;
             float hw = Game.HalfW(p), hh = Game.HalfH(p), lift = p.Pos.Y - at.Y;
             float h = p.Kind == PropKind.Chest ? 16f : p.Kind == PropKind.Crate ? 20f : 22f;
-            var ink = p.Kind == PropKind.Crate ? new Rgba(1f, 0.82f, 0.3f) : p.Kind == PropKind.HeavyCrate ? new Rgba(1f, 0.55f, 0.2f)
+            var ink = p.Kind == PropKind.Crate ? Rgba.Gold : p.Kind == PropKind.HeavyCrate ? new Rgba(1f, 0.55f, 0.2f)
                 : p.Kind == PropKind.Barrel ? new Rgba(1f, 0.35f, 0.25f) : p.Kind == PropKind.HealthBarrel ? new Rgba(0.4f, 1f, 0.5f) : new Rgba(1f, 0.85f, 0.35f);
             FpGroupAt((p.Pos.X - fpCam.x) * fpFwd.x + (p.Pos.Y - fpCam.y) * fpFwd.y);  // one group: a prop is small
             if (Game.Round(p))

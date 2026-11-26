@@ -243,7 +243,7 @@ namespace Arena
             twinPending = false;
             TwinReviveT = 0f;
             HostClearEnemyBullets();
-            BroadcastFx(FxKind.Ring, ArenaMid, kind == 1 ? new Rgba(1f, 0.8f, 0.35f) : new Rgba(1f, 0.35f, 0.35f), 900f, 0.8f, Sfx.BossGong);
+            BroadcastFx(FxKind.Ring, ArenaMid, kind == 1 ? Rgba.Gold : new Rgba(1f, 0.35f, 0.35f), 900f, 0.8f, Sfx.BossGong);
             BroadcastSound(kind == 1 ? Sfx.BossWarp : Sfx.BossRumble);  // they spiral in; or it shakes before it cracks
             DoLog(kind == 1 ? "the Twin Reapers fuse" : "the Dual Reaper splits");
         }
@@ -273,7 +273,7 @@ namespace Arena
                     dual.MaxHp = R.MaxA + R.MaxB;
                     dual.Hp = Math.Max(1f, hp);
                     BroadcastFx(FxKind.Boom, mid, Rgba.White, 160f, 0.5f, Sfx.BigExplode);
-                    BroadcastFx(FxKind.Ring, mid, new Rgba(1f, 0.8f, 0.35f), 900f, 1f, Sfx.BossGong);
+                    BroadcastFx(FxKind.Ring, mid, Rgba.Gold, 900f, 1f, Sfx.BossGong);
                 }
                 // It powers up: marked circles all round the arena (one on each of you), then they blow.
                 if (t >= BlastsAt && !R.Blasted)
@@ -538,7 +538,7 @@ namespace Arena
                         R.Trapped = false;  // out it pops, back to the middle
                         R.Leap = DualLeapTime;
                         R.LeapFrom = d.Pos;
-                        BroadcastFx(FxKind.Ring, d.Pos, new Rgba(1f, 0.8f, 0.35f), 160f, 0.4f, Sfx.BossWhoosh);  // it leaps out
+                        BroadcastFx(FxKind.Ring, d.Pos, Rgba.Gold, 160f, 0.4f, Sfx.BossWhoosh);  // it leaps out
                     }
                 }
                 return false;
@@ -552,7 +552,7 @@ namespace Arena
                     R.Leap = 0f;
                     d.Pos = mid;
                     R.Holes.Clear();
-                    BroadcastFx(FxKind.Ring, mid, new Rgba(1f, 0.8f, 0.35f), 500f, 0.6f, Sfx.BossSlam);  // and lands
+                    BroadcastFx(FxKind.Ring, mid, Rgba.Gold, 500f, 0.6f, Sfx.BossSlam);  // and lands
                     R.Step = -1;  // and round again, with new pillars
                     return true;
                 }
@@ -644,7 +644,7 @@ namespace Arena
                             R.Shield = R.ShieldMax = d.MaxHp * ShieldShareDual;
                             R.ShieldFrac = 1f;
                             R.Open = 0f;
-                            BroadcastFx(FxKind.Ring, h, new Rgba(1f, 0.8f, 0.35f), 140f, 0.5f, Sfx.BossCage);  // trapped
+                            BroadcastFx(FxKind.Ring, h, Rgba.Gold, 140f, 0.5f, Sfx.BossCage);  // trapped
                             DoLog("the Dual Reaper fell into a hole");
                             return false;
                         }

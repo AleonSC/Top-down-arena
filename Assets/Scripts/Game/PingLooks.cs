@@ -14,7 +14,7 @@ namespace Arena
         static readonly Color[] PingColors =
         {
             new Color(0.44f, 0.89f, 0.77f), new Color(0.88f, 0.42f, 1f), new Color(1f, 0.35f, 0.3f),
-            new Color(1f, 0.71f, 0.28f), new Color(1f, 0.8f, 0.35f), new Color(0.48f, 0.85f, 0.42f),
+            new Color(1f, 0.71f, 0.28f), CrtStyle.Gold, new Color(0.48f, 0.85f, 0.42f),
         };
         static readonly Color[] PingOwnerColors = { new Color(0.44f, 0.89f, 0.77f), new Color(1f, 0.71f, 0.28f), new Color(0.72f, 0.55f, 1f) };
 

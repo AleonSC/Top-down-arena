@@ -22,7 +22,7 @@ namespace Arena
     ///   - Hive Call (FxKind.HiveCall): a gold ring easing out at the spot.
     public partial class ArenaApp
     {
-        static readonly Rgba HvPowder = new Rgba(1f, 0.91f, 0.667f), HvSwarm = new Rgba(1f, 0.8f, 0.35f), HvShell = new Rgba(1f, 0.863f, 0.51f);
+        static readonly Rgba HvPowder = new Rgba(1f, 0.91f, 0.667f), HvSwarm = Rgba.Gold, HvShell = new Rgba(1f, 0.863f, 0.51f);
         static readonly Rgba HvDark = new Rgba(0.157f, 0.118f, 0.04f), HvSlowInk = new Rgba(0.4f, 0.64f, 1f);
         const int HvMaxInsects = 2400;
         const float HvJoinR = 140f, HvStray = 1.5f, HvFadeIn = 6f, HvFadeOut = 1.2f;

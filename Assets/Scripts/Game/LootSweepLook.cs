@@ -88,7 +88,7 @@ namespace Arena
             if (me == null || sweepAge >= SweepSpan)
                 return;
             V2 to = ToUi(me.Disp);
-            var gold = new Color(1f, 0.82f, 0.3f);
+            var gold = CrtStyle.Gold;
             foreach (var c in sweptCoins)
             {
                 float k = (sweepAge - c.Delay) / SweepFly;

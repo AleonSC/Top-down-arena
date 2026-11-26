@@ -59,7 +59,7 @@ namespace Arena
         public const float HarlequinRange = 260f, HarlequinArm = 170f, HarlequinWarn = 0.7f, HarlequinWarn2 = 0.45f, HarlequinEvery = 6f;
         public const float MummerRange = 260f, MummerRing = 150f, MummerMask = 5f, MummerSpin = 0.6f, MummerShotEvery = 0.9f, MummerEvery = 9f, MummerShotSpeed = 260f;
         public static readonly Rgba MummerViolet = new Rgba(0.71f, 0.61f, 1f);
-        public static readonly Rgba CourtGoldColor = new Rgba(1f, 0.8f, 0.35f);
+        public static readonly Rgba CourtGoldColor = Rgba.Gold;
 
         /// A Blade Dancer showing its line or lunging (it moves itself, so its walk stops).
         public static bool DancerBusy(Enemy e) => e.Type == EnemyType.BladeDancer && e.Duel != null && e.Duel.Dash != DuelDash.None;

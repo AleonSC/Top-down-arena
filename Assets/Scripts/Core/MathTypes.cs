@@ -95,6 +95,7 @@ namespace Arena
         public Rgba Mix(Rgba o, float f) => new Rgba(R + (o.R - R) * f, G + (o.G - G) * f, B + (o.B - B) * f, A);
 
         public static readonly Rgba White = new Rgba(1f, 1f, 1f);
+        public static readonly Rgba Gold = new Rgba(1f, 0.8f, 0.35f);  // the one gold (Game's CrtStyle.Gold is the same): coins, highlights, gilded trim
     }
 
     public static class MathX

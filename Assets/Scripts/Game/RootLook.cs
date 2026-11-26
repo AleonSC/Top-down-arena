@@ -85,7 +85,7 @@ namespace Arena
             for (int k = 0; k < 4; k++)  // a few bright leaves
                 Circle(c + new V2(Mathf.Sin(k * 2.1f + 1f) * r * 0.7f, -r * (0.7f + 0.2f * Mathf.Cos(k * 1.7f)) + bob), 2.2f, new Rgba(0.6f, 0.9f, 0.45f, 0.9f * dim), 6);
             // Two glowing eyes.
-            var eye = new Rgba(1f, 0.82f, 0.4f, dim);
+            var eye = Rgba.Gold.WithAlpha(dim);
             Circle(c + new V2(-r * 0.3f, r * 0.02f), r * 0.2f, eye.WithAlpha(0.3f * dim), 8);
             Circle(c + new V2(r * 0.3f, r * 0.02f), r * 0.2f, eye.WithAlpha(0.3f * dim), 8);
             Circle(c + new V2(-r * 0.3f, r * 0.02f), r * 0.1f, eye, 6);

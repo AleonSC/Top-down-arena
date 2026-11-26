@@ -20,7 +20,7 @@ namespace Arena
     {
         static readonly Rgba HorseWoodC = new Rgba(0.69f, 0.48f, 0.27f), HorseWoodDark = new Rgba(0.43f, 0.27f, 0.13f);
         static readonly Rgba HorseWoodLight = new Rgba(0.85f, 0.64f, 0.42f), HorseIron = new Rgba(0.29f, 0.17f, 0.07f);
-        static readonly Rgba HorseSlitDark = new Rgba(0.1f, 0.06f, 0.02f), HorseGoldC = new Rgba(1f, 0.8f, 0.35f);
+        static readonly Rgba HorseSlitDark = new Rgba(0.1f, 0.06f, 0.02f), HorseGoldC = Rgba.Gold;
         static readonly Rgba HorseHunt = new Rgba(0.78f, 0.3f, 0.34f);
 
         readonly Dictionary<int, float> horseFrac = new Dictionary<int, float>(), horseFlash = new Dictionary<int, float>(), horseGhost = new Dictionary<int, float>();

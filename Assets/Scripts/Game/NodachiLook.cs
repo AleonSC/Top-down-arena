@@ -16,7 +16,7 @@ namespace Arena
     public partial class ArenaApp
     {
         static readonly Rgba NodInk = new Rgba(0.03f, 0.03f, 0.05f), NodSleeve = new Rgba(0.13f, 0.13f, 0.18f), NodWrap = new Rgba(0.16f, 0.12f, 0.2f),
-            NodWrapLine = new Rgba(0.75f, 0.68f, 0.88f), NodGuardGold = new Rgba(1f, 0.8f, 0.35f), NodEdge = new Rgba(0.97f, 0.98f, 1f);
+            NodWrapLine = new Rgba(0.75f, 0.68f, 0.88f), NodGuardGold = Rgba.Gold, NodEdge = new Rgba(0.97f, 0.98f, 1f);
         const float NodBlend = 0.2f, NodTrailDt = 0.012f;
         const int NodTrailN = 12;
 

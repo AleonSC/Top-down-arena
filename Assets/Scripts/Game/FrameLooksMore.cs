@@ -148,7 +148,7 @@ namespace Arena
                 }
                 case "frame-pixel":  // chunky squares in four colours stepping round the card
                 {
-                    var pal = new[] { new Color(1f, 0.3f, 0.43f), new Color(1f, 0.82f, 0.4f), new Color(0.02f, 0.84f, 0.63f), new Color(0.3f, 0.79f, 0.94f) };
+                    var pal = new[] { new Color(1f, 0.3f, 0.43f), CrtStyle.Gold, new Color(0.02f, 0.84f, 0.63f), new Color(0.3f, 0.79f, 0.94f) };
                     int step = Mathf.FloorToInt(t * 9f), i = 0;
                     for (float d = 0f; d < total; d += 8f, i++)
                     {

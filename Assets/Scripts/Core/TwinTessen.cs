@@ -41,7 +41,7 @@ namespace Arena
         public const float TtGustMult = 1.2f, TtGustKnock = 260f, TtGustHeal = 20f, TtTyphoonHeal = 35f, TtGustTail = 3f, TtTyphoonStun = 1f;
         public const float TtChargeMin = 0.4f, TtChargeFull = 1.2f, TtGustCd = 9f, TtGustFx = 0.5f;
         public static readonly Rgba TtPaper = new Rgba(0.95f, 0.9f, 0.81f), TtPetal = new Rgba(1f, 0.76f, 0.82f),
-            TtWind = new Rgba(0.35f, 0.85f, 0.91f), TtGold = new Rgba(1f, 0.8f, 0.35f), TtSun = new Rgba(0.85f, 0.26f, 0.31f);
+            TtWind = new Rgba(0.35f, 0.85f, 0.91f), TtGold = Rgba.Gold, TtSun = new Rgba(0.85f, 0.26f, 0.31f);
         static readonly Sfx[] TtSounds = { Sfx.SwingLight, Sfx.SwingLight, Sfx.SwingHeavy, Sfx.SwingHeavy, Sfx.SwingHeavy };
 
         public static float TtEase(float x) { x = Math.Max(0f, Math.Min(1f, x)); return 1f - (1f - x) * (1f - x) * (1f - x); }

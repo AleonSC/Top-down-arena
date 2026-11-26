@@ -99,7 +99,7 @@ namespace Arena
             new MinionDef { Name = "Shadow Clone", Radius = 14f, Sides = 8, Color = new Rgba(0.45f, 0.42f, 0.6f), Move = MinionMove.Static, BlockRadius = 16f, BlockCapacity = 100f },  // Thousand Clones: soaks enemy shots, bursts when it breaks
             new MinionDef { Name = "Warden's Guard", Radius = 13f, Sides = 8, Color = new Rgba(0.35f, 0.55f, 1f), Move = MinionMove.Escort, Speed = 240f,  // looks like the riot's guards
                 Attack = MinionAttack.Bite, Interval = 0.7f, Damage = 14f },
-            new MinionDef { Name = "Hive Drone", Radius = 7f, Sides = 3, Color = new Rgba(1f, 0.82f, 0.3f), Move = MinionMove.Orbit, Speed = 2.6f, OrbitRadius = 45f,
+            new MinionDef { Name = "Hive Drone", Radius = 7f, Sides = 3, Color = Rgba.Gold, Move = MinionMove.Orbit, Speed = 2.6f, OrbitRadius = 45f,
                 BlockRadius = 16f, BlockCapacity = 60f },  // moved and stings by QueenLoot.cs
             new MinionDef { Name = "Hive Bomber", Radius = 9f, Sides = 3, Color = new Rgba(1f, 0.5f, 0.18f), Move = MinionMove.Static,
                 Damage = 55f, Range = 70f },  // flown by QueenLoot.cs; bursts for Damage within Range
@@ -189,7 +189,7 @@ namespace Arena
             new ZoneDef { Name = "Mammoth Fall", Color = new Rgba(0.65f, 0.49f, 1f) },  // the DPS Summoner's third ultimate (MammothFall.cs): Pos the mammoth, Origin where it lands, Radius the shockwave, Aim its heading, Side its prey
             new ZoneDef { Name = "Armor Drop", Color = new Rgba(0.62f, 0.85f, 1f) },  // the Tank Soldier's fourth ultimate (ArmorDrop.cs): Pos the crate, Radius the landing's blast; its timer gives the phase (flare, landing, open, fold)
             new ZoneDef { Name = "Trojan Horse", Color = new Rgba(0.69f, 0.48f, 0.27f) },  // the Tank Knight's second ultimate (TrojanHorse.cs): Pos the horse, Aim its heading, Radius its half width, BlockHp/SoakMax its health, Marched how far it rolled, Quiet parked
-            new ZoneDef { Name = "Ballista", Color = new Rgba(1f, 0.8f, 0.35f) },  // the DPS Knight's third ultimate (Ballista.cs): Pos the frame, Aim the bow, Radius the mount reach (0 = breaking), Rider, BoltsLeft, GunCd, GuardFrac its health
+            new ZoneDef { Name = "Ballista", Color = Rgba.Gold },  // the DPS Knight's third ultimate (Ballista.cs): Pos the frame, Aim the bow, Radius the mount reach (0 = breaking), Rider, BoltsLeft, GunCd, GuardFrac its health
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

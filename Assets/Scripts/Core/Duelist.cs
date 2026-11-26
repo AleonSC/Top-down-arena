@@ -309,7 +309,7 @@ namespace Arena
         void StartSalute(Enemy e, DuelState s, float tell)
         {
             s.SaluteT = tell;
-            BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.8f, 0.35f), 70f, tell, Sfx.BossGong);  // the salute
+            BroadcastFx(FxKind.Ring, e.Pos, Rgba.Gold, 70f, tell, Sfx.BossGong);  // the salute
         }
 
         void StartDash(Enemy e, DuelState s, DuelDash kind, float ang, float len, float warn)
@@ -365,7 +365,7 @@ namespace Arena
                         s.StaggerT = StaggerTime;
                         s.Dash = DuelDash.None;
                         s.Connected = true;
-                        BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.8f, 0.35f), 90f, 0.4f, Sfx.Clang);
+                        BroadcastFx(FxKind.Ring, p.Pos, Rgba.Gold, 90f, 0.4f, Sfx.Clang);
                         DoLog(p.Name + " parried the " + (e.Type == EnemyType.Gallant ? "Gallant's" : "Duelist's") + " salute");
                         return;
                     }

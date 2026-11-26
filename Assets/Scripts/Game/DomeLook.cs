@@ -29,7 +29,7 @@ namespace Arena
             // the glass: brighter toward the wall
             for (int k = 0; k < 4; k++)
                 Circle(c, R * (1f - k * 0.04f), new Rgba(1f, 0.78f, 0.35f, 0.035f * a), 48);
-            Arc(c, R - 10f, 20f, new Rgba(1f, 0.8f, 0.35f, 0.10f * a), 48);
+            Arc(c, R - 10f, 20f, Rgba.Gold.WithAlpha(0.10f * a), 48);
 
             // plates, flashing where an enemy shot is close to the rim
             float step = MathX.Tau / DomePlates, gap = 0.012f;

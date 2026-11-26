@@ -662,7 +662,7 @@ namespace Arena
             for (int i = c.Slabs.Count - 1; i >= 0; i--)
                 if (InSlab(c.Slabs[i], next, e.Radius - 6f))
                 {
-                    BroadcastFx(FxKind.Boom, c.Slabs[i].Pos, new Rgba(1f, 0.8f, 0.35f), 90f, 0.5f, Sfx.BossCrack);  // the plate breaks, it's dazed
+                    BroadcastFx(FxKind.Boom, c.Slabs[i].Pos, Rgba.Gold, 90f, 0.5f, Sfx.BossCrack);  // the plate breaks, it's dazed
                     c.Slabs.RemoveAt(i);
                     c.DazeT = ColDazeTime;
                     stop = true;

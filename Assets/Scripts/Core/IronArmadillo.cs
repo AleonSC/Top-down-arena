@@ -37,7 +37,7 @@ namespace Arena
         // flings them less far, so it stays in the picture and the view doesn't zoom out after them.
         public const float ArmShowTop = 300f, ArmShowFling = 0.35f, ArmShowHalfW = 160f, ArmShowAbove = 340f, ArmShowBelow = 90f;
         public static readonly Rgba ArmShell = new Rgba(0.79f, 0.71f, 0.54f), ArmSpirit = new Rgba(0.37f, 0.88f, 0.82f),
-            ArmGold = new Rgba(1f, 0.8f, 0.35f);
+            ArmGold = Rgba.Gold;
 
         /// Its entry: key 2 of the Tank Summoner's Ultimate row. Upgrades.Abilities gathers it.
         internal static readonly AbilityDef[] ArmUltimates =

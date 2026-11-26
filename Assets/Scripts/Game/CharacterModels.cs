@@ -800,7 +800,7 @@ namespace Arena
             MFrame(mOx, mOy, -1.9f * c, mWs, false);
             MLine(-8f, 0f, 30f, 0f, 3.2f, MWood); MRect(28f, -9f, 10f, 18f, Hx(0xb9c4d4)); MPoly(MSteel, 38f, 0f, 38f, -2f, 45f, 0f, 38f, 2f); MPoly(MSteel, 28f, 0f, 28f, -2f, 23f, 0f, 28f, 2f);
             MLine(28f, -5f, 38f, -5f, 1f, MDark); MLine(28f, 5f, 38f, 5f, 1f, MDark);
-            if (c > 0f) MCirc(33f, 0f, 9f + 5f * c, new Rgba(1f, 0.82f, 0.3f, 0.15f + 0.3f * c), 14);
+            if (c > 0f) MCirc(33f, 0f, 9f + 5f * c, Rgba.Gold.WithAlpha(0.15f + 0.3f * c), 14);
         }
         }
 

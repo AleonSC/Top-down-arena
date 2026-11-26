@@ -16,7 +16,7 @@ namespace Arena
         readonly Dictionary<int, List<BurrowStep>> burrowTrails = new Dictionary<int, List<BurrowStep>>();
 
         static readonly Rgba BurrowDark = new Rgba(0.28f, 0.23f, 0.16f), BurrowMid = new Rgba(0.48f, 0.39f, 0.27f), BurrowLight = new Rgba(0.64f, 0.54f, 0.38f),
-            BurrowScar = new Rgba(0.12f, 0.09f, 0.06f), BurrowDust = new Rgba(0.73f, 0.64f, 0.48f), BurrowEye = new Rgba(1f, 0.82f, 0.4f), BurrowJaw = new Rgba(0.15f, 0.15f, 0.17f);
+            BurrowScar = new Rgba(0.12f, 0.09f, 0.06f), BurrowDust = new Rgba(0.73f, 0.64f, 0.48f), BurrowEye = Rgba.Gold, BurrowJaw = new Rgba(0.15f, 0.15f, 0.17f);
 
         static V2 BurrowAt(V2 o, float ang, float fwd, float side)
         {

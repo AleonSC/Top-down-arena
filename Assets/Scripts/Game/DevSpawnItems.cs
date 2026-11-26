@@ -81,7 +81,7 @@ namespace Arena
 
             // Gold and vectors: amounts scattered in front of the player as their own pickups (Game.DevSpawnCoins).
             var lr = col.Next(28f);
-            Color goldInk = new Color(1f, 0.82f, 0.3f), vecInk = new Color(0.3f, 0.88f, 1f);
+            Color goldInk = CrtStyle.Gold, vecInk = new Color(0.3f, 0.88f, 1f);
             Ui.Label(new Rect(lr.x, lr.y, 46f, lr.height), "GOLD", 10, goldInk, TextAnchor.MiddleLeft, true);
             int[] golds = { 10, 50, 250, 1000 }, vecs = { 1, 5, 20, 100 };
             float lx = lr.x + 46f;

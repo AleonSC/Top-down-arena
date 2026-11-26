@@ -47,7 +47,7 @@ namespace Arena
         public const float ChitinMax = 40f, ChitinWear = 5f, ChitinFill = 22f, ChitinR = 100f;
         public const float HiveCallCd = 6f, HiveCallTime = 1.2f, HiveCallSpeed = 320f;
         public const byte HiveIdle = 0, HiveFoe = 1, HiveAlly = 2, HiveCalled = 3;
-        public static readonly Rgba HiveGold = new Rgba(1f, 0.8f, 0.35f), ChitinGold = new Rgba(1f, 0.84f, 0.47f);
+        public static readonly Rgba HiveGold = Rgba.Gold, ChitinGold = new Rgba(1f, 0.84f, 0.47f);
 
         /// Everyone's swarms, oldest first.
         public readonly List<HiveSwarm> Swarms = new List<HiveSwarm>();

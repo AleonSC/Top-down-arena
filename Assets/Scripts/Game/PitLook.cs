@@ -8,7 +8,7 @@ namespace Arena
     /// seen stays hidden. FxKind.PitFall: the body falling (shrinking and turning into the dark); a player then rises on the rim.
     public partial class ArenaApp
     {
-        static readonly Rgba PitGold = new Rgba(1f, 0.82f, 0.4f), PitDark = new Rgba(0.09f, 0.07f, 0.03f), PitVoid = new Rgba(0.005f, 0.005f, 0.012f);
+        static readonly Rgba PitGold = Rgba.Gold, PitDark = new Rgba(0.09f, 0.07f, 0.03f), PitVoid = new Rgba(0.005f, 0.005f, 0.012f);
         const float PitBand = 7f, PitDash = 12f, PitMarch = 28f;
 
         void DrawPits(float t)

@@ -91,7 +91,7 @@ namespace Arena
             new PathDef { Id = PathId.Bazaar, Name = "Bazaar", Kind = "Market", Danger = 1,
                 Blurb = "A trading town on the road.",
                 Rules = new[] { "The usual enemies, but every kill drops gold", "Everyone gets the same gold, and can give it away", "Gold you don't spend becomes XP" },
-                Floor = new Rgba(0.3f, 0.2f, 0.1f), Accent = new Rgba(1f, 0.8f, 0.35f), Prize = "A shop",
+                Floor = new Rgba(0.3f, 0.2f, 0.1f), Accent = Rgba.Gold, Prize = "A shop",
                 Showcase = new[] { EnemyType.Grunt, EnemyType.Mortar, EnemyType.Sniper } },
         };
 

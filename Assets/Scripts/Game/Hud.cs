@@ -484,7 +484,7 @@ namespace Arena
             Ui.Label(new Rect(r.x + 18f, r.y + 6f, r.width - 70f, 18f), p.Name, 13, Color.white, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.x + 18f, r.y + 22f, r.width - 70f, 14f), Defs.KitName(p.Kit) + " " + p.Def.Name, 10, role, TextAnchor.MiddleLeft, true);
             var lv = new Rect(r.xMax - 52f, r.y + 8f, 42f, 18f);
-            Ui.Pill(lv, new Color(1f, 0.8f, 0.35f, 0.22f));
+            Ui.Pill(lv, CrtStyle.Gold.WithAlpha(0.22f));
             Ui.Label(lv, "LV " + p.Level, 10, CrtStyle.Gold, TextAnchor.MiddleCenter, true);
 
             var hpBar = new Rect(r.x + 18f, r.y + 39f, r.width - 28f, 12f);
@@ -514,7 +514,7 @@ namespace Arena
                     Ui.Bar(new Rect(hpBar.x + 2f, hpBar.y + 1f, (hpBar.width - 4f) * Mathf.Clamp01(p.OverHp / Mathf.Max(1f, p.MaxHp)), 3f), 1f, CrtStyle.Gold, new Color(0f, 0f, 0f, 0f));
                 Ui.Shadowed(new Rect(hpBar.x, hpBar.y - 1f, hpBar.width, hpBar.height + 2f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 10, Color.white);
             }
-            Ui.Bar(new Rect(r.x + 18f, r.y + 55f, r.width - 28f, 4f), p.Xp / Defs.XpToNext(p.Level), new Color(1f, 0.82f, 0.3f), new Color(0f, 0f, 0f, 0.4f));
+            Ui.Bar(new Rect(r.x + 18f, r.y + 55f, r.width - 28f, 4f), p.Xp / Defs.XpToNext(p.Level), CrtStyle.Gold, new Color(0f, 0f, 0f, 0.4f));
         }
 
         /// GET READY / WAVE N CLEARED as the scan band (WaveBand.cs; at BannerRect, HudLayout.cs): log lines each side, the title, the sub line and a bar that fills as the countdown runs out.
@@ -552,7 +552,7 @@ namespace Arena
             // XP strip (the CRT console look): "LV 3 · 48%" in gold on its own dark plate at the left end, then the segmented gold bar.
             var xp = HudXpStrip;  // (the strip and the keys: HudLayout.cs)
             float xpFrac = Mathf.Clamp01(me.Xp / Defs.XpToNext(me.Level));
-            Color gold = new Color(1f, 0.82f, 0.3f, 0.95f);
+            Color gold = CrtStyle.Gold.WithAlpha(0.95f);
             Ui.Fill(new Rect(xp.x - 1f, xp.y - 1f, xp.width + 2f, xp.height + 2f), CrtStyle.Ink.WithAlpha(0.3f));
             Ui.Fill(xp, new Color(0.01f, 0.03f, 0.08f, 0.88f));
             string lvText = "LV " + me.Level + "  ·  " + Mathf.RoundToInt(xpFrac * 100f) + "%";

@@ -81,7 +81,7 @@ namespace Arena
             string tag = game.ServiceRooms ? (atShop ? "SHOP ROOM  ·  UPGRADES AND SERVICES" : arms ? "ARMS DEALER  ·  WEAPON MODS" : medic ? "MEDIC  ·  HEALS AND REVIVES" : "BLACK MARKET  ·  BUILDABLES AND SERVICES") : "BAZAAR  ·  BEFORE THE WAVE " + (game.Wave + 1) + " BOSS";
             float tagW = 30f + tag.Length * 7.5f;
             var tagRect = new Rect(W / 2f - tagW / 2f, 24f, tagW, 22f);
-            Ui.Pill(tagRect, new Color(1f, 0.8f, 0.35f, 0.22f));
+            Ui.Pill(tagRect, CrtStyle.Gold.WithAlpha(0.22f));
             Ui.Label(tagRect, tag, 11, CrtStyle.Gold, TextAnchor.MiddleCenter, true);
             DkTitle(new Rect(0f, 46f, W, 44f), game.ServiceRooms ? (atShop ? "THE SHOP" : arms ? "THE ARMS DEALER" : medic ? "THE MEDIC" : "THE BLACK MARKET") : "THE BAZAAR", 34, market || arms || medic ? mk : CrtStyle.Gold, TextAnchor.MiddleCenter);
             Ui.Label(new Rect(0f, 92f, W, 18f), arms ? "Every weapon mod, up to 3 stacks each. Each stack you hold makes the next one dearer." : medic ? "The only place that patches you up. A revive token gets you back up once." : market ? "Teleporters and traps wait in your stash until you place them." : game.ServiceRooms ? "Your gold and shelf stay with you between waves." : "Spend your gold before the boss. Whatever's left becomes XP.", 13, Ui.Muted, TextAnchor.MiddleCenter, true);
@@ -230,7 +230,7 @@ namespace Arena
                 {
                     var pr = new Rect(px + (i - lo) * 24f, railY + cardH + 14f, 18f, 4f);
                     bool second = i >= split;
-                    Ui.Fill(pr, i == shopSel ? (second ? CrtStyle.Gold : Color.white) : (second ? new Color(1f, 0.8f, 0.35f, 0.3f) : CrtStyle.Ink.WithAlpha(0.3f)));
+                    Ui.Fill(pr, i == shopSel ? (second ? CrtStyle.Gold : Color.white) : (second ? CrtStyle.Gold.WithAlpha(0.3f) : CrtStyle.Ink.WithAlpha(0.3f)));
                     if (!popup && Ui.HitArea(new Rect(pr.x - 3f, pr.y - 6f, pr.width + 6f, pr.height + 12f)))
                         shopSel = i;
                 }
@@ -714,7 +714,7 @@ namespace Arena
         /// A gold price: a coin and the amount (red when you can't afford it).
         void DrawPriceTag(Rect r, int price, bool afford, string prefix = "")
         {
-            Ui.Pill(r, afford ? new Color(1f, 0.8f, 0.35f, prefix.Length > 0 ? 0.32f : 0.16f) : new Color(1f, 0.35f, 0.3f, 0.14f));
+            Ui.Pill(r, afford ? CrtStyle.Gold.WithAlpha(prefix.Length > 0 ? 0.32f : 0.16f) : new Color(1f, 0.35f, 0.3f, 0.14f));
             Ui.Icon(new Rect(r.x + 8f, r.y + r.height / 2f - 7f, 14f, 14f), PixelArt.Get("ui_coin"), afford ? 1f : 0.6f);
             Ui.Label(new Rect(r.x + 26f, r.y, r.width - 30f, r.height), prefix + price, 13, afford ? CrtStyle.Gold : new Color(1f, 0.55f, 0.5f), TextAnchor.MiddleLeft, true);
         }

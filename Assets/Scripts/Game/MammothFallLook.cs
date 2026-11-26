@@ -18,7 +18,7 @@ namespace Arena
     {
         static readonly Rgba MfWool = new Rgba(0.48f, 0.31f, 0.18f), MfWoolLight = new Rgba(0.66f, 0.46f, 0.29f), MfWoolDark = new Rgba(0.29f, 0.18f, 0.1f),
             MfTusk = new Rgba(0.95f, 0.9f, 0.8f), MfViolet = new Rgba(0.65f, 0.49f, 1f), MfRiftCore = new Rgba(0.94f, 0.88f, 1f),
-            MfGold = new Rgba(1f, 0.8f, 0.35f), MfCrack = new Rgba(0.95f, 0.62f, 0.25f), MfEye = new Rgba(0.1f, 0.06f, 0.03f);
+            MfGold = Rgba.Gold, MfCrack = new Rgba(0.95f, 0.62f, 0.25f), MfEye = new Rgba(0.1f, 0.06f, 0.03f);
 
         /// How high it hangs over you while it forms.
         const float MfHover = 92f;

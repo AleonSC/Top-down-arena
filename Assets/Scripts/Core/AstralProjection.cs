@@ -26,7 +26,7 @@ namespace Arena
         public const float ApSwapCd = 0.4f;
         public const float ApBondTime = 2f, ApBondDmg = 0.25f;  // the Rare card Astral Bond, a stack
 
-        public static readonly Rgba ApSpirit = new Rgba(0.73f, 0.96f, 1f), ApViolet = new Rgba(0.71f, 0.55f, 1f), ApWard = new Rgba(1f, 0.8f, 0.35f), ApMend = new Rgba(0.44f, 0.89f, 0.6f);
+        public static readonly Rgba ApSpirit = new Rgba(0.73f, 0.96f, 1f), ApViolet = new Rgba(0.71f, 0.55f, 1f), ApWard = Rgba.Gold, ApMend = new Rgba(0.44f, 0.89f, 0.6f);
 
         /// Astral Projection's entry: key 1 of the Healer Ninja's Ultimate row. Upgrades.Abilities gathers it.
         internal static readonly AbilityDef[] AstralUltimates =

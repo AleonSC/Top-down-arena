@@ -724,7 +724,7 @@ namespace Arena
                 case Rarity.VeryRare: return new Rgba(0.8f, 0.4f, 1f);
                 case Rarity.Legendary: return new Rgba(1f, 0.6f, 0.15f);
                 case Rarity.Mod: return new Rgba(0.25f, 0.95f, 0.85f);
-                case Rarity.Milestone: return new Rgba(1f, 0.8f, 0.35f);
+                case Rarity.Milestone: return Rgba.Gold;
                 default: return new Rgba(0.85f, 0.85f, 0.9f);
             }
         }

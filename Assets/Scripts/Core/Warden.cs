@@ -809,7 +809,7 @@ namespace Arena
             if (--g.LockHp <= 0)
             {
                 g.LockOpen = true;
-                BroadcastFx(FxKind.Boom, at, new Rgba(1f, 0.82f, 0.3f), 60f, 0.4f, Sfx.Clang);
+                BroadcastFx(FxKind.Boom, at, Rgba.Gold, 60f, 0.4f, Sfx.Clang);
                 DoLog("a gate's lock was shot out");
             }
             else

@@ -145,7 +145,7 @@ namespace Arena
                 {
                     HurtEnemy(e, StampedeSlam * z.DmgMult * owner.Stats.StampedeDmgMult, z.Owner);
                     Stun(e, StampedeStun);
-                    BroadcastFx(FxKind.Spark, put, put, new Rgba(1f, 0.8f, 0.35f), e.Radius + 6f, 0.35f, Sfx.Hit);
+                    BroadcastFx(FxKind.Spark, put, put, Rgba.Gold, e.Radius + 6f, 0.35f, Sfx.Hit);
                 }
             }
         }

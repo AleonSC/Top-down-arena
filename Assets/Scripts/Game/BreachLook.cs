@@ -18,7 +18,7 @@ namespace Arena
                 DrawBreach(bs[i], i * 1.37f, game.EventMark.HasValue && bs[i].Pos.DistanceTo(game.EventMark.Value) < 3f);
         }
 
-        static readonly Rgba EventGold = new Rgba(1f, 0.82f, 0.3f), EventHot = new Rgba(1f, 0.94f, 0.62f);
+        static readonly Rgba EventGold = Rgba.Gold, EventHot = new Rgba(1f, 0.94f, 0.62f);
 
         /// `gold`: this is the breach event's (BreachEvent.cs): it pulses gold, and the wall behind it opens onto a surprise room soon.
         void DrawBreach(Breach b, float seed, bool gold = false)

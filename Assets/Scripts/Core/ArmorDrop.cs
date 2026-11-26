@@ -88,7 +88,7 @@ namespace Arena
                     e.Pos = ClampToArena(e.Pos + (away.IsZero ? RandDir() : away.Normalized()) * 40f, e.Radius);
                 }
             }
-            BroadcastFx(FxKind.Ring, z.Pos, new Rgba(1f, 0.8f, 0.35f), ArmorBlast, 0.45f, Sfx.Explode);
+            BroadcastFx(FxKind.Ring, z.Pos, Rgba.Gold, ArmorBlast, 0.45f, Sfx.Explode);
         }
 
         /// One vest out of the crate, spread evenly round it.

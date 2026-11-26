@@ -152,7 +152,7 @@ namespace Arena
                     if (s.Window <= 0f && s.Rebuild <= 0f)
                     {
                         s.Window = s.Rebuild = LichWindow;
-                        BroadcastFx(FxKind.Ring, e.Pos, new Rgba(1f, 0.8f, 0.35f), e.Radius + 90f, 0.6f, Sfx.BossChime);
+                        BroadcastFx(FxKind.Ring, e.Pos, Rgba.Gold, e.Radius + 90f, 0.6f, Sfx.BossChime);
                     }
                     s.Window = Math.Max(0f, s.Window - dt);
                     s.Rebuild -= dt;

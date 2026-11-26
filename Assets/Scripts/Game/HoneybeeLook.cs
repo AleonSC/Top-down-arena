@@ -241,7 +241,7 @@ namespace Arena
                 else if (fx.Kind == FxKind.HoneyHarvest)
                 {
                     text = "HARVEST +" + (int)fx.Pos2.Y;
-                    c = new Color(1f, 0.82f, 0.3f);
+                    c = CrtStyle.Gold;
                 }
                 else
                     continue;

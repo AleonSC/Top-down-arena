@@ -36,7 +36,7 @@ namespace Arena
         public const float DumpShoveBase = 60f, DumpShovePer = 200f;
         public const float DumpFx = 0.55f;
 
-        static readonly Rgba RailColor = new Rgba(0.55f, 0.91f, 1f), RailGold = new Rgba(1f, 0.8f, 0.35f);
+        static readonly Rgba RailColor = new Rgba(0.55f, 0.91f, 1f), RailGold = Rgba.Gold;
         public static readonly Rgba HeatColor = new Rgba(1f, 0.48f, 0.18f);
 
         public static float RailDamage(float c) => RailDmgTap + (RailDmgFull - RailDmgTap) * (float)Math.Pow(MathX.Clamp01(c), 1.2);

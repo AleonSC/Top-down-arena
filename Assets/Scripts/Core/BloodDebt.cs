@@ -60,7 +60,7 @@ namespace Arena
                 return;
             p.Debt = 0f;  // paid in full: a gold stamp, and the lifesteal stays a little longer
             p.DebtT += DebtPaidBonus;
-            BroadcastFx(FxKind.DebtSettle, p.Pos, new V2(p.Id, 1f), new Rgba(1f, 0.8f, 0.35f), p.DebtOwed, DebtPaidFx, Sfx.SpellHoly);
+            BroadcastFx(FxKind.DebtSettle, p.Pos, new V2(p.Id, 1f), Rgba.Gold, p.DebtOwed, DebtPaidFx, Sfx.SpellHoly);
         }
 
         /// Host, every tick: the window runs out; whatever is still owed is lost.

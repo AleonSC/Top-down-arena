@@ -12,7 +12,7 @@ namespace Arena
     {
         static readonly Rgba OpenRoomTint = new Rgba(0.45f, 0.6f, 1f, 0.03f);
         static readonly Rgba HallTint = new Rgba(0.2f, 0.3f, 0.6f, 0.05f),
-            ShopTint = new Rgba(1f, 0.82f, 0.3f, 0.07f), DoorInk = new Rgba(0.373f, 0.941f, 1f), DoorGold = new Rgba(1f, 0.82f, 0.4f),
+            ShopTint = Rgba.Gold.WithAlpha(0.07f), DoorInk = new Rgba(0.373f, 0.941f, 1f), DoorGold = Rgba.Gold,
             DoorTeal = new Rgba(0.25f, 0.9f, 0.7f);
 
         /// A tiny service room built from a card or a mystery door (not floating): it gets the same mark as a floating one.
@@ -350,7 +350,7 @@ namespace Arena
                     continue;
                 float pw = s.Round ? s.R : s.HW, ph = s.Round ? s.R : s.HH;
                 V2 q0 = M(s.Pos - new V2(pw, ph)), q1 = M(s.Pos + new V2(pw, ph));
-                MapRect(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, new Rgba(1f, 0.82f, 0.4f, 0.8f));
+                MapRect(q0.X, q0.Y, q1.X - q0.X, q1.Y - q0.Y, Rgba.Gold.WithAlpha(0.8f));
                 MapRect(q0.X + 1f, q0.Y + 1f, q1.X - q0.X - 2f, q1.Y - q0.Y - 2f, new Rgba(0f, 0f, 0f, 0.9f));
             }
             if (CoreArea(1))  // the core's one outline (GridRooms.cs)
@@ -439,7 +439,7 @@ namespace Arena
                     continue;
                 V2 c = M(ch.Pos);
                 MapRect(c.X - 4f, c.Y - 4f, 8f, 8f, new Rgba(0.02f, 0.03f, 0.06f, 0.9f));
-                MapRect(c.X - 3f, c.Y - 3f, 6f, 6f, ch.Chest == ChestKind.Gold ? new Rgba(1f, 0.82f, 0.3f) : ChestInkOf(ch.Chest));  // its kind's ink (ChestLooks.cs)
+                MapRect(c.X - 3f, c.Y - 3f, 6f, 6f, ch.Chest == ChestKind.Gold ? Rgba.Gold : ChestInkOf(ch.Chest));  // its kind's ink (ChestLooks.cs)
             }
             DrawGateOnMap(M);  // the boss gate (BossGateLook.cs)
             DrawMysteryOnMap(M);  // sealed mystery doors (MysteryDoorLook.cs)
@@ -452,7 +452,7 @@ namespace Arena
                     continue;
                 float s = co.Value >= 5 ? 2.5f : 1.5f;
                 MapRect(c.X - s - 0.5f, c.Y - s - 0.5f, 2f * s + 1f, 2f * s + 1f, new Rgba(0.02f, 0.03f, 0.06f, 0.8f));
-                MapRect(c.X - s, c.Y - s, 2f * s, 2f * s, new Rgba(1f, 0.82f, 0.3f));
+                MapRect(c.X - s, c.Y - s, 2f * s, 2f * s, Rgba.Gold);
             }
             foreach (var p in game.Players.Values)
             {

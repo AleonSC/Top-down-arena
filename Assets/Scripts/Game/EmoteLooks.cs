@@ -23,7 +23,7 @@ namespace Arena
             {
                 case "emote-wave": EmoteWave(head, t, s); break;
                 case "emote-thumbs": EmoteThumbs(head, t, s); break;
-                case "emote-gg": EmoteBubbleText(head, t, s, 56f, 40f, new Color(1f, 0.8f, 0.35f), "GG", 22, 1f + Mathf.Max(0f, 0.3f - t) * 1.5f); break;
+                case "emote-gg": EmoteBubbleText(head, t, s, 56f, 40f, CrtStyle.Gold, "GG", 22, 1f + Mathf.Max(0f, 0.3f - t) * 1.5f); break;
                 case "emote-cheer": EmoteCheer(head, t, s); break;
                 case "emote-heart": EmoteHeart(head, t, s); break;
                 case "emote-laugh": EmoteBubbleText(head, t, s, 74f, 40f, new Color(1f, 0.71f, 0.28f), "HA HA", 16, 1f, Mathf.Sin(t * 34f) * 1.2f); break;
@@ -212,13 +212,13 @@ namespace Arena
 
         void EmoteSalute(Vector2 head, float t, float s)
         {
-            var c = EmoteBubble(head, t, s, 46f, 44f, new Color(1f, 0.8f, 0.35f));
-            ESprite(StarPix, c, 2.6f * s * (1f + 0.1f * Mathf.Sin(t * 6f)), new Color(1f, 0.8f, 0.35f));
+            var c = EmoteBubble(head, t, s, 46f, 44f, CrtStyle.Gold);
+            ESprite(StarPix, c, 2.6f * s * (1f + 0.1f * Mathf.Sin(t * 6f)), CrtStyle.Gold);
         }
 
         void EmoteFireworks(Vector2 head, float t, float s)
         {
-            var cols = new[] { new Color(1f, 0.42f, 0.54f), new Color(1f, 0.8f, 0.35f), new Color(0.5f, 0.89f, 1f) };
+            var cols = new[] { new Color(1f, 0.42f, 0.54f), CrtStyle.Gold, new Color(0.5f, 0.89f, 1f) };
             for (int k = 0; k < 3; k++)
             {
                 float q = (t - (0.15f + k * 0.45f)) / 1.1f;

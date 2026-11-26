@@ -29,7 +29,7 @@ namespace Arena
         public const float CannonBallR = 24f, CannonSpeed = 330f, CannonReach = 560f, CannonMin = 120f;
         public const float CannonBurstR = 120f, CannonPassDmg = 0.5f, CannonBurstDmg = 1.25f, CannonStun = 0.8f, CannonCd = 5f, CannonBurstFx = 0.9f;
         public const float OverchargeTime = 10f, OverchargeMove = 1.25f, OverchargeFire = 1.3f, OverchargeShot = 1.35f;
-        public static readonly Rgba StaticBlue = new Rgba(0.62f, 0.89f, 1f), CannonViolet = new Rgba(0.79f, 0.7f, 1f), OverchargeGold = new Rgba(1f, 0.8f, 0.35f);
+        public static readonly Rgba StaticBlue = new Rgba(0.62f, 0.89f, 1f), CannonViolet = new Rgba(0.79f, 0.7f, 1f), OverchargeGold = Rgba.Gold;
 
         /// The cone's reach (Homing Rounds' area grows it).
         public static float StaticRangeOf(Player p) => StaticRange * AreaMult(p);
