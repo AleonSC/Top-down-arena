@@ -1181,10 +1181,12 @@ namespace Arena
                 BotRoom(me, ref move);      // a portal, a zone, the crystal, the altar (Challenges.cs)
             }
 
-            if (HoldControls)
+            if (HoldControls || PitFallT > 0f)  // (or down in a pit: Pits.cs)
             {
                 move = V2.Zero;
                 firing = false;
+                if (PitFallT > 0f)
+                    parry = weaponAction = dodgePress = dodgeHeld = false;
                 me.Parrying = false;
                 for (int i = 0; i < held.Length; i++)
                     held[i] = false;
@@ -1316,7 +1318,7 @@ namespace Arena
                 knockLeft = 0f;
             }
             else
-                PitLocal(me, before);  // over a pit: fall, climb out on the rim (Pits.cs)
+                PitLocal(me, before, dt);  // over a pit: drop in, climb out on the rim (Pits.cs)
             var myHorse = HorseOf(me);
             if (myHorse != null)
             {
