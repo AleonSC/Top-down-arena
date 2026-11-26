@@ -70,6 +70,7 @@ namespace Arena
         ArmorDrop,      // the Tank Soldier's fourth ultimate (ArmorDrop.cs), key 3 of the lobby's Ultimate row
         TrojanHorse,    // the Tank Knight's second ultimate (TrojanHorse.cs), key 1 of the lobby's Ultimate row
         Ballista,       // the DPS Knight's third ultimate (Ballista.cs), key 2 of the lobby's Ultimate row
+        CannonCall,     // the DPS Knight's 4th choice (CannonCall.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -116,6 +117,7 @@ namespace Arena
         public float UnbreakBonus, CavalryDmgBonus;  // Cavalry Call: extra damage blocked while the guard is up, extra damage per lance
         public float HolyRangeMult = 1f, HolySwiftBonus, OathCut, LayMult = 1f;
         public float BladedDamage, BladedReach, GauntletRange = 1f, GauntletDamage = 1f, SteelDamage, SteelReach;  // the DPS Knight's cards: Coup de Grace, Iron Grip, Forged Edge
+        public float CannonDamage, CannonWide;  // Siege Powder (CannonCall.cs): +25% damage, +15% blast radius a stack
         public float ApBonusTime, ApDmgMult = 1f;  // Astral Bond (AstralProjection.cs): +2 s, +25% bolt damage a stack
         public float FpDmgMult = 1f, FpKillHealMult = 1f;  // Forbidden Hunger (ForbiddenPath.cs): +20% combo damage, kills heal twice as much, a stack
         public float SpBonusTime, SpWindCut;  // Kami Vessel (SpiritAvatar.cs): +2 s, a 0.2 s shorter cleave wind-up a stack

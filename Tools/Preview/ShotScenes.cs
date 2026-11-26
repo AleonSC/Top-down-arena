@@ -1141,6 +1141,7 @@ static partial class Shot {
     OfudaScene();  // OFUDA=<s> (ShotOfuda.cs)
     NeedlesScene();  // NEEDLES=<s> (ShotNeedles.cs)
     ThornBloomScene();  // THORNBLOOM=<s since the cast> [THORNCAP=1] (ShotThornBloom.cs)
+    CannonCallScene();  // CANNON=<s since the cast> [CANNONCAP=1] (ShotCannonCall.cs)
     BambooGroveScene();  // BAMBOO=<s since the cast> [BAMBOOCAP=1] (ShotBambooGrove.cs)
     FlashFireScene();  // FLASHFIRE=<s since the cast> [FLASHCAP=1] (ShotFlashFire.cs)
     BloodRavagerScene();  // RAVAGER=<s since the cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (ShotBloodRavager.cs)

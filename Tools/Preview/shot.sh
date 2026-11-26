@@ -87,6 +87,7 @@
 #   with RIFLEFIRE=1 (holding fire: the Twin Rifle held wide, Spread arms) and CROSSAT=<px> (the cursor's distance).
 # BALLISTA=<s since the cast> [BALLISTACAP=1 mastered] [BALLISTARIDE=<s>, -1 nobody] (the DPS Knight's Ballista played through the game, shot.sh x hud 1 6 1: falls 0-0.6, you climb on at 0.8 and fire a bolt every 0.9 s; use 0.3, 1, 3.2, 8.2; ShotBallista.cs).
 # DEPLOYTURRET=<s since the cast> [DEPLOYCAP=1 mastered] (the DPS Soldier's Deployable Turret played through the game, shot.sh x hud 1 6 1: drop 0-0.55, unfolds to 1.1, fires to 11.1 (spool full by ~2.3), overheats, blows at 11.9; use 0.3, 0.8, 3, 6, 10, 11.5, 12; FXOFF=1 plain; ShotDeployTurret.cs).
+# CANNON=<s since the cast> [CANNONCAP=1 mastered] (the DPS Knight's Cannon Call played through the game, shot.sh x hud 1 6 1: flare 0.08-0.3, ball drops 0.35-1.25, slam at 1.25, crater to 4.25; use 0.2, 0.9, 1.15, 1.3, 1.5, 2.5; ShotCannonCall.cs).
 # THORNBLOOM=<s since the cast> [THORNCAP=1 mastered] (the DPS Hemomancer's Thorn Bloom played through the game, shot.sh x hud 1 6 1: needles fly 0-0.2, tendrils whip on to ~0.9; use 0.05, 0.15, 0.3, 0.5, 0.8; ShotThornBloom.cs).
 # BAMBOO=<s since the cast> [BAMBOOCAP=1 mastered] (the Tank Ninja's Bamboo Grove played through the game, ZOOM=2 shot.sh x hud 1 6 1: wind-up 0-0.35, rings burst 0.35-0.7, fence to 3.9; use 0.2, 0.42, 0.6, 1.0, 2.5; ShotBambooGrove.cs).
 # ROD=<s since the cast> (you take Lightning Rod, the tank Elementalist's second ultimate, and cast it that long before the shot; mode hud).

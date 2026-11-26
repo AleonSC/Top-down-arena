@@ -1218,6 +1218,7 @@ namespace Arena
             DrawBloodBlastGlow();  // the Blood Blast's Cleave, Tide and returning blood (BloodBlastLook.cs)
             DrawFrostLanceGlow();  // the Frost Lance's head, slams, shatters and Absolute Zero (FrostLanceLook.cs)
             DrawWarhornGlow();  // Warhorn Volley's horn, burning arrowheads and fires (WarhornVolleyLook.cs)
+            DrawCannonGlow();  // Cannon Call's flare, fuse and slam flash (CannonCallLook.cs)
             DrawOrbitalGlow();  // Orbital Laser's lock-on, beam and crater (OrbitalLaserLook.cs)
             DrawDragonsDogmaGlow();  // Dragon's Dogma's light (DragonsDogmaLook.cs)
             DrawRodGlow();    // Lightning Rod's charge and bolts (LightningRodLook.cs)
