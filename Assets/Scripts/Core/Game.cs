@@ -1190,6 +1190,9 @@ namespace Arena
             {
                 move = V2.Zero;  // sitting in your Deployable Turret: rooted, and it fires instead of your weapon (DeployableTurret.cs)
                 DashT = 0f;
+                var ba = BallistaOf(me);
+                if (ba != null)
+                    me.Pos = BaSeat(ba);  // on a Ballista: in its seat, behind the bow (Ballista.cs)
             }
             if (me.Weapon.Id == WeaponId.ArcKnuckles && (me.KnuckleChain == 2 || me.KnuckleChain == 4 || me.KnuckleRooted) && DashT <= 0f)
                 move = V2.Zero;  // the Arc Knuckles' Flurry, Grab & Throw and Barrage: rooted while they run (ArcKnucklesChain.cs, ArcKnucklesBrawl.cs)
@@ -1561,6 +1564,7 @@ namespace Arena
             TickStaff(dt);      // Quarterstaff.cs: the jab's cooldown, stacks dropped with the staff
             TickScatter(dt);    // BowFocus.cs: the Mender's Bow's Alt cooling down
             TickBowWind(dt);    // BowFocus.cs: Focus arrows' wind shoving what they pass
+            TickBallistaBolts(dt);  // Ballista.cs: its bolts knocking what they pass and the shots in their path
             dmgSrc = tickSrc;
             TickRepulsion(dt);  // Repulsion.cs: the Undertow pulling and draining its meter
             TickTwinRifle(dt);  // TwinGrenades.cs: the grenade tubes' cooldown, emptied with the rifle
@@ -1771,7 +1775,7 @@ namespace Arena
                     continue;  // (nothing to shoot from inside the Devourer, or mid beam-in)
                 if (Seated(p))
                 {
-                    // sitting in a Deployable Turret: it fires (TickDeployTurret), not your weapon
+                    // sitting in a Deployable Turret or riding a Ballista: it fires (TickDeployTurret, TickBallista), not your weapon
                 }
                 else if (Riding(p))
                     TickHorseBow(p, dt);  // in a Trojan Horse: arrows out of its slits, not your weapon (TrojanHorse.cs)

@@ -31,7 +31,7 @@ static partial class Program
             && Upgrades.Ultimate(Role.Healer, Kit.Knight, 1) == Upgrades.Ultimate(Role.Healer, Kit.Knight),
             "Fortress stays the default; key 1 is the Juggernaut Suit; an empty key falls back to the default (key 2 is A Literal Tank: LiteralTank.cs; key 3 the Armor Drop: ArmorDrop.cs)");
         Check(Upgrades.ClampUlt(Role.Tank, Kit.Soldier, 1) == 1 && Upgrades.ClampUlt(Role.Tank, Kit.Soldier, 3) == 3 && Upgrades.ClampUlt(Role.Healer, Kit.Knight, 1) == 0
-            && Upgrades.ClampUlt(Role.Wildcard, Kit.Soldier, Upgrades.WildUlt(Kit.Knight, 2)) == Upgrades.WildUlt(Kit.Knight, 0) && Upgrades.ClampUlt(Role.Wildcard, Kit.Soldier, 2) == 2,  // (a Wildcard's DPS Knight has no key 2, so it falls back to its key 0; the DPS Soldier's key 2 is Orbital Laser)
+            && Upgrades.ClampUlt(Role.Wildcard, Kit.Soldier, Upgrades.WildUlt(Kit.Ninja, 2)) == Upgrades.WildUlt(Kit.Ninja, 0) && Upgrades.ClampUlt(Role.Wildcard, Kit.Soldier, 2) == 2,  // (a Wildcard's DPS Ninja has no key 2, so it falls back to its key 0; the DPS Knight's key 2 is the Ballista: Ballista.cs; the DPS Soldier's key 2 is Orbital Laser)
             "picks are clamped to the keys the role and class has (a Wildcard's to its class's DPS keys)");
         int alts = 0;
         for (int r = 0; r < 3; r++)
