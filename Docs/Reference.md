@@ -244,6 +244,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Soul Lantern | Healer | 1st, choice 3 | 18 s | - | Lasts 9 s, and the linked player can't go down. | A lantern links to an ally, healing them and burning nearby enemies. |
 | World Tree | Healer | ultimate | 80 s | - | Lasts 16 s with 8 sprites. | Grow a tree that heals and slows around it and sends healing butterflies. |
 | Honey Raid | Healer | ultimate | 80 s | - | The pool is 25% wider. | A giant bee flies over your cursor and dumps its honey: a big pool that slows and hurts enemies and heals allies. |
+| Octopus Familiar | Healer | 1st, choice 5 | 40 s | - | The octopus has 380 health and slaps for 22. | Click a player: a spirit octopus guards them for 60 s, slapping up to 8 enemies near them at once and healing them a little each slap. |
 | Bat Swarm | Dps | 1st, choice 1 | 12 s | - | Releases 14 bats. | Release bats that hunt enemies. |
 | Hydra | Dps | 1st, choice 2 | 18 s | - | A fourth head. | A three-headed hydra spits venom at enemies. |
 | Alpha Call | Dps | 1st, choice 3 | 14 s | - | Also summons 3 wolves for 6 s. | Your minions bite faster, then lunge for triple damage. |
@@ -288,6 +289,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Thousand Clones | Tank | ultimate | 70 s | - | Twenty clones. | Twelve clones appear all over the map and draw every enemy. |
 | Dragon's Dogma | Tank | ultimate | 70 s | - | Hunts for 7 s, and every enemy it devours heals you 3%. | A spirit dragon hunts across the arena, devouring enemies and their shots. |
 | Spirit Avatar | Tank | ultimate | 70 s | - | Lasts 15 s and the cleave reaches 20% further. | A giant ink spirit wraps you: Fire paints a slow, wide Moon Cleave that throws enemies back. |
+| Five Shadow Gong | Tank | ultimate | 70 s | - | Each shadow cuts 4 enemies. | Strike a summoned gong: enemies near you freeze, five shadow ninjas each cut 3 of them, and the cuts land at once. The shadows leave slowing smoke. |
 | Bamboo Grove | Tank | 1st, choice 5 | 14 s | - | The bamboo fence lasts 6 s. | Bamboo bursts from the ground around you, stunning enemies, then bleeding them. |
 | Healing Dash | Healer | 1st, choice 1 | 15 s | - | The sprint lasts 4.5 s. | Sprint, leaving footprints that heal you and allies. |
 | Substitution | Healer | 1st, choice 2 | 12 s | - | You and your ally are both invulnerable for 1 s after the swap. | Swap places with an ally and shield them. |

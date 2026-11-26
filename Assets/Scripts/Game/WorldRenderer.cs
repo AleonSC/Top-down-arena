@@ -222,6 +222,7 @@ namespace Arena
             DrawCannonSky();  // Cannon Call's flare and the iron balls dropping in (CannonCallLook.cs)
             DrawOrbitalSky();  // Orbital Laser's lock-on, beam, shockwave and flash (OrbitalLaserLook.cs)
             DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon (DragonsDogmaLook.cs)
+            DrawShadowGongs(t);  // Five Shadow Gong: the gong, the shadows, their cuts and the splits (FiveShadowGongLook.cs)
             DrawRavagerDrops();  // Blood Ravager's drops (BloodRavagerLook.cs)
             DrawBoilOver();  // Blood Boil's bubbles and steam (BloodBoilLook.cs)
             DrawHeartbeatOver();  // Heartbeat's flung drops and the heart on the chest (HeartbeatLook.cs)
@@ -552,6 +553,8 @@ namespace Arena
                 DrawGreatStarRoute(p, t);  // the Great Star's ink route as you draw it (GreatStarLook.cs)
             if (p.Id == game.MyId && game.OathPickSlot >= 0)
                 DrawOathPick(p, t);  // Guardian's Oath waiting for you to click the ally to grab (GuardiansOathLook.cs)
+            if (p.Id == game.MyId && game.OctoPickSlot >= 0)
+                DrawOctoPick(p, t);  // Octopus Familiar waiting for you to click a player (OctopusFamiliarLook.cs)
             if (p.Weapon.Id == WeaponId.Kunai && p.KunaiMarkT > 0f)  // the shadow kunai's mark: blink there with a double-tap
             {
                 var shade = new Rgba(0.55f, 0.45f, 0.85f);

@@ -144,6 +144,9 @@ namespace Arena
                 case AbilityId.SoulLantern:
                     SpawnSoulLantern(p, target, cap, pw);  // SoulLantern.cs
                     break;
+                case AbilityId.OctopusFamiliar:
+                    CastOctopus(p, target, cap);  // OctopusFamiliar.cs
+                    break;
                 case AbilityId.BatSwarm:
                 {
                     int bats = cap ? 14 : 8;
@@ -313,6 +316,8 @@ namespace Arena
                             TitanFallen(m);  // Titan.cs
                         else if (m.Kind == MinionKind.Turret)
                             SentryFolds(m);  // SentryNova.cs
+                        else if (m.Kind == MinionKind.Octopus)
+                            OctoBurst(m);  // its time is up: it bursts into ink (OctopusFamiliar.cs)
                         expired.Add(m);
                         continue;
                     }
@@ -364,6 +369,12 @@ namespace Arena
                 if (m.Kind == MinionKind.SoulLantern)
                 {
                     if (!TickSoulLantern(m, owner, dt))  // its player is gone (SoulLantern.cs)
+                        expired.Add(m);
+                    continue;
+                }
+                if (m.Kind == MinionKind.Octopus)
+                {
+                    if (!TickOctopus(m, owner, dt))  // its player is gone (OctopusFamiliar.cs)
                         expired.Add(m);
                     continue;
                 }
@@ -880,6 +891,8 @@ namespace Arena
                             e.BurnDps = Math.Max(e.BurnDps, d.Dps * z.DmgMult * FlameWallBurnShare);
                             e.BurnBy = z.Owner;
                         }
+                        if (z.Kind == ZoneKind.GongSmoke)
+                            e.FsgSmokeT = FsgSmokeHold;  // it shoots slower too (EnemyAI.cs; FiveShadowGong.cs)
                         float slow = Math.Max(d.Slow, z.ExtraSlow);
                         if (z.Kind == ZoneKind.Blizzard)
                             Chill(e, 1, 0.3f, 1f - slow, gated: true);  // ice: chilled too, a stack a second (Chill.cs)
