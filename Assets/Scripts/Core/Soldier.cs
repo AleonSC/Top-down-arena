@@ -231,9 +231,9 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.DeployableTurret, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (DeployableTurret.cs)
+                Id = AbilityId.DeployableTurret, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Ult,  // the default ultimate, key 0 of the lobby's Ultimate row (DeployableTurret.cs)
                 Name = "Deployable Turret", Icon = "deployturret", Cooldown = DtCooldown, Desc = "Climb into a heavy turret that spools up to a fast piercing fire.",
-                Capstone = "Fires 14 s, rounds pierce 4, and the blast does double.",
+                Capstone = "Fires 26 s, rounds pierce 4, and the blast does double.",
                 Bot = b => b.HaveTarget && b.NearEnemies >= 3 && b.TargetD < 480f,
             },
         };

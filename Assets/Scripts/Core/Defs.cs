@@ -187,7 +187,7 @@ namespace Arena
         public string AreaDesc;    // set on weapons whose damage lands in an area (Game.AreaWeapon): what Homing Rounds grow instead of bending shots
         public string HomingDesc;  // what Homing Rounds do for it instead (the card text after the weapon's name; checked before AreaDesc, so cones say they condense)
         public string BarrageDesc; // what Barrage does for it, when that isn't the usual fanned copies (the card text after the weapon's name)
-        public string ExtraDesc;  // what each extra projectile (Multishot, Artillery Assault) does for this weapon
+        public string ExtraDesc;  // what each extra projectile (Multishot) does for this weapon
         public float FireInterval;
         public bool Variant;      // a variant of another weapon (Variants.VariantOf): picked in that weapon's Variants window, not on its own lobby key
         // Summoner weapons keep companions around. Imps blow themselves up, so a new one

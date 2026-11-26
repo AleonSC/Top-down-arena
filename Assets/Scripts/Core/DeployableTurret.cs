@@ -2,8 +2,8 @@ using System;
 
 namespace Arena
 {
-    /// Deployable Turret, the DPS Soldier's 4th choice (`AbilityId.DeployableTurret`, `AbilityDef.Fourth`: the lobby's 4th ability
-    /// key), from Docs/Mockups/deployable-turret.html. A crate drops on your spot (DtLand s), unfolds (until DtDeploy s) and you
+    /// Deployable Turret, the DPS Soldier's default ultimate (`AbilityId.DeployableTurret`, key 0 of the lobby's Ultimate row; it
+    /// took Artillery Assault's place, and the DPS Soldier's 4th choice is empty for now), from Docs/Mockups/deployable-turret.html. A crate drops on your spot (DtLand s), unfolds (until DtDeploy s) and you
     /// sit in it for DtLife s; a `ZoneKind.DeployTurret` zone: Pos the turret, Aim where its twin barrels point, Radius the seat
     /// (DtSeat), BlockHp its health (DtHp; GuardFrac its fraction, replicated):
     ///   it takes the damage meant for you while you sit in it, after your armour and shields (`TurretSoak` from `Damage`); at 0
@@ -19,7 +19,7 @@ namespace Arena
     /// blast on each screen from the zone and its owner's aim and trigger; only the damage is the host's.
     public partial class Game
     {
-        public const float DtCooldown = 45f, DtLand = 0.55f, DtDeploy = 1.1f, DtLife = 10f, DtLifeMastered = 14f, DtDying = 0.8f;
+        public const float DtCooldown = 60f, DtLand = 0.55f, DtDeploy = 1.1f, DtLife = 20f, DtLifeMastered = 26f, DtDying = 0.8f;
         public const float DtRange = 560f, DtDamage = 22f, DtRateLow = 7f, DtRateHigh = 30f, DtSpool = 1.2f, DtTurn = 8f;
         public const float DtBlast = 160f, DtBlastDamage = 80f, DtSeat = 44f, DtHp = 350f;
         public const int DtPierce = 2, DtPierceMastered = 4;

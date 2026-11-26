@@ -15,7 +15,7 @@ namespace Arena
         // Summoner
         GolemWall, Earthquake, ForcePact, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Hydra, AlphaCall,
         // Ultimates (F): one per role and class
-        Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, ArtilleryAssault, BulletRain, Legion,
+        Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, RetiredArtillery, BulletRain, Legion,  // RetiredArtillery: Artillery Assault, retired (the Deployable Turret took the DPS Soldier's default ultimate)
         // Knight (1st ability), then the Knight ultimates
         ShieldWall, LeapSlam, CavalryCall, Consecrate, GuardiansOath, LayOnHands, BladedDive, Gauntlet, CaltropRun,  // Caltrop Run (CaltropRun.cs) took Caught Steel's place (and number)
        

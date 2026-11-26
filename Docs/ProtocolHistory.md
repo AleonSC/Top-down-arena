@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 547: the Deployable Turret is the DPS Soldier's default ultimate: `AbilityId.ArtilleryAssault` renamed `RetiredArtillery` (no def, no lobby place), the turret no longer a 4th choice (DPS Soldier lobby picks shift); no new fields.
 - 546: Blood Ritual (Tank Hemomancer fourth ultimate): `AbilityId.BloodRitual`, `MinionKind.BloodImp`, `ZoneKind.BloodRitual` (all at the end); no new snapshot fields (the imps ride the minion sync, the sigil the zone sync).
 - 545: Twin Rifle grenade sounds: `Sfx.TwinNadeLoad`, `TwinNadeLaunch`, `TwinNadeBoom` (at the end); no player or snapshot fields.
 - 544: starting piece pick: `Player.OfferStart` (a bool after `OfferWave` in the player snapshot); the first build round offers two pieces instead of dealing one.

@@ -12,8 +12,6 @@ namespace Arena
         /// plain ring and beam it also sends, which that look replaces when Visual effects are on (their durations mark them).
         public const float LifelineInvuln = 3f, LifelineFxTime = 3.7f, LifelinePlainRing = 0.62f, LifelinePlainLink = 0.56f;
 
-        bool Storming(Player p) => p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.ArtilleryAssault;
-
         /// How long the Glacial Tomb's Ring effect lives: its freeze (4 s, 6 s mastered) and a second for the thaw. The look tells it by this.
         public const float TombFxTail = 1f;
         public static float TombFxTime(bool mastered) => (mastered ? 6f : 4f) + TombFxTail;
@@ -104,9 +102,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.ArtilleryAssault, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Ult,
-                Name = "Artillery Assault", Cooldown = 60f, Desc = "Fire three times as fast with extra projectiles.",
-                Capstone = "+4 extra projectiles instead of +2.",
+                Id = AbilityId.RetiredArtillery, Kit = Kit.Soldier, Role = Role.Dps,  // retired (no name: in no lobby place, card or list); the Deployable Turret is the DPS Soldier's default ultimate now
             },
             new AbilityDef
             {
@@ -291,12 +287,6 @@ namespace Arena
                     BroadcastFx(FxKind.Ring, p.Pos, Kits.Get(ZoneKind.Grove).Color, WorldTreeRadius, 0.6f, Sfx.Summon);
                     break;
                 }
-
-                case AbilityId.ArtilleryAssault:  // DPS: Soldier
-                    p.UltT = 6f;
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.6f, 0.25f), 140f, 0.6f, Sfx.Ability);
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.95f, 0.8f), 85f, 0.45f, Sfx.None);
-                    break;
 
                 case AbilityId.AttackHelicopter:  // DPS: Soldier, the second ultimate (AttackHelicopter.cs)
                     CastHeli(p, cap);
