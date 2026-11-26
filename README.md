@@ -118,8 +118,8 @@ How shot upgrades work on a melee weapon (the cards say so when you're a Knight)
 - **Piercing Rounds**: +15% reach per stack (sword waves already pierce everything).
 - **Barrage**: every swing also throws a **sword wave** per stack, fanned out to the sides.
 - **Incendiary, Cryo, Shock and Explosive Rounds**, Swarm Rounds, Collapse Rounds and Graviton Rounds apply to
-  every melee hit. **Ricochet** flings bounce bolts off your hits (see the mods table). **Homing and Velocity
-  Rounds** only change your sword waves (Velocity's +15% damage counts for everything).
+  every melee hit. **Ricochet** flings bounce bolts off your hits (see the mods table). **Homing Rounds**: +10% reach
+  per stack (and your sword waves bend). **Velocity Rounds** speed up your sword waves, and their +25% damage counts for everything.
 
 ### The Ninja
 
@@ -968,7 +968,7 @@ revives). Wounds **carry across waves** but never take more than **70% of your m
 
 | Mod | Per stack |
 |---|---|
-| **Homing Rounds** | Shots bend toward an enemy within 260 px and about 45 degrees of their path, so near misses connect (they don't turn around to hunt). Costs 5% damage per stack; more stacks bend harder. **Area weapons** (Implosion, Flak Cannon, Ofuda, Storm Hammer, Gore Mortar, Vein Tether, Frost Lance, Treant Rod, Nimbus, Spirit Chalk, Golem Staff, Arc Lightning) get a bigger area instead of bending: +25% per stack to the blast, burst, splash and pool, collapse, beam width, lightning's reach, sweeps, lash, lightning and rain, ink line, boulder or Arc Lightning's tagging cone (wider, up to 137° across), for the same damage cost. **Cone weapons** (Chain Light, Leech Tendrils, Repulsion Cannon) condense instead: the cone, arc or blast is 15% narrower and hits 10% harder per stack (the Repulsion Cannon also pushes 10% harder), with no damage cost, so it's a choice between covering a crowd and focusing a target. **Wisp Lantern and Imp Caller:** the wisps and imps you send pick an enemy 50% farther from your cursor per stack, and one sent at empty ground (or whose target dies) turns onto an enemy within 260 px of it, for the same damage cost |
+| **Homing Rounds** | Shots bend toward an enemy within 260 px and about 45 degrees of their path, so near misses connect (they don't turn around to hunt). Costs 5% damage per stack; more stacks bend harder. **Area weapons** (Implosion, Flak Cannon, Ofuda, Storm Hammer, Gore Mortar, Vein Tether, Frost Lance, Treant Rod, Nimbus, Spirit Chalk, Golem Staff, Arc Lightning) get a bigger area instead of bending: +25% per stack to the blast, burst, splash and pool, collapse, beam width, lightning's reach, sweeps, lash, lightning and rain, ink line, boulder or Arc Lightning's tagging cone (wider, up to 137° across), for the same damage cost. **Cone weapons** (Chain Light, Leech Tendrils, Repulsion Cannon) condense instead: the cone, arc or blast is 15% narrower and hits 10% harder per stack (the Repulsion Cannon also pushes 10% harder), with no damage cost, so it's a choice between covering a crowd and focusing a target. **Wisp Lantern and Imp Caller:** the wisps and imps you send pick an enemy 50% farther from your cursor per stack, and one sent at empty ground (or whose target dies) turns onto an enemy within 260 px of it, for the same damage cost. **Melee weapons** reach 10% farther per stack instead (swings and sword waves; the waves still bend), for near misses the same way; the Heart Flail and Twin Tessen, whose hits land in an area, get the bigger area |
 | **Ricochet** | After a hit, the shot bounces to another enemy within 300 px for 40% damage; +1 bounce per stack. Hits that can't bounce (melee, beams, cones, bursts, sent wisps and imps, and shots that pierce: drawn arrows, Fireball, flames, Fuma Shuriken) store their damage instead, and up to 4 times a second a **bounce bolt** carries 40% of it from the enemy hit to the nearest other one (+1 bounce per extra stack) |
 | **Incendiary Rounds** | Hits set enemies on fire: each burns for another 40% of the hit's damage over 3 s (per stack), and burns from every hit add up, so fast and slow weapons gain about the same |
 | **Cryo Rounds** | Hits slow enemies 20% (up to 60%) with a 6% chance to freeze non-bosses for 1 s |
@@ -979,6 +979,8 @@ revives). Wounds **carry across waves** but never take more than **70% of your m
 Mods apply to your weapon's shots and your minions' shots, but not to grenades. They also ride every hit of
 weapons that don't fire bullets (melee swings, beams, cones, the Repulsion Cannon's blast, Blast Ofudas,
 sent wisps and imps). On a Knight, the elemental mods apply to every melee hit (see The Knight above).
+Each card says what it does for **your** weapon (its kind: shots, area, cone or melee, or the weapon's own text), and a
+mod that would do nothing for your weapon is never offered.
 
 **Piercing Rounds** let shots pass through two more enemies per stack. Weapons without bullets that run out of pierce
 (melee, the Flamethrower, Fuma Shuriken, Repulsion Cannon, Radiant Orb, Chain Light, Spirit Fan, Ofuda,

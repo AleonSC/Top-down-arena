@@ -54,14 +54,14 @@ namespace Arena
             new WeaponDef { Id = WeaponId.WispLantern, Range = (g, p, w, x) => WispReach * PierceReach(p), Kit = Kit.Summoner, Role = Role.Dps, Choice = 1, Damage = 22f, BotRange = 340f, ExtraDesc = "+1 Wisp, and each shot sends one more", Name = "Wisp Lantern", FireInterval = 0.25f,
                 Desc = "Primary Fire: Wisps orbit you; each shot sends one to strike the nearest enemy and return.",
                 Companion = MinionKind.Wisp, CompanionCount = 3,
-                Sound = Sfx.SpellArcane, HomingDesc = "wisps pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack" },
+                Sound = Sfx.SpellArcane, Mods = WeaponMods.Say(ModId.Homing, "wisps pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack") },
             new WeaponDef { Id = WeaponId.ImpCaller, Charge = true, Range = (g, p, w, x) => ImpReach * PierceReach(p), Kit = Kit.Summoner, Role = Role.Dps, Choice = 2, BotRange = 380f, ExtraDesc = "+1 Imp, and they arrive 50% faster", Name = "Imp Caller", FireInterval = 0.35f,
                 Desc = "Primary Fire: Imps wait by you: tap to send one to explode at your cursor.\n\nAlternative Fire: Hold to merge them into one big imp.",
                 Companion = MinionKind.Imp, CompanionCount = 5, CompanionRespawn = 1f,
-                HomingDesc = "imps pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack" },
+                Mods = WeaponMods.Say(ModId.Homing, "imps pick an enemy 50% farther from your cursor per stack, and one sent at empty ground turns onto an enemy near it. 5% less damage per stack") },
             new WeaponDef { Id = WeaponId.HoneybeeStaff, Range = (g, p, w, x) => HatchReach, BotAlt = HoneybeeStaffBotAlt, BotAltHold = true, Kit = Kit.Summoner, Role = Role.Dps, Choice = 3, Damage = 22f, BotRange = 360f, ExtraDesc = "+1 bee a click, and 2 more can be out", Name = "Honeybee Staff", FireInterval = 0.4f,
                 Desc = "Primary Fire: Click to hatch a bee that stings the nearest enemy; three stings in a row swarm it.\n\nAlternative Fire: Spray slowing honey; enemies that die in it burst into bees.",
-                HomingDesc = "bees look for enemies 25% farther out per stack",
+                Mods = WeaponMods.Say(ModId.Homing, "bees look for enemies 25% farther out per stack"),
                 BarrageDesc = "each click hatches one more bee (full damage)" },
         };
 

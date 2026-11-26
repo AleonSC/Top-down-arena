@@ -246,7 +246,10 @@ namespace Arena
         public string Name, Desc;
         public Sfx Sound = Sfx.Throw;  // the sound of its shots (summoner staffs, darts and rocks just throw)
         public string AreaDesc;    // set on weapons whose damage lands in an area (Game.AreaWeapon): what Homing Rounds grow instead of bending shots
-        public string HomingDesc;  // what Homing Rounds do for it instead (the card text after the weapon's name; checked before AreaDesc, so cones say they condense)
+        public Dictionary<ModId, KindEffect> Mods;  // what weapon mods do for this weapon, where not what they do for its kind (WeaponMods.Say, As, Without)
+        public bool Cone;          // its damage lands in a cone (Chain Light, Leech Tendrils, the Repulsion Cannon): Homing Rounds condense it
+        /// How its damage lands, which picks what each weapon mod does for it (WeaponMods.cs).
+        public WeaponKind Kind => Melee ? WeaponKind.Melee : Cone ? WeaponKind.Cone : AreaDesc != null ? WeaponKind.Area : WeaponKind.Shot;
         public string BarrageDesc; // what Barrage does for it, when that isn't the usual fanned copies (the card text after the weapon's name)
         public string ExtraDesc;  // what each extra projectile (Multishot, Artillery Assault) does for this weapon
         public float FireInterval;

@@ -28,7 +28,7 @@ namespace Arena
         /// The whole wait before a fresh bee goes for an enemy (hatching, then buzzing on the spot).
         public static float BeeWait => BeeHatch + BeeHover;
 
-        /// How far a bee looks for an enemy: farther with Homing Rounds (the weapon's HomingDesc).
+        /// How far a bee looks for an enemy: farther with Homing Rounds (its Homing Rounds text: WeaponDef.Mods).
         float BeeSeekRange(Player p) => BeeSeek * (1f + 0.125f * p.Stats.Homing);
 
         /// Fire: hatch a bee at the cursor (one more per extra projectile, fanned round it).

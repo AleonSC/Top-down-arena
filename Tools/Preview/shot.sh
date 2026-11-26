@@ -4,6 +4,7 @@
 #   Tools/Preview/shot.sh <out-name> <mode> [wave] [seconds] [players]
 # picker: GOLDINSTEAD=1 (on the Bazaar: the "Gold instead" key under the row).
 # Modes (see ShotModes.cs; flags in ShotScenes.cs): hud, dev, bg, lobby, tab, picker, legendary, ...
+# MODWEAPON=<WeaponId> (the weapon mod pick, any mode not listed e.g. 'mods': the cards for that weapon, e.g. Katana).
 # Env flags tweak the scene, e.g. KNIGHT=1 (Knights), POSE=1 (fixed pose), THRUST=0.3 (Lance jab frame),
 # DAZE=1 (three enemies dazed round you; mode hud), ELEMSTATUS=1 (Brittle and Dazzled enemies round you, ElementStatusLook.cs; mode hud, ZOOM=2), BOW=0.9, MASTERY=1, BG=3 (background number for 'bg'), MOUSE=x,y (hover for lobby modes), SOLO=1,
 # menu: PLAY=1 (the Play picker; NOSAVES=1, MORE=1 extra saves, OLDER=1 the older runs, PAGE=n), MENUT=<s> (the clock: 3 = rooms built), BG=28 (Holo Floor).
