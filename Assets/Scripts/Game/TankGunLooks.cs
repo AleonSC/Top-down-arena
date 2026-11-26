@@ -15,7 +15,7 @@ namespace Arena
     ///                   rounds are glowing orbs with a white core and a tapered tracer.
     public partial class ArenaApp
     {
-        class TankSeen { public float T = -99f; public bool Ejected = true; }
+        internal class TankSeen { public float T = -99f; public bool Ejected = true; }
 
         const float ScatterKick = 0.14f, ScatterPump = 0.2f, ScatterEject = 0.24f, FlakKick = 0.3f, FlakHeat = 0.8f, RiotKick = 0.09f, FlakLiftMax = 34f;
 
@@ -36,38 +36,46 @@ namespace Arena
                 return;  // one volley (a Scattergun's pellets all appear together)
             s.T = juiceClock;
             V2 dir = V2.FromAngle(owner.Aim), side = dir.Orthogonal(), at = b.Pos;
-            switch (owner.Weapon.Id)
+            LookOf(owner.Weapon.Id)?.TankShot?.Invoke(this, owner, s, new GunShot { Dir = dir, Side = side, At = at });  // the weapon's own (WeaponLook.TankShot)
+        }
+
+        /// WeaponLook.TankShot of the Scattergun: a flash cone, sparks and smoke (the shell drops out after the pump).
+        void ScattergunShot(Player owner, TankSeen s, GunShot g)
+        {
+            V2 dir = g.Dir, side = g.Side, at = g.At;
+            s.Ejected = false;
+            for (int k = -1; k <= 1; k++)
+                AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = owner.Aim + k * 0.22f, Life = 0.07f, Max = 0.07f, Size = k == 0 ? 34f : 24f, Col = k == 0 ? new Rgba(1f, 0.92f, 0.66f) : new Rgba(1f, 0.62f, 0.23f) });
+            Sparks(at, new Rgba(1f, 0.85f, 0.55f), 10, 300f, 0.14f, 1.6f);
+            for (int i = 0; i < 6; i++)
             {
-                case WeaponId.Scattergun:
-                {
-                    s.Ejected = false;
-                    for (int k = -1; k <= 1; k++)
-                        AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = owner.Aim + k * 0.22f, Life = 0.07f, Max = 0.07f, Size = k == 0 ? 34f : 24f, Col = k == 0 ? new Rgba(1f, 0.92f, 0.66f) : new Rgba(1f, 0.62f, 0.23f) });
-                    Sparks(at, new Rgba(1f, 0.85f, 0.55f), 10, 300f, 0.14f, 1.6f);
-                    for (int i = 0; i < 6; i++)
-                    {
-                        float life = Rnd(0.4f, 0.7f);
-                        AddPart(new Part { Kind = PDust, Pos = at + dir * Rnd(0f, 8f), Vel = dir * Rnd(40f, 140f) + side * Rnd(-45f, 45f), Life = life, Max = life, Size = Rnd(4f, 8f), Col = SmokeCol });
-                    }
-                    break;
-                }
-                case WeaponId.FlakCannon:
-                    AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = owner.Aim, Life = 0.08f, Max = 0.08f, Size = 44f, Col = FlakHotOrange });
-                    AddPart(new Part { Kind = PFlash, Pos = at, Life = 0.09f, Max = 0.09f, Size = 18f, Col = FlakWhiteHot });
-                    Sparks(at, FlakHotOrange, 8, 260f, 0.16f, 2f);
-                    for (int i = 0; i < 8; i++)
-                    {
-                        float life = Rnd(0.5f, 0.9f);
-                        AddPart(new Part { Kind = PDust, Pos = at, Vel = dir * Rnd(40f, 140f) + side * Rnd(-60f, 60f), Life = life, Max = life, Size = Rnd(6f, 10f), Col = SmokeCol });
-                    }
-                    break;
-                case WeaponId.RiotRepeater:
-                    AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = owner.Aim, Life = 0.04f, Max = 0.04f, Size = 16f, Col = RiotFlash });
-                    AddPart(new Part { Kind = PFlash, Pos = at, Life = 0.05f, Max = 0.05f, Size = 6f, Col = RiotBlue });
-                    AddPart(new Part { Kind = PDust, Pos = at, Vel = dir * 30f, Life = 0.4f, Max = 0.4f, Size = 3f, Col = SmokeCol });
-                    AddPart(new Part { Kind = PCasing, Pos = owner.Disp + dir * 8f + side * 8f, Vel = side * Rnd(90f, 140f) + dir * Rnd(-15f, 15f), Rot = Rnd(0f, MathX.Tau), Spin = Rnd(-16f, 16f), Life = 0.7f, Max = 0.7f, Size = 3f, Col = BrassCol });
-                    break;
+                float life = Rnd(0.4f, 0.7f);
+                AddPart(new Part { Kind = PDust, Pos = at + dir * Rnd(0f, 8f), Vel = dir * Rnd(40f, 140f) + side * Rnd(-45f, 45f), Life = life, Max = life, Size = Rnd(4f, 8f), Col = SmokeCol });
             }
+        }
+
+        /// WeaponLook.TankShot of the Flak Cannon: a big muzzle flash, sparks and smoke.
+        void FlakCannonShot(Player owner, TankSeen s, GunShot g)
+        {
+            V2 dir = g.Dir, side = g.Side, at = g.At;
+            AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = owner.Aim, Life = 0.08f, Max = 0.08f, Size = 44f, Col = FlakHotOrange });
+            AddPart(new Part { Kind = PFlash, Pos = at, Life = 0.09f, Max = 0.09f, Size = 18f, Col = FlakWhiteHot });
+            Sparks(at, FlakHotOrange, 8, 260f, 0.16f, 2f);
+            for (int i = 0; i < 8; i++)
+            {
+                float life = Rnd(0.5f, 0.9f);
+                AddPart(new Part { Kind = PDust, Pos = at, Vel = dir * Rnd(40f, 140f) + side * Rnd(-60f, 60f), Life = life, Max = life, Size = Rnd(6f, 10f), Col = SmokeCol });
+            }
+        }
+
+        /// WeaponLook.TankShot of the Riot Repeater: a small flash and a brass casing every round.
+        void RiotRepeaterShot(Player owner, TankSeen s, GunShot g)
+        {
+            V2 dir = g.Dir, side = g.Side, at = g.At;
+            AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = owner.Aim, Life = 0.04f, Max = 0.04f, Size = 16f, Col = RiotFlash });
+            AddPart(new Part { Kind = PFlash, Pos = at, Life = 0.05f, Max = 0.05f, Size = 6f, Col = RiotBlue });
+            AddPart(new Part { Kind = PDust, Pos = at, Vel = dir * 30f, Life = 0.4f, Max = 0.4f, Size = 3f, Col = SmokeCol });
+            AddPart(new Part { Kind = PCasing, Pos = owner.Disp + dir * 8f + side * 8f, Vel = side * Rnd(90f, 140f) + dir * Rnd(-15f, 15f), Rot = Rnd(0f, MathX.Tau), Spin = Rnd(-16f, 16f), Life = 0.7f, Max = 0.7f, Size = 3f, Col = BrassCol });
         }
 
         /// Each frame: a pumped Scattergun's shell drops out at the back of the stroke.
@@ -96,30 +104,40 @@ namespace Arena
             if (!Juicy || !tankSeen.TryGetValue(p.Id, out s))
                 return;
             float age = juiceClock - s.T;
-            switch (p.Weapon.Id)
-            {
-                case WeaponId.Scattergun:
-                {
-                    if (age < ScatterKick)
-                        kick = 6f * Sq(1f - age / ScatterKick);
-                    float tp = (age - ScatterKick) / ScatterPump;
-                    if (tp > 0f && tp < 1f)
-                        pump = 11f * Mathf.Sin(MathX.Pi * tp);
-                    TankAltPose(p, ref kick, ref pump);  // a Double Barrel kicks harder and breaks open (TankAltFx.cs)
-                    break;
-                }
-                case WeaponId.FlakCannon:
-                    if (age < FlakKick)
-                        kick = 8f * Sq(1f - age / FlakKick);
-                    heat = Mathf.Clamp01(1f - age / FlakHeat);
-                    break;
-                case WeaponId.RiotRepeater:
-                    if (age < RiotKick)
-                        kick = 3.4f * Sq(1f - age / RiotKick);
-                    if (age < 0.13f)
-                        lit = Mathf.Min(3, (int)(age / 0.03f));
-                    break;
-            }
+            var o = new TankGunPoseOut { Lit = -1 };
+            LookOf(p.Weapon.Id)?.TankPose?.Invoke(this, p, age, ref o);  // the weapon's own (WeaponLook.TankPose)
+            kick = o.Kick; pump = o.Pump; heat = o.Heat; lit = o.Lit;
+        }
+
+        /// What a WeaponLook.TankPose sets: TankGunPose's out values (it starts them at no kick, pump or heat and no lit rib, -1).
+        internal struct TankGunPoseOut { public float Kick, Pump, Heat; public int Lit; }
+
+        /// WeaponLook.TankPose of the Scattergun: the recoil kick, then the pump.
+        void ScattergunPose(Player p, float age, ref TankGunPoseOut o)
+        {
+            if (age < ScatterKick)
+                o.Kick = 6f * Sq(1f - age / ScatterKick);
+            float tp = (age - ScatterKick) / ScatterPump;
+            if (tp > 0f && tp < 1f)
+                o.Pump = 11f * Mathf.Sin(MathX.Pi * tp);
+            TankAltPose(p, ref o.Kick, ref o.Pump);  // a Double Barrel kicks harder and breaks open (TankAltFx.cs)
+        }
+
+        /// WeaponLook.TankPose of the Flak Cannon: the breech recoil and the bands' heat.
+        void FlakCannonPose(Player p, float age, ref TankGunPoseOut o)
+        {
+            if (age < FlakKick)
+                o.Kick = 8f * Sq(1f - age / FlakKick);
+            o.Heat = Mathf.Clamp01(1f - age / FlakHeat);
+        }
+
+        /// WeaponLook.TankPose of the Riot Repeater: the bolt kick and the lit magazine rib.
+        void RiotRepeaterPose(Player p, float age, ref TankGunPoseOut o)
+        {
+            if (age < RiotKick)
+                o.Kick = 3.4f * Sq(1f - age / RiotKick);
+            if (age < 0.13f)
+                o.Lit = Mathf.Min(3, (int)(age / 0.03f));
         }
 
         static float Sq(float x) => x * x;

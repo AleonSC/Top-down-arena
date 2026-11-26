@@ -6,6 +6,12 @@ namespace Arena
     /// False: no held pose now.
     delegate bool MeleeRestFn(Player p, ref float ang, ref float reach, ref float bend);
 
+    /// A Soldier DPS gun's pose with the effects on (DpsGunPose, DpsGunLooks.cs): sets the m* fields the model reads and may set `kick`.
+    delegate void DpsPoseFn(ArenaApp a, Player p, ArenaApp.DpsSeen s, float age, ref float kick);
+
+    /// A Tank Soldier gun's pose with the effects on (TankGunPose, TankGunLooks.cs), `age` after its last shot.
+    delegate void TankPoseFn(ArenaApp a, Player p, float age, ref ArenaApp.TankGunPoseOut o);
+
     /// How each weapon looks on the front end, beside its WeaponDef (Core) the way KitLook (ClassLooks.cs) stands beside a class:
     /// the model's held weapon and grip (CharacterModels.cs) and a melee weapon's energy colour and resting pose (MeleeLooks.cs).
     /// A new weapon adds its L line here. Any field can be left out.
@@ -19,6 +25,14 @@ namespace Arena
         public bool Pauldrons;          // that look also puts a pauldron on each shoulder while it draws the arms (LookDrawsPauldrons)
         public Rgba? MeleeColor;        // a melee weapon's energy colour (MeleeColor); null: the effect's own
         public MeleeRestFn Rest;        // a melee weapon drawn by DrawMeleeModel: its held pose (MeleeRest); null: none
+        public Action<ArenaApp, ArenaApp.MeleeModel> Model;  // its model in DrawMeleeModel (MeleeLooks.cs); null: the plain blade (DrawBladeModel)
+        // The Soldier's guns with the effects on (DpsGunLooks.cs, TankGunLooks.cs): a shot's flash, smoke and brass as Juice sees it
+        // appear, a per-frame tick and the model's pose. A DpsPose makes it one of the DPS guns (IsDpsGun).
+        public Action<ArenaApp, Player, Bullet, ArenaApp.DpsSeen, ArenaApp.GunShot> DpsShot;
+        public Action<ArenaApp, Player, ArenaApp.DpsSeen, float> DpsTick;
+        public DpsPoseFn DpsPose;
+        public Action<ArenaApp, Player, ArenaApp.TankSeen, ArenaApp.GunShot> TankShot;
+        public TankPoseFn TankPose;
     }
 
     public partial class ArenaApp
@@ -41,11 +55,14 @@ namespace Arena
             weaponLooks = new WeaponLook[256];  // (WeaponId is a byte)
             // ---- Soldier
             L(WeaponId.Scattergun, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldScattergun(p, t, hold),
-                                                    Hold = 1, HoldOffX = 14f });
+                                                    Hold = 1, HoldOffX = 14f,
+                                                    TankShot = (a, o, s, g) => a.ScattergunShot(o, s, g), TankPose = (ArenaApp a, Player p, float age, ref ArenaApp.TankGunPoseOut o) => a.ScattergunPose(p, age, ref o) });
             L(WeaponId.FlakCannon, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldFlakCannon(p, t, hold),
-                                                    Hold = 1, HoldOffX = 10f });
+                                                    Hold = 1, HoldOffX = 10f,
+                                                    TankShot = (a, o, s, g) => a.FlakCannonShot(o, s, g), TankPose = (ArenaApp a, Player p, float age, ref ArenaApp.TankGunPoseOut o) => a.FlakCannonPose(p, age, ref o) });
             L(WeaponId.RiotRepeater, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldRiotRepeater(p, t, hold),
-                                                      Hold = 1, HoldOffX = 14f });
+                                                      Hold = 1, HoldOffX = 14f,
+                                                      TankShot = (a, o, s, g) => a.RiotRepeaterShot(o, s, g), TankPose = (ArenaApp a, Player p, float age, ref ArenaApp.TankGunPoseOut o) => a.RiotRepeaterPose(p, age, ref o) });
             L(WeaponId.RepulsionCannon, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldRepulsionCannon(p, t, hold),
                                                          Hold = 1, HoldOffX = 8f });
             L(WeaponId.Revolver, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldRevolver(p, t, hold) });
@@ -54,19 +71,30 @@ namespace Arena
             L(WeaponId.TwinPistols, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldTwinPistols(p, t, hold),  // TwinPistolsLook.cs
                                                      Hold = 2 });
             L(WeaponId.TwinRifle, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldTwinRifle(p, t, hold),
-                                                   Hold = 2 });
+                                                   Hold = 2,
+                                                   DpsShot = (a, o, b, s, g) => a.TwinRifleShot(o, b, s, g), DpsTick = (a, p, s, dt) => a.TwinRifleTick(p, s, dt),
+                                                   DpsPose = (ArenaApp a, Player p, ArenaApp.DpsSeen s, float age, ref float kick) => a.TwinRiflePose(p, s, age, ref kick) });
             L(WeaponId.TwinRifleAuto, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldTwinRifle(p, t, hold),
-                                                       Hold = 2 });
+                                                       Hold = 2,
+                                                       DpsShot = (a, o, b, s, g) => a.TwinRifleShot(o, b, s, g), DpsTick = (a, p, s, dt) => a.TwinRifleTick(p, s, dt),
+                                                       DpsPose = (ArenaApp a, Player p, ArenaApp.DpsSeen s, float age, ref float kick) => a.TwinRiflePose(p, s, age, ref kick) });
             L(WeaponId.OutOfAmmo, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldTwinRifle(p, t, hold),
-                                                   Hold = 2 });
+                                                   Hold = 2,
+                                                   DpsTick = (a, p, s, dt) => a.TwinRifleTick(p, s, dt),
+                                                   DpsPose = (ArenaApp a, Player p, ArenaApp.DpsSeen s, float age, ref float kick) => a.TwinRiflePose(p, s, age, ref kick) });
             L(WeaponId.GrenadeLauncher, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldGrenadeLauncher(p, t, hold),  // the front hand sits on the foregrip: GrenadeLauncherLook.cs GlFrontHand
                                                          Hold = 1, HoldOffX = 31f });
             L(WeaponId.DoubleBarrel, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldDoubleBarrel(p, t, hold),
-                                                      Hold = 1, HoldOffX = 15f });
+                                                      Hold = 1, HoldOffX = 15f,
+                                                      DpsPose = (ArenaApp a, Player p, ArenaApp.DpsSeen s, float age, ref float kick) => a.DbPose(p, s, out kick) });
             L(WeaponId.Railgun, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldRailgun(p, t, hold),
-                                                 Hold = 1, HoldOffX = 18f });
+                                                 Hold = 1, HoldOffX = 18f,
+                                                 DpsShot = (a, o, b, s, g) => a.OnRailgunShot(o, g.At, g.Bd, 1f), DpsTick = (a, p, s, dt) => a.RailgunTick(p, s, dt),
+                                                 DpsPose = (ArenaApp a, Player p, ArenaApp.DpsSeen s, float age, ref float kick) => a.RailgunPose(p, s, age, ref kick) });
             L(WeaponId.BurstSmg, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldBurstSmg(p, t, hold),
-                                                  Hold = 1, HoldOffX = 8f });
+                                                  Hold = 1, HoldOffX = 8f,
+                                                  DpsShot = (a, o, b, s, g) => a.BurstSmgShot(o, s, g), DpsTick = (a, p, s, dt) => a.BurstSmgTick(p, s, dt),
+                                                  DpsPose = (ArenaApp a, Player p, ArenaApp.DpsSeen s, float age, ref float kick) => a.BurstSmgPose(p, s, age, ref kick) });
             // ---- Elementalist
             L(WeaponId.Flamethrower, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldFlamethrower(p, t, hold),
                                                       Hold = 1, HoldOffX = 12f });
@@ -130,7 +158,8 @@ namespace Arena
             L(WeaponId.Lance, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldLance(p, t, hold),
                                                Hold = 1, HoldOffX = -4f,
                                                Arms = (a, p) => true, Pauldrons = true,  // LanceLook.cs
-                                               MeleeColor = new Rgba(0.62f, 0.88f, 1f) });
+                                               MeleeColor = new Rgba(0.62f, 0.88f, 1f),
+                                               Model = (a, m) => a.DrawLanceModel(m) });
             L(WeaponId.Halberd, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldHalberd(p, t, hold),
                                                  Hold = 1, HoldOffX = 10f,
                                                  Arms = (a, p) => a.fxOn, Pauldrons = true,  // HalberdLook.cs
@@ -139,13 +168,15 @@ namespace Arena
                                                       Hold = 1, HoldOffX = 8f,
                                                       Arms = (a, p) => a.fxOn && !p.Downed,  // QuarterstaffLook.cs
                                                       MeleeColor = new Rgba(1f, 0.88f, 0.54f),
-                                                      Rest = (Player p, ref float ang, ref float reach, ref float bend) => { ang -= 0.3f; reach *= 0.85f; return true; } });
+                                                      Rest = (Player p, ref float ang, ref float reach, ref float bend) => { ang -= 0.3f; reach *= 0.85f; return true; },
+                                                      Model = (a, m) => a.DrawQuarterstaffModel(m.O, m.Ang, m.Reach, m.Alpha, m.Col, m.Bright, m.Bend, m.Arm, a.ownerOfModel) });
             L(WeaponId.Lightbringer, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldLightbringer(p, t, hold),
                                                       Arms = (a, p) => true, Pauldrons = true,  // LightbringerLook.cs
                                                       MeleeColor = new Rgba(1f, 0.94f, 0.62f) });
             L(WeaponId.Censer, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldCenser(p, t, hold),
                                                 Arms = (a, p) => a.fxOn && !p.Downed, Pauldrons = true,  // CenserLook.cs
-                                                MeleeColor = new Rgba(1f, 0.8f, 0.5f) });
+                                                MeleeColor = new Rgba(1f, 0.8f, 0.5f),
+                                                Model = (a, m) => a.DrawCenserModel(m) });
             L(WeaponId.TwinBlades, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldTwinBlades(p, t, hold),
                                                     Hold = 2,
                                                     Arms = (a, p) => true, Pauldrons = true,  // TwinBladesLook.cs
@@ -154,20 +185,24 @@ namespace Arena
                                                     Hold = 1, HoldOffX = -8f,
                                                     Arms = (a, p) => a.fxOn && !p.Downed,  // GreatswordLook.cs
                                                     MeleeColor = new Rgba(0.78f, 0.88f, 1f),  // Moonlit Crescent (Docs/Mockups/greatsword-sweep.html)
-                                                    Rest = (Player p, ref float ang, ref float reach, ref float bend) => { ang -= 0.45f; bend = 1f; return p.FangOut == 0; } });  // no rest while the Moonwheel is thrown
+                                                    Rest = (Player p, ref float ang, ref float reach, ref float bend) => { ang -= 0.45f; bend = 1f; return p.FangOut == 0; },  // no rest while the Moonwheel is thrown
+                                                    Model = (a, m) => a.DrawGreatswordModel(m) });
             L(WeaponId.Rapier, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldRapier(p, t, hold),
                                                 Arms = (a, p) => a.fxOn && !p.Downed,  // MeleeLooks.cs
                                                 MeleeColor = new Rgba(0.8f, 0.72f, 1f),
-                                                Rest = (Player p, ref float ang, ref float reach, ref float bend) => { ang -= 0.2f; reach = 78f; return true; } });
+                                                Rest = (Player p, ref float ang, ref float reach, ref float bend) => { ang -= 0.2f; reach = 78f; return true; },
+                                                Model = (a, m) => a.DrawRapierModel(m) });
             // ---- Ninja
             L(WeaponId.Kusarigama, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldKusarigama(p, t, hold),
                                                     Arms = (a, p) => a.fxOn && !p.Downed,  // MeleeLooks.cs
                                                     MeleeColor = new Rgba(0.7f, 0.64f, 1f),
-                                                    Rest = (Player p, ref float ang, ref float reach, ref float bend) => { ang -= 0.35f; reach = 36f; return true; } });  // the sickle in hand, its chain in
+                                                    Rest = (Player p, ref float ang, ref float reach, ref float bend) => { ang -= 0.35f; reach = 36f; return true; },  // the sickle in hand, its chain in
+                                                    Model = (a, m) => a.DrawKusarigamaModel(m) });
             L(WeaponId.BoStaff, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldBoStaff(p, t, hold),
                                                  Hold = 1, HoldOffX = 10f,
                                                  Arms = (a, p) => a.fxOn && !p.Downed,  // BoStaffLook.cs
-                                                 MeleeColor = new Rgba(0.78f, 0.9f, 0.62f) });
+                                                 MeleeColor = new Rgba(0.78f, 0.9f, 0.62f),
+                                                 Model = (a, m) => a.DrawBoStaffModel(m) });
             L(WeaponId.FumaShuriken, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldFumaShuriken(p, t, hold) });
             L(WeaponId.AcupunctureNeedles, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldAcupunctureNeedles(p, t, hold) });
             L(WeaponId.SpiritFan, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldSpiritFan(p, t, hold) });
@@ -182,7 +217,8 @@ namespace Arena
             L(WeaponId.BloodLash, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldBloodLash(p, t, hold),
                                                    Arms = (a, p) => a.fxOn && !p.Downed,  // MeleeLooks.cs
                                                    MeleeColor = new Rgba(1f, 0.32f, 0.38f),
-                                                   Rest = (Player p, ref float ang, ref float reach, ref float bend) => { ang -= 0.55f; reach = 52f; return true; } });  // the whip hanging slack beside you
+                                                   Rest = (Player p, ref float ang, ref float reach, ref float bend) => { ang -= 0.55f; reach = 52f; return true; },  // the whip hanging slack beside you
+                                                   Model = (a, m) => a.DrawBloodLashModel(m) });
             L(WeaponId.GoreMortar, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldGoreMortar(p, t, hold),
                                                     Hold = 3 });
             L(WeaponId.LeechTendrils, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldLeechTendrils(p, t, hold) });

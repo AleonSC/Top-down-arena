@@ -19,7 +19,7 @@ namespace Arena
     public static class Training
     {
         /// The Training Pistol: every recruit's one weapon in a drill (no lobby place; Defs.WeaponOf finds it here).
-        public static readonly WeaponDef Pistol = new WeaponDef { Id = WeaponId.TrainingPistol, Kit = Kit.Soldier, Role = Role.Dps, Choice = -1,
+        public static readonly WeaponDef Pistol = new WeaponDef { Id = WeaponId.TrainingPistol, Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FirePlainRound(p, dir, muzzle, dmg), Kit = Kit.Soldier, Role = Role.Dps, Choice = -1,
             Name = "Training Pistol", Desc = "Primary Fire: one plain round a shot.", Speed = 760f, Life = 0.85f, Damage = 30f, FireInterval = 0.24f,
             Sound = Sfx.ShotPistol, BotRange = 300f };
 

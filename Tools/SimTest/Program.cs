@@ -643,6 +643,7 @@ static partial class Program
 
     static int Main(string[] args)
     {
+        NetPeer.PeerTimeout = 1e9;  // the games here are stepped slower than real time: a 30 s silence isn't a dropped link
         Game.IronhideOff = true;  // tests read a Tank's health loss exactly; IronhideTest turns it on (Ironhide.cs)
         NetPeer.Loopback = Environment.GetEnvironmentVariable("SIMTEST_TCP") == null;  // hosts and joins meet in memory: every message is there on the next Poll, however busy the machine (SIMTEST_TCP=1: real localhost TCP)
         if (NetPeer.Loopback)

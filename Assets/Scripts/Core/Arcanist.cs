@@ -50,7 +50,7 @@ namespace Arena
 
         internal static readonly WeaponDef[] ArcanistWeapons =
         {
-            new WeaponDef { Id = WeaponId.OrbitShards, Kit = Kit.Arcanist, FillsGaps = true, Role = Role.Tank, Choice = 0, Speed = ShardOut, Life = ShardReach / ShardOut,
+            new WeaponDef { Id = WeaponId.OrbitShards, Range = (g, p, w, x) => ShardReach * PierceReach(p), Kit = Kit.Arcanist, FillsGaps = true, Role = Role.Tank, Choice = 0, Speed = ShardOut, Life = ShardReach / ShardOut,
                 Damage = 18f, FireInterval = 0.3f, BotRange = 260f, Companion = MinionKind.ArcShard, CompanionCount = 4, Name = "Orbit Shards", Sound = Sfx.SpellArcane,
                 Desc = "Primary Fire: Fling one of four orbiting shards that cuts everything it passes, out and back.\n\nAlternative Fire: Pull the shards in tight to stop every bullet, but you move slower.",
                 ExtraDesc = "+1 shard, and one more flung with each click" },
@@ -58,7 +58,7 @@ namespace Arena
                 FireInterval = 0.26f, BotRange = 330f, Name = "Glyph Stylus", Sound = Sfx.SpellArcane,
                 Desc = "Primary Fire: Writes rune bolts that pierce two enemies and heal an ally they pass through.",
                 ExtraDesc = "+1 bolt, fanned out" },
-            new WeaponDef { Id = WeaponId.DancingBlades, Kit = Kit.Arcanist, FillsGaps = true, Role = Role.Dps, Choice = 0, Speed = BladeOut, Life = BladeReach / BladeOut,
+            new WeaponDef { Id = WeaponId.DancingBlades, Range = (g, p, w, x) => BladeReach * PierceReach(p), Kit = Kit.Arcanist, FillsGaps = true, Role = Role.Dps, Choice = 0, Speed = BladeOut, Life = BladeReach / BladeOut,
                 Damage = 10f, FireInterval = 0.3f, BotRange = 300f, Companion = MinionKind.ArcBlade, CompanionCount = 3, Name = "Dancing Blades", Sound = Sfx.SwingLight,
                 Desc = "Primary Fire: Launch a floating sword that cuts, dances on the enemy, then returns.\n\nAlternative Fire: Call every sword home at once, cutting on the way.",
                 ExtraDesc = "+1 blade" },

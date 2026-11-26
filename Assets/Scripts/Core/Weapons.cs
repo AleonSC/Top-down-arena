@@ -188,7 +188,7 @@ namespace Arena
             : (p.Weapon != null && p.Weapon.Id == WeaponId.Railgun ? RailFullDraw : BowFullDraw) / FireRate(p) * (p.Weapon != null && p.Weapon.Id == WeaponId.MendersBow ? p.Stats.BowDrawMult : p.Weapon != null && p.Weapon.Id == WeaponId.ArcLightning ? p.Stats.ArcChargeMult : 1f);  // (Steady Draw, Static Field)  // (Steady Draw: sooner)
 
         /// Weapons you hold to charge and let go to fire: the Mender's Bow, the Railgun, the Warhammer, the Golem Staff's boulder, Arc Lightning, the Imp Caller and the Gore Mortar.
-        public static bool ChargeWeapon(WeaponId w) => w == WeaponId.MendersBow || w == WeaponId.Railgun || w == WeaponId.Warhammer || w == WeaponId.GolemStaff || w == WeaponId.ArcLightning || w == WeaponId.ImpCaller || w == WeaponId.GoreMortar;
+        public static bool ChargeWeapon(WeaponId w) => Defs.WeaponOf(w).Charge;  // (WeaponDef.Charge)
 
         /// 0 for a tap, 1 at full draw.
         public float BowCharge(Player p, float draw) => MathX.Clamp01((draw - BowMinDraw) / Math.Max(0.01f, BowFull(p) - BowMinDraw));
@@ -296,7 +296,8 @@ namespace Arena
                 p.RevCockT = RevCockTime(p);
         }
 
-        /// One shot of the player's weapon, upgraded by `extra` extra projectiles.
+        /// One shot of the player's weapon, upgraded by `extra` extra projectiles: the weapon's own WeaponDef.Fire, or else its
+        /// class's KitDef.Fire.
         void FireVolley(Player p, float aim, int extra)
         {
             firingWeapon = true;
@@ -304,243 +305,143 @@ namespace Arena
             V2 dir = V2.FromAngle(aim);
             V2 muzzle = p.Pos + dir * p.Def.BodyR;
             var w = p.Weapon;  // its Speed, Life and Damage (Defs)
-            switch (w.Id)
-            {
-                case WeaponId.TrainingPistol:  // Training's recruit (Training.cs): one plain round
-                    SpawnBullet(Defs.DpsShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                    break;
-                case WeaponId.Scattergun:
-                {
-                    // +2 pellets and a 15% tighter cone per extra projectile.
-                    int n = 5 + 2 * extra;
-                    float cone = 0.52f * (float)Math.Pow(0.85, extra);
-                    for (int i = 0; i < n; i++)
-                        SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * cone) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).PointBlank = true;
-                    break;
-                }
-                case WeaponId.GrenadeLauncher:
-                    LaunchGrenade(p, aim, dmg, extra);  // GrenadeLauncher.cs
-                    break;
-                case WeaponId.FlakCannon:
-                {
-                    // An airburst: the shell flies over enemies to your cursor (as far as its range) and bursts there,
-                    // shredding enemies and enemy bullets in the burst.
-                    // Velocity Rounds speed the shell up (SpawnBullet) and reach farther, but it still bursts at the cursor.
-                    float fast = w.Speed * p.Stats.ShotSpeedMult;
-                    float far = Math.Min(fast * w.Life, Math.Max(FlakMin, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
-                    var b = SpawnBullet(Defs.FlakShell, muzzle, dir * w.Speed, 0f, far / fast, w.Damage * dmg, p.Id);
-                    b.Splash = FlakBurst * AreaMult(p) * p.Stats.FlakBurstMult;  // (Wide Burst: wider)
-                    b.Burst = 1;  // marks it as bursting where its flight ends (MoveBullets)
-                    if (extra > 0)  // bomblets scatter round the burst and pop where they land
-                        SetFrags(b, 2 * extra, Defs.GrenadeShot, 10f * dmg, 260f, 0.3f, 45f * AreaMult(p), false);
-                    break;
-                }
-                case WeaponId.RiotRepeater:
-                    SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + Rand(-0.06f, 0.06f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Suppressive = true;
-                    break;
-                case WeaponId.BearTotem:
-                    FireBearClaws(p, aim, dmg, extra);  // a summoner's melee weapon (KitWeapons.cs)
-                    break;
-                case WeaponId.RepulsionCannon:
-                    FireRepulsion(p, aim, dmg, extra);  // the Repulsion Cannon (Repulsion.cs)
-                    break;
-                case WeaponId.Revolver:
-                {
-                    // Revolver: one hard, perfectly accurate round; each extra projectile lets it go through one more enemy.
-                    var rb = SpawnBullet(Defs.HealerShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * (1f + p.Stats.RevolverShotBonus) * dmg, p.Id);  // (Hot Lead: harder)
-                    rb.Radius = 6f * p.Stats.ShotSizeMult;  // Magnum Rounds
-                    rb.Pierce += extra;
-                    break;
-                }
-                case WeaponId.MendersBow:
-                {
-                    // Draw and release: the longer the draw, the harder, faster and farther the arrow. Let go in the
-                    // Focus bar's zone and the first arrow is a Focus arrow instead (BowFocus.cs).
-                    float c = BowCharge(p, p.BowShotDraw);
-                    bool focus = p.BowShotFocus && c >= 1f;
-                    float baseDmg = MathX.Lerp(8f, 40f, c), speed = MathX.Lerp(450f, 950f, c), reach = MathX.Lerp(500f, 900f, c);
-                    float heal = MathX.Lerp(5f, 20f, c);
-                    // A full draw also looses an extra arrow (half damage) per extra projectile, in a tight fan.
-                    int arrows = c >= 1f ? 1 + extra : 1;
-                    for (int k = 0; k < arrows; k++)
-                    {
-                        float a = aim + (k == 0 ? 0f : (k % 2 == 1 ? 1f : -1f) * 0.07f * ((k + 1) / 2));
-                        if (k == 0 && focus)
-                        {
-                            FocusArrow(p, muzzle, a, dmg).Radius = 6f * p.Stats.ShotSizeMult;  // (Magnum Rounds)
-                            continue;
-                        }
-                        float d = baseDmg * (k == 0 ? 1f : 0.5f);
-                        var b = SpawnBullet(Defs.ArrowShot, muzzle, V2.FromAngle(a) * speed, 0f, reach / speed, d * dmg, p.Id);
-                        b.HealAlly = heal * (k == 0 ? 1f : 0.5f) * 9f / d;  // HealAllyHit scales it by Dmg / 9 (so damage upgrades heal more too)
-                        b.Pierce += (c >= 1f ? 2 : c >= 0.5f ? 1 : 0) + p.Stats.BowPierceBonus;  // (Steady Draw: one more)
-                        b.Bolts = c >= 0.5f;  // a drawn arrow pierces: Ricochet flings bounce bolts off it
-                    }
-                    if (focus)
-                        BroadcastFx(FxKind.Spark, muzzle, new Rgba(1f, 0.85f, 0.35f), 26f, 0.3f, Sfx.Pick);
-                    break;
-                }
-                case WeaponId.TwinRifle:
-                {
-                    // Barrels spread apart (two, plus one per extra projectile), angled in so every stream crosses at
-                    // your cursor's distance; hits near the crossing are crossfire, for 1.5x. Each volley strays up to 2°.
-                    // The barrels share a fixed width (extra projectiles fill it in, not widen it), and Barrage's fanned
-                    // copies fire from a narrow cluster so the fan reads as a fan, not overlapping wide pairs.
-                    int n = 2 + extra;
-                    float span = volleyShare < 1f ? TwinCopySpan : TwinBarrelGap;
-                    float gap = span / (n - 1);
-                    float a = aim + Rand(-TwinRifleSpread, TwinRifleSpread);
-                    V2.Axes(a, out V2 v, out V2 side);
-                    V2 cross = p.Pos + v * TwinCrossDistance(p);
-                    float outFrom = p.Def.BodyR + TwinMuzzleOut;
-                    for (int i = 0; i < n; i++)
-                    {
-                        V2 from = p.Pos + v * outFrom + side * ((i - (n - 1) / 2f) * gap);
-                        if (ActiveLayout != null && SegBlocked(ActiveLayout, p.Pos, from, 0f))
-                            from = muzzle + side * ((i - (n - 1) / 2f) * gap);  // a gun pushed into a wall fires from your edge
-                        var b = SpawnBullet(Defs.DpsShot, from, (cross - from).Normalized() * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
-                        b.Cross = cross;
-                        b.Crossfire = true;
-                    }
-                    break;
-                }
-                case WeaponId.OutOfAmmo:  // (it works on its own, TickOutOfAmmo; this is for anything that fires the weapon by hand: the next move of the rifle arms)
-                    if (p.AmmoMove == 0)
-                        AmmoStart(p);
-                    break;
-                case WeaponId.TwinRifleAuto:  // (it fires itself, TickTwinAuto; this is for anything that fires the weapon by hand, like the range test)
-                    for (int gun = 0; gun < 2; gun++)
-                        AutoShoot(p, gun, null, false, extra);
-                    break;
-                case WeaponId.DoubleBarrel:
-                    FireDoubleBarrel(p, aim, dmg, extra, false);  // DoubleBarrel.cs
-                    break;
-                case WeaponId.TwinPistols:
-                    FireTwinPistols(p, aim, dmg, extra);  // TwinPistols.cs
-                    break;
-                case WeaponId.Railgun:
-                    FireRailgun(p, muzzle, dir, dmg, extra);  // the charged ricochet beam (RailBeam.cs)
-                    break;
-                case WeaponId.BurstSmg:
-                {
-                    // Spun up (SpinUp), the spray tightens and every bullet hits harder. +1 bullet per shot per extra
-                    // projectile (at half damage), sprayed a little wider.
-                    float spray = (SmgSpray - (SmgSpray - SmgSprayTight) * p.SpinUp) * (1f + 0.35f * extra);
-                    float spun = 1f + SmgSpinDamage * p.SpinUp;
-                    for (int i = 0; i <= extra; i++)
-                        SpawnBullet(Defs.DpsShot, muzzle, V2.FromAngle(aim + Rand(-spray, spray)) * w.Speed, 0f, w.Life, (i == 0 ? w.Damage : w.Damage * 0.5f) * spun * dmg, p.Id);
-                    break;
-                }
-                default:
-                    Classes.Get(w.Kit).Fire?.Invoke(this, p, aim, dir, muzzle, dmg, extra);  // the weapon's class fires it (its KitDef.Fire)
-                    break;
-            }
+            (w.Fire ?? Classes.Get(w.Kit).Fire)?.Invoke(this, p, aim, dir, muzzle, dmg, extra);
             firingWeapon = false;
         }
 
-        /// How far the player's weapon reaches from their centre right now: a shot's speed times its lifetime (with
-        /// Velocity Rounds) plus the muzzle offset, or a swing's reach, from the weapon's numbers in Defs (the firing
-        /// code reads the same ones; SimTest checks it against real shots). The aim line uses it.
+        /// The Training Pistol's Fire (Training.cs): one plain round.
+        internal void FirePlainRound(Player p, V2 dir, V2 muzzle, float dmg)
+        {
+            var w = p.Weapon;
+            SpawnBullet(Defs.DpsShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+        }
+
+        /// The Scattergun's Fire: +2 pellets and a 15% tighter cone per extra projectile.
+        void FireScattergun(Player p, float aim, V2 muzzle, float dmg, int extra)
+        {
+            var w = p.Weapon;
+            int n = 5 + 2 * extra;
+            float cone = 0.52f * (float)Math.Pow(0.85, extra);
+            for (int i = 0; i < n; i++)
+                SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + (i / (n - 1f) - 0.5f) * cone) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).PointBlank = true;
+        }
+
+        /// The Flak Cannon's Fire: an airburst. The shell flies over enemies to your cursor (as far as its range) and bursts
+        /// there, shredding enemies and enemy bullets in the burst. Velocity Rounds speed the shell up (SpawnBullet) and reach
+        /// farther, but it still bursts at the cursor.
+        void FireFlak(Player p, V2 dir, V2 muzzle, float dmg, int extra)
+        {
+            var w = p.Weapon;
+            float fast = w.Speed * p.Stats.ShotSpeedMult;
+            float far = Math.Min(fast * w.Life, Math.Max(FlakMin, p.AimAt.DistanceTo(p.Pos) - p.Def.BodyR));
+            var b = SpawnBullet(Defs.FlakShell, muzzle, dir * w.Speed, 0f, far / fast, w.Damage * dmg, p.Id);
+            b.Splash = FlakBurst * AreaMult(p) * p.Stats.FlakBurstMult;  // (Wide Burst: wider)
+            b.Burst = 1;  // marks it as bursting where its flight ends (MoveBullets)
+            if (extra > 0)  // bomblets scatter round the burst and pop where they land
+                SetFrags(b, 2 * extra, Defs.GrenadeShot, 10f * dmg, 260f, 0.3f, 45f * AreaMult(p), false);
+        }
+
+        /// The Riot Repeater's Fire: one suppressive round, strayed a little.
+        void FireRiot(Player p, float aim, V2 muzzle, float dmg)
+        {
+            var w = p.Weapon;
+            SpawnBullet(Defs.TankShot, muzzle, V2.FromAngle(aim + Rand(-0.06f, 0.06f)) * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id).Suppressive = true;
+        }
+
+        /// The Revolver's Fire: one hard, perfectly accurate round; each extra projectile lets it go through one more enemy.
+        void FireRevolver(Player p, V2 dir, V2 muzzle, float dmg, int extra)
+        {
+            var w = p.Weapon;
+            var rb = SpawnBullet(Defs.HealerShot, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * (1f + p.Stats.RevolverShotBonus) * dmg, p.Id);  // (Hot Lead: harder)
+            rb.Radius = 6f * p.Stats.ShotSizeMult;  // Magnum Rounds
+            rb.Pierce += extra;
+        }
+
+        /// The Mender's Bow's Fire: draw and release. The longer the draw, the harder, faster and farther the arrow. Let go in
+        /// the Focus bar's zone and the first arrow is a Focus arrow instead (BowFocus.cs).
+        void FireMendersBow(Player p, float aim, V2 muzzle, float dmg, int extra)
+        {
+            float c = BowCharge(p, p.BowShotDraw);
+            bool focus = p.BowShotFocus && c >= 1f;
+            float baseDmg = MathX.Lerp(8f, 40f, c), speed = MathX.Lerp(450f, 950f, c), reach = MathX.Lerp(500f, 900f, c);
+            float heal = MathX.Lerp(5f, 20f, c);
+            // A full draw also looses an extra arrow (half damage) per extra projectile, in a tight fan.
+            int arrows = c >= 1f ? 1 + extra : 1;
+            for (int k = 0; k < arrows; k++)
+            {
+                float a = aim + (k == 0 ? 0f : (k % 2 == 1 ? 1f : -1f) * 0.07f * ((k + 1) / 2));
+                if (k == 0 && focus)
+                {
+                    FocusArrow(p, muzzle, a, dmg).Radius = 6f * p.Stats.ShotSizeMult;  // (Magnum Rounds)
+                    continue;
+                }
+                float d = baseDmg * (k == 0 ? 1f : 0.5f);
+                var b = SpawnBullet(Defs.ArrowShot, muzzle, V2.FromAngle(a) * speed, 0f, reach / speed, d * dmg, p.Id);
+                b.HealAlly = heal * (k == 0 ? 1f : 0.5f) * 9f / d;  // HealAllyHit scales it by Dmg / 9 (so damage upgrades heal more too)
+                b.Pierce += (c >= 1f ? 2 : c >= 0.5f ? 1 : 0) + p.Stats.BowPierceBonus;  // (Steady Draw: one more)
+                b.Bolts = c >= 0.5f;  // a drawn arrow pierces: Ricochet flings bounce bolts off it
+            }
+            if (focus)
+                BroadcastFx(FxKind.Spark, muzzle, new Rgba(1f, 0.85f, 0.35f), 26f, 0.3f, Sfx.Pick);
+        }
+
+        /// The Twin Rifle's Fire: barrels spread apart (two, plus one per extra projectile), angled in so every stream crosses
+        /// at your cursor's distance; hits near the crossing are crossfire, for 1.5x. Each volley strays up to 2°. The barrels
+        /// share a fixed width (extra projectiles fill it in, not widen it), and Barrage's fanned copies fire from a narrow
+        /// cluster so the fan reads as a fan, not overlapping wide pairs.
+        void FireTwinRifle(Player p, float aim, V2 muzzle, float dmg, int extra)
+        {
+            var w = p.Weapon;
+            int n = 2 + extra;
+            float span = volleyShare < 1f ? TwinCopySpan : TwinBarrelGap;
+            float gap = span / (n - 1);
+            float a = aim + Rand(-TwinRifleSpread, TwinRifleSpread);
+            V2.Axes(a, out V2 v, out V2 side);
+            V2 cross = p.Pos + v * TwinCrossDistance(p);
+            float outFrom = p.Def.BodyR + TwinMuzzleOut;
+            for (int i = 0; i < n; i++)
+            {
+                V2 from = p.Pos + v * outFrom + side * ((i - (n - 1) / 2f) * gap);
+                if (ActiveLayout != null && SegBlocked(ActiveLayout, p.Pos, from, 0f))
+                    from = muzzle + side * ((i - (n - 1) / 2f) * gap);  // a gun pushed into a wall fires from your edge
+                var b = SpawnBullet(Defs.DpsShot, from, (cross - from).Normalized() * w.Speed, 0f, w.Life, w.Damage * dmg, p.Id);
+                b.Cross = cross;
+                b.Crossfire = true;
+            }
+        }
+
+        /// The Burst SMG's Fire: spun up (SpinUp), the spray tightens and every bullet hits harder. +1 bullet per shot per
+        /// extra projectile (at half damage), sprayed a little wider.
+        void FireBurstSmg(Player p, float aim, V2 muzzle, float dmg, int extra)
+        {
+            var w = p.Weapon;
+            float spray = (SmgSpray - (SmgSpray - SmgSprayTight) * p.SpinUp) * (1f + 0.35f * extra);
+            float spun = 1f + SmgSpinDamage * p.SpinUp;
+            for (int i = 0; i <= extra; i++)
+                SpawnBullet(Defs.DpsShot, muzzle, V2.FromAngle(aim + Rand(-spray, spray)) * w.Speed, 0f, w.Life, (i == 0 ? w.Damage : w.Damage * 0.5f) * spun * dmg, p.Id);
+        }
+
+        /// How far the player's weapon reaches from their centre right now: its WeaponDef.Range, or a swing's reach, or a
+        /// shot's speed times its lifetime (with Velocity Rounds) plus the muzzle offset, from the weapon's numbers in Defs
+        /// (the firing code reads the same ones; SimTest checks it against real shots). The aim line uses it.
         public float WeaponRange(Player p)
         {
             if (p.StunShots > 0)
                 return StunGunRange(p);  // Stun.cs
             int x = ExtraShots(p);
             var w = p.Weapon;
-            switch (w.Id)
-            {
-                case WeaponId.MendersBow:  // as far as the current draw sends it
-                    return p.Def.BodyR + MathX.Lerp(500f, 900f, p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
-                case WeaponId.GolemStaff:  // where the boulder lands with the current charge (Minions.cs)
-                    return BoulderDistance(p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
-                case WeaponId.GoreMortar:  // where the Gore Mortar's clot lands with the current charge (Hemomancer.cs)
-                    return ClotDistance(p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f) * p.Stats.ShotSpeedMult;
-                case WeaponId.Warhammer:  // the middle of its slam's circle, the furthest aftershock's if it has them (Knight.cs)
-                    return HammerCentre(MeleeReach(p, w.Reach + w.Grow * x));
-                case WeaponId.Ofuda:  // where a Healing Talisman's flight ends (Ofuda.cs)
-                    return p.Def.BodyR + TalismanRange * PierceReach(p);
-                case WeaponId.WispLantern:  // how far a wisp is sent (Minions.cs)
-                    return WispReach * PierceReach(p);
-                case WeaponId.ImpCaller:  // how far imps are sent (Minions.cs)
-                    return ImpReach * PierceReach(p);
-                case WeaponId.OrbitShards:  // how far a shard is flung (Arcanist.cs)
-                    return ShardReach * PierceReach(p);
-                case WeaponId.DancingBlades:  // how far a blade is launched (Arcanist.cs)
-                    return BladeReach * PierceReach(p);
-                case WeaponId.HoneybeeStaff:  // how far from you a bee can hatch (HoneybeeStaff.cs)
-                    return HatchReach;
-                case WeaponId.BumbleRemote:  // how far from you the Bumble Bot flies (BumbleRemote.cs)
-                    return BumbleLeash;
-                case WeaponId.WyvernStaff:  // how far from you the breath can be aimed (WyvernStaff.cs)
-                    return BreathReach;
-                case WeaponId.BloodBlast:  // the next step's reach (BloodBlast.cs)
-                    return BlastNextReach(p);
-                case WeaponId.Railgun:  // the beam runs to the first wall (RailBeam.cs)
-                    return RailFirstReach(p);
-                case WeaponId.EmbolusSpears:  // a spear flies until a wall stops it (EmbolusSpears.cs)
-                    return EsRange;
-                case WeaponId.ArcLightning:  // the tagging cone's reach (ArcLock.cs)
-                    return ArcReach(p);
-                case WeaponId.ChainLight:  // the cone's reach (Minions.cs)
-                    return LightConeLength(p, x);
-                case WeaponId.FumaShuriken:  // the far end of its widest loop (Ninja.cs)
-                    return FumaReach * FumaSize(x) * p.Stats.ShotSpeedMult * PierceReach(p);
-                case WeaponId.Implosion:  // how far away you can click (Hemomancer.cs)
-                case WeaponId.BloodBrawler:  // (BloodBrawler.cs)
-                    return p.Def.BodyR + w.Reach * p.Stats.ShotSpeedMult;
-                case WeaponId.Flamethrower:  // the lead flame's reach (Minions.cs)
-                case WeaponId.WaterGun:      // (ElementGuns.cs)
-                case WeaponId.GaleGun:
-                case WeaponId.SpiritFan:     // the gust's reach (Ninja.cs)
-                    return p.Def.BodyR + w.Speed * w.Life * (1f + w.Grow * x) * p.Stats.ShotSpeedMult * PierceReach(p);
-                case WeaponId.RepulsionCannon:  // the Repulsion Cannon's cone
-                    return p.Def.BodyR + w.Reach * AreaMult(p) * PierceReach(p);
-                case WeaponId.StasisGun:  // how far from you the field can sit (EngineerBots.cs)
-                    return StasisReach * p.Stats.ShotSpeedMult;
-                case WeaponId.LeechTendrils:  // Leech Tendrils reach from your edge (Hemomancer.cs)
-                    return p.Def.BodyR + GraspReach(p);
-                case WeaponId.HeartFlail:  // the spin's circle (HeartFlail.cs)
-                    return HfSpinROf(p) + HfHeartR;
-                case WeaponId.HiveCenser:  // how far from you the insects pour (HiveCenser.cs)
-                    return HiveReach;
-                case WeaponId.StaticShock:  // the cone (StaticShock.cs)
-                    return StaticHand(p, p.Pos).DistanceTo(p.Pos) + StaticRangeOf(p);
-                case WeaponId.RadiantOrb:  // as far out as the orb can go (RadiantOrb.cs)
-                    return RadiantReach(p);
-                case WeaponId.VeinTether:  // a beam from your edge (Hemomancer.cs)
-                    return p.Def.BodyR + w.Reach * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
-                case WeaponId.Lightbringer:  // its sword waves reach past the swing
-                    return Math.Max(MeleeReach(p, w.Reach), p.Def.BodyR + 600f * 0.45f * p.Stats.ShotSpeedMult);
-                case WeaponId.Nimbus:  // how far from you the cloud can drift (Nimbus.cs)
-                    return NimbusReach(p);
-                case WeaponId.SpiritChalk:  // how far from you you can draw (Chalk.cs)
-                    return ChalkReach(p);
-                case WeaponId.TwinRifle:  // the rounds start out at the muzzles
-                    return p.Def.BodyR + TwinMuzzleOut + w.Speed * w.Life * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
-                case WeaponId.OutOfAmmo:  // how far the knife chain's strikes reach (OutOfAmmo.cs)
-                    return p.Def.BodyR + AmmoReach;
-                case WeaponId.TwinRifleAuto:  // the rounds start out at the guns' muzzles, out to your sides (TwinAuto.cs)
-                    return p.Def.BodyR + AutoShoulder + w.Speed * w.Life * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
-                case WeaponId.Fireball:  // Piercing Rounds roll it farther (Minions.cs)
-                case WeaponId.Waterball:
-                    return p.Def.BodyR + w.Speed * w.Life * p.Stats.ShotSpeedMult * PierceReach(p);
-                case WeaponId.FrostLance:  // the sweeps' reach (FrostLance.cs)
-                    return p.Def.BodyR + FlArcR * AreaMult(p) * (1f + 0.1f * x) * p.Stats.IceReachMult;
-                case WeaponId.TreantRod:   // the root lash, out from you
-                    return MeleeReach(p, w.Reach + w.Grow * x);
-                case WeaponId.Katana:  // Hayate's dashes reach further than Senbon's swipes (Katana.cs)
-                    return p.KatanaStance == 0 ? MeleeReach(p, KatanaDashLen) : MeleeReach(p, w.Reach);
-                case WeaponId.BoStaff:  // each step of the chain has its own reach (Ninja.cs)
-                    return MeleeReach(p, (p.BoStep == 1 ? BoJabReach : p.BoStep == 2 ? BoSpinReach : w.Reach) + w.Grow * x);
-                case WeaponId.Greatsword:  // the next chain step's reach (GreatswordChain.cs; extra projectiles only add Eclipse's sword waves)
-                    return GreatNextReach(p);
-                case WeaponId.Lance:  // the jabs' reach, or the Breaching Thrust's when it is next (extra projectiles only lengthen the thrust; Lance.cs)
-                    return MeleeReach(p, p.LancePrimed || TwinBladesMotion.StepOf(p.Combo) == 3 ? w.Reach + BreachExtraReach + w.Grow * x : w.Reach);
-            }
+            if (w.Range != null)
+                return w.Range(this, p, w, x);
             if (w.Melee)
                 return MeleeReach(p, w.Reach + w.Grow * x);
             return p.Def.BodyR + w.Speed * w.Life * (1f + w.Grow * x) * p.Stats.ShotSpeedMult;
         }
+
+        /// The charge of your own draw in progress (0 for anyone else, or with no draw): where a charged weapon's range sits.
+        internal float LiveDraw(Player p) => p.Id == MyId && bowDraw >= 0f ? BowCharge(p, bowDraw) : 0f;
+
+        /// WeaponDef.Range of the gust and stream weapons (Flamethrower, Water Gun, Gale Gun, Spirit Fan): the lead shot's reach.
+        static float StreamRange(Game g, Player p, WeaponDef w, int x) => p.Def.BodyR + w.Speed * w.Life * (1f + w.Grow * x) * p.Stats.ShotSpeedMult * PierceReach(p);
 
         /// On hit, the bullet throws `n` fragments: out to the sides, or all around.
         static void SetFrags(Bullet b, int n, byte kind, float dmg, float speed, float life, float splash, bool sideways)
