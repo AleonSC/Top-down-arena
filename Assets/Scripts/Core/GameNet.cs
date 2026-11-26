@@ -572,6 +572,7 @@ namespace Arena
             SyncJuggernaut(s, p);  // Juggernaut.cs
             SyncLiteralTank(s, p);  // LiteralTank.cs
             SyncRocketDrop(s, p);  // RocketDrop.cs
+            SyncHazardFoam(s, p);  // HazardFoam.cs
             SyncKnightBanners(s, p);  // KnightBanners.cs
             SyncStoneColossus(s, p);  // StoneColossus.cs
             SyncBloodGolem(s, p);  // BloodGolem.cs
@@ -1003,7 +1004,7 @@ namespace Arena
             if (s.Reading)
                 z = new Zone();
             else
-                z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell || z.Kind == ZoneKind.Cover || z.Kind == ZoneKind.DecoyDummy || z.Kind == ZoneKind.DeployTurret || z.Kind == ZoneKind.Ballista || z.Kind == ZoneKind.Claymore || z.Kind == ZoneKind.TrojanHorse || z.Kind == ZoneKind.Caltrop || z.Kind == ZoneKind.Tusker ? z.GuardFrac  // (a cover's health left: DeployableCover.cs)  // (a smoke canister's flight distance: GrenadeLauncher.cs)
+                z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell || z.Kind == ZoneKind.Cover || z.Kind == ZoneKind.DecoyDummy || z.Kind == ZoneKind.DeployTurret || z.Kind == ZoneKind.Ballista || z.Kind == ZoneKind.Claymore || z.Kind == ZoneKind.TrojanHorse || z.Kind == ZoneKind.Caltrop || z.Kind == ZoneKind.Tusker || z.Kind == ZoneKind.HazardFoam ? z.GuardFrac  // (a cover's health left: DeployableCover.cs)  // (a smoke canister's flight distance: GrenadeLauncher.cs)
                       // a Blood Wall node's place along its wall (BloodWall.cs)
                     : z.Kind == ZoneKind.Smoke ? (z.ExtraSlow > 0f ? 1f : 0f)  // a mastered Smoke Bomb (its slow on enemies), for drawing
                     : z.Kind == ZoneKind.Ward ? (z.SoakMax > 0f ? z.Soak / z.SoakMax : 0f) : z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;

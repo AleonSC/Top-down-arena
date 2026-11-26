@@ -191,6 +191,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Lifeline | Healer | ultimate | 90 s | - | Everyone also gets 4 s of Overdrive. | Revive and fully heal the whole party, with brief invulnerability. |
 | Field Hospital | Healer | ultimate | 150 s | - | 8 orbs, one back every 3 s. | Open a hospital cell behind a door: a shrine, healing orbs and a laser gate for a minute. |
 | Supply Drop | Healer | ultimate | 110 s | - | The zone lasts 18 s and packs heal 40. | Call in a crate that hits enemies where it lands, then opens: faster cooldowns, shooting and movement inside, and health packs. |
+| Hazard Foam | Healer | ultimate | 100 s | - | A 130 tank, and the foam lasts 90 s. | Strap on a foam sprayer for 12 s. Hold Fire to spray foam that sets into solid lumps: they block everyone's movement and shots for 60 s. |
 | Decoy Dummy | Healer | 1st, choice 5 | 4 s (+2 charges) | - | Dummies have 50% more health, and the confetti blast reaches 130 px. | Throw an inflatable soldier that enemies shoot at instead of you. |
 | Poison Dart | Dps | 1st, choice 1 | 8 s | - | Spreads to 5 enemies at a time, at full strength. | Poison the nearest enemy; the poison spreads when it dies. |
 | Airstrike | Dps | 1st, choice 2 | 16 s | - | A second wall lands 160 px further out, half a second later. | Call a jet to carpet a line with bombs. |
@@ -314,6 +315,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Vein Tithe | Tank | ultimate | 75 s | - | Lasts 40 s and costs 25% less. | Bind every enemy on screen at the cost of your health. |
 | Bloodbath | Tank | ultimate | 75 s | - | The pool spreads to 220 px and gives back 35% of the bleed. | Flood the floor with blood that slows and bleeds enemies and heals you. |
 | Blood Golem | Tank | ultimate | 80 s | - | Lasts 13 s and each coat left bursts for 30. | Tear the blood off enemies and your own veins into coats, then fight as a golem made of them. |
+| Blood Totem | Tank | 1st, choice 5 | 2 s | 6% of max health | The veins also drain 6 health a second. | Plant a totem at your cursor whose veins grip and slow nearby enemies; up to 3 at once. |
 | Blood Gift | Healer | 1st, choice 1 | 8 s | 25% of current health | Also heals everyone else within 200 px of them for half as much. | Pay health to heal the most hurt ally twice as much. |
 | Blood Freeze | Healer | 1st, choice 2 | 14 s | 25% of max health | Frozen enemies take 25% more damage. | Freeze every enemy near you at a cost of health; enemies that die frozen heal you. |
 | Martyr | Healer | 1st, choice 3 | 16 s | 40% of max health | You're invulnerable for 2 s after the sacrifice. | Pay health to revive a downed ally, or ward the most hurt one. |

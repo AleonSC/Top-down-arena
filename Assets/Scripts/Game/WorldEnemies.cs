@@ -286,6 +286,8 @@ namespace Arena
                 case ZoneKind.SupplyDrop:
                     DrawSupplyDrop(z, t);  // SupplyDropLook.cs (its own time arc)
                     return;
+                case ZoneKind.HazardFoam:
+                    return;  // drawn all together after the zones (DrawHazardFoam, HazardFoamLook.cs)
                 case ZoneKind.RocketDrop:
                     DrawRocketDrop(z, t);  // RocketDropLook.cs (no timer ring: the pod waits, then folds)
                     return;
@@ -293,6 +295,9 @@ namespace Arena
                 case ZoneKind.PilgrimsStandard:
                 case ZoneKind.WarStandard:
                     DrawKnightBanner(z, t);  // KnightBannersLook.cs (its own time arc)
+                    return;
+                case ZoneKind.BloodTotem:
+                    DrawBloodTotemFloor(z, t);  // BloodTotemLook.cs (the wash, reach ring and roots; the totem and veins over the enemies)
                     return;
                 case ZoneKind.GongSmoke:
                     DrawGongSmoke(z, t);  // FiveShadowGongLook.cs (it thins out instead of a timer ring)

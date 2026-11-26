@@ -166,6 +166,14 @@ namespace Arena
                 return;
             }
 
+            if (Game.FoamOn(p))  // Hazard Foam: the canister on the back and the spray wand in place of the weapon (HazardFoamLook.cs)
+            {
+                DrawFoamArms(p, K, ry);
+                ModelHead(p, kit, role, K, RC, r, sh, t);
+                DrawFoamSprayer(p, t);
+                return;
+            }
+
             // Arms and the weapon.
             float sway = Mathf.Sin(t * 2.4f) * 1.2f, u = mU, wk = (0.8f + 0.2f * u) / u;
             int hold; float offX;

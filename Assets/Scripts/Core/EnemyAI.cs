@@ -924,6 +924,8 @@ namespace Arena
                 speed *= e.SlowMult;
             else if (e.WadeT > 0f)
                 speed *= e.WadeMult;  // Heavy enemies and bosses ignore the usual slow, but not a Bloodbath (Bloodbath.cs)
+            if (e.FoamT > 0f)
+                speed *= FoamEnemySlow;  // pressed against Hazard Foam (HazardFoam.cs)
             e.Pos += v.LimitLength(1f) * speed * dt;
             e.Pos = ClampToArena(e.Pos, e.Radius);
             if (IsHost && Props.Count > 0 && !e.Def.IsBoss)

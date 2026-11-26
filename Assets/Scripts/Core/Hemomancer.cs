@@ -773,6 +773,8 @@ namespace Arena
                 Apply = s => { s.RushReach += 0.25f; s.RushRefund += 0.01f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ThornBloom, MaxStacks = 2, Name = "Thornwork", Desc = "Thorn Bloom's needles and tendrils hit 20% harder, and each tendril jumps once more",
                 Apply = s => { s.TbDmgMult += 0.2f; s.TbExtraJumps++; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodTotem, MaxStacks = 2, Name = "Bloodroot", Desc = "Blood Totem's veins reach 20% farther, and each totem stands 3 s longer",
+                Apply = s => { s.BtReachMult += 0.2f; s.BtBonusTime += 3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Hemomancer, MaxStacks = 2, Name = "Bloodthirst", Desc = "Your abilities cost 20% less health, and each kill heals you 2",
                 Apply = s => { s.HealthCostMult *= 0.8f; s.KillHeal += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BloodLash }, MaxStacks = 2, Name = "Crimson Whip", Desc = "The Blood Lash reaches 20% farther, each enemy holds one more link, and each Clot stack cuts 1% more damage",
@@ -869,6 +871,13 @@ namespace Arena
                 Name = "Thorn Bloom", Icon = "thornbloom", Cooldown = TbCooldown, HealthCost = TbCost, Desc = "Burst blood needles all round that chain between enemies; each needle that hits heals you.",
                 Capstone = "Tendrils jump 5 times.",
                 Bot = b => b.NearEnemies >= 3 && b.TargetD < 240f && b.Me.Hp > b.Me.MaxHp * 0.4f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.BloodTotem, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (BloodTotem.cs)
+                Name = "Blood Totem", Icon = "bloodtotem", Cooldown = BtCooldown, HealthCost = BtCost, Desc = "Plant a totem at your cursor whose veins grip and slow nearby enemies; up to 3 at once.",
+                Capstone = "The veins also drain 6 health a second.",
+                Bot = b => b.HaveTarget && b.TargetD < 300f && b.NearEnemies >= 2 && b.Me.Hp > b.Me.MaxHp * 0.4f,
             },
             new AbilityDef
             {
@@ -993,6 +1002,9 @@ namespace Arena
                 case AbilityId.ThornBloom:
                     CastThornBloom(p, pw, cap);  // ThornBloom.cs
                     return true;
+                case AbilityId.BloodTotem:
+                    CastBloodTotem(p, target, pw, cap);  // BloodTotem.cs
+                    return true;
 
                 // Ultimates
                 case AbilityId.VeinTithe:
@@ -1031,6 +1043,7 @@ namespace Arena
             TickBloodLash(dt);  // BloodLash.cs: chains, Reap, Martyr's Leash
             TickBloodBrawler(dt);  // BloodBrawler.cs: the string, the mark, Sympathy
             TickThornBloom(dt);  // ThornBloom.cs: needles and tendrils landing
+            TickBloodTotems(dt);  // BloodTotem.cs: the veins slow (and, mastered, drain) what they hold
             foreach (var p in Players.Values)
             {
                 TickGrasp(p, dt);  // Leech Tendrils: cooldown, charge, cost, bursts

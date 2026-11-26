@@ -49,7 +49,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, BlastOfuda, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital, Steam, StaticResidue, SupplyDrop, LandShark, Claymore, Mammoth, ArmorDrop, TrojanHorse, Ballista, HoneyRaid, Caltrop, Tusker, RocketDrop, RocketFire, AegisStandard, PilgrimsStandard, WarStandard, GongSmoke }
+    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, BlastOfuda, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital, Steam, StaticResidue, SupplyDrop, LandShark, Claymore, Mammoth, ArmorDrop, TrojanHorse, Ballista, HoneyRaid, Caltrop, Tusker, RocketDrop, RocketFire, AegisStandard, PilgrimsStandard, WarStandard, GongSmoke, HazardFoam, BloodTotem }
 
     public class ZoneDef
     {
@@ -201,6 +201,8 @@ namespace Arena
             new ZoneDef { Name = "Pilgrim's Standard", Color = new Rgba(1f, 0.89f, 0.6f) },  // the Healer Knight's banner ultimate (KnightBanners.cs); TickT (host) the time to the next heal
             new ZoneDef { Name = "War Standard", Color = new Rgba(1f, 0.42f, 0.35f) },  // the DPS Knight's banner ultimate (KnightBanners.cs)
             new ZoneDef { Name = "Gong Smoke", Color = new Rgba(0.72f, 0.61f, 1f), Slow = Game.FsgSmokeSlow },  // a Five Shadow Gong shadow's smoke grenade (FiveShadowGong.cs): Pos, Radius; slows enemies in it, moving and shooting (Enemy.FsgSmokeT)
+            new ZoneDef { Name = "Hazard Foam", Color = Game.FoamCream },  // a lump of the Healer Soldier's Hazard Foam (HazardFoam.cs): Pos, Radius; solid to everyone and every shot; Soak/SoakMax its health (GuardFrac replicated), Aim its bubbles' turn
+            new ZoneDef { Name = "Blood Totem", Color = new Rgba(0.88f, 0.29f, 0.37f) },  // the Tank Hemomancer's totem (BloodTotem.cs): its veins slow by their own tick; Radius is the reach
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];
