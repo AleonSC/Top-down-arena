@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 535: Tidal Tusker (Tank Summoner fourth ultimate): `AbilityId.TidalTusker` and `ZoneKind.Tusker` (both at the end); its zone sync adds `Origin`, `Origin2`, `Side` and `Rider` after `Aim`, and keeps `GuardFrac` (its health); the Rare card Deep Trunk (card ids shift).
 - 534: Cannon Call (DPS Knight 4th choice): `AbilityId.CannonCall` and `FxKind.CannonCall` (both at the end, after Heartbeat's); the loopback test transport (Net.cs) changes nothing on the wire.
 - 533: Heartbeat (the Healer Hemomancer's second ultimate): `Player.HbT` in the player snapshot; `AbilityId.Heartbeat`.
 - 532: Chakra Reserves (Healer Ninja 4th choice): `AbilityId.ChakraReserves` and `FxKind.ChakraThread` (at the end); the player sync adds `CrSurgeT` (and `CrSurgeMax` while it's on) after `TtTailT`; `Msg.CooldownCut` with a share of 1 now fills the ability back to full charges; the Rare card Deep Reserves (card ids shift).

@@ -236,6 +236,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Titan | Tank | ultimate | 80 s | - | The titan is 30% bigger and stays for 27 s. | Summon a huge stone titan that stomps enemies and blocks bullets. |
 | Bone Phalanx | Tank | ultimate | 75 s | - | 10 skeletons with 180 health each. | Skeletons with tower shields march ahead, blocking shots and spearing enemies. |
 | Iron Armadillo | Tank | ultimate | 75 s | - | Rolls 13 s and the uncurl slam hits for 130. | Curl into a giant armoured ball for 10 s: roll over enemies, bounce their shots back, slam down as you uncurl. |
+| Tidal Tusker | Tank | ultimate | 75 s | - | Stays 16 s, and sprays two streams at once. | A spirit elephant rises beside you and follows you for 12 s. Enemies near it go for it instead of you, and its trunk hoses them with a steady stream that soaks and pushes them back. It ends with a splashing stomp. |
 | Stampede | Tank | 1st, choice 5 | 14 s | - | 9 beasts, and the herd turns and charges back. | A line of spirit beasts tramples everything ahead. |
 | Spirit Swarm | Healer | 1st, choice 1 | 14 s | - | Releases 8 sprites. | Release healing sprites. |
 | Phoenix | Healer | 1st, choice 2 | 22 s | - | Revives at full health, and the phoenix keeps fighting. | A phoenix follows your cursor, shooting and healing, and revives anyone who goes down. |

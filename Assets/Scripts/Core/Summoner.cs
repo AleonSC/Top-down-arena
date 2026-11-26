@@ -84,6 +84,8 @@ namespace Arena
                 Apply = s => { s.RatShare += Game.RmPlagueShare; s.RatBleed += Game.RmPlagueBleed; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.MammothFall, MaxStacks = 2, Name = "Ice Age", Desc = "Mammoth Fall's shockwave reaches 25% farther and stuns 0.5 s longer",
                 Apply = s => { s.MammothWaveMult += Game.MfIceAgeWave; s.MammothStun += Game.MfIceAgeStun; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.TidalTusker, MaxStacks = 2, Name = "Deep Trunk", Desc = "Tidal Tusker's stream reaches 25% farther and keeps enemies wet 1 s longer",
+                Apply = s => { s.TuskReachMult += Game.TkDeepReach; s.TuskWet += Game.TkDeepWet; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LandShark, MaxStacks = 2, Name = "Great White", Desc = "Land Shark bites 40% harder",
                 Apply = s => s.LandSharkDmgMult += 0.4f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SpiritSwarm, MaxStacks = 2, Name = "Sprite Choir", Desc = "Spirit Swarm's sprites heal 40% more and last 2 s longer",
