@@ -467,6 +467,7 @@ static partial class Program
         Test("octopus", "Octopus Familiar, the Healer Summoner's 4th choice: the 4th lobby key, the pick (press, click a player, the key again cancels), the octopus on that player on both screens, 8 slaps at once in reach (16 and a heal), its health (shots, the ink burst), its 60 s, one per caster, Three Hearts and mastery", () => OctopusFamiliarTest(Dt)),
         Test("bamboo", "Bamboo Grove, the Tank Ninja's 4th choice: the 4th lobby key, the wind-up, the wave reaching near before far (40 and a stun, heavy enemies less), the bleed once the stun ends, nothing past the radius, the fence holding enemies out and stopping shots, mastery (6 s fence) and Rhizome", () => BambooGroveTest(Dt)),
         Test("siegebell", "Siege Bell, the Tank Knight's 4th choice: the 4th lobby key, the sound, braced (rooted, 25% less damage) while it rings, tolls 1 and 2 (8 and a flinch within 120 px), the shockwave reaching near before far (20, a shove, a 2.5 s stun, heavy enemies less), nothing past 260 px, mastery (3.5 s, shots erased) and Great Bell", () => SiegeBellTest(Dt)),
+        Test("bloodtotem", "Blood Totem, the Tank Hemomancer's 4th choice: the 4th lobby key, 6% health, a totem at the cursor (at most 420 px out), veins gripping within 180 px once risen (40% speed), 5 veins a totem, no stacking, both screens agreeing, 3 at most (a 4th bursts the oldest), 14 s, mastery drain, Bloodroot", () => BloodTotemTest(Dt)),
         Test("flashfire", "Flash Fire, the DPS Elementalist's third ultimate (key 2): the kindle, the ring reaching near before far (100, slowed 40%, heavy enemies less), nothing past the radius, the ground hurting 25 a second for 8 s, going out and leaving what is in it burning, mastery (11 s) and Backdraft", () => FlashFireTest(Dt)),
         Test("stampede", "Stampede, the Tank Summoner's 4th choice: the 4th lobby key (that class only), a 7-beast line charging 320 px, trample 20 once (heavies hurt, not shoved), the shove, the wall slam (+15, stun), the herd fading on every screen, Thundering Herd, the mastered herd charging back", () => StampedeTest(Dt)),
         Test("claymore", "Claymore, the DPS Soldier's 3rd choice: the 3rd lobby key, two charges, the mine at the cursor (220 px reach) facing away, the arming, the trigger cone, the wide blast (140, less with distance, nothing behind), the shove, three at most, Shaped Charge and mastery (a second blast)", () => ClaymoreTest(Dt)),
@@ -667,7 +668,7 @@ static partial class Program
         "ultimates", "waterward", "wiki", "windclash", "wyvernstaff",
         "heartflail", "sanctumglass", "siegebell", "chakra", "honeyraid", "heartbeat", "tusker",
         "contentfuzz", "caltroprun", "rocketdrop", "banners", "shadowgong", "octopus",
-        "shoppedestals", "hazardfoam",
+        "shoppedestals", "hazardfoam", "bloodtotem",
     };
 
     static int Main(string[] args)

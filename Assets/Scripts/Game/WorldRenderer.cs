@@ -357,6 +357,7 @@ namespace Arena
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
             DrawBambooGroveFront(t);  // Bamboo Grove's near stalks, in front of the enemies (BambooGroveLook.cs)
             DrawSiegeBellOver(t);  // Siege Bell's bell and its stun marks (SiegeBellLook.cs)
+            DrawBloodTotemsOver(t);  // Blood Totems and their veins to the enemies they hold (BloodTotemLook.cs)
             DrawFlashFireFront(t);  // Flash Fire's near flames, in front of the enemies (FlashFireLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawBloodbathOver(t);  // enemies wading in a Bloodbath: tinted, bleeding drops (BloodbathLook.cs)

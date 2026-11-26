@@ -86,6 +86,7 @@ namespace Arena
         FiveShadowGong,  // the Tank Ninja's fourth ultimate (FiveShadowGong.cs), key 3 of the lobby's Ultimate row
         OctopusFamiliar,  // the Healer Summoner's 4th choice (OctopusFamiliar.cs), the lobby's 4th choice
         HazardFoam,     // the Healer Soldier's fourth ultimate (HazardFoam.cs), key 3 of the lobby's Ultimate row
+        BloodTotem,     // the Tank Hemomancer's 4th choice (BloodTotem.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -153,6 +154,7 @@ namespace Arena
         public float DebtRepay, DebtBonusTime;                 // Blood Debt: Usury
         public float RushReach = 1f, RushRefund;               // Vein Rush: Crimson Tide
         public float TbDmgMult = 1f; public int TbExtraJumps;    // Thorn Bloom: Thornwork
+        public float BtReachMult = 1f, BtBonusTime;             // Blood Totem: Bloodroot
         public float BgRadiusMult = 1f, BgBleedMult = 1f;        // Bamboo Grove: Rhizome
         public float BellRadiusMult = 1f, BellStunBonus;         // Siege Bell: Great Bell
         public float CrBonusTime, CrBonusHeal;                    // Chakra Reserves: Deep Reserves
