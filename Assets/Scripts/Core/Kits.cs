@@ -49,7 +49,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, BlastOfuda, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital, Steam, StaticResidue, SupplyDrop, LandShark, Claymore, Mammoth, ArmorDrop, TrojanHorse, Ballista, HoneyRaid, Caltrop, Tusker, RocketDrop, RocketFire, AegisStandard, PilgrimsStandard, WarStandard }
+    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, BlastOfuda, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital, Steam, StaticResidue, SupplyDrop, LandShark, Claymore, Mammoth, ArmorDrop, TrojanHorse, Ballista, HoneyRaid, Caltrop, Tusker, RocketDrop, RocketFire, AegisStandard, PilgrimsStandard, WarStandard, GongSmoke }
 
     public class ZoneDef
     {
@@ -200,6 +200,7 @@ namespace Arena
             new ZoneDef { Name = "Aegis Standard", Color = new Rgba(0.62f, 0.78f, 1f) },  // the Tank Knight's banner ultimate (KnightBanners.cs): Pos the pole's foot, Radius the ring, Aim 1 folding, Cap mastered
             new ZoneDef { Name = "Pilgrim's Standard", Color = new Rgba(1f, 0.89f, 0.6f) },  // the Healer Knight's banner ultimate (KnightBanners.cs); TickT (host) the time to the next heal
             new ZoneDef { Name = "War Standard", Color = new Rgba(1f, 0.42f, 0.35f) },  // the DPS Knight's banner ultimate (KnightBanners.cs)
+            new ZoneDef { Name = "Gong Smoke", Color = new Rgba(0.72f, 0.61f, 1f), Slow = Game.FsgSmokeSlow },  // a Five Shadow Gong shadow's smoke grenade (FiveShadowGong.cs): Pos, Radius; slows enemies in it, moving and shooting (Enemy.FsgSmokeT)
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

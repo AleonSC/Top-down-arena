@@ -1197,6 +1197,7 @@ static partial class Shot {
     HoneyRaidScene();  // HONEY=<s since the cast> [HONEYCAP=1]: the Healer Summoner's Honey Raid (ShotHoneyRaid.cs)
     HeartbeatScene();  // HEARTBEAT=<s since the cast>: the Healer Hemomancer's Heartbeat (ShotHeartbeat.cs)
     StaticBubbleScene();  // BUBBLE=<s since the cast> [BUBFILL=<0-1>] [BUBBURST=<s>]: the Healer Elementalist's Static Bubble (ShotStaticBubble.cs)
+    ShadowGongScene();  // GONG=<s since the cast>: the Tank Ninja's Five Shadow Gong (ShotShadowGong.cs)
     AstralScene();  // ASTRAL=<s since the cast>: the Healer Ninja's Astral Projection, Fire held (ShotAstral.cs)
     SpiritAvatarScene();  // SPIRIT=<s since the cast>: the Tank Ninja's Spirit Avatar, Fire held (ShotSpiritAvatar.cs)
     DragonsDogmaScene();  // DOGMA=<s since the cast>: MOCKUP of the Tank Ninja's Dragon's Dogma (ShotDragonsDogma.cs)

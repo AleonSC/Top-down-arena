@@ -3,8 +3,9 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 541: Octopus Familiar (Healer Summoner 4th choice): `AbilityId.OctopusFamiliar`, `MinionKind.Octopus`, `FxKind.OctoSlap` and `FxKind.OctoInk` (all at the end); no new snapshot fields (the octopus rides the minion sync).
+- 540: Five Shadow Gong (Tank Ninja fourth ultimate): `AbilityId.FiveShadowGong`, `ZoneKind.GongSmoke`, `FxKind.GongShow`, `GongCut`, `GongSplit` (all at the end); no player or snapshot fields.
 
-- 540: Octopus Familiar (Healer Summoner 4th choice): `AbilityId.OctopusFamiliar`, `MinionKind.Octopus`, `FxKind.OctoSlap` and `FxKind.OctoInk` (all at the end); no new snapshot fields (the octopus rides the minion sync).
 - 539: Knight banner ultimates: `AbilityId.AegisStandard`, `PilgrimsStandard`, `WarStandard` and the same three `ZoneKind`s (all at the end); the player sync adds `StdShieldHp`, `StdShieldMax` after `RocketT`.
 - 538: Rocket Drop (DPS Soldier fourth ultimate): `AbilityId.RocketDrop`, `ZoneKind.RocketDrop` and `ZoneKind.RocketFire`, `FxKind.RocketBlast` (all at the end), bullet kind `Defs.RocketShell` (87); the player sync adds `RocketT` after A Literal Tank's fields.
 - 537: Elementalist statuses Brittle (earth) and Dazzled (light): the enemy sync adds a byte after `fpBrands` (bit 1 Brittle, bit 2 Dazzled).
