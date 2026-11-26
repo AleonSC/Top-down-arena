@@ -175,6 +175,7 @@ namespace Arena
             d[(int)FxKind.ThornTendril] = (fx, f, t) => DrawThornTendrilFx(fx, t);
             d[(int)FxKind.WallSplash] = (fx, f, t) => DrawWallSplashFx(fx, f);  // BloodWallLook.cs
             d[(int)FxKind.Link] = DrawFxLink;
+            d[(int)FxKind.ChakraThread] = (fx, f, t) => DrawChakraThreadFx(fx, t);  // Chakra Reserves (ChakraReservesLook.cs)
             d[(int)FxKind.Callout] = (fx, f, t) => DrawTankCastFx(fx);  // Roar and Bulldoze's floor looks (TankLooks.cs); the name over the caster is on the HUD (AbilityLooks.cs)
             d[(int)FxKind.Repulse] = (fx, f, t) => DrawRepulseFx(fx, f);
             d[(int)FxKind.Knock] = (fx, f, t) => DrawKnockFx(fx);
