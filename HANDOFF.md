@@ -236,11 +236,12 @@ The lobby fits about 8 class cards in a row before they get too small.
   - `run.sh 1 30` (or `core`) = the **core** match tests (~165 checks).
   - `run.sh 1 30 features` = the **feature** suite (~247 checks). `music` still works: it was its old name.
     **Run both before committing.** `run.sh 1 30 all` runs the two back to back.
-  - `Tools/SimTest/extras.sh [k/n] [jobs]` = every pass/fail suite the two above skip (`CiExtras` in `Program.cs`),
+  - `Tools/SimTest/extras.sh [k/n] [jobs]` = every pass/fail suite the two above skip (`ci_coverage.py --extras` works it out),
     each in its own process, built once, one per CPU at a time; `k/n` runs one shard. CI runs it as two shards beside
     `core` and `features`. A failing suite is run once more alone and reported as FLAKY if it then passes (a bug to fix).
-    **A new suite whose tests aren't in `FeatureTests` goes in `CiExtras`**: `Tools/SimTest/ci_coverage.py` (CI's core
-    job) fails on a suite CI wouldn't run. (76 suites were left out until Nov 2026, and 6 had quietly broken.)
+    **A new suite needs no list**: every `Test(...)` whose tests aren't all in `FeatureTests` is an extra, worked out
+    from `Program.cs` by `Tools/SimTest/ci_coverage.py --extras` (the hand-kept `CiExtras` list it replaced kept clashing
+    between sessions, and 76 suites were once left out of it).
     `TIMES=1 run.sh ...` prints each test's time.
   - **In-memory network:** the suites set `NetPeer.Loopback` (Core/Net.cs): a host and its joiners in one process are
     wired together in memory, so a message sent is waiting on the receiver's next `Poll`, every time, and suites share
@@ -264,7 +265,7 @@ The lobby fits about 8 class cards in a row before they get too small.
     `ttk`, `lab`, `levels`, `bulletcount`, `perf` (sim ms a frame, host and friend, through a Quick Play breach wave: `run.sh 1 1 perf [secs] [boss] [wave]`), `survperf` (the same for Survival at the 60-enemy cap: `run.sh 1 1 survperf [secs] [start min]`), `wavemix` (each wave's share of shooters, melee and support), `dps`, `ultdps`, `balance` (each damage upgrade's worth per pick and full
     stack in a boss, pack and spread fight; see `Docs/UpgradeBalance.md`), `upgradecov` (which weapon upgrades each
     weapon ignores, and each upgrade's damage gain), `laserdebug`. A new test: add it to its system's file, then to
-    the `Suites` table (and to `FeatureTests` if it belongs in the feature suite, otherwise to `CiExtras`).
+    the `Suites` table (and to `FeatureTests` if it belongs in the feature suite; otherwise CI runs it with the extras by itself).
   - **Repeatable random rolls:** every test runs with its own seed (from the suite's name and the test's place in
     it) through `Game.SeedForTests`, so the game's random choices (enemy mixes, spawns, drops, bot decisions)
     come out the same each run. Rolls a game keeps off its own rng (the Expanding map's seed, the Warden's orbs,

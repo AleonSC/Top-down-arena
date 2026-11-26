@@ -693,6 +693,7 @@ namespace Arena
             s.Bool(ref p.OfferCards);
             s.Byte(ref p.WavePicks);
             s.Bool(ref p.OfferWave);
+            s.Bool(ref p.OfferStart);
             int offers = p.Offer != null ? p.Offer.Length : 0;
             s.Byte(ref offers);
             var offer = s.Reading ? (offers > 0 ? new int[offers] : null) : p.Offer;

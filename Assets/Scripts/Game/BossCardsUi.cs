@@ -32,6 +32,11 @@ namespace Arena
 
         void DrawBossCardTrophy(Player me, int index, int code, Rect slot, bool selected, bool behind, bool hover, float now)
         {
+            if (me.OfferStart && IntroElapsed < IntroRevealed(me, index))
+            {
+                DrawStartRolling(me, index, slot, now);  // the starting piece pick: still rolling
+                return;
+            }
             Color rc = BossCardColor(code);
             bool usable = game.BossCardUsable(me, code);
             float lift = selected ? -16f : behind ? 8f : hover ? -4f : 0f;
@@ -75,6 +80,32 @@ namespace Arena
                 Ui.Fill(r, new Color(0.01f, 0.012f, 0.03f, 0.55f));
             else if (behind)
                 Ui.Fill(r, new Color(0.01f, 0.012f, 0.03f, 0.32f));
+            float flash = me.OfferStart ? Seg(IntroElapsed, IntroRevealed(me, index), IntroRevealed(me, index) + StartFlash) : 1f;
+            if (flash < 1f)  // the starting pick's lock: a flash in the card's colour (the ring is DrawPickIntroOver's)
+                Ui.Fill(r, Color.Lerp(rc, Color.white, 0.6f).WithAlpha(0.6f * (1f - flash) * (1f - flash)));
+        }
+
+        /// A starting-pick card still rolling: face down in the screen's ink, the piece shapes flicking past in its tile
+        /// (slowing down, StartRollTick) under a scan line, "? ? ?" for its name.
+        void DrawStartRolling(Player me, int index, Rect slot, float now)
+        {
+            Color rc = CrtStyle.Ink;
+            var r = new Rect(slot.x, slot.y + Mathf.Sin(now * 1.85f + index * 2.1f) * 2.5f, slot.width, slot.height);
+            DrawCrtCardFrame(r, rc, false, false, false, now);
+            const string chip = "ROLLING";
+            float cw = 22f + chip.Length * 7.2f;
+            DrawCrtChip(new Rect(r.center.x - cw / 2f, r.y + 14f, cw, 20f), chip, rc, false);
+            var tile = new Rect(r.center.x - 52f, r.y + 42f, 104f, 104f);
+            DrawCrtTile(tile, rc, false);
+            int tick = StartRollTick(me, index, IntroElapsed);
+            var shape = (PieceShape)((index * 4 + tick) % ((int)PieceShape.TetL + 1));
+            DrawCardGlyph(Expansion.MakePieceCard(shape), new Rect(tile.x + 12f, tile.y + 12f, tile.width - 24f, tile.height - 24f), rc.WithAlpha(0.8f));
+            float sweep = (now * 1.6f + index * 0.37f) % 1f;
+            Ui.Fill(new Rect(tile.x + 4f, tile.y + 4f + sweep * (tile.height - 10f), tile.width - 8f, 2f), Color.Lerp(rc, Color.white, 0.5f).WithAlpha(0.55f));
+            CrtUi.Title(new Rect(r.x + 8f, r.y + 148f, r.width - 16f, 36f), "? ? ?", 30, Color.Lerp(rc, Color.white, 0.55f), TextAnchor.MiddleCenter, fxReduced);
+            Ui.Label(new Rect(r.x + 14f, r.y + 188f, r.width - 28f, 60f), "Your starting piece: one of two, rolled for you.", 13, CrtStyle.Dim, TextAnchor.UpperCenter, false, true);
+            for (float dx = 0f; dx < r.width - 20f; dx += 8f)
+                Ui.Fill(new Rect(r.x + 10f + dx, r.yMax - 12f, 5f, 2f), rc.WithAlpha(0.35f));
         }
     }
 }

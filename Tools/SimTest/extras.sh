@@ -1,6 +1,6 @@
 #!/bin/bash
 # Usage: Tools/SimTest/extras.sh [shard/shards] [jobs]   e.g. extras.sh 1/2
-# The pass/fail suites that neither `core` nor `features` runs (Program.cs CiExtras), each in its own process (a fresh game
+# The pass/fail suites that neither `core` nor `features` runs (worked out by ci_coverage.py --extras), each in its own process (a fresh game
 # state, the same seeds as running it alone), built once. CI runs them in a job beside the other two; shards split the list
 # round-robin when one job gets too long. Suites run `jobs` at a time (default: one per CPU): the test network is in memory
 # (NetPeer.Loopback), so suites share no ports and can't disturb each other. Prints each suite's time and result, then the failures.
@@ -15,7 +15,7 @@ mcs -langversion:7.2 -nologo -out:"$tmp/SimTest.exe" Program.cs Content.cs Tests
     | grep -v "warning CS" || true
 [ -f "$tmp/SimTest.exe" ] || { echo "FAILED: the tests don't compile"; exit 1; }
 start=$(date +%s); i=0; mine=()
-for suite in $(mono "$tmp/SimTest.exe" extras-list); do
+for suite in $(python3 ci_coverage.py --extras); do
     i=$((i + 1))
     [ $(( (i - 1) % n + 1 )) -eq "$k" ] && mine+=("$suite")
 done
