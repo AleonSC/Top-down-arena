@@ -220,7 +220,7 @@ static partial class Program
                 bool effect = true;  // an ultimate not listed below: its own class suite checks what it does
                 switch (ult)
                 {
-                    case AbilityId.Fortress: case AbilityId.ArtilleryAssault: effect = ultT.Contains(id); break;
+                    case AbilityId.Fortress: effect = ultT.Contains(id); break;
                     case AbilityId.GlacialTomb: effect = frozen; break;
                     case AbilityId.Titan: effect = M(MinionKind.Titan) > 0; break;
                     case AbilityId.Lifeline: effect = fullHp.Count == 2; break;

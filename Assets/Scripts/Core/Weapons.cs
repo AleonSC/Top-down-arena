@@ -6,8 +6,8 @@ namespace Arena
     /// Player weapons: firing volleys, the Revolver and Mender's Bow, and how far each weapon reaches.
     public partial class Game
     {
-        /// Everything that speeds up firing: upgrades, Overdrive (Adrenaline Shot doesn't stack with it: the bigger wins), Artillery Assault, Counterstance.
-        float FireRate(Player p) => p.Stats.FireRateMult * MomentumMult(p) * Math.Max(p.OverdriveT > 0f ? 2f : 1f, p.AdrenalineT > 0f ? AdrenalineFire : 1f) * (Storming(p) ? 3f : 1f) * (p.OverchargeT > 0f ? OverchargeFire : 1f) * (p.RushT > 0f ? StaticRushFire : 1f)  // Overcharge (StaticShock.cs), Static Rush (StaticBubble.cs)
+        /// Everything that speeds up firing: upgrades, Overdrive (Adrenaline Shot doesn't stack with it: the bigger wins), Counterstance.
+        float FireRate(Player p) => p.Stats.FireRateMult * MomentumMult(p) * Math.Max(p.OverdriveT > 0f ? 2f : 1f, p.AdrenalineT > 0f ? AdrenalineFire : 1f) * (p.OverchargeT > 0f ? OverchargeFire : 1f) * (p.RushT > 0f ? StaticRushFire : 1f)  // Overcharge (StaticShock.cs), Static Rush (StaticBubble.cs)
             * (p.CounterT > 0f ? 1f + p.Stats.CounterFireRate : 1f) * (p.SurgeT > 0f ? 1f + p.Stats.SurgeRate : 1f)  // Arcane Surge
             * (OverclockOn(p) ? OverclockMult : 1f)  // an Overclock Chip (Gadgets.cs)
             * (Supplied(p) ? SupplyFire : 1f)  // a Supply Drop (SupplyDrop.cs)
@@ -18,7 +18,7 @@ namespace Arena
         /// spread: each shot lands somewhere within this many radians of your aim.
         void FirePlayer(Player p, float spread = 0f)
         {
-            // Each extra projectile (Multishot, Artillery Assault) upgrades the weapon in its own way.
+            // Each extra projectile (Multishot) upgrades the weapon in its own way.
             int extra = ExtraShots(p);
             FireFanned(p, p.Aim + (spread > 0f ? Rand(-spread, spread) : 0f), extra);
             if (p.Weapon.Id == WeaponId.TwinPistols)
@@ -164,8 +164,8 @@ namespace Arena
         public const float BarrageCopyDamage = 0.6f;
         float volleyShare = 1f;  // set while a Barrage copy fires
 
-        /// Extra projectiles from upgrades, plus two during Artillery Assault.
-        public int ExtraShots(Player p) => p.Stats.ExtraShots + (Storming(p) ? (Mastered(p, AbilityId.ArtilleryAssault) ? 4 : 2) : 0)
+        /// Extra projectiles from upgrades.
+        public int ExtraShots(Player p) => p.Stats.ExtraShots
             + (p.OverdriveT > 0f && Mastered(p, AbilityId.Overdrive) ? 1 : 0);
 
         // --- Revolver (the Healer's Pistol): a single-action gun ------------------------------------------------------

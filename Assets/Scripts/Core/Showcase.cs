@@ -92,7 +92,8 @@ namespace Arena
                 this.ability = ability;
                 this.ultimate = ultimate;
                 var shown = ultimate ? Upgrades.Ultimate(role, Upgrades.UltKitOf(role, kit, ultPick), ultPick) : ability;
-                ultEvery = shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : shown == AbilityId.JuggernautSuit ? Game.JuggTime + 2f
+                ultEvery = shown == AbilityId.DeployableTurret ? Game.DtDeploy + TurretDemoFire  // (the turret: drop, fire a while, then the press again steps out and it blows)
+                    : shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : shown == AbilityId.JuggernautSuit ? Game.JuggTime + 2f
                     : shown == AbilityId.StoneColossus ? Game.ColRise + Game.ColTime + Game.ColRollTime + 1.5f  // (it crumbles before the next)
                     : shown == AbilityId.BloodGolem ? Game.GolGather + Game.GolTime + Game.GolCollapseDur + 1f  // (it bursts before the next)
                     : shown == AbilityId.LivingBolt ? Game.BoltChannel + Game.BoltTime + 1.5f  // (the trails fade before the next)
@@ -206,7 +207,7 @@ namespace Arena
                 {
                     Game.ShowcaseRefill(ultimate ? Upgrades.UltSlot : 0);
                     castHeld = true;
-                    castT = ultimate ? ultEvery : ability == AbilityId.DeployableTurret ? Game.DtDeploy + TurretDemoFire : AbilityEvery;  // (the turret: drop, fire a while, then the press again steps out and it blows)
+                    castT = ultimate ? ultEvery : AbilityEvery;
                     prepped = false;
                     castCount++;
                     aimTicks = 4;  // (held abilities cast on release, so the cursor stays put a few ticks)

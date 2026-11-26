@@ -38,12 +38,12 @@ static partial class Shot {
       e.SpawnT = 0f; e.Hp = e.MaxHp = i % 9 == 4 ? 260f : 70f; e.Pos = e.Disp = at; e.FireT = 99f; mobs.Add(e); return e;
     };
     for (int i = 0; i < 28; i++) add(i);
-    me.Slots[0].Id = AbilityId.DeployableTurret; me.Slots[0].Charges = 1; me.Slots[0].Timer = 0f;
+    int us = Upgrades.UltSlot; me.Slots[us].Id = AbilityId.DeployableTurret; me.Slots[us].Charges = 1; me.Slots[us].Timer = 0f;
     if (Environment.GetEnvironmentVariable("DEPLOYCAP") != null) me.MasteryXp[AbilityId.DeployableTurret] = 99999f;
     V2 aimAt = home + new V2(100f, 0f);
     int frames = (int)Math.Round((float.Parse(ts, inv) + 0.3f) * 60f), n = 100;
     for (int f = 0; f < frames; f++) {
-      if (f == 18) { cast.Invoke(gm, new object[] { me.Id, 0, aimAt, false }); }
+      if (f == 18) { cast.Invoke(gm, new object[] { me.Id, Upgrades.UltSlot, aimAt, false }); }
       mobs.RemoveAll(e => e.Hp <= 0f);
       if (f % 5 == 0 && mobs.Count < 40) add(n++);
       foreach (var e in mobs) { e.FireT = 99f; if (!e.Pos.CloserThan(home, 70f)) e.Pos += (home - e.Pos).Normalized() * (e.Def.Heavy ? 30f : 55f) / 60f; e.Disp = e.Pos; }

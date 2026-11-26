@@ -31,6 +31,7 @@ static partial class Shot {
         else typeof(ArenaApp).GetMethod("PreviewMapView", f2).Invoke(app, new object[] { fr[seg], to[seg], Math.Min(1f, (mc - at[seg]) / 0.42f) });
         if (seg == 1) set("mapOffAt", Time.unscaledTime - (mc - at[1]));  // (the "Map off" note's own clock)
       }
+      if (Environment.GetEnvironmentVariable("MAPSTYLE") != null) ArenaApp.MapStyle = int.Parse(Environment.GetEnvironmentVariable("MAPSTYLE"));  // map style mockups (MapStyleLook.cs)
       if (Environment.GetEnvironmentVariable("MAPVIEW") != null) { var mv = Environment.GetEnvironmentVariable("MAPVIEW").Split(','); typeof(ArenaApp).GetMethod("PreviewMapView", f2).Invoke(app, new object[] { int.Parse(mv[0]), int.Parse(mv[1]), float.Parse(mv[2], System.Globalization.CultureInfo.InvariantCulture) }); }
       if (zoomGl) { Event.current.type = EventType.Repaint; set("glMaterial", new Material(null)); GL.ToUi = true; }
       typeof(ArenaApp).GetMethod("DrawHud", f2).Invoke(app, null);

@@ -324,8 +324,13 @@ namespace Arena
             if (geo.Dim > 0f)  // the full map: the game behind it dims
                 RoomMapRect(0f, 0f, W, H, new Rgba(0f, 0.01f, 0.03f, 0.45f * geo.Dim));
             float pad = 6f * Mathf.Clamp01(mh / 40f);  // (folding shut: the frame hugs the line)
-            RoomMapRect(ox - pad, oy - pad, mw + 2f * pad, mh + 2f * pad, new Rgba(0.01f, 0.03f, 0.08f, 0.82f + 0.1f * geo.Dim));
-            RoomMapFrame(ox - 1f, oy - 1f, mw + 2f, mh + 2f, 1f, new Rgba(0.4f, 0.64f, 1f, 0.35f + 0.25f * geo.Dim));
+            if (MapStyle != 0)
+                DrawStyledMapBack(geo, M);  // a style mockup's dress (MapStyleLook.cs)
+            else
+            {
+                RoomMapRect(ox - pad, oy - pad, mw + 2f * pad, mh + 2f * pad, new Rgba(0.01f, 0.03f, 0.08f, 0.82f + 0.1f * geo.Dim));
+                RoomMapFrame(ox - 1f, oy - 1f, mw + 2f, mh + 2f, 1f, new Rgba(0.4f, 0.64f, 1f, 0.35f + 0.25f * geo.Dim));
+            }
             DrawMapChrome(geo);  // the full map's corner brackets and legend swatches (MapView.cs)
             for (int i = 0; i < wd.Areas.Length; i++)
             {
@@ -348,6 +353,8 @@ namespace Arena
                     MapRect(p0.X, p0.Y, p1.X - p0.X, p1.Y - p0.Y, FogMapFill.WithAlpha(FogMapFill.A * (1f - 0.65f * game.FogRoomShare(i - 1))));  // an unseen room: dark, a "?" below (RoomFogLook.cs)  // an unseen room: dark, a "?" below (RoomFogLook.cs)
                 if (!core)
                     RimFrame(wd, i, M, 1f, line, true);
+                if (MapStyle != 0 && !core)
+                    StyledRoomExtra(wd, i, M, line, game.AreaUnseen(i));
             }
             foreach (var s in wd.Pits)  // the pits: black with a gold edge (PitLook.cs)
             {
@@ -435,6 +442,7 @@ namespace Arena
                 if (e.Hp <= 0f || game.FogHides(e.Pos))
                     continue;
                 V2 c = M(e.Disp);
+                if (MapStyle != 0) StyledEnemyHalo(c, e.Def.Mini || e.Def.IsBoss);
                 if (e.Def.Mini || e.Def.IsBoss) { MapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.62f, 0.3f)); continue; }
                 MapRect(c.X - 1f, c.Y - 1f, 2f, 2f, new Rgba(1f, 0.32f, 0.36f, 0.85f));
             }
@@ -469,6 +477,7 @@ namespace Arena
                     RoomMapRect(c.X - 2.5f, c.Y - 2.5f, 5f, 5f, (p.Downed ? new Rgba(1f, 0.3f, 0.3f) : p.Def.Color).WithAlpha(0.75f));
                     continue;
                 }
+                if (MapStyle != 0) { DrawStyledPlayerMark(p, c, mine); continue; }
                 if (mine)
                     MapRect(c.X - 3.5f, c.Y - 3.5f, 7f, 7f, new Rgba(1f, 1f, 1f, 0.9f));
                 MapRect(c.X - 2.5f, c.Y - 2.5f, 5f, 5f, p.Downed ? new Rgba(1f, 0.3f, 0.3f) : p.Def.Color);
@@ -476,7 +485,9 @@ namespace Arena
             // The box your screen shows.
             float hx = AW / (2f * camZoom), hy = AH / (2f * camZoom);
             V2 v0 = M(camFocus - new V2(hx, hy)), v1 = M(camFocus + new V2(hx, hy));
-            MapFrame(v0.X, v0.Y, v1.X - v0.X, v1.Y - v0.Y, 1f, new Rgba(1f, 1f, 1f, 0.5f));
+            if (MapStyle != 0) StyledViewBox(v0.X, v0.Y, v1.X, v1.Y);
+            else MapFrame(v0.X, v0.Y, v1.X - v0.X, v1.Y - v0.Y, 1f, new Rgba(1f, 1f, 1f, 0.5f));
+            if (MapStyle != 0) DrawStyledMapOver(geo, M);
             if (geo.Fold > 0f)  // switching off or on: the CRT's bright line across the middle
             {
                 float cy = oy + mh / 2f;
@@ -485,6 +496,7 @@ namespace Arena
             }
             EndUiGl();
             DrawFogMapMarks(M, geo.R);  // the unseen rooms' "?" (RoomFogLook.cs)
+            if (MapStyle != 0) DrawStyledMapLabels(geo, M);
             DrawMapLabels(geo);  // the full map's title and legend, the "Map off" note (MapView.cs)
         }
 

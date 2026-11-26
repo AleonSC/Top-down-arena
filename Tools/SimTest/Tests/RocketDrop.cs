@@ -19,10 +19,10 @@ static partial class Program
         var def = Upgrades.Ability(AbilityId.RocketDrop);
         Check(def.Name == "Rocket Drop" && def.Cooldown == 80f && def.Choice == AbilityDef.Ult && def.UltKey == 3 && def.Role == Role.Dps && def.Kit == Kit.Soldier && def.Capstone != null,
             "Rocket Drop is the DPS Soldier's ultimate on key 3, 80 s");
-        Check(Upgrades.Ultimate(Role.Dps, Kit.Soldier) == AbilityId.ArtilleryAssault && Upgrades.Ultimate(Role.Dps, Kit.Soldier, 1) == AbilityId.AttackHelicopter
+        Check(Upgrades.Ultimate(Role.Dps, Kit.Soldier) == AbilityId.DeployableTurret && Upgrades.Ultimate(Role.Dps, Kit.Soldier, 1) == AbilityId.AttackHelicopter
             && Upgrades.Ultimate(Role.Dps, Kit.Soldier, 2) == AbilityId.OrbitalLaser && Upgrades.Ultimate(Role.Dps, Kit.Soldier, 3) == AbilityId.RocketDrop
             && Upgrades.ClampUlt(Role.Dps, Kit.Soldier, 3) == 3 && Upgrades.Ultimate(Role.Tank, Kit.Soldier, 3) != AbilityId.RocketDrop,
-            "Artillery Assault stays the default, then the Attack Helicopter and Orbital Laser; key 3 is Rocket Drop, only for the DPS Soldier");
+            "the Deployable Turret is the default, then the Attack Helicopter and Orbital Laser; key 3 is Rocket Drop, only for the DPS Soldier");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 9, StartWave = 6 }, port, false, "Grenadier", Role.Dps, 0, 0, Kit.Soldier);

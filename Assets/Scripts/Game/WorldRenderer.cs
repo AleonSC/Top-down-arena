@@ -91,6 +91,7 @@ namespace Arena
             DrawJuiceFloor();  // scorch marks and shot trails (Juice.cs)
             DrawFrostNovaGround();  // Frost Nova's cracks and frosted ground, under everything (FrostNovaLook.cs)
             DrawLighting(t);  // shots, blasts and fire lighting the floor, their shadows cast (LightingLook.cs)
+            BlurFromHere();  // a launch's blur smears what's drawn from here on, not the floor (LaunchBlur.cs)
             DrawArenaContents(t, true);
             DrawJuiceParts();  // shards, rings and sparks
             DrawArenaOver(t);  // what stands or flies over the arena's contents (also in Practice and the loadout preview)
@@ -100,6 +101,7 @@ namespace Arena
             DrawEnemyShots(t);  // enemy bullets on top of every effect, spark and glow, so a busy fight never hides what you must dodge
             DrawEndingWorld();  // a run ending: the victory's rays and sparks (RunEnding.cs)
             DrawArenaRules(t);  // Narrow Pass's walls and Fogbound's mist (PathsUi.cs)
+            DrawBlurCopies();  // a launch's blur: the world so far, smeared (LaunchBlur.cs)
             FpEndWorld();  // first person: the walls raised, everything drawn far to near (FirstPerson.cs)
             bool zoomed = camZoomOn;
             camZoomOn = false;  // the screen overlays below fill the screen, unzoomed (CameraZoom.cs)
@@ -667,8 +669,6 @@ namespace Arena
                 DrawParryGauge(p, t, 0.4f);
             if (p.DomeT > 0f)  // Fortress: the dome (DomeLook.cs)
                 DrawFortressDome(p, t);
-            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.ArtilleryAssault)  // Artillery Assault (ArtilleryLook.cs)
-                DrawArtillery(p, t);
             DrawRiotGear(p, t);  // Riot Gear's plate (RiotGearLook.cs)
             DrawVanishSmoke(p, t);  // Vanish (NinjaLooks.cs)
             DrawCeremonialFloor(p, t);  // Ceremonial Armor's aura, rings and sigil (CeremonialArmorLook.cs)

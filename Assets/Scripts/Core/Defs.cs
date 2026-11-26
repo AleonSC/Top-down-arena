@@ -251,7 +251,7 @@ namespace Arena
         /// How its damage lands, which picks what each weapon mod does for it (WeaponMods.cs).
         public WeaponKind Kind => Melee ? WeaponKind.Melee : Cone ? WeaponKind.Cone : AreaDesc != null ? WeaponKind.Area : WeaponKind.Shot;
         public string BarrageDesc; // what Barrage does for it, when that isn't the usual fanned copies (the card text after the weapon's name)
-        public string ExtraDesc;  // what each extra projectile (Multishot, Artillery Assault) does for this weapon
+        public string ExtraDesc;  // what each extra projectile (Multishot) does for this weapon
         public float FireInterval;
         public bool Variant;      // a variant of another weapon (Variants.VariantOf): picked in that weapon's Variants window, not on its own lobby key
         // Summoner weapons keep companions around. Imps blow themselves up, so a new one
