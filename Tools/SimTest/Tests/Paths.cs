@@ -227,7 +227,7 @@ static partial class Program
         };
         Action Settle = () => { for (int f = 0; f < 120; f++) { keepAlive.FrozenT = 1f; host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(800f, 200f) }); } };
 
-        // Plain ground: you start at full speed and stop when you let go.
+        // Plain ground: you're at full speed in Game.WalkStartTime and stop within Game.WalkStopTime of letting go (a few px).
         g.CurrentPath = PathId.None;
         Settle();
         float plainStart = Move(new V2(1f, 0f), 0.15f), plainCoast = Move(V2.Zero, 0.4f);
@@ -236,7 +236,7 @@ static partial class Program
         Settle();
         float iceStart = Move(new V2(1f, 0f), 0.15f), iceCoast = Move(V2.Zero, 0.4f);
         Console.WriteLine("  frozen lake: first 0.15 s {0:0} px (plain {1:0}); after letting go {2:0} px more (plain {3:0})", iceStart, plainStart, iceCoast, plainCoast);
-        Check(iceStart < plainStart * 0.7f && iceCoast > 20f && Math.Abs(plainCoast) < 1f, "Frozen Lake: speed builds up, and you slide on after letting go");
+        Check(iceStart < plainStart * 0.7f && iceCoast > 20f && Math.Abs(plainCoast) < 6f, "Frozen Lake: speed builds up, and you slide on after letting go");
         var chilled = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, new V2(900f, 300f), 0f, 0, false });
         Check(Math.Abs(chilled.Speed - Defs.Get(EnemyType.Grunt).Speed * g.D(DiffKnob.EnemySpeed) * Paths.IceEnemySpeed) < 0.01f, "Frozen Lake: enemies are 10% slower");
         chilled.Hp = 0f; Step(host, dt);

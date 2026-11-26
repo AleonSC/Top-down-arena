@@ -178,8 +178,10 @@ static partial class Program
             "the gold zone is always the far end of the meter: not as the marker sets out, yes at the turn");
         Check(sawDrawOnHost, "the host sees the joining player's draw (for the draw ring)");
 
-        // Drawing slows you to 85%.
+        // Drawing slows you to 85% (each measured at full speed: walking takes Game.WalkStartTime to get there).
+        Play(f => false, 8, new V2(1f, 0f));
         V2 a0 = cme.Pos; Play(f => false, 30, new V2(1f, 0f)); float walk = cme.Pos.DistanceTo(a0);
+        Play(f => true, 8, new V2(-1f, 0f));
         V2 b0 = cme.Pos; Play(f => true, 30, new V2(-1f, 0f)); float drawWalk = cme.Pos.DistanceTo(b0);
         Play(f => false, 30, V2.Zero);
         Console.WriteLine("  bow: walked {0:0} px in 0.5 s, {1:0} px while drawing", walk, drawWalk);

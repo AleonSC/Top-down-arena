@@ -836,6 +836,7 @@ namespace Arena
             if (LaunchHides(p))
                 return;  // still on its way down in a pillar of light (LaunchIntro.cs)
             DrawNeedleSwarm(p, t);  // the Needle Swarm's ring and tendrils, under the player (NeedleSwarmLook.cs)
+            DrawMoveGhosts(p, t);  // a dash's fading copies (MoveFeel.cs)
             DrawPlayer(p, t);
             if (!p.Downed)
                 DrawStonespears(p, t);  // the hovering spears (StonespearLook.cs)
@@ -874,6 +875,8 @@ namespace Arena
         {
             if (fpProject)
                 return FpPx(p);  // first person: through your eyes (FirstPerson.cs)
+            if (bodyXfOn)
+                p = BodyFeelPoint(p);  // a moving body's stretch and lean (MoveFeel.cs)
             if (camZoomOn)
                 p = ZoomPoint(p);  // the scroll-wheel zoom (CameraZoom.cs)
             var v = CanvasPx(glShift + p * glZoom);

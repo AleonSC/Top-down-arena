@@ -56,6 +56,7 @@ namespace Arena
                     modelR = r * (1f + LeapSwell * leapH);
                     p.Disp += new V2(0f, -LeapLiftPx * leapH);
                 }
+                BeginBodyFeel(p, preview);  // stretched along where it's heading, squashed as it stops (MoveFeel.cs)
                 modelR *= JuggSwell(p, t);  // the Juggernaut Suit: bigger while it's on (JuggernautLook.cs)
                 V2 emoteOff;
                 float emoteSpin;
@@ -99,6 +100,7 @@ namespace Arena
                     DrawDebtRing(p, modelR, t, col.A);  // Blood Debt and Arterial Spray: any class can have them (Wildcard)
                     DrawSpray(p, modelR, t, col.A);
                 }
+                EndBodyFeel();
                 p.Disp = groundAt;
             }
             // The real hitbox, drawn as a bright ring round a coloured core dot (a solid disc would hide the head).

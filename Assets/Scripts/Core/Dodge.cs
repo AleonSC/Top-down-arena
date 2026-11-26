@@ -143,7 +143,7 @@ namespace Arena
                 if (push.Length < KickMinPush || DashDir.Dot(push.Normalized()) > -KickFacing)
                     continue;
                 kickReached = true;
-                DashT += (s + step) / dashSpeed;  // a little past it, so the push-out registers the hit
+                DashT += (s + step) / dashSpeed + dt;  // a little past it, and a tick more, so the dash is still on when the push-out registers the hit
                 return;
             }
         }
