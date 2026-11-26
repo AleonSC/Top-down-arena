@@ -2,7 +2,7 @@ using System;
 using System.Reflection;
 using Arena;
 
-// KNIGHTDPS=steel|gauntlet|dive|bridge KDT=<seconds>: the DPS Knight's abilities replaying the scenes of
+// KNIGHTDPS=caltrops|gauntlet|dive|bridge KDT=<seconds>: the DPS Knight's abilities replaying the scenes of
 // Docs/Mockups/knight-dps-abilities.html through the real game (the host simulation, the casts, the carry), stopped
 // KDT seconds in, for comparing frame by frame with the mockup at the same time. The mockup's 720 x 400 stage sits at
 // (440, 250) in the arena, so crop (352, 200)-(928, 520) of the 1280 x 720 shot. Use with mode hud.
@@ -45,35 +45,23 @@ static partial class Shot {
     float kdt = float.Parse(Environment.GetEnvironmentVariable("KDT") ?? "1", System.Globalization.CultureInfo.InvariantCulture);
     int frames = (int)Math.Round(kdt * 60f);
     Action<int, V2, int> Press = (slot, at, f) => { };
-    if (which == "steel") {
-      // The knight sways a little; gunners on both sides; bullets aimed to skim past or miss; the release at 3.6 s.
-      V2 k0 = KM(245f, 214f);
-      Func<float, V2> kp = t => { float tt = Math.Min(t, 3.6f), w = Math.Min(1f, tt / 0.5f); return k0 + new V2((float)Math.Sin(tt * 0.9f) * 7f * w, (float)Math.Sin(tt * 1.35f) * 13f * w); };
-      V2 kr = kp(3.6f);
-      float[] fan = new float[12]; for (int i = 0; i < 12; i++) fan[i] = -0.6f + 1.2f * i / 11f;
-      var spots = new[] { new { f = 1, d = 300f, gun = true }, new { f = 4, d = 335f, gun = true }, new { f = 5, d = 180f, gun = false }, new { f = 7, d = 285f, gun = true }, new { f = 10, d = 315f, gun = true } };
-      var shooters = new System.Collections.Generic.List<V2>();
-      foreach (var sp in spots) { V2 at = kr + V2.FromAngle(fan[sp.f]) * sp.d; var e = Mob(sp.gun ? EnemyType.Sniper : EnemyType.Grunt, at, sp.gun ? 80f : 50f); if (!sp.gun) e.Hp = 15f; else shooters.Add(at); }
-      shooters.Add(KM(66f, 60f)); shooters.Add(KM(92f, 362f));
-      foreach (var at in new[] { KM(66f, 60f), KM(92f, 362f) }) Mob(EnemyType.Sniper, at, 80f);
-      var fire = new System.Collections.Generic.List<Tuple<float, V2, V2>>();
-      float[] miss = { 19f, -46f, -20f, 58f, 22f, -23f, 72f, -19f, 24f, -52f, -21f, 20f, 44f, -25f, 21f, -64f }; int mi = 0;
-      for (int j = 0; j < shooters.Count; j++) {
-        float per = j >= 4 ? 1.0f : 0.8f;
-        for (float ts = 0.12f + j * 0.17f; ts < 3.35f; ts += per) {
-          V2 o = shooters[j], tgt = kp(ts + o.DistanceTo(k0) / 240f), dv = (tgt - o).Normalized(), pp = new V2(-dv.Y, dv.X);
-          fire.Add(Tuple.Create(ts, o, ((tgt + pp * miss[mi++ % miss.Length]) - o).Normalized()));
-        }
-      }
-      me.Slots[0].Id = AbilityId.CaughtSteel; me.Slots[0].Charges = 1;
+    if (which == "caltrops") {
+      // Caltrop Run (CaltropRunLook.cs): cast at 0.2 s, the knight runs an easy curve left to right, scattering caltrops,
+      // and a pack chasing from behind walks into the trail.
+      V2 k0 = KM(90f, 300f);
+      Func<float, V2> kp = t => { float u = Math.Max(0f, Math.Min(t - 0.2f, 2.6f)); return k0 + new V2(u * 210f, -(float)Math.Sin(u * 1.4f) * 120f); };
+      var chasers = new System.Collections.Generic.List<Enemy>();
+      foreach (var at in new[] { KM(20f, 230f), KM(-10f, 330f), KM(40f, 390f), KM(70f, 160f), KM(-30f, 270f) }) { var e = Mob(at.Y > KM(0f, 300f).Y + 60f ? EnemyType.Brute : EnemyType.Grunt, at, 400f); chasers.Add(e); moving.Add(e); }
+      me.Slots[0].Id = AbilityId.CaltropRun; me.Slots[0].Charges = 1;
       me.Pos = me.Disp = k0;
-      cast.Invoke(gm, new object[] { 1, 0, k0 + new V2(200f, 0f), false });
       for (int f = 0; f < frames; f++) {
         float t = f / 60f;
-        foreach (var fr in fire) if (fr.Item1 >= t && fr.Item1 < t + 1f / 60f) shoot.Invoke(gm, new object[] { Defs.SmallShot, fr.Item2 + fr.Item3 * 15f, fr.Item3 * 240f, 0f, 5f, 8f, 0, false, 0f });
-        if (Math.Abs(t - 3.6f) < 0.5f / 60f) { me.Slots[0].Charges = 0; cast.Invoke(gm, new object[] { 1, 0, kr + new V2(200f, 0f), false }); }
-        me.Pos = kp(t + 1f / 60f); me.InvulnT = 1f; me.Aim = 0f;
-        Pin(); host.Poll(); gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.Pos + new V2(200f, 0f) }); gm.Update(1f / 60f);
+        if (Math.Abs(t - 0.2f) < 0.5f / 60f) cast.Invoke(gm, new object[] { 1, 0, me.Pos, false });
+        V2 next = kp(t + 1f / 60f), dir = next - me.Pos;
+        if (dir.LengthSq > 0.01f) me.Aim = dir.Angle;
+        me.Pos = next; me.InvulnT = 1f;
+        if (t > 0.6f) foreach (var e in chasers) if (e.Hp > 0f) e.Pos += (me.Pos - e.Pos).Normalized() * (e.SlowT > 0f ? e.SlowMult : 1f) * 95f / 60f;
+        Pin(); host.Poll(); gm.FixedStep(1f / 60f, new PlayerInput { AimAt = me.Pos + V2.FromAngle(me.Aim) * 200f }); gm.Update(1f / 60f);
       }
     } else if (which == "gauntlet") {
       V2 k0 = KM(95f, 252f), t1 = KM(470f, 148f), t2 = KM(645f, 318f);
@@ -133,7 +121,7 @@ static partial class Shot {
     }
     foreach (var e in gm.Enemies.Values) e.Disp = e.Pos;
     foreach (var q in gm.Players.Values) q.Disp = q.Pos;
-    Console.WriteLine("knightdps {0}: steel {1} window {2:0.00} bullets {3} zones {4} effects {5} me ({6:0},{7:0})", which, me.Steel, me.SteelT, gm.Bullets.Count, gm.Zones.Count, gm.Effects.Count, me.Pos.X, me.Pos.Y);
+    Console.WriteLine("knightdps {0}: caltrops {1} run {2:0.00} bullets {3} zones {4} effects {5} me ({6:0},{7:0})", which, gm.Zones.Count, me.CaltropT, gm.Bullets.Count, gm.Zones.Count, gm.Effects.Count, me.Pos.X, me.Pos.Y);
   }
 
   static float Smooth(float f) { f = Math.Max(0f, Math.Min(1f, f)); return f * f * (3f - 2f * f); }

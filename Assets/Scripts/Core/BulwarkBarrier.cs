@@ -540,5 +540,12 @@ namespace Arena
             }
             return g.Tap(v.Incoming >= 3 || g.EnemiesAhead(me, 70f, 1.2f) >= 2 || v.Near >= 3, 0.8f);  // (or a crowd close round it)
         }
+
+        /// Host, a steel shard striking an enemy (KnightKit.OnShotHit): sparks where it stuck.
+        void SteelShardHit(Bullet b, Enemy e)
+        {
+            if (b.Kind == Defs.SteelShard)
+                BroadcastFx(FxKind.SteelHit, b.Pos, b.Vel.Normalized(), new Rgba(1f, 0.59f, 0.24f), 1f, 0.35f, Sfx.None);
+        }
     }
 }

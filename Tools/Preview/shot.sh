@@ -66,7 +66,7 @@
 # WOLFPACK=pack|alpha|merge WOLFT=<s> (the Wolf Whistle's pack hunting three grunts: four wolves with two hurt and kill pips, an alpha of three, or five merging at 0.6 s; ShotWolfPack.cs).
 # BONEGUARD=<s into the scene> (the Bone Guard's Marrow Tether, then its Ossuary Wall Alt at 1.6 s; ShotBoneGuard.cs).
 # PHALANX=<s since the cast> (Bone Phalanx played through the game; PHALANXCAP=1 mastered; ShotPhalanx.cs). FXOFF=1: Visual effects off (plain looks).
-# KNIGHTDPS=steel|gauntlet|mercy|bridge KDT=<s> (the DPS Knight's abilities replaying the mockup's scenes through the game; KDW=<0-2> the weapon; crop (352,200)-(928,520) to set beside the mockup; ShotKnightDps.cs).
+# KNIGHTDPS=caltrops|gauntlet|dive|bridge KDT=<s> (the DPS Knight's abilities replaying the mockup's scenes through the game; KDW=<0-2> the weapon; crop (352,200)-(928,520) to set beside the mockup; ShotKnightDps.cs).
 # WILDCARD=1 (lobby: you as a Wildcard, Twin Blades, Shadow Step, Blade Fan on Q, Death Lotus; the class wheel).
 # NIMBUS=<s since a strike, -1 none> [NIMBUSSTORM=<s into the Eye of the Storm> NIMBUSBOLT=1] (the Nimbus, Anvil look; mode hud).
 # pacman (mode): PACKEYS=l1.7,u0.6 (steer left then up), PACFRIGHT=5 (ghosts blue), PACDIE=0.7, PACOVER=1, PACPAUSE=1 (PacmanUi.cs).
