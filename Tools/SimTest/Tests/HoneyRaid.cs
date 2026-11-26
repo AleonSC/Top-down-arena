@@ -99,7 +99,7 @@ static partial class Program
         var under = pin(at + new V2(40f, 0f), EnemyType.Grunt);
         var inPool = pin(at + new V2(0f, 190f), EnemyType.Grunt);
         var outside = pin(at + new V2(0f, -320f), EnemyType.Grunt);
-        var heavyType = Enum.GetValues(typeof(EnemyType)).Cast<EnemyType>().First(t => (int)t < 250 && Defs.Get(t).Heavy && !Defs.Get(t).IsBoss && Defs.Get(t).Speed > 0f);
+        var heavyType = HeavyFoe(moving: true);
         var heavy = pin(at + new V2(-150f, 0f), heavyType);
         matePos = at + new V2(60f, 60f);
         mate.Hp = mate.MaxHp * 0.3f;
@@ -136,7 +136,7 @@ static partial class Program
 
         // --- A boss isn't stuck; mastered is wider ----------------------------------------------------------------------------
         reset();
-        var bossType = Enum.GetValues(typeof(EnemyType)).Cast<EnemyType>().First(t => (int)t < 250 && Defs.Get(t).IsBoss);
+        var bossType = FirstEnemy(d => d.IsBoss);
         var boss = pin(at + new V2(0f, 100f), bossType);
         masteredField.SetValue(g, true);
         step(dt);

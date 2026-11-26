@@ -869,14 +869,14 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.Drawbridge, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult,  // the Drawbridge (Drawbridge.cs)
+                Id = AbilityId.Drawbridge, Kit = Kit.Knight, Role = Role.Tank, Choice = AbilityDef.Ult, UltKey = 2,  // the Drawbridge (Drawbridge.cs): key 2 of the Tank Knight's Ultimate row
                 Name = "Drawbridge", Cooldown = 75f, Desc = "A drawbridge crushes the lane ahead, then blocks enemies and shots.",
                 Capstone = "The bridge stands for 8 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 450f,
             },
             new AbilityDef
             {
-                Id = AbilityId.WarhornVolley, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult, UltKey = 1,  // picked instead of the Drawbridge on the lobby's Ultimate row (WarhornVolley.cs)
+                Id = AbilityId.WarhornVolley, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Ult,  // the DPS Knight's default ultimate (WarhornVolley.cs)
                 Name = "Warhorn Volley", Icon = "firearrows", Cooldown = 70f,
                 Desc = "A volley of fire arrows sweeps the field, burning and pinning enemies.",
                 Capstone = "The volley is 40% wider and the fire burns for 8 s.",
@@ -988,13 +988,13 @@ namespace Arena
                     return true;
                 }
                 case AbilityId.Drawbridge:
-                    CastDrawbridge(p, target, cap);  // Drawbridge.cs
+                    CastDrawbridge(p, target, cap);  // Drawbridge.cs (the Tank Knight's key 2)
                     return true;
                 case AbilityId.WarhornVolley:
-                    CastWarhornVolley(p, target, cap, pw);  // WarhornVolley.cs (picked instead of the Drawbridge)
+                    CastWarhornVolley(p, target, cap, pw);  // WarhornVolley.cs
                     return true;
                 case AbilityId.Ballista:
-                    CastBallista(p, target, cap);  // Ballista.cs (key 2)
+                    CastBallista(p, target, cap);  // Ballista.cs (key 1)
                     return true;
             }
             return false;

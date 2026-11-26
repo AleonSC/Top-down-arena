@@ -23,6 +23,16 @@ static partial class Program
             failures++;
     }
 
+    /// The first enemy type (in EnemyType order) whose def matches, for a test that needs "a heavy", "a boss", ...
+    /// without naming one, so it still works as enemies are added. HeavyFoe: the first heavy that isn't a boss.
+    static EnemyType FirstEnemy(Func<EnemyDef, bool> match)
+    {
+        for (int i = 0; i < Defs.Enemies.Length; i++)
+            if (Defs.Enemies[i] != null && match(Defs.Enemies[i])) return (EnemyType)i;
+        throw new InvalidOperationException("no enemy type matches");
+    }
+    static EnemyType HeavyFoe(bool moving = false) => FirstEnemy(d => d.Heavy && !d.IsBoss && (!moving || d.Speed > 0f));
+
     static readonly List<Sfx> clientHeard = new List<Sfx>();  // every sound the client games played
 
     static void Step(Session s, float dt)
@@ -358,7 +368,7 @@ static partial class Program
         Test("showcase", "the lobby's loadout preview", () => ShowcaseTest(Dt)),
         Test("knight", "the Knight", () => KnightTest(Dt)),
         Test("twinblades", "the Twin Blades: each step's shove", () => TwinBladesTest(Dt)),
-        Test("knightdps", "the DPS Knight's Gauntlet, Bladed Dive and Drawbridge", () => KnightDpsTest(Dt)),
+        Test("knightdps", "the DPS Knight's Gauntlet and Bladed Dive, and the Tank Knight's Drawbridge", () => KnightDpsTest(Dt)),
         Test("caltroprun", "Caltrop Run, the DPS Knight's 3rd choice: the 20% sprint, a caltrop per 34 px moved (none standing), 16 at most, landing behind you, the bite (12, bleed, 40% slow; heavies 20%; once per enemy), breaking after two, gone after 6 s, the cooldown waiting, the other screen, Barbed Iron and mastery", () => CaltropRunTest(Dt)),
         Test("basicfaction", "the basic faction: the eight plain enemies left, Quick Play's build-up for a boss with no faction, nothing retired in any wave", BasicFactionTest),
         Test("court", "the Duelist's faction (all four steps): the Fencer's hop, the Blade Dancer's blades, the Parrier's parries, the Second's daggers, the Marshal's circle, the Gallant's salute, the Harlequin's crossing, the Mummer's copies, the Ring of Honour, the ten lessons", () => CourtTest(Dt)),
@@ -388,6 +398,9 @@ static partial class Program
         Test("shielder", "Shielders' shields wearing down", () => ShielderTest(Dt)),
         Test("warden", "the Warden", () => WardenTest(Dt)),
         Test("bossrules", "boss numbers by mechanics tier (BossRules.cs): summons, escorts, rest pace", () => BossRulesTest(Dt)),
+        Test("protocol", "the protocol guard (ProtocolGuard.cs): the enums and wire read/write lines match Golden/protocol.txt for this ProtocolVersion, enum values keep their numbers, the version has its history line (PROTOCOL=update rewrites it)", () => ProtocolGuardTest()),
+        Test("everyenemy", "every enemy type, bosses too, through one life over the network (EveryEnemy.cs): spawns, shows on the friend's screen, takes a hit both see, dies and is gone", () => EveryEnemyTest(Dt)),
+        Test("lists", "every entry of the smaller lists (ListEntries.cs): each run modifier, path, Boss Hunt and challenge room is complete and plays over the network", () => ListEntriesTest(Dt)),
         Test("stages", "boss stage tables (BossStages.cs): Normal as balanced, Easy without the last stands, fights following their tier", () => BossStagesTest(Dt)),
         Test("holdingcell", "the Warden's net and Holding Cells: guards, the padlock, abilities, the fight pausing, next door, downed inside", () => HoldingCellTest(Dt)),
         Test("botdodge", "smart bots dodge walls of shots and sprint to cross the arena, without overusing either", () => BotDodgeTest(Dt)),
@@ -430,6 +443,7 @@ static partial class Program
         Test("tsunami", "Tsunami: the wave, wet, the slow, lightning arcing to every wet enemy, wearing off, the mastered return", () => TsunamiTest(Dt)),
         Test("charged", "Charged: lightning charges, charged enemies conduct, wet and charged ones short out", () => ChargedTest(Dt)),
         Test("steam", "Steam: wet and burning turns to steam, the cloud scalds and jams, refreshes, ends", () => SteamTest(Dt)),
+        Test("elementstatus", "Brittle and Dazzled (the Elementalist's earth and light), Flame Wall burning, Healing Rain wet, Vortex wind", () => ElementStatusTest(Dt)),
         Test("wind", "Wind reactions: Wind Chill on wet enemies, Fan the Flames on burning ones, once a second", () => WindTest(Dt)),
         Test("chill", "Slowed vs Chilled: plain slows never freeze, ice slows and chills, the third freezes and lifts the slows", () => ChillTest(Dt)),
         Test("elementguns", "The Flamethrower's variants: the Water Gun splashes wet, the Gale Gun slices and slows", () => ElementGunsTest(Dt)),
@@ -462,7 +476,7 @@ static partial class Program
         Test("bloodgolem", "Blood Golem: key 2 of the Tank Hemomancer's Ultimate row, the gather (stacks torn off, the rest paid), coats soaking and shedding, Golem Fist and the Slam, Hurl Clot, kills growing a coat, the collapse, ending, mastered", () => BloodGolemTest(Dt)),
         Test("vortex", "Vortex: key 3 of the Tank Elementalist's Ultimate row, the wind-up, swirl and pull, the fringe, heavies, 45 a second, shots swept away, the fling, going down, mastered", () => VortexTest(Dt)),
         Test("ravager", "Blood Ravager: key 1 of the DPS Hemomancer's Ultimate row, the cast (9 s, 1.8x speed, the weapon away), a click lashing the free leg nearest an enemy in reach, up to 3 at once on different enemies, the walk's stomps and the ram, a client's click, ending on time and going down, mastered", () => BloodRavagerTest(Dt)),
-        Test("ballista", "Ballista: key 2 of the DPS Knight's Ultimate row, the drop and landing slam, a teammate mounting and leaving over the wire, one rider at a time, the seat, bolts on Fire every 0.9 s through two in line (off-line untouched, knocked along, enemy shots knocked down), 30% of the rider's hits on it, breaking after the last bolt, folding away, mastered and Windlass", () => BallistaTest(Dt)),
+        Test("ballista", "Ballista: key 1 of the DPS Knight's Ultimate row, the drop and landing slam, a teammate mounting and leaving over the wire, one rider at a time, the seat, bolts on Fire every 0.9 s through two in line (off-line untouched, knocked along, enemy shots knocked down), 30% of the rider's hits on it, breaking after the last bolt, folding away, mastered and Windlass", () => BallistaTest(Dt)),
         Test("boil", "Blood Boil: key 2 of the DPS Hemomancer's Ultimate row, the cast (10 s), the 7% a second drain and its 5% floor, speed, fire rate and damage growing as health falls, back to normal at the end with the health kept, pressing again, going down, mastered, the client", () => BloodBoilTest(Dt)),
         Test("livingbolt", "Living Bolt: key 1 of the DPS Elementalist's Ultimate row, the channel, dashes that shock and leave residue, the lockout, the weapon away, a client's dash, the discharge, going down, mastered", () => LivingBoltTest(Dt)),
         Test("heartbeat", "Heartbeat: key 1 of the Healer Hemomancer's Ultimate row; three beats each paying 8% of max health down to 15%, each wave hitting an enemy in reach once (not past 320 px), a wave's kill always dropping a blood orb, the end on time and going down, mastered, the client", () => HeartbeatTest(Dt)),
@@ -636,11 +650,11 @@ static partial class Program
         "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "railgun", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "vowguard", "embolus", "needleswarm", "bloodbrawler", "arclock", "twinauto", "caltroprun", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
         "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "hangoutmode", "training", "foequery", "pvp", "three", "wrap", "ready", "wavekinds", "landmarks",
-        "arcanist", "stages", "bossrules", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
+        "arcanist", "caltroprun", "protocol", "everyenemy", "lists", "stages", "bossrules", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
         // (these were missing until Nov 2026, so nothing caught them breaking; ci_coverage.py now fails CI on a suite left out)
         "abilitycards", "armordrop", "astral", "ballista", "bamboo", "boil", "bosses", "botdodge", "botgate", "botweapon", "bulwark",
         "bumbleremote", "cannoncall", "cardfilters", "cardids", "celllayouts", "chests", "classcardlists", "claymore", "corelayouts",
-        "cover", "decoy", "deployturret", "dogma", "engbots", "factionrelics", "flashfire", "forbidden", "galewall", "graze",
+        "cover", "decoy", "elementstatus", "deployturret", "dogma", "engbots", "factionrelics", "flashfire", "forbidden", "galewall", "graze",
         "grenadelauncher", "gridrooms", "helicopter", "hivecenser", "hospital", "huntmap", "huntsave", "ironarmadillo", "ironhide",
         "landshark", "late", "latewaves", "layouttest", "lighting", "literaltank", "livingbolt", "mammoth", "needles", "offers", "ofuda",
         "oneway", "orbital", "pickheld", "pits", "portals", "ravager", "refdoc", "rodent", "roomfog", "scratch", "senbon", "shrines",

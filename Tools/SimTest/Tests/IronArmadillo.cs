@@ -81,7 +81,7 @@ static partial class Program
             step(dt);  // (your game sees it off)
         };
         Action cast = () => hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, me.Pos, false });
-        EnemyType heavy = Enum.GetValues(typeof(EnemyType)).Cast<EnemyType>().First(t => (int)t < Defs.Enemies.Length && Defs.Get(t) != null && Defs.Get(t).Heavy && !Defs.Get(t).IsBoss);
+        EnemyType heavy = HeavyFoe();
         float dm = me.Stats.DmgMult;
 
         // The curl: rooted, can't be hurt, abilities locked.

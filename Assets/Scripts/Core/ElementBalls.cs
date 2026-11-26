@@ -43,6 +43,9 @@ namespace Arena
             {
                 Stun(e, e.Def.IsBoss ? EarthStunBoss : e.Def.Heavy ? EarthStunHeavy : EarthStun);
                 e.Winding = false;  // a wind-up it was in starts over
+                Embrittle(e, b.Owner);  // earth: it and the rubble round it crack (Brittle.cs)
+                foreach (var o in FoesInCircle(e.Pos, b.Splash, by: b.Owner))
+                    Embrittle(o, b.Owner);
                 BroadcastFx(FxKind.Debris, e.Pos, Defs.BulletColor(Defs.EarthballShot), b.Splash, 0.45f, Sfx.StoneHit);
             }
         }

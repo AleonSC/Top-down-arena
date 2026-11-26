@@ -837,6 +837,11 @@ namespace Arena
         public float ChargedT, ChargePulseT;  // host: charged by lightning, and until a wet, charged one's next arc (Charged.cs)
         public int ChargedBy;
         public bool Charged;                // replicated, for the bolt icon and the arcs on its body
+        public float BrittleT;              // host: Brittle (earth) seconds left: takes more damage; frozen, it shatters (Brittle.cs)
+        public int BrittleBy;               // host: who made it brittle (the shatter is theirs)
+        public bool Brittle;                // replicated, for the cracked-stone icon and the cracks on its body
+        public float DazzleT;               // host: Dazzled (light) seconds left: its shots stray (Dazzled.cs)
+        public bool Dazzled;                // replicated, for the sun icon and the glints round its head
         public float SteamCd;               // host: until it can turn to steam again (Steam.cs)
         public float IceSlowT, ChillGateT;  // host: slowed by ice (shown chilled, bosses too), and until steady ice can add a stack again (Chill.cs)
         public bool Slowed;                 // replicated: slowed by anything (Chill.cs ShowsSlowed; Chilled is ice only)

@@ -172,6 +172,9 @@ namespace Arena
                 stamp = true;  // (below: who fired it, for Lightning Rod)
                 if (!Defs.Unblockable(kind) && InIncense(pos))
                     vel = vel.Rotated(Rand(-IncenseStray, IncenseStray));  // fired from inside the Censer's incense: it strays
+                float dazzle = DazzleStrayOf(actingEnemy);
+                if (dazzle > 0f && !Defs.Unblockable(kind))
+                    vel = vel.Rotated(Rand(-dazzle, dazzle));  // its shooter is dazzled by light: it strays (Dazzled.cs)
             }
             var b = MakeBullet(nextBulletId++, kind, owner, pos, vel, angVel, life, fromBoss, homing);
             if (stamp)
@@ -1168,6 +1171,7 @@ namespace Arena
             }
             if (e.MarkT > 0f)
                 dmg *= e.MarkMult;
+            dmg *= BrittleDmgMult(e);  // cracked by earth (Brittle.cs)
             if (e.IceT > 0f && IceFrozen(e))
                 dmg *= e.IceMult;  // the mastered Blood Freeze (BloodFreeze.cs)
             if (attacker > 0)
@@ -1296,6 +1300,8 @@ namespace Arena
             StarStuck(b, e);    // a Shuriken star sticks in it (Ninja.cs)
             SeedHit(b, e);      // Sprite Staff seeds and fireflies stick (KitWeapons.cs)
             ElementBallHit(b, e);  // the Waterball soaks, the Earthball stuns (ElementBalls.cs)
+            if (b.Kind == Defs.StoneSpear)
+                Embrittle(e, b.Owner);  // an earth spear cracks it (Brittle.cs)
             ElementGunHit(b, e);   // the Water Gun splashes wet, the Gale Gun slices and slows (ElementGuns.cs)
             RodentHit(b, e);       // a Rodent Minigun rat shoves, and with Plague Rats bleeds (RodentMinigun.cs)
             if (b.Shock > 0)
