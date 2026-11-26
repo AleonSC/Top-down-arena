@@ -129,6 +129,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Transfusion Darts | Healer | 0.2 s | 7 | 850 x 0.85 s | - | 32 | Primary Fire: Darts that heal hurt allies for more than they cost you. |
 | Sanguine Orb | Healer | 0.45 s | 16 | 420 x 1.4 s | - | 57 | Primary Fire: Homing orbs that make enemies bleed, or heal a hurt ally once charged. |
 | Vein Tether | Healer | 0.08 s | 4 | - | 350 | 48 | Primary Fire: A draining beam that hurts enemies and heals you and the nearest ally. |
+| Heart Flail | Healer | 0.45 s | 18 | - | 105 | 40 | Primary Fire: Click to swing a living heart that makes enemies bleed and sprays healing blood; hold to spin it, healing allies near you with every heartbeat. Hits quicken the beat: at 180 the next beat is a Cardiac Burst.  Alternative Fire: Open Heart: throw the heart to your cursor, where it roots and heals every ally near it through its veins. |
 | Needle Swarm | Dps | 0.1 s | 4 | - | 260 | 140 | A swarm of blood needles circles you, blocking shots. Lost needles are siphoned from your health.  Primary Fire: Hold to grow a tendril to the enemy nearest your cursor; it wraps them and cuts until they die.  Alternative Fire: Throw a fan of needles from the swarm. |
 | Implosion | Dps | 0.45 s | 34 | - | 480 | 75 | Primary Fire: Click an enemy to collapse its blood inward and pull nearby enemies in. |
 | Blood Brawler | Dps | 0.26 s | 18 | - | 520 | 80 | Primary Fire: Click an enemy to work its blood from range, ending in a bone-shard burst.  Alternative Fire: Bind the enemies near it so your moves hit them too. |
@@ -257,6 +258,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Cavalry Call | Tank | 1st, choice 3 | 18 s | - | Two more lancers ride outside the first pair, and the guard lasts 5 s. | Two lancers charge across the map, shoving and slowing enemies. |
 | Last Stand | Tank | ultimate | 70 s | - | You take 5% of the damage instead of 10%. | Plant yourself behind a wall of steel plates that blocks every bullet in front. |
 | Trojan Horse | Tank | ultimate | 75 s | - | 40% more health, and the arrows pierce one more enemy. | A wooden horse rolls out to the arena's edge. Players press Interact to climb in: safe inside, they shoot arrows out of it. When everyone's in, enemies go for the horse. |
+| Siege Bell | Tank | 1st, choice 5 | 22 s | - | The stun lasts 3.5 s and the shockwave erases enemy bullets. | Ring a ghostly bell three times; the last toll's shockwave stuns enemies around it. |
 | Consecrate | Healer | 1st, choice 1 | 14 s | - | Two more crosses fly out at 22 degrees either side (each target is hit once). | Throw a Holy Cross that heals and speeds allies and hurts enemies. |
 | Guardian's Oath | Healer | 1st, choice 2 | 15 s | - | Charges up to 800 px. The ward is wider, follows you, and stands a downed ally back up at 25% health. | Haul an ally to safety and protect everyone in a ward of light. |
 | Lay on Hands | Healer | 1st, choice 3 | 18 s | - | Also heals everyone else near them for half as much. | Heal the most hurt ally, or revive a downed one. |
@@ -301,6 +303,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Exsanguinate | Tank | 1st, choice 3 | 8 s | 10% of max health | Also slows the enemies it drains by 50% for 2 s. | Yank every nearby enemy in, stunned, and drain them. |
 | Vein Tithe | Tank | ultimate | 75 s | - | Lasts 40 s and costs 25% less. | Bind every enemy on screen at the cost of your health. |
 | Bloodbath | Tank | ultimate | 75 s | - | The pool spreads to 220 px and gives back 35% of the bleed. | Flood the floor with blood that slows and bleeds enemies and heals you. |
+| Blood Golem | Tank | ultimate | 80 s | - | Lasts 13 s and each coat left bursts for 30. | Tear the blood off enemies and your own veins into coats, then fight as a golem made of them. |
 | Blood Gift | Healer | 1st, choice 1 | 8 s | 25% of current health | Also heals everyone else within 200 px of them for half as much. | Pay health to heal the most hurt ally twice as much. |
 | Blood Freeze | Healer | 1st, choice 2 | 14 s | 25% of max health | Frozen enemies take 25% more damage. | Freeze every enemy near you at a cost of health. |
 | Martyr | Healer | 1st, choice 3 | 16 s | 40% of max health | You're invulnerable for 2 s after the sacrifice. | Pay health to revive a downed ally, or ward the most hurt one. |
