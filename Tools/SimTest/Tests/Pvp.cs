@@ -121,8 +121,10 @@ static partial class Program
             V2 onWall = new V2(420f, 300f);
             them.Pos = them.Disp = client.Game.Me.Pos = client.Game.Me.Disp = onWall;
             float hpW = them.Hp;
-            for (int i = 0; i < 40; i++) { them.InvulnT = 0f; tickIn(1, new PlayerInput { AimAt = new V2(900f, 300f) }); }
+            // (held on it every tick: the wall shoves you off within a few frames and bleeds only on its 0.25 s contact tick)
+            for (int i = 0; i < 40; i++) { them.InvulnT = 0f; them.Pos = them.Disp = client.Game.Me.Pos = client.Game.Me.Disp = onWall; tickIn(1, new PlayerInput { AimAt = new V2(900f, 300f) }); }
             Check(nodes > 2 && them.Hp < hpW, "another player's Blood Wall bleeds you (" + nodes + " nodes, " + (hpW - them.Hp).ToString("0.0") + ")");
+            tickIn(8, new PlayerInput { AimAt = new V2(900f, 300f) });  // (let go: the shove lands)
             Check(client.Game.Me.Pos.DistanceTo(onWall) > 8f, "...and pushes you off it (" + client.Game.Me.Pos.DistanceTo(onWall).ToString("0") + " px)");
             me.Pos = me.Disp = onWall;
             tickIn(40, new PlayerInput { AimAt = new V2(900f, 300f) });
