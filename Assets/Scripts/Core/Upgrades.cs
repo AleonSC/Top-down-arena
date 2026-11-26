@@ -254,6 +254,7 @@ namespace Arena
         public float PylonSizeMult = 1f, PylonSlowBonus;                   // Drag Pylon: Wide Field
         public float NunDiscMult = 1f, NunSwatBonus;                       // Nunchaku: Iron Links
         public float TtGustReachMult = 1f, TtHealMult = 1f;                // Twin Tessen: Divine Wind (TwinTessen.cs)
+        public float HfBpmMult = 1f, HfPulseMult = 1f;                     // Heart Flail: Pacemaker (HeartFlail.cs)
         public float NodReachMult = 1f, NodConeBonus;                      // Nodachi: Tamahagane
         public float WcReachMult = 1f, WcShoveMult = 1f;                 // Wind Clash: Gale Force
         public float SwatReachMult = 1f, SwatCdMult = 1f;                  // Out of Ammo: Gun Kata (Docs/UpgradePools.md step 13)

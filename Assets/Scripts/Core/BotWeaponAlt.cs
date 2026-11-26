@@ -320,6 +320,26 @@ namespace Arena
             var e = v.ShootAt;
             switch (me.Weapon.Id)
             {
+                case WeaponId.HeartFlail:  // Open Heart beside a hurt teammate, else into a pack
+                {
+                    if (late || me.HfCd > 0f || me.HfMode >= Game.HfFly)
+                        return false;
+                    Player hurt = null;
+                    foreach (var q in Players.Values)
+                        if (q.Id != me.Id && !q.Downed && q.Hp < q.MaxHp * 0.6f && !q.Pos.FartherThan(me.Pos, Game.HfThrowRange) && (hurt == null || q.Hp / q.MaxHp < hurt.Hp / hurt.MaxHp))
+                            hurt = q;
+                    if (hurt != null)
+                    {
+                        if (!Tap(true, 1f))
+                            return false;
+                        aimAt = hurt.Pos;
+                        return true;
+                    }
+                    if (e == null || v.ShootD > Game.HfThrowRange || !Tap(EnemiesNear(e.Pos, 100f) >= 3, 1f))
+                        return false;
+                    aimAt = e.Pos;
+                    return true;
+                }
                 case WeaponId.TwinTessen:  // charge the gust into a crowd, a barrage or a hurt teammate in front, let go at full charge
                     if (botAltWas)
                         return botAltHoldT < Game.TtChargeFull;

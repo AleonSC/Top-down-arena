@@ -563,6 +563,7 @@ namespace Arena
             d[(int)WeaponId.WindClash] = DrawHeldWindClash;
             d[(int)WeaponId.StaticShock] = DrawHeldStaticShock;  // a crackling spark on the palm
             d[(int)WeaponId.TwinTessen] = DrawHeldTessen;  // a war fan in each hand (TwinTessenLook.cs)
+            d[(int)WeaponId.HeartFlail] = DrawHeldHeartFlail;  // an iron grip, the chain's first ring (HeartFlailLook.cs)
             d[(int)WeaponId.HiveCenser] = DrawHeldHiveCenser;  // a small censer with insects round it (HiveCenserLook.cs)
             d[(int)WeaponId.IceShards] = DrawHeldIceShards;
             // ---- Summoner
