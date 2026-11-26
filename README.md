@@ -533,7 +533,7 @@ allies walk through, enemies are put back out and their shots burn away inside. 
 (nothing is built off it) and isn't counted as a built room. It lasts **1 minute** from when it opens, through the break between waves too (a map reset takes it with the
 rest of the map); then a bar
 over the door runs out and **EJECT 3, 2, 1** counts down over it: everyone still inside is put out at its door, the
-orbs go, and the cell comes off the map. Outside a Grid run it is a **tent** at your cursor (up to 360 px away): the
+orbs go, and the cell comes off the map. The **cooldown starts when it comes down**, not when you cast it. Outside a Grid run it is a **tent** at your cursor (up to 360 px away): the
 same shrine and orbs inside a 150 px ring of green beams that keeps enemies and their shots out. Mastered: 8 orbs, one
 back every 3 s. Bots use it when in danger or hurt beside a hurt ally, on the free door nearest them. Design:
 [`Docs/Mockups/field-hospital.html`](Docs/Mockups/field-hospital.html).

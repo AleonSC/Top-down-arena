@@ -146,7 +146,8 @@ static partial class Program
         }
 
         // The end: a wave cleared starts the countdown; at 0 everyone inside is put out and the room goes, parents kept right.
-        float t0 = z.T;
+        float t0 = z.T, fullCd = g.Cooldown(me, Upgrades.UltSlot);
+        Check(me.Slots[Upgrades.UltSlot].Charges == 0 && Math.Abs(me.Slots[Upgrades.UltSlot].Timer - fullCd) < 0.01f, "its cooldown waits while it is up (" + me.Slots[Upgrades.UltSlot].Timer + " of " + fullCd + ")");
         g.State = MatchState.Intermission;
         g.FixedStep(dt, new PlayerInput { AimAt = inside });
         Check(z.T > Game.HospEject && z.T > t0 - 0.1f, "the wave ending doesn't cut it short: it keeps its minute");
@@ -157,6 +158,8 @@ static partial class Program
         Check(!g.Zones.ContainsKey(z.Id) && !g.Expanded.Any(r => r.Kind == RoomKind.Hospital), "time up: the zone and the room are gone");
         Check(!Game.InHospital(z, me.Pos) && me.Pos.DistanceTo(top.Door) < 200f && (bool)typeof(Game).GetMethod("OnFloor", flags).Invoke(g, new object[] { me.Pos }), "you are put out at its door (" + me.Pos + ")");
         Check(g.Orbs.Values.All(o => o.Hosp != z.Id), "its orbs go with it");
+        g.FixedStep(dt, new PlayerInput { AimAt = inside });
+        Check(me.Slots[Upgrades.UltSlot].Timer < fullCd - dt * 0.5f && me.Slots[Upgrades.UltSlot].Timer > fullCd - 1f, "the cooldown starts once it comes down");
         bool parentsOk = true;
         for (int i = 0; i < g.Expanded.Count; i++)
             parentsOk &= g.Expanded[i].Parent <= i && g.Expanded[i].X == before[i].X && g.Expanded[i].Y == before[i].Y && (before[i].Parent <= hi ? g.Expanded[i].Parent == before[i].Parent : g.Expanded[i].Parent == before[i].Parent - 1);
