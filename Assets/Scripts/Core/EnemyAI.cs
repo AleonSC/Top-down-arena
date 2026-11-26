@@ -582,6 +582,7 @@ namespace Arena
                 tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
                 tpos = RobotTarget(e, tpos);  // an Engineer's robot draws in enemies near it (Engineer.cs)
                 tpos = DecoyTarget(e, tpos);  // a Decoy Dummy draws in enemies near it (DecoyDummy.cs)
+                tpos = TuskerTarget(e, tpos);  // a Tidal Tusker's elephant draws in regular enemies near it (TidalTusker.cs)  // a Decoy Dummy draws in enemies near it (DecoyDummy.cs)
                 tpos = HorseTarget(e, target, tpos);  // everyone up is in a Trojan Horse: they go for it (TrojanHorse.cs)
                 tpos = RoomTarget(e, tpos);
                 tpos = GnawlingTarget(e, tpos);  // a Gnawling smells a morsel (LarderFaction.cs)  // a challenge room: the crystal, or the zone (Challenges.cs)
@@ -641,7 +642,10 @@ namespace Arena
                     : e.Def.Contact > 0f ? e.Def.Contact * BruteDamageMult(e) : ContactDamage;
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
                 if (!e.Def.IsBoss && !e.Def.Mini)
+                {
                     DecoyContact(e, contact);
+                    TuskerContact(e, contact);  // a Tidal Tusker's elephant in the way gets bitten (TidalTusker.cs)
+                }
                 if (!e.Def.IsBoss)
                     HorseContact(e, contact);  // a Trojan Horse in the way gets bitten (TrojanHorse.cs)  // a Decoy Dummy in the way gets bitten (DecoyDummy.cs)
                 if ((e.Def.IsBoss || e.Def.Mini) && !BossDashing(e))

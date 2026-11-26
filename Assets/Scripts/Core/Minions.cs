@@ -813,6 +813,11 @@ namespace Arena
                     TickHoneyRaid(z, dt);  // HoneyRaid.cs
                     continue;  // (its own tick: nothing below applies)
                 }
+                if (z.Kind == ZoneKind.Tusker)
+                {
+                    TickTusker(z, dt);  // TidalTusker.cs
+                    continue;  // (its own tick: nothing below applies)
+                }
                 if (z.Kind == ZoneKind.Mammoth)
                 {
                     TickMammoth(z, dt);  // MammothFall.cs

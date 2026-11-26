@@ -747,6 +747,11 @@ namespace Arena
                 scratchIds.Add(b.Id);  // a Trojan Horse: every enemy shot that touches it stops there and wears it (TrojanHorse.cs)
                 return;
             }
+            if (TuskerStops(b))
+            {
+                scratchIds.Add(b.Id);  // a Tidal Tusker: enemy shots that reach the elephant stop there and wear it (TidalTusker.cs)
+                return;
+            }
             if (DecoyStops(b))
             {
                 scratchIds.Add(b.Id);  // a Decoy Dummy: every enemy shot that touches it stops there and wears it (DecoyDummy.cs)

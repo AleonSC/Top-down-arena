@@ -217,6 +217,7 @@ namespace Arena
             DrawLandSharks(t);  // the DPS Summoner's Land Shark mid-leap (LandSharkLook.cs)
             DrawHoneyRaids(t);  // the Healer Summoner's Honey Raid: the giant bee and its falling glob (HoneyRaidLook.cs)
             DrawMammoths(t);  // the DPS Summoner's Mammoth Fall: forming, diving, rampaging, leaving (MammothFallLook.cs)
+            DrawTuskers(t);  // the Tank Summoner's Tidal Tusker: the elephant and its streams (TidalTuskerLook.cs)
             DrawWarhornSky();  // Warhorn Volley's horn and the arrows in the air (WarhornVolleyLook.cs)
             DrawCannonSky();  // Cannon Call's flare and the iron balls dropping in (CannonCallLook.cs)
             DrawOrbitalSky();  // Orbital Laser's lock-on, beam, shockwave and flash (OrbitalLaserLook.cs)
@@ -237,6 +238,7 @@ namespace Arena
             DrawRavagerStains(t);  // Blood Ravager's footprints (BloodRavagerLook.cs)
             DrawBoilFloor(t);  // Blood Boil's boiling puddles (BloodBoilLook.cs)
             DrawHeartbeatFloor(t);  // Heartbeat's stains (HeartbeatLook.cs)
+            DrawTuskerFloor(t);  // Tidal Tusker's puddles and shadow (TidalTuskerLook.cs)
             foreach (var p in game.Players.Values)
                 if (!FpHidesMe(p))  // (first person: your own auras would fill the screen, FirstPerson.cs)
                     DrawPlayerAuras(p, t);

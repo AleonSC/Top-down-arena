@@ -48,7 +48,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, BlastOfuda, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital, Steam, StaticResidue, SupplyDrop, LandShark, Claymore, Mammoth, ArmorDrop, TrojanHorse, Ballista, HoneyRaid, Caltrop }
+    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, BlastOfuda, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital, Steam, StaticResidue, SupplyDrop, LandShark, Claymore, Mammoth, ArmorDrop, TrojanHorse, Ballista, HoneyRaid, Caltrop, Tusker }
 
     public class ZoneDef
     {
@@ -192,6 +192,7 @@ namespace Arena
             new ZoneDef { Name = "Ballista", Color = Rgba.Gold },  // the DPS Knight's third ultimate (Ballista.cs): Pos the frame, Aim the bow, Radius the mount reach (0 = breaking), Rider, BoltsLeft, GunCd, GuardFrac its health
             new ZoneDef { Name = "Honey Raid", Color = new Rgba(1f, 0.7f, 0.15f) },  // the Healer Summoner's second ultimate (HoneyRaid.cs): Pos the pool, Origin where the bee came in, Radius the pool; slows, hurts and heals by its own tick
             new ZoneDef { Name = "Caltrop", Color = new Rgba(0.62f, 0.85f, 1f) },  // the DPS Knight's Caltrop Run (CaltropRun.cs): one caltrop, Pos where it lands, Aim the way it bounced, GuardFrac the catches left
+            new ZoneDef { Name = "Tidal Tusker", Color = new Rgba(0.39f, 0.89f, 0.82f) },  // the Tank Summoner's fourth ultimate (TidalTusker.cs): Pos the elephant, Aim its facing, Radius the stream's reach, GuardFrac its health, Origin/Origin2 where its streams end, Side/Rider what they hit
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

@@ -510,6 +510,7 @@ static partial class Program
         Test("airstrike", "Airstrike: a carpet of bombs across the aim, wall to wall, the burning lane, the mastered second wall, Bigger Boom", () => AirstrikeTest(Dt)),
         Test("volley", "Warhorn Volley: the DPS Knight's key 1 ultimate; burning arrows sweep the lane once per enemy (120, burn 20/s for 5 s, pinned 40% for 3 s), knock ordinary shots down, mastered wider and longer fire", () => WarhornVolleyTest(Dt)),
         Test("honeyraid", "Honey Raid: the Healer Summoner's key 1 ultimate; the bee coming in from behind, drips on the way, the 40 splash, a 240 px pool slowing 55/35/20%, burning 12/s and healing allies 10/s, setting to stick grunts (not bosses), mastered 300 px", () => HoneyRaidTest(Dt)),
+        Test("tusker", "Tidal Tusker: the Tank Summoner's key 3 ultimate; the rise, following behind you, the hose (40 a second, wet, the first enemy in line, nothing out of reach, grunts pushed, heavies not), the client seeing it, the taunt (not bosses), shots stopped, the stomp when broken or on time or when you go down, mastered two streams, Deep Trunk", () => TidalTuskerTest(Dt)),
         Test("mammoth", "Mammoth Fall: the DPS Summoner's key 2 ultimate; the ring following the aim within 520 px, the client seeing it, the slam (120 under it, 25 and a 1.5 s stun in 200 px, heavies not shoved), the rampage charging and trampling enemies near the crater, the end on time, going down while it forms, mastered, Ice Age", () => MammothFallTest(Dt)),
         Test("rodent", "Rodent Minigun: the DPS Summoner's key 1 ultimate; the portal's timeline (about 207 rodents), the weapon away, 75% speed, the barrel dragging at 240°/s, the mix of mice, rats and hamsters, the rat's shove, no weapon mods, Plague Rats, going down, mastered", () => RodentMinigunTest(Dt)),
         Test("forbidden", "Forbidden Path: the DPS Ninja's key 1 ultimate; the shed, the lock-on, Fire held running all five stages (Pounce, Rake, Spiral's pull, Rend, Gate and the brands bursting), the weapon away, the drain, a kill's heal, the client's view, the end, going down, mastered, Forbidden Hunger", () => ForbiddenPathTest(Dt)),
@@ -639,7 +640,7 @@ static partial class Program
         "oneway", "orbital", "pickheld", "pits", "portals", "ravager", "refdoc", "rodent", "roomfog", "scratch", "senbon", "shrines",
         "stampede", "staticbubble", "staticshock", "stayin", "supplydrop", "survival", "thornbloom", "trojanhorse", "twintessen",
         "ultimates", "waterward", "wiki", "windclash", "wyvernstaff",
-        "heartflail", "sanctumglass", "siegebell", "chakra", "honeyraid", "heartbeat",
+        "heartflail", "sanctumglass", "siegebell", "chakra", "honeyraid", "heartbeat", "tusker",
     };
 
     static int Main(string[] args)

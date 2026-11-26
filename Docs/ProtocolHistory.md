@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 536: Tidal Tusker (Tank Summoner fourth ultimate): `AbilityId.TidalTusker` and `ZoneKind.Tusker` (both at the end, after Caltrop's); its zone sync adds `Origin`, `Origin2`, `Side` and `Rider` after `Aim`, and keeps `GuardFrac` (its health); the Rare card Deep Trunk (card ids shift).
 - 535: Caltrop Run (DPS Knight 3rd choice) replaces Caught Steel: `AbilityId.CaughtSteel` renamed `CaltropRun`, `Player.CaltropT` replaces `SteelT`/`Steel`, `ZoneKind.Caltrop`, `FxKind.SteelCatch`/`SteelRelease`/`SteelDrop` renamed `CaltropHit`/`CaltropRun`/`CaltropBreak`; Forged Edge became Barbed Iron.
 - 534: Cannon Call (DPS Knight 4th choice): `AbilityId.CannonCall` and `FxKind.CannonCall` (both at the end, after Heartbeat's); the loopback test transport (Net.cs) changes nothing on the wire.
 - 533: Heartbeat (the Healer Hemomancer's second ultimate): `Player.HbT` in the player snapshot; `AbilityId.Heartbeat`.

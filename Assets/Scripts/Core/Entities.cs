@@ -1031,6 +1031,8 @@ namespace Arena
         public HashSet<int> Trampled, Slammed;  // host, a Stampede: enemy ids already hurt, and already slammed, on this charge
         public Dictionary<int, float> HitAt;  // host, a Mammoth Fall: when (its age) it last trampled each enemy (MammothFall.cs)
         public float Spool, GunCd; public int Side; public bool Quiet, Cap;  // host, a Deployable Turret: Quiet folded away with no blast, Cap mastered; how far the barrels have spun up (0-1), time to its next round, which barrel fires next (DeployableTurret.cs)
+        public V2 Origin2;          // replicated, a Tidal Tusker: where its second (mastered) stream ends; Origin the first's (TidalTusker.cs)
+        public V2 OwnerAt;          // host, a Tidal Tusker: where its owner was last tick (the way they walk)
         public int Rider, BoltsLeft;  // replicated, a Ballista: who rides it (0 = nobody), bolts left (Ballista.cs)
         public float BaReloadT;      // host, a Ballista: seconds between bolts (Windlass shortens it)
         public ZoneDef Def => Kits.Get(Kind);
