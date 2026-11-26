@@ -319,7 +319,7 @@ namespace Arena
             Sfx.Throw, Sfx.SwingLight, Sfx.SwingHeavy, Sfx.ShotRepulse, Sfx.SpellChainCone, Sfx.SpellChainArc, Sfx.ShotKunai, Sfx.KatanaSwipe1,
             Sfx.KatanaSwipe2, Sfx.KatanaWindup, Sfx.KatanaLunge, Sfx.KatanaHit, Sfx.SwingRoot, Sfx.ShotSeed, Sfx.ShotSeedHit, Sfx.GreatWindup,
             Sfx.GreatRend, Sfx.TwinCut1, Sfx.TwinCut2, Sfx.TwinJab, Sfx.TwinSpin, Sfx.TwinShear, Sfx.TwinHit, Sfx.TwinHitHeavy, Sfx.TwinThrow,
-            Sfx.TwinCross, Sfx.LightCut1, Sfx.LightCut2, Sfx.LightNoon, Sfx.LightRadiant, Sfx.LightHit, Sfx.LanceRelease, Sfx.CenserSweep1,
+            Sfx.TwinCross, Sfx.TwinNadeLoad, Sfx.TwinNadeLaunch, Sfx.TwinNadeBoom, Sfx.LightCut1, Sfx.LightCut2, Sfx.LightNoon, Sfx.LightRadiant, Sfx.LightHit, Sfx.LanceRelease, Sfx.CenserSweep1,
             Sfx.CenserSweep2, Sfx.CenserWhirl, Sfx.CenserHit, Sfx.CenserHitHeavy, Sfx.LanceJab, Sfx.LanceSweep, Sfx.LanceBreach, Sfx.LanceHitSfx,
             Sfx.LanceHitHeavy, Sfx.LanceHookOut, Sfx.TankDouble, Sfx.TankMineLaunch, Sfx.TankGasLaunch, Sfx.SpellPullStart, Sfx.SpellPullHum,
             Sfx.SpellPullStop, Sfx.KnuckleJab, Sfx.KnuckleHook, Sfx.KnuckleUpper, Sfx.KnuckleSlam, Sfx.KnuckleCounter, Sfx.KnuckleArm,
@@ -419,6 +419,7 @@ namespace Arena
                 BuildBloodBlast();  // BloodBlastSoundBank.cs
                 BuildWarhorn();  // WarhornSoundBank.cs
                 BuildSiegeBell();  // SiegeBellSoundBank.cs
+                BuildTwinRifle();  // TwinRifleSoundBank.cs
                 BuildOrbital();  // OrbitalSoundBank.cs
                 BuildRodent();  // RodentSoundBank.cs
                 BuildRioter();  // RioterSoundBank.cs
