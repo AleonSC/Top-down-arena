@@ -48,7 +48,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, BlastOfuda, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital, Steam, StaticResidue, SupplyDrop, LandShark, Claymore, Mammoth, ArmorDrop, TrojanHorse, Ballista, HoneyRaid, Caltrop, Tusker }
+    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, BlastOfuda, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital, Steam, StaticResidue, SupplyDrop, LandShark, Claymore, Mammoth, ArmorDrop, TrojanHorse, Ballista, HoneyRaid, Caltrop, Tusker, RocketDrop, RocketFire }
 
     public class ZoneDef
     {
@@ -156,7 +156,7 @@ namespace Arena
             new ZoneDef { Name = "Hallowed Blade", Color = new Rgba(1f, 0.95f, 0.65f), HealRate = 15f, Dps = 20f },  // the planted sword (HallowedBlade.cs): ring heals allies and burns enemies, and the whole arena gets a weaker pulse
             new ZoneDef { Name = "Ward of Light", Color = new Rgba(1f, 0.85f, 0.4f) },  // Guardian's Oath (GuardiansOath.cs): allies inside take less damage (Zone.DamageCut) and downed ones revive faster
             new ZoneDef { Name = "Vein Trail", Color = new Rgba(0.85f, 0.12f, 0.2f), Slow = 0.3f },  // the blood a Vein Rush leaves behind (VeinRush.cs): slows enemies on it
-            new ZoneDef { Name = "Drawbridge", Color = new Rgba(0.48f, 0.33f, 0.2f) },  // the DPS Knight's ultimate (Drawbridge.cs): Pos is the hinge, Aim the way it fell
+            new ZoneDef { Name = "Drawbridge", Color = new Rgba(0.48f, 0.33f, 0.2f) },  // the Tank Knight's key-2 ultimate (Drawbridge.cs): Pos is the hinge, Aim the way it fell
             new ZoneDef { Name = "Bloodbath", Color = new Rgba(0.55f, 0.03f, 0.08f) },  // the Tank Hemomancer's second ultimate (Bloodbath.cs): slows, bleeds and guards by its own tick
             new ZoneDef { Name = "Blood Wall", Color = new Rgba(0.7f, 0.07f, 0.14f) },  // one node of the tank Hemomancer's Blood Wall (BloodWall.cs): Aim is the node before it
             new ZoneDef { Name = "Bone Phalanx", Color = new Rgba(0.93f, 0.9f, 0.8f) },  // the Tank Summoner's second ultimate (BonePhalanx.cs): Pos is the middle of the shield face, Aim the heading
@@ -193,6 +193,8 @@ namespace Arena
             new ZoneDef { Name = "Honey Raid", Color = new Rgba(1f, 0.7f, 0.15f) },  // the Healer Summoner's second ultimate (HoneyRaid.cs): Pos the pool, Origin where the bee came in, Radius the pool; slows, hurts and heals by its own tick
             new ZoneDef { Name = "Caltrop", Color = new Rgba(0.62f, 0.85f, 1f) },  // the DPS Knight's Caltrop Run (CaltropRun.cs): one caltrop, Pos where it lands, Aim the way it bounced, GuardFrac the catches left
             new ZoneDef { Name = "Tidal Tusker", Color = new Rgba(0.39f, 0.89f, 0.82f) },  // the Tank Summoner's fourth ultimate (TidalTusker.cs): Pos the elephant, Aim its facing, Radius the stream's reach, GuardFrac its health, Origin/Origin2 where its streams end, Side/Rider what they hit
+            new ZoneDef { Name = "Rocket Drop", Color = new Rgba(1f, 0.54f, 0.11f) },  // the DPS Soldier's fourth ultimate (RocketDrop.cs): Pos the pod, Radius the slam; its timer gives the phase (call-in, landing, open, fold); Side (host) 1 = mastered
+            new ZoneDef { Name = "Rocket Fire", Color = new Rgba(1f, 0.45f, 0.1f) },  // a Rocket Drop rocket's burning ground (RocketDrop.cs): Pos, Radius; TickT (host) the time to the next burn
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

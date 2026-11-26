@@ -523,6 +523,7 @@ namespace Arena
                 return;
             LookOf(p.Kit).Auras?.Invoke(this, p, t);  // the class's own auras (ClassLooks.cs)
             DrawBuffTimers(p, t);  // a shrinking arc under them for each timed buff (AbilityLooks.cs)
+            DrawRocketAura(p, t);  // Rocket Drop's time ring, the ∞ chip and your blast reach (RocketDropLook.cs)
             DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
             DrawVortex(p, t);      // the Vortex ultimate's storm (VortexLook.cs)
             DrawLivingBoltAura(p, t);  // Living Bolt's channel, halo and time ring (LivingBoltLook.cs)

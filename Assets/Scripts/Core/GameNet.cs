@@ -571,6 +571,7 @@ namespace Arena
             SyncGrasp(s, p);  // Hemomancer.cs
             SyncJuggernaut(s, p);  // Juggernaut.cs
             SyncLiteralTank(s, p);  // LiteralTank.cs
+            SyncRocketDrop(s, p);  // RocketDrop.cs
             SyncStoneColossus(s, p);  // StoneColossus.cs
             SyncBloodGolem(s, p);  // BloodGolem.cs
             SyncSpiritAvatar(s, p);  // SpiritAvatar.cs
@@ -839,6 +840,14 @@ namespace Arena
                 s.Short(ref blastOwner);  // (a player id)
             int fpBrands = !s.Reading ? e.FpBrands : 0;
             s.Byte(ref fpBrands);  // Forbidden Path's Blood Brands on it (ForbiddenPath.cs)
+            int elem = 0;
+            if (!s.Reading)
+            {
+                e.Brittle = e.BrittleT > 0f;
+                e.Dazzled = e.DazzleT > 0f;
+                elem = (e.Brittle ? 1 : 0) | (e.Dazzled ? 2 : 0);
+            }
+            s.Byte(ref elem);  // Brittle (Brittle.cs) and Dazzled (Dazzled.cs)
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -859,6 +868,8 @@ namespace Arena
                 e.FrostChill = (byte)frostChill;
                 e.BlastStacks = (byte)blastStacks;
                 e.FpBrands = (byte)fpBrands;
+                e.Brittle = (elem & 1) != 0;
+                e.Dazzled = (elem & 2) != 0;
                 e.BlastOwner = blastStacks > 0 ? blastOwner : 0;
                 e.Spawning = spawning;
                 e.Facing = facing;

@@ -17,7 +17,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Class | Health | Speed | About |
 |---|---|---|---|
 | Soldier | x1 | x1 | Guns and gear. Straightforward firearms with an Alt trick each (a point-blank shell, a proximity mine, a grenade volley) and field kit for abilities. Full health and normal speed: the steady pick. |
-| Elementalist | x0.85 | x1 | Spells of fire, frost, lightning, water, wind, earth and light. Elements combine: soaked enemies conduct lightning, burning ones keep burning, frozen ones slow down. Big area damage, at 85% health. |
+| Elementalist | x0.85 | x1 | Spells of fire, frost, lightning, water, wind, earth and light. Elements combine: soaked enemies conduct lightning, earth cracks enemies so they take more damage (and frozen ones shatter), light dazzles them so their shots go wide. Big area damage, at 85% health. |
 | Summoner | x0.9 | x1 | Fights through minions. Your weapon brings its own creatures (wolves, wisps, imps, bees) that hunt, bite and soak hits, and they stay with you between waves. Point them at what matters. 90% health. |
 | Knight | x1.15 | x1 | Melee. Holding fire swings instead of shooting, hitting every enemy in the arc and cutting small bullets out of the air in front of you (big orbs, mines and red aimed shots still get through). Armoured for the thick of it: 115% health. |
 | Ninja | x0.85 | x1.12 | Thrown blades and quick melee with tricks and misdirection: stars that come back, stances, smoke and shadow clones. Fast (+12% move speed) but lightly protected (85% health): hit, slip away, hit again. |
@@ -198,6 +198,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Artillery Assault | Dps | ultimate | 60 s | - | +4 extra projectiles instead of +2. | Fire three times as fast with extra projectiles. |
 | Attack Helicopter | Dps | ultimate | 70 s | - | A second gun on the wing: two targets at once. | A gunship locks enemies one at a time and can't be hit. |
 | Orbital Laser | Dps | ultimate | 90 s | - | The circle is 340 px wide instead of 260, and the beam ploughs 200 px on while it fires. | Call a laser down from orbit on your cursor: after a 1.9 s lock-on it kills every enemy in a huge circle (bosses lose 20%) and leaves the ground burning. |
+| Rocket Drop | Dps | ultimate | 80 s | - | 13 s, and each blast throws 3 bomblets. | Call in a pod with a rocket launcher, infinite ammo, for 10 s. Each rocket's blast is huge and leaves the ground burning. |
 | Deployable Turret | Dps | 1st, choice 5 | 45 s | - | Fires 14 s, rounds pierce 4, and the blast does double. | Climb into a heavy turret that spools up to a fast piercing fire. |
 
 ### Elementalist
@@ -212,7 +213,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Stone Colossus | Tank | ultimate | 80 s | - | Lasts 18 s and slams reach 25% wider. | Become a huge earth golem: stomp what you walk over and slam the ground with both fists. |
 | Vortex | Tank | ultimate | 80 s | - | 300 px across instead of 240, and 55 damage a second. | A huge whirlwind round you drags enemies with it, shreds them and sweeps their shots away, then flings them out. |
 | Flood | Tank | 1st, choice 5 | 16 s | - | Deluge: the flood is 30% wider and lasts 9 s. | Flood the ground around you: it throws enemies back, slows them and soaks them. |
-| Healing Rain | Healer | 1st, choice 1 | 16 s | - | Lasts 10 s, and downed allies inside revive twice as fast. | A rain at your cursor that heals allies and slows enemies. |
+| Healing Rain | Healer | 1st, choice 1 | 16 s | - | Lasts 10 s, and downed allies inside revive twice as fast. | A rain at your cursor that heals allies, and slows and soaks enemies. |
 | Gust Gate | Healer | 1st, choice 2 | 14 s | - | The ring is 40% wider and pushes enemies twice as hard. | A wind ring that gives anyone passing through a speed boost. |
 | Lumen Ward | Healer | 1st, choice 3 | 20 s | - | Also freezes enemies outside the light for as long as it lasts (not bosses). | A cone of light that heals allies and burns away enemy bullets. |
 | Sanctum | Healer | ultimate | 80 s | - | The dome is half again as wide (300 px). | A dome of light that blocks bullets, keeps allies up and heals them. |
@@ -260,6 +261,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Cavalry Call | Tank | 1st, choice 3 | 18 s | - | Two more lancers ride outside the first pair, and the guard lasts 5 s. | Two lancers charge across the map, shoving and slowing enemies. |
 | Last Stand | Tank | ultimate | 70 s | - | You take 5% of the damage instead of 10%. | Plant yourself behind a wall of steel plates that blocks every bullet in front. |
 | Trojan Horse | Tank | ultimate | 75 s | - | 40% more health, and the arrows pierce one more enemy. | A wooden horse rolls out to the arena's edge. Players press Interact to climb in: safe inside, they shoot arrows out of it. When everyone's in, enemies go for the horse. |
+| Drawbridge | Tank | ultimate | 75 s | - | The bridge stands for 8 s. | A drawbridge crushes the lane ahead, then blocks enemies and shots. |
 | Siege Bell | Tank | 1st, choice 5 | 22 s | - | The stun lasts 3.5 s and the shockwave erases enemy bullets. | Ring a ghostly bell three times; the last toll's shockwave stuns enemies around it. |
 | Consecrate | Healer | 1st, choice 1 | 14 s | - | Two more crosses fly out at 22 degrees either side (each target is hit once). | Throw a Holy Cross that heals and speeds allies and hurts enemies. |
 | Guardian's Oath | Healer | 1st, choice 2 | 15 s | - | Charges up to 800 px. The ward is wider, follows you, and stands a downed ally back up at 25% health. | Haul an ally to safety and protect everyone in a ward of light. |
@@ -269,7 +271,6 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Bladed Dive | Dps | 1st, choice 1 | 10 s | - | Each kill heals you 5% of your health. | Rush forward untouchable with a spinning blade; a kill resets the cooldown. |
 | The Gauntlet | Dps | 1st, choice 2 | 9 s | - | The Challenge lasts 8 s, and the charge's impact stuns for 1 s. | Challenge an enemy and charge it; kill it in time to reset the cooldown. |
 | Caltrop Run | Dps | 1st, choice 3 | 12 s | - | Caltrops last 9 s and each catches 3 enemies. | Sprint and scatter caltrops behind you that cut, bleed and slow enemies. |
-| Drawbridge | Dps | ultimate | 75 s | - | The bridge stands for 8 s. | A drawbridge crushes the lane ahead, then blocks enemies and shots. |
 | Warhorn Volley | Dps | ultimate | 70 s | - | The volley is 40% wider and the fire burns for 8 s. | A volley of fire arrows sweeps the field, burning and pinning enemies. |
 | Ballista | Dps | ultimate | 75 s | - | 10 bolts, and each one pins what it hits. | A giant ballista drops in front of you. Anyone can mount it (Interact) and fire 8 giant bolts that go through everything. |
 | Cannon Call | Dps | 1st, choice 5 | 12 s | - | Two smaller balls land either side of the mark along your aim. | Flare a spot and a cannonball slams into it, blasting and stunning the pack; 3 kills give back half the cooldown. |

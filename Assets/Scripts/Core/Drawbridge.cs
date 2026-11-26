@@ -2,7 +2,7 @@ using System;
 
 namespace Arena
 {
-    /// The DPS Knight's ultimate, the Drawbridge (was Blade Tempest), the Oak & Iron look
+    /// The Tank Knight's third ultimate (key 2 of the Ultimate row; was the DPS Knight's default, was Blade Tempest), the Drawbridge, the Oak & Iron look
     /// of Docs/Mockups/knight-dps-abilities.html. A gatehouse rises behind you and a drawbridge BridgeLength long and
     /// twice BridgeHalfWidth wide falls along your aim (its shadow sweeping the lane first). At BridgeSlam it lands:
     /// BridgeCrush to every enemy in the lane (bosses too: they aren't killed outright), BridgeEdgeDamage and a shove of

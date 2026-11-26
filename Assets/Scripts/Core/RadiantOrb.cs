@@ -47,6 +47,7 @@ namespace Arena
             foreach (var e in FoesInCircle(p.RadiantPos, r, by: p.Id))
             {
                 hit = touched = true;
+                Dazzle(e);  // light (Dazzled.cs)
                 HurtEnemy(e, dmg, p.Id);
                 ModHit(e, p.Id, dmg, Defs.HolyShot, (e.Pos - p.RadiantPos).Normalized());  // weapon mods ride it
             }

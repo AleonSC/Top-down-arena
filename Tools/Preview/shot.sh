@@ -5,7 +5,7 @@
 # picker: GOLDINSTEAD=1 (on the Bazaar: the "Gold instead" key under the row).
 # Modes (see ShotModes.cs; flags in ShotScenes.cs): hud, dev, bg, lobby, tab, picker, legendary, ...
 # Env flags tweak the scene, e.g. KNIGHT=1 (Knights), POSE=1 (fixed pose), THRUST=0.3 (Lance jab frame),
-# DAZE=1 (three enemies dazed round you; mode hud), BOW=0.9, MASTERY=1, BG=3 (background number for 'bg'), MOUSE=x,y (hover for lobby modes), SOLO=1,
+# DAZE=1 (three enemies dazed round you; mode hud), ELEMSTATUS=1 (Brittle and Dazzled enemies round you, ElementStatusLook.cs; mode hud, ZOOM=2), BOW=0.9, MASTERY=1, BG=3 (background number for 'bg'), MOUSE=x,y (hover for lobby modes), SOLO=1,
 # menu: PLAY=1 (the Play picker; NOSAVES=1, MORE=1 extra saves, OLDER=1 the older runs, PAGE=n), MENUT=<s> (the clock: 3 = rooms built), BG=28 (Holo Floor).
 # records: SECTION=4 (Recent runs), RTAB=1 (Trends), RSEL=n (the open run), MOUSE=x,y (hover).
 # DOWNED=down:<s since the hit>|revive:<0-1>|up:<s since standing> (you downed, being revived, getting up; mode hud, 2 players).
@@ -123,6 +123,7 @@
 # TWINNADES=<loaded>,<next tube 0/1>,<charge> (the Twin Rifle's grenade tubes and pips; with CAST=Airstrike CASTT=<s> for the Airstrike).
 # JUGG=<s since cast> JUGGARMOR=<0-1> (the Tank Soldier's Juggernaut Suit: plates, armour bar, flak tracers; mode hud).
 # ARMORDROP=<s since the cast> [ARMORCAP=1] [ARMORHIT=<armor left>] (the Tank Soldier's Armor Drop: crate, vests, armor shell and bar; mode hud).
+# ROCKETDROP=<s since the cast> [ROCKETCAP=1] (the DPS Soldier's Rocket Drop: pod, launcher, rockets, blasts, fire; ShotRocketDrop.cs; ZOOM=1.1 CAMAT=780,480 shot.sh x hud 1 6 1).
 # VORTEX=<s since cast> VXMASTERED=1 (the Tank Elementalist's Vortex: wind-up, storm, grunts swept round, shots swept away; mode hud; VortexLook.cs).
 # RAVAGER=<s since cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (the DPS Hemomancer's Blood Ravager walking right through grunts, clicking over the last 0.4 s; ShotBloodRavager.cs; ZOOM=2.2, mode hud).
 # BOIL=<s since cast> [BOILHP=<0-1>] [BOILEND=1] (the DPS Hemomancer's Blood Boil circling and firing at grunts, health eased down to BOILHP; BOILEND=1 ends it 0.4 s before, for the steam; ShotBloodBoil.cs; ZOOM=1.8, mode hud).

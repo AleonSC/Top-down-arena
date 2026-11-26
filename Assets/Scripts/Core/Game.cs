@@ -1462,7 +1462,7 @@ namespace Arena
 
             LocalDodge(me, move, dodgePress, dodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
             me.Sprint = (byte)Math.Round(SprintFade * 255f);  // for everyone else's wake (sent in Msg.Input, then the snapshot)
-            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me) && !ArmOn(me) && !Riding(me), dt);  // weapon secondaries on their own key (Ninja.cs)
+            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me) && !ArmOn(me) && !Riding(me) && !RocketOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
             if (LocalLivingBolt(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // electrified: Fire is the dash (LivingBolt.cs)
             if (LocalRavager(me, firing && !HoldControls, dt))
@@ -1551,6 +1551,7 @@ namespace Arena
             TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickTanks(dt);      // LiteralTank.cs: the tank's time, running enemies over, getting out
+            TickRocketLaunchers(dt);  // RocketDrop.cs: the launcher's time, dropping the tube
             TickHorseRiders(dt);  // TrojanHorse.cs: riders of a horse that's gone, Sally Forth's time
             TickArmadillo(dt);  // IronArmadillo.cs: the ball's time, its speed and hits, the uncurl slam
             TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders
@@ -1802,6 +1803,8 @@ namespace Arena
                     TickHorseBow(p, dt);  // in a Trojan Horse: arrows out of its slits, not your weapon (TrojanHorse.cs)
                 else if (TankOn(p))
                     TickTankGun(p, dt);
+                else if (RocketOn(p))
+                    TickRocketGun(p, dt);  // Rocket Drop: the launcher, not your weapon (RocketDrop.cs)
                 else if (ArmOn(p))
                 {
                     // curled up in Iron Armadillo: the weapon is away, Fire revs the roll (IronArmadillo.cs)

@@ -762,6 +762,7 @@ namespace Arena
                 arcSounded = true;
                 foreach (var e in hits[v])
                 {
+                    Dazzle(e);  // light (Dazzled.cs)
                     HurtEnemy(e, share, p.Id);
                     ModHit(e, p.Id, share, Defs.HolyShot, dir);  // weapon mods apply to each share
                     WetArcs(e.Pos, e, share, p.Id);  // Tsunami.cs

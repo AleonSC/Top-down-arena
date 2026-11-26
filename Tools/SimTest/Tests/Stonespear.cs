@@ -91,8 +91,8 @@ static partial class Program
         Check(client.Game.Players[1].SsLock == mark.Id, "the other screen sees the lock");
         Step(1.2f, mark.Pos, false, false);
         float took = mark.MaxHp - mark.Hp;
-        Check(Math.Abs(took - left * 24f * Game.SsVolleyMult * me.Stats.DmgMult) < 2f && bystander.Hp == bystander.MaxHp,
-            "all " + left + " curve in on it, 30 each (" + took.ToString("0") + "), and nothing else is hit");
+        Check(Math.Abs(took - 24f * Game.SsVolleyMult * me.Stats.DmgMult * (1f + (left - 1) * Game.BrittleMult)) < 2f && bystander.Hp == bystander.MaxHp && mark.BrittleT > 0f,
+            "all " + left + " curve in on it, 30 each, the first's cracks making the rest 20% harder (" + took.ToString("0") + "), and nothing else is hit");
         Check(me.SsLock == 0, "the lock goes when the volley is spent");
 
         // SsCd later, the next Fire slams again

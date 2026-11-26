@@ -10,6 +10,8 @@ namespace Arena
         // --- Abilities ---------------------------------------------------------
 
         public const float FrostNovaFxTime = 3.3f;
+        public const float FlameWallBurnTime = 2f, FlameWallBurnShare = 0.4f;  // Flame Wall (and Meteor's embers, Incendiary ground) set what's in it burning: this long, at this share of its own damage
+        public const float RainWetTime = 2f;  // Healing Rain soaks the enemies in it for this long after they leave
         // Alpha Call's Blood Scent: stacks per minion, and what each one adds to its speed and attack rate (2 stacks is about the old flat frenzy)
         public const int ScentStart = 2, ScentMax = 5;
         public const float ScentSpeedPer = 0.16f, ScentRatePer = 0.5f, ScentLunge = 3f;
@@ -733,6 +735,16 @@ namespace Arena
                     TickHospital(z, dt);  // orbs, shrine, laser gate (FieldHospital.cs)
                     continue;
                 }
+                if (z.Kind == ZoneKind.RocketDrop)
+                {
+                    TickRocketDrop(z, dt);  // the slam, the launcher taken (RocketDrop.cs)
+                    continue;
+                }
+                if (z.Kind == ZoneKind.RocketFire)
+                {
+                    TickRocketFire(z, dt);  // the burn (RocketDrop.cs)
+                    continue;
+                }
                 if (z.Kind == ZoneKind.ArmorDrop)
                 {
                     TickArmorDrop(z, dt);  // the landing, the vests (ArmorDrop.cs)
@@ -855,6 +867,14 @@ namespace Arena
                             HurtEnemy(e, d.Dps * z.DmgMult * dt, z.Owner);
                         if (z.Kind == ZoneKind.BulletRain)
                             e.WetT = Math.Max(e.WetT, BulletRainWetTime);  // soaked: slowed, and lightning arcs to it (Tsunami.cs)
+                        else if (z.Kind == ZoneKind.HealingRain)
+                            e.WetT = Math.Max(e.WetT, RainWetTime);  // the rain soaks enemies too
+                        else if (z.Kind == ZoneKind.FlameWall && !HallowedSpent(z))
+                        {
+                            e.BurnT = Math.Max(e.BurnT, FlameWallBurnTime);  // set burning: it keeps burning a moment after it leaves (and steams, fans...)
+                            e.BurnDps = Math.Max(e.BurnDps, d.Dps * z.DmgMult * FlameWallBurnShare);
+                            e.BurnBy = z.Owner;
+                        }
                         float slow = Math.Max(d.Slow, z.ExtraSlow);
                         if (z.Kind == ZoneKind.Blizzard)
                             Chill(e, 1, 0.3f, 1f - slow, gated: true);  // ice: chilled too, a stack a second (Chill.cs)
@@ -874,7 +894,11 @@ namespace Arena
                 if (z.Def.BlastDamage > 0f)  // the meteor lands
                 {
                     foreach (var e in FoesInCircle(z.Pos, z.Radius, by: z.Owner))
+                    {
+                        if (z.Kind == ZoneKind.Meteor)
+                            Embrittle(e, z.Owner);  // earth: cracked first, so the blast lands harder (Brittle.cs)
                         HurtEnemy(e, z.Def.BlastDamage * z.DmgMult, z.Owner);
+                    }
                     if (z.Kind == ZoneKind.Meteor)
                         BroadcastFx(FxKind.Meteor, z.Pos, z.Def.Color, z.Radius, 2.8f, Sfx.BigExplode);  // flash, ring, sparks and a scorch mark (ElementalistLooks.cs)
                     else

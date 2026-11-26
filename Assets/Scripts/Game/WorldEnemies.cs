@@ -286,6 +286,12 @@ namespace Arena
                 case ZoneKind.SupplyDrop:
                     DrawSupplyDrop(z, t);  // SupplyDropLook.cs (its own time arc)
                     return;
+                case ZoneKind.RocketDrop:
+                    DrawRocketDrop(z, t);  // RocketDropLook.cs (no timer ring: the pod waits, then folds)
+                    return;
+                case ZoneKind.RocketFire:
+                    DrawRocketFire(z, t);  // RocketDropLook.cs (it dies down instead of a timer ring)
+                    return;
                 case ZoneKind.ArmorDrop:
                     DrawArmorDrop(z, t);  // ArmorDropLook.cs (no timer ring: it folds once the vests are gone)
                     return;
@@ -954,6 +960,10 @@ namespace Arena
                 col = DrawVenomed(e, pos, r, col, t);  // Poison Dart (PoisonDartLook.cs)
             if (e.Charged)
                 col = DrawCharged(e, pos, r, col, t);  // Charged.cs
+            if (e.Brittle)
+                col = DrawBrittle(e, pos, r, col, t);  // Brittle.cs (ElementStatusLook.cs)
+            if (e.Dazzled)
+                col = DrawDazzled(e, pos, r, col, t);  // Dazzled.cs (ElementStatusLook.cs)
             if (e.Marked && fxOn)  // Mark for Death: the reticle lock and skull (SoldierLooks.cs)
             {
                 col = col.Mix(new Rgba(1f, 0.42f, 0.35f), 0.2f);
@@ -1180,11 +1190,11 @@ namespace Arena
         }
 
         /// A row of small icons over an enemy, one per status: white snowflake in ice = frozen, blue snowflake = chilled (ice), grey-white chevrons =
-        /// slowed (anything), blue drop over a wave = wet (Tsunami; its effect bar drains under it), flame = burning, blood drop = bleeding, green bubbles = poisoned, a green drop with a dart through it = Poison Dart's venom, yellow zigzag bolt = charged, amber pause = suppressed (shoots slower), red crosshair = marked (takes extra damage).
+        /// slowed (anything), blue drop over a wave = wet (Tsunami; its effect bar drains under it), flame = burning, blood drop = bleeding, green bubbles = poisoned, a green drop with a dart through it = Poison Dart's venom, yellow zigzag bolt = charged, cracked stone = brittle, small sun = dazzled, amber pause = suppressed (shoots slower), red crosshair = marked (takes extra damage).
         void DrawStatusIcons(Enemy e, V2 center, float t)
         {
             bool iced = e.Frozen && !LeapCaged(e);
-            int n = (iced ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Slowed ? 1 : 0) + (e.Wet ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0) + (e.Suppressed ? 1 : 0) + (e.Poisoned ? 1 : 0) + (e.Venomed ? 1 : 0) + (e.Charged ? 1 : 0);
+            int n = (iced ? 1 : 0) + (e.Chilled ? 1 : 0) + (e.Slowed ? 1 : 0) + (e.Wet ? 1 : 0) + (e.Burning ? 1 : 0) + (e.Bleeding ? 1 : 0) + (e.Marked ? 1 : 0) + (e.Suppressed ? 1 : 0) + (e.Poisoned ? 1 : 0) + (e.Venomed ? 1 : 0) + (e.Charged ? 1 : 0) + (e.Brittle ? 1 : 0) + (e.Dazzled ? 1 : 0);
             if (n == 0)
                 return;
             const float size = 8f, step = 21f;
@@ -1294,6 +1304,20 @@ namespace Arena
                 V2 c = new V2(x, center.Y);
                 Circle(c, size + 3f, bg, 12);
                 DrawBoltIcon(c, size, ChargeColor);
+                x += step;
+            }
+            if (e.Brittle)  // cracked by earth: a split stone (ElementStatusLook.cs)
+            {
+                V2 c = new V2(x, center.Y);
+                Circle(c, size + 3f, bg, 12);
+                DrawBrittleIcon(c, size);
+                x += step;
+            }
+            if (e.Dazzled)  // dazzled by light: a small sun (ElementStatusLook.cs)
+            {
+                V2 c = new V2(x, center.Y);
+                Circle(c, size + 3f, bg, 12);
+                DrawDazzleIcon(c, size);
                 x += step;
             }
             if (e.Suppressed)  // the Riot Repeater's suppression: a pause sign, its shooting slowed

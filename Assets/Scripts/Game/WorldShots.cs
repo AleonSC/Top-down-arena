@@ -168,6 +168,11 @@ namespace Arena
                 DrawWaterJet(b, t);  // ElementGunLook.cs
                 return;
             }
+            if (b.Kind == Defs.RocketShell)
+            {
+                DrawRocketShell(b, t);  // RocketDropLook.cs
+                return;
+            }
             if (b.Kind == Defs.TankShell)
             {
                 DrawTankShell(b, t);  // LiteralTankLook.cs

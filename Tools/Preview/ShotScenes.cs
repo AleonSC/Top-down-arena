@@ -1189,6 +1189,7 @@ static partial class Shot {
     BloodBoilScene();  // BOIL=<s since the cast> [BOILHP=<0-1>] [BOILEND=1] (ShotBloodBoil.cs)
     RodentMinigunScene();  // RODENT=<s since the cast> [RODENTAIM=<deg>] (ShotRodentMinigun.cs)
     MammothFallScene();  // MAMMOTH=<s since the cast> (ShotMammothFall.cs)
+    RocketDropScene();  // ROCKETDROP=<s since the cast> [ROCKETCAP=1]: the DPS Soldier's Rocket Drop (ShotRocketDrop.cs)
     TuskerScene();  // TUSKER=<s since the cast> [TUSKERCAP=1]: the Tank Summoner's Tidal Tusker (ShotTusker.cs)
     ForbiddenPathScene();  // FORBIDDEN=<s since the cast> (ShotForbiddenPath.cs)
     HoneyRaidScene();  // HONEY=<s since the cast> [HONEYCAP=1]: the Healer Summoner's Honey Raid (ShotHoneyRaid.cs)
@@ -2834,6 +2835,18 @@ static partial class Shot {
       me.Pos = me.Disp = new V2(640f, 420f); host.Game.Bot = false;
       int wk = 0;
       foreach (var e in host.Game.Enemies.Values) { if (wk >= 3) break; e.Pos = e.Disp = me.Pos + V2.FromAngle(-0.5f + wk * 1.2f) * 110f; e.SpawnT = 0f; e.Spawning = false; e.WetT = 8f; e.Wet = true; e.WetPeak = 8f; e.WetLeft = new[] { 8f, 4f, 1f }[wk]; if (wk == 1) e.Hp = e.MaxHp * 0.6f; wk++; }
+    }
+    if (Environment.GetEnvironmentVariable("ELEMSTATUS") != null) {
+      // The Elementalist's earth and light statuses (ElementStatusLook.cs): brittle, dazzled, both, and brittle with wet and charged round you.
+      me.Pos = me.Disp = new V2(640f, 420f); host.Game.Bot = false;
+      int ek = 0;
+      foreach (var e in host.Game.Enemies.Values) {
+        if (ek >= 4) { e.Pos = e.Disp = new V2(2000f, 2000f); continue; }
+        e.Pos = e.Disp = me.Pos + V2.FromAngle(-0.9f + ek * 0.95f) * 130f; e.SpawnT = 0f; e.Spawning = false;
+        e.Brittle = ek != 1; e.BrittleT = e.Brittle ? 5f : 0f; e.Dazzled = ek == 1 || ek == 2; e.DazzleT = e.Dazzled ? 3f : 0f;
+        if (ek == 3) { e.Wet = true; e.WetT = 4f; e.WetPeak = 4f; e.WetLeft = 3f; e.Charged = true; e.ChargedT = 4f; }
+        ek++;
+      }
     }
     if (Environment.GetEnvironmentVariable("DAZE") != null) {
       // Dazed by a close-in hit (Daze.cs): three enemies round you with stars over their heads.

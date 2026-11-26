@@ -308,6 +308,8 @@ namespace Arena
             WikiStatusIf(e.Venomed, "Venom", into);
             WikiStatusIf(e.Wet, "Wet", into);
             WikiStatusIf(e.Charged, "Charged", into);
+            WikiStatusIf(e.Brittle, "Brittle", into);
+            WikiStatusIf(e.Dazzled, "Dazzled", into);
             WikiStatusIf(e.Chilled, "Chilled", into);
             WikiStatusIf(e.Slowed, "Slowed", into);
             WikiStatusIf(e.Marked, "Marked", into);

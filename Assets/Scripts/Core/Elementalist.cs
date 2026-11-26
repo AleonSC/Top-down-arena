@@ -11,7 +11,7 @@ namespace Arena
         internal static readonly KitDef ElementalistKit = new KitDef
         {
             Id = Kit.Elementalist, Name = "Elementalist", Icon = "class_elementalist", HpMult = 0.85f,
-            Blurb = "Spells of fire, frost, lightning, water, wind, earth and light. Elements combine: soaked enemies conduct lightning, burning ones keep burning, frozen ones slow down. Big area damage, at 85% health.",
+            Blurb = "Spells of fire, frost, lightning, water, wind, earth and light. Elements combine: soaked enemies conduct lightning, earth cracks enemies so they take more damage (and frozen ones shatter), light dazzles them so their shots go wide. Big area damage, at 85% health.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireKitWeapon(p, aim, dir, muzzle, dmg, extra),
         };
 
@@ -166,7 +166,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.HealingRain, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 0,
-                Name = "Healing Rain", Icon = "rain", Cooldown = 16f, Desc = "A rain at your cursor that heals allies and slows enemies.",
+                Name = "Healing Rain", Icon = "rain", Cooldown = 16f, Desc = "A rain at your cursor that heals allies, and slows and soaks enemies.",
                 Capstone = "Lasts 10 s, and downed allies inside revive twice as fast.",
                 Bot = b => b.AllyHurt,
             },

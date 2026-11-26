@@ -299,6 +299,10 @@ namespace Arena
                     CastHeli(p, cap);
                     break;
 
+                case AbilityId.RocketDrop:  // DPS: Soldier, the fourth ultimate (RocketDrop.cs)
+                    CastRocketDrop(p, target, cap);
+                    break;
+
                 case AbilityId.OrbitalLaser:  // DPS: Soldier, the third ultimate (OrbitalLaser.cs)
                     CastOrbital(p, target, cap);
                     break;

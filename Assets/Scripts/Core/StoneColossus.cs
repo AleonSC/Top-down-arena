@@ -102,6 +102,7 @@ namespace Arena
                 if (!Heavy(e))
                     KnockEnemy(e, AwayFrom(e.Pos, p.Pos, V2.FromAngle(p.Aim)) * ColRiseKnock);
                 HurtEnemy(e, ColRiseDamage * dmg, p.Id);
+                Embrittle(e, p.Id);  // earth: cracked for the next hits (Brittle.cs)
             }
             BroadcastFx(FxKind.TitanSlam, p.Pos, new V2(TitanEarth + 1, 0f), ColEarth, ColRiseRadius, TitanCrackTime, Sfx.BigExplode);
         }
@@ -204,6 +205,7 @@ namespace Arena
                     Stun(e, ColStompStun);
                 }
                 HurtEnemy(e, dmg, p.Id);
+                Embrittle(e, p.Id);  // earth: cracked for the next hits (Brittle.cs)
             }
             BroadcastFx(FxKind.TitanSlam, at, new V2(ColFxStomp, 0f), ColEarth, ColStompRadius * 1.3f, 2.2f, Sfx.BruteStep);
         }
@@ -223,6 +225,7 @@ namespace Arena
                     Stun(e, ColSlamStun);
                 }
                 HurtEnemy(e, dmg, p.Id);
+                Embrittle(e, p.Id);  // earth: cracked for the next hits (Brittle.cs)
             }
             BroadcastFx(FxKind.TitanSlam, at, new V2(TitanEarth, 0f), ColEarth, reach, TitanCrackTime, Sfx.Shockwave);
         }
@@ -242,6 +245,7 @@ namespace Arena
                     if (!Heavy(e))
                         KnockEnemy(e, V2.FromAngle(b.Ang) * ColBoulderKnock);
                     HurtEnemy(e, b.Dmg, b.Owner);
+                    Embrittle(e, b.Owner);  // earth: cracked for the next hits (Brittle.cs)
                 }
                 if (b.T >= ColRollTime)
                     boulders.RemoveAt(i);
