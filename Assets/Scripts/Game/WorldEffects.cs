@@ -71,6 +71,7 @@ namespace Arena
             d[(int)FxKind.NeedleBurst] = (fx, f, t) => DrawNeedleBurstFx(fx, f);  // AcupunctureLook.cs
             d[(int)FxKind.BoilEnd] = (fx, f, t) => DrawBoilEndFx(fx, f);  // BloodBoilLook.cs
             d[(int)FxKind.TrojanEnd] = (fx, f, t) => DrawTrojanEndFx(fx, f);  // TrojanHorseLook.cs
+            d[(int)FxKind.GolemFx] = (fx, f, t) => DrawGolemFx(fx, f);  // BloodGolemLook.cs
             d[(int)FxKind.PistolWhip] = (fx, f, t) => DrawPistolWhipFx(fx);  // PistolWhipLook.cs
             d[(int)FxKind.StoneSlam] = (fx, f, t) => DrawStoneSlamFx(fx);  // StonespearLook.cs
             d[(int)FxKind.BeeSting] = (fx, f, t) => DrawBeeStingFx(fx, t);  // HoneybeeLook.cs
@@ -95,6 +96,7 @@ namespace Arena
             d[(int)FxKind.StaticBurst] = (fx, f, t) => DrawStaticBurstFx(fx);  // StaticBubbleLook.cs  // LivingBoltLook.cs
             d[(int)FxKind.ForbiddenPath] = (fx, f, t) => DrawForbiddenFx(fx, t);  // ForbiddenPathLook.cs (the crescents, claw marks and black sun are the floor pass: DrawForbiddenFloor)
             d[(int)FxKind.BambooGrove] = (fx, f, t) => { };  // drawn in the floor and body passes (BambooGroveLook.cs)
+            d[(int)FxKind.SiegeBell] = (fx, f, t) => { };  // drawn in the floor, over and glow passes (SiegeBellLook.cs)
             d[(int)FxKind.FlashFire] = (fx, f, t) => { };  // drawn in the floor and body passes (FlashFireLook.cs)
             d[(int)FxKind.SpiritInk] = (fx, f, t) => DrawSpiritInkFx(fx);  // SpiritAvatarLook.cs (the strokes and stains are the floor pass: DrawSpiritFloor)
             d[(int)FxKind.BulwarkStep] = (fx, f, t) => DrawBulwarkStepFx(fx);  // BulwarkBarrierLook.cs
@@ -103,6 +105,8 @@ namespace Arena
             d[(int)FxKind.BulwarkThrow] = (fx, f, t) => DrawBulwarkThrowFx(fx, t);  // BulwarkBarrierLook.cs
             d[(int)FxKind.GaleCatch] = (fx, f, t) => DrawGaleCatchFx(fx);  // GaleWallLook.cs
             d[(int)FxKind.GaleBlast] = (fx, f, t) => DrawGaleBlastFx(fx);  // GaleWallLook.cs
+            d[(int)FxKind.GlassMote] = (fx, f, t) => DrawGlassMoteFx(fx);  // SanctumGlassLook.cs
+            d[(int)FxKind.GlassShatter] = (fx, f, t) => DrawGlassShatterFx(fx);  // SanctumGlassLook.cs
             d[(int)FxKind.WwSplash] = (fx, f, t) => DrawWwSplashFx(fx);  // WaterWardLook.cs
             d[(int)FxKind.WwBurst] = (fx, f, t) => DrawWwBurstFx(fx);  // WaterWardLook.cs
             d[(int)FxKind.CoverHit] = DrawFxCoverHit;

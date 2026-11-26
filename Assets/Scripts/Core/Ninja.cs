@@ -934,6 +934,8 @@ namespace Arena
                 return;  // the Wyvern Staff's Wyrm Slam (WyvernStaff.cs)
             if (LocalBumbleBurst(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // the Bumble Remote's Swarm Burst (BumbleRemote.cs)
+            if (LocalGolemClot(me, aimAt, pressed && !me.Downed, dt))
+                return;  // Blood Golem: Alt is Hurl Clot, the weapon's own is put away (BloodGolem.cs)
             if (LocalTide(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // the Blood Blast's Crimson Tide (BloodBlast.cs)
             if (LocalZero(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
@@ -1223,6 +1225,11 @@ namespace Arena
             if (kind == WeaponAlt.Ravager)
             {
                 HostRavagerLash(p);  // a Blood Ravager lash (BloodRavager.cs)
+                return;
+            }
+            if (kind == WeaponAlt.Clot)
+            {
+                HostClot(p, target);  // Blood Golem's Hurl Clot (BloodGolem.cs)
                 return;
             }
             if (kind == WeaponAlt.Bolt)

@@ -44,6 +44,7 @@
 # SENBON=<needles>[,<s since the last cast>[,<enemies>]] [SENBONCAP=1] (the DPS Ninja's Senbon Seekers: the ring of needles, new ones coming out under 0.35 s, needles curving in on enemies 170 px off; ZOOM=2, mode hud; ShotSenbon.cs).
 # LANDSHARK=<s since the cast> [LANDSHARKMASTERED=1] (the DPS Summoner's Land Shark: the puddle, the fin, the leap and bite, the drain; use 0.6, 1.0, 1.1, 1.25; mode hud).
 # HEMODPS=spray|debt|rush (the DPS Hemomancer's Arterial Spray, Blood Debt, Vein Rush; DEBTSETTLE=paid|forfeit, RUSHT=<s>; mode hud).
+# SANCTUM=<s into the scene> (the Healer Knight's Sanctum Glass like the mock-up: raised at 0.5 s, shots from 0.4 s, a hurt friend; SANCTUMCAP=1 mastered; mode hud, 2 players; ShotSanctumGlass.cs).
 # GALEWALL=<s into the scene> (Gale Wall like the mockup: cast at 0.5 s, shots from 0.4 s; GALEBLAST=<s> unleashes it then; GALECAP=1 mastered; ShotGaleWall.cs).
 # QUEENHOLD=swell,<0-1>|lay,<s>|dive,<s> (with FLANKERS=1: the Brood Mother swelling before her eggs, laying them, in a royal dive).
 # QUEENSTAGE=<0-3> (with FLANKERS=1: the Hive Queen's Brood Mother body in Swarm, Honeycomb, Frenzy, Last Stand; ZOOM=2.6 CAMAT=800,215, mode hud 3 1 1).
@@ -90,6 +91,7 @@
 # DEPLOYTURRET=<s since the cast> [DEPLOYCAP=1 mastered] (the DPS Soldier's Deployable Turret played through the game, shot.sh x hud 1 6 1: drop 0-0.55, unfolds to 1.1, fires to 11.1 (spool full by ~2.3), overheats, blows at 11.9; use 0.3, 0.8, 3, 6, 10, 11.5, 12; FXOFF=1 plain; ShotDeployTurret.cs).
 # THORNBLOOM=<s since the cast> [THORNCAP=1 mastered] (the DPS Hemomancer's Thorn Bloom played through the game, shot.sh x hud 1 6 1: needles fly 0-0.2, tendrils whip on to ~0.9; use 0.05, 0.15, 0.3, 0.5, 0.8; ShotThornBloom.cs).
 # BAMBOO=<s since the cast> [BAMBOOCAP=1 mastered] (the Tank Ninja's Bamboo Grove played through the game, ZOOM=2 shot.sh x hud 1 6 1: wind-up 0-0.35, rings burst 0.35-0.7, fence to 3.9; use 0.2, 0.42, 0.6, 1.0, 2.5; ShotBambooGrove.cs).
+# BELL=<s since the cast> [BELLCAP=1 mastered] (the Tank Knight's Siege Bell played through the game, ZOOM=1.3 shot.sh x hud 1 6 1: bell down 0-0.22, tolls 0.3/0.8/1.3, shockwave 1.3-1.75, bell gone 2.45, stuns to ~3.8; use 0.4, 1.0, 1.45, 1.6, 2.4; ShotSiegeBell.cs).
 # ROD=<s since the cast> (you take Lightning Rod, the tank Elementalist's second ultimate, and cast it that long before the shot; mode hud).
 # TANKALT=<s> (the Tank Soldier's Alt fires: Double Barrel that long after firing, shells pips, Proximity Shells, Tear Gas; TankAltLook.cs).
 # HORSE=<s since the cast> [HORSEALL=1] [HORSEWEAR=<0-1>] [HORSEEND=broke|sally] (the Tank Knight's Trojan Horse rolling out, teammates inside shooting arrows; HORSEALL: you too, enemies go for it; mode hud, 3 players, ZOOM=2; ShotTrojanHorse.cs).
@@ -120,6 +122,7 @@
 # RAVAGER=<s since cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (the DPS Hemomancer's Blood Ravager walking right through grunts, clicking over the last 0.4 s; ShotBloodRavager.cs; ZOOM=2.2, mode hud).
 # BOIL=<s since cast> [BOILHP=<0-1>] [BOILEND=1] (the DPS Hemomancer's Blood Boil circling and firing at grunts, health eased down to BOILHP; BOILEND=1 ends it 0.4 s before, for the steam; ShotBloodBoil.cs; ZOOM=1.8, mode hud).
 # BOLT=<s since cast> (the DPS Elementalist's Living Bolt: 0.3 the channel, 4 electrified with three dashes' residue, 9.5 the flicker; mode hud; LivingBoltLook.cs).
+# GOLEM=<s since cast> GOLCOATS=<n> GOLPUNCH=<n.swing> GOLFX=shed|collapse|clot GOLFXT=<s> (the Tank Hemomancer's Blood Golem: gathering, standing, punching, shedding, bursting; mode hud; BloodGolemLook.cs).
 # COLOSSUS=<s since cast> COLWIND=<0-1> COLEND=<s> (the Tank Elementalist's Stone Colossus: rising, standing, slamming, crumbling; mode hud; StoneColossusLook.cs).
 # BLOODBATH=<s since the cast> (the Tank Hemomancer's Bloodbath pool, wading enemies and heal numbers; BATHMASTERED=1 for 220 px; mode hud, 2 players).
 # NEEDLESWARM=<s held> NSALT=<s> (the DPS Hemomancer's Needle Swarm: Fire held on a grunt, tendrils growing and wrapping, shots breaking needles; NSALT the Alt's fan; ShotNeedleSwarm.cs; mode hud).
