@@ -17,6 +17,7 @@
 # OFUDA=<s> (the Healer Ninja's Ofuda: talismans bending onto a hurt teammate, a Blast Ofuda stuck to a grunt and one on the ground; mode hud, 3 players, ZOOM=1.6).
 # ARCLOCK=<s> (Arc Lightning's lock-on: hold from 0, let go at 1.5 s; ARCFORK=1 the Forked Volley instead; mode hud).
 # OATHPICK=1|0 (Guardian's Oath waiting for the click: cursor on an ally, or off; mode hud, 3 players).
+# MOVEFEEL=walk|stop|dash [MFOFF=1] (movement feel, MoveFeel.cs: the stretch, dust, dash ghosts; MFOFF the before; mode hud, 2 players, ZOOM=2.5).
 # SPRINT=<s> (the Dodge's held sprint that long in, running right with its fading wake; mode hud).
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
 # MOMENTUM=<0-5> (the DPS passive's stack pips round you; mode hud, 2 players).
@@ -125,6 +126,7 @@
 # JUGG=<s since cast> JUGGARMOR=<0-1> (the Tank Soldier's Juggernaut Suit: plates, armour bar, flak tracers; mode hud).
 # ARMORDROP=<s since the cast> [ARMORCAP=1] [ARMORHIT=<armor left>] (the Tank Soldier's Armor Drop: crate, vests, armor shell and bar; mode hud).
 # ROCKETDROP=<s since the cast> [ROCKETCAP=1] (the DPS Soldier's Rocket Drop: pod, launcher, rockets, blasts, fire; ShotRocketDrop.cs; ZOOM=1.1 CAMAT=780,480 shot.sh x hud 1 6 1).
+# FOAM=<s since the cast> [FOAMCAP=1] [FOAMFIZZ=1] (the Healer Soldier's Hazard Foam: sprayer, globs, a wall of foam soaking grunts' shots; ShotHazardFoam.cs; ZOOM=1.3 CAMAT=700,520 shot.sh x hud 1 6 3).
 # BANNER=aegis|pilgrim|war [BANNERT=<s since the cast>] [BANNERCAP=1] (the Knight banner ultimates; ShotKnightBanners.cs; ZOOM=1.3 CAMAT=700,430 shot.sh x hud 1 6 3).
 # VORTEX=<s since cast> VXMASTERED=1 (the Tank Elementalist's Vortex: wind-up, storm, grunts swept round, shots swept away; mode hud; VortexLook.cs).
 # RAVAGER=<s since cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (the DPS Hemomancer's Blood Ravager walking right through grunts, clicking over the last 0.4 s; ShotBloodRavager.cs; ZOOM=2.2, mode hud).

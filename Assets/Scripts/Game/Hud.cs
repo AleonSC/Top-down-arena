@@ -112,6 +112,7 @@ namespace Arena
             DrawGateHint();      // by a shutter gate: the key to shut it (GateLook.cs)
             DrawHorseHint();     // by or in a Trojan Horse: the key to climb in or leave (TrojanHorseLook.cs)
             DrawBallistaHint();  // by a Ballista or on one: the key to mount or leave it (BallistaLook.cs)
+            DrawPedestalTags();  // the pedestal shop's prices and the ware you stand at (ShopPedestalLook.cs)
             DrawMysteryHint();   // mystery doors' price tags and keys (MysteryDoorLook.cs)
             DrawHospitalHint();  // the Field Hospital's pick hint, time left and eject countdown (FieldHospitalLook.cs)
             DrawZoomHint();      // the open Rooms map: "scroll to zoom out" (CameraZoom.cs)
@@ -188,6 +189,12 @@ namespace Arena
                     {
                         if (!tabHeld && !pauseUp)
                             DrawShop(me, Time.unscaledTime);  // ShopUi.cs
+                        break;
+                    }
+                    if (PedestalSellUp(me))
+                    {
+                        if (!tabHeld && !pauseUp)
+                            DrawSellUpgrade(me);  // the pedestal shop's Sell (ShopPedestalLook.cs)
                         break;
                     }
                     if (!pauseUp && !tabHeld)

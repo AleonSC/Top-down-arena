@@ -491,6 +491,7 @@ static partial class Program
         Test("supplydrop", "the Supply Drop: the Healer Soldier's key 2, the flare at the cursor clamped to 520 px, nothing for 1.5 s, then the landing's damage and stagger within 90 px only, the open zone speeding movement, fire and cooldowns (not the ultimate) for everyone inside on every screen, health packs every 2 s (4 at most), the buff ending on stepping out and the zone after 12 s", () => SupplyDropTest(Dt)),
         Test("armordrop", "the Armor Drop: the Tank Soldier's key 3, the flare at the cursor clamped to 520 px, nothing for 1.6 s, then the landing's damage and stagger within 110 px only, 3 vests (4 mastered) 70-110 px out on every screen, a vest setting armor to 50 (no stacking), armor before health and after the Juggernaut Suit's, no regeneration, a refill, the crate folding once the vests are taken or after 20 s", () => ArmorDropTest(Dt)),
         Test("rocketdrop", "Rocket Drop: the DPS Soldier's key 3, the pod at the cursor clamped to 220 px, nothing for 1.1 s, then the slam (120 within 90 px), only its owner taking the launcher, 85% speed, rockets every 0.6 s in place of the weapon bursting on the first enemy or the cursor (150 falling to 60 at 190 px), the fire pool, every screen, 10 s, mastered 13 s and bomblets, down drops it", () => RocketDropTest(Dt)),
+        Test("hazardfoam", "Hazard Foam: the Healer Soldier's key 3, the sprayer (12 s, 85% speed, a 100 tank draining 14/s, globs in place of the weapon), lumps at the cursor up to 24 px, every screen, solid to shots both ways, enemies and you, enemy shots and chewing wearing it, breaking, fizzing away at 60 s, the tank running dry, mastered 130 and 90 s, down takes it off", () => HazardFoamTest(Dt)),
         Test("banners", "the Knight banner ultimates: Aegis Standard (Tank key 3: an 80-point shield inside that soaks hits, waits 1.5 s, regenerates and fades outside), Pilgrim's Standard (Healer key 1: 4% a second inside), War Standard (DPS key 2: 40% faster, 25% harder, both screens), pressing again lifts it and starts the cooldown, going down lifts it, 60 s at most", () => KnightBannersTest(Dt)),
         Test("helicopter", "the Attack Helicopter: the DPS Soldier's key 1, the pick reaching the run, a fly-in with no fire, then one target at a time nearest you within 560 px at 20 rounds of 8, the next once it dies, twin guns on two targets mastered, the other screen sees it, ends on time, going down and between waves", () => HelicopterTest(Dt)),
         Test("literaltank", "A Literal Tank: the Tank Soldier's key 2, the pick reaching the run, 400 armour before health, 75% speed, abilities locked, a shell every 0.9 s (75 on a hit, 45 round it, a burst at the cursor), small enemies crushed and heavies shoved, the wreck blowing up on time, mastered 550, ending on armour 0, going down and between waves", () => LiteralTankTest(Dt)),
@@ -561,6 +562,7 @@ static partial class Program
         Test("celllayouts", "cell layouts (Docs/Mockups/cell-layouts.html): hand-made walls per grid cell, open door lanes and middle, clear sleeper slots, the same on every build", () => CellLayoutsTest()),
         Test("pits", "cell variants and pits (Docs/CellVariants.md): the pit variants keep the middle and doors clear, rolled per cell; an enemy shoved in dies, a player climbs out with 15% less health", () => PitsTest(Dt)),
         Test("layouttest", "the Cell Editor's hub edits and TEST LAYOUT (HubLayoutEdits.cs, LayoutTest.cs): a hub plan's walls and crates change and revert, a tested piece is built with the layouts asked for", () => LayoutTestTest(Dt)),
+        Test("shoppedestals", "the pedestal shop (ShopPedestals.cs): two doors, pedestals on the other walls, nothing built or linked through them, no cover", () => ShopPedestalsTest()),
         Test("gridrooms", "grid rooms (Docs/GridRooms.md): the core, door spots on the lattice, nodes and chests at a cell's middle; pieces, cards and mini-boss rooms", () => GridRoomsTest(), () => GridRoomsGameTest(Dt), () => PieceShapesTest(), () => PieceCardsTest(), () => GridMiniTest(), () => GridSurpriseTest(), () => PieceShapesGameTest(Dt)),
         Test("lighting", "dynamic lighting's shadows (Core/LightCast.cs): walls and bodies stop a light, sharp corners, a light's own body ignored, casters out of reach skipped", () => LightingTest()),
         Test("turret", "the Black Market's Turret (Turret.cs): placed from the stash, it shoots enemies in range for 5 waves, 3 each", () => TurretTest(Dt)),
@@ -665,7 +667,8 @@ static partial class Program
         "stampede", "staticbubble", "staticshock", "stayin", "supplydrop", "survival", "thornbloom", "trojanhorse", "twintessen",
         "ultimates", "waterward", "wiki", "windclash", "wyvernstaff",
         "heartflail", "sanctumglass", "siegebell", "chakra", "honeyraid", "heartbeat", "tusker",
-        "contentfuzz", "caltroprun", "rocketdrop", "banners", "shadowgong", "octopus", "bloodtotem",
+        "contentfuzz", "caltroprun", "rocketdrop", "banners", "shadowgong", "octopus",
+        "shoppedestals", "hazardfoam", "bloodtotem",
     };
 
     static int Main(string[] args)

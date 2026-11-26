@@ -110,6 +110,9 @@ namespace Arena
         const float PulseRange = 260f;
         const float PulseHeal = 60f;
         public const float DashTime = 0.18f;
+        // Walking has a little weight (Game.cs, your own movement): full speed in WalkStartTime, and a stop or a turn of more than
+        // 90 degrees in WalkStopTime. Short enough to dodge with, long enough to feel.
+        public const float WalkStartTime = 0.06f, WalkStopTime = 0.04f;
         const float DashSpeed = 1200f;
         const float BulldozeSpeed = 750f, BulldozeTime = 0.35f, BulldozeDamage = 60f, BulldozeTail = 0.35f;
         const float RoarTime = 5f, RoarReduction = 0.4f;

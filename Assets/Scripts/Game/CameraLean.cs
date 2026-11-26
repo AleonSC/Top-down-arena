@@ -4,7 +4,7 @@ namespace Arena
 {
     /// Camera lean: the picture eases a few percent toward where you aim and move, so the far side of the screen shows a
     /// little more. The arena itself is unchanged (still 1600x900, players still wrap); only the drawing slides.
-    ///   target   65% the crosshair's direction (scaled by how far out it is) + 35% your movement, per axis up to
+    ///   target   65% the crosshair's direction (scaled by how far out it is) + 55% your movement, per axis up to
     ///            LeanMaxX x LeanMaxY arena units (5% of the arena) x LeanStrength (50%), eased at dt * 4.
     ///   position the lean ignores where you are, so wrapping round an edge never makes the camera jump.
     ///   screen   world drawing is shifted in Px (WorldRenderer.cs); labels placed from a world position go through ToUi, and
@@ -61,7 +61,7 @@ namespace Arena
                 V2 aim = toAim.Length > 1f ? toAim.Normalized() : V2.Zero;
                 float speed = Mathf.Clamp01(vel.Length / 300f);
                 V2 move = vel.Length > 1f ? vel.Normalized() : V2.Zero;
-                V2 want = aim * (reach * 0.65f) + move * (speed * 0.35f);
+                V2 want = aim * (reach * 0.65f) + move * (speed * 0.55f);
                 target = LeanTurn(new V2(Mathf.Clamp(want.X * LeanMaxX * LeanStrength, -LeanMaxX, LeanMaxX), Mathf.Clamp(want.Y * LeanMaxY * LeanStrength, -LeanMaxY, LeanMaxY)));  // (turned with the camera, CameraRotate.cs)
             }
             leanLast = me.Disp;

@@ -77,7 +77,7 @@ namespace Arena
         public bool RerollPending => rerollsAtRequest >= 0;
 
         public bool Bot;  // drive the local player automatically (testing)
-        V2 iceVel;        // your sliding velocity on the Frozen Lake path (Paths.cs)
+        V2 iceVel;        // your walking velocity: eased (WalkStartTime/WalkStopTime), and sliding on the Frozen Lake path (Paths.cs)
         public bool HoldParry;  // keep the parry up (testing)
 
         /// Round trip to the host in milliseconds (0 when you're the host), measured four times a second (Game.PingEvery).
@@ -1219,7 +1219,8 @@ namespace Arena
                 KickReachOn(me, dt);  // a Dodge ending just short of a wall reaches on to it (Dodge.cs)
                 DashT -= dt;
                 me.Pos += DashDir * dashSpeed * dt;
-                iceVel = DashDir * me.Speed * Paths.IceTopSpeed;  // on ice you slide out of a dash
+                bool iceDash = OnPathOf(PathId.FrozenLake) || FloorAt(me.Pos) == PathId.FrozenLake;
+                iceVel = iceDash ? DashDir * me.Speed * Paths.IceTopSpeed : V2.Zero;  // on ice you slide out of a dash; elsewhere a dash ends where it lands
             }
             else if (ArmOn(me))
                 LocalArmRoll(me, move, aimAt, firing && !HoldControls, dt);  // Iron Armadillo: rolling, not walking (IronArmadillo.cs)
@@ -1234,8 +1235,15 @@ namespace Arena
                 }
                 else
                 {
-                    iceVel = want;
-                    me.Pos += want * dt;
+                    // A little weight (WalkStartTime, WalkStopTime in Balance.cs): speed builds and falls fast, but not at once.
+                    // (Not for the test bot: its dodging plans with instant speed, so it would dodge worse and fights would drag.)
+                    bool braking = want.IsZero || want.Dot(iceVel) < 0f;
+                    float top = Math.Max(me.Speed, want.Length);
+                    if (Bot)
+                        iceVel = want;
+                    else
+                        iceVel += (want - iceVel).LimitLength(top * dt / (braking ? WalkStopTime : WalkStartTime));
+                    me.Pos += iceVel * dt;
                 }
             }
             if (!ArmOn(me))
@@ -1278,6 +1286,8 @@ namespace Arena
                 me.Pos = PushOutOfProps(me.Pos, me.Def.HitR + PropPad);  // crates, barrels and a closed chest are solid (Props.cs)
                 WallKick(me, kickWant);  // a Dodge into it bounces off (Dodge.cs)
             }
+            if (!me.Downed && FoamUp())
+                me.Pos = PushOutOfFoam(me.Pos, me.Def.HitR + PropPad);  // Hazard Foam is solid to allies too (HazardFoam.cs)
             // Touching a boss shoves you back out (its body doesn't hurt: TickEnemies).
             if (!me.Downed && shoveT <= 0f)
                 foreach (var e in Enemies.Values)
@@ -1483,7 +1493,7 @@ namespace Arena
 
             LocalDodge(me, move, dodgePress, dodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
             me.Sprint = (byte)Math.Round(SprintFade * 255f);  // for everyone else's wake (sent in Msg.Input, then the snapshot)
-            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me) && !ArmOn(me) && !Riding(me) && !RocketOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
+            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me) && !ArmOn(me) && !Riding(me) && !RocketOn(me) && !FoamOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
             if (LocalLivingBolt(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // electrified: Fire is the dash (LivingBolt.cs)
             if (LocalRavager(me, firing && !HoldControls, dt))
@@ -1573,6 +1583,7 @@ namespace Arena
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickTanks(dt);      // LiteralTank.cs: the tank's time, running enemies over, getting out
             TickRocketLaunchers(dt);  // RocketDrop.cs: the launcher's time, dropping the tube
+            TickFoamSprayers(dt);  // HazardFoam.cs: the sprayer's time and tank, taking it off
             TickHorseRiders(dt);  // TrojanHorse.cs: riders of a horse that's gone, Sally Forth's time
             TickArmadillo(dt);  // IronArmadillo.cs: the ball's time, its speed and hits, the uncurl slam
             TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders
@@ -1655,6 +1666,7 @@ namespace Arena
             KeepOffBridges(dt);    // the Drawbridge (Drawbridge.cs)
             KeepOffBloodWalls(dt);  // Blood Wall (BloodWall.cs): pushes enemies back, bleeds those against it
             KeepOffCovers();  // Deployable Cover (DeployableCover.cs): enemies can't walk through its plates
+            KeepOffFoam(dt);  // Hazard Foam (HazardFoam.cs): enemies can't walk through it; they chew it, bosses plough through
             KeepOffGroveFences();  // Bamboo Grove's fence (BambooGrove.cs): enemies stay outside it
             KeepOffOssuaryWalls(dt);  // the Bone Guard's Ossuary Wall (BoneGuard.cs): pushes enemies back, darts those against it
             KeepOffPhalanx();    // the Bone Phalanx's shields (BonePhalanx.cs)
@@ -1827,6 +1839,8 @@ namespace Arena
                     TickTankGun(p, dt);
                 else if (RocketOn(p))
                     TickRocketGun(p, dt);  // Rocket Drop: the launcher, not your weapon (RocketDrop.cs)
+                else if (FoamOn(p))
+                    TickFoamGun(p, dt);  // Hazard Foam: the sprayer, not your weapon (HazardFoam.cs)
                 else if (ArmOn(p))
                 {
                     // curled up in Iron Armadillo: the weapon is away, Fire revs the roll (IronArmadillo.cs)

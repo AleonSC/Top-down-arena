@@ -2605,6 +2605,9 @@ namespace Arena
         }
 
         /// The rows of an upgrade's icon, for drawing it in the world with GL (a chest item, PropsLook.cs), or null.
+        /// The rows of a named icon, for drawing it in the world with GL, or null.
+        public static string[] RowsOf(string key) { string[] rows; return Icons.TryGetValue(key, out rows) ? rows : null; }
+
         public static string[] RowsFor(UpgradeDef u)
         {
             string key = IconKey(u);
