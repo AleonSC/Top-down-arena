@@ -126,7 +126,7 @@ namespace Arena
         // Knight (melee)
         Warhammer, Lance, Halberd, Quarterstaff, Lightbringer, Censer, TwinBlades, Greatsword, Rapier,
         // Ninja (Ninja.cs): thrown blades and quick melee
-        Kusarigama, BoStaff, FumaShuriken, MedicineDarts, SpiritFan, Ofuda, Shuriken, Katana, Kunai,
+        Kusarigama, BoStaff, FumaShuriken, AcupunctureNeedles, SpiritFan, Ofuda, Shuriken, Katana, Kunai,
         // Hemomancer (Hemomancer.cs): blood spells that drain and heal
         BloodLash, GoreMortar, LeechTendrils, TransfusionDarts, SanguineOrb, VeinTether, NeedleSwarm, Implosion, BloodBrawler,
         // Fourth weapons (Choice 3), where a class has one: the Knight DPS's Arc Knuckles (ArcKnuckles.cs), the Soldier DPS's Double Barrel (DoubleBarrel.cs), the Elementalist DPS's Stonespear (Stonespear.cs); the Twin Rifle's variants (Twin Rifle Auto, Out of Ammo) are Choice 4 and 5
@@ -806,7 +806,9 @@ namespace Arena
             RodentShot = 80,   // a Rodent Minigun rodent: a mouse, rat or hamster by its id (Game.RodentOf; RodentMinigun.cs, Game/RodentMinigunLook.cs)
             BlastOfudaShot = 82, // the Ofuda's Blast Ofuda: a red-sealed charm that sticks to what it hits and blows up (Ofuda.cs, Game/WorldShots.cs)
             AstralBolt = 83,   // Astral Projection's bolt, shot from the spirit (AstralProjection.cs)
-            BallistaBolt = 84, // a Ballista's giant bolt: through everything, knocking what it passes (Ballista.cs, Game/BallistaLook.cs)
+            BloodNeedle = 84,  // the Acupuncture Needles' Bloodletting needle: long, red-beaded; sticks and bleeds (AcupunctureNeedles.cs, Game/AcupunctureLook.cs)
+            HorseArrow = 85,   // an arrow shot out of a Trojan Horse's side slit (TrojanHorse.cs, Game/TrojanHorseLook.cs)
+            BallistaBolt = 86, // a Ballista's giant bolt: through everything, knocking what it passes (Ballista.cs, Game/BallistaLook.cs)
             EarthballShot = 72; // the Earthball: stops on the first enemy, stuns it and breaks into rubble (ElementBalls.cs, Game/ElementBallLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark || kind == BottleShot;
@@ -837,6 +839,7 @@ namespace Arena
             Row(table, NovaShot, radius: 6f, color: new Rgba(0.95f, 0.8f, 1f));
             Row(table, FlakShell, radius: 8f, color: new Rgba(0.7f, 0.85f, 1f));
             Row(table, TankShell, radius: 9f, color: new Rgba(1f, 0.62f, 0.25f));
+            Row(table, HorseArrow, radius: 4.5f, color: new Rgba(1f, 0.8f, 0.35f));
             Row(table, BallistaBolt, radius: 12f, color: new Rgba(1f, 0.8f, 0.35f));  // the Ballista's giant bolt (Ballista.cs)
             Row(table, AstralBolt, radius: 5f, color: new Rgba(0.73f, 0.96f, 1f));  // the spirit's pale cyan (AstralProjection.cs)
             Row(table, Senbon, radius: 4f, color: new Rgba(0.86f, 0.89f, 0.93f));  // steel (the venom tip and ink tail are drawn by SenbonSeekersLook.cs)
@@ -866,6 +869,7 @@ namespace Arena
             Row(table, ScatterArrow, radius: 3.5f, color: new Rgba(0.5f, 0.9f, 0.85f));
             Row(table, StarShot, radius: 5.5f, color: new Rgba(0.8f, 0.85f, 0.95f));
             Row(table, NeedleShot, radius: 3f, color: new Rgba(0.55f, 1f, 0.75f));
+            Row(table, BloodNeedle, radius: 3.5f, color: new Rgba(1f, 0.3f, 0.38f));
             Row(table, KunaiShot, radius: 4f, color: new Rgba(0.8f, 0.85f, 0.95f));
             Row(table, OfudaShot, radius: 6f, color: new Rgba(1f, 0.92f, 0.75f));  // the Ofuda's Healing Talisman
             Row(table, BlastOfudaShot, radius: 6f, color: new Rgba(1f, 0.9f, 0.78f));

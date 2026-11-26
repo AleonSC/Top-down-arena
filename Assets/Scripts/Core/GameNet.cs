@@ -613,6 +613,8 @@ namespace Arena
             s.Float(ref p.RvT);  // Blood Ravager (BloodRavager.cs)
             if (p.RvT > 0f)
                 s.Float(ref p.RvLen);
+            s.Int(ref p.HorseId);  // Trojan Horse (TrojanHorse.cs)
+            s.Float(ref p.SallyT);
             s.Float(ref p.BoilT);  // Blood Boil (BloodBoil.cs)
             if (p.BoilT > 0f)
                 s.Float(ref p.BoilLen);
@@ -821,7 +823,8 @@ namespace Arena
             s.Byte(ref p.RapierCharge);
             s.Byte(ref p.Light);
             s.Float(ref p.MercyT);  // a Lightbringer's ward (Lightbringer.cs)
-            s.Float(ref p.DoseT);
+            s.Float(ref p.NeedleT);  // Acupuncture Needles in you (AcupunctureNeedles.cs)
+            s.Byte(ref p.NeedleN);
             s.Vec(ref p.KunaiMark);
             s.Float(ref p.KunaiMarkT);
             s.Bool(ref p.BloodWallOn);  // Blood Wall (BloodWall.cs): the drain ring is drawn from how long it has been up
@@ -1036,7 +1039,7 @@ namespace Arena
             float hp = 0f, maxHp = 0f, facing = 0f;
             bool spawning = false, elite = false;
             byte phase = 0, status = 0;
-            int bleedStacks = 0, stars = 0, traits = 0, bubble = 0, cells = 0;
+            int bleedStacks = 0, stars = 0, needlesIn = 0, traits = 0, bubble = 0, cells = 0;
             bool winding = false, penned = false, dormant = false, wet = false, hit = false, venom = false, charged = false, slowed = false;
             int bleedHits = 0, wetTenths = 0;
             if (!s.Reading)
@@ -1081,6 +1084,7 @@ namespace Arena
                 status = (byte)((e.Marked ? 1 : 0) | (e.Burning ? 2 : 0) | (e.Chilled ? 4 : 0) | (e.Frozen ? 8 : 0) | (e.Bleeding ? 16 : 0) | (e.Caged ? 32 : 0) | (e.Suppress >= SuppressShown ? 64 : 0) | (e.PoisonT > 0f ? 128 : 0));
                 bleedStacks = e.BleedStacks;
                 stars = e.StarsStuck;
+                needlesIn = e.NeedlesIn;
                 e.Suppressed = e.Suppress >= SuppressShown;
                 e.Poisoned = e.PoisonT > 0f;
                 e.Dazed = e.DazeT > 0f || e.StunT > 0f;  // (a Stun shows the same stars)
@@ -1097,6 +1101,7 @@ namespace Arena
             s.Byte(ref status);
             s.Byte(ref bleedStacks);  // bleed stacks on it, drawn as drops gathering on it
             s.Byte(ref stars);       // Shuriken stars stuck in it
+            s.Byte(ref needlesIn);   // Bloodletting needles stuck in it (AcupunctureNeedles.cs)
             s.Byte(ref traits);      // elite traits and a bubble (Variety.cs)
             s.Byte(ref bubble);
             if (bubble > 0)
@@ -1165,6 +1170,7 @@ namespace Arena
                 e.Poisoned = (status & 128) != 0;
                 e.BleedStacks = bleedStacks;
                 e.StarsStuck = stars;
+                e.NeedlesIn = needlesIn;
                 e.Traits = (byte)traits;
                 e.BubbleFrac = bubble / 255f;
                 e.Cells = bubble > 0 ? cells : 0;
@@ -1280,7 +1286,7 @@ namespace Arena
             if (s.Reading)
                 z = new Zone();
             else
-                z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell || z.Kind == ZoneKind.Cover || z.Kind == ZoneKind.DecoyDummy || z.Kind == ZoneKind.DeployTurret || z.Kind == ZoneKind.Ballista || z.Kind == ZoneKind.Claymore ? z.GuardFrac  // (a cover's health left: DeployableCover.cs)  // (a smoke canister's flight distance: GrenadeLauncher.cs)
+                z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell || z.Kind == ZoneKind.Cover || z.Kind == ZoneKind.DecoyDummy || z.Kind == ZoneKind.DeployTurret || z.Kind == ZoneKind.Ballista || z.Kind == ZoneKind.Claymore || z.Kind == ZoneKind.TrojanHorse ? z.GuardFrac  // (a cover's health left: DeployableCover.cs)  // (a smoke canister's flight distance: GrenadeLauncher.cs)
                       // a Blood Wall node's place along its wall (BloodWall.cs)
                     : z.Kind == ZoneKind.Smoke ? (z.ExtraSlow > 0f ? 1f : 0f)  // a mastered Smoke Bomb (its slow on enemies), for drawing
                     : z.Kind == ZoneKind.Ward ? (z.SoakMax > 0f ? z.Soak / z.SoakMax : 0f) : z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
@@ -1314,6 +1320,11 @@ namespace Arena
                     z.Bones = new byte[n];
                 for (int i = 0; i < n; i++)
                     s.Byte(ref z.Bones[i]);
+            }
+            if (z.Kind == ZoneKind.TrojanHorse)  // how far it has rolled, and parked (TrojanHorse.cs)
+            {
+                s.Float(ref z.Marched);
+                s.Bool(ref z.Quiet);
             }
             if (z.Kind == ZoneKind.Stampede)  // the herd's walk (Stampede.cs)
                 s.Float(ref z.Marched);

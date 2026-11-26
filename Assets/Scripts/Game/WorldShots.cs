@@ -269,7 +269,7 @@ namespace Arena
                 DrawScatterArrow(b);  // BowFocusLook.cs
                 return;
             }
-            if (b.Kind == Defs.ArrowShot)  // a Mender's Bow arrow: wooden shaft, steel head, green fletching
+            if (b.Kind == Defs.ArrowShot || b.Kind == Defs.HorseArrow)  // a Mender's Bow arrow: wooden shaft, steel head, green fletching (a Trojan Horse's: gold, TrojanHorse.cs)
             {
                 V2 dir = b.Vel.Normalized(), side = dir.Orthogonal();
                 V2 tip = b.Pos + dir * 9f, neck = b.Pos + dir * 3f, tail = b.Pos - dir * 15f;
@@ -353,6 +353,11 @@ namespace Arena
                 DrawOfudaShot(b, t);  // the Ofuda's charms (OfudaLook.cs)
                 return true;
             }
+            if (b.Kind == Defs.NeedleShot || b.Kind == Defs.BloodNeedle)
+            {
+                DrawAcuNeedleShot(b);  // the Acupuncture Needles (AcupunctureLook.cs)
+                return true;
+            }
             if (b.Kind < Defs.StarShot || b.Kind > Defs.FumaStar)
                 return false;
             V2 dir = b.Vel.IsZero ? new V2(1f, 0f) : b.Vel.Normalized(), side = dir.Orthogonal();
@@ -369,10 +374,6 @@ namespace Arena
                     break;
                 case Defs.FumaStar:  // the hooked four-bladed star with its trail (FumaLook.cs)
                     DrawFumaShot(b, t);
-                    break;
-                case Defs.NeedleShot:
-                    Line(b.Pos - dir * 9f, b.Pos + dir * 4f, 1.5f, c);
-                    Circle(b.Pos + dir * 4f, 1.6f, Rgba.White, 6);
                     break;
                 case Defs.KunaiShot:
                     Line(b.Pos - dir * 8f, b.Pos, 2f, NinjaCloth.Mix(c, 0.4f));

@@ -119,11 +119,9 @@ namespace Arena
                         State = MatchState.Fighting;
                         SpringPendingAmbushes();  // ambush rooms opened between waves (MysteryDoors.cs)
                         spawnTimer = WaveNumbers.OpeningDelay;
-                        string bossName;
                         if (SurvivalOn)
                         {
                             BeginSurvival();  // no wave to build: the clock starts (SurvivalGame.cs)
-                            bossName = null;
                         }
                         else
                         {
@@ -148,7 +146,6 @@ namespace Arena
                             }
                             CapSentries();  // at most 3 Beam Sentries and 3 Pulsars (Variety.cs)
                             WaveProps();  // crates, barrels and now and then a chest (Props.cs)
-                            bossName = BossNow ? Defs.Get(BossAt(Wave)).Name : null;
                             BeginTimedWave();  // the wave's enemies arrive over a window (TimedWaves.cs)
                             HuntNodeWaveStart();  // an Ambush node: fewer, all at once (HuntMapGame.cs)
                         }
@@ -206,8 +203,6 @@ namespace Arena
             HuntMapNodeCleared();  // the hunt map moves on (HuntMapGame.cs)
             if (CurrentPath != PathId.None && Wave >= PathTo && LegDone)
                 FinishPath();  // its prize, then the plain arena for the boss (Paths.cs)
-            if (Has(RunMod.GoldRush) && BossNext && !ShopOpen && ModeRules.Extras)
-                OpenShop();  // Gold Rush: a shop before every boss
             foreach (var p in Players.Values)
             {
                 if (BossSlot)

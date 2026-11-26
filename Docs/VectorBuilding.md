@@ -60,7 +60,7 @@ random offers. Boss kills refill the stock, upgrades raise how much you can hold
   spawns by area, `ExpansionScale`, the draw screen and `Msg.ExpandDraw` (reworked to spend vectors).
 - **Dormant**: `RoomKind` Shop/Floor, shop-room gold and shop opening, floor rules (`FloorAt`...). Nothing creates such a room,
   so they never run; they come back as a later step (a kind picked when drawing, floors unlocked by bosses).
-- **Personal shop gold** stays where it was (Bazaar, Gold Rush).
+- **Personal shop gold** stays where it was (Bazaar).
 
 ## Step 2 (built, protocol 249)
 

@@ -20,6 +20,8 @@ namespace Arena
                 return;  // inside the Devourer: nothing out here can reach you (Devourer.cs)
             if (InDome(p.Pos, -2f))
                 return;  // inside Fortress's dome nothing hostile reaches you (Dome.cs)
+            if (Riding(p))
+                return;  // inside a Trojan Horse: it takes the hits (TrojanHorse.cs)
             if (ArmOn(p))
                 return;  // curled up in Iron Armadillo: nothing gets through the shell (IronArmadillo.cs)
             if (ApOn(p))
@@ -214,7 +216,7 @@ namespace Arena
         /// Shots thrown in an arc (grenades, boulders, Gore Mortar clots, medkits): they fly over what's below and land.
         static bool Lobbed(byte kind) => kind == Defs.GrenadeShot || kind == Defs.BoulderShot || kind == Defs.ClotShot || kind == Defs.MedkitShot || kind == Defs.HoneyGlob;
 
-        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop && kind != Defs.HoneyGlob && kind != Defs.TankShell && kind != Defs.RodentShot && kind != Defs.Senbon && kind != Defs.BallistaBolt;
+        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop && kind != Defs.HoneyGlob && kind != Defs.TankShell && kind != Defs.HorseArrow && kind != Defs.RodentShot && kind != Defs.Senbon && kind != Defs.BallistaBolt;
 
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false, float homing = 0f)
         {
@@ -240,6 +242,8 @@ namespace Arena
                 return Sfx.ShotNova;
             if (kind == Defs.TreantSeed)
                 return Sfx.ShotSeed;
+            if (kind == Defs.HorseArrow)
+                return Sfx.ShotBow;  // a Trojan Horse's arrow (TrojanHorse.cs)
             if (kind == Defs.TankShell)
                 return Sfx.LitTankCannon;  // A Literal Tank's main gun (LiteralTank.cs, LitTankSoundBank.cs)
             if (kind == Defs.RodentShot)
@@ -312,6 +316,8 @@ namespace Arena
                     SteerSpear(b, dt);  // a Stonespear volley spear (host only: Stonespear.cs)
                 else if (b.Talisman)
                     SteerTalisman(b, dt);  // an Ofuda Healing Talisman late in its flight (host only: Ofuda.cs)
+                else if (b.ReturnTo != 0)
+                    SteerReturnNeedle(b, dt);  // a needle flying back to heal (host only: AcupunctureNeedles.cs)
                 if (wellsUp && b.Owner != 0 && !Lobbed(b.Kind))
                     PullIntoWells(b, dt);
                 if (lensUp && b.Owner != 0 && !Lobbed(b.Kind) && !Defs.IsEnemyShot(b.Kind))
@@ -584,7 +590,13 @@ namespace Arena
                     scratchIds.Add(b.Id);  // the Ofuda's charms: a talisman bursts on a teammate or an enemy, a Blast Ofuda sticks (Ofuda.cs)
                 return;
             }
-            if (b.Medicine ? DoseAlly(b) : (b.HealAlly > 0f || b.WardAlly > 0f) && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; DoseAlly: Ninja.cs; CoatAlly: Hemomancer.cs
+            if (b.Medicine)
+            {
+                if (NeedleTouches(b))
+                    scratchIds.Add(b.Id);  // an Acupuncture Needle sticks in a hurt teammate; it flies through enemies (AcupunctureNeedles.cs)
+                return;
+            }
+            if ((b.HealAlly > 0f || b.WardAlly > 0f) && HealAllyHit(b) || b.Kind == Defs.SanguineShot && CoatAlly(b))  // RefractThroughAlly: KitWeapons.cs; CoatAlly: Hemomancer.cs
             {
                 scratchIds.Add(b.Id);
                 return;
@@ -720,6 +732,11 @@ namespace Arena
             if (CoverStops(b))
             {
                 scratchIds.Add(b.Id);  // a Deployable Cover: every enemy shot stops on its plates and wears it (DeployableCover.cs)
+                return;
+            }
+            if (HorseStops(b))
+            {
+                scratchIds.Add(b.Id);  // a Trojan Horse: every enemy shot that touches it stops there and wears it (TrojanHorse.cs)
                 return;
             }
             if (DecoyStops(b))
@@ -1011,6 +1028,7 @@ namespace Arena
             NonShooterDeath(e);  // a Floor Mine (NonShooters.cs, Turnkey.cs)
             SeededKill(e);  // a Sprite Staff seed in it frees a sprite (KitWeapons.cs)
             SpreadVenom(e);  // Poison Dart's venom jumps to the enemies around it (PoisonDart.cs)
+            ReturnNeedles(e);  // Bloodletting needles in it fly back to heal (AcupunctureNeedles.cs)
             HoneyHarvest(e);  // dying in honey bursts into bees (HoneybeeStaff.cs)
             foreach (var onKill in Classes.KillHooks)  // each class's KitDef.OnKill
                 onKill(this, e);
@@ -1038,7 +1056,7 @@ namespace Arena
             MaybeRise(e, killer);  // Zombies.cs
             if (ExpandingOn)
                 DropCoins(e);  // Coins.cs: gold lies on the ground as coins that never despawn
-            else if (OnPathOf(PathId.Bazaar) || Has(RunMod.GoldRush) || ServiceRooms)
+            else if (OnPathOf(PathId.Bazaar) || ServiceRooms)
                 GrantGold(e);  // Shop.cs
             GrantVectorKill(killer, e.Pos);  // and a vector pickup every VectorKillEvery kills (ExpansionGame.cs)
             MomentumKill(killer, e);  // DPS role passive (Momentum.cs)
@@ -1114,6 +1132,7 @@ namespace Arena
                 dmg *= RiotBrokenMult;  // its riot shield's broken this riot turn (Warden.cs)
             if (attacker > 0 && Has(RunMod.GlassCannon))
                 dmg *= Modifiers.GlassCannonDealt;
+            dmg *= SallyMult(attacker);  // Sally Forth, out of a Trojan Horse (TrojanHorse.cs)
             if (casting)
             {
                 dmg *= castPower;
@@ -1243,7 +1262,7 @@ namespace Arena
             WolfDartHit(b, e);  // the Wolf Whistle's darts mark the pack's prey (KitWeapons.cs)
             SuppressHit(b, e);  // Riot Repeater rounds slow its shooting (Weapons.cs)
             TwinShedHit(b, e);  // Twin Pistols rounds knock health orbs loose (TwinPistols.cs)
-            PoisonHit(b, e);    // Medicine Darts poison it (Ninja.cs)
+            BloodNeedleHit(b, e);  // a Bloodletting needle sticks and bleeds it (AcupunctureNeedles.cs)
             SenbonHit(b, e);    // a Senbon Seekers needle poisons it (SenbonSeekers.cs)
             ShadowKunaiLanded(b, e.Pos);  // a shadow kunai marks where it hit (Ninja.cs)
             StarStuck(b, e);    // a Shuriken star sticks in it (Ninja.cs)

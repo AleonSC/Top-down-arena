@@ -250,8 +250,8 @@ namespace Arena
                 Sounds.Add(Sfx.Clang);
                 return;
             }
-            if (Seated(p) || TankOn(p) || ArmOn(p))
-                return;  // already in a seat or a shell
+            if (Seated(p) || TankOn(p) || ArmOn(p) || Riding(p))
+                return;  // already in a seat, a shell or a Trojan Horse
             var z = BallistaNear(p.Pos);
             if (z == null)
                 return;

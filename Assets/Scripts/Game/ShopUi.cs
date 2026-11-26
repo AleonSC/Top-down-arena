@@ -38,7 +38,7 @@ namespace Arena
         bool shopAtArms, shopAtMedic;  // this frame's shop screen is the Arms Dealer's, or the Medic's
         bool shopSingle;               // this frame's shop has one category (the Arms Dealer, the Medic, the Black Market): no category panels
 
-        // The Bazaar and Gold Rush shops sell heals and revives; in the room shops only the Medic does (Medic.cs).
+        // The Bazaar shop sells heals and revives; in the room shops only the Medic does (Medic.cs).
         static readonly int[] BazaarServices = { 0, 1, 2, 3 }, AllServices = { 0, 1, 2, 3, 4, 5 }, ShopRoomServices = { 0, 1, 4, 5 }, MarketItems = { 6, 7, 8, 9 }, MedicItems = { 2, 3 };
         static readonly string[] ServiceNames = { "Add stock", "Sell upgrade", "Full heal", "Revive token", "Floor kit", "Vector pack" };
 

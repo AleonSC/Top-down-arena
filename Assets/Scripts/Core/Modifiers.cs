@@ -17,12 +17,11 @@ namespace Arena
         HeadStart = 64,
         Practiced = 128,
         Bloodlust = 256,
-        GoldRush = 512,
+        // 512 (Gold Rush) and 16384 (Solid Walls) are retired: don't reuse them (old saves may still carry the bits).
         TinyArena = 1024,
         Nightfall = 2048,
         Hunted = 4096,
         DeathThroes = 8192,
-        SolidWalls = 16384,
         SecondWind = 32768,
         ZombieInfection = 65536,
         Cluttered = 131072,
@@ -51,12 +50,10 @@ namespace Arena
             new ModDef { Mod = RunMod.HeadStart, Name = "Head Start", Desc = "Everyone starts at level 3 with a free legendary pick.", Lean = ModLean.Easier },
             new ModDef { Mod = RunMod.Practiced, Name = "Practiced", Desc = "Abilities gain mastery twice as fast.", Lean = ModLean.Easier },
             new ModDef { Mod = RunMod.Bloodlust, Name = "Bloodlust", Desc = "Every kill heals its killer, but no health orbs drop and nobody regenerates.", Lean = ModLean.Risky },
-            new ModDef { Mod = RunMod.GoldRush, Name = "Gold Rush", Desc = "Every kill drops gold, and a shop opens before each boss. Unspent gold is kept.", Lean = ModLean.Easier },
             new ModDef { Mod = RunMod.TinyArena, Name = "Tiny Arena", Desc = "After each boss, walls take a quarter of the room (down to 40%).", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.Nightfall, Name = "Nightfall", Desc = "It's dark: you see a short way round each player, plus where you aim.", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.Hunted, Name = "Hunted", Desc = "Each wave one player is hunted by every enemy, and deals double damage.", Lean = ModLean.Risky },
             new ModDef { Mod = RunMod.DeathThroes, Name = "Death Throes", Desc = "Every regular enemy bursts into a ring of 6 shots a moment after it dies.", Lean = ModLean.Harder },
-            new ModDef { Mod = RunMod.SolidWalls, Name = "Solid Walls", Desc = "No wrapping round the edges: the arena's sides are walls.", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.ZombieInfection, Name = "Zombie Infection", Desc = "Every wave is a growing horde of melee zombies, and some of the dead get back up.", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.Cluttered, Name = "Cluttered", Desc = "Every wave piles a lot more crates into the arena. Wind your way through the maze; boss fights clear it.", Lean = ModLean.Harder },
             new ModDef { Mod = RunMod.SimpleArena, Name = "Simple Arena", Desc = "The open arena with its floor plans, all run: no building rooms, and paths after each boss.", Lean = ModLean.Risky },
@@ -73,7 +70,7 @@ namespace Arena
         public const float SecondWindTime = 2f;                                 // down this long, then up at half health
 
         /// Survival's one big walled room has no shop, no bosses and no plain arena: these have nothing to act on there.
-        public const RunMod NotInSurvival = RunMod.TinyArena | RunMod.SolidWalls | RunMod.GoldRush | RunMod.SimpleArena;
+        public const RunMod NotInSurvival = RunMod.TinyArena | RunMod.SimpleArena;
 
         /// The modifiers that actually do something in a mode (survival: the Survival mode).
         public static RunMod Active(RunMod mods, bool survival) => survival ? mods & ~NotInSurvival : mods;

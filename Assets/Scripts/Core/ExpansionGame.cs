@@ -163,7 +163,7 @@ namespace Arena
         /// countdown, your gold and shelf are kept between waves, and what you can do depends on the room you stand in.
         public bool ServiceRooms => ExpandingOn && (HasShopRoom || HasBlackMarketRoom || HasArmsRoom || HasMedicRoom);
 
-        /// The shop is open and the wave has to wait for it (the Bazaar and Gold Rush shops; the room shops never hold the countdown).
+        /// The shop is open and the wave has to wait for it (the Bazaar shop; the room shops never hold the countdown).
         public bool ShopBlocksWave => ShopOpen && !ServiceRooms;
 
         public bool InBlackMarketRoom(Player p)
