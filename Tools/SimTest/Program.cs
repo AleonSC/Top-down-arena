@@ -114,7 +114,7 @@ static partial class Program
     }
 
     // Start a bot match at a given wave with both players buffed so they survive a while.
-    static Session[] StartBuffed(float dt, int wave, int damageStacks)
+    static Session[] StartBuffed(float dt, int wave, int damageStacks, Action<Session> setup = null)
     {
         int port = nextPort++;
         var host = new Session { AutoStart = 2, StartWave = wave % 5 == 0 ? -wave : wave };  // (a multiple of 5 starts at its boss)
@@ -123,6 +123,7 @@ static partial class Program
         host.Host(port, "Host", Role.Tank, 0);
         host.Diff.Set(DiffKnob.Campaign, 0f);  // (the usual random waves; CampaignTest turns it on itself)
         host.Diff.Set(DiffKnob.EnemySpeed, 1f);  // (the fights are time-limited; keep their pace independent of the default speed preset)
+        setup?.Invoke(host);  // (e.g. another mechanics tier: BossStagesTest)
         var client = new Session();
         client.Game.Bot = true;
         client.Game.BotRerolls = false;
@@ -375,6 +376,8 @@ static partial class Program
         Test("spinner", "Spinners", () => SpinnerTest(Dt)),
         Test("shielder", "Shielders' shields wearing down", () => ShielderTest(Dt)),
         Test("warden", "the Warden", () => WardenTest(Dt)),
+        Test("bossrules", "boss numbers by mechanics tier (BossRules.cs): summons, escorts, rest pace", () => BossRulesTest(Dt)),
+        Test("stages", "boss stage tables (BossStages.cs): Normal as balanced, Easy without the last stands, fights following their tier", () => BossStagesTest(Dt)),
         Test("holdingcell", "the Warden's net and Holding Cells: guards, the padlock, abilities, the fight pausing, next door, downed inside", () => HoldingCellTest(Dt)),
         Test("botdodge", "smart bots dodge walls of shots and sprint to cross the arena, without overusing either", () => BotDodgeTest(Dt)),
         Test("botgate", "smart bots walk through the Warden's gates' doors", () => BotWardenGateTest(Dt)),
@@ -443,6 +446,7 @@ static partial class Program
         Test("stonecolossus", "Stone Colossus: key 2 of the Tank Elementalist's Ultimate row, the rise, 70% cut, taunt, stomps, the slam, the crumble's boulders, ending on time or going down, mastered and Bedrock", () => StoneColossusTest(Dt)),
         Test("vortex", "Vortex: key 3 of the Tank Elementalist's Ultimate row, the wind-up, swirl and pull, the fringe, heavies, 45 a second, shots swept away, the fling, going down, mastered", () => VortexTest(Dt)),
         Test("ravager", "Blood Ravager: key 1 of the DPS Hemomancer's Ultimate row, the cast (9 s, 1.8x speed, the weapon away), a click lashing the free leg nearest an enemy in reach, up to 3 at once on different enemies, the walk's stomps and the ram, a client's click, ending on time and going down, mastered", () => BloodRavagerTest(Dt)),
+        Test("ballista", "Ballista: key 2 of the DPS Knight's Ultimate row, the drop and landing slam, a teammate mounting and leaving over the wire, one rider at a time, the seat, bolts on Fire every 0.9 s through two in line (off-line untouched, knocked along, enemy shots knocked down), 30% of the rider's hits on it, breaking after the last bolt, folding away, mastered and Windlass", () => BallistaTest(Dt)),
         Test("boil", "Blood Boil: key 2 of the DPS Hemomancer's Ultimate row, the cast (10 s), the 7% a second drain and its 5% floor, speed, fire rate and damage growing as health falls, back to normal at the end with the health kept, pressing again, going down, mastered, the client", () => BloodBoilTest(Dt)),
         Test("livingbolt", "Living Bolt: key 1 of the DPS Elementalist's Ultimate row, the channel, dashes that shock and leave residue, the lockout, the weapon away, a client's dash, the discharge, going down, mastered", () => LivingBoltTest(Dt)),
         Test("staticbubble", "Static Bubble: key 1 of the Healer Elementalist's Ultimate row; enemies put out, shoved, hurt and feeding it (heavies too), shots eaten, allies inside safe, the growth, the full burst and Static Rush for those in it, the smaller pop on time, going down, mastered, the client's view", () => StaticBubbleTest(Dt)),
@@ -611,7 +615,7 @@ static partial class Program
         "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "railgun", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "vowguard", "embolus", "needleswarm", "bloodbrawler", "arclock", "twinauto", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
         "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "hangoutmode", "training", "foequery", "pvp", "three", "wrap", "ready", "wavekinds", "landmarks",
-        "arcanist", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
+        "arcanist", "stages", "bossrules", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
     };
 
     static int Main(string[] args)

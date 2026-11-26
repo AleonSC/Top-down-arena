@@ -733,6 +733,8 @@ namespace Arena
                 Apply = s => { s.SteelDamage += 8f; s.SteelReach += 6f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.WarhornVolley, MaxStacks = 2, Name = "Bodkin Points", Desc = "Warhorn Volley's arrows hit 25% harder and the volley is 20% wider",
                 Apply = s => { s.VolleyDamage += 0.25f; s.VolleyWide += 0.2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Ballista, MaxStacks = 2, Name = "Windlass", Desc = "The Ballista holds 2 more bolts and reloads 25% faster",
+                Apply = s => { s.BaWindlass++; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Knight, MaxStacks = 2, Name = "Plate Armour", Desc = "Take 8% less damage, and your swings cut bullets out of the air 20% farther out",
                 Apply = s => { s.DamageTaken *= 0.92f; s.CutReachMult += 0.2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Warhammer }, MaxStacks = 2, Name = "Quake Hammer", Desc = "The Warhammer's slam is 20% wider and stuns 0.3 s longer",
@@ -954,6 +956,9 @@ namespace Arena
                     return true;
                 case AbilityId.WarhornVolley:
                     CastWarhornVolley(p, target, cap, pw);  // WarhornVolley.cs (picked instead of the Drawbridge)
+                    return true;
+                case AbilityId.Ballista:
+                    CastBallista(p, target, cap);  // Ballista.cs (key 2)
                     return true;
             }
             return false;

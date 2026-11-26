@@ -21,6 +21,7 @@ Status: agreed with the owner (Nov 19 2026). One word per thing, in code comment
 | **alternative fire** | a weapon's secondary attack; "Alt" for short (the key label and weapon text) | `Alt` |
 | **level** | only your XP level in a run (level-ups bring upgrade cards); your profile's progress is **rank** | `Player.Level`, `Rank` |
 | **difficulty preset** | Normal, Hard, Nightmare... (never "difficulty level") | `DifficultyLevel` |
+| **mechanics tier** | which fights and enemies a run uses (Easy..Nightmare; the Mechanics knob); "tier" for short in difficulty code | `MechTier`, `Game.MechTier` |
 
 ## Abilities
 

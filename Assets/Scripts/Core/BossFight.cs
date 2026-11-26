@@ -21,13 +21,13 @@ namespace Arena
         public TTurn Turn;
 
         /// The phase's next turn (round to its first after the last): sets Step, Turn and TurnLen and restarts TurnT.
-        public void NextTurn(TTurn[][] turns, float[][] times)
+        public void NextTurn(Game g, TTurn[][] turns, float[][] times)
         {
             int stage = Convert.ToInt32(Stage);
             var list = turns[stage];
             Step = (Step + 1) % list.Length;
             Turn = list[Step];
-            TurnLen = times[stage][Step];
+            TurnLen = g.BossTurnLen(Convert.ToByte(Turn), times[stage][Step]);  // (the tier's rest pace: BossRules.cs)
             TurnT = 0f;
         }
     }

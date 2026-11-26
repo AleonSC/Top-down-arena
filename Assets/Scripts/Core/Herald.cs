@@ -111,10 +111,12 @@ namespace Arena
                 }
                 return;
             }
-            if (s.Stage == HeraldStage.Gathering && frac <= HeraldGaleAt) { StartHeraldTransition(e, HeraldStage.Gale); return; }
-            if (s.Stage == HeraldStage.Gale && frac <= HeraldSupercellAt) { StartHeraldTransition(e, HeraldStage.Supercell); return; }
-            if (s.Stage == HeraldStage.Supercell && frac <= HeraldLastAt)
-                EnterHeraldStage(e, HeraldStage.LastStand);  // straight away, as the others do
+            BossStage to;  // its stage table (BossStages.cs)
+            if (NextStage(e.Type, (byte)s.Stage, frac, out to))
+            {
+                if (to.How != StageEntry.Instant) { StartHeraldTransition(e, (HeraldStage)to.Stage); return; }
+                EnterHeraldStage(e, (HeraldStage)to.Stage);  // straight away, as the others' last stands do
+            }
 
             s.TurnT += dt;
             if (s.BoomT > 0f)
@@ -461,7 +463,7 @@ namespace Arena
 
         void NextHeraldTurn(Enemy e, HeraldState s)
         {
-            s.NextTurn(HeraldTurns, HeraldTimes);
+            s.NextTurn(this, HeraldTurns, HeraldTimes);
             s.ActT = 0.3f;
             s.Fired = 0;
             s.Rods.Clear();

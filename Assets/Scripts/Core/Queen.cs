@@ -271,18 +271,17 @@ namespace Arena
                 e.Phase = 0;
                 return;
             }
-            if (q.Stage == QueenStage.Swarm && frac <= HoneycombAt)
+            BossStage to;  // her stage table (BossStages.cs)
+            if (NextStage(e.Type, (byte)q.Stage, frac, out to) && (to.Stage != (byte)QueenStage.LastStand || q.Turn != QueenTurn.Dive))
             {
-                StartQueenTransition(e, QueenStage.Honeycomb);
-                return;
+                if (to.How == StageEntry.Instant)
+                    EnterQueenStage(e, (QueenStage)to.Stage);  // straight away (the Last Stand: a dive finishes first)
+                else
+                {
+                    StartQueenTransition(e, (QueenStage)to.Stage);
+                    return;
+                }
             }
-            if (q.Stage == QueenStage.Honeycomb && frac <= FrenzyAt)
-            {
-                StartQueenTransition(e, QueenStage.Frenzy);
-                return;
-            }
-            if (q.Stage == QueenStage.Frenzy && frac <= QueenLastStandAt && q.Turn != QueenTurn.Dive)
-                EnterQueenStage(e, QueenStage.LastStand);  // straight away (a dive finishes first)
 
             q.TurnT += dt;
             switch (q.Turn)
@@ -385,7 +384,7 @@ namespace Arena
             }
             if (q.Turn == QueenTurn.Eggs)
                 HatchEggs(e);
-            q.NextTurn(QueenTurns, QueenTimes);
+            q.NextTurn(this, QueenTurns, QueenTimes);
             q.Wave = 0;
             q.WaveT = 0f;
             q.Dives = 0;
@@ -399,7 +398,7 @@ namespace Arena
                     foreach (var o in Enemies.Values)
                         if (o.ParentId == e.Id && o.Type == EnemyType.Shard)
                             swarm++;
-                    int n = Math.Max(0, Math.Min(QueenSwarmCap - swarm, 3 + AlivePlayers()));
+                    int n = Math.Max(0, Math.Min(QueenSwarmCap + BossRulesNow.ExtraAdds - swarm, BossAdds(3 + AlivePlayers())));  // (the tier's summons: BossRules.cs)
                     for (int i = 0; i < n; i++)
                         q.Royal.Add(SpawnDrone(e, e.Pos + V2.FromAngle(e.T + MathX.Tau * i / n) * 70f).Id);
                     BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 90f, 0.5f, Sfx.BossBuzz);
@@ -572,7 +571,8 @@ namespace Arena
         void LayEggs(Enemy e)
         {
             var spots = new List<V2>();
-            for (int k = 0; k < 60 && spots.Count < EggCount; k++)
+            int eggs = BossAdds(EggCount);  // (the tier's summons: BossRules.cs)
+            for (int k = 0; k < 60 && spots.Count < eggs; k++)
             {
                 var s = new V2(Rand(180f, Width - 180f), Rand(300f, Height - 120f));
                 bool clear = true;

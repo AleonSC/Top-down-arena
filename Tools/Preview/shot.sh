@@ -69,6 +69,7 @@
 # WILDCARD=1 (lobby: you as a Wildcard, Twin Blades, Shadow Step, Blade Fan on Q, Death Lotus; the class wheel).
 # NIMBUS=<s since a strike, -1 none> [NIMBUSSTORM=<s into the Eye of the Storm> NIMBUSBOLT=1] (the Nimbus, Anvil look; mode hud).
 # pacman (mode): PACKEYS=l1.7,u0.6 (steer left then up), PACFRIGHT=5 (ghosts blue), PACDIE=0.7, PACOVER=1, PACPAUSE=1 (PacmanUi.cs).
+# MECH=Easy|Normal|Hard|Nightmare (the run's mechanics tier, Docs/DifficultyTiers.md; e.g. the Warden's bar has no Last Stand cell on Easy).
 # WARDENTRANS=<to 1-3>,<s> (the Warden's 5 s phase change into Lockdown/Riot/Last Stand that far in; a negative s: in that phase; WARDENHP=<health>[,<armor>]; KNIGHT=1 ZOOM=2.6 CAMAT=800,470 shot.sh x hud 3 1 1).
 # RIOTERS=1 (a pack of Rioters with a Guard and a Thug; mode hud, ZOOM=3 for a close look).
 # THUGRAGE=1 (four Thugs at full, 2/3, 1/3 and 5% health: the red halo growing; NINJA=0 ZOOM=3).
@@ -85,6 +86,7 @@
 # MAPVIEW=<from>,<to>,<t> (the Map key's switch: 0 minimap, 1 full map, 2 off, t of the way; MapView.cs), MAPCYCLE=<s> (a scripted M, M, M for clip.sh); with EXPANDMAP=6 ZOOM=1.5.
 # NADET=<s> (the Twin Rifle's Rocket assist that long after a launch), NADELOAD=<s> (a tube loading; TwinNadeLook.cs);
 #   with RIFLEFIRE=1 (holding fire: the Twin Rifle held wide, Spread arms) and CROSSAT=<px> (the cursor's distance).
+# BALLISTA=<s since the cast> [BALLISTACAP=1 mastered] [BALLISTARIDE=<s>, -1 nobody] (the DPS Knight's Ballista played through the game, shot.sh x hud 1 6 1: falls 0-0.6, you climb on at 0.8 and fire a bolt every 0.9 s; use 0.3, 1, 3.2, 8.2; ShotBallista.cs).
 # DEPLOYTURRET=<s since the cast> [DEPLOYCAP=1 mastered] (the DPS Soldier's Deployable Turret played through the game, shot.sh x hud 1 6 1: drop 0-0.55, unfolds to 1.1, fires to 11.1 (spool full by ~2.3), overheats, blows at 11.9; use 0.3, 0.8, 3, 6, 10, 11.5, 12; FXOFF=1 plain; ShotDeployTurret.cs).
 # THORNBLOOM=<s since the cast> [THORNCAP=1 mastered] (the DPS Hemomancer's Thorn Bloom played through the game, shot.sh x hud 1 6 1: needles fly 0-0.2, tendrils whip on to ~0.9; use 0.05, 0.15, 0.3, 0.5, 0.8; ShotThornBloom.cs).
 # BAMBOO=<s since the cast> [BAMBOOCAP=1 mastered] (the Tank Ninja's Bamboo Grove played through the game, ZOOM=2 shot.sh x hud 1 6 1: wind-up 0-0.35, rings burst 0.35-0.7, fence to 3.9; use 0.2, 0.42, 0.6, 1.0, 2.5; ShotBambooGrove.cs).

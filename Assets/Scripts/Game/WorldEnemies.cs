@@ -307,6 +307,9 @@ namespace Arena
                 case ZoneKind.BloodWall:
                     DrawBloodWallNode(z, t);  // BloodWallLook.cs
                     return;  // no timer ring: it's a wall
+                case ZoneKind.Ballista:
+                    DrawBallista(z, t);  // BallistaLook.cs (its own gauges: no timer ring)
+                    return;
                 case ZoneKind.DeployTurret:
                     return;  // drawn over the arena's contents by DrawDeployTurrets (DeployTurretLook.cs)
                 case ZoneKind.Mammoth:

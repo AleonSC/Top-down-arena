@@ -254,6 +254,11 @@ namespace Arena
                 DrawCrescentShot(b, t);  // EclipseLook.cs
                 return;
             }
+            if (b.Kind == Defs.BallistaBolt)
+            {
+                DrawBallistaBolt(b);  // BallistaLook.cs
+                return;
+            }
             if (b.Kind == Defs.FocusArrow)
             {
                 DrawFocusArrow(b, t);  // BowFocusLook.cs

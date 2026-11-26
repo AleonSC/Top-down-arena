@@ -161,10 +161,12 @@ namespace Arena
                 return;
             }
             bool busy = s.Dash != DuelDash.None || s.SaluteT > 0f;
-            if (s.Stage == DuelStage.EnGarde && frac <= DuelMasqueradeAt && !busy) { StartDuelTransition(e, DuelStage.Masquerade); return; }
-            if (s.Stage == DuelStage.Masquerade && frac <= DuelDeathAt && !busy) { StartDuelTransition(e, DuelStage.ToTheDeath); return; }
-            if (s.Stage == DuelStage.ToTheDeath && frac <= DuelLastAt && !busy)
-                EnterDuelStage(e, DuelStage.LastStand);  // straight away, as the others do
+            BossStage to;  // its stage table (BossStages.cs)
+            if (!busy && NextStage(e.Type, (byte)s.Stage, frac, out to))
+            {
+                if (to.How != StageEntry.Instant) { StartDuelTransition(e, (DuelStage)to.Stage); return; }
+                EnterDuelStage(e, (DuelStage)to.Stage);  // straight away, as the others' last stands do
+            }
 
             s.TurnT += dt;
             if (s.StaggerT > 0f)
@@ -459,7 +461,7 @@ namespace Arena
         {
             if (s.Turn == DuelTurn.Masquerade)
                 ClearDuelDecoys(e, true);
-            s.NextTurn(DuelTurns, DuelTimes);
+            s.NextTurn(this, DuelTurns, DuelTimes);
             s.Fired = 0;
             e.FireT = 0.4f;
             if (s.Turn == DuelTurn.Guard)

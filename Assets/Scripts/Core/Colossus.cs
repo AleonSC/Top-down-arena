@@ -231,9 +231,12 @@ namespace Arena
                 e.Phase = ColShift;
                 return;
             }
-            if (c.Stage == ColStage.Awakening && frac <= ColCrumbleAt) { StartColStagger(e, ColStage.Crumbling, ColCrumbleAt); return; }
-            if (c.Stage == ColStage.Crumbling && frac <= ColMoltenAt && c.ChargeLeft <= 0f) { StartColStagger(e, ColStage.MoltenCore, ColMoltenAt); return; }
-            if (c.Stage == ColStage.MoltenCore && frac <= ColLastAt) { StartColStagger(e, ColStage.LastStand, ColLastAt); return; }
+            BossStage to;  // its stage table (BossStages.cs): each change is a stagger you break (into the Molten Core, a charge finishes first)
+            if (NextStage(e.Type, (byte)c.Stage, frac, out to) && (to.Stage != (byte)ColStage.MoltenCore || c.ChargeLeft <= 0f))
+            {
+                StartColStagger(e, (ColStage)to.Stage, to.At);
+                return;
+            }
 
             c.TurnT += dt;
             c.DazeT = Math.Max(0f, c.DazeT - dt);
@@ -340,7 +343,7 @@ namespace Arena
 
         void NextColTurn(Enemy e, ColossusState c)
         {
-            c.NextTurn(ColTurns, ColTimes);
+            c.NextTurn(this, ColTurns, ColTimes);
             c.ActT = 0.3f;
             c.Fired = 0;
             if (c.Turn == ColTurn.Stomps || c.Turn == ColTurn.Last)

@@ -25,7 +25,7 @@ static partial class Program
         Check(Upgrades.Ultimate(Role.Tank, Kit.Elementalist) == AbilityId.GlacialTomb && Upgrades.Ultimate(Role.Tank, Kit.Elementalist, 1) == AbilityId.LightningRod
             && Upgrades.Ultimate(Role.Tank, Kit.Elementalist, 2) == AbilityId.StoneColossus && Upgrades.AltUltimate(Role.Tank, Kit.Elementalist, 3) == AbilityId.Vortex,
             "Glacial Tomb stays the default, Lightning Rod key 1, Stone Colossus key 2, Vortex key 3 (Vortex.cs)");
-        Check(Upgrades.ClampUlt(Role.Tank, Kit.Elementalist, 2) == 2 && Upgrades.ClampUlt(Role.Healer, Kit.Elementalist, 2) == 0 && Upgrades.ClampUlt(Role.Dps, Kit.Knight, 2) == 0,
+        Check(Upgrades.ClampUlt(Role.Tank, Kit.Elementalist, 2) == 2 && Upgrades.ClampUlt(Role.Healer, Kit.Elementalist, 2) == 0 && Upgrades.ClampUlt(Role.Dps, Kit.Ninja, 2) == 0,  // (the DPS Knight has a key 2 now: Ballista.cs)
             "key 2 is Stone Colossus for the tank; a role or class without a key 2 falls back to its default");
 
         int port = nextPort++;

@@ -342,7 +342,7 @@ feature; `git log --oneline` is usually enough.
 The October 2026 audit and its work plan are done; the full notes (and the November second pass) are in
 [`Docs/History.md`](Docs/History.md) under "Audit findings". Still open:
 
-- **Late-Nov 2026 audit (protocol 525), still open:** per-weapon `switch` tables (a new weapon touches a median 9 files:
+- **Late-Nov 2026 audit (protocol 526), still open:** per-weapon `switch` tables (a new weapon touches a median 9 files:
   `BotWeaponAlt`, `Weapons`, `CharacterModels`, `MeleeLooks`, `ShotLooks`; a `WeaponDef.BotAlt` delegate and a look table would
   cut it), `GameNet.SyncPlayer` (539 lines, ~264 `Player` fields; a per-weapon `Sync` hook), 7 copies of a cone test
   (`MathX.InCone`), ~47 hand-written enemy bullet rings (`EnemyRing`), gold colour literals (61 copies of `CrtStyle.Gold`),

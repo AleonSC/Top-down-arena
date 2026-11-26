@@ -243,19 +243,10 @@ namespace Arena
                 e.Phase = (byte)w.Turn;
                 return;
             }
-            if (w.Stage == WardenStage.Count && frac <= LockdownAt)
+            BossStage to;  // its stage table (BossStages.cs)
+            if (NextStage(e.Type, (byte)w.Stage, frac, out to) && (to.Stage != (byte)WardenStage.LastStand || w.Turn != WardenTurn.Charge))
             {
-                StartWardenTransition(e, WardenStage.Lockdown);
-                return;
-            }
-            if (w.Stage == WardenStage.Lockdown && frac <= RiotAt)
-            {
-                StartWardenTransition(e, WardenStage.Riot);
-                return;
-            }
-            if (w.Stage == WardenStage.Riot && frac <= LastStandAt && w.Turn != WardenTurn.Charge)
-            {
-                StartWardenTransition(e, WardenStage.LastStand);  // it puts on its armor (a charge finishes first); the rioters scatter
+                StartWardenTransition(e, (WardenStage)to.Stage);  // (into the Last Stand it puts on its armor, a charge finishing first; the rioters scatter)
                 return;
             }
 
@@ -424,7 +415,7 @@ namespace Arena
         {
             if (w.Turn == WardenTurn.Rioters)
                 ClearRioters();  // whoever's left scatters
-            w.NextTurn(StageTurns, StageTimes);
+            w.NextTurn(this, StageTurns, StageTimes);
             w.Dashing = false;
             w.Plant = -1;
             w.StunShotAt = 1.5f;  // the last stand's first stun round
@@ -1021,7 +1012,8 @@ namespace Arena
                 doors.Remove(pick);
                 V2 d = RiotDoors[pick];
                 V2 inward = d.X <= 0f ? new V2(1f, 0f) : d.X >= Width ? new V2(-1f, 0f) : new V2(0f, -1f);
-                for (int i = 0; i < RiotersPerDoor; i++)  // three rows of three, pouring in
+                int perDoor = BossAdds(RiotersPerDoor);  // (the tier's summons: BossRules.cs)
+                for (int i = 0; i < perDoor; i++)  // three rows of three, pouring in
                     SpawnEnemyAt(EnemyType.Rioter, d + inward * (40f + (i / 3) * 30f) + inward.Orthogonal() * ((i % 3 - 1) * 30f), 0.3f + (i / 3) * 0.25f, 0);
                 BroadcastFx(FxKind.Boom, d + inward * 20f, new Rgba(1f, 0.55f, 0.2f), 70f, 0.5f, Sfx.BossCrack);
                 w.DoorsOpened++;
@@ -1051,7 +1043,7 @@ namespace Arena
         void CallGuards(WardenState w, int rioters)
         {
             w.GuardsCalled = true;
-            int n = Math.Max(GuardsMin, Math.Min(GuardsMax, (rioters + 3) / 4));
+            int n = BossAdds(Math.Max(GuardsMin, Math.Min(GuardsMax, (rioters + 3) / 4)));  // (the tier's summons: BossRules.cs)
             for (int i = 0; i < n; i++)
             {
                 V2 d = RiotDoors[(i + rng.Next(RiotDoors.Length)) % RiotDoors.Length];
