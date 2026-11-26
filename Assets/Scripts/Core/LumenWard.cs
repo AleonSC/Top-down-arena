@@ -13,6 +13,7 @@ namespace Arena
     {
         public const float LumenLength = 740f, LumenHalf = 0.47f, LumenTime = 6f, LumenOpen = 0.5f, LumenClose = 0.7f;
         public const float LumenBurnFrom = 0.25f;  // bullets burn once the cone is this open
+        public const float LumenDazzleHold = 1f;   // enemies in the light are dazzled, and stay so this long after (Dazzled.cs)
 
         void CastLumenWard(Player p, V2 target, bool mastered)
         {
@@ -91,6 +92,9 @@ namespace Arena
                     KillBullet(id);
                 }
             }
+            foreach (var e in Enemies.Values)
+                if (e.SpawnT <= 0f && InLumen(z, e.Pos, len, half, e.Radius))
+                    Dazzle(e, LumenDazzleHold);  // in the light: dazzled, and for a moment after it leaves (Dazzled.cs)
             if (z.Freezes)
                 foreach (var e in Enemies.Values)
                     if (e.SpawnT <= 0f && !e.Def.IsBoss && !InLumen(z, e.Pos, len, half))

@@ -522,6 +522,8 @@ namespace Arena
                 TickNeedlesIn(e, dt);  // AcupunctureNeedles.cs
                 TickVenom(e, dt);   // Poison Dart (PoisonDart.cs)
                 TickDaze(e, dt);    // Daze.cs
+                TickBrittle(e, dt);  // Brittle.cs: frozen and brittle at once shatters
+                TickDazzle(e, dt);   // Dazzled.cs
                 foreach (var tick in Classes.EnemyHooks)  // each class's KitDef.TickEnemy
                     tick(this, e, dt);
                 if (!StillIn(e))
