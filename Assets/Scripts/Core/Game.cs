@@ -185,6 +185,7 @@ namespace Arena
             ReadStart(r);
             if (ResumeFrom != null)
                 ApplyResume(ResumeFrom);
+            DealStartPicks();  // the starting piece pick, before the opening GET READY (Hand.cs)
             ResumeFrom = null;
             ResumeSeats.Clear();
         }
@@ -318,6 +319,8 @@ namespace Arena
             State = MatchState.Intermission;
             lastState = State;
             StateTimer = StartDelay;
+            openingBreak = true;  // (Waves.cs)
+            openingHeld = false;
             Running = true;
             lastMyHp = Me != null ? Me.Hp : 0f;
             if (!HangoutOn)

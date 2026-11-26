@@ -57,6 +57,8 @@ namespace Arena
             DoLog("game over at wave " + Wave + ", score " + Score);
         }
 
+        bool openingBreak, openingHeld;  // host: the break before the run's first wave; a pick has held its countdown (TickWaves)
+
         void TickWaves(float dt)
         {
             if (ShowcaseMode)
@@ -102,6 +104,16 @@ namespace Arena
                     TickMysteryDoors();  // a door whose room no longer fits is re-planned or goes (MysteryDoors.cs)
                     if (RoomsOn)
                         TickStashClaims();  // a breach Stash's cache can be walked into between waves too (BreachEvent.cs)
+                    if (openingBreak)  // the opening GET READY: a pick holds it, then OpeningCountdown runs (LaunchIntro.cs pauses to match)
+                    {
+                        if (AnyonePicking())
+                            openingHeld = true;
+                        else if (openingHeld)
+                        {
+                            openingHeld = false;
+                            StateTimer = Math.Min(StateTimer, OpeningCountdown);
+                        }
+                    }
                     if (!AnyonePicking() && PathOffer == null && !ShopBlocksWave && !HuntMapBlocksWave && !KeepsakeOpen && ChallengePhase == RoomPhase.None)  // (and while a portal is open)
                     {
                         if (!TickBossGate(ref StateTimer, dt))  // before a boss: everyone in the boss gate instead (BossGate.cs)
@@ -118,6 +130,7 @@ namespace Arena
                         SweepFloorLoot();  // each player's own coins, vector pickups and chest cards left lying about go to them (Coins.cs)
                         SaveRun();  // everyone has picked: the save slot holds the run from here (RunSaves.cs)
                         State = MatchState.Fighting;
+                        openingBreak = openingHeld = false;
                         SpringPendingAmbushes();  // ambush rooms opened between waves (MysteryDoors.cs)
                         spawnTimer = WaveNumbers.OpeningDelay;
                         if (SurvivalOn)
