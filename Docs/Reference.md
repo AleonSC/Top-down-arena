@@ -196,11 +196,11 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Poison Dart | Dps | 1st, choice 1 | 8 s | - | Spreads to 5 enemies at a time, at full strength. | Poison the nearest enemy; the poison spreads when it dies. |
 | Airstrike | Dps | 1st, choice 2 | 16 s | - | A second wall lands 160 px further out, half a second later. | Call a jet to carpet a line with bombs. |
 | Claymore | Dps | 1st, choice 3 | 5 s (+1 charges) | - | Each claymore re-arms once after its first blast: it goes off twice. | Plant a mine at your cursor; the first enemy to step into the cone in front of it sets off a wide blast. |
-| Artillery Assault | Dps | ultimate | 60 s | - | +4 extra projectiles instead of +2. | Fire three times as fast with extra projectiles. |
+| Deployable Turret | Dps | ultimate | 60 s | - | Fires 26 s, rounds pierce 4, and the blast does double. | Climb into a heavy turret that spools up to a fast piercing fire. |
 | Attack Helicopter | Dps | ultimate | 70 s | - | A second gun on the wing: two targets at once. | A gunship locks enemies one at a time and can't be hit. |
 | Orbital Laser | Dps | ultimate | 90 s | - | The circle is 340 px wide instead of 260, and the beam ploughs 200 px on while it fires. | Call a laser down from orbit on your cursor: after a 1.9 s lock-on it kills every enemy in a huge circle (bosses lose 20%) and leaves the ground burning. |
 | Rocket Drop | Dps | ultimate | 80 s | - | 13 s, and each blast throws 3 bomblets. | Call in a pod with a rocket launcher, infinite ammo, for 10 s. Each rocket's blast is huge and leaves the ground burning. |
-| Deployable Turret | Dps | 1st, choice 5 | 45 s | - | Fires 14 s, rounds pierce 4, and the blast does double. | Climb into a heavy turret that spools up to a fast piercing fire. |
+| Tactical Vest | Dps | 1st, choice 5 | 20 s | - | Pops 4 gadgets, and they stay on the floor until you grab them. | Pop 3 random gadgets off your vest onto the floor to grab and use. |
 
 ### Elementalist
 
