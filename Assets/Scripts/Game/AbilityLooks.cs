@@ -81,7 +81,7 @@ namespace Arena
             Buff(p => p.AegisT, new Rgba(0.8f, 0.5f, 1f)),         // Aeroaegis
             Buff(p => p.FrenzyT, new Rgba(1f, 0.5f, 0.3f)),        // Alpha Call
             Buff(p => p.UnbreakT, new Rgba(1f, 0.85f, 0.5f)),      // Cavalry Call: the guard
-            Buff(p => p.SteelT, new Rgba(1f, 0.59f, 0.24f)),       // Caught Steel's catching time
+            Buff(p => p.CaltropT, new Rgba(1f, 0.8f, 0.35f)),      // Caltrop Run's sprint
             Buff(p => p.VanishT, new Rgba(0.6f, 0.5f, 0.85f)),     // Vanish
             Buff(p => p.DebtT, Rgba.Gold),         // Blood Debt
             Buff(p => p.WardT, new Rgba(0.95f, 0.25f, 0.35f)),     // Martyr's ward
