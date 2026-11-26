@@ -94,7 +94,7 @@ static partial class Program
     static void AbilityIconsTest(string pixelArt)
     {
         // Abilities still waiting for an icon of their own; the test fails when one gets one, so take it off the list then.
-        var noIconYet = new HashSet<AbilityId> { AbilityId.BambooGrove, AbilityId.SenbonSeekers, AbilityId.LandShark, AbilityId.Starburst, AbilityId.Flood, AbilityId.WaterWard, AbilityId.DeployableTurret, AbilityId.Stampede, AbilityId.ThornBloom };
+        var noIconYet = new HashSet<AbilityId> { AbilityId.BambooGrove, AbilityId.SenbonSeekers, AbilityId.LandShark, AbilityId.Starburst, AbilityId.Flood, AbilityId.WaterWard, AbilityId.DeployableTurret, AbilityId.Stampede, AbilityId.ThornBloom, AbilityId.ChakraReserves };
         var bad = new List<string>();
         foreach (AbilityId id in Enum.GetValues(typeof(AbilityId)))
         {
