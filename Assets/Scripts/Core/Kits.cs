@@ -25,6 +25,7 @@ namespace Arena
         Wyvern,       // the Wyvern Staff's wind Wyvern: hovers over you, its gale slows and shoves, it breathes fire at your cursor and slams (WyvernStaff.cs)
         ArcShard, ArcBlade,  // the Arcanist's Orbit Shards (circle you, cut small shots, flung at the cursor and back) and Dancing Blades (hover behind you, launched to slash at the cursor) (Arcanist.cs)
         BumbleBot,    // the Bumble Remote's robot bee: follows your cursor, shoots stingers, dives into a Swarm Burst; enemies ignore it (BumbleRemote.cs)
+        Octopus,      // Octopus Familiar (the Healer Summoner's 4th choice): floats round the player it guards and slaps enemies near them, up to 8 at once (OctopusFamiliar.cs)
         None = 255,
     }
 
@@ -130,6 +131,7 @@ namespace Arena
             new MinionDef { Name = "Orbit Shard", Radius = 7f, Sides = 4, Color = new Rgba(0.72f, 0.55f, 1f), Move = MinionMove.Static },   // flown by Arcanist.cs (MoveArcane)
             new MinionDef { Name = "Dancing Blade", Radius = 8f, Sides = 3, Color = new Rgba(1f, 0.83f, 0.42f), Move = MinionMove.Static },  // flown by Arcanist.cs (MoveArcane)
             new MinionDef { Name = "Bumble Bot", Radius = 22f, Sides = 6, Color = new Rgba(1f, 0.8f, 0.3f), Move = MinionMove.Static, Range = Game.BumbleRange },  // flown and fired by BumbleRemote.cs (MoveBumble)
+            new MinionDef { Name = "Octopus", Radius = 16f, Sides = 8, Color = Game.OctoColor, Move = MinionMove.Static },  // floated and its arms by OctopusFamiliar.cs; health in Minion.Hp (HasHealth, Stun.cs)
         };
 
         // Indexed by ZoneKind.

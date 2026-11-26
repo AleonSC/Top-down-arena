@@ -83,6 +83,7 @@ namespace Arena
         AegisStandard,  // the Tank Knight's fourth ultimate (KnightBanners.cs), key 3 of the lobby's Ultimate row
         PilgrimsStandard,  // the Healer Knight's second ultimate (KnightBanners.cs), key 1
         WarStandard,    // the DPS Knight's third ultimate (KnightBanners.cs), key 2
+        OctopusFamiliar,  // the Healer Summoner's 4th choice (OctopusFamiliar.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -175,6 +176,7 @@ namespace Arena
         // Summoner abilities
         public float StampedeDmgMult = 1f;                                 // Stampede: Thundering Herd
         public float LandSharkDmgMult = 1f;                                // Land Shark: Great White
+        public float OctoHpMult = 1f, OctoDmgMult = 1f;                    // Octopus Familiar: Three Hearts
         public float RatShare, RatBleed;                                   // Rodent Minigun: Plague Rats (more rats, and they bleed what they bite)
         public float TuskReachMult = 1f, TuskWet;                            // Tidal Tusker: Deep Trunk (the stream reaches farther, soaks longer)
         public float MammothWaveMult = 1f, MammothStun;                    // Mammoth Fall: Ice Age (a wider shockwave, a longer stun)
