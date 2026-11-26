@@ -121,6 +121,7 @@ namespace Arena
                     : shown == AbilityId.ArmorDrop ? Game.ArmorCallIn + Game.ArmorOpen + 4f  // (the vests lie out a while, then the next)
                     : shown == AbilityId.DragonsDogma ? Game.DogmaTime + 1.5f  // (it coils back in before the next)
                     : shown == AbilityId.Bloodbath ? Game.BathTime + 1.5f  // (a Bloodbath dries up before the next)
+                    : shown == AbilityId.BloodRitual ? Game.RitInscribe + Game.RitOpen + Game.RitFlood + Game.RitClose + 1.5f  // (the imps fly home before the next)
                     : shown == AbilityId.BonePhalanx ? Game.PhalanxLife(Game.PhalanxCount) + 1.2f : UltimateEvery;  // (the line marches and crumbles before the next)
                 allies = TargetsAlly(shown) || ShowcaseAlt.NeedsAlly(Defs.Weapon(role, kit, weapon).Id)
                     || Defs.Weapon(role, kit, weapon).Id == WeaponId.AcupunctureNeedles && !demo;  // (its Fire heals teammates: AcupunctureNeedles.cs)

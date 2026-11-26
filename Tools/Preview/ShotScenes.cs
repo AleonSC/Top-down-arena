@@ -1193,6 +1193,7 @@ static partial class Shot {
     MammothFallScene();  // MAMMOTH=<s since the cast> (ShotMammothFall.cs)
     RocketDropScene();  // ROCKETDROP=<s since the cast> [ROCKETCAP=1]: the DPS Soldier's Rocket Drop (ShotRocketDrop.cs)
     HazardFoamScene();  // FOAM=<s since the cast> [FOAMCAP=1] [FOAMFIZZ=1]: the Healer Soldier's Hazard Foam (ShotHazardFoam.cs)
+    BloodRitualScene();  // RITUAL=<s since the cast> [RITUALCAP=1]: the Tank Hemomancer's Blood Ritual (ShotBloodRitual.cs)
     KnightBannersScene();  // BANNER=aegis|pilgrim|war [BANNERT=<s>] [BANNERCAP=1]: the Knight banner ultimates (ShotKnightBanners.cs)
     TuskerScene();  // TUSKER=<s since the cast> [TUSKERCAP=1]: the Tank Summoner's Tidal Tusker (ShotTusker.cs)
     ForbiddenPathScene();  // FORBIDDEN=<s since the cast> (ShotForbiddenPath.cs)

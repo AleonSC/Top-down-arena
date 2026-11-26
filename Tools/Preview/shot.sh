@@ -127,6 +127,7 @@
 # ARMORDROP=<s since the cast> [ARMORCAP=1] [ARMORHIT=<armor left>] (the Tank Soldier's Armor Drop: crate, vests, armor shell and bar; mode hud).
 # ROCKETDROP=<s since the cast> [ROCKETCAP=1] (the DPS Soldier's Rocket Drop: pod, launcher, rockets, blasts, fire; ShotRocketDrop.cs; ZOOM=1.1 CAMAT=780,480 shot.sh x hud 1 6 1).
 # FOAM=<s since the cast> [FOAMCAP=1] [FOAMFIZZ=1] (the Healer Soldier's Hazard Foam: sprayer, globs, a wall of foam soaking grunts' shots; ShotHazardFoam.cs; ZOOM=1.3 CAMAT=700,520 shot.sh x hud 1 6 3).
+# RITUAL=<s since the cast> [RITUALCAP=1] (the Tank Hemomancer's Blood Ritual: sigil, portal, imps; ShotBloodRitual.cs; ZOOM=1.4 CAMAT=700,440 shot.sh x hud 1 6 3).
 # BANNER=aegis|pilgrim|war [BANNERT=<s since the cast>] [BANNERCAP=1] (the Knight banner ultimates; ShotKnightBanners.cs; ZOOM=1.3 CAMAT=700,430 shot.sh x hud 1 6 3).
 # VORTEX=<s since cast> VXMASTERED=1 (the Tank Elementalist's Vortex: wind-up, storm, grunts swept round, shots swept away; mode hud; VortexLook.cs).
 # RAVAGER=<s since cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (the DPS Hemomancer's Blood Ravager walking right through grunts, clicking over the last 0.4 s; ShotBloodRavager.cs; ZOOM=2.2, mode hud).

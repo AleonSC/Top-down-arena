@@ -507,6 +507,7 @@ namespace Arena
                 if (PitEnemy(e))
                     continue;  // shoved into a pit: gone (Pits.cs)
                 e.MarkT = Math.Max(0f, e.MarkT - dt);
+                e.ImpTauntT = Math.Max(0f, e.ImpTauntT - dt);  // a Blood Ritual imp's taunt (BloodRitual.cs)
                 TickSlow(e, dt);
                 if ((e.WadeT = Math.Max(0f, e.WadeT - dt)) <= 0f)
                     e.WadeMult = 1f;
@@ -585,6 +586,7 @@ namespace Arena
                 tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
                 tpos = RobotTarget(e, tpos);  // an Engineer's robot draws in enemies near it (Engineer.cs)
                 tpos = DecoyTarget(e, tpos);  // a Decoy Dummy draws in enemies near it (DecoyDummy.cs)
+                tpos = ImpTarget(e, tpos);  // a Blood Ritual imp that clawed it draws it off (BloodRitual.cs)
                 tpos = TuskerTarget(e, tpos);  // a Tidal Tusker's elephant draws in regular enemies near it (TidalTusker.cs)  // a Decoy Dummy draws in enemies near it (DecoyDummy.cs)
                 tpos = HorseTarget(e, target, tpos);  // everyone up is in a Trojan Horse: they go for it (TrojanHorse.cs)
                 tpos = RoomTarget(e, tpos);
