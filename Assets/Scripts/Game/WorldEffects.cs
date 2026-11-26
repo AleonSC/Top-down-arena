@@ -620,7 +620,7 @@ namespace Arena
                 Arc(fx.Pos, reach, 2.4f, Rgba.White.WithAlpha(0.95f * fade), 6, ga - 0.08f, 0.16f);
             }
             var hitCol = Defs.BulletColor(Defs.KnightSlash);
-            foreach (var sp in game.Effects)
+            foreach (var sp in FxOf(FxKind.Spark))
             {
                 if (sp.Kind != FxKind.Spark || sp.Radius != 8f || sp.Color.R != hitCol.R || sp.Color.G != hitCol.G || sp.Color.B != hitCol.B)
                     continue;
@@ -780,7 +780,7 @@ namespace Arena
 
         bool AnyWells()
         {
-            foreach (var o in game.Enemies.Values)
+            foreach (var o in EnemiesOf(EnemyType.GravityWell))
                 if (o.Type == EnemyType.GravityWell)
                     return true;
             return false;

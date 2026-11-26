@@ -35,7 +35,7 @@ namespace Arena
         void UpdateShockwaveLook(float t)
         {
             swNow.Clear();
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.Shockwave))
             {
                 if (fx.Kind != FxKind.Shockwave)
                     continue;
@@ -75,7 +75,7 @@ namespace Arena
         {
             if (!fxOn)
                 return;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.Shockwave))
             {
                 if (fx.Kind != FxKind.Shockwave)
                     continue;

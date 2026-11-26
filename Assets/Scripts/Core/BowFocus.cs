@@ -13,7 +13,7 @@ namespace Arena
     /// draw time itself.
     ///
     /// Scatter (the weapon-action key): five small arrows in a fan (Defs.ScatterArrow), each stopping in the first enemy
-    /// it meets. Your game sends Msg.WeaponDash (DashScatter); the host checks the cooldown and looses them.
+    /// it meets. Your game sends Msg.WeaponDash (WeaponAlt.Scatter); the host checks the cooldown and looses them.
     public partial class Game
     {
         public const float BowFocusPeriod = 1.3f;  // the marker goes out to the end of the aim line and back in this long
@@ -28,7 +28,6 @@ namespace Arena
         public const float ScatterDmg = 12f, ScatterHeal = 6f, ScatterSpeed = 820f, ScatterReach = 400f;
         public const float ScatterCd = 3f;
         const float ScatterHold = 0.25f;           // no shots for this long after the fan
-        const byte DashScatter = 57;
 
         // --- The Focus bar (the shooter's game) ----------------------------------------------------------------
 
@@ -133,11 +132,11 @@ namespace Arena
                 bowDraw = -1f;                       // a draw in progress is dropped
                 bowCd = BowRecover / FireRate(me);   // and the next one waits for a fresh arrow
                 if (IsHost)
-                    HostWeaponDash(MyId, DashScatter, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.Scatter, aimAt);
                 else
                 {
                     var w = Proto.Begin(Msg.WeaponDash);
-                    w.Write(DashScatter);
+                    w.Write(WeaponAlt.Scatter);
                     w.Write(aimAt);
                     session.SendToHost(Proto.End(w));
                 }

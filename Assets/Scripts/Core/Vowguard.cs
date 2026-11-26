@@ -14,7 +14,7 @@ namespace Arena
     ///   - Fire plays the next step of the stance you're in; a press counts once VgNext of a step has played; the chain starts
     ///     over VgChainWindow after a step ends without one, and after its last step. Hold Fire and it plays on.
     ///   - A finisher spends all Faith (up to VgFaithMax): +VgFaithDmg damage on its last hit and +VgFaithHeal on each heal, a Faith.
-    ///   - Alt (the weapon-action key, Msg.WeaponDash DashVgStance) switches stance: each keeps its own place (Player.VgAtV,
+    ///   - Alt (the weapon-action key, Msg.WeaponDash WeaponAlt.VgStance) switches stance: each keeps its own place (Player.VgAtV,
     ///     VgAtS); the step playing stops. Into Sanctuary blocks at once; into Valor shoves with the rim.
     ///   - Raising the parry starts both chains over (ResetVgChain). A perfect parry fills Faith (ArmVgFaith).
     ///   - Shield Charge, Sidestep and Cover Ally move you: your own game does when Player.VgCount changes (LocalVowguard), to
@@ -24,7 +24,6 @@ namespace Arena
     /// + VgFxTail), drawn from its age; an Aegis Dome is FxKind.VgDome for its life (Game/VowguardLook.cs).
     public partial class Game
     {
-        const byte DashVgStance = 51;
         public const float VgSanctSlow = 0.8f, VgSanctHalf = 50f * MathX.Pi / 180f, VgGuardGap = 12f, VgSwitchCd = 0.25f;
         public const float VgNext = 0.75f, VgChainWindow = 0.8f, VgFxTail = 0.25f, VgExtraBonus = 0.15f;
         public const int VgFaithMax = 6;
@@ -483,11 +482,11 @@ namespace Arena
                 return true;
             vgSwitchLocalCd = VgSwitchCd;
             if (IsHost)
-                HostWeaponDash(MyId, DashVgStance, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.VgStance, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashVgStance);
+                w.Write(WeaponAlt.VgStance);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

@@ -70,8 +70,5 @@ namespace Arena
                     return Color.Lerp(cols[i - 1], cols[i], (k - at[i - 1]) / Mathf.Max(0.0001f, at[i] - at[i - 1]));
             return cols[cols.Length - 1];
         }
-
-        /// A soft round blob (smoke, a glow under a light): the radial glow texture sized to the rect.
-        public static void Blob(Rect r, Color c) => RadialGlow(r, c);
     }
 }

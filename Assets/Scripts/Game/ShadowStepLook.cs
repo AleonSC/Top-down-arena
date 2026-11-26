@@ -35,7 +35,7 @@ namespace Arena
         {
             if (!fxOn || !ReferenceEquals(game, session.Game))
                 return false;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.ShadowStep))
                 if (fx.Kind == FxKind.ShadowStep && fx.T < StepShow && (int)(fx.Radius / 1000f + 0.001f) == p.Id)
                     return true;
             return false;

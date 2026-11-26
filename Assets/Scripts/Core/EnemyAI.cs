@@ -497,6 +497,8 @@ namespace Arena
             bool arenaHeld = ArenaHeld;  // everyone's in a Holding Cell: the arena holds still (HoldingCell.cs)
             foreach (var e in tickEnemies)  // copy: some enemies spawn others
             {
+                if (!StillIn(e))
+                    continue;  // removed earlier this tick (a boss's adds cleared, Rioters reaching the Warden, ...)
                 if (arenaHeld && !InCellZone(e.Pos))
                     continue;
                 actingEnemy = e;  // its shots are stamped with it (Lightning Rod; LightningRod.cs)
@@ -522,6 +524,8 @@ namespace Arena
                 TickDaze(e, dt);    // Daze.cs
                 foreach (var tick in Classes.EnemyHooks)  // each class's KitDef.TickEnemy
                     tick(this, e, dt);
+                if (!StillIn(e))
+                    continue;  // removed by a class hook this tick
                 e.Suppress = Math.Max(0f, e.Suppress - SuppressFade * dt);
                 e.SmokeT = Math.Max(0f, e.SmokeT - dt);  // a Grenade Launcher smoke cloud's jam wears off out of it (GrenadeLauncher.cs)
                 KeepOutOfDuel(e);  // GatekeeperRoom.cs
@@ -621,7 +625,7 @@ namespace Arena
                             e.FireT = Rand(0.2f, 0.4f);  // not its turn: hold fire and reposition (Readability.cs)
                         else if (!e.Def.IsBoss && !Challenges.Own(e.Type) && !Zombies.Is(e.Type) && enemyShots >= RegularShotBudget())
                             e.FireT = Rand(0.2f, 0.4f);  // the screen is full: hold this volley and try again shortly
-                        else
+                        else if (e.Hp > 0f || e.Def.IsBoss)  // (killed by a burn, poison or bleed this tick: no last volley; a boss at 0 is changing phase)
                             EnemyFire(e, tpos);
                     }
                 }
@@ -710,13 +714,15 @@ namespace Arena
                 {
                     Enemy a = list[i], b = list[j];
                     V2 d = b.Pos - a.Pos;
-                    float l = d.Length, minD = a.Radius + b.Radius;
-                    if (l < minD && l > 0.001f)
+                    float minD = a.Radius + b.Radius, l2 = d.LengthSq;
+                    if (l2 < minD * minD)  // (squared first: no square root for the pairs far apart)
                     {
+                        float l = (float)Math.Sqrt(l2);
+                        V2 dir = l > 0.001f ? d / l : V2.FromAngle((a.Id * 7 + b.Id * 13) * 0.618f);  // on the very same spot (both clamped into one corner): split them a set way
                         // Bosses don't get shoved around by small fry.
                         float wa = Heavy(a) ? 0f : (Heavy(b) ? 1f : 0.5f);
                         float wb = Heavy(b) ? 0f : (Heavy(a) ? 1f : 0.5f);
-                        V2 push = d / l * (minD - l);
+                        V2 push = dir * (minD - l);
                         a.Pos -= push * wa;
                         b.Pos += push * wb;
                     }

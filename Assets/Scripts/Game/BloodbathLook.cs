@@ -151,7 +151,7 @@ namespace Arena
         {
             if (game == null)
                 return;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.BathHeal))
             {
                 if (fx.Kind != FxKind.BathHeal || fx.T > Game.BathHealFxTime)
                     continue;

@@ -8,7 +8,7 @@ namespace Arena
     ///     teammate they touch (NeedleTouches). Each needle in you heals NeedleHeal a second; up to NeedleMax at once, all
     ///     falling out NeedleTime after the last one went in. The NeedleMax-th opens the meridian: they all come out at
     ///     once for a burst of MeridianHeal (FxKind.NeedleBurst).
-    ///   Alt (Msg.WeaponDash DashBloodlet): Bloodletting, three long needles (Defs.BloodNeedle) fanned at the cursor, every
+    ///   Alt (Msg.WeaponDash WeaponAlt.Bloodlet): Bloodletting, three long needles (Defs.BloodNeedle) fanned at the cursor, every
     ///     BloodletCd. Each hits for the weapon's damage, sticks (Enemy.NeedlesIn) and adds a stack of the shared bleed
     ///     (BloodBleed a second). The NeedleMax-th in one enemy bursts at the pressure point: PressureDmg (bosses
     ///     PressureBoss), the bleed renewed, the needles out.
@@ -22,7 +22,6 @@ namespace Arena
         public const float BloodletCd = 0.9f, BloodSpeed = 760f, BloodRange = 420f, BloodFan = 0.04f, BloodBleed = 3f;
         public const float PressureDmg = 25f, PressureBoss = 15f, ReturnHeal = 4f, ReturnSpeed = 700f, ReturnTurn = 9f;
         public static readonly Rgba NeedleJade = new Rgba(0.37f, 0.88f, 0.64f), NeedleBlood = new Rgba(1f, 0.3f, 0.38f);
-        const byte DashBloodlet = 69;  // Msg.WeaponDash kind
 
         float DoseMultOf(int owner) => Players.ContainsKey(owner) ? Players[owner].Stats.DoseMult : 1f;
         static float NeedlePower(Bullet b) => b.Dmg / Defs.WeaponOf(WeaponId.AcupunctureNeedles).Damage;  // damage upgrades
@@ -99,11 +98,11 @@ namespace Arena
             {
                 bloodletLocalCd = BloodletCd;
                 if (IsHost)
-                    HostWeaponDash(MyId, DashBloodlet, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.Bloodlet, aimAt);
                 else
                 {
                     var w = Proto.Begin(Msg.WeaponDash);
-                    w.Write(DashBloodlet);
+                    w.Write(WeaponAlt.Bloodlet);
                     w.Write(aimAt);
                     session.SendToHost(Proto.End(w));
                 }

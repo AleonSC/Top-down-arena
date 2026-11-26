@@ -24,10 +24,7 @@ namespace Arena
         /// Host: the cast. Nothing near the cursor: the dart is spent on nothing (like Mark for Death).
         void CastPoisonDart(Player p, V2 target, bool mastered, float power)
         {
-            Enemy best = null;
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && (best == null || e.Pos.DistanceSq(target) < best.Pos.DistanceSq(target)))
-                    best = e;
+            Enemy best = NearestEnemy(target, by: p.Id);
             if (best == null)
                 return;
             castHits++;

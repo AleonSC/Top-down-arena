@@ -11,7 +11,7 @@ namespace Arena
     ///     the cone take the same shock (gathered, StaticTurretFlush at a time). Teammates it touches get Overcharge.
     ///     The host only sends Player.StaticOn: every screen works the circuit out itself (StaticCircuit), so the links you
     ///     see are the ones the host shocks.
-    ///   Alt (Msg.WeaponDash DashArcCannon): the Arc Cannon. A giant ball of lightning (CannonBallR) rolls at CannonSpeed to your
+    ///   Alt (Msg.WeaponDash WeaponAlt.ArcCannon): the Arc Cannon. A giant ball of lightning (CannonBallR) rolls at CannonSpeed to your
     ///     cursor (CannonMin to CannonReach out) through everyone: each enemy it passes takes CannonPassDmg x the damage once,
     ///     each teammate gets Overcharge; at the end it bursts (CannonBurstR): CannonBurstDmg x the damage, a CannonStun stun (not on
     ///     bosses or heavies) and Overcharge for teammates in it. CannonCd cooldown. Drawn from FxKind.ArcBall (its flight) and
@@ -30,7 +30,6 @@ namespace Arena
         public const float CannonBurstR = 120f, CannonPassDmg = 0.5f, CannonBurstDmg = 1.25f, CannonStun = 0.8f, CannonCd = 5f, CannonBurstFx = 0.9f;
         public const float OverchargeTime = 10f, OverchargeMove = 1.25f, OverchargeFire = 1.3f, OverchargeShot = 1.35f;
         public static readonly Rgba StaticBlue = new Rgba(0.62f, 0.89f, 1f), CannonViolet = new Rgba(0.79f, 0.7f, 1f), OverchargeGold = new Rgba(1f, 0.8f, 0.35f);
-        const byte DashArcCannon = 56;
 
         /// The cone's reach (Homing Rounds' area grows it).
         public static float StaticRangeOf(Player p) => StaticRange * AreaMult(p);
@@ -231,11 +230,11 @@ namespace Arena
             {
                 arcLocalCd = CannonCd;
                 if (IsHost)
-                    HostWeaponDash(MyId, DashArcCannon, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.ArcCannon, aimAt);
                 else
                 {
                     var w = Proto.Begin(Msg.WeaponDash);
-                    w.Write(DashArcCannon);
+                    w.Write(WeaponAlt.ArcCannon);
                     w.Write(aimAt);
                     session.SendToHost(Proto.End(w));
                 }

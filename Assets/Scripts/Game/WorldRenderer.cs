@@ -46,6 +46,13 @@ namespace Arena
             UpdateDownedLooks();  // who went down or stood back up (DownedLooks.cs)
             if (ReplayHeldFrame())
                 return;  // hit-pause: last frame again
+            FillLookBuckets();  // each effect kind's and enemy type's list, once a frame (FxOf, EnemiesOf)
+            try { DrawWorldFrame(); }
+            finally { lookBucketsLive = false; }
+        }
+
+        void DrawWorldFrame()
+        {
             BeginJuiceFrame();
             float t = game.AnimT;
             // Behind the arena: the background this player picked in the lobby, dimmed so the fight stays easy to read.
@@ -410,6 +417,77 @@ namespace Arena
             DrawStonespearLeftovers(t);  // spent Stonespear spears and their dust (StonespearLook.cs)
             foreach (var fx in game.Effects)
                 DrawEffect(fx, t);
+        }
+
+        // --- Per-frame buckets: the looks ask for their own kind instead of each filtering the whole list ---------------
+
+        List<Effect>[] fxBuckets;
+        List<Enemy>[] enemyBuckets;
+        bool lookBucketsLive;  // true while DrawWorld draws: the buckets match the game this frame
+        readonly List<Effect>[] fxScratch = NewLists<Effect>(8);
+        readonly List<Enemy>[] enemyScratch = NewLists<Enemy>(8);
+        int fxScratchAt, enemyScratchAt;
+
+        static List<T>[] NewLists<T>(int n)
+        {
+            var a = new List<T>[n];
+            for (int i = 0; i < n; i++)
+                a[i] = new List<T>();
+            return a;
+        }
+
+        static int EnumSize(Type t)
+        {
+            int max = 0;
+            foreach (var v in Enum.GetValues(t))
+                max = Math.Max(max, Convert.ToInt32(v));
+            return max + 1;
+        }
+
+        /// Sorts this frame's effects by FxKind and enemies by EnemyType, in their list order (the lists are kept and reused).
+        void FillLookBuckets()
+        {
+            if (fxBuckets == null)
+            {
+                fxBuckets = NewLists<Effect>(EnumSize(typeof(FxKind)));
+                enemyBuckets = NewLists<Enemy>(EnumSize(typeof(EnemyType)));
+            }
+            foreach (var l in fxBuckets)
+                l.Clear();
+            foreach (var l in enemyBuckets)
+                l.Clear();
+            foreach (var fx in game.Effects)
+                fxBuckets[(int)fx.Kind].Add(fx);
+            foreach (var e in game.Enemies.Values)
+                enemyBuckets[(int)e.Type].Add(e);
+            lookBucketsLive = true;
+        }
+
+        /// This frame's effects of one kind, in game.Effects order. Outside DrawWorld (the HUD, tools) it filters the
+        /// list there and then, into one of a few reused lists.
+        List<Effect> FxOf(FxKind kind)
+        {
+            if (lookBucketsLive)
+                return fxBuckets[(int)kind];
+            var l = fxScratch[fxScratchAt++ & 7];
+            l.Clear();
+            foreach (var fx in game.Effects)
+                if (fx.Kind == kind)
+                    l.Add(fx);
+            return l;
+        }
+
+        /// This frame's enemies of one type, in game.Enemies order (as FxOf).
+        List<Enemy> EnemiesOf(EnemyType type)
+        {
+            if (lookBucketsLive)
+                return enemyBuckets[(int)type];
+            var l = enemyScratch[enemyScratchAt++ & 7];
+            l.Clear();
+            foreach (var e in game.Enemies.Values)
+                if (e.Type == type)
+                    l.Add(e);
+            return l;
         }
 
         /// Enemy bullets, drawn last in the arena (after effects, sparks and the additive glow; before Fogbound's mist and
@@ -1077,12 +1155,29 @@ namespace Arena
             segs = SegsFor(center, r, MathX.Tau, segs);
             SetColor(c);
             V2 prev = center + new V2(r, 0);
+            var unit = UnitCircle(segs);
             for (int i = 1; i <= segs; i++)
             {
-                V2 next = center + V2.FromAngle(MathX.Tau * i / segs) * r;
+                V2 next = center + (unit != null ? unit[i] : V2.FromAngle(MathX.Tau * i / segs)) * r;
                 Tri(center, prev, next);
                 prev = next;
             }
+        }
+
+        /// The unit circle cut into `segs` points (0 to segs, the same angles Circle used to work out each time), kept per count.
+        static readonly V2[][] unitCircles = new V2[257][];
+        static V2[] UnitCircle(int segs)
+        {
+            if (segs <= 0 || segs >= unitCircles.Length)
+                return null;
+            var u = unitCircles[segs];
+            if (u == null)
+            {
+                u = unitCircles[segs] = new V2[segs + 1];
+                for (int i = 0; i <= segs; i++)
+                    u[i] = V2.FromAngle(MathX.Tau * i / segs);
+            }
+            return u;
         }
 
         void Arc(V2 center, float r, float width, Rgba c, int segs, float start = 0f, float sweep = MathX.Tau)

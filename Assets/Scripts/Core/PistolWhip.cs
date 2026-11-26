@@ -11,10 +11,9 @@ namespace Arena
     ///     stunned enemies RevFanStunMult harder; then the hammer needs RevFanReload before it fans again.
     /// Holding the parry and clicking fans at any time (the one shot you can take with the shield up). Raising the parry
     /// after a whip starts the combo over (the next click whips again), and cuts a fan you started with a click.
-    /// Your game sends Msg.WeaponDash (DashRevStance) for the switch; the host keeps the step (replicated).
+    /// Your game sends Msg.WeaponDash (WeaponAlt.RevStance) for the switch; the host keeps the step (replicated).
     public partial class Game
     {
-        const byte DashRevStance = 42;
         public const byte RevIdle = 0, RevWhip = 1, RevLinked = 2, RevFan = 3;  // Player.RevStep
         public const float WhipReach = 120f, WhipArc = 110f;  // the arc's radius (px) and width (degrees)
         public const float WhipMult = 0.5f;                   // damage against a Gunslinger shot's
@@ -48,11 +47,11 @@ namespace Arena
             {
                 revSwitchLocalCd = RevSwitchCd;
                 if (IsHost)
-                    HostWeaponDash(MyId, DashRevStance, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.RevStance, aimAt);
                 else
                 {
                     var w = Proto.Begin(Msg.WeaponDash);
-                    w.Write(DashRevStance);
+                    w.Write(WeaponAlt.RevStance);
                     w.Write(aimAt);
                     session.SendToHost(Proto.End(w));
                 }

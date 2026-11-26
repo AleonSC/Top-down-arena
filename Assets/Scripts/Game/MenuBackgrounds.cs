@@ -21,9 +21,7 @@ namespace Arena
 
         static string BackgroundCosmeticId(int i) => i >= FirstRewardBg && i - FirstRewardBg < RewardBackgrounds.Length ? RewardBackgrounds[i - FirstRewardBg] : null;
         static int BackgroundIndexOfCosmetic(string id) { int k = System.Array.IndexOf(RewardBackgrounds, id); return k < 0 ? DeepFieldBg : FirstRewardBg + k; }
-        static bool BackgroundReactive(int i) => Rank.IsReactiveBackground(BackgroundCosmeticId(i));
         static bool BackgroundLocked(int i) { var id = BackgroundCosmeticId(i); return id != null && !Rank.Owns(Profile.Current.RankNow, id); }
-        static int BackgroundRank(int i) { var c = Rank.Cosmetic(BackgroundCosmeticId(i)); return c != null ? c.Rank : 0; }
 
         int menuBg = DeepFieldBg;    // the player's pick
         bool menuBgOverride;         // pref "menu_bg_override": the pick shows on the main menu too, instead of the Holo Floor

@@ -39,7 +39,7 @@ namespace Arena
         /// Each frame: the screen kick when a wave leaves, and forgetting what is over.
         void UpdateBloodFreezeLook(float t)
         {
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.BloodFreeze))
             {
                 if (fx.Kind != FxKind.BloodFreeze)
                     continue;
@@ -82,7 +82,7 @@ namespace Arena
         {
             if (!fxOn)
                 return;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.BloodFreeze))
                 if (fx.Kind == FxKind.BloodFreeze)
                     DrawBfFloor(fx);
         }
@@ -314,7 +314,7 @@ namespace Arena
                 return s;
             if (!e.Frozen)
                 return null;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.BloodFreeze))
             {
                 if (fx.Kind != FxKind.BloodFreeze || fx.T < Game.FreezeCharge || fx.T > Game.FreezeCharge + Game.FreezeSweep + 0.6f)
                     continue;

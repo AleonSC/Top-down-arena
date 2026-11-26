@@ -14,7 +14,6 @@ namespace Arena
         readonly List<RoomTrap> devTraps = new List<RoomTrap>();
         int devTrapVer;
         public int DevTrapCount => devTraps.Count;
-        public int DevTrapVersion => devTrapVer;
 
         /// Host: put a trap at a point.
         public bool DevPlaceTrap(TrapKind kind, V2 at, float half)

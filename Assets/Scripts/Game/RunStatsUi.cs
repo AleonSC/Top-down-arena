@@ -391,7 +391,7 @@ namespace Arena
                     Ui.Label(new Rect(x + 80f, y, w - 80f, 22f), "—", 13, HoloDim);
                 else
                 {
-                    Ui.Icon(new Rect(x + 80f, y + 3f, 16f, 16f), PixelArt.ForUpgrade(Upgrades.Ability(id).Name));
+                    Ui.Icon(new Rect(x + 80f, y + 3f, 16f, 16f), PixelArt.ForAbility(id));
                     Ui.Label(new Rect(x + 102f, y, w - 160f, 22f), Upgrades.Ability(id).Name, 13, Color.white, TextAnchor.MiddleLeft, true);
                     bool w2 = Ui.CrtFont;
                     Ui.CrtFont = true;
@@ -421,7 +421,7 @@ namespace Arena
                 var u = Upgrades.All[ids[i]];
                 float ux = x + (i / perCol) * colW, uy = y + (i % perCol) * rowH;
                 TipUpgrade(new Rect(ux - 4f, uy, colW - 4f, rowH), p, u, counts[ids[i]]);
-                Ui.Icon(new Rect(ux, uy + 2f, 16f, 16f), PixelArt.ForUpgrade(u.Name));
+                Ui.Icon(new Rect(ux, uy + 2f, 16f, 16f), PixelArt.ForUpgrade(u));
                 Ui.Label(new Rect(ux + 22f, uy, colW - 60f, rowH), u.Name, 12, Color.Lerp(Upgrades.RarityColor(u.Rarity).ToColor(), Color.white, 0.45f));
                 if (counts[ids[i]] > 1)
                     CrtUi.Title(new Rect(ux, uy, colW - 12f, rowH), "×" + counts[ids[i]], 17, CrtStyle.Gold, TextAnchor.MiddleRight, calm);

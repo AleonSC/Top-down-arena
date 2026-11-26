@@ -88,10 +88,8 @@ namespace Arena
 
         void SupplyImpact(Zone z)
         {
-            foreach (var e in Enemies.Values)
+            foreach (var e in FoesInCircle(z.Pos, SupplyBlast, by: z.Owner))
             {
-                if (e.SpawnT > 0f || e.Pos.FartherThan(z.Pos, SupplyBlast + e.Radius))
-                    continue;
                 HurtEnemy(e, SupplyImpactDmg * z.DmgMult, z.Owner);
                 if (!e.Def.IsBoss)
                     Stun(e, SupplyStagger);

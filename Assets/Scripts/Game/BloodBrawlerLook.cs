@@ -33,7 +33,7 @@ namespace Arena
                 bsLiftGame = game;
                 bsLiftAt = game.AnimT;
                 bsLift.Clear();
-                foreach (var fx in game.Effects)
+                foreach (var fx in FxOf(FxKind.BsBlow))
                 {
                     if (fx.Kind != FxKind.BsBlow)
                         continue;
@@ -67,7 +67,7 @@ namespace Arena
         Effect BsLatest(Player p, int id, bool echoes)
         {
             Effect best = null;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.BsBlow))
                 if (fx.Kind == FxKind.BsBlow && (int)fx.Pos2.Y == p.Id && (id < 0 || (int)fx.Pos2.X == id)
                     && (echoes || fx.Radius < 9.5f) && (best == null || fx.T < best.T))
                     best = fx;
@@ -323,7 +323,7 @@ namespace Arena
             if (p.Downed)
                 return;
             Effect last = null;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.BsBlow))
                 if (fx.Kind == FxKind.BsBlow && (int)fx.Pos2.Y == p.Id && fx.Radius < 9.5f && (last == null || fx.T < last.T))
                     last = fx;
             if (last == null)

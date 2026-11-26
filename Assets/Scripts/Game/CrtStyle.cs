@@ -57,7 +57,6 @@ namespace Arena
 
         // The big boxes and the screen round them (the lobby, and the drawer menus that sit on its loadout box)
         public static readonly Color Corner = new Color(0.36f, 0.6f, 1f);           // the bracket corners (LobbyKit.Corners)
-        public static readonly Color BoxFill = new Color(0.027f, 0.051f, 0.118f, 0.98f);  // the loadout box (CrtKit.LoadoutBox)
         public static readonly Color BoxWash = new Color(0.36f, 0.64f, 1f);         // the colour of its gradient wash (LobbyKit.Wash)
         public static readonly Color BoxRim = new Color(0.19f, 0.32f, 0.55f);       // its thin rim
         public static readonly Color ScreenGlow = new Color(0.05f, 0.13f, 0.32f);   // the glow in the middle of the lobby's screen (alpha 0.38)

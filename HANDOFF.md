@@ -190,7 +190,7 @@ A class is mostly two new files plus a line in each registry. Templates: `Docs/C
 4. **`Game/<Class>Look.cs`** from the template, plus its `KitLook` line in `Game/ClassLooks.cs`. Per-class player
    fields (timers, buffs) go on `Player` in `Game.cs`, and in `SyncPlayer` (`GameNet.cs`) if clients draw them.
 5. **Icons** in `PixelArt.cs`: the class card (`class_<name>`, named by `KitDef.Icon`) and one per 1st ability
-   (`ByUpgrade` maps the ability's name to it). Ultimates have none.
+   (named by its `AbilityDef.Icon`). Ultimates have none.
    **Upgrade cards** for the class (its 1st abilities' Rare cards, weapon or class cards) go in `Game.<Class>Cards`
    beside its abilities, added to `Upgrades.All`'s `Gather` (Docs/UpgradePools.md).
 6. **Check:** `Tools/SimTest/run.sh 1 1 classes` lists every missing piece (weapon cases, ability casts, icons, blurb,
@@ -342,6 +342,13 @@ feature; `git log --oneline` is usually enough.
 The October 2026 audit and its work plan are done; the full notes (and the November second pass) are in
 [`Docs/History.md`](Docs/History.md) under "Audit findings". Still open:
 
+- **Late-Nov 2026 audit (protocol 526), still open:** per-weapon `switch` tables (a new weapon touches a median 9 files:
+  `BotWeaponAlt`, `Weapons`, `CharacterModels`, `MeleeLooks`, `ShotLooks`; a `WeaponDef.BotAlt` delegate and a look table would
+  cut it), `GameNet.SyncPlayer` (539 lines, ~264 `Player` fields; a per-weapon `Sync` hook), 7 copies of a cone test
+  (`MathX.InCone`), ~47 hand-written enemy bullet rings (`EnemyRing`), gold colour literals (61 copies of `CrtStyle.Gold`),
+  HUD strings rebuilt every OnGUI pass (`Hud.cs`), a new `byte[]` per received message (`Net.cs`), pooled `Effect`s.
+  Done in that pass: 11 network/sim bugs, solo snapshot cost, `EnemyIndex`, render buckets (`FxOf`/`EnemiesOf`),
+  `BossFight`, `WeaponAlt`, `AbilityDef.Icon`, ~900 lines of dead code.
 - **Reference tables are generated** into [`Docs/Reference.md`](Docs/Reference.md) (`run.sh 1 1 refdocwrite`; suite `refdoc` fails when stale). Still open: the README's hand-written weapon/enemy prose could link to or drop numbers that table now holds.
 - **Collision is all-pairs** (player bullets x enemies, enemy bullets x players). Cheap with the bullet budget; a
   uniform grid only matters if counts grow a lot (endless mode, more players).

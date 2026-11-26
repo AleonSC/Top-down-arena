@@ -272,11 +272,11 @@ namespace Arena
             {
                 knuckleSwapLocalCd = 0.25f;
                 if (IsHost)
-                    HostWeaponDash(MyId, DashKnuckleStance, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.KnuckleStance, aimAt);
                 else
                 {
                     var w = Proto.Begin(Msg.WeaponDash);
-                    w.Write(DashKnuckleStance);
+                    w.Write(WeaponAlt.KnuckleStance);
                     w.Write(aimAt);
                     session.SendToHost(Proto.End(w));
                 }

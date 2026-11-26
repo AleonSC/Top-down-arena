@@ -460,7 +460,7 @@ namespace Arena
                 case ChallengeKind.Mirror:
                 {
                     int left = 0;
-                    foreach (var e in game.Enemies.Values)
+                    foreach (var e in EnemiesOf(EnemyType.Shadow))
                         if (e.Type == EnemyType.Shadow)
                             left++;
                     frac = game.Players.Count > 0 ? 1f - (float)left / game.Players.Count : 0f;

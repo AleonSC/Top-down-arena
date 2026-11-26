@@ -8,7 +8,7 @@ namespace Arena
     /// projectile leaves your hand HammerThrowRelease seconds after the click (FireVolley queues it, TickHammerThrows spawns it).
     /// The weapon-action key (Left Alt) slams it into the floor instead: HammerSlamWind later a shockwave runs out from a point
     /// HammerSlamReach ahead of you, hurting, shoving and electrifying every enemy it crosses (HostHammerSlam, TickHammerSlams).
-    /// Your game sends Msg.WeaponDash (DashHammerSlam); the host checks the cooldown and does the rest. Screens draw the pose from
+    /// Your game sends Msg.WeaponDash (WeaponAlt.HammerSlam); the host checks the cooldown and does the rest. Screens draw the pose from
     /// FxKind.HammerThrow (Pos2.X = 0 a throw, 1 a slam's wind-up; Radius = the player's id) and the shockwave from FxKind.HammerSlam.
     public partial class Game
     {

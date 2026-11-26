@@ -14,7 +14,7 @@ namespace Arena
         void DrawLichScene(float t)
         {
             Enemy lich = null;
-            foreach (var e in game.Enemies.Values)
+            foreach (var e in EnemiesOf(EnemyType.Lich))
                 if (e.Type == EnemyType.Lich && e.Lich != null && !game.IsSpawning(e))
                     lich = e;
             if (lich == null)
@@ -32,7 +32,7 @@ namespace Arena
             if (s.Stage == LichStage.Harvest && s.TransT <= 0f)
             {
                 var ph = new System.Collections.Generic.List<Enemy>();
-                foreach (var o in game.Enemies.Values)
+                foreach (var o in EnemiesOf(EnemyType.Phylactery))
                     if (o.Type == EnemyType.Phylactery && !game.IsSpawning(o))
                         ph.Add(o);
                 ph.Sort((a, b) => a.Id.CompareTo(b.Id));
@@ -88,7 +88,7 @@ namespace Arena
             Circle(pos, r + 30f, aura.WithAlpha(0.1f + 0.05f * Mathf.Sin(t * 5f)), 32);
             if (e.Phase == Game.LichGuarded)
             {
-                foreach (var o in game.Enemies.Values)
+                foreach (var o in EnemiesOf(EnemyType.Phylactery))
                     if (o.Type == EnemyType.Phylactery)
                         Line(pos, o.Disp, 2f, aura.WithAlpha(0.4f + 0.3f * Mathf.Sin(t * 8f)));
                 Circle(pos, r + 14f, aura.WithAlpha(0.15f), 32);
