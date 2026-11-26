@@ -740,6 +740,11 @@ namespace Arena
                     TickRocketDrop(z, dt);  // the slam, the launcher taken (RocketDrop.cs)
                     continue;
                 }
+                if (IsBanner(z.Kind))
+                {
+                    TickBanner(z, dt);  // the Knight banners (KnightBanners.cs)
+                    continue;
+                }
                 if (z.Kind == ZoneKind.RocketFire)
                 {
                     TickRocketFire(z, dt);  // the burn (RocketDrop.cs)

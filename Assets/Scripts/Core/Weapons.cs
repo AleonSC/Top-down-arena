@@ -12,7 +12,8 @@ namespace Arena
             * (OverclockOn(p) ? OverclockMult : 1f)  // an Overclock Chip (Gadgets.cs)
             * (Supplied(p) ? SupplyFire : 1f)  // a Supply Drop (SupplyDrop.cs)
             * BoilFireMult(p)  // Blood Boil (BloodBoil.cs)
-            * CrFireMult(p);  // a Chakra Surge (ChakraReserves.cs)
+            * CrFireMult(p)  // a Chakra Surge (ChakraReserves.cs)
+            * WarFireMult(p);  // standing at a War Standard (KnightBanners.cs)
 
         /// spread: each shot lands somewhere within this many radians of your aim.
         void FirePlayer(Player p, float spread = 0f)

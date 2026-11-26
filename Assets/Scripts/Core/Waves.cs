@@ -195,6 +195,7 @@ namespace Arena
             FoldAllCovers();  // Deployable Covers fold away with a look rather than vanishing (DeployableCover.cs)
             FoldAllDecoys();  // and Decoy Dummies deflate (DecoyDummy.cs)
             FoldAllClaymores();  // and Claymores fold away (Claymore.cs)
+            LiftAllBanners();  // the Knight banners come down: their cooldowns start (KnightBanners.cs)
             Zones.Clear();
             Hazards.Clear();
             Cages.Clear();

@@ -80,6 +80,9 @@ namespace Arena
         CannonCall,     // the DPS Knight's 4th choice (CannonCall.cs), the lobby's 4th choice
         TidalTusker,    // the Tank Summoner's fourth ultimate (TidalTusker.cs), key 3 of the lobby's Ultimate row
         RocketDrop,     // the DPS Soldier's fourth ultimate (RocketDrop.cs), key 3 of the lobby's Ultimate row
+        AegisStandard,  // the Tank Knight's fourth ultimate (KnightBanners.cs), key 3 of the lobby's Ultimate row
+        PilgrimsStandard,  // the Healer Knight's second ultimate (KnightBanners.cs), key 1
+        WarStandard,    // the DPS Knight's third ultimate (KnightBanners.cs), key 2
         None = 255,
     }
 
@@ -375,7 +378,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Elementalist, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// Hemomancer.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.RocketUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.TuskerUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.HeartbeatUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.RocketUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.TuskerUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.HeartbeatUltimates, Game.BannerUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 

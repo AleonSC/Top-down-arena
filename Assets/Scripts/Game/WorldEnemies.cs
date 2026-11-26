@@ -289,6 +289,11 @@ namespace Arena
                 case ZoneKind.RocketDrop:
                     DrawRocketDrop(z, t);  // RocketDropLook.cs (no timer ring: the pod waits, then folds)
                     return;
+                case ZoneKind.AegisStandard:
+                case ZoneKind.PilgrimsStandard:
+                case ZoneKind.WarStandard:
+                    DrawKnightBanner(z, t);  // KnightBannersLook.cs (its own time arc)
+                    return;
                 case ZoneKind.RocketFire:
                     DrawRocketFire(z, t);  // RocketDropLook.cs (it dies down instead of a timer ring)
                     return;

@@ -385,6 +385,8 @@ namespace Arena
         public float TankT, TankArmor, TankMax;  // A Literal Tank (LiteralTank.cs), replicated: time left (0 = off), armour left, armour it came with
         public float TankCd;                     // host: until the main gun can fire again
         public float RocketT;                    // Rocket Drop (RocketDrop.cs), replicated: the launcher's time left (0 = off)
+        public float StdShieldHp, StdShieldMax;  // the Aegis Standard's shield and its most (KnightBanners.cs), replicated (0 = none)
+        public float StdShieldHitT; public bool StdShieldIn;  // host: seconds since a hit (its regen waits), inside an Aegis Standard last tick
         public float RocketCd;                   // host: until the launcher fires again
         public bool RocketMastered;              // host: taken with the capstone (longer, bomblets)
         public int RocketShots;                  // host: rockets fired (tests)

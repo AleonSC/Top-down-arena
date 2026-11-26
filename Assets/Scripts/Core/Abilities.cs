@@ -48,6 +48,11 @@ namespace Arena
                 EndBoil(p);
                 return;
             }
+            if (BannerPress(p, slot))  // a Knight banner pressed again: it comes down and the cooldown starts (KnightBanners.cs)
+            {
+                LiftBanner(ActiveBanner(p));
+                return;
+            }
             if (BathPress(p, slot))  // Bloodbath pressed again: the channel ends and the pool dries up (no cooldown spent; Bloodbath.cs)
             {
                 EndBath(ActiveBath(p));

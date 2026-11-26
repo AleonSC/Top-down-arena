@@ -1190,6 +1190,7 @@ static partial class Shot {
     RodentMinigunScene();  // RODENT=<s since the cast> [RODENTAIM=<deg>] (ShotRodentMinigun.cs)
     MammothFallScene();  // MAMMOTH=<s since the cast> (ShotMammothFall.cs)
     RocketDropScene();  // ROCKETDROP=<s since the cast> [ROCKETCAP=1]: the DPS Soldier's Rocket Drop (ShotRocketDrop.cs)
+    KnightBannersScene();  // BANNER=aegis|pilgrim|war [BANNERT=<s>] [BANNERCAP=1]: the Knight banner ultimates (ShotKnightBanners.cs)
     TuskerScene();  // TUSKER=<s since the cast> [TUSKERCAP=1]: the Tank Summoner's Tidal Tusker (ShotTusker.cs)
     ForbiddenPathScene();  // FORBIDDEN=<s since the cast> (ShotForbiddenPath.cs)
     HoneyRaidScene();  // HONEY=<s since the cast> [HONEYCAP=1]: the Healer Summoner's Honey Raid (ShotHoneyRaid.cs)
