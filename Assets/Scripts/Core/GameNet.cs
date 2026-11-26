@@ -585,6 +585,7 @@ namespace Arena
             SyncBloodBoil(s, p);  // BloodBoil.cs
             SyncForbiddenPath(s, p);  // ForbiddenPath.cs
             SyncAstralProjection(s, p);  // AstralProjection.cs
+            SyncHeartbeat(s, p);  // Heartbeat.cs
             SyncStaticBubble(s, p);  // StaticBubble.cs
             SyncRodentMinigun(s, p);  // RodentMinigun.cs
             SyncHelicopter(s, p);  // AttackHelicopter.cs
