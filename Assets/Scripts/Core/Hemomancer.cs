@@ -11,19 +11,18 @@ namespace Arena
         // The Gore Mortar : hold to charge, let go to lob a clot over enemies. The charge sets only
         // how far it lands (ClotMin on a tap to ClotMax at full); the splash hits the same at any range, then a big pool
         // slows enemies and congeals after PoolCongeal (a look only: it never stops them).
-        // Every shot costs ClotCost of your max health (never below 1); the pools heal everyone standing in them (the
-        // Blood Pool zone's HealRate, Kits.cs), so you can win some of it back by wading into your own blood.
-        public const float ClotMin = 160f, ClotMax = 520f, ClotSplash = 70f, ClotPoolRadius = 130f, ClotPoolTime = 4f, ClotFan = 0.2f, ClotCost = 0.06f;
+        // Every shot costs ClotCost of your max health (never below the blood floor, HemoFloor); the pools don't heal.
+        public const float ClotMin = 160f, ClotMax = 520f, ClotSplash = 70f, ClotPoolRadius = 130f, ClotPoolTime = 4f, ClotFan = 0.2f, ClotCost = 0.03f;
         public static float ClotDistance(float c) => ClotMin + (ClotMax - ClotMin) * c;
         public static float ClotFlight(float c) => 0.45f + 0.3f * c;
         public static float ClotApex(float c) => 50f + 110f * c;  // how high it flies (drawing only)
         public const float PoolCongeal = 1f;  // (each weapon's main reach, speed and damage are in Defs)
-        const float BloodPriceMax = 0.4f, BloodSteal = 0.03f, VeinSteal = 0.4f, VeinRange = 300f;
+        const float BloodPriceMax = 0.4f, VeinSteal = 0.4f, VeinRange = 300f;
         public const float VeinBeamHalfWidth = 6f;  // Vein Tether's beam (its length and damage per tick are the weapon's Reach and Damage)
         public const float GraspArc = 70f * MathX.Pi / 180f;  // Leech Tendrils reach across this arc (their reach and damage per tick are the weapon's Reach and Damage)
         public const int GraspTendrils = 3;                   // enemies held at once (+1 per extra projectile or Barrage stack)
         const float GraspLetGo = 1.3f, GraspHold = 0.3f, GraspFuse = 5f, GraspCooldown = 1f, GraspCost = 0.02f;      // a held enemy slips free past 130% of the reach; it stays stunned this long after each tick
-        public const float TransfuseCost = 4f, TransfuseHeal = 20f, TransfuseSteal = 0.5f;  // a dart gives an ally a lot, costs you a little; each enemy hit steals a sliver
+        public const float TransfuseCost = 0.03f, TransfuseHeal = 20f, TransfuseSteal = 0.5f;  // a dart gives an ally a lot, costs you a little (a share of your max health); each enemy hit steals a sliver
         const float ShellTime = 5f;  // (Blood Gift's shield; Blood Shell itself is BloodShell.cs)
         const float DrainRadius = 220f, DrainAmount = 20f;  // Exsanguinate (Exsanguinate.cs)
         const float GiftMult = 2f, GiftSplash = 200f, MartyrRevive = 0.5f;
@@ -603,58 +602,69 @@ namespace Arena
         {
             Player p;
             if (b.Kind == Defs.TransfuseShot && Players.TryGetValue(b.Owner, out p))
-                PayHealth(p, TransfuseCost, p.Weapon.Name);
+                PayHealth(p, p.MaxHp * TransfuseCost, p.Weapon.Name);
         }
 
         // --- Health as a resource ---------------------------------------------------------
 
-        /// Spend health, never below 1 (or nothing while down). Returns how much was actually paid; the session
-        /// recording counts it as health spent on `what`, not damage taken.
+        /// The blood floor: no health cost, toggle or drain takes you under this share of your max health (only enemies
+        /// can), so spending health never downs you. Shown as a line on the health bar.
+        public const float HemoFloor = 0.2f;
+        public static float HealthFloor(Player p) => Math.Max(1f, p.MaxHp * HemoFloor);
+        public static bool AtHealthFloor(Player p) => p.Hp <= HealthFloor(p) + 0.01f;
+
+        /// Spend health, never below the blood floor (or nothing while down). Returns how much was actually paid; the
+        /// session recording counts it as health spent on `what`, not damage taken.
         float PayHealth(Player p, float cost, string what)
         {
             cost *= p.Stats.HealthCostMult;  // Bloodthirst (the Hemomancer's class card)
             if (p.Downed || cost <= 0f)
                 return 0f;
-            float paid = Math.Max(0f, Math.Min(cost, p.Hp - 1f));
+            float paid = Math.Max(0f, Math.Min(cost, p.Hp - HealthFloor(p)));
             p.Hp -= paid;
             return paid;
         }
 
         float castPaid;  // health paid for the ability being cast (Hemomancer abilities scale with it)
 
-        /// Host, as an ability is cast: pay its health cost, if it has one.
-        void PayAbilityCost(Player p, AbilityId id)
+        /// Host, as an ability is cast: pay its health cost, if it has one. What the blood floor leaves unpaid goes on the
+        /// cooldown instead: nothing paid doubles it, half paid adds half.
+        void PayAbilityCost(Player p, int slot, AbilityId id)
         {
             castPaid = 0f;
             if (id == AbilityId.None)
                 return;
             var d = Upgrades.Ability(id);
             if (d.HealthCost > 0f)
-                castPaid = PayHealth(p, (d.CostsCurrent ? p.Hp : p.MaxHp) * d.HealthCost, d.Name);
+            {
+                float want = (d.CostsCurrent ? p.Hp : p.MaxHp) * d.HealthCost;
+                castPaid = PayHealth(p, want, d.Name);
+                float owed = want * p.Stats.HealthCostMult;
+                if (owed > 0f && castPaid < owed - 0.01f && !p.Downed)
+                    p.Slots[slot].Timer += Cooldown(p, slot) * (1f - castPaid / owed);
+            }
             if (castPaid >= 1f)  // blood spurts off you: you can see what it cost
                 BroadcastFx(FxKind.Bleed, p.Pos, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), castPaid, 0.55f, Sfx.None);
         }
 
-        /// Blood Price: a Hemomancer deals up to 40% more damage the more health it's missing (full bonus at 10%
-        /// health). Applied in HurtEnemy, with Blood Boil's share.
+        /// Blood Price: a Hemomancer deals up to 40% more damage the more health it's missing (full bonus at the blood
+        /// floor, HemoFloor). Applied in HurtEnemy, with Blood Boil's share.
         float BloodDamageMult(Player p)
         {
             float boil = BoilDmgMult(p);  // Blood Boil (BloodBoil.cs), whatever the class (a Wildcard can pick it)
             if (p.Kit != Kit.Hemomancer || p.MaxHp <= 0f)
                 return boil;
-            float missing = Math.Max(0f, Math.Min(1f, (1f - p.Hp / p.MaxHp) / 0.9f));
+            float missing = Math.Max(0f, Math.Min(1f, (1f - p.Hp / p.MaxHp) / (1f - HemoFloor)));
             return (1f + BloodPriceMax * missing) * boil;
         }
 
-        /// Healing from damage dealt (HurtEnemy): a Hemomancer's 3%, Blood Debt's 15% while it runs, and a boss's blood
-        /// paying the debt back (BloodDebt.cs).
+        /// Healing from damage dealt (HurtEnemy): Blood Debt's 15% while it runs, and a boss's blood paying the debt back
+        /// (BloodDebt.cs). The Hemomancer has no lifesteal of its own (owner Nov 26): its kills drop its own health orbs.
         void BloodLifesteal(Player p, Enemy e, float dealt)
         {
             if (p.Downed || dealt <= 0f)
                 return;
             float frac = 0f;
-            if (p.Kit == Kit.Hemomancer && !bathTick)
-                frac += BloodSteal;  // (a Bloodbath tick pays back its own share instead: Bloodbath.cs)
             if (p.DebtT > 0f)
                 frac += DebtSteal;
             if (frac > 0f)
@@ -685,12 +695,12 @@ namespace Arena
         internal static readonly KitDef HemomancerKit = new KitDef
         {
             Id = Kit.Hemomancer, Name = "Hemomancer", Icon = "class_hemomancer",
-            Blurb = "Blood magic: health is your resource. Every 1st ability costs a share of your health (never below 1 HP), every hit heals you for 3% of its damage, and you hit harder the lower your health (up to +40%). Shorter cooldowns make up for it. Full health and normal speed: live on the edge.",
+            Blurb = "Blood magic: health is your resource. Every 1st ability costs a share of your health (never below 20%: what you can't pay lengthens the cooldown), your kills drop health orbs only you can drink, and you hit harder the lower your health (up to +40%). Shorter cooldowns make up for it. Full health and normal speed: live on the edge.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireBloodWeapon(p, aim, dir, muzzle, dmg, extra),
             Ability = (g, p, id, target) => g.BloodAbility(p, id, target),
             Tick = (g, dt) => g.TickHemomancers(dt),
             OnShotHit = (g, b, e, hit) => g.BloodShotHit(b, e, hit),  // Hemomancer shots drain, pool and drop orbs
-            OnKill = (g, e) => { g.DebtKill(e); g.BlastKill(e); g.GolemKill(e); },  // a kill pays back Blood Debt (BloodDebt.cs), sends Blood Blast stacks home (BloodBlast.cs) and grows a Blood Golem a coat (BloodGolem.cs)
+            OnKill = (g, e) => { g.DebtKill(e); g.BlastKill(e); g.GolemKill(e); g.FreezeKill(e); },  // a kill pays back Blood Debt (BloodDebt.cs), sends Blood Blast stacks home (BloodBlast.cs), grows a Blood Golem a coat (BloodGolem.cs) and heals a Blood Freeze's caster (BloodFreeze.cs)
         };
 
         /// The Hemomancer's weapons (Kit.Hemomancer; FireBloodWeapon).
@@ -701,7 +711,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.BloodLash, BotAlt = BloodLashBotAlt, BotAltHold = true, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach, +1 link per enemy and +1 max Clot", Name = "Blood Lash", FireInterval = 0.32f,
                 Desc = "Primary Fire: A four-step blood whip that chains enemies, then yanks them in.\n\nAlternative Fire: Hold for Martyr's Leash." },
             new WeaponDef { Id = WeaponId.GoreMortar, Charge = true, Range = (g, p, w, x) => ClotDistance(g.LiveDraw(p)) * p.Stats.ShotSpeedMult, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Damage = 34f, BotRange = 380f, ExtraDesc = "+1 glob, fanned out", Name = "Gore Mortar", FireInterval = 0.75f,
-                Desc = "Primary Fire: Hold to charge, then lob a blood clot that leaves a slowing, healing pool.",
+                Desc = "Primary Fire: Hold to charge, then lob a blood clot that leaves a slowing pool.",
                 Sound = Sfx.SpellArcane, AreaDesc = "splash and pool 25% wider" },
             new WeaponDef { Id = WeaponId.LeechTendrils, Range = (g, p, w, x) => p.Def.BodyR + g.GraspReach(p), Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 80f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
                 Desc = "Primary Fire: Hold to grab and stun nearby enemies; they burst when the blood builds up.",
@@ -821,7 +831,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.BloodFreeze, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 1,
-                Name = "Blood Freeze", Icon = "bloodfreeze", Cooldown = 14f, HealthCost = 0.25f, Desc = "Freeze every enemy near you at a cost of health.",
+                Name = "Blood Freeze", Icon = "bloodfreeze", Cooldown = 14f, HealthCost = 0.25f, Desc = "Freeze every enemy near you at a cost of health; enemies that die frozen heal you.",
                 Capstone = "Frozen enemies take 25% more damage.",
                 Bot = b => b.Danger && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
@@ -856,7 +866,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ThornBloom, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (ThornBloom.cs)
-                Name = "Thorn Bloom", Icon = "thornbloom", Cooldown = TbCooldown, HealthCost = TbCost, Desc = "Burst blood needles all round that chain between enemies.",
+                Name = "Thorn Bloom", Icon = "thornbloom", Cooldown = TbCooldown, HealthCost = TbCost, Desc = "Burst blood needles all round that chain between enemies; each needle that hits heals you.",
                 Capstone = "Tendrils jump 5 times.",
                 Bot = b => b.NearEnemies >= 3 && b.TargetD < 240f && b.Me.Hp > b.Me.MaxHp * 0.4f,
             },

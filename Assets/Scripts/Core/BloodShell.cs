@@ -11,8 +11,8 @@ namespace Arena
     {
         public const float ShellRadius = 96f;
         public const float ShellPopFrac = 1f / 3f;   // it bursts when your health falls to this share of your max
-        const float ShellCost = 7f, ShellHeal = 4f;  // health you pay / each ally inside gets, per bullet it stops
-        const float ShellDrain = 1.5f;               // health a second it bleeds you just for standing (bullets cost far more)
+        const float ShellCost = 0.04f, ShellHeal = 4f;  // share of your max health you pay / health each ally inside gets, per bullet it stops
+        const float ShellDrain = 0.01f;                // share of your max health a second it bleeds you just for standing
         const float ShellPopShove = 150f;            // enemies near a burst are flung this far out
 
         /// Pressing Blood Shell again while it stands takes it down (no cooldown is spent for the press itself).
@@ -40,7 +40,7 @@ namespace Arena
                 EndShell(p, true);
             else
             {
-                PayHealth(p, ShellDrain * dt, "Blood Shell");
+                PayHealth(p, p.MaxHp * ShellDrain * dt, "Blood Shell");
                 if (p.Hp <= p.MaxHp * ShellPopFrac + 0.01f)
                     EndShell(p, true);
             }
@@ -78,7 +78,7 @@ namespace Arena
         /// A bullet reached the skin: it stops, you pay for it, and every ally inside gets a little back.
         void ShellHit(Player p, Bullet b)
         {
-            float cost = ShellCost * (float)Math.Pow(0.75, p.Stats.ShellBonus);
+            float cost = p.MaxHp * ShellCost * (float)Math.Pow(0.75, p.Stats.ShellBonus);
             float heal = ShellHeal * (1f + 0.5f * p.Stats.ShellBonus) * p.ShellPower;
             PayHealth(p, cost, "Blood Shell");
             foreach (var q in Players.Values)

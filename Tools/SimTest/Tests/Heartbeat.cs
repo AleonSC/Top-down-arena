@@ -106,14 +106,14 @@ static partial class Program
         step(0.6f);
         Check(!Game.HbOn(me) && me.HbT == 0f && me.UltT == 0f && me.HbBeatCount == 3, "it ends after the last wave, with no more beats");
 
-        // The floor: never below 15%.
+        // The floor: never below the blood floor (20%).
         reset();
-        me.Hp = me.MaxHp * 0.18f;
+        me.Hp = me.MaxHp * 0.23f;
         cast();
         float low = me.Hp;
         for (float tt = 0f; tt < Game.HbTotal + 0.1f; tt += dt) { step(dt); low = Math.Min(low, me.Hp); }
-        Console.WriteLine("  heartbeat: from 18%: lowest {0:0.0}%, paid {1:0.0}%", 100f * low / me.MaxHp, 100f * me.HbPaid / me.MaxHp);
-        Check(low >= me.MaxHp * Game.HbFloor - 0.01f && me.HbPaid < me.MaxHp * 0.24f - 1f && !me.Downed && me.HbBeatCount == 3, "the price stops at 15%, and the beats still come");
+        Console.WriteLine("  heartbeat: from 23%: lowest {0:0.0}%, paid {1:0.0}%", 100f * low / me.MaxHp, 100f * me.HbPaid / me.MaxHp);
+        Check(low >= me.MaxHp * Game.HbFloor - 0.01f && me.HbPaid < me.MaxHp * 0.24f - 1f && !me.Downed && me.HbBeatCount == 3, "the price stops at the blood floor (20%), and the beats still come");
 
         // --- The waves ------------------------------------------------------------------------------------------------------
         reset();

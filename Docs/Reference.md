@@ -21,7 +21,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Summoner | x0.9 | x1 | Fights through minions. Your weapon brings its own creatures (wolves, wisps, imps, bees) that hunt, bite and soak hits, and they stay with you between waves. Point them at what matters. 90% health. |
 | Knight | x1.15 | x1 | Melee. Holding fire swings instead of shooting, hitting every enemy in the arc and cutting small bullets out of the air in front of you (big orbs, mines and red aimed shots still get through). Armoured for the thick of it: 115% health. |
 | Ninja | x0.85 | x1.12 | Thrown blades and quick melee with tricks and misdirection: stars that come back, stances, smoke and shadow clones. Fast (+12% move speed) but lightly protected (85% health): hit, slip away, hit again. |
-| Hemomancer | x1 | x1 | Blood magic: health is your resource. Every 1st ability costs a share of your health (never below 1 HP), every hit heals you for 3% of its damage, and you hit harder the lower your health (up to +40%). Shorter cooldowns make up for it. Full health and normal speed: live on the edge. |
+| Hemomancer | x1 | x1 | Blood magic: health is your resource. Every 1st ability costs a share of your health (never below 20%: what you can't pay lengthens the cooldown), your kills drop health orbs only you can drink, and you hit harder the lower your health (up to +40%). Shorter cooldowns make up for it. Full health and normal speed: live on the edge. |
 | Engineer | x1 | x0.95 | A builder who works in vectors: robots, walls, pylons and breaches drawn in cyan ink. Draftsman: +25% vectors. One robot weapon, ability and ultimate per role for now (the DPS also has the Bumble Remote). Full health, a little slower (95%). |
 | Arcanist | x0.9 | x1 | A mage of telekinesis, runes and enchantments: shards and blades that fly at your will, enemies lifted and thrown, sigils on the floor. Kinetic Field: enemy shots slow down near you. One weapon, ability and ultimate per role for now. 90% health. |
 
@@ -123,7 +123,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
 |---|---|---|---|---|---|---|---|
 | Blood Lash | Tank | 0.32 s | 24 | - | 130 | 96 | Primary Fire: A four-step blood whip that chains enemies, then yanks them in.  Alternative Fire: Hold for Martyr's Leash. |
-| Gore Mortar | Tank | 0.75 s | 34 | - | - | 133 | Primary Fire: Hold to charge, then lob a blood clot that leaves a slowing, healing pool. |
+| Gore Mortar | Tank | 0.75 s | 34 | - | - | 133 | Primary Fire: Hold to charge, then lob a blood clot that leaves a slowing pool. |
 | Leech Tendrils | Tank | 0.1 s | 80 | - | 160 | 31 | Primary Fire: Hold to grab and stun nearby enemies; they burst when the blood builds up. |
 | Blood Blast | Tank | 0.42 s | 22 | - | 115 | 53 | Primary Fire: A six-step blood sword combo; every hit marks enemies, and their deaths heal you. |
 | Transfusion Darts | Healer | 0.2 s | 7 | 850 x 0.85 s | - | 32 | Primary Fire: Darts that heal hurt allies for more than they cost you. |
@@ -309,7 +309,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Bloodbath | Tank | ultimate | 75 s | - | The pool spreads to 220 px and gives back 35% of the bleed. | Flood the floor with blood that slows and bleeds enemies and heals you. |
 | Blood Golem | Tank | ultimate | 80 s | - | Lasts 13 s and each coat left bursts for 30. | Tear the blood off enemies and your own veins into coats, then fight as a golem made of them. |
 | Blood Gift | Healer | 1st, choice 1 | 8 s | 25% of current health | Also heals everyone else within 200 px of them for half as much. | Pay health to heal the most hurt ally twice as much. |
-| Blood Freeze | Healer | 1st, choice 2 | 14 s | 25% of max health | Frozen enemies take 25% more damage. | Freeze every enemy near you at a cost of health. |
+| Blood Freeze | Healer | 1st, choice 2 | 14 s | 25% of max health | Frozen enemies take 25% more damage. | Freeze every enemy near you at a cost of health; enemies that die frozen heal you. |
 | Martyr | Healer | 1st, choice 3 | 16 s | 40% of max health | You're invulnerable for 2 s after the sacrifice. | Pay health to revive a downed ally, or ward the most hurt one. |
 | Sanguine Rain | Healer | ultimate | 80 s | - | Lasts 14 s and heals 4% a tick. | Rain healing circles that follow your allies. |
 | Heartbeat | Healer | ultimate | 80 s | - | The waves hit 40% harder. | Your heart beats three times, each beat costing 8% of your health: a wave of blood bursts 320 px out of you, hitting for 45. Every enemy it kills drops a blood orb. |
@@ -319,7 +319,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Crimson Harvest | Dps | ultimate | 65 s | - | Hold 8 s, and 25% more blood. | Rip blood from every enemy into a ball, then throw it as a huge blast. |
 | Blood Ravager | Dps | ultimate | 70 s | - | Lasts 12 s. | Eight blood legs burst out of you for 9 s: run fast and trample, and every click lashes a leg at an enemy nearby. |
 | Blood Boil | Dps | ultimate | 70 s | - | Up to +90% damage at full boil. | Your health drains for 10 s; the lower it gets, the faster you move and fire and the harder you hit. Press again to end it. |
-| Thorn Bloom | Dps | 1st, choice 5 | 8 s | 12% of max health | Tendrils jump 5 times. | Burst blood needles all round that chain between enemies. |
+| Thorn Bloom | Dps | 1st, choice 5 | 8 s | 12% of max health | Tendrils jump 5 times. | Burst blood needles all round that chain between enemies; each needle that hits heals you. |
 
 ### Engineer
 

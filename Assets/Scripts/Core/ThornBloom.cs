@@ -28,6 +28,7 @@ namespace Arena
         const float TbWidth = 5f;                                      // how near a needle's line an enemy must be (plus its radius)
         public const float TbCooldown = 8f, TbCost = 0.12f;
 
+        public const float TbNeedleHeal = 0.01f;  // each needle that strikes an enemy heals you this share of your max health
         struct TbHit { public int Owner, Target; public float T, Dmg; public bool Needle; }
         readonly List<TbHit> tbHits = new List<TbHit>();
 
@@ -135,7 +136,11 @@ namespace Arena
                     continue;
                 HurtEnemy(e, h.Dmg, p.Id);
                 if (h.Needle)
+                {
                     ApplyBleed(e, TbBleed, p.Id);
+                    if (!p.Downed)
+                        Heal(p, p.MaxHp * TbNeedleHeal, p);  // each needle that strikes gives some of the cost back
+                }
             }
         }
     }

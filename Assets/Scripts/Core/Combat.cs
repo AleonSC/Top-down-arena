@@ -108,7 +108,7 @@ namespace Arena
             DownIfDead(p, source);
         }
 
-        /// A player at 0 health goes down (Damage, and Vein Tithe's drain, which isn't a hit and gives no grace).
+        /// A player at 0 health goes down (Damage).
         void DownIfDead(Player p, string source)
         {
             if (p.Hp > 0f || p.Downed)
@@ -1482,8 +1482,8 @@ namespace Arena
                 SpawnOrbEach(e.Pos, false);
         }
 
-        /// Host: a Hemomancer's kill sometimes drops a blood orb, one orb shared by the team (Owner 0): whoever reaches it drinks it.
-        /// Not on a boss's own reward, and not where health orbs are off (Famine, Bloodlust, Blood Moon). A Heartbeat wave's
+        /// Host: a Hemomancer's kill sometimes drops a blood orb, a small health orb that only that Hemomancer sees and drinks
+        /// (Owner, owner Nov 26: it replaces the class's lifesteal). Not on a boss's own reward, and not where health orbs are off (Famine, Bloodlust, Blood Moon). A Heartbeat wave's
         /// kill always drops one (Heartbeat.cs).
         void DropBloodOrb(Enemy e, bool bossReward)
         {
@@ -1497,7 +1497,7 @@ namespace Arena
                 return;
             if (heart)
                 killer.HbOrbs++;
-            var o = SpawnOrb(e.Pos + new V2(0f, -10f), false);
+            var o = SpawnOrb(e.Pos + new V2(0f, -10f), false, owner: killer.Id);
             o.Blood = true;
             o.Life = BloodOrbLife;
         }

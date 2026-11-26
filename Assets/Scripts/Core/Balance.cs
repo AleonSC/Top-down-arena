@@ -71,10 +71,10 @@ namespace Arena
         public const float OrbLifetime = 12f;
         public const int StageOrbBase = 2;  // a boss changing phase drops this many small health orbs, plus one per player (Warden.cs: StageOrbs)
         const float OrbMagnetRange = 110f;
-        // Blood orbs: a Hemomancer's kill sometimes drops one, shared by the whole team (not a copy each); it lasts longer
-        // and drifts to a hurt player from much further off, so it isn't wasted on a big map.
+        // Blood orbs: a Hemomancer's kill sometimes drops one, a small health orb only that Hemomancer sees and drinks; it
+        // lasts longer and drifts to them from much further off, so it isn't wasted on a big map.
         public const float BloodOrbChance = 0.15f;
-        public const float BloodOrbHeal = 25f;
+        public const float BloodOrbHeal = OrbHeal;
         public const float BloodOrbLife = 20f;
         public const float BloodOrbRange = 600f;
         const float ReviveRange = 70f;

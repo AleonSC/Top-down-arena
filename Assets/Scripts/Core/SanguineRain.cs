@@ -13,7 +13,7 @@ namespace Arena
     public partial class Game
     {
         public const float RainCast = 1.8f, RainSeed = 0.6f, RainLen = 10f, RainLenMastered = 14f, RainTick = 0.5f;
-        public const float RainHeal = 0.03f, RainHealMastered = 0.04f, RainUpfront = 0.12f, RainDrain = 0.03f, RainFloor = 0.15f;
+        public const float RainHeal = 0.03f, RainHealMastered = 0.04f, RainUpfront = 0.12f, RainDrain = 0.03f, RainFloor = HemoFloor;
 
         /// A Sanguine Rain is on for this player (siphon, seed or rain).
         public static bool RainActive(Player p) => p.RainClock > 0f;
@@ -80,7 +80,7 @@ namespace Arena
                         if (q != p && !q.Downed)
                             Heal(q, q.MaxHp * frac, p);
                 }
-                if (p.Hp <= p.MaxHp * RainFloor)
+                if (p.Hp <= p.MaxHp * RainFloor + 0.01f)
                     EndRain(p, false);
             }
         }

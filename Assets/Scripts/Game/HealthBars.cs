@@ -84,6 +84,18 @@ namespace Arena
             Ui.Fill(new Rect(x0 - tw / 2f, hp.y - th, tw, hp.height + 2f * th), WoundTick(WoundLine, fl));
         }
 
+        /// The Hemomancer's blood floor (Game.HemoFloor): a crimson tick on the bar where health costs stop, with a dim
+        /// band under it, so you can see how much you have left to spend.
+        void DrawBloodFloor(Rect hp, Player p)
+        {
+            if (p.Kit != Kit.Hemomancer || p.MaxHp <= 0f)
+                return;
+            float x = hp.x + hp.width * Game.HemoFloor;
+            bool at = Game.AtHealthFloor(p);
+            Ui.Fill(new Rect(hp.x, hp.y, x - hp.x, hp.height), CrtStyle.Danger.WithAlpha(at ? 0.22f : 0.1f));
+            Ui.Fill(new Rect(x - 1f, hp.y - 2f, 2f, hp.height + 4f), at ? CrtStyle.Danger : CrtStyle.Danger.WithAlpha(0.75f));
+        }
+
         /// The same over a player's bar in the world (WorldPlayers.cs): x, y, width, height of the whole bar.
         void DrawWorldWound(float bx, float by, float bw, float bh, Player p)
         {

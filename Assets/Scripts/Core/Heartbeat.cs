@@ -8,8 +8,8 @@ namespace Arena
     ///   - Each beat costs HbCost of your max health (never below HbFloor, so it can't down you; Bloodthirst makes it
     ///     cheaper) and sends a wave of blood out of you to HbReach px in HbWaveTime s. The wave hits each enemy it reaches
     ///     once for HbDamage (HbDamageMastered mastered; scaled by your damage) and shoves it HbShove px.
-    ///   - Every enemy a wave kills drops a blood orb (Combat.cs DropBloodOrb, Enemy.HeartKill): the Hemomancer's shared one,
-    ///     25 health to whoever drinks it, drifting to a hurt player. Not where health orbs are off (Famine, Bloodlust, Blood Moon).
+    ///   - Every enemy a wave kills drops a blood orb (Combat.cs DropBloodOrb, Enemy.HeartKill): the Hemomancer's own one,
+    ///     a small health orb only the Hemomancer drinks, drifting to them. Not where health orbs are off (Famine, Bloodlust, Blood Moon).
     ///   - It ends after the last wave, or early when you go down, the wave ends or the slot changes.
     /// Replicated: Player.HbT (seconds since the cast; 0 = off). The beats and waves follow from it, so every game draws them
     /// the same. Drawn by Game/HeartbeatLook.cs.
@@ -17,7 +17,7 @@ namespace Arena
     {
         public const int HbBeats = 3;
         public const float HbWind = 0.35f, HbGap = 0.9f, HbWaveTime = 0.6f, HbReach = 320f;
-        public const float HbCost = 0.08f, HbFloor = 0.15f, HbDamage = 45f, HbDamageMastered = 63f, HbShove = 26f;
+        public const float HbCost = 0.08f, HbFloor = HemoFloor, HbDamage = 45f, HbDamageMastered = 63f, HbShove = 26f;
         public static readonly Rgba HbBlood = new Rgba(0.78f, 0.09f, 0.16f), HbCrest = new Rgba(1f, 0.55f, 0.55f), HbDark = new Rgba(0.33f, 0.02f, 0.05f);
 
         /// Heartbeat's entry: key 1 of the Healer Hemomancer's Ultimate row. Upgrades.Abilities gathers it.

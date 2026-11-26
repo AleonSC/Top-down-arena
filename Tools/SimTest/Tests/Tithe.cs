@@ -89,14 +89,14 @@ static partial class Program
         float after = dealt(100f);
         Check(Math.Abs(after - normal) < 0.01f, "damage is back to normal");
 
-        // Going down ends it at once, and the enemies are freed.
+        // The drain ends it at the blood floor (20%) instead of downing you, and the enemies are freed.
         reset();
         make(new V2(500f, 450f));
         hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, mePos, false });
         step(Game.TitheReach + 0.1f);
-        me.Hp = 0.01f * me.MaxHp * 0.01f;
+        me.Hp = me.MaxHp * Game.HemoFloor + 0.05f;
         step(1f);
-        Check(me.Downed && !Game.TitheActive(me) && me.Tithed.Count == 0, "if the drain takes you down it ends");
+        Check(!me.Downed && !Game.TitheActive(me) && me.Tithed.Count == 0 && Math.Abs(me.Hp - me.MaxHp * Game.HemoFloor) < 0.5f, "the drain ends it at the blood floor, never downing you");
         reset();
 
         // Bosses cost four times as much; mastered costs 25% less and lasts 20 s.

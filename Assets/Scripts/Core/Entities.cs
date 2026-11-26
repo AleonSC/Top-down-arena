@@ -843,6 +843,7 @@ namespace Arena
         public float FrostChillT;           // host: until the chill wears off
         public float FrozenT;               // Glacial Tomb: can't move or shoot (host)
         public float IceT, IceMult = 1f;    // Blood Freeze: seconds left of its ice, and the damage multiplier while it lasts (host; BloodFreeze.cs)
+        public int IceBy;                   // host: who froze it (its death while frozen heals them, FreezeKill)
         public float GraspT;                // Leech Tendrils: held, can't move or shoot (host)
         public int ReelBy;                  // host: Exsanguinate: the Hemomancer reeling it in (0: nobody; Exsanguinate.cs)
         public float ReelT, ReelHeal, ReelDmg;  // host: seconds into its reel (negative while staggered), and what it drains when it lands
@@ -982,7 +983,7 @@ namespace Arena
         public int Id;
         public int Owner;       // the player this copy is for (an enemy's or a crate's orb, Combat.cs SpawnOrbEach); 0: anyone's
         public bool Big, Tiny;  // Tiny: knocked loose by the Repulsion Cannon
-        public bool Blood;      // a blood orb: a Hemomancer's kill dropped it, and anyone can drink it (Combat.cs DropBloodOrb)
+        public bool Blood;      // a blood orb: a Hemomancer's kill dropped it, for that Hemomancer only (Owner; Combat.cs DropBloodOrb)
         public bool Med;        // a Deployable Medkit's orb (Medkit.cs), or a Field Hospital's
         public int Supply;      // host: the Supply Drop or Armor Drop zone that threw it (SupplyDrop.cs, ArmorDrop.cs; 0: none)
         public bool Vest;       // an Armor Drop's ballistic vest (ArmorDrop.cs): heals nothing, lies still, gives armor

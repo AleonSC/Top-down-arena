@@ -951,7 +951,7 @@ static partial class Program
         volley.Invoke(g, new object[] { me, 0f, 0 });
         float shotCost = me.MaxHp - me.Hp;
         Console.WriteLine("  clot cannon: a shot cost {0:0.0} of {1:0} health", shotCost, me.MaxHp);
-        Check(Math.Abs(shotCost - me.MaxHp * Game.ClotCost) < 0.01f, "every Gore Mortar shot costs 6% of your max health");
+        Check(Math.Abs(shotCost - me.MaxHp * Game.ClotCost) < 0.01f, "every Gore Mortar shot costs 3% of your max health");
         me.Hp = me.MaxHp;
         play(Game.ClotFlight(1f) + 0.05f, new PlayerInput());
         float fullHit = stuck.MaxHp - stuck.Hp, underHit = under.MaxHp - under.Hp, besideHit = beside.MaxHp - beside.Hp;
@@ -977,15 +977,14 @@ static partial class Program
         Console.WriteLine("  clot cannon: enemy free while wet {0}, free once it congealed {1}; 20 damage taken outside {2:0.0}, in your pool {3:0.0}",
             wetFree, setFree, outside, inside);
         Check(Math.Abs(inside - outside) < 0.01f && outside > 0f, "standing in your own pool doesn't guard you any more");
-        // Standing in the pool heals slowly (against your own healing standing outside it).
+        // Standing in the pool heals nothing more than standing outside it.
         Func<float> gain = () => { g.Orbs.Clear(); me.Hp = me.MaxHp * 0.5f; float h = me.Hp; play(1f, new PlayerInput()); return me.Hp - h; };  // (no health orbs dropped by earlier kills lying in the pool)
         float healIn = pool != null && g.Zones.ContainsKey(pool.Id) ? gain() : 0f;
         V2 inPool = from; from = new V2(300f, 450f);
         float healOut = gain();
         from = inPool;
         Console.WriteLine("  clot cannon: 1 s in the pool healed {0:0.0}, outside {1:0.0}", healIn, healOut);
-        Check(healIn - healOut > Kits.Get(ZoneKind.BloodPool).HealRate * 0.8f && healIn - healOut < Kits.Get(ZoneKind.BloodPool).HealRate * 1.3f,
-            "the pool slowly heals you while you stand in it");
+        Check(Kits.Get(ZoneKind.BloodPool).HealRate == 0f && Math.Abs(healIn - healOut) < 0.5f, "the pool doesn't heal (owner Nov 26)");
         from = new V2(300f, 450f);
         reset();
         g.Orbs.Clear();  // the dummies just cleared may drop health orbs where the next test's ally stands
@@ -1010,7 +1009,7 @@ static partial class Program
         play(0.5f, new PlayerInput());
         float stolen = me.Hp - before - selfHeal;
         Console.WriteLine("  transfusion darts: one dart gave an ally {0:0.0} for {1:0.0} of yours; one dart into an enemy healed you {2:0.00}", given, paid, stolen);
-        Check(Math.Abs(given - Game.TransfuseHeal) < 1f && Math.Abs(paid - Game.TransfuseCost) < 0.5f, "Transfusion Darts give a hurt ally a lot of health for a little of yours");
+        Check(Math.Abs(given - Game.TransfuseHeal) < 1f && Math.Abs(paid - me.MaxHp * Game.TransfuseCost) < 0.5f, "Transfusion Darts give a hurt ally a lot of health for a little of yours");
         Check(stolen >= Game.TransfuseSteal - 0.05f && stolen < 1.2f, "Transfusion Darts steal only a sliver from enemies");
         noOrbs = false;
         reset();

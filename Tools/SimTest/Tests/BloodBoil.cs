@@ -103,17 +103,17 @@ static partial class Program
         Console.WriteLine("  boil: full: speed {0:0} -> {1:0}, fire rate x{2:0.00} -> x{3:0.00}, a 100 hit {4:0} -> {5:0}", baseSpeed, me.Speed, baseRate, rate(), baseHit, hit());
         Check(Math.Abs(me.Speed - baseSpeed * (1f + Game.BoilSpeed)) < 1f, "you move 1.7 times as fast");
         Check(Math.Abs(rate() - baseRate * (1f + Game.BoilFire)) < 0.01f, "you fire twice as fast");
-        float priceMult = 1.4f;  // Blood Price at 10% health
+        float priceMult = 1.4f;  // Blood Price at 10% health (under the blood floor: the full +40%)
         Check(Math.Abs(hit() - baseHit / 1f * priceMult * (1f + Game.BoilDmg)) < 1f, "you hit 60% harder, on top of Blood Price");
 
         // Halfway down: half the boil.
-        me.Hp = me.MaxHp * 0.55f;
-        Check(Math.Abs(Game.BoilLevel(me) - 0.5f) < 1e-3f && Math.Abs(me.Speed - baseSpeed * (1f + Game.BoilSpeed * 0.5f)) < 1f, "at 55% health it boils halfway");
+        me.Hp = me.MaxHp * 0.6f;
+        Check(Math.Abs(Game.BoilLevel(me) - 0.5f) < 1e-3f && Math.Abs(me.Speed - baseSpeed * (1f + Game.BoilSpeed * 0.5f)) < 1f, "at 60% health it boils halfway");
 
-        // The floor: never below 5%.
-        me.Hp = me.MaxHp * 0.07f;
+        // The floor: never below the blood floor (20%).
+        me.Hp = me.MaxHp * 0.22f;
         step(1f);
-        Check(Math.Abs(me.Hp - me.MaxHp * Game.BoilFloor) < 0.5f && !me.Downed && Game.BoilOn(me), "the drain stops at 5%: it can't down you");
+        Check(Math.Abs(me.Hp - me.MaxHp * Game.BoilFloor) < 0.5f && !me.Downed && Game.BoilOn(me), "the drain stops at the blood floor (20%): it can't down you");
 
         // The end, on time: the health is kept, everything back to normal, a burst of steam.
         me.Hp = me.MaxHp * 0.3f;
@@ -125,7 +125,7 @@ static partial class Program
         Check(Math.Abs(me.Hp - hpEnd) < 2f, "and the drain stops there");
         Console.WriteLine("  boil: ended at {0:0}% health; speed {1:0} (was {2:0}), fire x{3:0.00}", 100f * me.Hp / me.MaxHp, me.Speed, baseSpeed, rate());
         Check(me.Hp < me.MaxHp * 0.3f && Math.Abs(me.Speed - baseSpeed) < 0.5f && Math.Abs(rate() - baseRate) < 0.01f, "you keep the health you're at; speed and fire rate go back to normal");
-        Check(Math.Abs(hit() - baseHit * (1f + 0.4f * Math.Min(1f, (1f - me.Hp / me.MaxHp) / 0.9f))) < 1f, "damage is back to Blood Price alone");
+        Check(Math.Abs(hit() - baseHit * (1f + 0.4f * Math.Min(1f, (1f - me.Hp / me.MaxHp) / (1f - Game.HemoFloor)))) < 1f, "damage is back to Blood Price alone");
         Check(g.Effects.Any(e => e.Kind == FxKind.BoilEnd), "a burst of steam at the end");
 
         // Pressing again ends it, with no cooldown spent.
