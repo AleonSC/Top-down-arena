@@ -47,7 +47,7 @@ namespace Arena
         public const float ChitinMax = 40f, ChitinWear = 5f, ChitinFill = 22f, ChitinR = 100f;
         public const float HiveCallCd = 6f, HiveCallTime = 1.2f, HiveCallSpeed = 320f;
         public const byte HiveIdle = 0, HiveFoe = 1, HiveAlly = 2, HiveCalled = 3;
-        public static readonly Rgba HiveGold = new Rgba(1f, 0.8f, 0.35f), ChitinGold = new Rgba(1f, 0.84f, 0.47f);
+        public static readonly Rgba HiveGold = Rgba.Gold, ChitinGold = new Rgba(1f, 0.84f, 0.47f);
 
         /// Everyone's swarms, oldest first.
         public readonly List<HiveSwarm> Swarms = new List<HiveSwarm>();
@@ -464,6 +464,23 @@ namespace Arena
             Swarms.Clear();
             hivePuffs.Clear();
             hiveLastPour.Clear();
+        }
+
+        // --- Network: the player's Hive Censer fields (SyncPlayer) ---
+
+        void SyncHiveCenser(NetSync s, Player p)
+        {
+            s.Float(ref p.ChitinHp);  // the Hive Censer
+            s.Bool(ref p.HiveOn);
+            s.Vec(ref p.HivePour);
+        }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Hive Call: every swarm onto a crowd or the boss it is pouring on
+        static bool HiveCenserBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            var e = v.ShootAt;
+            return !late && e != null && v.ShootD < HiveReach && g.Tap(g.HiveLocalCd <= 0f && g.Swarms.Exists(sw => sw.Owner == me.Id) && (e.Def.IsBoss || g.EnemiesNear(e.Pos, 120f) >= 3), 1f);
         }
     }
 }

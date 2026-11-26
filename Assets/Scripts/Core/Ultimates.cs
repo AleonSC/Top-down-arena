@@ -142,7 +142,7 @@ namespace Arena
                     p.DomePos = p.Pos;
                     EraseEnemyBullets(p.Pos, DomeRadius + 30f);  // anything already in flight inside is gone
                     KeepOutOfDomes();  // enemies inside are put out at the edge (Dome.cs)
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.8f, 0.35f), DomeRadius, 0.6f, Sfx.Roar);
+                    BroadcastFx(FxKind.Ring, p.Pos, Rgba.Gold, DomeRadius, 0.6f, Sfx.Roar);
                     break;
                 }
 

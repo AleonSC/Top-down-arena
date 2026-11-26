@@ -196,7 +196,7 @@ namespace Arena
         }
 
         public static bool GrounderFaces(Enemy e, V2 from) =>
-            e.Type == EnemyType.Grounder && Math.Abs(MathX.WrapPi((from - e.Pos).Angle - e.Facing)) < GrounderArc;
+            e.Type == EnemyType.Grounder && MathX.AngleWithin((from - e.Pos).Angle, e.Facing, GrounderArc);
 
         /// A player's shot grounded on a Grounder's face (Combat.cs, after BlocksShot): it charges, and full, it claps.
         void GroundShot(Enemy e)
@@ -311,7 +311,7 @@ namespace Arena
             foreach (var p in Players.Values)
                 if (p != marked && !p.Downed && p.Pos.CloserThan(marked.Pos, LineRing))
                     hit.Add(p);
-            var col = new Rgba(1f, 0.82f, 0.4f);
+            var col = Rgba.Gold;
             foreach (var p in hit)
             {
                 if (hit.Count > 1)
@@ -521,7 +521,7 @@ namespace Arena
             if (InStormFront(e))
                 return true;  // it's sweeping the front with the others
             AddHazard(tpos, CallerRadius, CallerWarn).Kind = HazardCaller;
-            BroadcastFx(FxKind.Spark, e.Pos + new V2(0f, -e.Radius - 8f), new Rgba(1f, 0.82f, 0.4f), 16f, 0.2f, Sfx.SpellZap);
+            BroadcastFx(FxKind.Spark, e.Pos + new V2(0f, -e.Radius - 8f), Rgba.Gold, 16f, 0.2f, Sfx.SpellZap);
             return true;
         }
 

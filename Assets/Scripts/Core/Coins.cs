@@ -192,7 +192,7 @@ namespace Arena
             else
             {
                 p.Gold += c.Value;
-                BroadcastFx(FxKind.Spark, c.Pos, new Rgba(1f, 0.82f, 0.3f), 12f, 0.25f, Sfx.Pickup);
+                BroadcastFx(FxKind.Spark, c.Pos, Rgba.Gold, 12f, 0.25f, Sfx.Pickup);
             }
         }
 

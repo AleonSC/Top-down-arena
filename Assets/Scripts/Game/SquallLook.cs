@@ -58,7 +58,7 @@ namespace Arena
             }
         }
 
-        static readonly Rgba SqWind = new Rgba(0.62f, 0.91f, 0.85f), SqBlue = new Rgba(0.56f, 0.82f, 1f), SqAmber = new Rgba(1f, 0.82f, 0.4f),
+        static readonly Rgba SqWind = new Rgba(0.62f, 0.91f, 0.85f), SqBlue = new Rgba(0.56f, 0.82f, 1f), SqAmber = Rgba.Gold,
             SqDust = new Rgba(0.79f, 0.71f, 0.54f), SqCloud = new Rgba(0.43f, 0.48f, 0.57f);
         static readonly float[] SqPuffs = { 0f, 0f, 1f, -0.72f, 0.15f, 0.72f, 0.72f, 0.1f, 0.74f, -0.32f, -0.48f, 0.66f, 0.36f, -0.42f, 0.64f, 0.05f, 0.5f, 0.62f };  // a Thunderhead's puffs: x, y, size
 

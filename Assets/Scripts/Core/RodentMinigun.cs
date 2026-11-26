@@ -168,5 +168,17 @@ namespace Arena
             if (p != null && p.Stats.RatBleed > 0f)
                 ApplyBleed(e, p.Stats.RatBleed, b.Owner);
         }
+
+        // --- Network: the player's Rodent Minigun fields (SyncPlayer) ---
+
+        void SyncRodentMinigun(NetSync s, Player p)
+        {
+            s.Float(ref p.RmT);  // Rodent Minigun
+            if (p.RmT > 0f)
+            {
+                s.Float(ref p.RmAng);
+                s.Float(ref p.RmLen);
+            }
+        }
     }
 }

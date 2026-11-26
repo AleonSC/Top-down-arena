@@ -95,6 +95,7 @@ namespace Arena
         public Rgba Mix(Rgba o, float f) => new Rgba(R + (o.R - R) * f, G + (o.G - G) * f, B + (o.B - B) * f, A);
 
         public static readonly Rgba White = new Rgba(1f, 1f, 1f);
+        public static readonly Rgba Gold = new Rgba(1f, 0.8f, 0.35f);  // the one gold (Game's CrtStyle.Gold is the same): coins, highlights, gilded trim
     }
 
     public static class MathX
@@ -108,5 +109,25 @@ namespace Arena
         public static float MoveTowards(float v, float target, float step) => v < target ? Math.Min(target, v + step) : Math.Max(target, v - step);
         /// An angle wrapped into [-Pi, Pi): the signed turn from one heading to another is WrapPi(to - from).
         public static float WrapPi(float a) => Fmod(a + Pi, Tau) - Pi;
+        /// Is heading `a` less than `half` (radians) either side of heading `b`?
+        public static bool AngleWithin(float a, float b, float half) => Math.Abs(WrapPi(a - b)) < half;
+
+        /// Is a body (centre `pos`, radius `radius`) in the cone from `apex` along `aim`, `half` either side, `reach` long?
+        /// The body counts for the reach (out past reach + radius). Within `inner` of the apex it is in (-1: only right on it).
+        /// `padBody` widens the angle by the body's size seen from the apex, asin(radius / distance);
+        /// `strict` makes the inner and angle tests `<` (else `<=`).
+        public static bool InCone(V2 apex, float aim, float half, float reach, V2 pos, float radius, float inner, bool padBody, bool strict = false)
+        {
+            V2 rel = pos - apex;
+            float d = rel.Length;
+            if (d > reach + radius)
+                return false;
+            if ((strict ? d < inner : d <= inner) || rel.IsZero)
+                return true;
+            float off = Math.Abs(WrapPi(rel.Angle - aim));
+            if (padBody)
+                return strict ? off < half + (float)Math.Asin(Math.Min(1f, radius / d)) : off <= half + (float)Math.Asin(Math.Min(1f, radius / d));
+            return strict ? off < half : off <= half;
+        }
     }
 }

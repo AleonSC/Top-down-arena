@@ -138,5 +138,11 @@ namespace Arena
         }
 
         bool SwitchStance() => Tap(true, KatanaSwitchCd + 0.02f);
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): store a finisher, pair both finishers, cancel for opening moves
+        static bool KatanaBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            return g.BotKatana(v, dt, late, ref firing);
+        }
     }
 }

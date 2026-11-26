@@ -19,10 +19,10 @@ namespace Arena
     {
         static readonly Rgba DecoyVinyl = new Rgba(0.945f, 0.85f, 0.71f), DecoyVinylDark = new Rgba(0.79f, 0.66f, 0.51f), DecoyShine = new Rgba(1f, 0.965f, 0.9f);
         static readonly Rgba DecoyCross = new Rgba(0.88f, 0.29f, 0.29f), DecoyHelmet = new Rgba(0.36f, 0.48f, 0.29f), DecoyFace = new Rgba(0.16f, 0.12f, 0.09f);
-        static readonly Rgba DecoyPull = new Rgba(0.35f, 0.95f, 0.5f), DecoyGold = new Rgba(1f, 0.8f, 0.35f);
+        static readonly Rgba DecoyPull = new Rgba(0.35f, 0.95f, 0.5f), DecoyGold = Rgba.Gold;
         static readonly Rgba[] DecoyConfetti =
         {
-            new Rgba(0.95f, 0.33f, 0.36f), new Rgba(1f, 0.8f, 0.35f), new Rgba(0.35f, 0.95f, 0.5f), new Rgba(0.4f, 0.64f, 1f), new Rgba(1f, 0.55f, 0.85f),
+            new Rgba(0.95f, 0.33f, 0.36f), Rgba.Gold, new Rgba(0.35f, 0.95f, 0.5f), new Rgba(0.4f, 0.64f, 1f), new Rgba(1f, 0.55f, 0.85f),
         };
 
         readonly HashSet<int> decoyHeard = new HashSet<int>();  // dummies whose throw sound has played (by zone id)

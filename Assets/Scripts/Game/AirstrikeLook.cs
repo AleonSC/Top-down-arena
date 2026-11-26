@@ -12,7 +12,7 @@ namespace Arena
     {
         static readonly Rgba AirRed = new Rgba(1f, 0.36f, 0.26f), AirSmoke = new Rgba(0.86f, 0.24f, 0.18f), AirJet = new Rgba(0.55f, 0.59f, 0.62f),
             AirJetLight = new Rgba(0.79f, 0.82f, 0.84f), AirCockpit = new Rgba(0.17f, 0.21f, 0.25f), AirEngine = new Rgba(1f, 0.67f, 0.31f),
-            AirBomb = new Rgba(0.23f, 0.27f, 0.19f), AirCrater = new Rgba(0.04f, 0.03f, 0.02f), AirFlame = new Rgba(1f, 0.47f, 0.16f), AirFlameHot = new Rgba(1f, 0.82f, 0.4f);
+            AirBomb = new Rgba(0.23f, 0.27f, 0.19f), AirCrater = new Rgba(0.04f, 0.03f, 0.02f), AirFlame = new Rgba(1f, 0.47f, 0.16f), AirFlameHot = Rgba.Gold;
 
         void DrawAirstrikeFx(Effect fx)
         {

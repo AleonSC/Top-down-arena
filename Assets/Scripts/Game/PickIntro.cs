@@ -95,7 +95,7 @@ namespace Arena
                 return;
             float a = Mathf.Sin(Mathf.PI * k), w = wide * (1f - k * 0.6f), footY = foot.Y - bodyR * 0.2f, fadeLen = bodyR * 2.1f;
             float top = MathX.Lerp(footY, -20f, EaseOut(Mathf.Min(1f, k * 2.5f)));
-            var gold = new Rgba(1f, 0.8f, 0.35f);
+            var gold = Rgba.Gold;
             const int bands = 10, sub = 4;  // each band split, so the foot's fade is smooth
             for (int b = 0; b < bands; b++)  // brightest near the foot, fading toward the top
             {
@@ -130,7 +130,7 @@ namespace Arena
                 PickPillar(home, Seg(e, 0f, IntroPillarEnd), 44f, PickHomeR(me));
                 float g = Seg(e, 0.05f, IntroPillarEnd);
                 if (g > 0f && g < 1f)
-                    Arc(home, 20f + 110f * EaseOut(g), 4f, new Rgba(1f, 0.8f, 0.35f, 1f - g), 40);
+                    Arc(home, 20f + 110f * EaseOut(g), 4f, Rgba.Gold.WithAlpha(1f - g), 40);
             }
             for (int i = 0; i < n; i++)
             {
@@ -160,7 +160,7 @@ namespace Arena
             EndUiGl();
         }
 
-        static Rgba PickColor(Player me, int i) => me.Offer != null && i < me.Offer.Length && me.OfferCards ? BossCardRgba(me.Offer[i]) : me.Offer != null && i < me.Offer.Length ? Upgrades.RarityColor(Upgrades.All[me.Offer[i]].Rarity) : new Rgba(1f, 0.8f, 0.35f);
+        static Rgba PickColor(Player me, int i) => me.Offer != null && i < me.Offer.Length && me.OfferCards ? BossCardRgba(me.Offer[i]) : me.Offer != null && i < me.Offer.Length ? Upgrades.RarityColor(Upgrades.All[me.Offer[i]].Rarity) : Rgba.Gold;
 
         /// The title during a full opening: popping in large in the middle on a dark band (like the run launch's GET
         /// READY), then sliding up to its place. Returns its y and font size, and how much of the band to show.

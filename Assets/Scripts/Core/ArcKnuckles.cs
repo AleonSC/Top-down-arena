@@ -283,5 +283,27 @@ namespace Arena
             }
             return true;
         }
+
+        // --- Network: the player's Arc Knuckles fields (SyncPlayer) ---
+
+        void SyncArcKnuckles(NetSync s, Player p)
+        {
+            s.Bool(ref p.KnuckleArmed);
+            s.Byte(ref p.KnuckleDashes);
+            s.Byte(ref p.KnuckleChain);
+            s.Vec(ref p.KnuckleDashTo);   // where the Rocket Dash ends, and what it locked onto (the chain turns to it)
+            s.Int(ref p.KnuckleTarget);
+            s.Byte(ref p.KnuckleStance);  // the Arc Knuckles' stance, the Brawl move next, the Barrage's root and the Quake Punch's charge (ArcKnucklesBrawl.cs)
+            s.Byte(ref p.KnuckleMove);
+            s.Bool(ref p.KnuckleRooted);
+            s.Byte(ref p.KnuckleCharge);  // the dash chain's stage: your own game roots you and shows the Fire prompt  // Rocket Dashes started: your own game dashes when it changes  // the Arc Knuckles' Counter Hammer is armed
+        }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Alt swaps stance: between combos it takes turns, Rocket to dash in on a target a way off, Brawl again once the chain is done
+        static bool ArcKnucklesBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            return !late && !me.Parrying && v.ShootAt != null && g.Tap(me.KnuckleStance == 0 ? me.KnuckleMove == 0 && v.ShootD > 90f : me.KnuckleChain == 0, 5f);
+        }
     }
 }

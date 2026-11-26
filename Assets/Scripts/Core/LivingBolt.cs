@@ -223,5 +223,13 @@ namespace Arena
             boltLocalCd = Bot ? BoltBotLock : BoltLock;
             return true;
         }
+
+        // --- Network: the player's Living Bolt fields (SyncPlayer) ---
+
+        void SyncLivingBolt(NetSync s, Player p)
+        {
+            s.Float(ref p.BoltT);  // Living Bolt
+            s.Float(ref p.BoltAge);
+        }
     }
 }

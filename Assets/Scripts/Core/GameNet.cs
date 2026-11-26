@@ -535,11 +535,8 @@ namespace Arena
             s.Float(ref p.OverdriveT);
             s.Float(ref p.AdrenalineT);
             s.Float(ref p.SurgeT);  // Arcane Surge (your own firing reads it)
-            s.Int(ref p.MomentumStacks);  // Momentum.cs
-            s.Float(ref p.MomentumT);
-            s.Float(ref p.IronLost);  // Ironhide.cs
-            s.Float(ref p.IronWait);
-            s.Float(ref p.IronCap);
+            SyncMomentum(s, p);  // Momentum.cs
+            SyncIronhide(s, p);  // Ironhide.cs
             s.Float(ref p.SwiftT);  // Consecrate's Swiftness (HolyCross.cs)
             s.Float(ref p.TauntT);
             s.Float(ref p.AegisT);
@@ -555,20 +552,7 @@ namespace Arena
             s.Float(ref p.ParryBroken);
             bool shellOn = p.ShellOn;
             s.Bool(ref shellOn);  // Blood Shell (BloodShell.cs)
-            byte gadget = (byte)p.Gadget;  // Gadgets.cs
-            s.Byte(ref gadget);
-            p.Gadget = (GadgetId)gadget;
-            s.Float(ref p.GadgetLeft);
-            s.Bool(ref p.GadgetOn);
-            s.Byte(ref p.GadgetUses);
-            for (int i = 0; i < p.BagKind.Length; i++)  // the gadget bag (Gadgets.cs)
-            {
-                byte bk = (byte)p.BagKind[i];
-                s.Byte(ref bk);
-                p.BagKind[i] = (GadgetId)bk;
-                s.Float(ref p.BagLeft[i]);
-                s.Byte(ref p.BagUses[i]);
-            }
+            SyncGadgetBag(s, p);  // Gadgets.cs
             bool sprayOn = p.SprayOn;
             s.Bool(ref sprayOn);  // Arterial Spray (ArterialSpray.cs)
             bool standOn = p.StandOn;
@@ -576,8 +560,7 @@ namespace Arena
             s.Float(ref p.StandAim);
             s.Float(ref p.ShieldHp);
             s.Float(ref p.ShieldT);
-            s.Float(ref p.OverHp);       // a health shrine's health past max (Shrines.cs)
-            s.ULong(ref p.ShrinesUsed);
+            SyncShrineBuffs(s, p);  // Shrines.cs
             s.Float(ref p.GustT);  // Gust Gate's boost (GustGate.cs)
             s.Float(ref p.WardT);
             s.Float(ref p.StunT);
@@ -585,445 +568,109 @@ namespace Arena
             s.Float(ref p.WarpT);  // (BossBeam.cs)
             s.Float(ref p.PvpSlowT);  // a slow from another player (Pvp.cs)
             s.Float(ref p.PvpSlowMult);
-            int grasped = p.Grasp.Count;  // Leech Tendrils' held enemies (Hemomancer.cs)
-            s.Byte(ref grasped);
-            if (s.Reading)
-            {
-                p.Grasp.Clear();
-                p.GraspCharge.Clear();
-            }
-            for (int k = 0; k < grasped; k++)
-            {
-                int held = s.Reading ? 0 : p.Grasp[k];
-                float charge = s.Reading || k >= p.GraspCharge.Count ? 0f : p.GraspCharge[k];
-                s.Int(ref held);
-                s.Float(ref charge);  // how far this one has built up toward its blast
-                if (s.Reading)
-                {
-                    p.Grasp.Add(held);
-                    p.GraspCharge.Add(charge);
-                }
-            }
-            s.Float(ref p.JuggT);  // the Juggernaut Suit (Juggernaut.cs)
-            s.Float(ref p.JuggArmor);
-            s.Float(ref p.JuggMax);
-            s.Float(ref p.TankT);  // A Literal Tank (LiteralTank.cs)
-            s.Float(ref p.TankArmor);
-            s.Float(ref p.TankMax);
-            s.Float(ref p.ColT);  // Stone Colossus (StoneColossus.cs)
-            s.Float(ref p.ColAge);
-            s.Float(ref p.ColWind);
-            s.Float(ref p.GolT);  // Blood Golem (BloodGolem.cs)
-            s.Float(ref p.GolAge);
-            s.Float(ref p.GolCoats);
-            s.Float(ref p.GolPunch);
-            s.Float(ref p.SpT);  // Spirit Avatar (SpiritAvatar.cs)
-            s.Float(ref p.SpAge);
-            s.Float(ref p.SpWind);
-            s.Float(ref p.SpAng);
-            s.Float(ref p.TitheClock);  // Vein Tithe (VeinTithe.cs)
-            int tithed = Math.Min(255, p.Tithed.Count);
-            s.Byte(ref tithed);
-            if (s.Reading)
-                p.Tithed.Clear();
-            for (int k = 0; k < tithed; k++)
-            {
-                int held = s.Reading ? 0 : p.Tithed[k];
-                s.Int(ref held);
-                if (s.Reading)
-                    p.Tithed.Add(held);
-            }
-            for (int k = 0; k < Player.WallPlates; k++)
-                s.Byte(ref p.WallPlate[k]);
-            s.Float(ref p.UnbreakT);
+            SyncGrasp(s, p);  // Hemomancer.cs
+            SyncJuggernaut(s, p);  // Juggernaut.cs
+            SyncLiteralTank(s, p);  // LiteralTank.cs
+            SyncStoneColossus(s, p);  // StoneColossus.cs
+            SyncBloodGolem(s, p);  // BloodGolem.cs
+            SyncSpiritAvatar(s, p);  // SpiritAvatar.cs
+            SyncVeinTithe(s, p);  // VeinTithe.cs
+            SyncKnight(s, p);  // Knight.cs
             s.Float(ref p.RodT);    // Lightning Rod's charge (LightningRod.cs)
-            s.Float(ref p.VortexT);  // Vortex (Vortex.cs)
-            s.Float(ref p.VortexAge);
-            s.Float(ref p.VortexR);
-            s.Float(ref p.BoltT);  // Living Bolt (LivingBolt.cs)
-            s.Float(ref p.BoltAge);
-            s.Float(ref p.ArmT);  // Iron Armadillo (IronArmadillo.cs)
-            s.Float(ref p.ArmAge);
-            s.Float(ref p.RvT);  // Blood Ravager (BloodRavager.cs)
-            if (p.RvT > 0f)
-                s.Float(ref p.RvLen);
-            s.Int(ref p.HorseId);  // Trojan Horse (TrojanHorse.cs)
-            s.Float(ref p.SallyT);
-            s.Float(ref p.BoilT);  // Blood Boil (BloodBoil.cs)
-            if (p.BoilT > 0f)
-                s.Float(ref p.BoilLen);
-            s.Float(ref p.FpT);  // Forbidden Path (ForbiddenPath.cs)
-            if (p.FpT > 0f)
-            {
-                s.Float(ref p.FpAge);
-                s.Byte(ref p.FpStage);
-                s.Float(ref p.FpStageT);
-                s.Int(ref p.FpTarget);
-                s.Vec(ref p.FpAt);
-                s.Vec(ref p.FpFrom);
-            }
-            s.Float(ref p.ApT);  // Astral Projection (AstralProjection.cs)
-            if (p.ApT > 0f)
-            {
-                s.Int(ref p.ApHost);
-                s.Vec(ref p.ApPos);
-            }
-            s.Float(ref p.ApLinkT);
-            s.Float(ref p.HbT);  // Heartbeat (Heartbeat.cs)
-            s.Float(ref p.BubT);  // Static Bubble (StaticBubble.cs)
-            if (p.BubT > 0f)
-            {
-                s.Float(ref p.BubR);
-                s.Float(ref p.BubCharge);
-            }
-            s.Float(ref p.RushT);
-            if (p.RushT > 0f)
-                s.Float(ref p.RushLen);
-            s.Float(ref p.RmT);  // Rodent Minigun (RodentMinigun.cs)
-            if (p.RmT > 0f)
-            {
-                s.Float(ref p.RmAng);
-                s.Float(ref p.RmLen);
-            }
-            s.Byte(ref p.HeliGuns);  // the Attack Helicopter (AttackHelicopter.cs): its guns, then their targets while it's out
-            if (p.HeliGuns > 0)
-            {
-                s.Int(ref p.HeliTgt);
-                s.Int(ref p.HeliTgt2);
-            }
-            else if (s.Reading)
-                p.HeliTgt = p.HeliTgt2 = 0;
-            s.Bool(ref p.DogmaOn);  // Dragon's Dogma (DragonsDogma.cs): the head and its quarry while it's out
-            if (p.DogmaOn)
-            {
-                s.Vec(ref p.DogmaHead);
-                s.Int(ref p.DogmaTgt);
-            }
-            else if (s.Reading)
-                p.DogmaTgt = 0;
-            s.Float(ref p.SteelT);  // Caught Steel (CaughtSteel.cs)
-            s.Byte(ref p.Steel);
-            s.Bool(ref p.GauntletDown);  // The Gauntlet lying where it hit (Gauntlet.cs)
-            if (p.GauntletDown)
-                s.Vec(ref p.GauntletRest);
+            SyncVortex(s, p);  // Vortex.cs
+            SyncLivingBolt(s, p);  // LivingBolt.cs
+            SyncArmadillo(s, p);  // IronArmadillo.cs
+            SyncRavager(s, p);  // BloodRavager.cs
+            SyncTrojanHorse(s, p);  // TrojanHorse.cs
+            SyncBloodBoil(s, p);  // BloodBoil.cs
+            SyncForbiddenPath(s, p);  // ForbiddenPath.cs
+            SyncAstralProjection(s, p);  // AstralProjection.cs
+            SyncHeartbeat(s, p);  // Heartbeat.cs
+            SyncStaticBubble(s, p);  // StaticBubble.cs
+            SyncRodentMinigun(s, p);  // RodentMinigun.cs
+            SyncHelicopter(s, p);  // AttackHelicopter.cs
+            SyncDogma(s, p);  // DragonsDogma.cs
+            SyncCaughtSteel(s, p);  // CaughtSteel.cs
+            SyncGauntlet(s, p);  // Gauntlet.cs
             s.Float(ref p.VanishT);
-            s.Byte(ref p.PlateN);  // Ceremonial Armor (CeremonialArmor.cs)
-            if (p.PlateN > 0)
-            {
-                s.Float(ref p.PlateClock);
-                s.Float(ref p.PlateNewT);
-                s.Float(ref p.PlateMax);
-                for (int k = 0; k < p.PlateN && k < Game.CerePlateMax; k++)
-                {
-                    int q = s.Reading ? 0 : (int)Math.Round(MathX.Clamp01(p.PlateHp[k] / Math.Max(1f, p.PlateMax)) * 255f);
-                    s.Byte(ref q);
-                    if (s.Reading)
-                        p.PlateHp[k] = q / 255f * p.PlateMax;
-                }
-            }
-            s.Byte(ref p.SbN);  // Senbon Seekers (SenbonSeekers.cs)
-            if (p.SbN > 0)
-            {
-                s.Float(ref p.SbClock);
-                s.Float(ref p.SbNewT);
-                s.Bool(ref p.SbCap);
-            }
+            SyncCeremonialArmor(s, p);  // CeremonialArmor.cs
+            SyncSenbon(s, p);  // SenbonSeekers.cs
             s.Vec(ref p.VanishFrom);
             s.Float(ref p.OrbitT);
             s.Float(ref p.DashT);  // Healing Dash's sprint (Ninja.cs)
             s.Byte(ref p.Sprint);  // the Dodge's held sprint (Dodge.cs)
             s.Byte(ref p.OrbitN);
-            s.Float(ref p.HarvestClock);  // Crimson Harvest (CrimsonHarvest.cs)
-            s.Float(ref p.HarvestBlood);
-            s.Float(ref p.HarvestHold);
-            s.Float(ref p.GaleT);  // Gale Wall (GaleWall.cs)
-            if (p.GaleT > 0f)
-            {
-                s.Vec(ref p.GalePos);
-                s.Float(ref p.GaleAim);
-                s.Bool(ref p.GaleWide);
-                int dots = Math.Min(255, p.GaleDots.Count);
-                s.Byte(ref dots);
-                if (s.Reading)
-                    p.GaleDots.Clear();
-                for (int k = 0; k < dots; k++)
-                {
-                    int v = s.Reading ? 0 : p.GaleDots[k], lat = v & 255, rad = (v >> 8) & 255;
-                    s.Byte(ref lat);
-                    s.Byte(ref rad);
-                    if (s.Reading)
-                        p.GaleDots.Add(lat | (rad << 8));
-                }
-            }
-            else if (s.Reading)
-                p.GaleDots.Clear();
-            s.Float(ref p.GlassT);  // Sanctum Glass (SanctumGlass.cs)
-            if (p.GlassT > 0f)
-            {
-                s.Vec(ref p.GlassPos);
-                s.Float(ref p.GlassAim);
-                s.Bool(ref p.GlassWide);
-                s.Float(ref p.GlassHealed);
-                s.Float(ref p.GlassCap);
-            }
-            int drops = Math.Min(Game.WwMax, p.WwOff.Count);  // Water Ward (WaterWard.cs)
-            s.Byte(ref drops);
-            if (drops > 0)
-                s.Float(ref p.WwAng);
-            if (s.Reading)
-            {
-                p.WwOff.Clear();
-                p.WwFall.Clear();
-            }
-            for (int k = 0; k < drops; k++)
-            {
-                int off = s.Reading ? 0 : (int)Math.Round(MathX.Fmod(p.WwOff[k], MathX.Tau) / MathX.Tau * 256f) & 255;
-                int fall = s.Reading ? 0 : Math.Min(255, (int)Math.Ceiling(p.WwFall[k] * 100f));
-                s.Byte(ref off);
-                s.Byte(ref fall);
-                if (s.Reading)
-                {
-                    p.WwOff.Add(off / 256f * MathX.Tau);
-                    p.WwFall.Add(fall / 100f);
-                }
-            }
+            SyncHarvest(s, p);  // CrimsonHarvest.cs
+            SyncGaleWall(s, p);  // GaleWall.cs
+            SyncSanctumGlass(s, p);  // SanctumGlass.cs
+            SyncWaterWard(s, p);  // WaterWard.cs
             s.Float(ref p.RainClock);  // Sanguine Rain (SanguineRain.cs)
-            s.Int(ref p.HookId);
-            s.Float(ref p.HookT);
-            s.Byte(ref p.KusariStep);  // the Kusarigama's combo, throw and whirl (Kusarigama.cs)
-            s.Float(ref p.KusariAim);
-            s.Bool(ref p.KusariWhirl);
-            s.Float(ref p.KusariHeld);
-            s.Float(ref p.KusariAng);
+            SyncKusarigama(s, p);  // Kusarigama.cs
             s.Byte(ref p.StarStance);  // the Shuriken's Great Star stance (GreatStar.cs)
-            s.Byte(ref p.FumaStance);  // the Fuma Shuriken's Orbit stance (FumaOrbit.cs)
-            if (p.FumaStance != 0)  // (both ends read the stance first, so they agree)
-            {
-                s.Byte(ref p.FumaMove);
-                s.Byte(ref p.FumaStep);
-                s.Byte(ref p.FumaStars);
-                s.Byte(ref p.FumaMinis);
-                s.Float(ref p.FumaClock);
-                s.Float(ref p.FumaAng0);
-                s.Float(ref p.FumaClk0);
-                s.Float(ref p.FumaSpin);
-                s.Float(ref p.FumaR0);
-                s.Float(ref p.FumaMoveAt);
-                s.Float(ref p.FumaLashAim);
-                s.Float(ref p.FumaMiniAt);
-            }
+            SyncFumaOrbit(s, p);  // FumaOrbit.cs
             s.Float(ref p.SpinUp);
             s.Int(ref p.PreyId);
             s.Byte(ref p.PackKills);
             s.Byte(ref p.Orbiters);
             s.Byte(ref p.Combo);
-            s.Bool(ref p.KnuckleArmed);
-            s.Byte(ref p.KnuckleDashes);
-            s.Byte(ref p.KnuckleChain);
-            s.Vec(ref p.KnuckleDashTo);   // where the Rocket Dash ends, and what it locked onto (the chain turns to it)
-            s.Int(ref p.KnuckleTarget);
-            s.Byte(ref p.KnuckleStance);  // the Arc Knuckles' stance, the Brawl move next, the Barrage's root and the Quake Punch's charge (ArcKnucklesBrawl.cs)
-            s.Byte(ref p.KnuckleMove);
-            s.Bool(ref p.KnuckleRooted);
-            s.Byte(ref p.KnuckleCharge);  // the dash chain's stage: your own game roots you and shows the Fire prompt  // Rocket Dashes started: your own game dashes when it changes  // the Arc Knuckles' Counter Hammer is armed (ArcKnuckles.cs)
-            s.Byte(ref p.KatanaStance);  // the Katana's stance, where each combo waits, the last step and the moving steps (Katana.cs)
-            s.Byte(ref p.KatanaHay);
-            s.Byte(ref p.KatanaSen);
-            s.Byte(ref p.KatanaStep);
-            s.Byte(ref p.KatanaDashes);
+            SyncArcKnuckles(s, p);  // ArcKnuckles.cs
+            SyncKatana(s, p);  // Katana.cs
             s.Byte(ref p.BoStep);
             s.Byte(ref p.StaffStacks);  // the Quarterstaff's Jab stacks (Quarterstaff.cs)
             byte relic = (byte)p.Relic;
             s.Byte(ref relic);          // the relic slot (Relics.cs)
             if (s.Reading && (RelicId)relic != p.Relic) { p.Relic = (RelicId)relic; Recalc(p); } else p.Relic = (RelicId)relic;  // (a faction relic changes stats)
-            s.Byte(ref p.TwinNades);    // the Twin Rifle's grenade tubes (TwinGrenades.cs)
-            s.Byte(ref p.TwinNext);
-            s.Byte(ref p.TwinCharge);
-            s.Float(ref p.TwinAimL);    // the Twin Rifle Auto's guns and lock (TwinAuto.cs)
-            s.Float(ref p.TwinAimR);
-            s.Int(ref p.TwinLock);
-            s.Byte(ref p.FangOut);      // Twin Fang's spinning sabres and where they are (TwinBlades.cs)
-            s.Vec(ref p.FangAt);
-            s.Byte(ref p.AmmoMove);     // Out of Ammo's knife chain, swats and spin (OutOfAmmo.cs)
-            s.Byte(ref p.AmmoSeq);
-            s.Byte(ref p.KnifeMove);
-            s.Byte(ref p.KnifeSeq);
-            s.Byte(ref p.SwatSeqL);
-            s.Byte(ref p.SwatSeqR);
-            s.Float(ref p.SwatAngL);
-            s.Float(ref p.SwatAngR);
-            s.Float(ref p.AmmoSpin);
-            s.Byte(ref p.ScatShells);   // the Scattergun's Double Barrel shells (TankAlts.cs)
-            s.Byte(ref p.ScatCharge);
-            s.Byte(ref p.RepelMeter);   // the Repulsion Cannon's Undertow (Repulsion.cs)
-            s.Bool(ref p.RepelPull);
+            SyncTwinGrenades(s, p);  // TwinGrenades.cs
+            SyncTwinAuto(s, p);  // TwinAuto.cs
+            SyncTwinFang(s, p);  // TwinBlades.cs
+            SyncOutOfAmmo(s, p);  // OutOfAmmo.cs
+            SyncScattergun(s, p);  // TankAlts.cs
+            SyncRepulsion(s, p);  // Repulsion.cs
             s.Byte(ref p.RailHeat);     // the Railgun's heat (RailBeam.cs)
             s.Byte(ref p.Embers);       // the Censer's Embers (Censer.cs)
             s.Byte(ref p.GreatStep);    // the Greatsword's chain (Greatsword.cs)
             s.Bool(ref p.LancePrimed);  // the Lance's hook primed the Breaching Thrust (Lance.cs)
-            s.Byte(ref p.RapierTempo);  // the Rapier's Tempo and its grace period, drawn as diamonds behind you (Game/MeleeLooks.cs)
-            s.Byte(ref p.RapierGraceLeft);
-            s.Bool(ref p.RapierGuard);  // the Rapier's Riposte stance and its charge (Rapier.cs)
-            s.Byte(ref p.RapierCharge);
+            SyncRapier(s, p);  // Rapier.cs
             s.Byte(ref p.Light);
             s.Float(ref p.MercyT);  // a Lightbringer's ward (Lightbringer.cs)
-            s.Float(ref p.NeedleT);  // Acupuncture Needles in you (AcupunctureNeedles.cs)
-            s.Byte(ref p.NeedleN);
+            SyncNeedles(s, p);  // AcupunctureNeedles.cs
             s.Vec(ref p.KunaiMark);
             s.Float(ref p.KunaiMarkT);
-            s.Bool(ref p.BloodWallOn);  // Blood Wall (BloodWall.cs): the drain ring is drawn from how long it has been up
-            s.Float(ref p.BloodWallClock);
-            s.Float(ref p.DebtT);   // Blood Debt (BloodDebt.cs): the window, what's owed and what the cast took
-            s.Float(ref p.Debt);
-            s.Float(ref p.DebtOwed);
+            SyncBloodWall(s, p);  // BloodWall.cs
+            SyncBloodDebt(s, p);  // BloodDebt.cs
             s.Byte(ref p.Clot);
             s.Byte(ref p.ClotMax);
-            int chained = Math.Min(255, p.Chains.Count);  // the Blood Lash's chains (BloodLash.cs)
-            s.Byte(ref chained);
-            if (s.Reading)
-            {
-                p.Chains.Clear();
-                p.ChainLinks.Clear();
-            }
-            for (int k = 0; k < chained; k++)
-            {
-                int chainId = s.Reading ? 0 : p.Chains[k];
-                byte links = s.Reading ? (byte)0 : p.ChainLinks[k];
-                s.Int(ref chainId);
-                s.Byte(ref links);
-                if (s.Reading)
-                {
-                    p.Chains.Add(chainId);
-                    p.ChainLinks.Add(links);
-                }
-            }
-            s.Bool(ref p.LeashOn);  // Martyr's Leash
-            s.Float(ref p.LeashT);
-            s.Int(ref p.BsTarget);  // the Blood Brawler's mark, thread and Sympathy (BloodBrawler.cs)
-            s.Float(ref p.BsT);
-            s.Float(ref p.SympT);
-            s.Int(ref p.SympSrc);
-            int bound = Math.Min(255, p.SympBound.Count);
-            s.Byte(ref bound);
-            if (s.Reading)
-                p.SympBound.Clear();
-            for (int k = 0; k < bound; k++)
-            {
-                int boundId = s.Reading ? 0 : p.SympBound[k];
-                s.Int(ref boundId);
-                if (s.Reading)
-                    p.SympBound.Add(boundId);
-            }
-            int reserve = (int)p.BloodReserve;
-            s.Byte(ref reserve);
-            if (s.Reading)
-                p.BloodReserve = reserve;
-            s.Float(ref p.CoatT);
-            s.Byte(ref p.RevStance);  // the Revolver (Weapons.cs, PistolWhip.cs)
-            s.Byte(ref p.RevStep);
-            s.Bool(ref p.RevCocked);
-            s.Float(ref p.RevCockT);
-            s.Float(ref p.RevT);
-            s.Float(ref p.RevFanReload);
+            SyncBloodLash(s, p);  // BloodLash.cs
+            SyncBloodBrawler(s, p);  // BloodBrawler.cs
+            SyncHemomancer(s, p);  // Hemomancer.cs
+            SyncRevolver(s, p);  // PistolWhip.cs
             s.Byte(ref p.StunShots);
             s.Byte(ref p.PactRez);
             s.Vec(ref p.LightPos);
             s.Bool(ref p.RadiantOn);
             s.Vec(ref p.RadiantPos);
-            s.Byte(ref p.DbUsed);
-            s.Byte(ref p.DbBarrel);
-            s.Byte(ref p.DbShot);
-            s.Float(ref p.DbReload);
-            s.Byte(ref p.GlMode);  // the Grenade Launcher (GrenadeLauncher.cs)
-            s.Byte(ref p.GlUsed);
-            s.Byte(ref p.GlSmokeUsed);
-            s.Byte(ref p.GlShot);
-            s.Float(ref p.GlReload);
-            s.Float(ref p.GlSwap);
-            s.Float(ref p.GlCharge);
-            s.Float(ref p.WcTempestT);  // Wind Clash's Tempest (WindClash.cs)
-            s.Float(ref p.WcTempestCd);
-            s.Float(ref p.FlZeroT);  // the Frost Lance's Absolute Zero and Rime Counter (FrostLance.cs)
-            s.Float(ref p.FlZeroCd);
-            s.Bool(ref p.FlRime);
-            s.Bool(ref p.BbBrace);  // the Bulwark Barrier (BulwarkBarrier.cs)
-            s.Float(ref p.BbRam);
-            s.Byte(ref p.BbBashes);
-            s.Vec(ref p.BbBashTo);
-            s.Bool(ref p.HbSet);  // the Halberd's set pike (Halberd.cs)
-            s.Float(ref p.HbPikeA);
-            s.Short(ref p.SsMask);  // the Stonespear (Stonespear.cs)
-            s.Byte(ref p.SsSide);
-            s.Int(ref p.SsLock);
-            s.Float(ref p.HoneyFill);  // the Honeybee Staff (HoneybeeStaff.cs)
-            s.Bool(ref p.HoneyOn);
+            SyncDoubleBarrel(s, p);  // DoubleBarrel.cs
+            SyncGrenadeLauncher(s, p);  // GrenadeLauncher.cs
+            SyncWindClash(s, p);  // WindClash.cs
+            SyncFrostLance(s, p);  // FrostLance.cs
+            SyncBulwark(s, p);  // BulwarkBarrier.cs
+            SyncHalberd(s, p);  // Halberd.cs
+            SyncStonespear(s, p);  // Stonespear.cs
+            SyncHoneybee(s, p);  // HoneybeeStaff.cs
             s.Float(ref p.Cinder);  // the Wyvern Staff (WyvernStaff.cs)
-            s.Bool(ref p.NunGuard);  // the Nunchaku (Nunchaku.cs)
-            s.Byte(ref p.NunSwats);
-            s.Byte(ref p.NodStance);  // the Nodachi (Nodachi.cs)
-            s.Byte(ref p.NodStorm);
-            s.Byte(ref p.NodGuard);
-            s.Byte(ref p.NodCode);
-            s.Byte(ref p.NodCount);
-            s.Byte(ref p.VgStance);  // the Vowguard (Vowguard.cs)
-            s.Byte(ref p.VgAtV);
-            s.Byte(ref p.VgAtS);
-            s.Byte(ref p.VgMoveId);
-            s.Byte(ref p.VgCount);
-            s.Byte(ref p.VgFaith);
-            s.Vec(ref p.VgDashTo);
-            s.Byte(ref p.TpSide);  // the Twin Pistols (TwinPistols.cs)
-            s.Float(ref p.TpLaserT);
-            s.Float(ref p.TpCd);
-            s.Bool(ref p.StaticOn);  // Static Shock (StaticShock.cs)
-            s.Float(ref p.OverchargeT);
-            s.Bool(ref p.TtCharging);  // the Twin Tessen (TwinTessen.cs)
-            s.Float(ref p.TtCharge);
-            s.Float(ref p.TtGustCd);
-            s.Float(ref p.TtTailT);
-            s.Float(ref p.CrSurgeT);  // a Chakra Surge (ChakraReserves.cs)
-            if (p.CrSurgeT > 0f)
-                s.Float(ref p.CrSurgeMax);
-            s.Byte(ref p.TtBreeze);
-            s.Byte(ref p.HfMode);  // the Heart Flail (HeartFlail.cs)
-            s.Byte(ref p.HfBpm);
-            s.Byte(ref p.HfBeats);
-            s.Float(ref p.HfT);
-            s.Float(ref p.HfAng);
-            s.Float(ref p.HfCd);
-            s.SByte(ref p.HfSide);
-            s.Float(ref p.HfAim0);
-            s.Vec(ref p.HfPos);
-            s.Float(ref p.ChitinHp);  // the Hive Censer (HiveCenser.cs)
-            s.Bool(ref p.HiveOn);
-            s.Vec(ref p.HivePour);
+            SyncNunchaku(s, p);  // Nunchaku.cs
+            SyncNodachi(s, p);  // Nodachi.cs
+            SyncVowguard(s, p);  // Vowguard.cs
+            SyncTwinPistols(s, p);  // TwinPistols.cs
+            SyncStaticShock(s, p);  // StaticShock.cs
+            SyncTwinTessen(s, p);  // TwinTessen.cs
+            SyncHeartFlail(s, p);  // HeartFlail.cs
+            SyncHiveCenser(s, p);  // HiveCenser.cs
             s.Float(ref p.SupplyT);  // Supply Drop (SupplyDrop.cs)
             s.Float(ref p.Armor);  // an Armor Drop vest's armor (ArmorDrop.cs)
-            for (int k = 0; k < 2; k++)  // the Embolus Spears (EmbolusSpears.cs)
-            {
-                s.Byte(ref p.EsSt[k]);
-                s.Vec(ref p.EsPos[k]);
-                s.Vec(ref p.EsDir[k]);
-            }
-            s.Short(ref p.NsCount);  // the Needle Swarm (NeedleSwarm.cs)
-            s.Float(ref p.NsBurstCd);
-            for (int k = 0; k < Game.NsTendrils; k++)
-            {
-                s.Int(ref p.NsTen[k]);
-                s.Float(ref p.NsLen[k]);
-                s.Byte(ref p.NsBound[k]);
-            }
-            int tagged = Math.Min(Game.ArcTagCap, p.ArcTags.Count);  // Arc Lightning's tags (ArcLock.cs)
-            s.Byte(ref tagged);
-            if (s.Reading)
-                p.ArcTags.Clear();
-            for (int k = 0; k < tagged; k++)
-            {
-                int tagId = s.Reading ? 0 : p.ArcTags[k];
-                s.Int(ref tagId);
-                if (s.Reading)
-                    p.ArcTags.Add(tagId);
-            }
+            SyncEmbolus(s, p);  // EmbolusSpears.cs
+            SyncNeedleSwarm(s, p);  // NeedleSwarm.cs
+            SyncArcTags(s, p);  // ArcLock.cs
             float drawT = p.DrawT;
             s.Float(ref drawT);
             s.Short(ref p.Level);

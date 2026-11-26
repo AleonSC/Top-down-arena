@@ -29,7 +29,7 @@ namespace Arena
         public const float CannonBallR = 24f, CannonSpeed = 330f, CannonReach = 560f, CannonMin = 120f;
         public const float CannonBurstR = 120f, CannonPassDmg = 0.5f, CannonBurstDmg = 1.25f, CannonStun = 0.8f, CannonCd = 5f, CannonBurstFx = 0.9f;
         public const float OverchargeTime = 10f, OverchargeMove = 1.25f, OverchargeFire = 1.3f, OverchargeShot = 1.35f;
-        public static readonly Rgba StaticBlue = new Rgba(0.62f, 0.89f, 1f), CannonViolet = new Rgba(0.79f, 0.7f, 1f), OverchargeGold = new Rgba(1f, 0.8f, 0.35f);
+        public static readonly Rgba StaticBlue = new Rgba(0.62f, 0.89f, 1f), CannonViolet = new Rgba(0.79f, 0.7f, 1f), OverchargeGold = Rgba.Gold;
 
         /// The cone's reach (Homing Rounds' area grows it).
         public static float StaticRangeOf(Player p) => StaticRange * AreaMult(p);
@@ -40,15 +40,7 @@ namespace Arena
 
         /// Whether a body (centre c, radius r) is in the cone from `hand` along `aim`.
         public static bool InStaticCone(V2 hand, float aim, float range, V2 c, float r)
-        {
-            V2 rel = c - hand;
-            float d = rel.Length;
-            if (d > range + r)
-                return false;
-            if (d < r)
-                return true;
-            return Math.Abs(MathX.WrapPi(rel.Angle - aim)) < StaticHalf + (float)Math.Asin(Math.Min(1f, r / d));
-        }
+            => MathX.InCone(hand, aim, StaticHalf, range, c, r, inner: r, padBody: true, strict: true);
 
         /// The circuit: up to `max` enemies in the cone, nearest the hand first, each wired (from[i]: -1 the hand, else the
         /// index of the enemy it wires to) to the nearest point already in it. pos: where each enemy is (the host's Pos,
@@ -340,5 +332,20 @@ namespace Arena
 
         /// Off when you put it away or go down: the cone stops.
         void ClearStaticShock(Player p) => p.StaticOn = false;
+
+        // --- Network: the player's Static Shock fields (SyncPlayer) ---
+
+        void SyncStaticShock(NetSync s, Player p)
+        {
+            s.Bool(ref p.StaticOn);  // Static Shock
+            s.Float(ref p.OverchargeT);
+        }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): the Arc Cannon into a crowd or the boss
+        static bool StaticShockBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var e = v.ShootAt;
+            return !late && e != null && v.ShootD < CannonReach && g.Tap(g.ArcLocalCd <= 0f && (e.Def.IsBoss || g.EnemiesNear(e.Pos, CannonBurstR) >= 3), 1f);
+        }
     }
 }

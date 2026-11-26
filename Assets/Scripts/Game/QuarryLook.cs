@@ -11,7 +11,7 @@ namespace Arena
     public partial class ArenaApp
     {
         static readonly Rgba QuarryInk = new Rgba(0.11f, 0.085f, 0.063f, 0.95f), QuarryVein = new Rgba(1f, 0.48f, 0.23f),
-            QuarryGold = new Rgba(1f, 0.8f, 0.35f), QuarryHat = new Rgba(0.93f, 0.66f, 0.2f), QuarryHatDark = new Rgba(0.45f, 0.29f, 0.05f),
+            QuarryGold = Rgba.Gold, QuarryHat = new Rgba(0.93f, 0.66f, 0.2f), QuarryHatDark = new Rgba(0.45f, 0.29f, 0.05f),
             QuarryVest = new Rgba(0.94f, 0.54f, 0.17f), QuarrySteel = new Rgba(0.73f, 0.75f, 0.77f), QuarryHaft = new Rgba(0.42f, 0.29f, 0.17f);
 
         /// A rock's outline: `n` points round `c`, each pushed out by a fixed jitter from `seed`, turned by `rot`.

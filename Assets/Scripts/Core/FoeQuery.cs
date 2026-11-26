@@ -41,10 +41,7 @@ namespace Arena
                 case FoeShape.Box:
                     return e.Pos.DistanceToSegment(a, b) <= size + e.Radius;
                 case FoeShape.Cone:
-                    if (e.Pos.FartherThan(a, size + e.Radius))
-                        return false;
-                    V2 to = e.Pos - a;
-                    return to.IsZero || System.Math.Abs(MathX.WrapPi(to.Angle - b.Angle)) <= half;
+                    return MathX.InCone(a, b.Angle, half, size, e.Pos, e.Radius, inner: -1f, padBody: false);
                 default:
                     return true;
             }

@@ -276,5 +276,27 @@ namespace Arena
             if (hitAny)
                 p.MeleeGraceT = MeleeContactGrace;  // you're in the thick of it: the bodies you've pulled in don't hurt
         }
+
+        // --- Network: the player's Kusarigama fields (SyncPlayer) ---
+
+        void SyncKusarigama(NetSync s, Player p)
+        {
+            s.Int(ref p.HookId);
+            s.Float(ref p.HookT);
+            s.Byte(ref p.KusariStep);  // the Kusarigama's combo, throw and whirl
+            s.Float(ref p.KusariAim);
+            s.Bool(ref p.KusariWhirl);
+            s.Float(ref p.KusariHeld);
+            s.Float(ref p.KusariAng);
+        }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): whirl a crowd in, let go for the snap once it's close (held)
+        static bool KusarigamaBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            if (g.botAltWas)
+                return g.botAltHoldT < 2.5f && (g.botAltHoldT < 0.4f || g.EnemiesNear(me.Pos, 100f) < 3);
+            return !me.KusariWhirl && g.Tap(g.EnemiesNear(me.Pos, 200f) >= 3, 3.5f);
+        }
     }
 }

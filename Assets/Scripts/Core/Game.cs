@@ -1050,12 +1050,18 @@ namespace Arena
             foreach (var m in Minions.Values)
                 m.Disp = IsHost ? m.Pos : V2.Lerp(m.Disp, m.Pos, k);
             BreachAge += dt;
-            for (int i = Effects.Count - 1; i >= 0; i--)
+            // One compacting pass that keeps the order (RemoveAt shifted the list once per expiry). Effects are not
+            // pooled: the looks keep references across frames and test them with Effects.Contains.
+            int keep = 0;
+            for (int i = 0; i < Effects.Count; i++)
             {
-                Effects[i].T += dt;
-                if (Effects[i].T >= Effects[i].Dur)
-                    Effects.RemoveAt(i);
+                var fx = Effects[i];
+                fx.T += dt;
+                if (fx.T < fx.Dur)
+                    Effects[keep++] = fx;
             }
+            if (keep < Effects.Count)
+                Effects.RemoveRange(keep, Effects.Count - keep);
 
             if (State != lastState)
             {

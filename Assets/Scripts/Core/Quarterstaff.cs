@@ -57,5 +57,12 @@ namespace Arena
                     p.StaffStacks = (byte)StaffCap(p);
             }
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): jab while stacks last, at something close or shots coming in (held)
+        static bool QuarterstaffBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            return me.StaffStacks > 0 && !late && (g.EnemiesAhead(me, 170f, 0.8f) > 0 || v.Incoming >= 2);
+        }
     }
 }

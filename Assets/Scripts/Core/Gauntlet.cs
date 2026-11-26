@@ -230,5 +230,14 @@ namespace Arena
             DashT = Math.Max(0.01f, time);
             dashSpeed = d / DashT;
         }
+
+        // --- Network: the player's Gauntlet fields (SyncPlayer) ---
+
+        void SyncGauntlet(NetSync s, Player p)
+        {
+            s.Bool(ref p.GauntletDown);  // The Gauntlet lying where it hit
+            if (p.GauntletDown)
+                s.Vec(ref p.GauntletRest);
+        }
     }
 }

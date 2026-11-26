@@ -238,5 +238,13 @@ namespace Arena
                     FlakAirburst(new Bullet { Pos = z.Pos, Owner = z.Owner, Kind = Defs.FlakShell, Dmg = MineDamage * z.DmgMult, Splash = z.Radius });
                 }
         }
+
+        // --- Network: the player's Scattergun fields (SyncPlayer) ---
+
+        void SyncScattergun(NetSync s, Player p)
+        {
+            s.Byte(ref p.ScatShells);   // the Scattergun's Double Barrel shells
+            s.Byte(ref p.ScatCharge);
+        }
     }
 }

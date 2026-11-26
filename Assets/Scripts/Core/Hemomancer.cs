@@ -698,7 +698,7 @@ namespace Arena
         internal static readonly WeaponDef[] HemomancerWeapons =
         {
             // Tank
-            new WeaponDef { Id = WeaponId.BloodLash, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach, +1 link per enemy and +1 max Clot", Name = "Blood Lash", FireInterval = 0.32f,
+            new WeaponDef { Id = WeaponId.BloodLash, BotAlt = BloodLashBotAlt, BotAltHold = true, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach, +1 link per enemy and +1 max Clot", Name = "Blood Lash", FireInterval = 0.32f,
                 Desc = "Primary Fire: A four-step blood whip that chains enemies, then yanks them in.\n\nAlternative Fire: Hold for Martyr's Leash." },
             new WeaponDef { Id = WeaponId.GoreMortar, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Damage = 34f, BotRange = 380f, ExtraDesc = "+1 glob, fanned out", Name = "Gore Mortar", FireInterval = 0.75f,
                 Desc = "Primary Fire: Hold to charge, then lob a blood clot that leaves a slowing, healing pool.",
@@ -717,20 +717,20 @@ namespace Arena
             new WeaponDef { Id = WeaponId.VeinTether, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 2, Damage = 4f, Reach = 350f, Grow = 0.25f, ExtraDesc = "+25% beam length and +25% damage", Name = "Vein Tether", FireInterval = 0.08f,
                 Desc = "Primary Fire: A draining beam that hurts enemies and heals you and the nearest ally.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the beam 25% wider" },
-            new WeaponDef { Id = WeaponId.HeartFlail, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 3, Damage = 18f, Reach = 105f, Melee = true, BotRange = 110f, ExtraDesc = "+1 blood drop a hit and 10% more reach", Name = "Heart Flail", FireInterval = 0.45f,
+            new WeaponDef { Id = WeaponId.HeartFlail, BotAlt = HeartFlailBotAlt, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 3, Damage = 18f, Reach = 105f, Melee = true, BotRange = 110f, ExtraDesc = "+1 blood drop a hit and 10% more reach", Name = "Heart Flail", FireInterval = 0.45f,
                 Desc = "Primary Fire: Click to swing a living heart that makes enemies bleed and sprays healing blood; hold to spin it, healing allies near you with every heartbeat. Hits quicken the beat: at 180 the next beat is a Cardiac Burst.\n\nAlternative Fire: Open Heart: throw the heart to your cursor, where it roots and heals every ally near it through its veins.",
                 Sound = Sfx.SwingHeavy, AreaDesc = "the heartbeat pulses, the Cardiac Burst and Open Heart's veins reach 25% farther" },
             // DPS
-            new WeaponDef { Id = WeaponId.NeedleSwarm, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0, Damage = 4f, Reach = Game.NsReach, ExtraDesc = "+20 needles in the swarm, +5 wrapped round each enemy and 10% harder cuts, +4 in the burst", Name = "Needle Swarm", FireInterval = 0.1f, BotRange = 220f,
+            new WeaponDef { Id = WeaponId.NeedleSwarm, BotAlt = NeedleSwarmBotAlt, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0, Damage = 4f, Reach = Game.NsReach, ExtraDesc = "+20 needles in the swarm, +5 wrapped round each enemy and 10% harder cuts, +4 in the burst", Name = "Needle Swarm", FireInterval = 0.1f, BotRange = 220f,
                 Desc = "A swarm of blood needles circles you, blocking shots. Lost needles are siphoned from your health.\n\nPrimary Fire: Hold to grow a tendril to the enemy nearest your cursor; it wraps them and cuts until they die.\n\nAlternative Fire: Throw a fan of needles from the swarm.",
                 Sound = Sfx.SpellArcane },
             new WeaponDef { Id = WeaponId.Implosion, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1, Damage = 34f, Reach = 480f, ExtraDesc = "+1 implosion: another enemy near your target collapses too (60% damage)", Name = "Implosion", FireInterval = 0.45f,
                 Desc = "Primary Fire: Click an enemy to collapse its blood inward and pull nearby enemies in.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the collapse hurts and pulls in enemies 25% farther out" },
-            new WeaponDef { Id = WeaponId.BloodBrawler, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 520f, ExtraDesc = "+1 echo: every move also lands on the next enemy nearest the mark (50% damage)", Name = "Blood Brawler", FireInterval = Game.BsPulseTime,
+            new WeaponDef { Id = WeaponId.BloodBrawler, BotAlt = BloodBrawlerBotAlt, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 520f, ExtraDesc = "+1 echo: every move also lands on the next enemy nearest the mark (50% damage)", Name = "Blood Brawler", FireInterval = Game.BsPulseTime,
                 Desc = "Primary Fire: Click an enemy to work its blood from range, ending in a bone-shard burst.\n\nAlternative Fire: Bind the enemies near it so your moves hit them too.",
                 Sound = Sfx.SpellArcane },
-            new WeaponDef { Id = WeaponId.EmbolusSpears, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 3, Speed = Game.EsSpeed, Damage = 30f, ExtraDesc = "+20% spear and blast damage", Name = "Embolus Spears", FireInterval = 0.25f, BotRange = 600f,
+            new WeaponDef { Id = WeaponId.EmbolusSpears, BotAlt = EmbolusSpearsBotAlt, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 3, Speed = Game.EsSpeed, Damage = 30f, ExtraDesc = "+20% spear and blast damage", Name = "Embolus Spears", FireInterval = 0.25f, BotRange = 600f,
                 Desc = "Primary Fire: Throw a spear from each hand that pierces everything, then recall them to get health back.\n\nAlternative Fire: Burst the spears where they are.",
                 Sound = Sfx.Throw, AreaDesc = "the burst 25% wider" },
         };
@@ -856,7 +856,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ThornBloom, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (ThornBloom.cs)
-                Name = "Thorn Bloom", Cooldown = TbCooldown, HealthCost = TbCost, Desc = "Burst blood needles all round that chain between enemies.",
+                Name = "Thorn Bloom", Icon = "thornbloom", Cooldown = TbCooldown, HealthCost = TbCost, Desc = "Burst blood needles all round that chain between enemies.",
                 Capstone = "Tendrils jump 5 times.",
                 Bot = b => b.NearEnemies >= 3 && b.TargetD < 240f && b.Me.Hp > b.Me.MaxHp * 0.4f,
             },
@@ -1042,6 +1042,42 @@ namespace Arena
                 TickDebt(p, dt);   // BloodDebt.cs
                 TickSpray(p, dt);  // ArterialSpray.cs
             }
+        }
+
+        // --- Network: the player's Leech Tendrils fields (SyncPlayer) ---
+
+        void SyncGrasp(NetSync s, Player p)
+        {
+            int grasped = p.Grasp.Count;  // Leech Tendrils' held enemies
+            s.Byte(ref grasped);
+            if (s.Reading)
+            {
+                p.Grasp.Clear();
+                p.GraspCharge.Clear();
+            }
+            for (int k = 0; k < grasped; k++)
+            {
+                int held = s.Reading ? 0 : p.Grasp[k];
+                float charge = s.Reading || k >= p.GraspCharge.Count ? 0f : p.GraspCharge[k];
+                s.Int(ref held);
+                s.Float(ref charge);  // how far this one has built up toward its blast
+                if (s.Reading)
+                {
+                    p.Grasp.Add(held);
+                    p.GraspCharge.Add(charge);
+                }
+            }
+        }
+
+        // --- Network: the player's Hemomancer fields (SyncPlayer) ---
+
+        void SyncHemomancer(NetSync s, Player p)
+        {
+            int reserve = (int)p.BloodReserve;
+            s.Byte(ref reserve);
+            if (s.Reading)
+                p.BloodReserve = reserve;
+            s.Float(ref p.CoatT);
         }
     }
 }

@@ -16,9 +16,9 @@ namespace Arena
     /// With Visual effects off: a plain violet ring for the portal, a plain dot for each rodent, no scamperers or crumbs.
     public partial class ArenaApp
     {
-        static readonly Rgba RmViolet = new Rgba(0.69f, 0.49f, 1f), RmTeal = new Rgba(0.35f, 0.85f, 0.91f), RmGold = new Rgba(1f, 0.8f, 0.35f);
+        static readonly Rgba RmViolet = new Rgba(0.69f, 0.49f, 1f), RmTeal = new Rgba(0.35f, 0.85f, 0.91f), RmGold = Rgba.Gold;
         static readonly Rgba RmHole = new Rgba(0.04f, 0.02f, 0.09f);
-        static readonly Rgba[] RmFur = { new Rgba(0.72f, 0.7f, 0.77f), new Rgba(0.54f, 0.43f, 0.35f), new Rgba(1f, 0.8f, 0.35f) };
+        static readonly Rgba[] RmFur = { new Rgba(0.72f, 0.7f, 0.77f), new Rgba(0.54f, 0.43f, 0.35f), Rgba.Gold };
         static readonly Rgba[] RmEar = { new Rgba(0.91f, 0.66f, 0.72f), new Rgba(0.83f, 0.6f, 0.6f), new Rgba(0.94f, 0.63f, 0.38f) };
         static readonly float[] RmLen = { 7f, 9.5f, 7.5f };  // body length, px: mouse, rat, hamster
 

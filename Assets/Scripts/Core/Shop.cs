@@ -92,7 +92,7 @@ namespace Arena
                 return;
             foreach (var p in Players.Values)
                 p.Gold += gold;
-            BroadcastFx(FxKind.Spark, e.Pos, new Rgba(1f, 0.82f, 0.3f), 14f, 0.35f, Sfx.None);
+            BroadcastFx(FxKind.Spark, e.Pos, Rgba.Gold, 14f, 0.35f, Sfx.None);
         }
 
         /// Host, when the Bazaar's last wave is cleared: everyone gets a shelf and the shop opens.

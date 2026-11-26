@@ -188,7 +188,7 @@ namespace Arena
                     relicSwapped[taker.Id] = i;
                 }
                 Nodes[i] = nd;
-                BroadcastFx(FxKind.Ring, NodeSpot(i), new Rgba(1f, 0.82f, 0.3f), 90f, 0.5f, Sfx.Pick);
+                BroadcastFx(FxKind.Ring, NodeSpot(i), Rgba.Gold, 90f, 0.5f, Sfx.Pick);
                 DoLog("player " + taker.Id + " took a relic: " + Relics.Name(r) + (old != RelicId.None ? " (left " + Relics.Name(old) + ")" : ""));
                 BroadcastExpansion();
             }
@@ -225,7 +225,7 @@ namespace Arena
             p.Relic = RelicId.None;
             p.Hp = Math.Max(1f, Math.Min(p.HealCap, p.MaxHp * Relics.BackupHp));
             p.InvulnT = Math.Max(p.InvulnT, Relics.BackupInvuln);
-            BroadcastFx(FxKind.Ring, p.Pos, new Rgba(1f, 0.82f, 0.3f), 120f, 0.6f, Sfx.Revive);
+            BroadcastFx(FxKind.Ring, p.Pos, Rgba.Gold, 120f, 0.6f, Sfx.Revive);
             DoLog("Backup gets player " + p.Id + " back up");
             return true;
         }

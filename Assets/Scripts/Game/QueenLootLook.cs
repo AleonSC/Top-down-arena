@@ -6,7 +6,7 @@ namespace Arena
     /// Escort's bombers, and Royal Dive's honey pool. They borrow her look (QueenLook.cs: the bees, the wax cells).
     public partial class ArenaApp
     {
-        static readonly Rgba HoneyGold = new Rgba(1f, 0.82f, 0.3f), BeeStripe = new Rgba(0.12f, 0.08f, 0f, 0.9f);
+        static readonly Rgba HoneyGold = Rgba.Gold, BeeStripe = new Rgba(0.12f, 0.08f, 0f, 0.9f);
 
         /// A drone: a striped gold body facing where it flies, wings beating, a small sting glint when it's out.
         void DrawHiveDrone(Minion m, float t)

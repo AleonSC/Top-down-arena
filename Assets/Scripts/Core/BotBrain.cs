@@ -986,7 +986,7 @@ namespace Arena
                     d += w * 3f;
                 V2 off = p - ms.dev.Pos;
                 if ((ms.ds.InhaleT > 0f || ms.ds.Turn == DevourTurn.Inhale) && off.Length < InhaleReach + 40f
-                    && Math.Abs(MathX.WrapPi(off.Angle - ms.dev.Facing)) < InhaleHalf + 0.15f)
+                    && MathX.AngleWithin(off.Angle, ms.dev.Facing, InhaleHalf + 0.15f))
                     d += w * 2.5f;
                 if (ms.ds.BurrowT > 0f && off.Length < EruptRadius + pad + (ms.ds.BurrowT < BurrowChase ? 60f : 0f))
                     d += w * 3f;

@@ -113,7 +113,7 @@ namespace Arena
                 Recalc(p);  // Dash's capstone adds a charge
                 if (p.Id == MyId)
                     MasteryToasts.Add(new MasteryToast { Ability = id, Level = after, T = 3f });
-                BroadcastFx(FxKind.Ring, p.Pos, after >= MasteryMax ? new Rgba(1f, 0.82f, 0.3f) : new Rgba(0.6f, 0.85f, 1f), 70f, 0.6f, Sfx.LevelUp);
+                BroadcastFx(FxKind.Ring, p.Pos, after >= MasteryMax ? Rgba.Gold : new Rgba(0.6f, 0.85f, 1f), 70f, 0.6f, Sfx.LevelUp);
                 DoLog(p.Name + "'s " + Upgrades.Ability(id).Name + " reached mastery " + after);
             }
         }

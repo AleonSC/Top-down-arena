@@ -7,7 +7,7 @@ namespace Arena
     /// its pillars (gravestones) and the holes they leave, its shield in a hole, and the reaps' marks in Sundered.
     public partial class ArenaApp
     {
-        static readonly Rgba DuskCol = new Rgba(1f, 0.35f, 0.6f), DawnCol = new Rgba(0.45f, 0.55f, 1f), DualGold = new Rgba(1f, 0.8f, 0.35f);
+        static readonly Rgba DuskCol = new Rgba(1f, 0.35f, 0.6f), DawnCol = new Rgba(0.45f, 0.55f, 1f), DualGold = Rgba.Gold;
 
         /// The beam between the Twin Reapers.
         void DrawReaperTether(float t)

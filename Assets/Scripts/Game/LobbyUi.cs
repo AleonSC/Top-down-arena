@@ -227,7 +227,7 @@ namespace Arena
 
         static string ModeTitle(int i) => ModeDef.For((GameMode)i).Name.ToUpperInvariant();
         static string ModeSub(int i) => ModeDef.For((GameMode)i).Blurb;
-        static Color? ModeAccent(int i) => i == 0 ? new Color(1f, 0.82f, 0.4f) : i == 2 ? new Color(1f, 0.62f, 0.58f) : i == 3 ? new Color(0.55f, 0.95f, 0.6f)
+        static Color? ModeAccent(int i) => i == 0 ? CrtStyle.Gold : i == 2 ? new Color(1f, 0.62f, 0.58f) : i == 3 ? new Color(0.55f, 0.95f, 0.6f)
             : i == (int)GameMode.Training ? TrainColor : (Color?)null;
 
         /// The carousel's modes, in its order round the ring (the Hangout is hidden).

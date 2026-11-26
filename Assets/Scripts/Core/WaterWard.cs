@@ -189,5 +189,32 @@ namespace Arena
             }
             return false;
         }
+
+        // --- Network: the player's Water Ward fields (SyncPlayer) ---
+
+        void SyncWaterWard(NetSync s, Player p)
+        {
+            int drops = Math.Min(Game.WwMax, p.WwOff.Count);  // Water Ward
+            s.Byte(ref drops);
+            if (drops > 0)
+                s.Float(ref p.WwAng);
+            if (s.Reading)
+            {
+                p.WwOff.Clear();
+                p.WwFall.Clear();
+            }
+            for (int k = 0; k < drops; k++)
+            {
+                int off = s.Reading ? 0 : (int)Math.Round(MathX.Fmod(p.WwOff[k], MathX.Tau) / MathX.Tau * 256f) & 255;
+                int fall = s.Reading ? 0 : Math.Min(255, (int)Math.Ceiling(p.WwFall[k] * 100f));
+                s.Byte(ref off);
+                s.Byte(ref fall);
+                if (s.Reading)
+                {
+                    p.WwOff.Add(off / 256f * MathX.Tau);
+                    p.WwFall.Add(fall / 100f);
+                }
+            }
+        }
     }
 }

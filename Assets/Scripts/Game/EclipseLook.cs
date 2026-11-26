@@ -9,7 +9,7 @@ namespace Arena
     /// a flash. The fight was built from the mockup in Docs/Mockups/eclipse-5-stage.html.
     public partial class ArenaApp
     {
-        static readonly Rgba SunGold = new Rgba(1f, 0.82f, 0.4f);
+        static readonly Rgba SunGold = Rgba.Gold;
         static readonly Rgba SunWhite = new Rgba(1f, 0.95f, 0.8f);
         static readonly Rgba FlareOrange = new Rgba(1f, 0.54f, 0.24f);
         static readonly Rgba MoonSilver = new Rgba(0.79f, 0.82f, 0.89f);

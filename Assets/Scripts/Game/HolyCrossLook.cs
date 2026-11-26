@@ -8,7 +8,7 @@ namespace Arena
     /// and speed streaks (DrawSwiftness). Mockup: Docs/Mockups/consecrate-cross-v3.html.
     public partial class ArenaApp
     {
-        static readonly Rgba HolyGold = new Rgba(1f, 0.82f, 0.4f), HolyCore = new Rgba(1f, 0.98f, 0.9f), SwiftCyan = new Rgba(0.31f, 0.82f, 0.91f);
+        static readonly Rgba HolyGold = Rgba.Gold, HolyCore = new Rgba(1f, 0.98f, 0.9f), SwiftCyan = new Rgba(0.31f, 0.82f, 0.91f);
         const float HolyEchoEvery = 0.07f, HolyEchoLife = 0.5f;
 
         void DrawHolyCrossFx(Effect fx)

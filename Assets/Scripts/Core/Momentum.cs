@@ -30,5 +30,13 @@ namespace Arena
 
         /// The multiplier on speed and fire rate: 1 with no stacks.
         public static float MomentumMult(Player p) => 1f + MomentumPer * p.MomentumStacks;
+
+        // --- Network: the player's Momentum fields (SyncPlayer) ---
+
+        void SyncMomentum(NetSync s, Player p)
+        {
+            s.Int(ref p.MomentumStacks);  // Momentum.cs
+            s.Float(ref p.MomentumT);
+        }
     }
 }

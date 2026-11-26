@@ -300,7 +300,7 @@ namespace Arena
 
         void CurGold(V2 m, float t, float f)
         {
-            var c = new Rgba(1f, 0.82f, 0.3f);
+            var c = Rgba.Gold;
             float sc = 1f + f * 0.3f, o = 13f + f * 4f;
             V2[] k = new V2[4];
             for (int i = 0; i < 4; i++)
@@ -384,14 +384,14 @@ namespace Arena
             new Rgba(0.3f, 0.88f, 0.74f),         // 5 Circuit Sight
             new Rgba(1f, 0.89f, 0.37f),           // 6 Storm Arc
             new Rgba(0.61f, 0.42f, 1f),           // 7 Void Eye
-            new Rgba(1f, 0.82f, 0.3f),            // 8 Gold Diamond
+            Rgba.Gold,            // 8 Gold Diamond
             Rgba.White,                           // 9 Prism Ring (cycles through the spectrum)
             new Rgba(70f / 255f, 230f / 255f, 1f),// 10 Light Cycle
             new Rgba(0.42f, 1f, 0.6f),            // 11 Radar Sweep
             new Rgba(0.91f, 0.94f, 0.97f),        // 12 Sniper Scope
             new Rgba(1f, 0.42f, 0.84f),           // 13 Chevron Snap
             new Rgba(0.5f, 0.91f, 1f),            // 14 Sonar Ping
-            new Rgba(1f, 0.82f, 0.4f),            // 15 Pixel Plus
+            Rgba.Gold,            // 15 Pixel Plus
             new Rgba(1f, 0.62f, 0.77f),           // 16 Petal Ring
             new Rgba(1f, 0.35f, 0.35f),           // 17 Laser Dot
             new Rgba(1f, 0.54f, 0.24f)            // 18 Target Lock

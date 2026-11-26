@@ -178,5 +178,11 @@ namespace Arena
             }
             return true;
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): the Swarm Burst on a group
+        static bool BumbleRemoteBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            return g.Tap(g.BumbleBurstLocalCd <= 0f && g.EnemiesNear(v.Me.Pos, 260f) >= 3, 1f);
+        }
     }
 }

@@ -88,7 +88,7 @@ namespace Arena
 
         void DrawPerkSlot(Rect r, PerkDef d, bool canEdit, Profile prof)
         {
-            Ui.Pill(r, new Color(1f, 0.8f, 0.35f, 0.12f));
+            Ui.Pill(r, CrtStyle.Gold.WithAlpha(0.12f));
             Ui.Rim(r, CrtStyle.Gold, 0.85f);
             Ui.Pill(new Rect(r.x + 9f, r.y + 9f, 60f, 60f), new Color(0.02f, 0.03f, 0.06f, 0.95f));
             Ui.Icon(new Rect(r.x + 15f, r.y + 15f, 48f, 48f), PerkIcon(d.Id), 1f);
@@ -126,7 +126,7 @@ namespace Arena
             bool hover = r.Contains(Event.current.mousePosition);
             if (owned)
             {
-                Ui.Pill(r, on ? new Color(1f, 0.8f, 0.35f, 0.1f) : new Color(0.04f, 0.05f, 0.1f, 0.9f));
+                Ui.Pill(r, on ? CrtStyle.Gold.WithAlpha(0.1f) : new Color(0.04f, 0.05f, 0.1f, 0.9f));
                 Ui.Rim(r, CrtStyle.Gold, on ? 1f : hover && canEdit ? 0.8f : 0.5f);
             }
             else

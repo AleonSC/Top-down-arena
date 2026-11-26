@@ -60,7 +60,7 @@ namespace Arena
             float r = cap ? OrbRadiusMastered : OrbRadius;
             V2 end = cap ? ClampToArena(at + dir * OrbSweep, 20f) : at;
             orbStrikes.Add(new OrbStrike { Owner = p.Id, Pos = at, End = end, R = r, Burn = OrbBurnDps * p.Stats.DmgMult });
-            BroadcastFx(FxKind.OrbitalLaser, at, end, new Rgba(1f, 0.8f, 0.35f, r / 1000f), p.Id, OrbFxDur, Sfx.OrbitalLaser);
+            BroadcastFx(FxKind.OrbitalLaser, at, end, Rgba.Gold.WithAlpha(r / 1000f), p.Id, OrbFxDur, Sfx.OrbitalLaser);
         }
 
         /// Host, every tick: the beam's kills, then the scorch's burn.

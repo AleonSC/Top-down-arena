@@ -304,6 +304,20 @@ namespace Arena
             Status = status;
         }
 
+        readonly List<NetEvent> pollBatch = new List<NetEvent>();
+        /// One reader for every received message: MessageReader refills it (the handlers read it there and then, none keeps it).
+        readonly MemoryStream msgStream = new MemoryStream();
+        BinaryReader msgReader;
+
+        BinaryReader MessageReader(NetEvent ev)
+        {
+            msgStream.Position = 0;
+            msgStream.SetLength(0);
+            msgStream.Write(ev.Data, 0, ev.Length);
+            msgStream.Position = 0;
+            return msgReader ?? (msgReader = new BinaryReader(msgStream));
+        }
+
         public void Poll()
         {
             if (Net == null)
@@ -314,7 +328,10 @@ namespace Arena
                       "(it's shown at the bottom of the main menu; you're on " + VersionText + ").");
                 return;
             }
-            foreach (var ev in new List<NetEvent>(Net.Poll()))
+            var batch = pollBatch;  // a copy: handling can change the transport's own list
+            batch.Clear();
+            batch.AddRange(Net.Poll());
+            foreach (var ev in batch)
             {
                 if (Net == null)
                     break;
@@ -510,7 +527,7 @@ namespace Arena
                 case NetEventType.Data:
                     try
                     {
-                        HandleHostMessage(ev.Peer, ev.Data);
+                        HandleHostMessage(ev.Peer, MessageReader(ev));
                     }
                     catch (Exception e) when (e is EndOfStreamException || e is IOException || e is ArgumentException)
                     {
@@ -528,9 +545,8 @@ namespace Arena
             }
         }
 
-        void HandleHostMessage(int peer, byte[] data)
+        void HandleHostMessage(int peer, BinaryReader r)
         {
-            var r = new BinaryReader(new MemoryStream(data));
             var type = (Msg)r.ReadByte();
             if (type != Msg.Hello && type != Msg.Ping && !Lobby.ContainsKey(peer) && !Game.Players.ContainsKey(peer))
                 return;  // not one of ours: no Hello yet, or just turned away (its other messages in this batch still arrive)
@@ -1567,7 +1583,7 @@ namespace Arena
                 case NetEventType.Data:
                     try
                     {
-                        HandleClientMessage(ev.Data);
+                        HandleClientMessage(MessageReader(ev));
                     }
                     catch (Exception e) when (e is EndOfStreamException || e is IOException || e is ArgumentException)
                     {
@@ -1577,9 +1593,8 @@ namespace Arena
             }
         }
 
-        void HandleClientMessage(byte[] data)
+        void HandleClientMessage(BinaryReader r)
         {
-            var r = new BinaryReader(new MemoryStream(data));
             var type = (Msg)r.ReadByte();
             switch (type)
             {

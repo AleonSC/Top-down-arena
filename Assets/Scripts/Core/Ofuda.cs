@@ -248,5 +248,11 @@ namespace Arena
                 owner.Run.ShotsHit++;
             BroadcastFx(FxKind.Boom, z.Pos, OfudaRed, z.Radius, 0.45f, Sfx.Explode);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): a Blast Ofuda at what it shoots, in reach
+        static bool OfudaBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            return !late && v.ShootAt != null && v.ShootD < BlastRange && g.Tap(g.OfudaLocalCd <= 0f, 1f);
+        }
     }
 }

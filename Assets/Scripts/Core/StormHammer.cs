@@ -153,5 +153,12 @@ namespace Arena
             hammerSlamLocalCd = HammerSlamCd;
             return true;
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): the slam on a group in front
+        static bool StormHammerBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var e = v.ShootAt;
+            return !late && g.Tap(g.EnemiesAhead(v.Me, 250f, 1.2f) >= 2 || e != null && e.Def.IsBoss && v.ShootD < 220f, 6f);
+        }
     }
 }

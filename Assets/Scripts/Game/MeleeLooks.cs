@@ -55,17 +55,8 @@ namespace Arena
             bend = 0f;
             if (!fxOn || p.Downed || p.Weapon.Id != id)
                 return false;
-            switch (id)
-            {
-                case WeaponId.Rapier: ang -= 0.2f; reach = 78f; return true;
-                case WeaponId.Katana:  // Hayate: low and out to the side; Senbon: forward (KatanaLook.cs)
-                    ang -= p.KatanaStance == 0 ? 1.15f : 0.12f; reach *= p.KatanaStance == 0 ? 0.72f : 0.78f; bend = 0.4f; return true;
-                case WeaponId.Greatsword: ang -= 0.45f; bend = 1f; return p.FangOut == 0;  // (the Moonwheel: thrown)
-                case WeaponId.Quarterstaff: ang -= 0.3f; reach *= 0.85f; return true;
-                case WeaponId.Kusarigama: ang -= 0.35f; reach = 36f; return true;  // the sickle in hand, its chain in
-                case WeaponId.BloodLash: ang -= 0.55f; reach = 52f; return true;   // the whip hanging slack beside you
-                default: return false;
-            }
+            var rest = LookOf(id)?.Rest;  // (WeaponLooks.cs)
+            return rest != null && rest(p, ref ang, ref reach, ref bend);
         }
 
         /// Both arms, shoulder to hand, in the owner's colour (`grip` the lead hand, `off` the other): for weapons drawn in their own hands.
@@ -237,27 +228,8 @@ namespace Arena
             return game.Players.TryGetValue(seen.Owner, out p) && !p.Downed ? p.Disp : fx.Pos;
         }
 
-        /// Each melee weapon's energy colour (the mockup's for its five; the rest to match their look).
-        static Rgba MeleeColor(WeaponId id, Rgba fallback)
-        {
-            switch (id)
-            {
-                case WeaponId.Greatsword: return new Rgba(0.78f, 0.88f, 1f);  // Moonlit Crescent (Docs/Mockups/greatsword-sweep.html)
-                case WeaponId.TwinBlades: return new Rgba(1f, 0.82f, 0.48f);
-                case WeaponId.Halberd: return new Rgba(0.56f, 0.94f, 0.78f);
-                case WeaponId.Rapier: return new Rgba(0.8f, 0.72f, 1f);
-                case WeaponId.Warhammer: return new Rgba(1f, 0.64f, 0.42f);
-                case WeaponId.Lance: return new Rgba(0.62f, 0.88f, 1f);
-                case WeaponId.Quarterstaff: return new Rgba(1f, 0.88f, 0.54f);
-                case WeaponId.Lightbringer: return new Rgba(1f, 0.94f, 0.62f);
-                case WeaponId.Censer: return new Rgba(1f, 0.8f, 0.5f);
-                case WeaponId.Katana: return new Rgba(0.745f, 0.87f, 1f);  // Moon Steel (Docs/Mockups/katana-reach.html)
-                case WeaponId.BoStaff: return new Rgba(0.78f, 0.9f, 0.62f);
-                case WeaponId.Kusarigama: return new Rgba(0.7f, 0.64f, 1f);
-                case WeaponId.BloodLash: return new Rgba(1f, 0.32f, 0.38f);
-                default: return fallback;
-            }
-        }
+        /// Each melee weapon's energy colour (its WeaponLook.MeleeColor, WeaponLooks.cs: the mockup's for its five; the rest to match their look).
+        static Rgba MeleeColor(WeaponId id, Rgba fallback) => LookOf(id)?.MeleeColor ?? fallback;
 
         static int MeleeSeed(Effect fx) => (int)(fx.Pos.X * 13f + fx.Pos.Y * 7f + (fx.Pos2 - fx.Pos).Angle * 100f);
 

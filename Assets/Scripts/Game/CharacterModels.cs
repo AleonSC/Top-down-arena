@@ -251,38 +251,19 @@ namespace Arena
         }
 
         /// True when the weapon's own look draws the arms, gloves and weapon, held and swung, so the model leaves its own out (two
-        /// pairs of arms otherwise). Each case matches when that look's held pose is drawn. A new weapon look with arms goes here.
+        /// pairs of arms otherwise): its WeaponLook.Arms (WeaponLooks.cs).
         bool LookDrawsArms(Player p)
         {
-            switch (p.Weapon.Id)
-            {
-                case WeaponId.TwinBlades: case WeaponId.Lightbringer: case WeaponId.Lance: case WeaponId.ArcKnuckles:
-                    return true;  // TwinBladesLook.cs, LightbringerLook.cs, LanceLook.cs, ArcKnucklesLook.cs
-                case WeaponId.Nunchaku: case WeaponId.Nodachi: case WeaponId.Vowguard:
-                    return !p.Downed;  // NunchakuLook.cs, NodachiLook.cs, VowguardLook.cs
-                case WeaponId.Halberd:
-                    return fxOn;  // HalberdLook.cs
-                case WeaponId.Katana:
-                    return fxOn && !p.Downed;  // KatanaLook.cs, MeleeLooks.cs
-                case WeaponId.Censer: case WeaponId.Warhammer: case WeaponId.Greatsword: case WeaponId.Rapier: case WeaponId.Quarterstaff: case WeaponId.BoStaff:
-                case WeaponId.Kusarigama: case WeaponId.BloodLash:
-                    return fxOn && !p.Downed;  // CenserLook.cs, MeleeLooks.cs (Warhammer, Rapier, Kusarigama, Blood Lash), GreatswordLook.cs, QuarterstaffLook.cs, BoStaffLook.cs
-                default:
-                    return false;
-            }
+            var arms = LookOf(p.Weapon.Id)?.Arms;
+            return arms != null && arms(this, p);
         }
 
         /// True when the weapon's look also puts a pauldron on each shoulder (turning with the swing), so the model leaves its own
-        /// shoulder plates out: two sets side by side read as a second pair of arms.
+        /// shoulder plates out: two sets side by side read as a second pair of arms (WeaponLook.Pauldrons).
         bool LookDrawsPauldrons(Player p)
         {
-            switch (p.Weapon.Id)
-            {
-                case WeaponId.Halberd: case WeaponId.TwinBlades: case WeaponId.Lightbringer: case WeaponId.Lance: case WeaponId.Censer: case WeaponId.Vowguard:
-                    return LookDrawsArms(p);
-                default:
-                    return false;
-            }
+            var look = LookOf(p.Weapon.Id);
+            return look != null && look.Pauldrons && LookDrawsArms(p);
         }
 
         /// A long arm out to a Twin Rifle held wide: bent a little at the elbow, outward and back. `sd` is +1 right, -1 left.
@@ -493,127 +474,20 @@ namespace Arena
             }
         }
 
-        /// How a weapon is held: 0 one hand, 1 two hands (offX: where the second one grips along the weapon), 2 a gun
-        /// in each hand, 3 an open palm, a staff or a floating prop.
+        /// How a weapon is held (its WeaponLook, WeaponLooks.cs): 0 one hand, 1 two hands (offX: where the second one grips along
+        /// the weapon), 2 a gun in each hand, 3 an open palm, a staff or a floating prop.
         static void HoldOf(WeaponId id, out int hold, out float offX)
         {
-            hold = 0; offX = 0f;
-            switch (id)
-            {
-                case WeaponId.Scattergun: case WeaponId.RiotRepeater: hold = 1; offX = 14f; break;
-                case WeaponId.FlakCannon: case WeaponId.Halberd: case WeaponId.BoStaff: hold = 1; offX = 10f; break;
-                case WeaponId.RepulsionCannon: case WeaponId.BurstSmg: case WeaponId.Quarterstaff: hold = 1; offX = 8f; break;
-                case WeaponId.MendersBow: case WeaponId.Railgun: hold = 1; offX = 18f; break;
-                case WeaponId.DoubleBarrel: hold = 1; offX = 15f; break;
-                case WeaponId.GrenadeLauncher: hold = 1; offX = 31f; break;  // (the front hand sits on the foregrip: GrenadeLauncherLook.cs GlFrontHand)
-                case WeaponId.Flamethrower: case WeaponId.WaterGun: case WeaponId.GaleGun: case WeaponId.Warhammer: hold = 1; offX = 12f; break;
-                case WeaponId.Lance: hold = 1; offX = -4f; break;
-                case WeaponId.Greatsword: hold = 1; offX = -8f; break;
-                case WeaponId.TwinRifle: case WeaponId.TwinRifleAuto: case WeaponId.OutOfAmmo: case WeaponId.TwinBlades: case WeaponId.EmbolusSpears: case WeaponId.TwinPistols: case WeaponId.TwinTessen: hold = 2; break;
-                case WeaponId.RadiantOrb: case WeaponId.Fireball: case WeaponId.Waterball: case WeaponId.Earthball: case WeaponId.IceShards: case WeaponId.Stonespear: case WeaponId.HoneybeeStaff: case WeaponId.WindClash: case WeaponId.FrostLance: case WeaponId.GoreMortar: case WeaponId.SanguineOrb: case WeaponId.Implosion: case WeaponId.BloodBrawler:
-                case WeaponId.GolemStaff: case WeaponId.WyvernStaff: case WeaponId.SpriteStaff: case WeaponId.Nimbus: case WeaponId.SpiritChalk: case WeaponId.StaticShock: case WeaponId.HiveCenser: hold = 3; break;
-                case WeaponId.OrbitShards: case WeaponId.DancingBlades: hold = 3; break;  // the Arcanist casts from an open palm (ArcanistLook.cs)
-            }
+            var look = LookOf(id);
+            hold = look != null ? look.Hold : 0;
+            offX = look != null ? look.HoldOffX : 0f;
         }
 
-        delegate void HeldDraw(Player p, float t, int hold);
-        HeldDraw[] heldDraws;
-
-        /// The weapon in its own frame: grip at the origin, +x along the aim. Reworked models go here. Each weapon's model is one entry of the table (BuildHeldDraws).
+        /// The weapon in its own frame: grip at the origin, +x along the aim. Reworked models go here. Each weapon's model is its
+        /// WeaponLook.Held (WeaponLooks.cs).
         void DrawHeld(Player p, float t, int hold)
         {
-            var draws = heldDraws ?? (heldDraws = BuildHeldDraws());
-            draws[(int)p.Weapon.Id]?.Invoke(p, t, hold);
-        }
-
-        /// Every weapon's held model, drawn in the hand's frame (MFrame).
-        HeldDraw[] BuildHeldDraws()
-        {
-            var d = new HeldDraw[256];  // (WeaponId is a byte)
-            // ---- Soldier
-            d[(int)WeaponId.Scattergun] = DrawHeldScattergun;
-            d[(int)WeaponId.FlakCannon] = DrawHeldFlakCannon;
-            d[(int)WeaponId.RiotRepeater] = DrawHeldRiotRepeater;
-            d[(int)WeaponId.RepulsionCannon] = DrawHeldRepulsionCannon;
-            d[(int)WeaponId.Revolver] = DrawHeldRevolver;
-            d[(int)WeaponId.MendersBow] = DrawHeldMendersBow;
-            d[(int)WeaponId.TwinPistols] = DrawHeldTwinPistols;  // TwinPistolsLook.cs
-            d[(int)WeaponId.TwinRifle] = DrawHeldTwinRifle;
-            d[(int)WeaponId.TwinRifleAuto] = DrawHeldTwinRifle;
-            d[(int)WeaponId.OutOfAmmo] = DrawHeldTwinRifle;
-            d[(int)WeaponId.GrenadeLauncher] = DrawHeldGrenadeLauncher;
-            d[(int)WeaponId.DoubleBarrel] = DrawHeldDoubleBarrel;
-            d[(int)WeaponId.Railgun] = DrawHeldRailgun;
-            d[(int)WeaponId.BurstSmg] = DrawHeldBurstSmg;
-            // ---- Elementalist
-            d[(int)WeaponId.Flamethrower] = DrawHeldFlamethrower;
-            d[(int)WeaponId.WaterGun] = DrawHeldWaterGun;  // ElementGunLook.cs
-            d[(int)WeaponId.GaleGun] = DrawHeldGaleGun;
-            d[(int)WeaponId.FrostLance] = DrawHeldFrostLance;
-            d[(int)WeaponId.StormHammer] = (p, t, hold) => DrawStormHammerHeld(p, t);  // StormHammerLook.cs: raised, thrown, slammed and re-formed with the throw and the slam
-            d[(int)WeaponId.RadiantOrb] = DrawHeldRadiantOrb;
-            d[(int)WeaponId.ChainLight] = DrawHeldChainLight;
-            d[(int)WeaponId.Nimbus] = DrawHeldNimbus;
-            d[(int)WeaponId.Fireball] = DrawHeldFireball;
-            d[(int)WeaponId.Waterball] = DrawHeldWaterball;  // ElementBallLook.cs
-            d[(int)WeaponId.Earthball] = DrawHeldEarthball;
-            d[(int)WeaponId.ArcLightning] = DrawHeldArcLightning;
-            d[(int)WeaponId.EmbolusSpears] = (p, t, hold) => DrawEsHeld(p, mHeldTube, t);
-            d[(int)WeaponId.Stonespear] = DrawHeldStonespear;
-            d[(int)WeaponId.WindClash] = DrawHeldWindClash;
-            d[(int)WeaponId.StaticShock] = DrawHeldStaticShock;  // a crackling spark on the palm
-            d[(int)WeaponId.TwinTessen] = DrawHeldTessen;  // a war fan in each hand (TwinTessenLook.cs)
-            d[(int)WeaponId.HeartFlail] = DrawHeldHeartFlail;  // an iron grip, the chain's first ring (HeartFlailLook.cs)
-            d[(int)WeaponId.HiveCenser] = DrawHeldHiveCenser;  // a small censer with insects round it (HiveCenserLook.cs)
-            d[(int)WeaponId.IceShards] = DrawHeldIceShards;
-            // ---- Summoner
-            d[(int)WeaponId.GolemStaff] = DrawHeldGolemStaff;
-            d[(int)WeaponId.BoneGuard] = DrawHeldBoneGuard;
-            d[(int)WeaponId.WyvernStaff] = DrawHeldWyvernStaff;
-            d[(int)WeaponId.BearTotem] = DrawHeldBearTotem;
-            d[(int)WeaponId.SpriteStaff] = DrawHeldSpriteStaff;
-            d[(int)WeaponId.TreantRod] = DrawHeldTreantRod;
-            d[(int)WeaponId.SpiritChalk] = DrawHeldSpiritChalk;
-            d[(int)WeaponId.WolfWhistle] = DrawHeldWolfWhistle;
-            d[(int)WeaponId.WispLantern] = DrawHeldWispLantern;
-            d[(int)WeaponId.HoneybeeStaff] = DrawHeldHoneybeeStaff;
-            d[(int)WeaponId.ImpCaller] = DrawHeldImpCaller;
-            // ---- Knight
-            d[(int)WeaponId.Warhammer] = DrawHeldWarhammer;
-            d[(int)WeaponId.BulwarkBarrier] = DrawHeldBulwarkBarrier;
-            d[(int)WeaponId.Lance] = DrawHeldLance;
-            d[(int)WeaponId.Halberd] = DrawHeldHalberd;
-            d[(int)WeaponId.Quarterstaff] = DrawHeldQuarterstaff;
-            d[(int)WeaponId.Lightbringer] = DrawHeldLightbringer;
-            d[(int)WeaponId.Censer] = DrawHeldCenser;
-            d[(int)WeaponId.TwinBlades] = DrawHeldTwinBlades;
-            d[(int)WeaponId.Greatsword] = DrawHeldGreatsword;
-            d[(int)WeaponId.Rapier] = DrawHeldRapier;
-            // ---- Ninja
-            d[(int)WeaponId.Kusarigama] = DrawHeldKusarigama;
-            d[(int)WeaponId.BoStaff] = DrawHeldBoStaff;
-            d[(int)WeaponId.FumaShuriken] = DrawHeldFumaShuriken;
-            d[(int)WeaponId.AcupunctureNeedles] = DrawHeldAcupunctureNeedles;
-            d[(int)WeaponId.SpiritFan] = DrawHeldSpiritFan;
-            d[(int)WeaponId.Ofuda] = DrawHeldOfuda;
-            d[(int)WeaponId.Shuriken] = DrawHeldShuriken;
-            d[(int)WeaponId.Katana] = DrawHeldKatana;
-            d[(int)WeaponId.Kunai] = DrawHeldKunai;
-            // ---- Hemomancer
-            d[(int)WeaponId.BloodLash] = DrawHeldBloodLash;
-            d[(int)WeaponId.GoreMortar] = DrawHeldGoreMortar;
-            d[(int)WeaponId.LeechTendrils] = DrawHeldLeechTendrils;
-            d[(int)WeaponId.TransfusionDarts] = DrawHeldTransfusionDarts;
-            d[(int)WeaponId.SanguineOrb] = DrawHeldSanguineOrb;
-            d[(int)WeaponId.VeinTether] = DrawHeldVeinTether;
-            d[(int)WeaponId.NeedleSwarm] = DrawHeldNeedleSwarm;
-            d[(int)WeaponId.Implosion] = DrawHeldImplosion;
-            d[(int)WeaponId.BloodBrawler] = (p, t, hold) => DrawBsHand(t);  // an open, bleeding hand (BloodBrawlerLook.cs)
-            // ---- Arcanist (ArcanistLook.cs)
-            d[(int)WeaponId.OrbitShards] = DrawHeldArcGlyph;
-            d[(int)WeaponId.DancingBlades] = DrawHeldArcGlyph;
-            d[(int)WeaponId.GlyphStylus] = DrawHeldGlyphStylus;
-            return d;
+            LookOf(p.Weapon.Id)?.Held?.Invoke(this, p, t, hold);
         }
 
         void DrawHeldScattergun(Player p, float t, int hold)
@@ -926,7 +800,7 @@ namespace Arena
             MFrame(mOx, mOy, -1.9f * c, mWs, false);
             MLine(-8f, 0f, 30f, 0f, 3.2f, MWood); MRect(28f, -9f, 10f, 18f, Hx(0xb9c4d4)); MPoly(MSteel, 38f, 0f, 38f, -2f, 45f, 0f, 38f, 2f); MPoly(MSteel, 28f, 0f, 28f, -2f, 23f, 0f, 28f, 2f);
             MLine(28f, -5f, 38f, -5f, 1f, MDark); MLine(28f, 5f, 38f, 5f, 1f, MDark);
-            if (c > 0f) MCirc(33f, 0f, 9f + 5f * c, new Rgba(1f, 0.82f, 0.3f, 0.15f + 0.3f * c), 14);
+            if (c > 0f) MCirc(33f, 0f, 9f + 5f * c, Rgba.Gold.WithAlpha(0.15f + 0.3f * c), 14);
         }
         }
 

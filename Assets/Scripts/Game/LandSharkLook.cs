@@ -17,7 +17,7 @@ namespace Arena
         static readonly Rgba SharkWaterRim = new Rgba(0.16f, 0.5f, 0.83f), SharkWaterMid = new Rgba(0.06f, 0.23f, 0.43f), SharkWaterDeep = new Rgba(0.02f, 0.09f, 0.19f),
             SharkFoam = new Rgba(0.78f, 0.93f, 1f), SharkBody = new Rgba(0.38f, 0.47f, 0.56f), SharkBelly = new Rgba(0.91f, 0.93f, 0.95f),
             SharkEdge = new Rgba(0.13f, 0.19f, 0.25f), SharkMouth = new Rgba(0.42f, 0.07f, 0.13f), SharkTooth = new Rgba(0.97f, 0.95f, 0.9f),
-            SharkGold = new Rgba(1f, 0.8f, 0.35f);
+            SharkGold = Rgba.Gold;
 
         /// The leap's ground span across the puddle, and its height at the top.
         const float SharkSpanK = 0.8f, SharkJump = 110f;

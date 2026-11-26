@@ -223,14 +223,12 @@ namespace Arena
                     case EclipseTurn.Spiral:  // as before: four arms
                         s.ActT = 0.07f;
                         e.Ang += 0.21f;
-                        for (int k = 0; k < 4; k++)
-                            EnemyShot(e, e.Ang + MathX.Tau * k / 4f, 150f, Defs.SmallShot);
+                        EnemyRing(e, 4, e.Ang, 150f, Defs.SmallShot);
                         break;
                     case EclipseTurn.CoronaRings:  // as before: 24 big shots
                         s.ActT = 1f;
                         e.Ang += 0.13f;
-                        for (int i = 0; i < 24; i++)
-                            EnemyShot(e, e.Ang + MathX.Tau * i / 24f, 110f, Defs.BigShot);
+                        EnemyRing(e, 24, e.Ang, 110f, Defs.BigShot);
                         break;
                     case EclipseTurn.Flares:  // one at each player and one at random
                         s.ActT = 2f;
@@ -274,8 +272,7 @@ namespace Arena
                     case EclipseTurn.DarkSpiral:
                         s.ActT = 0.09f;
                         e.Ang += 0.17f;
-                        for (int k = 0; k < 3; k++)
-                            EnemyShot(e, e.Ang + MathX.Tau * k / 3f, 130f, Defs.SmallShot);
+                        EnemyRing(e, 3, e.Ang, 130f, Defs.SmallShot);
                         break;
                     case EclipseTurn.EchoColossus:  // a stomp: a ring of 30 big shots with one gap
                     {
@@ -284,7 +281,7 @@ namespace Arena
                         for (int i = 0; i < 30; i++)
                         {
                             float a = off + MathX.Tau * i / 30f;
-                            if (Math.Abs(MathX.WrapPi(a - gap)) < 1.5f * MathX.Tau / 30f)
+                            if (MathX.AngleWithin(a, gap, 1.5f * MathX.Tau / 30f))
                                 continue;
                             EnemyShot(e, a, 180f, Defs.BigShot);
                         }
@@ -322,8 +319,7 @@ namespace Arena
                     case EclipseTurn.FranticSpiral:  // its old final spiral: five arms, switching every 3 s
                         s.ActT = 0.06f;
                         e.Ang += (int)(s.TurnT / 3f) % 2 == 0 ? 0.19f : -0.19f;
-                        for (int k = 0; k < 5; k++)
-                            EnemyShot(e, e.Ang + MathX.Tau * k / 5f, 170f, Defs.SmallShot);
+                        EnemyRing(e, 5, e.Ang, 170f, Defs.SmallShot);
                         break;
                     case EclipseTurn.SolarStorm:  // flares at everyone, then crescents, by turns
                         s.ActT = 0.8f;
@@ -343,8 +339,7 @@ namespace Arena
                     case EclipseTurn.Totality:  // slow rings of big shots
                         s.ActT = 1.4f;
                         e.Ang += 0.16f;
-                        for (int i = 0; i < 20; i++)
-                            EnemyShot(e, e.Ang + MathX.Tau * i / 20f, 100f, Defs.BigShot);
+                        EnemyRing(e, 20, e.Ang, 100f, Defs.BigShot);
                         break;
                     default:  // breathers (EclipseFire), Flash and Shadow nova (TickEclipseHazards)
                         s.ActT = 0.1f;
@@ -394,7 +389,7 @@ namespace Arena
                 case EclipseStage.Echoes: return new Rgba(1f, 0.44f, 0.64f);
                 case EclipseStage.LastLight: return new Rgba(1f, 0.54f, 0.24f);
                 case EclipseStage.Totality: return new Rgba(1f, 0.3f, 0.3f);
-                default: return new Rgba(1f, 0.82f, 0.4f);
+                default: return Rgba.Gold;
             }
         }
 
@@ -588,8 +583,7 @@ namespace Arena
         public static bool InUmbraGap(EclipseRing r, V2 p)
         {
             float a = (p - r.Center).Angle;
-            return Math.Abs(MathX.WrapPi(a - r.Gap1)) < UmbraGapHalf
-                || Math.Abs(MathX.WrapPi(a - r.Gap2)) < UmbraGapHalf;
+            return MathX.AngleWithin(a, r.Gap1, UmbraGapHalf) || MathX.AngleWithin(a, r.Gap2, UmbraGapHalf);
         }
 
         public static bool InUmbraRing(EclipseRing r, V2 p, float pad) =>
@@ -737,8 +731,7 @@ namespace Arena
                     break;
                 case EclipseStage.Echoes:  // a corona ring
                     e.Ang += 0.13f;
-                    for (int i = 0; i < 24; i++)
-                        EnemyShot(e, e.Ang + MathX.Tau * i / 24f, 110f, Defs.BigShot);
+                    EnemyRing(e, 24, e.Ang, 110f, Defs.BigShot);
                     break;
             }
         }

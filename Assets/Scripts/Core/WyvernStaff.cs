@@ -285,5 +285,11 @@ namespace Arena
                     return WyvGaleShotSlow;
             return 1f;
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): the Wyrm Slam on a group
+        static bool WyvernStaffBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            return g.Tap(g.WyvernSlamLocalCd <= 0f && g.EnemiesNear(v.Me.Pos, 200f) >= 3, 1f);
+        }
     }
 }

@@ -303,5 +303,41 @@ namespace Arena
                 BroadcastFx(FxKind.Ring, e.Pos, LashRed, e.Radius + 12f, 0.25f, Sfx.None);
             }
         }
+
+        // --- Network: the player's Blood Lash fields (SyncPlayer) ---
+
+        void SyncBloodLash(NetSync s, Player p)
+        {
+            int chained = Math.Min(255, p.Chains.Count);  // the Blood Lash's chains
+            s.Byte(ref chained);
+            if (s.Reading)
+            {
+                p.Chains.Clear();
+                p.ChainLinks.Clear();
+            }
+            for (int k = 0; k < chained; k++)
+            {
+                int chainId = s.Reading ? 0 : p.Chains[k];
+                byte links = s.Reading ? (byte)0 : p.ChainLinks[k];
+                s.Int(ref chainId);
+                s.Byte(ref links);
+                if (s.Reading)
+                {
+                    p.Chains.Add(chainId);
+                    p.ChainLinks.Add(links);
+                }
+            }
+            s.Bool(ref p.LeashOn);  // Martyr's Leash
+            s.Float(ref p.LeashT);
+        }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Martyr's Leash on a chained pack while healthy (it bleeds you; held)
+        static bool BloodLashBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            if (g.botAltWas)
+                return g.botAltHoldT < 2f && me.Hp > me.MaxHp * 0.4f;
+            return !me.LeashOn && g.Tap(me.Chains.Count >= 2 && me.Hp > me.MaxHp * 0.5f && (g.BotDanger > 1f || v.Downed != null || v.Lowest != null && v.Lowest.Hp < v.Lowest.MaxHp * 0.5f), 6f);
+        }
     }
 }

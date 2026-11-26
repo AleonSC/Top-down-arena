@@ -21,7 +21,7 @@ namespace Arena
         readonly Dictionary<int, GunSeen> gunSeen = new Dictionary<int, GunSeen>();
         readonly Dictionary<int, BowSeen> bowSeen = new Dictionary<int, BowSeen>();
 
-        static readonly Rgba BrassCol = new Rgba(0.88f, 0.69f, 0.29f), SmokeCol = new Rgba(0.78f, 0.8f, 0.85f), BowGold = new Rgba(1f, 0.82f, 0.3f);
+        static readonly Rgba BrassCol = new Rgba(0.88f, 0.69f, 0.29f), SmokeCol = new Rgba(0.78f, 0.8f, 0.85f), BowGold = Rgba.Gold;
 
         void ClearGunBowLooks()
         {

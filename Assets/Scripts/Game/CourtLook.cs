@@ -24,7 +24,7 @@ namespace Arena
     {
         static readonly Rgba CourtInk = new Rgba(0.04f, 0.045f, 0.07f, 0.95f), CourtBody = new Rgba(0.1f, 0.11f, 0.16f),
             CourtMask = new Rgba(0.95f, 0.93f, 0.9f), CourtSteel = new Rgba(0.81f, 0.84f, 1f), CourtCrimson = new Rgba(1f, 0.3f, 0.42f),
-            CourtGold = new Rgba(1f, 0.8f, 0.35f);
+            CourtGold = Rgba.Gold;
 
         void DrawCourtBody(Enemy e, V2 pos, float r, Rgba col, float t)
         {

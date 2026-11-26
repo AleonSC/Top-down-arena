@@ -380,7 +380,7 @@ namespace Arena
 
         /// A guard: a riot helmet's visor and a baton held out the way it's facing.
         static readonly Rgba GuardInk = new Rgba(0.07f, 0.08f, 0.13f, 0.95f), GuardBaton = new Rgba(0.2f, 0.22f, 0.3f);
-        static readonly Rgba GuardShirt = new Rgba(0.78f, 0.68f, 0.48f), GuardCap = new Rgba(0.16f, 0.2f, 0.32f), GuardBadge = new Rgba(1f, 0.82f, 0.3f);
+        static readonly Rgba GuardShirt = new Rgba(0.78f, 0.68f, 0.48f), GuardCap = new Rgba(0.16f, 0.2f, 0.32f), GuardBadge = Rgba.Gold;
 
         /// Where the Guard's nightstick points: at its side while it walks (a light bob), drawn back over the wind-up and
         /// swept across in the swing, forehand from its left then backhand from its right (GuardSwing.cs).

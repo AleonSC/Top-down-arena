@@ -35,7 +35,7 @@ namespace Arena
         public const float HfThrowRange = 360f, HfThrowFlight = 0.25f, HfLandMult = 1.3f, HfLandR = 70f, HfRootTime = 3f, HfVeinR = 200f, HfVeinHps = 8f;
         public const float HfReelTime = 0.3f, HfThrowCd = 12f, HfLowHp = 0.3f, HfLowMult = 1.5f, HfExtraReach = 0.1f;
         public static readonly Rgba HfBlood = new Rgba(0.88f, 0.2f, 0.29f), HfDeep = new Rgba(0.48f, 0.05f, 0.12f),
-            HfPink = new Rgba(1f, 0.54f, 0.59f), HfGreen = new Rgba(0.35f, 0.94f, 0.5f), HfGold = new Rgba(1f, 0.8f, 0.35f);
+            HfPink = new Rgba(1f, 0.54f, 0.59f), HfGreen = new Rgba(0.35f, 0.94f, 0.5f), HfGold = Rgba.Gold;
 
         public static float HfEase(float x) { x = Math.Max(0f, Math.Min(1f, x)); return 1f - (1f - x) * (1f - x) * (1f - x); }
 
@@ -408,6 +408,45 @@ namespace Arena
             p.HfCd = HfThrowCd;
             p.Run.ShotsFired++;
             BroadcastSound(Sfx.Throw);
+            return true;
+        }
+
+        // --- Network: the player's Heart Flail fields (SyncPlayer) ---
+
+        void SyncHeartFlail(NetSync s, Player p)
+        {
+            s.Byte(ref p.HfMode);
+            s.Byte(ref p.HfBpm);
+            s.Byte(ref p.HfBeats);
+            s.Float(ref p.HfT);
+            s.Float(ref p.HfAng);
+            s.Float(ref p.HfCd);
+            s.SByte(ref p.HfSide);
+            s.Float(ref p.HfAim0);
+            s.Vec(ref p.HfPos);
+        }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Open Heart beside a hurt teammate, else into a pack
+        static bool HeartFlailBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            var e = v.ShootAt;
+            if (late || me.HfCd > 0f || me.HfMode >= HfFly)
+                return false;
+            Player hurt = null;
+            foreach (var q in g.Players.Values)
+                if (q.Id != me.Id && !q.Downed && q.Hp < q.MaxHp * 0.6f && !q.Pos.FartherThan(me.Pos, HfThrowRange) && (hurt == null || q.Hp / q.MaxHp < hurt.Hp / hurt.MaxHp))
+                    hurt = q;
+            if (hurt != null)
+            {
+                if (!g.Tap(true, 1f))
+                    return false;
+                aimAt = hurt.Pos;
+                return true;
+            }
+            if (e == null || v.ShootD > HfThrowRange || !g.Tap(g.EnemiesNear(e.Pos, 100f) >= 3, 1f))
+                return false;
+            aimAt = e.Pos;
             return true;
         }
     }

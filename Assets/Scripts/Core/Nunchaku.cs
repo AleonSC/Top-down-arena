@@ -268,5 +268,26 @@ namespace Arena
             }
             return true;
         }
+
+        // --- Network: the player's Nunchaku fields (SyncPlayer) ---
+
+        void SyncNunchaku(NetSync s, Player p)
+        {
+            s.Bool(ref p.NunGuard);  // the Nunchaku
+            s.Byte(ref p.NunSwats);
+        }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): the guard under small shots, the Counter once it has some, off when it's quiet
+        static bool NunchakuBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            if (me.NunGuard)
+            {
+                if (me.NunSwats >= 3 && v.ShootAt != null && v.ShootD < 170f)
+                    firing = true;  // the Twin Counter
+                return g.Tap(v.Incoming == 0 && g.BotDanger < 0.5f, 1f);
+            }
+            return g.Tap(v.Incoming >= 3, 1f);
+        }
     }
 }

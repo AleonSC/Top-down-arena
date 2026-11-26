@@ -9,7 +9,7 @@ namespace Arena
     /// wearing armor gets a steel half-shell and a five-segment steel bar over their health bar.
     public partial class ArenaApp
     {
-        static readonly Rgba VestRed = new Rgba(1f, 0.35f, 0.4f), VestGold = new Rgba(1f, 0.8f, 0.35f), VestSteel = new Rgba(0.62f, 0.85f, 1f);  // VestSteel: CrtStyle.Steel
+        static readonly Rgba VestRed = new Rgba(1f, 0.35f, 0.4f), VestGold = Rgba.Gold, VestSteel = new Rgba(0.62f, 0.85f, 1f);  // VestSteel: CrtStyle.Steel
         static readonly Rgba VestMetal = new Rgba(0.29f, 0.32f, 0.36f), VestMetalDark = new Rgba(0.19f, 0.21f, 0.24f), VestStrap = new Rgba(0.11f, 0.13f, 0.15f);
         static readonly Rgba VestCloth = new Rgba(0.17f, 0.21f, 0.25f), VestPlate = new Rgba(0.27f, 0.33f, 0.37f);
         const int VestSegs = 5;  // the armor bar's segments (10 armor each)

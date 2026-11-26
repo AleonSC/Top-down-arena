@@ -184,7 +184,7 @@ namespace Arena
 
         /// A Lens's face is toward `from`: shots from there bend away, and a hit from there lands on the lens.
         public static bool LensFaces(Enemy e, V2 from) =>
-            e.Type == EnemyType.Lens && Math.Abs(MathX.WrapPi((from - e.Pos).Angle - e.Facing)) < LensArc;
+            e.Type == EnemyType.Lens && MathX.AngleWithin((from - e.Pos).Angle, e.Facing, LensArc);
 
         /// Every game, for each player's shot (MoveBullets): near a Lens's face it turns away from the Lens.
         void BendRoundLenses(Bullet b, float dt)
@@ -241,8 +241,7 @@ namespace Arena
             {
                 // The burst: a ring of shots, turned a little each time.
                 float off = Rand(0f, MathX.Tau / ImplosionShots);
-                for (int i = 0; i < ImplosionShots; i++)
-                    EnemyShot(e, off + MathX.Tau * i / ImplosionShots, ImplosionShotSpeed, Defs.SmallShot);
+                EnemyRing(e, ImplosionShots, off, ImplosionShotSpeed, Defs.SmallShot);
                 BroadcastFx(FxKind.Ring, e.Pos, e.Def.Color, 90f, 0.4f, Sfx.Explode);
             }
             else

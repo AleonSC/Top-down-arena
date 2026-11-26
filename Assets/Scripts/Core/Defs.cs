@@ -206,6 +206,8 @@ namespace Arena
         public float Grow;             // per extra projectile: a shot lives (a beam reaches) this much longer, as a fraction;
                                        // a swing reaches this many px further. 0 if extras do something else
         public float BotRange = 330f;  // how far away bots like to fight with it
+        public BotAltFn BotAlt;        // when the smart bot presses its Alt (BotWeaponAlt.cs); null: never
+        public bool BotAltHold;        // that Alt is held down rather than tapped (the parry stays down while it is held: it would let go of it)
     }
 
     /// Where the dev tools' enemy list puts an enemy: by group, then in EnemyType order.
@@ -440,9 +442,9 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A masked foil-fencer that runs in crowds. Close up it shows a short red line, then hops down it: step off the line." },
             new EnemyDef { Name = "Blade Dancer", Hp = 70f, Radius = 13f, Speed = 105f, Score = 8, Xp = 14, Sides = 5, Color = new Rgba(1f, 0.3f, 0.42f), Melee = true, Contact = 14f,
                 Picker = PickerGroup.Melee, Blurb = "Shows a long warning line, then lunges down it and leaves blades hanging on the path. Each fires one shot out of each side: never stand beside the line." },
-            new EnemyDef { Name = "Parrier", Hp = 60f, Radius = 15f, Speed = 110f, Score = 10, Xp = 10, Sides = 6, Color = new Rgba(1f, 0.8f, 0.35f), Melee = true, Contact = 8f,
+            new EnemyDef { Name = "Parrier", Hp = 60f, Radius = 15f, Speed = 110f, Score = 10, Xp = 10, Sides = 6, Color = Rgba.Gold, Melee = true, Contact = 8f,
                 Picker = PickerGroup.Melee, Blurb = "On guard behind a main-gauche: shots into its front are parried straight back at you, and it bashes you away. It turns slowly: get behind it." },
-            new EnemyDef { Name = "Second", Hp = 45f, Radius = 13f, Speed = 70f, Score = 9, Xp = 9, Sides = 5, Color = new Rgba(1f, 0.8f, 0.35f),
+            new EnemyDef { Name = "Second", Hp = 45f, Radius = 13f, Speed = 70f, Score = 9, Xp = 9, Sides = 5, Color = Rgba.Gold,
                 Picker = PickerGroup.Ranged, Blurb = "Hangs back, glints gold, then throws an aimed fan of five daggers. Slip between them." },
             new EnemyDef { Name = "Marshal", Hp = 55f, Radius = 14f, Speed = 75f, Score = 8, Xp = 9, Sides = 6, Color = new Rgba(0.85f, 0.75f, 0.54f),
                 Picker = PickerGroup.Ranged, Blurb = "The duel's referee: raises its baton and draws a gold circle round you. For 4 s you can't leave it, and leaning on the edge hurts: fight in the middle." },
@@ -470,7 +472,7 @@ namespace Arena
             // the Eclipse's faction, the Penumbral Court (Penumbral.cs)
             new EnemyDef { Name = "Ember", Hp = 16f, Radius = 9f, Speed = 135f, Score = 3, Xp = 6, Sides = 5, Color = new Rgba(1f, 0.54f, 0.24f), Melee = true, Contact = 8f,
                 Picker = PickerGroup.Melee, Blurb = "A scrap of solar flare that weaves in at you, dropping sparks that hang in the air behind it." },
-            new EnemyDef { Name = "Corona Priest", Hp = 45f, Radius = 13f, Speed = 85f, Score = 7, Xp = 10, Sides = 6, Color = new Rgba(1f, 0.82f, 0.4f),
+            new EnemyDef { Name = "Corona Priest", Hp = 45f, Radius = 13f, Speed = 85f, Score = 7, Xp = 10, Sides = 6, Color = Rgba.Gold,
                 Picker = PickerGroup.Ranged, Blurb = "A sun-cultist. Its halo flares, then bursts into a ring of slow shots: one at you, and a gap beside it." },
             new EnemyDef { Name = "Heliograph", Hp = 70f, Radius = 13f, Speed = 75f, Score = 9, Xp = 12, Sides = 8, Color = new Rgba(1f, 0.69f, 0.36f),
                 Picker = PickerGroup.Ranged, Blurb = "Tilts a sun mirror at you: a line flickers for a second, then becomes a lane of fire. Step off the line." },
@@ -494,7 +496,7 @@ namespace Arena
                 Picker = PickerGroup.Melee, Blurb = "A small whirlwind that weaves in at you. Its touch shoves you hard, into whatever is behind you." },
             new EnemyDef { Name = "Squall Gunner", Hp = 45f, Radius = 13f, Speed = 85f, Score = 7, Xp = 10, Sides = 5, Color = new Rgba(0.56f, 0.82f, 1f),
                 Picker = PickerGroup.Ranged, Blurb = "Carries its own gust: it aims three shots upwind of you, and they curve back onto you. Dodge against the curve." },
-            new EnemyDef { Name = "Stormcaller", Hp = 50f, Radius = 13f, Speed = 80f, Score = 8, Xp = 11, Sides = 7, Color = new Rgba(1f, 0.82f, 0.4f),
+            new EnemyDef { Name = "Stormcaller", Hp = 50f, Radius = 13f, Speed = 80f, Score = 8, Xp = 11, Sides = 7, Color = Rgba.Gold,
                 Picker = PickerGroup.Ranged, Blurb = "Raises its staff and calls lightning on you: a ring fills under you, then the strike. Step out of the ring." },
             new EnemyDef { Name = "Grounder", Hp = 90f, Radius = 15f, Speed = 70f, Score = 9, Xp = 12, Sides = 6, Color = new Rgba(0.82f, 0.54f, 0.29f),
                 Picker = PickerGroup.Ranged, Blurb = "A copper shield grounds your shots. Twelve charge it, and it claps a ring back with two gaps. Flank it." },
@@ -841,8 +843,8 @@ namespace Arena
             Row(table, NovaShot, radius: 6f, color: new Rgba(0.95f, 0.8f, 1f));
             Row(table, FlakShell, radius: 8f, color: new Rgba(0.7f, 0.85f, 1f));
             Row(table, TankShell, radius: 9f, color: new Rgba(1f, 0.62f, 0.25f));
-            Row(table, HorseArrow, radius: 4.5f, color: new Rgba(1f, 0.8f, 0.35f));
-            Row(table, BallistaBolt, radius: 12f, color: new Rgba(1f, 0.8f, 0.35f));  // the Ballista's giant bolt (Ballista.cs)
+            Row(table, HorseArrow, radius: 4.5f, color: Rgba.Gold);
+            Row(table, BallistaBolt, radius: 12f, color: Rgba.Gold);  // the Ballista's giant bolt (Ballista.cs)
             Row(table, AstralBolt, radius: 5f, color: new Rgba(0.73f, 0.96f, 1f));  // the spirit's pale cyan (AstralProjection.cs)
             Row(table, Senbon, radius: 4f, color: new Rgba(0.86f, 0.89f, 0.93f));  // steel (the venom tip and ink tail are drawn by SenbonSeekersLook.cs)
             Row(table, RodentShot, radius: 5f, color: new Rgba(0.72f, 0.7f, 0.77f));  // a mouse's grey (rats and hamsters are drawn in their own colours)
@@ -867,7 +869,7 @@ namespace Arena
             Row(table, MinionShot, radius: 3.5f, color: new Rgba(0.85f, 1f, 0.95f));
             Row(table, KnightWave, radius: 11f, color: new Rgba(0.85f, 0.92f, 1f));
             Row(table, ArrowShot, radius: 4.5f, color: new Rgba(0.5f, 1f, 0.65f));
-            Row(table, FocusArrow, radius: 6f, color: new Rgba(1f, 0.82f, 0.3f));
+            Row(table, FocusArrow, radius: 6f, color: Rgba.Gold);
             Row(table, ScatterArrow, radius: 3.5f, color: new Rgba(0.5f, 0.9f, 0.85f));
             Row(table, StarShot, radius: 5.5f, color: new Rgba(0.8f, 0.85f, 0.95f));
             Row(table, NeedleShot, radius: 3f, color: new Rgba(0.55f, 1f, 0.75f));

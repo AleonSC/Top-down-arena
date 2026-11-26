@@ -18,7 +18,7 @@ namespace Arena
         const float MarkFar = 700f;  // arena units past the view's edge where an arrow reaches its smallest
         static readonly Rect MarkArea = new Rect(20f, 80f, W - 40f, 590f - 80f);  // (below the boss bars and the top hints, above the console)
         static readonly Rgba MarkEnemy = new Rgba(1f, 0.32f, 0.3f), MarkElite = new Rgba(1f, 0.62f, 0.25f), MarkBoss = new Rgba(0.95f, 0.15f, 0.22f);
-        static readonly Rgba MarkChest = new Rgba(1f, 0.82f, 0.3f);
+        static readonly Rgba MarkChest = Rgba.Gold;
         static readonly Rgba MarkCache = new Rgba(0.25f, 0.9f, 0.7f);  // an unclaimed Stash's vector cache (Docs/BreachRooms.md)
         static readonly Rgba MarkRim= new Rgba(0.02f, 0.03f, 0.06f, 0.85f);
 

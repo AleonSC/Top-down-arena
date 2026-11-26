@@ -50,7 +50,8 @@ static partial class Program
                     need(w.Melee ? w.Reach > 0f : w.Speed * w.Life > 0f || w.Reach > 0f || fireVolley.Contains("case WeaponId." + w.Id + ":"),
                         wn + ": a range (Reach for a swing or beam, Speed and Life for a shot, or a WeaponRange case)");
                     need(k.Fire != null || fireVolley.Contains("case WeaponId." + w.Id + ":"), wn + ": something fires it (KitDef.Fire, or its own case in FireVolley)");
-                    need(core.Contains("case WeaponId." + w.Id + ":"), wn + ": its own case in its class's fire method (a case WeaponId." + w.Id + ")");
+                    need(core.Contains("case WeaponId." + w.Id + ":") || core.Contains("Weapon.Id == WeaponId." + w.Id + ")"),  // (the Needle Swarm fires from the tick)
+                        wn + ": its own case in its class's fire method (a case WeaponId." + w.Id + ")");
                 }
 
             // Abilities: three 1st abilities per role and an ultimate, all its own, each with a cast.
@@ -92,8 +93,6 @@ static partial class Program
     /// so each name there must be a real card.
     static void AbilityIconsTest(string pixelArt)
     {
-        // Abilities still waiting for an icon of their own; the test fails when one gets one, so take it off the list then.
-        var noIconYet = new HashSet<AbilityId> { AbilityId.BambooGrove, AbilityId.SenbonSeekers, AbilityId.LandShark, AbilityId.Starburst, AbilityId.Flood, AbilityId.WaterWard, AbilityId.DeployableTurret, AbilityId.Stampede, AbilityId.ThornBloom };
         var bad = new List<string>();
         foreach (AbilityId id in Enum.GetValues(typeof(AbilityId)))
         {
@@ -102,10 +101,8 @@ static partial class Program
             var a = Upgrades.Ability(id);
             if (a.Icon != null && !pixelArt.Contains("[\"" + a.Icon + "\"] = new[]"))
                 bad.Add(a.Name + ": its icon \"" + a.Icon + "\" isn't drawn in PixelArt.cs");
-            else if (a.Icon == null && a.Choice != AbilityDef.Ult && !noIconYet.Contains(id))
+            else if (a.Icon == null && a.Choice != AbilityDef.Ult)
                 bad.Add(a.Name + " (AbilityId." + id + "): no AbilityDef.Icon");
-            else if (a.Icon != null && noIconYet.Contains(id))
-                bad.Add(a.Name + " has an icon now: take it off noIconYet");
         }
         int at = pixelArt.IndexOf("Dictionary<string, string> ByUpgrade");
         string table = pixelArt.Substring(at, pixelArt.IndexOf("};", at) - at);

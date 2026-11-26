@@ -41,7 +41,7 @@ namespace Arena
         public const float TtGustMult = 1.2f, TtGustKnock = 260f, TtGustHeal = 20f, TtTyphoonHeal = 35f, TtGustTail = 3f, TtTyphoonStun = 1f;
         public const float TtChargeMin = 0.4f, TtChargeFull = 1.2f, TtGustCd = 9f, TtGustFx = 0.5f;
         public static readonly Rgba TtPaper = new Rgba(0.95f, 0.9f, 0.81f), TtPetal = new Rgba(1f, 0.76f, 0.82f),
-            TtWind = new Rgba(0.35f, 0.85f, 0.91f), TtGold = new Rgba(1f, 0.8f, 0.35f), TtSun = new Rgba(0.85f, 0.26f, 0.31f);
+            TtWind = new Rgba(0.35f, 0.85f, 0.91f), TtGold = Rgba.Gold, TtSun = new Rgba(0.85f, 0.26f, 0.31f);
         static readonly Sfx[] TtSounds = { Sfx.SwingLight, Sfx.SwingLight, Sfx.SwingHeavy, Sfx.SwingHeavy, Sfx.SwingHeavy };
 
         public static float TtEase(float x) { x = Math.Max(0f, Math.Min(1f, x)); return 1f - (1f - x) * (1f - x) * (1f - x); }
@@ -352,6 +352,29 @@ namespace Arena
             }
             p.TtTailT = Math.Max(p.TtTailT, TtGustTail);
             BroadcastFx(FxKind.TessenGust, p.Pos, new V2(aim, half), typhoon ? TtGold : TtWind, reach, TtGustFx, Sfx.BossWhoosh);
+        }
+
+        // --- Network: the player's Twin Tessen fields (SyncPlayer) ---
+
+        void SyncTwinTessen(NetSync s, Player p)
+        {
+            s.Bool(ref p.TtCharging);  // the Twin Tessen
+            s.Float(ref p.TtCharge);
+            s.Float(ref p.TtGustCd);
+            s.Float(ref p.TtTailT);
+            s.Float(ref p.CrSurgeT);  // a Chakra Surge (ChakraReserves.cs; synced here to keep the snapshot's order)
+            if (p.CrSurgeT > 0f)
+                s.Float(ref p.CrSurgeMax);
+            s.Byte(ref p.TtBreeze);
+        }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): charge the gust into a crowd, a barrage or a hurt teammate in front, let go at full charge (held)
+        static bool TwinTessenBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var e = v.ShootAt;
+            if (g.botAltWas)
+                return g.botAltHoldT < Game.TtChargeFull;
+            return v.Me.TtGustCd <= 0f && g.Tap(e != null && v.ShootD < 300f && (g.EnemiesNear(e.Pos, 140f) >= 3 || v.Incoming >= 3 || e.Def.IsBoss), 1f);
         }
     }
 }

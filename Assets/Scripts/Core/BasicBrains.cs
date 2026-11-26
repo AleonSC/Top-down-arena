@@ -36,8 +36,7 @@ namespace Arena
             e.Phase = 1;
             e.FireT = 0.11f;
             e.Ang += 0.27f;
-            for (int k = 0; k < 3; k++)
-                EnemyShot(e, e.Ang + MathX.Tau * k / 3f, 125f, Defs.SmallShot, 0.25f);
+            EnemyRing(e, 3, e.Ang, 125f, Defs.SmallShot, 0.25f);
         }
 
         void ShardFire(Enemy e, V2 tpos, float aim)

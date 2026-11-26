@@ -381,5 +381,15 @@ namespace Arena
                 BroadcastFx(FxKind.Ring, c.At, GolRed, GolClotRadius, 0.4f, Sfx.WwSplash);
             }
         }
+
+        // --- Network: the player's Blood Golem fields (SyncPlayer) ---
+
+        void SyncBloodGolem(NetSync s, Player p)
+        {
+            s.Float(ref p.GolT);
+            s.Float(ref p.GolAge);
+            s.Float(ref p.GolCoats);
+            s.Float(ref p.GolPunch);
+        }
     }
 }

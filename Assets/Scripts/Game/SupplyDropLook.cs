@@ -10,7 +10,7 @@ namespace Arena
     /// ordinary medkit orbs.
     public partial class ArenaApp
     {
-        static readonly Rgba SupplyRed = new Rgba(1f, 0.35f, 0.4f), SupplyGreen = new Rgba(0.4f, 1f, 0.55f), SupplyGold = new Rgba(1f, 0.8f, 0.35f);
+        static readonly Rgba SupplyRed = new Rgba(1f, 0.35f, 0.4f), SupplyGreen = new Rgba(0.4f, 1f, 0.55f), SupplyGold = Rgba.Gold;
         static readonly Rgba SupplyOlive = new Rgba(0.42f, 0.48f, 0.23f), SupplyOliveDark = new Rgba(0.29f, 0.33f, 0.15f), SupplyStrap = new Rgba(0.17f, 0.2f, 0.09f);
 
         void DrawSupplyDrop(Zone z, float t)

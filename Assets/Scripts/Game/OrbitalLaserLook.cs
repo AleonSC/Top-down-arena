@@ -14,7 +14,7 @@ namespace Arena
     /// The impact shakes the screen once (Juice.cs's Shake/Hold, which Reduced effects turn off; the flash is dimmer then too).
     public partial class ArenaApp
     {
-        static readonly Rgba OrbRed = new Rgba(1f, 0.32f, 0.38f), OrbGold = new Rgba(1f, 0.8f, 0.35f), OrbWhite = new Rgba(1f, 1f, 1f);
+        static readonly Rgba OrbRed = new Rgba(1f, 0.32f, 0.38f), OrbGold = Rgba.Gold, OrbWhite = new Rgba(1f, 1f, 1f);
         static readonly Rgba OrbCyan = new Rgba(0.62f, 0.88f, 1f), OrbBlue = new Rgba(0.3f, 0.55f, 1f), OrbMolten = new Rgba(1f, 0.55f, 0.2f);
         static readonly Rgba OrbGlass = new Rgba(0.13f, 0.06f, 0.05f), OrbInk = new Rgba(0f, 0f, 0f);
         const float OrbSkyUp = 1500f;  // how far up the screen the column reaches (well past the top)

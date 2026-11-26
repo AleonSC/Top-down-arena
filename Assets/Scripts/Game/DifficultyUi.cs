@@ -13,7 +13,7 @@ namespace Arena
             new Color(0.36f, 0.6f, 1f),     // Normal
             new Color(1f, 0.6f, 0.3f),      // Hard
             new Color(1f, 0.3f, 0.38f),     // Nightmare
-            new Color(1f, 0.8f, 0.35f),     // Custom
+            CrtStyle.Gold,     // Custom
         };
 
         static Color DiffColor(DifficultyLevel l) => DiffColors[(int)l];

@@ -115,5 +115,23 @@ namespace Arena
                 DownIfDead(p, "Vein Tithe");
             }
         }
+
+        // --- Network: the player's Vein Tithe fields (SyncPlayer) ---
+
+        void SyncVeinTithe(NetSync s, Player p)
+        {
+            s.Float(ref p.TitheClock);  // Vein Tithe
+            int tithed = Math.Min(255, p.Tithed.Count);
+            s.Byte(ref tithed);
+            if (s.Reading)
+                p.Tithed.Clear();
+            for (int k = 0; k < tithed; k++)
+            {
+                int held = s.Reading ? 0 : p.Tithed[k];
+                s.Int(ref held);
+                if (s.Reading)
+                    p.Tithed.Add(held);
+            }
+        }
     }
 }
