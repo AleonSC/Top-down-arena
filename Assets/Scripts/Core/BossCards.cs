@@ -84,10 +84,12 @@ namespace Arena
             return false;
         }
 
-        /// Host: one card pick is used up (a wave pick counts in WavePicks too).
+        /// Host: one card pick is used up (a wave pick counts in WavePicks too; the starting pick clears StartPick).
         static void UseCardPick(Player p)
         {
-            if (p.OfferWave)
+            if (p.OfferStart)
+                p.StartPick = false;
+            else if (p.OfferWave)
                 p.WavePicks = Math.Max(0, p.WavePicks - 1);
             p.PendingCards = Math.Max(0, p.PendingCards - 1);
         }

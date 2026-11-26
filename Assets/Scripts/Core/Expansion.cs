@@ -1111,8 +1111,8 @@ namespace Arena
                     Min = new V2(x0, y0), Max = new V2(x1, y1), Hub = a == 0,
                     Kind = kind, Floor = a == 0 ? PathId.None : rooms[a - 1].Floor, Owner = a == 0 ? 0 : rooms[a - 1].Owner, Floating = a > 0 && rooms[a - 1].Floating, Surprise = a == 0 ? (byte)0 : rooms[a - 1].Surprise,
                 };
-                if (a > 0 && kind == RoomKind.Shop)
-                    areas[a].PedestalWalls = ShopPedestalWalls(rooms, a);
+                if (a > 0)
+                    areas[a].PedestalWalls = ShopPedestalWalls(rooms, a);  // (a vendor room's pedestal walls: ShopPedestals.cs)
                 // Doors to every earlier room it shares enough wall with (its parent is always one of them).
                 for (int b = 0; b < a; b++)
                 {
@@ -1215,8 +1215,8 @@ namespace Arena
                     continue;  // (a sliver of a drawn outline: no cover in it)
                 if (gridRun && core != CoreLayoutId.None && IsGridCore(cr))
                     continue;  // (the core's floor plan covers it: CoreLayouts.cs)
-                if (cr.Kind == RoomKind.Shop)
-                    continue;  // (a shop room is bare: its wares stand on pedestals along its walls, ShopPedestals.cs)
+                if (IsVendor(cr.Kind))
+                    continue;  // (a vendor room is bare: its wares stand on pedestals along its walls, ShopPedestals.cs)
                 AddCover(cover, cr, doorSpots, gridRun ? plans : null);
                 if (gridRun && RelicGauntlet.Is(cr))
                     RelicGauntlet.AddPits(pits, cr);  // (the Relic Gauntlet's voids)

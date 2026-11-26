@@ -467,6 +467,7 @@ static partial class Program
         Test("octopus", "Octopus Familiar, the Healer Summoner's 4th choice: the 4th lobby key, the pick (press, click a player, the key again cancels), the octopus on that player on both screens, 8 slaps at once in reach (16 and a heal), its health (shots, the ink burst), its 60 s, one per caster, Three Hearts and mastery", () => OctopusFamiliarTest(Dt)),
         Test("bamboo", "Bamboo Grove, the Tank Ninja's 4th choice: the 4th lobby key, the wind-up, the wave reaching near before far (40 and a stun, heavy enemies less), the bleed once the stun ends, nothing past the radius, the fence holding enemies out and stopping shots, mastery (6 s fence) and Rhizome", () => BambooGroveTest(Dt)),
         Test("siegebell", "Siege Bell, the Tank Knight's 4th choice: the 4th lobby key, the sound, braced (rooted, 25% less damage) while it rings, tolls 1 and 2 (8 and a flinch within 120 px), the shockwave reaching near before far (20, a shove, a 2.5 s stun, heavy enemies less), nothing past 260 px, mastery (3.5 s, shots erased) and Great Bell", () => SiegeBellTest(Dt)),
+        Test("bloodtotem", "Blood Totem, the Tank Hemomancer's 4th choice: the 4th lobby key, 6% health, a totem at the cursor (at most 420 px out), veins gripping within 180 px once risen (40% speed), 5 veins a totem, no stacking, both screens agreeing, 3 at most (a 4th bursts the oldest), 14 s, mastery drain, Bloodroot", () => BloodTotemTest(Dt)),
         Test("flashfire", "Flash Fire, the DPS Elementalist's third ultimate (key 2): the kindle, the ring reaching near before far (100, slowed 40%, heavy enemies less), nothing past the radius, the ground hurting 25 a second for 8 s, going out and leaving what is in it burning, mastery (11 s) and Backdraft", () => FlashFireTest(Dt)),
         Test("stampede", "Stampede, the Tank Summoner's 4th choice: the 4th lobby key (that class only), a 7-beast line charging 320 px, trample 20 once (heavies hurt, not shoved), the shove, the wall slam (+15, stun), the herd fading on every screen, Thundering Herd, the mastered herd charging back", () => StampedeTest(Dt)),
         Test("claymore", "Claymore, the DPS Soldier's 3rd choice: the 3rd lobby key, two charges, the mine at the cursor (220 px reach) facing away, the arming, the trigger cone, the wide blast (140, less with distance, nothing behind), the shove, three at most, Shaped Charge and mastery (a second blast)", () => ClaymoreTest(Dt)),
@@ -491,6 +492,7 @@ static partial class Program
         Test("supplydrop", "the Supply Drop: the Healer Soldier's key 2, the flare at the cursor clamped to 520 px, nothing for 1.5 s, then the landing's damage and stagger within 90 px only, the open zone speeding movement, fire and cooldowns (not the ultimate) for everyone inside on every screen, health packs every 2 s (4 at most), the buff ending on stepping out and the zone after 12 s", () => SupplyDropTest(Dt)),
         Test("armordrop", "the Armor Drop: the Tank Soldier's key 3, the flare at the cursor clamped to 520 px, nothing for 1.6 s, then the landing's damage and stagger within 110 px only, 3 vests (4 mastered) 70-110 px out on every screen, a vest setting armor to 50 (no stacking), armor before health and after the Juggernaut Suit's, no regeneration, a refill, the crate folding once the vests are taken or after 20 s", () => ArmorDropTest(Dt)),
         Test("rocketdrop", "Rocket Drop: the DPS Soldier's key 3, the pod at the cursor clamped to 220 px, nothing for 1.1 s, then the slam (120 within 90 px), only its owner taking the launcher, 85% speed, rockets every 0.6 s in place of the weapon bursting on the first enemy or the cursor (150 falling to 60 at 190 px), the fire pool, every screen, 10 s, mastered 13 s and bomblets, down drops it", () => RocketDropTest(Dt)),
+        Test("hazardfoam", "Hazard Foam: the Healer Soldier's key 3, the sprayer (12 s, 85% speed, a 100 tank draining 14/s, globs in place of the weapon), lumps at the cursor up to 24 px, every screen, solid to shots both ways, enemies and you, enemy shots and chewing wearing it, breaking, fizzing away at 60 s, the tank running dry, mastered 130 and 90 s, down takes it off", () => HazardFoamTest(Dt)),
         Test("banners", "the Knight banner ultimates: Aegis Standard (Tank key 3: an 80-point shield inside that soaks hits, waits 1.5 s, regenerates and fades outside), Pilgrim's Standard (Healer key 1: 4% a second inside), War Standard (DPS key 2: 40% faster, 25% harder, both screens), pressing again lifts it and starts the cooldown, going down lifts it, 60 s at most", () => KnightBannersTest(Dt)),
         Test("helicopter", "the Attack Helicopter: the DPS Soldier's key 1, the pick reaching the run, a fly-in with no fire, then one target at a time nearest you within 560 px at 20 rounds of 8, the next once it dies, twin guns on two targets mastered, the other screen sees it, ends on time, going down and between waves", () => HelicopterTest(Dt)),
         Test("literaltank", "A Literal Tank: the Tank Soldier's key 2, the pick reaching the run, 400 armour before health, 75% speed, abilities locked, a shell every 0.9 s (75 on a hit, 45 round it, a burst at the cursor), small enemies crushed and heavies shoved, the wreck blowing up on time, mastered 550, ending on armour 0, going down and between waves", () => LiteralTankTest(Dt)),
@@ -646,30 +648,9 @@ static partial class Program
         Report("laserdebug", "the Singularity's lasers, step by step", args => LaserDebug()),
     };
 
-    /// The pass/fail suites that neither `core` nor `features` runs: CI runs them in its own job (Tools/SimTest/extras.sh),
-    /// alongside the other two. A new suite whose tests aren't in FeatureTests goes here. (`singularity` is here for its cage
-    /// test; its other test is also in features.)
-    static readonly string[] CiExtras =
-    {
-        "snapshot", "turnkey", "holdingcell", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
-        "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
-        "exploit", "doublebarrel", "railgun", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "vowguard", "embolus", "needleswarm", "bloodbrawler", "arclock", "twinauto", "caltroprun", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
-        "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "hangoutmode", "training", "foequery", "pvp", "three", "wrap", "ready", "wavekinds", "landmarks",
-        "arcanist", "caltroprun", "protocol", "everyenemy", "lists", "stages", "bossrules", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
-        // (these were missing until Nov 2026, so nothing caught them breaking; ci_coverage.py now fails CI on a suite left out)
-        "abilitycards", "armordrop", "astral", "ballista", "bamboo", "boil", "bosses", "botdodge", "botgate", "botweapon", "bulwark",
-        "bumbleremote", "cannoncall", "cardfilters", "cardids", "celllayouts", "chests", "classcardlists", "claymore", "corelayouts",
-        "cover", "decoy", "elementstatus", "deployturret", "dogma", "engbots", "factionrelics", "flashfire", "forbidden", "galewall", "graze",
-        "grenadelauncher", "gridrooms", "helicopter", "hivecenser", "hospital", "huntmap", "huntsave", "ironarmadillo", "ironhide",
-        "landshark", "late", "latewaves", "layouttest", "lighting", "literaltank", "livingbolt", "mammoth", "needles", "offers", "ofuda",
-        "oneway", "orbital", "pickheld", "pits", "portals", "ravager", "refdoc", "rodent", "roomfog", "scratch", "senbon", "shrines",
-        "stampede", "staticbubble", "staticshock", "stayin", "supplydrop", "survival", "thornbloom", "trojanhorse", "twintessen",
-        "ultimates", "waterward", "wiki", "windclash", "wyvernstaff",
-        "heartflail", "sanctumglass", "siegebell", "chakra", "honeyraid", "heartbeat", "tusker",
-        "contentfuzz", "caltroprun", "rocketdrop", "banners", "shadowgong", "octopus", "ritual",
-        "shoppedestals",
-    };
-
+    // The pass/fail suites that neither `core` nor `features` runs are worked out from this file by
+    // Tools/SimTest/ci_coverage.py (`--extras`): every Test(...) whose tests aren't all in FeatureTests. CI runs them in
+    // its own job (extras.sh), so a new suite needs no list: declaring it with Test(...) is enough.
     static int Main(string[] args)
     {
         if (Environment.GetEnvironmentVariable("CONTENTFUZZ") == "1" || (args.Length > 2 && args[2] == "contentfuzz"))
@@ -679,12 +660,6 @@ static partial class Program
         NetPeer.Loopback = Environment.GetEnvironmentVariable("SIMTEST_TCP") == null;  // hosts and joins meet in memory: every message is there on the next Poll, however busy the machine (SIMTEST_TCP=1: real localhost TCP)
         if (NetPeer.Loopback)
             Session.TestClock = () => napClock;
-        if (args.Length == 1 && args[0] == "extras-list")
-        {
-            foreach (var n in CiExtras)
-                Console.WriteLine(n);
-            return 0;
-        }
         string name = args.Length > 2 ? args[2] : args.Length == 1 && args[0] == "list" ? "list" : "core";
         if (name == "music")
             name = "features";  // its old name (it began as the music test)

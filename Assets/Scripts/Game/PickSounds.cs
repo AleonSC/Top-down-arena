@@ -36,6 +36,13 @@ namespace Arena
                         if (!me.OfferCards && Upgrades.All[me.Offer[i]].Rarity >= Rarity.VeryRare)
                             sounds.Play(Sfx.PickRare, 0.7f, now);
                     }
+                    if (me.OfferStart)  // the starting piece pick: a tick per step of the roll, then the lock
+                    {
+                        if (e < IntroRevealed(me, i) && pickSoundIntro >= IntroLanded(i) && StartRollTick(me, i, e) != StartRollTick(me, i, pickSoundIntro))
+                            sounds.Play(Sfx.MenuHover, 0.35f, now);
+                        if (Passed(pickSoundIntro, e, IntroRevealed(me, i)))
+                            sounds.Play(Sfx.PickRare, 0.75f, now);
+                    }
                 }
                 pickSoundIntro = e;
             }

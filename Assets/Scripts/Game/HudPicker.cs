@@ -48,7 +48,7 @@ namespace Arena
             Color theme = me.OfferLegendary ? Upgrades.RarityColor(Rarity.Legendary).ToColor()
                 : me.OfferMilestone ? Upgrades.RarityColor(Rarity.Milestone).ToColor()
                 : me.OfferMod ? Upgrades.RarityColor(Rarity.Mod).ToColor() : me.OfferCards ? BossCardsTheme : me.OfferPrize ? Upgrades.RarityColor(Rarity.VeryRare).ToColor() : CrtStyle.Gold;
-            string title = me.OfferLegendary ? (game.PrizeLegendary(me) ? "CHALLENGE PRIZE!" : "BOSS REWARD!") : me.OfferMod ? "WEAPON MOD" : me.OfferWave ? "WAVE SPOILS" : me.OfferCards ? "BOSS SPOILS!" : me.OfferMilestone ? "MILESTONE!" : me.OfferPrize ? "CHALLENGE PRIZE!" : "LEVEL UP!";
+            string title = me.OfferLegendary ? (game.PrizeLegendary(me) ? "CHALLENGE PRIZE!" : "BOSS REWARD!") : me.OfferMod ? "WEAPON MOD" : me.OfferStart ? "STARTING PIECE" : me.OfferWave ? "WAVE SPOILS" : me.OfferCards ? "BOSS SPOILS!" : me.OfferMilestone ? "MILESTONE!" : me.OfferPrize ? "CHALLENGE PRIZE!" : "LEVEL UP!";
             float titleY, band;
             int titleSize;
             PickTitleMotion(72f, 54, out titleY, out titleSize, out band);  // a full opening pops it in the middle first
@@ -62,7 +62,7 @@ namespace Arena
                 Ui.Glow(new Rect(W / 2f - CrtUi.TitleWidth(title, (int)(titleSize * 1.3f)) / 2f, titleR.center.y - titleSize * 0.35f, CrtUi.TitleWidth(title, (int)(titleSize * 1.3f)), titleSize * 0.7f), titleCol, 0.16f);
             CrtUi.Title(titleR, title, (int)(titleSize * 1.3f), Color.Lerp(titleCol, Color.white, 0.8f), TextAnchor.MiddleCenter, fxReduced);
             int more = me.PendingPicks + me.PendingLegendary + me.PendingMods + me.PendingCards + me.PendingMilestones + me.PrizePicks - 1;
-            string sub = me.OfferLegendary ? "PICK A LEGENDARY UPGRADE" : me.OfferMod ? "PICK HOW YOUR SHOTS BEHAVE" : me.OfferWave ? "PICK ONE PIECE FOR YOUR HAND" : me.OfferCards ? "PICK A CARD OR A FLOOR KIT  ·  WEAPON MODS ARE AT THE ARMS DEALER" : me.OfferMilestone ? "LEVEL " + me.Level + "  ·  PICK ONE MILESTONE UPGRADE" : me.OfferPrize ? "RARE OR BETTER  ·  PICK ONE" : "LEVEL " + me.Level + "  ·  PICK ONE";
+            string sub = me.OfferLegendary ? "PICK A LEGENDARY UPGRADE" : me.OfferMod ? "PICK HOW YOUR SHOTS BEHAVE" : me.OfferStart ? "PICK ONE TO START YOUR HAND" : me.OfferWave ? "PICK ONE PIECE FOR YOUR HAND" : me.OfferCards ? "PICK A CARD OR A FLOOR KIT  ·  WEAPON MODS ARE AT THE ARMS DEALER" : me.OfferMilestone ? "LEVEL " + me.Level + "  ·  PICK ONE MILESTONE UPGRADE" : me.OfferPrize ? "RARE OR BETTER  ·  PICK ONE" : "LEVEL " + me.Level + "  ·  PICK ONE";
             if (more > 0)
                 sub += "  ·  " + more + " MORE AFTER THIS";
             if (titleY <= 73f)

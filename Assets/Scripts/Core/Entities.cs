@@ -385,6 +385,10 @@ namespace Arena
         public float TankT, TankArmor, TankMax;  // A Literal Tank (LiteralTank.cs), replicated: time left (0 = off), armour left, armour it came with
         public float TankCd;                     // host: until the main gun can fire again
         public float RocketT;                    // Rocket Drop (RocketDrop.cs), replicated: the launcher's time left (0 = off)
+        public float FoamT, FoamTank;            // Hazard Foam (HazardFoam.cs), replicated: the sprayer's time left (0 = off), foam left in its tank
+        public float FoamGlobT;                  // host: until the next glob
+        public bool FoamMastered;                // host: strapped on with the capstone (the foam lasts longer)
+        public int FoamGlobs;                    // host: globs sprayed this run (tests)
         public float StdShieldHp, StdShieldMax;  // the Aegis Standard's shield and its most (KnightBanners.cs), replicated (0 = none)
         public float StdShieldHitT; public bool StdShieldIn;  // host: seconds since a hit (its regen waits), inside an Aegis Standard last tick
         public float RocketCd;                   // host: until the launcher fires again
@@ -714,6 +718,8 @@ namespace Arena
         public bool OfferCards;      // the current offer is a card pick (boss or wave): Offer holds BossCards codes, not upgrade ids
         public int WavePicks;        // how many of PendingCards are wave card picks (2 cards after each wave, taken after the boss's; Hand.cs)
         public bool OfferWave;       // the current card offer is a wave card pick (no reroll)
+        public bool StartPick;       // host: the starting piece pick (one of two, the first build round) is still to make; it is one of PendingCards (Hand.cs)
+        public bool OfferStart;      // the current card offer is the starting piece pick (OfferWave is set too: no reroll; the picker rolls the cards in, HudPicker.cs)
         public int PendingMilestones;  // milestone picks still to take: one every 10 levels, and lucky ones from the Milestone Compass
         public bool OfferMilestone;  // the current offer is from the milestone pool
         public int PrizePicks;       // challenge room prizes still to pick: rare or better (Challenges.cs)
@@ -769,7 +775,7 @@ namespace Arena
         public float RiotT;  // Riot Gear: seconds until the shield is back, 0 = ready (RiotGear.cs)
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
-        public float Speed => Def.Speed * Stats.SpeedMult * Game.MomentumMult(this) * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (OverchargeT > 0f ? Game.OverchargeMove : 1f) * (Game.Supplied(this) ? Game.SupplyMove : 1f) * Game.GustMult(GustT) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (CaltropT > 0f ? Game.CaltropSpeed : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (RepelPull ? Game.RepelPullSelfSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (NunGuard ? Game.NunGuardSlow : 1f) * (NodStance == 1 && Weapon.Id == WeaponId.Nodachi ? Game.NodGuardSlow : 1f) * (VgStance == 1 && Weapon.Id == WeaponId.Vowguard ? Game.VgSanctSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f) * Game.ColSpeed(this) * Game.GolSpeed(this) * Game.SpSpeed(this) * Game.BoltSpeed(this) * Game.RodentSpeed(this) * Game.RavagerSpeed(this) * Game.BoilSpeedMult(this) * (TankT > 0f ? Game.TankSlow : 1f) * (Game.RocketOn(this) ? Game.RocketSlow : 1f) * (WcTempestT > 0f ? Game.TempestSlow : 1f) * (FlZeroT > Game.ZeroDur - Game.ZeroCharge ? Game.ZeroSlow : 1f) * (TitheClock > 0f ? Game.TitheSlow : 1f) * (BbBrace ? Game.BraceSlow : 1f) * (HbSet ? Game.PikeSlow : 1f) * (ShardGuard ? Game.ShardGuardSlow : 1f) * (TpLaserT > 0f ? Game.TpLaserSlow : 1f) * (Game.EnergyDrinkOn(this) ? Game.EnergySpeed : 1f) * (PvpSlowT > 0f ? PvpSlowMult : 1f) * Game.FpSpeed(this) * Game.ApSpeed(this) * Game.StaticRushSpeed(this) * (TtCharging ? Game.TtChargeSlow : 1f) * (TtTailT > 0f ? Game.TtTailSpeed : 1f) * Game.CrMoveMult(this);
+        public float Speed => Def.Speed * Stats.SpeedMult * Game.MomentumMult(this) * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (OverchargeT > 0f ? Game.OverchargeMove : 1f) * (Game.Supplied(this) ? Game.SupplyMove : 1f) * Game.GustMult(GustT) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (CaltropT > 0f ? Game.CaltropSpeed : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (RepelPull ? Game.RepelPullSelfSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (NunGuard ? Game.NunGuardSlow : 1f) * (NodStance == 1 && Weapon.Id == WeaponId.Nodachi ? Game.NodGuardSlow : 1f) * (VgStance == 1 && Weapon.Id == WeaponId.Vowguard ? Game.VgSanctSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f) * Game.ColSpeed(this) * Game.GolSpeed(this) * Game.SpSpeed(this) * Game.BoltSpeed(this) * Game.RodentSpeed(this) * Game.RavagerSpeed(this) * Game.BoilSpeedMult(this) * (TankT > 0f ? Game.TankSlow : 1f) * (Game.RocketOn(this) ? Game.RocketSlow : 1f) * (Game.FoamOn(this) ? Game.FoamSlow : 1f) * (WcTempestT > 0f ? Game.TempestSlow : 1f) * (FlZeroT > Game.ZeroDur - Game.ZeroCharge ? Game.ZeroSlow : 1f) * (TitheClock > 0f ? Game.TitheSlow : 1f) * (BbBrace ? Game.BraceSlow : 1f) * (HbSet ? Game.PikeSlow : 1f) * (ShardGuard ? Game.ShardGuardSlow : 1f) * (TpLaserT > 0f ? Game.TpLaserSlow : 1f) * (Game.EnergyDrinkOn(this) ? Game.EnergySpeed : 1f) * (PvpSlowT > 0f ? PvpSlowMult : 1f) * Game.FpSpeed(this) * Game.ApSpeed(this) * Game.StaticRushSpeed(this) * (TtCharging ? Game.TtChargeSlow : 1f) * (TtTailT > 0f ? Game.TtTailSpeed : 1f) * Game.CrMoveMult(this);
         public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
         public float AuraRange => Game.AuraRange * Stats.AuraRangeMult;
     }
@@ -824,6 +830,7 @@ namespace Arena
         public bool Winding;                // about to fire a volley: it glows (replicated; Readability.cs)
         public V2 GasAt;                    // host: where a Gas Grenadier's winding-up lob will land, once locked (WardenFaction.cs)
         public bool GasLocked;              // host: GasAt is set for this wind-up
+        public float FoamT;     // host: pressed against Hazard Foam just now (slowed; HazardFoam.cs)
         public float SlowT, SlowMult = 1f;  // the strongest slow and its time left (host; set with Game.Slow)
         public float SlowT2, SlowMult2 = 1f;  // the next-strongest slow, taken over when the strongest ends (Game.Slow)
         public float ImpTauntT; public int ImpTauntId;  // host: a Blood Ritual imp clawed it: it goes for that imp this long (BloodRitual.cs)
@@ -1034,7 +1041,7 @@ namespace Arena
         public bool Congealed;      // host: a Blood Pool that has set (Hemomancer.cs)
         public bool Bursts;         // host: a mastered Vein Rush trail that hasn't burst yet (VeinRush.cs)
         public float Soak, SoakMax, Soaked;  // host: a Spirit Ward's damage left to take for allies, its most, and what it has taken (Ninja.cs)
-        public float TickT, HealBack;        // host: a Bloodbath's time toward its next bleed tick, and the share of it that heals its owner (Bloodbath.cs)
+        public float TickT, HealBack;        // host: a Bloodbath's (a mastered Blood Totem's) time toward its next bleed (drain) tick, and the share of it that heals its owner (Bloodbath.cs)
         public byte[] Bones;        // replicated, a Bone Phalanx: each skeleton's health as a fraction of 255 (0 = broken); its length is how many (BonePhalanx.cs)
         public float Marched;       // replicated, a Bone Phalanx or a Stampede: px the line has walked from the gate
         public float[] BoneHp, SpearT;  // host, a Bone Phalanx: each skeleton's health and time to its next spear
@@ -1045,7 +1052,7 @@ namespace Arena
         public float Blast;         // host, a Decoy Dummy: how far its confetti blast reaches when it pops (DecoyDummy.cs)
         public HashSet<int> Trampled, Slammed;  // host, a Stampede: enemy ids already hurt, and already slammed, on this charge
         public Dictionary<int, float> HitAt;  // host, a Mammoth Fall: when (its age) it last trampled each enemy (MammothFall.cs)
-        public float Spool, GunCd; public int Side; public bool Quiet, Cap;  // host, a Deployable Turret: Quiet folded away with no blast, Cap mastered; how far the barrels have spun up (0-1), time to its next round, which barrel fires next (DeployableTurret.cs)
+        public float Spool, GunCd; public int Side; public bool Quiet, Cap;  // host, a Deployable Turret (Cap also a mastered Blood Totem): Quiet folded away with no blast, Cap mastered; how far the barrels have spun up (0-1), time to its next round, which barrel fires next (DeployableTurret.cs)
         public V2 Origin2;          // replicated, a Tidal Tusker: where its second (mastered) stream ends; Origin the first's (TidalTusker.cs)
         public V2 OwnerAt;          // host, a Tidal Tusker: where its owner was last tick (the way they walk)
         public int Rider, BoltsLeft;  // replicated, a Ballista: who rides it (0 = nobody), bolts left (Ballista.cs)

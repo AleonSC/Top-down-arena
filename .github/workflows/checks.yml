@@ -28,7 +28,7 @@ jobs:
       - uses: ./.github/actions/install-mono
       - name: Feature suite
         run: Tools/SimTest/run.sh 1 30 features
-  # The suites neither job above runs (Program.cs CiExtras), split into shards that run beside them.
+  # The suites neither job above runs (ci_coverage.py --extras works them out), split into shards that run beside them.
   extras:
     runs-on: ubuntu-latest
     timeout-minutes: 30

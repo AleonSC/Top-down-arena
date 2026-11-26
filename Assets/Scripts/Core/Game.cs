@@ -693,7 +693,7 @@ namespace Arena
                     return;
                 }
                 if (p.OfferWave)
-                    GiveCard(p, BossCards.CardOf(code), "wave pick");
+                    GiveCard(p, BossCards.CardOf(code), p.OfferStart ? "starting pick" : "wave pick");
                 else
                     GrantBossCard(p, code);
                 UseCardPick(p);
@@ -736,6 +736,7 @@ namespace Arena
             p.OfferMod = false;
             p.OfferCards = false;
             p.OfferWave = false;
+            p.OfferStart = false;
             p.WavePicks = Math.Min(p.WavePicks, p.PendingCards);
             p.OfferMilestone = false;
             p.OfferPrize = false;
@@ -748,15 +749,19 @@ namespace Arena
             }
             if (!p.OfferLegendary && mods == null && p.PendingCards > 0)
             {
-                bool wave = p.PendingCards <= p.WavePicks;  // the boss's picks first, then the wave's (Hand.cs)
-                cards = wave ? WaveCardOffer(p) : BossCardOffer(p);
+                bool start = p.StartPick, wave = start || p.PendingCards <= p.WavePicks;  // the starting piece first, then the boss's picks, then the wave's (Hand.cs)
+                cards = start ? StartCardOffer(p) : wave ? WaveCardOffer(p) : BossCardOffer(p);
                 if (!AnyBossCardUsable(p, cards))
                 {
                     p.PendingCards = p.WavePicks = 0;  // a full hand and full kits: nothing to take
+                    p.StartPick = false;
                     cards = null;
                 }
                 else
+                {
                     p.OfferWave = wave;
+                    p.OfferStart = start;
+                }
             }
             if (p.OfferLegendary)
                 p.Offer = Upgrades.LegendaryOffer(rng, p.LegendaryQueue[0], OfferFor(p));
@@ -1286,6 +1291,8 @@ namespace Arena
                 me.Pos = PushOutOfProps(me.Pos, me.Def.HitR + PropPad);  // crates, barrels and a closed chest are solid (Props.cs)
                 WallKick(me, kickWant);  // a Dodge into it bounces off (Dodge.cs)
             }
+            if (!me.Downed && FoamUp())
+                me.Pos = PushOutOfFoam(me.Pos, me.Def.HitR + PropPad);  // Hazard Foam is solid to allies too (HazardFoam.cs)
             // Touching a boss shoves you back out (its body doesn't hurt: TickEnemies).
             if (!me.Downed && shoveT <= 0f)
                 foreach (var e in Enemies.Values)
@@ -1491,7 +1498,7 @@ namespace Arena
 
             LocalDodge(me, move, dodgePress, dodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
             me.Sprint = (byte)Math.Round(SprintFade * 255f);  // for everyone else's wake (sent in Msg.Input, then the snapshot)
-            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me) && !ArmOn(me) && !Riding(me) && !RocketOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
+            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me) && !ArmOn(me) && !Riding(me) && !RocketOn(me) && !FoamOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
             if (LocalLivingBolt(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // electrified: Fire is the dash (LivingBolt.cs)
             if (LocalRavager(me, firing && !HoldControls, dt))
@@ -1581,6 +1588,7 @@ namespace Arena
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickTanks(dt);      // LiteralTank.cs: the tank's time, running enemies over, getting out
             TickRocketLaunchers(dt);  // RocketDrop.cs: the launcher's time, dropping the tube
+            TickFoamSprayers(dt);  // HazardFoam.cs: the sprayer's time and tank, taking it off
             TickHorseRiders(dt);  // TrojanHorse.cs: riders of a horse that's gone, Sally Forth's time
             TickArmadillo(dt);  // IronArmadillo.cs: the ball's time, its speed and hits, the uncurl slam
             TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders
@@ -1663,6 +1671,7 @@ namespace Arena
             KeepOffBridges(dt);    // the Drawbridge (Drawbridge.cs)
             KeepOffBloodWalls(dt);  // Blood Wall (BloodWall.cs): pushes enemies back, bleeds those against it
             KeepOffCovers();  // Deployable Cover (DeployableCover.cs): enemies can't walk through its plates
+            KeepOffFoam(dt);  // Hazard Foam (HazardFoam.cs): enemies can't walk through it; they chew it, bosses plough through
             KeepOffGroveFences();  // Bamboo Grove's fence (BambooGrove.cs): enemies stay outside it
             KeepOffOssuaryWalls(dt);  // the Bone Guard's Ossuary Wall (BoneGuard.cs): pushes enemies back, darts those against it
             KeepOffPhalanx();    // the Bone Phalanx's shields (BonePhalanx.cs)
@@ -1835,6 +1844,8 @@ namespace Arena
                     TickTankGun(p, dt);
                 else if (RocketOn(p))
                     TickRocketGun(p, dt);  // Rocket Drop: the launcher, not your weapon (RocketDrop.cs)
+                else if (FoamOn(p))
+                    TickFoamGun(p, dt);  // Hazard Foam: the sprayer, not your weapon (HazardFoam.cs)
                 else if (ArmOn(p))
                 {
                     // curled up in Iron Armadillo: the weapon is away, Fire revs the roll (IronArmadillo.cs)

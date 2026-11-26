@@ -103,6 +103,11 @@ namespace Arena
                 DrawHoneyGlob(b);  // HoneybeeLook.cs
                 return;
             }
+            if (b.Kind == Defs.FoamGlob)
+            {
+                DrawFoamGlob(b);  // HazardFoamLook.cs
+                return;
+            }
             if (b.Kind == Defs.Senbon)
             {
                 DrawSenbonShot(b, t);  // SenbonSeekersLook.cs

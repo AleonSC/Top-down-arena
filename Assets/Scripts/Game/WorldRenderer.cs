@@ -286,6 +286,7 @@ namespace Arena
             DrawClotStains(t);       // the Gore Mortar's drops on the floor (GoreMortarLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
+            DrawHazardFoam(t);  // Hazard Foam's lumps, all together so they merge (HazardFoamLook.cs)
             DrawInk(t);  // Spirit Chalk's lines and loops (ChalkLook.cs)
             DrawHiveFloor(t);  // the Hive Censer's refill rings and reach; its insects fly here (HiveCenserLook.cs)
             foreach (var h in game.Hazards.Values)
@@ -356,6 +357,7 @@ namespace Arena
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
             DrawBambooGroveFront(t);  // Bamboo Grove's near stalks, in front of the enemies (BambooGroveLook.cs)
             DrawSiegeBellOver(t);  // Siege Bell's bell and its stun marks (SiegeBellLook.cs)
+            DrawBloodTotemsOver(t);  // Blood Totems and their veins to the enemies they hold (BloodTotemLook.cs)
             DrawFlashFireFront(t);  // Flash Fire's near flames, in front of the enemies (FlashFireLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawBloodbathOver(t);  // enemies wading in a Bloodbath: tinted, bleeding drops (BloodbathLook.cs)
@@ -526,6 +528,7 @@ namespace Arena
             DrawBuffTimers(p, t);  // a shrinking arc under them for each timed buff (AbilityLooks.cs)
             DrawBannerAura(p, t);  // the Knight banners on the allies in them (KnightBannersLook.cs)
             DrawRocketAura(p, t);  // Rocket Drop's time ring, the ∞ chip and your blast reach (RocketDropLook.cs)
+            DrawFoamAura(p, t);    // Hazard Foam's time ring, tank bar and where your foam lands (HazardFoamLook.cs)
             DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
             DrawVortex(p, t);      // the Vortex ultimate's storm (VortexLook.cs)
             DrawLivingBoltAura(p, t);  // Living Bolt's channel, halo and time ring (LivingBoltLook.cs)
