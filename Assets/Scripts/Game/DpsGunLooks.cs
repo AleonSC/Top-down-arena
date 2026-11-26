@@ -21,7 +21,7 @@ namespace Arena
     ///                the real spray cone drawn while it is spinning (WorldRenderer.cs).
     public partial class ArenaApp
     {
-        class DpsSeen
+        internal class DpsSeen
         {
             public float T = -99f, Heat, Phase; public int N;
             // the grenade tubes (TwinNadeLook.cs): when each last fired and loaded, which were loaded, where they were drawn
@@ -51,9 +51,13 @@ namespace Arena
         float mBolt, mDHeat, mCharge = 1f, mDAge = 99f, mSpinPhase, mSpinUp, mRailHeat, mRailShotC = 1f;
         bool mRailPerfect;
 
+        /// A gun's shot as Juice saw it appear, for WeaponLook.DpsShot and TankShot: the aim, its left, the round's heading
+        /// and where it is (the muzzle), and whether it starts a volley (DPS guns only).
+        internal struct GunShot { public V2 Dir, Side, Bd, At; public bool Volley; }
+
         void ClearDpsGunLooks() { dpsSeen.Clear(); nadeSeen.Clear(); }
 
-        static bool IsDpsGun(WeaponId id) => Game.IsTwinRifle(id) || id == WeaponId.Railgun || id == WeaponId.BurstSmg || id == WeaponId.DoubleBarrel;
+        static bool IsDpsGun(WeaponId id) => LookOf(id)?.DpsPose != null;  // (WeaponLook.DpsPose: the Twin Rifles, Railgun, Burst SMG and Double Barrel)
 
         DpsSeen DpsOf(int id)
         {
@@ -69,61 +73,61 @@ namespace Arena
             var s = DpsOf(owner.Id);
             bool volley = juiceClock - s.T >= 0.04f;  // a volley's rounds appear together (both Twin barrels, an SMG's extra bullet)
             V2 dir = V2.FromAngle(owner.Aim), side = dir.Orthogonal(), bd = b.Vel.IsZero ? dir : b.Vel.Normalized(), at = b.Pos;
-            switch (owner.Weapon.Id)
+            LookOf(owner.Weapon.Id)?.DpsShot?.Invoke(this, owner, b, s, new GunShot { Dir = dir, Side = side, Bd = bd, At = at, Volley = volley });  // the weapon's own (WeaponLook.DpsShot)
+        }
+
+        /// WeaponLook.DpsShot of the Twin Rifle and its Auto: a round has just appeared at a gun's muzzle.
+        void TwinRifleShot(Player owner, Bullet b, DpsSeen s, GunShot g)
+        {
+            V2 dir = g.Dir, side = g.Side, bd = g.Bd, at = g.At;
+            bool volley = g.Volley;
+            // The round starts at the gun's muzzle (Spread arms), so the flash sits on the gun: a star whose size varies a
+            // little shot to shot, two puffs out of the muzzle brake's side ports, and brass flipping out of the port.
+            // (side is your left: sd +1 is the left gun, tube 0). The round has already flown a little by the time it is
+            // seen, so the flash goes on the gun as last drawn, and a bright streak joins the gun to the round.
+            float sd = (b.Pos - owner.Pos).Dot(side) >= 0f ? 1f : -1f;
+            int gun = sd > 0f ? 0 : 1;
+            V2 drawn = s.Muzzle[gun];
+            at = !drawn.IsZero && drawn.DistanceTo(owner.Disp) < 90f ? drawn : owner.Disp + dir * TwinOut(owner) + side * (b.Pos - owner.Pos).Dot(side);
+            V2 bs = bd.Orthogonal(), port = at - bd * 17f + side * (sd * 1.5f);
+            float fl = Rnd(0.75f, 1.15f);
+            TwinShotFx(at, b.Pos, bd, port, side * sd);  // TwinRifleFx.cs: the light on the floor, the streak, the brass
+            AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = bd.Angle, Life = 0.04f, Max = 0.04f, Size = 18f * fl, Col = TwinFlashCol });
+            AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = bd.Angle, Life = 0.06f, Max = 0.06f, Size = 10f * fl, Col = TwinFlashOrange });
+            AddPart(new Part { Kind = PFlash, Pos = at, Life = 0.05f, Max = 0.05f, Size = 7f, Col = TwinFlashOrange });
+            for (int k = -1; k <= 1; k += 2)
+                AddPart(new Part { Kind = PDust, Pos = at - bd * 1.5f, Vel = bs * (k * Rnd(40f, 60f)), Life = 0.07f, Max = 0.07f, Size = 1.8f, Col = TwinFlashOrange.Mix(Rgba.White, 0.5f) });
+            if (Rnd(0f, 1f) < 0.5f)
+                AddPart(new Part { Kind = PDust, Pos = at, Vel = bd * 28f, Life = 0.4f, Max = 0.4f, Size = 2.6f, Col = SmokeCol });
+            // where the streams cross, from how far this round turns in (for drawing other players' guns, TwinSpreadPose)
+            float turn = Mathf.Abs(MathX.WrapPi(bd.Angle - owner.Aim)), lat = Mathf.Abs((b.Pos - owner.Pos).Dot(side));
+            if (turn > 0.01f && lat > 4f && owner.Weapon.Id == WeaponId.TwinRifle)
+                s.Cross += (Mathf.Clamp(TwinOut(owner) + lat / Mathf.Tan(turn), Game.TwinCrossMin, 600f) - s.Cross) * 0.3f;
+            if (volley)
             {
-                case WeaponId.TwinRifle:
-                case WeaponId.TwinRifleAuto:
-                {
-                    // The round starts at the gun's muzzle (Spread arms), so the flash sits on the gun: a star whose size varies a
-                    // little shot to shot, two puffs out of the muzzle brake's side ports, and brass flipping out of the port.
-                    // (side is your left: sd +1 is the left gun, tube 0). The round has already flown a little by the time it is
-                    // seen, so the flash goes on the gun as last drawn, and a bright streak joins the gun to the round.
-                    float sd = (b.Pos - owner.Pos).Dot(side) >= 0f ? 1f : -1f;
-                    int gun = sd > 0f ? 0 : 1;
-                    V2 drawn = s.Muzzle[gun];
-                    at = !drawn.IsZero && drawn.DistanceTo(owner.Disp) < 90f ? drawn : owner.Disp + dir * TwinOut(owner) + side * (b.Pos - owner.Pos).Dot(side);
-                    V2 bs = bd.Orthogonal(), port = at - bd * 17f + side * (sd * 1.5f);
-                    float fl = Rnd(0.75f, 1.15f);
-                    TwinShotFx(at, b.Pos, bd, port, side * sd);  // TwinRifleFx.cs: the light on the floor, the streak, the brass
-                    AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = bd.Angle, Life = 0.04f, Max = 0.04f, Size = 18f * fl, Col = TwinFlashCol });
-                    AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = bd.Angle, Life = 0.06f, Max = 0.06f, Size = 10f * fl, Col = TwinFlashOrange });
-                    AddPart(new Part { Kind = PFlash, Pos = at, Life = 0.05f, Max = 0.05f, Size = 7f, Col = TwinFlashOrange });
-                    for (int k = -1; k <= 1; k += 2)
-                        AddPart(new Part { Kind = PDust, Pos = at - bd * 1.5f, Vel = bs * (k * Rnd(40f, 60f)), Life = 0.07f, Max = 0.07f, Size = 1.8f, Col = TwinFlashOrange.Mix(Rgba.White, 0.5f) });
-                    if (Rnd(0f, 1f) < 0.5f)
-                        AddPart(new Part { Kind = PDust, Pos = at, Vel = bd * 28f, Life = 0.4f, Max = 0.4f, Size = 2.6f, Col = SmokeCol });
-                    // where the streams cross, from how far this round turns in (for drawing other players' guns, TwinSpreadPose)
-                    float turn = Mathf.Abs(MathX.WrapPi(bd.Angle - owner.Aim)), lat = Mathf.Abs((b.Pos - owner.Pos).Dot(side));
-                    if (turn > 0.01f && lat > 4f && owner.Weapon.Id == WeaponId.TwinRifle)
-                        s.Cross += (Mathf.Clamp(TwinOut(owner) + lat / Mathf.Tan(turn), Game.TwinCrossMin, 600f) - s.Cross) * 0.3f;
-                    if (volley)
-                    {
-                        s.Heat = Mathf.Min(1f, Mathf.Max(0f, s.Heat - TwinHeatDown * (juiceClock - s.T)) + TwinHeatUp);
-                        s.T = juiceClock;
-                        if (owner == game.Me)  // (the Twin Rifle and its Auto)
-                            TwinScreenKick(dir);  // TwinRifleFx.cs
-                    }
-                    break;
-                }
-                case WeaponId.Railgun:
-                    OnRailgunShot(owner, at, bd, 1f);
-                    break;
-                case WeaponId.BurstSmg:
-                {
-                    if (!volley)
-                        break;
-                    s.T = juiceClock;
-                    s.N++;
-                    float spin = owner.SpinUp;
-                    AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = bd.Angle + Rnd(-0.08f, 0.08f), Life = 0.035f, Max = 0.035f, Size = 12f + 8f * spin, Col = spin > 0.9f ? Rgba.White : TwinFlashCol });
-                    AddPart(new Part { Kind = PFlash, Pos = at, Life = 0.04f, Max = 0.04f, Size = 5.5f, Col = TwinFlashOrange });
-                    if (s.N % 2 == 0)
-                        AddPart(new Part { Kind = PCasing, Pos = owner.Disp + dir * 10f + side * 6f, Vel = side * Rnd(100f, 170f) + dir * Rnd(-20f, 20f), Rot = Rnd(0f, MathX.Tau), Spin = Rnd(-22f, 22f), Life = 0.6f, Max = 0.6f, Size = 2.6f, Col = BrassCol });
-                    if (spin > 0.5f && s.N % 3 == 0)
-                        AddPart(new Part { Kind = PDust, Pos = at, Vel = bd * 25f, Life = 0.5f, Max = 0.5f, Size = 2.6f, Col = SmokeCol });
-                    break;
-                }
+                s.Heat = Mathf.Min(1f, Mathf.Max(0f, s.Heat - TwinHeatDown * (juiceClock - s.T)) + TwinHeatUp);
+                s.T = juiceClock;
+                if (owner == game.Me)  // (the Twin Rifle and its Auto)
+                    TwinScreenKick(dir);  // TwinRifleFx.cs
             }
+        }
+
+        /// WeaponLook.DpsShot of the Burst SMG: a volley's flash, brass every other round and smoke once it is hot.
+        void BurstSmgShot(Player owner, DpsSeen s, GunShot g)
+        {
+            V2 dir = g.Dir, side = g.Side, bd = g.Bd, at = g.At;
+            bool volley = g.Volley;
+            if (!volley)
+                return;
+            s.T = juiceClock;
+            s.N++;
+            float spin = owner.SpinUp;
+            AddPart(new Part { Kind = PMuzzle, Pos = at, Rot = bd.Angle + Rnd(-0.08f, 0.08f), Life = 0.035f, Max = 0.035f, Size = 12f + 8f * spin, Col = spin > 0.9f ? Rgba.White : TwinFlashCol });
+            AddPart(new Part { Kind = PFlash, Pos = at, Life = 0.04f, Max = 0.04f, Size = 5.5f, Col = TwinFlashOrange });
+            if (s.N % 2 == 0)
+                AddPart(new Part { Kind = PCasing, Pos = owner.Disp + dir * 10f + side * 6f, Vel = side * Rnd(100f, 170f) + dir * Rnd(-20f, 20f), Rot = Rnd(0f, MathX.Tau), Spin = Rnd(-22f, 22f), Life = 0.6f, Max = 0.6f, Size = 2.6f, Col = BrassCol });
+            if (spin > 0.5f && s.N % 3 == 0)
+                AddPart(new Part { Kind = PDust, Pos = at, Vel = bd * 25f, Life = 0.5f, Max = 0.5f, Size = 2.6f, Col = SmokeCol });
         }
 
         /// Each frame: the SMG's barrels turn (faster as it spins up) and a fired Railgun's coils steam.
@@ -136,29 +140,38 @@ namespace Arena
                 if (!IsDpsGun(p.Weapon.Id))
                     continue;
                 var s = DpsOf(p.Id);
-                if (Game.IsTwinRifle(p.Weapon.Id))
-                {
-                    if (p.Weapon.Id == WeaponId.TwinRifle)
-                        UpdateTwinTubes(p, s);  // TwinNadeLook.cs: a tube loading
-                    float age = juiceClock - s.T, heat = Mathf.Max(0f, s.Heat - TwinHeatDown * age);
-                    if (age > 0.15f && age < 1.05f && heat > 0.2f && Rnd(0f, 1f) < dt * 30f * heat)  // smoke curls out of both muzzles after a burst
+                LookOf(p.Weapon.Id).DpsTick?.Invoke(this, p, s, dt);  // the weapon's own (WeaponLook.DpsTick)
+            }
+        }
+
+        /// WeaponLook.DpsTick of the Twin Rifles: a tube loading, and smoke curling out of both muzzles after a burst.
+        void TwinRifleTick(Player p, DpsSeen s, float dt)
+        {
+            if (p.Weapon.Id == WeaponId.TwinRifle)
+                UpdateTwinTubes(p, s);  // TwinNadeLook.cs: a tube loading
+            float age = juiceClock - s.T, heat = Mathf.Max(0f, s.Heat - TwinHeatDown * age);
+            if (age > 0.15f && age < 1.05f && heat > 0.2f && Rnd(0f, 1f) < dt * 30f * heat)  // smoke curls out of both muzzles after a burst
+            {
+                for (int k = 0; k < 2; k++)
+                    if (!s.Muzzle[k].IsZero && s.Muzzle[k].DistanceTo(p.Disp) < 90f)
                     {
-                        for (int k = 0; k < 2; k++)
-                            if (!s.Muzzle[k].IsZero && s.Muzzle[k].DistanceTo(p.Disp) < 90f)
-                            {
-                                V2 dir = V2.FromAngle(p.Weapon.Id == WeaponId.TwinRifleAuto ? game.AutoHeading(p, k) : p.Aim);  // (each Auto gun smokes along its own barrel)
-                                AddPart(new Part { Kind = PDust, Pos = s.Muzzle[k], Vel = dir * Rnd(8f, 18f) + dir.Orthogonal() * Rnd(-6f, 6f), Life = Rnd(0.6f, 1f), Max = 1f, Size = 2.4f, Col = SmokeCol });
-                            }
+                        V2 dir = V2.FromAngle(p.Weapon.Id == WeaponId.TwinRifleAuto ? game.AutoHeading(p, k) : p.Aim);  // (each Auto gun smokes along its own barrel)
+                        AddPart(new Part { Kind = PDust, Pos = s.Muzzle[k], Vel = dir * Rnd(8f, 18f) + dir.Orthogonal() * Rnd(-6f, 6f), Life = Rnd(0.6f, 1f), Max = 1f, Size = 2.4f, Col = SmokeCol });
                     }
-                }
-                if (p.Weapon.Id == WeaponId.BurstSmg)
-                    s.Phase = MathX.Fmod(s.Phase + dt * (6f + 60f * p.SpinUp), MathX.Tau);
-                else if (p.Weapon.Id == WeaponId.Railgun && juiceClock - s.T < RailVent && Rnd(0f, 1f) < dt * 50f)
-                {
-                    V2.Axes(p.Aim, out V2 dir, out V2 side);
-                    float sg = Rnd(0f, 1f) < 0.5f ? -1f : 1f;
-                    AddPart(new Part { Kind = PDust, Pos = p.Disp + dir * Rnd(16f, 38f) + side * (sg * 6f), Vel = side * (sg * Rnd(10f, 30f)) + dir * Rnd(-15f, 15f), Life = Rnd(0.35f, 0.6f), Max = 0.6f, Size = 3.2f, Col = SteamCol });
-                }
+            }
+        }
+
+        /// WeaponLook.DpsTick of the Burst SMG: its barrels turn, faster as it spins up.
+        void BurstSmgTick(Player p, DpsSeen s, float dt) => s.Phase = MathX.Fmod(s.Phase + dt * (6f + 60f * p.SpinUp), MathX.Tau);
+
+        /// WeaponLook.DpsTick of the Railgun: a fired Railgun's coils steam.
+        void RailgunTick(Player p, DpsSeen s, float dt)
+        {
+            if (juiceClock - s.T < RailVent && Rnd(0f, 1f) < dt * 50f)
+            {
+                V2.Axes(p.Aim, out V2 dir, out V2 side);
+                float sg = Rnd(0f, 1f) < 0.5f ? -1f : 1f;
+                AddPart(new Part { Kind = PDust, Pos = p.Disp + dir * Rnd(16f, 38f) + side * (sg * 6f), Vel = side * (sg * Rnd(10f, 30f)) + dir * Rnd(-15f, 15f), Life = Rnd(0.35f, 0.6f), Max = 0.6f, Size = 3.2f, Col = SteamCol });
             }
         }
 
@@ -177,45 +190,47 @@ namespace Arena
                 s = dpsIdle;
             float age = juiceClock - s.T;
             mDAge = age; mBolt = 0f; mTwinKick = mTwinClimb = 0f; mDHeat = 0f; mCharge = 1f; mSpinUp = 0f; mSpinPhase = s.Phase;
-            switch (p.Weapon.Id)
+            LookOf(p.Weapon.Id).DpsPose(this, p, s, age, ref kick);  // the weapon's own (WeaponLook.DpsPose)
+        }
+
+        /// WeaponLook.DpsPose of the Twin Rifles (and Out of Ammo's rifle arms): each gun's recoil, handle and heat.
+        void TwinRiflePose(Player p, DpsSeen s, float age, ref float kick)
+        {
+            if (age < TwinKick)  // each gun recoils along its own barrel and climbs outward (TwinSpreadPose), not along the aim
             {
-                case WeaponId.TwinRifle:
-                case WeaponId.TwinRifleAuto:
-                case WeaponId.OutOfAmmo:
-                    if (age < TwinKick)  // each gun recoils along its own barrel and climbs outward (TwinSpreadPose), not along the aim
-                    {
-                        float f = 1f - age / TwinKick;
-                        mTwinKick = 6f * f * f;
-                        mTwinClimb = 0.12f * Mathf.Pow(f, 1.5f);
-                        mBolt = 5f * Mathf.Sin(MathX.Pi * age / TwinKick);
-                    }
-                    else if (age < TwinKick + 0.04f)  // a small spring past rest
-                    {
-                        float k = Mathf.Sin(MathX.Pi * (age - TwinKick) / 0.04f);
-                        mTwinKick = -1f * k;
-                        mTwinClimb = -0.02f * k;
-                    }
-                    mDHeat = Mathf.Max(0f, s.Heat - TwinHeatDown * age);
-                    NadeKick(juiceClock - s.Launch[0], out mNadeKick0, out mNadeClimb0);  // a grenade launch kicks its own gun (TwinNadeLook.cs)
-                    NadeKick(juiceClock - s.Launch[1], out mNadeKick1, out mNadeClimb1);
-                    break;
-                case WeaponId.DoubleBarrel:
-                    DbPose(p, s, out kick);  // DoubleBarrelLook.cs
-                    break;
-                case WeaponId.Railgun:
-                    if (age < RailKick)
-                        kick = (3f + 9f * s.Heat) * Sq(1f - age / RailKick);  // (s.Heat: the last shot's charge)
-                    mCharge = p.DrawT > 0f ? game.BowCharge(p, p.DrawT) : 0f;  // the coils light as you hold fire
-                    mRailPerfect = p.DrawT > 0f && game.BowPerfect(p, p.DrawT);
-                    mRailHeat = Mathf.Clamp01(p.RailHeat / Game.RailHeatMax);
-                    mRailShotC = s.Heat;
-                    break;
-                case WeaponId.BurstSmg:
-                    mSpinUp = p.SpinUp;
-                    if (age < SmgKick)
-                        kick = (1.6f + 1.4f * p.SpinUp) * Sq(1f - age / SmgKick);
-                    break;
+                float f = 1f - age / TwinKick;
+                mTwinKick = 6f * f * f;
+                mTwinClimb = 0.12f * Mathf.Pow(f, 1.5f);
+                mBolt = 5f * Mathf.Sin(MathX.Pi * age / TwinKick);
             }
+            else if (age < TwinKick + 0.04f)  // a small spring past rest
+            {
+                float k = Mathf.Sin(MathX.Pi * (age - TwinKick) / 0.04f);
+                mTwinKick = -1f * k;
+                mTwinClimb = -0.02f * k;
+            }
+            mDHeat = Mathf.Max(0f, s.Heat - TwinHeatDown * age);
+            NadeKick(juiceClock - s.Launch[0], out mNadeKick0, out mNadeClimb0);  // a grenade launch kicks its own gun (TwinNadeLook.cs)
+            NadeKick(juiceClock - s.Launch[1], out mNadeKick1, out mNadeClimb1);
+        }
+
+        /// WeaponLook.DpsPose of the Railgun: the kick, the coils' charge and the rails' heat.
+        void RailgunPose(Player p, DpsSeen s, float age, ref float kick)
+        {
+            if (age < RailKick)
+                kick = (3f + 9f * s.Heat) * Sq(1f - age / RailKick);  // (s.Heat: the last shot's charge)
+            mCharge = p.DrawT > 0f ? game.BowCharge(p, p.DrawT) : 0f;  // the coils light as you hold fire
+            mRailPerfect = p.DrawT > 0f && game.BowPerfect(p, p.DrawT);
+            mRailHeat = Mathf.Clamp01(p.RailHeat / Game.RailHeatMax);
+            mRailShotC = s.Heat;
+        }
+
+        /// WeaponLook.DpsPose of the Burst SMG: its spin and kick.
+        void BurstSmgPose(Player p, DpsSeen s, float age, ref float kick)
+        {
+            mSpinUp = p.SpinUp;
+            if (age < SmgKick)
+                kick = (1.6f + 1.4f * p.SpinUp) * Sq(1f - age / SmgKick);
         }
 
         // --- the models (CharacterModels.cs DrawHeld hands over here when the effects are on) ---------------------------

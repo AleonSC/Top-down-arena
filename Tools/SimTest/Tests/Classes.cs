@@ -19,7 +19,6 @@ static partial class Program
         string core = AllSource("Core");
         string pixelArt = File.ReadAllText(Path.Combine(ScriptsDir, "Game", "PixelArt.cs"));
         string looks = File.ReadAllText(Path.Combine(ScriptsDir, "Game", "ClassLooks.cs"));
-        string fireVolley = File.ReadAllText(Path.Combine(ScriptsDir, "Core", "Weapons.cs"));
         var roles = new[] { Role.Tank, Role.Healer, Role.Dps };
         var problems = new List<string>();
         Action<bool, string> need = (ok, what) => { if (!ok) problems.Add(what); };
@@ -47,11 +46,11 @@ static partial class Program
                     need(w.Kit == k.Id && w.Role == role && w.Choice == c, wn + ": in its own lobby place");
                     need(!string.IsNullOrEmpty(w.Name) && !string.IsNullOrEmpty(w.Desc) && !string.IsNullOrEmpty(w.ExtraDesc), wn + ": a Name, Desc and ExtraDesc");
                     need(w.FireInterval > 0f, wn + ": a FireInterval");
-                    need(w.Melee ? w.Reach > 0f : w.Speed * w.Life > 0f || w.Reach > 0f || fireVolley.Contains("case WeaponId." + w.Id + ":"),
-                        wn + ": a range (Reach for a swing or beam, Speed and Life for a shot, or a WeaponRange case)");
-                    need(k.Fire != null || fireVolley.Contains("case WeaponId." + w.Id + ":"), wn + ": something fires it (KitDef.Fire, or its own case in FireVolley)");
-                    need(core.Contains("case WeaponId." + w.Id + ":") || core.Contains("Weapon.Id == WeaponId." + w.Id + ")"),  // (the Needle Swarm fires from the tick)
-                        wn + ": its own case in its class's fire method (a case WeaponId." + w.Id + ")");
+                    need(w.Melee ? w.Reach > 0f : w.Speed * w.Life > 0f || w.Reach > 0f || w.Range != null,
+                        wn + ": a range (Reach for a swing or beam, Speed and Life for a shot, or a WeaponDef.Range)");
+                    need(k.Fire != null || w.Fire != null, wn + ": something fires it (KitDef.Fire, or its own WeaponDef.Fire)");
+                    need(w.Fire != null || core.Contains("case WeaponId." + w.Id + ":") || core.Contains("Weapon.Id == WeaponId." + w.Id + ")"),  // (the Needle Swarm fires from the tick)
+                        wn + ": its own WeaponDef.Fire, or a case in its class's fire method (a case WeaponId." + w.Id + ")");
                 }
 
             // Abilities: three 1st abilities per role and an ultimate, all its own, each with a cast.

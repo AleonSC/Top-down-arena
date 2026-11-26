@@ -128,7 +128,7 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
 - **Classes** are registries, like abilities: each class keeps its `KitDef` (name, blurb, icon, health and speed
   shares, hooks), its `WeaponDef` list and its `AbilityDef` list in its own file; one line in `Classes.Lists` gathers them (`Classes.All`,
   `Defs.Weapons` and `Upgrades.Abilities` are built from it), and each entry's `Kit`/`Role`/`Choice` places it in the lobby tables (indexed by
-  role × kit, `Defs.KitCount = 6`). FireVolley sends a weapon without its own case to its class's `KitDef.Fire`;
+  role × kit, `Defs.KitCount = 6`). FireVolley calls the weapon's `WeaponDef.Fire`, or else its class's `KitDef.Fire`;
   CastAbility's default goes to `KitAbility`, then each class's `KitDef.Ability`, then `Ultimate`. The look is a
   `KitLook` line in `Game/ClassLooks.cs`. See "Adding a class" below. Hemomancer abilities cost health:
   `AbilityDef.HealthCost` (share of max health, or of current with `CostsCurrent`), paid in `HostAbility` before the
@@ -186,7 +186,8 @@ A class is mostly two new files plus a line in each registry. Templates: `Docs/C
    Extra-projectile, Barrage and Homing texts: `ExtraDesc`, `BarrageDesc`, `HomingDesc` on the weapon. A weapon with an Alt
    gets a smart-bot rule: `BotAlt = <Weapon>BotAlt` on its `WeaponDef` (a static method beside the weapon's code, e.g.
    `LanceBotAlt` in `Lance.cs`; `BotAltHold = true` if the Alt is held, not tapped).
-   Unusual weapon ranges (charge, beam, boomerang) get a case in `WeaponRange` (`Weapons.cs`).
+   Unusual weapon ranges (charge, beam, boomerang) get a `Range` on the `WeaponDef` (read by `WeaponRange`, `Weapons.cs`);
+   a hold-to-charge weapon sets `Charge = true`.
 3. **Register it** with one line in `Classes.Lists` (`Classes.cs`: its `KitDef`, weapon list and ability list); `Classes.All`,
    `Defs.Weapons` and `Upgrades.Abilities` are built from it. The game stops at start-up with a message naming anything missing or doubled.
 4. **`Game/<Class>Look.cs`** from the template, plus its `KitLook` line in `Game/ClassLooks.cs`, and an `L(WeaponId.X, ...)`
@@ -345,13 +346,13 @@ feature; `git log --oneline` is usually enough.
 The October 2026 audit and its work plan are done; the full notes (and the November second pass) are in
 [`Docs/History.md`](Docs/History.md) under "Audit findings". Still open:
 
-- **Late-Nov 2026 audit, still open:** the weapon `switch` tables left in `Weapons`, `DpsGunLooks`/`TankGunLooks`
-  (Twin Rifle cases share state) and `DrawMeleeModel` (cases share locals); `TtInCone` and `AmmoInCone` (reach rounds
-  differently from `MathX.InCone`); the irregular enemy rings (gaps, nested, half-step) not on `EnemyRing`; HUD strings
+- **Late-Nov 2026 audit, still open:** `TtInCone` and `AmmoInCone` stay their own (reach tested as `d - r > reach`, a
+  full-circle shortcut, a linear angle pad and mixed `<`/`<=`: four options `MathX.InCone` would need); the irregular enemy rings (gaps, nested, half-step) not on `EnemyRing`; HUD strings
   rebuilt every OnGUI pass (`Hud.cs`), a new `byte[]` per received message (`Net.cs`), pooled `Effect`s; 9 abilities
   with no icon (suite `classes` lists them). Done: 11 network/sim bugs, solo snapshot cost, `EnemyIndex`, render
   buckets (`FxOf`/`EnemiesOf`), `BossFight`, `WeaponAlt`, `AbilityDef.Icon`, ~900 lines of dead code, `WeaponDef.BotAlt`
-  and `WeaponLooks.cs`, per-weapon `Sync*` methods (SyncPlayer 550 -> 219 lines), `MathX.InCone`/`AngleWithin`,
+  and `WeaponLooks.cs`, the weapon switches (`WeaponDef.Fire`/`Range`/`Charge`; `WeaponLook.Model`, `DpsShot`/`DpsTick`/`DpsPose`,
+  `TankShot`/`TankPose`), per-weapon `Sync*` methods (SyncPlayer 550 -> 219 lines), `MathX.InCone`/`AngleWithin`,
   `EnemyRing`, one gold (`Rgba.Gold` = `CrtStyle.Gold`; the 1/.82/.3 and 1/.82/.4 near-golds folded in).
 - **Reference tables are generated** into [`Docs/Reference.md`](Docs/Reference.md) (`run.sh 1 1 refdocwrite`; suite `refdoc` fails when stale). Still open: the README's hand-written weapon/enemy prose could link to or drop numbers that table now holds.
 - **Collision is all-pairs** (player bullets x enemies, enemy bullets x players). Cheap with the bullet budget; a

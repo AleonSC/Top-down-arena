@@ -1121,224 +1121,247 @@ namespace Arena
                 return;
             V2.Axes(ang, out V2 dir, out V2 side);
             var edge = col.WithAlpha(0.9f * alpha);
-            switch (id)
+            var model = LookOf(id)?.Model;  // the weapon's own (WeaponLook.Model), or the blade
+            var m = new MeleeModel { Id = id, O = o, Dir = dir, Side = side, Ang = ang, Reach = reach, Alpha = alpha, Bend = bend, Col = col, Edge = edge, Arm = arm, Bright = bright };
+            if (model != null)
+                model(this, m);
+            else
+                DrawBladeModel(m);
+        }
+
+        /// What DrawMeleeModel hands a weapon's model: its arguments, the aim's axes (dir, side) and the blade's edge colour.
+        internal struct MeleeModel { public WeaponId Id; public V2 O, Dir, Side; public float Ang, Reach, Alpha, Bend; public Rgba Col, Edge, Arm; public bool Bright; }
+
+        /// WeaponLook.Model of the Rapier (Needle): the arm reaching with the thrust, a flexing blade and a swept hilt.
+        void DrawRapierModel(MeleeModel m)
+        {
+            V2 o = m.O, dir = m.Dir, side = m.Side; float ang = m.Ang, reach = m.Reach, alpha = m.Alpha, bend = m.Bend; Rgba arm = m.Arm;
+            // Needle: the hand and arm reach with the thrust, the thin blade flexes at the end of it, a swept hilt, and the
+            // off hand stays behind your back.
+            float x01 = Mathf.Clamp01((reach - 26f) / 104f), flex = bend * 5f;
+            Rgba armc = arm.A > 0f ? arm : new Rgba(0.29f, 0.66f, 0.61f), leather = new Rgba(0.72f, 0.56f, 0.34f, alpha), hide = new Rgba(0.16f, 0.11f, 0.06f, alpha);
+            V2 hand = o + dir * (12f + 12f * x01);
+            Line(o - side * 4f, o - dir * 9f + side * 9f, 5f, armc.WithAlpha(alpha));
+            Circle(o - dir * 11f + side * 9f, 4.6f, hide, 10);
+            Circle(o - dir * 11f + side * 9f, 3.6f, leather, 10);
+            Line(o + dir * 2f + side * 5f, hand, 7.2f, new Rgba(0.05f, 0.1f, 0.1f, alpha));
+            Line(o + dir * 2f + side * 5f, hand, 5f, armc.WithAlpha(alpha));
+            V2 prev = hand + dir * 8f, tipR = o + dir * reach;
+            for (int i = 1; i <= 8; i++)
             {
-                case WeaponId.Rapier:
-                {
-                    // Needle: the hand and arm reach with the thrust, the thin blade flexes at the end of it, a swept hilt, and the
-                    // off hand stays behind your back.
-                    float x01 = Mathf.Clamp01((reach - 26f) / 104f), flex = bend * 5f;
-                    Rgba armc = arm.A > 0f ? arm : new Rgba(0.29f, 0.66f, 0.61f), leather = new Rgba(0.72f, 0.56f, 0.34f, alpha), hide = new Rgba(0.16f, 0.11f, 0.06f, alpha);
-                    V2 hand = o + dir * (12f + 12f * x01);
-                    Line(o - side * 4f, o - dir * 9f + side * 9f, 5f, armc.WithAlpha(alpha));
-                    Circle(o - dir * 11f + side * 9f, 4.6f, hide, 10);
-                    Circle(o - dir * 11f + side * 9f, 3.6f, leather, 10);
-                    Line(o + dir * 2f + side * 5f, hand, 7.2f, new Rgba(0.05f, 0.1f, 0.1f, alpha));
-                    Line(o + dir * 2f + side * 5f, hand, 5f, armc.WithAlpha(alpha));
-                    V2 prev = hand + dir * 8f, tipR = o + dir * reach;
-                    for (int i = 1; i <= 8; i++)
-                    {
-                        float u = i / 8f, bow = 1f - (2f * u - 1f) * (2f * u - 1f);
-                        V2 pt = V2.Lerp(hand + dir * 8f, tipR, u) - side * (flex * bow);
-                        Line(prev, pt, 2.5f, new Rgba(0.95f, 0.96f, 1f, alpha));
-                        prev = pt;
-                    }
-                    Arc(hand + dir * 4f, 7f, 3f, MeleeGuard.WithAlpha(alpha), 10, ang - 1.7f, 3.4f);
-                    Line(hand + dir * 5f + side * 8f, hand + dir * 5f - side * 6f, 2f, MeleeGuard.WithAlpha(alpha));
-                    Circle(hand, 6f, hide, 12);
-                    Circle(hand, 5.2f, leather, 12);
-                    break;
-                }
-                case WeaponId.Lance:
-                {
-                    float tip = reach * 0.98f, r0 = 18f;
-                    SetColor((bright ? Rgba.White : MeleeSteel).WithAlpha(alpha));
-                    V2 b = o + dir * r0;
-                    Quad(b + side * 6f, b - side * 6f, o + dir * (tip - 20f) - side * 2.5f, o + dir * (tip - 20f) + side * 2.5f);
-                    Tri(o + dir * tip, o + dir * (tip - 22f) + side * 4f, o + dir * (tip - 22f) - side * 4f);
-                    Line(b + side * 7f, b - side * 7f, 3f, MeleeGuard.WithAlpha(alpha));
-                    Line(o + dir * (r0 + 4f), o + dir * (tip - 6f), 1.2f, edge);
-                    break;
-                }
-                case WeaponId.Quarterstaff:  // the Quarterstaff: two hands, a lantern head (QuarterstaffLook.cs)
-                    DrawQuarterstaffModel(o, ang, reach, alpha, col, bright, bend, arm, ownerOfModel);
-                    break;
-                case WeaponId.BoStaff:
-                    Line(o - dir * reach * 0.25f, o + dir * reach * 0.97f, 4f, MeleeHandle.WithAlpha(alpha));
-                    Line(o + dir * (reach * 0.97f - 10f), o + dir * reach * 0.97f, 5f, MeleeGuard.WithAlpha(alpha));
-                    Line(o - dir * reach * 0.25f, o - dir * (reach * 0.25f - 8f), 5f, MeleeGuard.WithAlpha(alpha));
-                    break;
-                case WeaponId.Censer:
-                    Line(o + dir * 12f, o + dir * (reach * 0.97f - 12f), 1.5f, MeleeGuard.WithAlpha(alpha));
-                    Circle(o + dir * (reach * 0.97f - 6f), 7f, MeleeGuard.WithAlpha(alpha), 12);
-                    Arc(o + dir * (reach * 0.97f - 6f), 7f, 1.5f, edge, 12);
-                    break;
-                case WeaponId.Kusarigama:
-                {
-                    // The Ink Brush models (KusarigamaLook.cs): the sickle on its chain at the tip, paid out in a cut; in hand the off
-                    // hand holds the weight hanging at your side on a short chain (not while it's thrown or whirling: KusarigamaLook.cs
-                    // draws it then), glowing lilac while the next press throws it.
-                    float tip = reach * 0.97f;
-                    V2 blade = o + dir * tip;
-                    if (arm.A > 0f)
-                    {
-                        V2 grip = o + dir * Mathf.Min(20f, tip - 14f) - side * 3f, off = o + dir * 6f + side * 13f;
-                        DrawMeleeArms(o, side, grip, off, arm, alpha);
-                        Player kp;
-                        bool hangs = game.Players.TryGetValue(ownerOfModel, out kp) && kp.HookT <= 0f && !kp.KusariWhirl;
-                        if (hangs)
-                            DrawKusariChain(grip - dir * 2f, off, 3f, 0.7f * alpha);  // the chain between the hands
-                        if (tip - 16f > (grip - o).Length + 6f)
-                            DrawKusariChain(grip + dir * 4f, blade - dir * 14f, 0f, alpha);  // paid out to the sickle
-                        else
-                            Line(grip - dir * 5f, grip + dir * 8f, 3.2f, KusariWood.WithAlpha(alpha));
-                        DrawKusariSickle(blade, ang + 0.1f, 1f, alpha);
-                        if (hangs)
-                        {
-                            float sw = Mathf.Sin(game.AnimT * 3.1f) * 0.35f;
-                            V2 wt = off + V2.FromAngle(ang + MathX.Pi * 0.72f + sw) * 17f;
-                            DrawKusariChain(off, wt, 2f, 0.9f * alpha);
-                            DrawKusariWeight(wt, alpha, game.AnimT * 2f, -1f, kp.KusariStep == 1 ? 1f : 0f);
-                        }
-                        DrawMeleeGloves(grip, off, new Rgba(0.03f, 0.03f, 0.05f, alpha), new Rgba(0.17f, 0.17f, 0.23f, alpha));
-                        break;
-                    }
-                    DrawKusariChain(o + dir * 12f, blade - dir * 14f, 0f, alpha);
-                    DrawKusariSickle(blade, ang + 0.1f, 1f, alpha);
-                    break;
-                }
-                case WeaponId.BloodLash:
-                {
-                    float tip = reach * 0.97f, root = 12f;
-                    // Held (bend 0) the whip sways; cracked (bend ±1) it lies in its fixed wave. A return blends from one to the other.
-                    float still = 1f - Mathf.Clamp01(Mathf.Abs(bend)), tw = game.AnimT * 5f;
-                    if (arm.A > 0f)
-                    {
-                        // In hand (the model leaves its own arms out): the lead hand on a dark grip, the off hand open at your side.
-                        V2 grip = o + dir * 14f - side * 3f, off = o + dir * 5f + side * 14f;
-                        DrawMeleeArms(o, side, grip, off, arm, alpha);
-                        Line(grip - dir * 5f, grip + dir * 6f, 3.6f, new Rgba(0.23f, 0.04f, 0.07f, alpha));
-                        DrawMeleeGloves(grip, off, new Rgba(0.08f, 0.02f, 0.03f, alpha), new Rgba(0.24f, 0.06f, 0.09f, alpha));
-                        root = (grip - o).Length + 6f;
-                    }
-                    V2 prev = o + dir * root;  // a whip: a wavy line, thinning out
-                    for (int i = 1; i <= 10; i++)
-                    {
-                        float f = i / 10f, wave = Mathf.Lerp(Mathf.Sin(f * 6f) * 5f, Mathf.Sin(f * 5f + tw) * 3.5f, still) * f;
-                        V2 p = o + dir * (root + (tip - root) * f) + side * wave;
-                        Line(prev, p, 3.5f - 2.5f * f, new Rgba(0.75f, 0.12f, 0.16f, alpha));
-                        prev = p;
-                    }
-                    break;
-                }
-                case WeaponId.Greatsword:
-                {
-                    // Moonlit Crescent: a wide blade with a fuller, a big gold guard, held in two gloved hands joined to the body by arms.
-                    const float gx = 36f;
-                    float L = reach * 0.98f, w = 7.6f;
-                    Rgba armc = arm.A > 0f ? arm : new Rgba(0.29f, 0.66f, 0.61f), dark = new Rgba(0.05f, 0.1f, 0.1f, alpha), leather = new Rgba(0.72f, 0.56f, 0.34f, alpha), hide = new Rgba(0.16f, 0.11f, 0.06f, alpha);
-                    V2 h1 = o + dir * 17f, h2 = o + dir * 31f;
-                    Line(o - side * 3f, h1, 7.2f, dark);
-                    Line(o + side * 3f, h2, 7.2f, dark);
-                    Line(o - side * 3f, h1, 5f, armc.WithAlpha(alpha));
-                    Line(o + side * 3f, h2, 5f, armc.WithAlpha(alpha));
-                    Line(o - dir * 6f, o + dir * gx, 5f, new Rgba(0.23f, 0.17f, 0.12f, alpha));
-                    Line(o - dir * 6f, o + dir * gx, 3f, MeleeHandle.WithAlpha(alpha));
-                    Circle(o - dir * 7f, 3.4f, new Rgba(0.72f, 0.6f, 0.29f, alpha), 8);
-                    Circle(h1, 6f, hide, 14);
-                    Circle(h1, 4.8f, leather, 14);
-                    Circle(h2, 5.2f, hide, 14);
-                    Circle(h2, 4f, leather, 14);
-                    V2 g0 = o + dir * (gx - 3f), g1 = o + dir * (gx + 3f);
-                    SetColor(MeleeGuard.WithAlpha(alpha));
-                    Quad(g0 - side * 12f, g1 - side * 10f, g1 + side * 10f, g0 + side * 12f);
-                    V2 b0 = o + dir * (gx + 1f);
-                    float bl = L - gx - 1f;
-                    V2 q0 = b0 - side * w, q1 = b0 + dir * (bl - 18f) - side * w * 0.82f, tipG = b0 + dir * bl, q3 = b0 + dir * (bl - 18f) + side * w * 0.5f, q4 = b0 + side * w * 0.62f;
-                    SetColor((bright ? Rgba.White : new Rgba(0.88f, 0.93f, 0.99f)).WithAlpha(alpha));
-                    Quad(q0, q1, q3, q4);
-                    Tri(q1, tipG, q3);
-                    var edgeG = Rgba.White.WithAlpha(0.95f * alpha);
-                    Line(q0, q1, 1.1f, edgeG);
-                    Line(q1, tipG, 1.1f, edgeG);
-                    Line(tipG, q3, 1.1f, edgeG);
-                    Line(q3, q4, 1.1f, edgeG);
-                    Line(b0 + dir * 8f - side * 0.6f, b0 + dir * (bl * 0.86f) - side * 0.4f, 1.8f, new Rgba(0.16f, 0.24f, 0.31f, 0.5f * alpha));
-                    Line(b0 + dir * 8f - side * 2.1f, b0 + dir * (bl * 0.84f) - side * 1.8f, 0.8f, Rgba.White.WithAlpha(0.55f * alpha));
-                    break;
-                }
-                default:
-                {
-                    // The mockup's blade(): handle (4 px) from just inside your body to the hilt, a guard 14 px across,
-                    // then the blade, wd wide at the hilt, tapering to its tip at 98% of the reach. The Halberd is a pole
-                    // with its blade on the last 30%.
-                    bool pole = id == WeaponId.Halberd;
-                    float bladeShare = pole ? 0.3f : id == WeaponId.TwinBlades || id == WeaponId.Katana ? 0.7f : 0.78f;
-                    float r0 = 18f, r1 = reach * 0.98f, hilt = pole ? reach * (1f - bladeShare) : r0 + (r1 - r0) * (1f - bladeShare);
-                    float wd = pole ? 7f : 5f;
-                    bool katanaArms = id == WeaponId.Katana && arm.A > 0f;  // the Katana in both hands, arms to the shoulders (the model leaves its own out)
-                    V2 kh1 = o + dir * (r0 - 4f), kh2 = o + dir * (hilt - 6f);
-                    if (katanaArms)
-                    {
-                        V2 shRear = o + side * 11f, shLead = o - side * 11f;
-                        var armDark = new Rgba(0.04f, 0.04f, 0.06f, alpha);
-                        Line(shRear, kh1, 7.2f, armDark);
-                        Line(shLead, kh2, 7.2f, armDark);
-                        Line(shRear, kh1, 5f, arm.WithAlpha(alpha));
-                        Line(shLead, kh2, 5f, arm.WithAlpha(alpha));
-                    }
-                    Line(o + dir * (r0 - 6f), o + dir * hilt, 4f, MeleeHandle.WithAlpha(alpha));
-                    if (katanaArms)  // charcoal gloves on the wrapped grip
-                    {
-                        Circle(kh1, 5f, new Rgba(0.03f, 0.03f, 0.05f, alpha), 12);
-                        Circle(kh1, 3.9f, new Rgba(0.17f, 0.17f, 0.23f, alpha), 12);
-                        Circle(kh2, 5f, new Rgba(0.03f, 0.03f, 0.05f, alpha), 12);
-                        Circle(kh2, 3.9f, new Rgba(0.17f, 0.17f, 0.23f, alpha), 12);
-                    }
-                    Line(o + dir * hilt + side * 7f, o + dir * hilt - side * 7f, 3f, MeleeGuard.WithAlpha(alpha));
-                    var fill = bright ? Rgba.White : id == WeaponId.Lightbringer ? new Rgba(1f, 0.95f, 0.75f) : new Rgba(0.9f, 0.93f, 0.99f);
-                    V2 h0 = o + dir * hilt, b1 = o + dir * (r1 - 10f), tip = o + dir * r1;
-                    if (id == WeaponId.Katana && bend != 0f)
-                    {
-                        // Moon Steel: the blade curves toward the way it sweeps, so the cut always bends along its motion
-                        // (the mockup's blade-curve flip). The curve grows toward the tip, like a real katana's sori.
-                        float len = r1 - hilt, sori = len * 0.07f * bend;
-                        const int segs = 6;
-                        V2 pt = h0 + side * wd, pb = h0 - side * wd * 0.6f;
-                        for (int i = 1; i <= segs; i++)
-                        {
-                            float u = (float)i / segs;
-                            V2 c = h0 + dir * (len * u) + side * (sori * u * u);
-                            float wt = wd * (1f - 0.2f * u), wb = wd * 0.6f * (1f - 0.17f * u);
-                            if (i == segs)
-                                break;
-                            V2 nt = c + side * wt, nb = c - side * wb;
-                            SetColor(fill.WithAlpha(alpha));
-                            Quad(pt, nt, nb, pb);
-                            Line(pt, nt, 1.2f, edge);
-                            Line(nb, pb, 1.2f, edge);
-                            pt = nt;
-                            pb = nb;
-                        }
-                        V2 tip2 = h0 + dir * (len + 10f) + side * sori;
-                        SetColor(fill.WithAlpha(alpha));
-                        Tri(pt, tip2, pb);
-                        Line(pt, tip2, 1.2f, edge);
-                        Line(tip2, pb, 1.2f, edge);
-                        Line(h0 + side * wd, h0 - side * wd * 0.6f, 1.2f, edge);
-                        break;
-                    }
-                    V2 p0 = h0 + side * wd, p1 = b1 + side * wd * 0.8f, p3 = b1 - side * wd * 0.6f, p4 = h0 - side * wd * 0.6f;
-                    SetColor(fill.WithAlpha(alpha));
-                    Quad(p0, p1, p3, p4);
-                    Tri(p1, tip, p3);
-                    Line(p0, p1, 1.2f, edge);  // its coloured edge
-                    Line(p1, tip, 1.2f, edge);
-                    Line(tip, p3, 1.2f, edge);
-                    Line(p3, p4, 1.2f, edge);
-                    break;
-                }
+                float u = i / 8f, bow = 1f - (2f * u - 1f) * (2f * u - 1f);
+                V2 pt = V2.Lerp(hand + dir * 8f, tipR, u) - side * (flex * bow);
+                Line(prev, pt, 2.5f, new Rgba(0.95f, 0.96f, 1f, alpha));
+                prev = pt;
             }
+            Arc(hand + dir * 4f, 7f, 3f, MeleeGuard.WithAlpha(alpha), 10, ang - 1.7f, 3.4f);
+            Line(hand + dir * 5f + side * 8f, hand + dir * 5f - side * 6f, 2f, MeleeGuard.WithAlpha(alpha));
+            Circle(hand, 6f, hide, 12);
+            Circle(hand, 5.2f, leather, 12);
+        }
+
+        /// WeaponLook.Model of the Lance: a long tapering steel point and its guard.
+        void DrawLanceModel(MeleeModel m)
+        {
+            V2 o = m.O, dir = m.Dir, side = m.Side; float reach = m.Reach, alpha = m.Alpha; Rgba edge = m.Edge; bool bright = m.Bright;
+            float tip = reach * 0.98f, r0 = 18f;
+            SetColor((bright ? Rgba.White : MeleeSteel).WithAlpha(alpha));
+            V2 b = o + dir * r0;
+            Quad(b + side * 6f, b - side * 6f, o + dir * (tip - 20f) - side * 2.5f, o + dir * (tip - 20f) + side * 2.5f);
+            Tri(o + dir * tip, o + dir * (tip - 22f) + side * 4f, o + dir * (tip - 22f) - side * 4f);
+            Line(b + side * 7f, b - side * 7f, 3f, MeleeGuard.WithAlpha(alpha));
+            Line(o + dir * (r0 + 4f), o + dir * (tip - 6f), 1.2f, edge);
+        }
+
+        /// WeaponLook.Model of the Bo Staff: a long pole capped at both ends.
+        void DrawBoStaffModel(MeleeModel m)
+        {
+            V2 o = m.O, dir = m.Dir; float reach = m.Reach, alpha = m.Alpha;
+            Line(o - dir * reach * 0.25f, o + dir * reach * 0.97f, 4f, MeleeHandle.WithAlpha(alpha));
+            Line(o + dir * (reach * 0.97f - 10f), o + dir * reach * 0.97f, 5f, MeleeGuard.WithAlpha(alpha));
+            Line(o - dir * reach * 0.25f, o - dir * (reach * 0.25f - 8f), 5f, MeleeGuard.WithAlpha(alpha));
+        }
+
+        /// WeaponLook.Model of the Censer: a chain out to the swinging censer.
+        void DrawCenserModel(MeleeModel m)
+        {
+            V2 o = m.O, dir = m.Dir; float reach = m.Reach, alpha = m.Alpha; Rgba edge = m.Edge;
+            Line(o + dir * 12f, o + dir * (reach * 0.97f - 12f), 1.5f, MeleeGuard.WithAlpha(alpha));
+            Circle(o + dir * (reach * 0.97f - 6f), 7f, MeleeGuard.WithAlpha(alpha), 12);
+            Arc(o + dir * (reach * 0.97f - 6f), 7f, 1.5f, edge, 12);
+        }
+
+        /// WeaponLook.Model of the Kusarigama: the sickle on its chain, and in hand the weight hanging at your side.
+        void DrawKusarigamaModel(MeleeModel m)
+        {
+            V2 o = m.O, dir = m.Dir, side = m.Side; float ang = m.Ang, reach = m.Reach, alpha = m.Alpha; Rgba arm = m.Arm;
+            // The Ink Brush models (KusarigamaLook.cs): the sickle on its chain at the tip, paid out in a cut; in hand the off
+            // hand holds the weight hanging at your side on a short chain (not while it's thrown or whirling: KusarigamaLook.cs
+            // draws it then), glowing lilac while the next press throws it.
+            float tip = reach * 0.97f;
+            V2 blade = o + dir * tip;
+            if (arm.A > 0f)
+            {
+                V2 grip = o + dir * Mathf.Min(20f, tip - 14f) - side * 3f, off = o + dir * 6f + side * 13f;
+                DrawMeleeArms(o, side, grip, off, arm, alpha);
+                Player kp;
+                bool hangs = game.Players.TryGetValue(ownerOfModel, out kp) && kp.HookT <= 0f && !kp.KusariWhirl;
+                if (hangs)
+                    DrawKusariChain(grip - dir * 2f, off, 3f, 0.7f * alpha);  // the chain between the hands
+                if (tip - 16f > (grip - o).Length + 6f)
+                    DrawKusariChain(grip + dir * 4f, blade - dir * 14f, 0f, alpha);  // paid out to the sickle
+                else
+                    Line(grip - dir * 5f, grip + dir * 8f, 3.2f, KusariWood.WithAlpha(alpha));
+                DrawKusariSickle(blade, ang + 0.1f, 1f, alpha);
+                if (hangs)
+                {
+                    float sw = Mathf.Sin(game.AnimT * 3.1f) * 0.35f;
+                    V2 wt = off + V2.FromAngle(ang + MathX.Pi * 0.72f + sw) * 17f;
+                    DrawKusariChain(off, wt, 2f, 0.9f * alpha);
+                    DrawKusariWeight(wt, alpha, game.AnimT * 2f, -1f, kp.KusariStep == 1 ? 1f : 0f);
+                }
+                DrawMeleeGloves(grip, off, new Rgba(0.03f, 0.03f, 0.05f, alpha), new Rgba(0.17f, 0.17f, 0.23f, alpha));
+                return;
+            }
+            DrawKusariChain(o + dir * 12f, blade - dir * 14f, 0f, alpha);
+            DrawKusariSickle(blade, ang + 0.1f, 1f, alpha);
+        }
+
+        /// WeaponLook.Model of the Blood Lash: a wavy whip, thinning out, in a gloved hand.
+        void DrawBloodLashModel(MeleeModel m)
+        {
+            V2 o = m.O, dir = m.Dir, side = m.Side; float reach = m.Reach, alpha = m.Alpha, bend = m.Bend; Rgba arm = m.Arm;
+            float tip = reach * 0.97f, root = 12f;
+            // Held (bend 0) the whip sways; cracked (bend ±1) it lies in its fixed wave. A return blends from one to the other.
+            float still = 1f - Mathf.Clamp01(Mathf.Abs(bend)), tw = game.AnimT * 5f;
+            if (arm.A > 0f)
+            {
+                // In hand (the model leaves its own arms out): the lead hand on a dark grip, the off hand open at your side.
+                V2 grip = o + dir * 14f - side * 3f, off = o + dir * 5f + side * 14f;
+                DrawMeleeArms(o, side, grip, off, arm, alpha);
+                Line(grip - dir * 5f, grip + dir * 6f, 3.6f, new Rgba(0.23f, 0.04f, 0.07f, alpha));
+                DrawMeleeGloves(grip, off, new Rgba(0.08f, 0.02f, 0.03f, alpha), new Rgba(0.24f, 0.06f, 0.09f, alpha));
+                root = (grip - o).Length + 6f;
+            }
+            V2 prev = o + dir * root;  // a whip: a wavy line, thinning out
+            for (int i = 1; i <= 10; i++)
+            {
+                float f = i / 10f, wave = Mathf.Lerp(Mathf.Sin(f * 6f) * 5f, Mathf.Sin(f * 5f + tw) * 3.5f, still) * f;
+                V2 p = o + dir * (root + (tip - root) * f) + side * wave;
+                Line(prev, p, 3.5f - 2.5f * f, new Rgba(0.75f, 0.12f, 0.16f, alpha));
+                prev = p;
+            }
+        }
+
+        /// WeaponLook.Model of the Greatsword (Moonlit Crescent): a wide blade, a gold guard, two gloved hands.
+        void DrawGreatswordModel(MeleeModel m)
+        {
+            V2 o = m.O, dir = m.Dir, side = m.Side; float reach = m.Reach, alpha = m.Alpha; Rgba arm = m.Arm; bool bright = m.Bright;
+            // Moonlit Crescent: a wide blade with a fuller, a big gold guard, held in two gloved hands joined to the body by arms.
+            const float gx = 36f;
+            float L = reach * 0.98f, w = 7.6f;
+            Rgba armc = arm.A > 0f ? arm : new Rgba(0.29f, 0.66f, 0.61f), dark = new Rgba(0.05f, 0.1f, 0.1f, alpha), leather = new Rgba(0.72f, 0.56f, 0.34f, alpha), hide = new Rgba(0.16f, 0.11f, 0.06f, alpha);
+            V2 h1 = o + dir * 17f, h2 = o + dir * 31f;
+            Line(o - side * 3f, h1, 7.2f, dark);
+            Line(o + side * 3f, h2, 7.2f, dark);
+            Line(o - side * 3f, h1, 5f, armc.WithAlpha(alpha));
+            Line(o + side * 3f, h2, 5f, armc.WithAlpha(alpha));
+            Line(o - dir * 6f, o + dir * gx, 5f, new Rgba(0.23f, 0.17f, 0.12f, alpha));
+            Line(o - dir * 6f, o + dir * gx, 3f, MeleeHandle.WithAlpha(alpha));
+            Circle(o - dir * 7f, 3.4f, new Rgba(0.72f, 0.6f, 0.29f, alpha), 8);
+            Circle(h1, 6f, hide, 14);
+            Circle(h1, 4.8f, leather, 14);
+            Circle(h2, 5.2f, hide, 14);
+            Circle(h2, 4f, leather, 14);
+            V2 g0 = o + dir * (gx - 3f), g1 = o + dir * (gx + 3f);
+            SetColor(MeleeGuard.WithAlpha(alpha));
+            Quad(g0 - side * 12f, g1 - side * 10f, g1 + side * 10f, g0 + side * 12f);
+            V2 b0 = o + dir * (gx + 1f);
+            float bl = L - gx - 1f;
+            V2 q0 = b0 - side * w, q1 = b0 + dir * (bl - 18f) - side * w * 0.82f, tipG = b0 + dir * bl, q3 = b0 + dir * (bl - 18f) + side * w * 0.5f, q4 = b0 + side * w * 0.62f;
+            SetColor((bright ? Rgba.White : new Rgba(0.88f, 0.93f, 0.99f)).WithAlpha(alpha));
+            Quad(q0, q1, q3, q4);
+            Tri(q1, tipG, q3);
+            var edgeG = Rgba.White.WithAlpha(0.95f * alpha);
+            Line(q0, q1, 1.1f, edgeG);
+            Line(q1, tipG, 1.1f, edgeG);
+            Line(tipG, q3, 1.1f, edgeG);
+            Line(q3, q4, 1.1f, edgeG);
+            Line(b0 + dir * 8f - side * 0.6f, b0 + dir * (bl * 0.86f) - side * 0.4f, 1.8f, new Rgba(0.16f, 0.24f, 0.31f, 0.5f * alpha));
+            Line(b0 + dir * 8f - side * 2.1f, b0 + dir * (bl * 0.84f) - side * 1.8f, 0.8f, Rgba.White.WithAlpha(0.55f * alpha));
+        }
+
+        /// DrawMeleeModel's model for every other melee weapon (no WeaponLook.Model): a handle, a guard and a tapering blade; the Halberd's on a pole, the Katana's curved.
+        void DrawBladeModel(MeleeModel m)
+        {
+            WeaponId id = m.Id; V2 o = m.O, dir = m.Dir, side = m.Side; float reach = m.Reach, alpha = m.Alpha, bend = m.Bend; Rgba edge = m.Edge, arm = m.Arm; bool bright = m.Bright;
+            // The mockup's blade(): handle (4 px) from just inside your body to the hilt, a guard 14 px across,
+            // then the blade, wd wide at the hilt, tapering to its tip at 98% of the reach. The Halberd is a pole
+            // with its blade on the last 30%.
+            bool pole = id == WeaponId.Halberd;
+            float bladeShare = pole ? 0.3f : id == WeaponId.TwinBlades || id == WeaponId.Katana ? 0.7f : 0.78f;
+            float r0 = 18f, r1 = reach * 0.98f, hilt = pole ? reach * (1f - bladeShare) : r0 + (r1 - r0) * (1f - bladeShare);
+            float wd = pole ? 7f : 5f;
+            bool katanaArms = id == WeaponId.Katana && arm.A > 0f;  // the Katana in both hands, arms to the shoulders (the model leaves its own out)
+            V2 kh1 = o + dir * (r0 - 4f), kh2 = o + dir * (hilt - 6f);
+            if (katanaArms)
+            {
+                V2 shRear = o + side * 11f, shLead = o - side * 11f;
+                var armDark = new Rgba(0.04f, 0.04f, 0.06f, alpha);
+                Line(shRear, kh1, 7.2f, armDark);
+                Line(shLead, kh2, 7.2f, armDark);
+                Line(shRear, kh1, 5f, arm.WithAlpha(alpha));
+                Line(shLead, kh2, 5f, arm.WithAlpha(alpha));
+            }
+            Line(o + dir * (r0 - 6f), o + dir * hilt, 4f, MeleeHandle.WithAlpha(alpha));
+            if (katanaArms)  // charcoal gloves on the wrapped grip
+            {
+                Circle(kh1, 5f, new Rgba(0.03f, 0.03f, 0.05f, alpha), 12);
+                Circle(kh1, 3.9f, new Rgba(0.17f, 0.17f, 0.23f, alpha), 12);
+                Circle(kh2, 5f, new Rgba(0.03f, 0.03f, 0.05f, alpha), 12);
+                Circle(kh2, 3.9f, new Rgba(0.17f, 0.17f, 0.23f, alpha), 12);
+            }
+            Line(o + dir * hilt + side * 7f, o + dir * hilt - side * 7f, 3f, MeleeGuard.WithAlpha(alpha));
+            var fill = bright ? Rgba.White : id == WeaponId.Lightbringer ? new Rgba(1f, 0.95f, 0.75f) : new Rgba(0.9f, 0.93f, 0.99f);
+            V2 h0 = o + dir * hilt, b1 = o + dir * (r1 - 10f), tip = o + dir * r1;
+            if (id == WeaponId.Katana && bend != 0f)
+            {
+                // Moon Steel: the blade curves toward the way it sweeps, so the cut always bends along its motion
+                // (the mockup's blade-curve flip). The curve grows toward the tip, like a real katana's sori.
+                float len = r1 - hilt, sori = len * 0.07f * bend;
+                const int segs = 6;
+                V2 pt = h0 + side * wd, pb = h0 - side * wd * 0.6f;
+                for (int i = 1; i <= segs; i++)
+                {
+                    float u = (float)i / segs;
+                    V2 c = h0 + dir * (len * u) + side * (sori * u * u);
+                    float wt = wd * (1f - 0.2f * u), wb = wd * 0.6f * (1f - 0.17f * u);
+                    if (i == segs)
+                        break;
+                    V2 nt = c + side * wt, nb = c - side * wb;
+                    SetColor(fill.WithAlpha(alpha));
+                    Quad(pt, nt, nb, pb);
+                    Line(pt, nt, 1.2f, edge);
+                    Line(nb, pb, 1.2f, edge);
+                    pt = nt;
+                    pb = nb;
+                }
+                V2 tip2 = h0 + dir * (len + 10f) + side * sori;
+                SetColor(fill.WithAlpha(alpha));
+                Tri(pt, tip2, pb);
+                Line(pt, tip2, 1.2f, edge);
+                Line(tip2, pb, 1.2f, edge);
+                Line(h0 + side * wd, h0 - side * wd * 0.6f, 1.2f, edge);
+                return;
+            }
+            V2 p0 = h0 + side * wd, p1 = b1 + side * wd * 0.8f, p3 = b1 - side * wd * 0.6f, p4 = h0 - side * wd * 0.6f;
+            SetColor(fill.WithAlpha(alpha));
+            Quad(p0, p1, p3, p4);
+            Tri(p1, tip, p3);
+            Line(p0, p1, 1.2f, edge);  // its coloured edge
+            Line(p1, tip, 1.2f, edge);
+            Line(tip, p3, 1.2f, edge);
+            Line(p3, p4, 1.2f, edge);
         }
     }
 }

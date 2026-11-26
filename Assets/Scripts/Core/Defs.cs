@@ -178,7 +178,7 @@ namespace Arena
     public class WeaponDef
     {
         public WeaponId Id;
-        public Kit Kit;            // whose weapon it is: FireVolley sends it to that class's Fire (Classes.cs) unless it has its own case
+        public Kit Kit;            // whose weapon it is: FireVolley sends it to that class's Fire (Classes.cs) unless it has its own Fire
         public Role Role;          // with Kit and Choice, its place in the lobby (Defs.Weapons is gathered from each class's list)
         public int Choice;         // 0-2: first, second or third weapon of its role and class
         public string KeyLabel;    // the lobby key's text when the name is one word too long for it (a line break where it splits); null: the name
@@ -208,7 +208,13 @@ namespace Arena
         public float BotRange = 330f;  // how far away bots like to fight with it
         public BotAltFn BotAlt;        // when the smart bot presses its Alt (BotWeaponAlt.cs); null: never
         public bool BotAltHold;        // that Alt is held down rather than tapped (the parry stays down while it is held: it would let go of it)
+        public KitFireFn Fire;         // its own firing code (Game.FireVolley); null: its class's KitDef.Fire fires it
+        public WeaponRangeFn Range;    // its reach right now (Game.WeaponRange, the aim line); null: a swing's reach (Melee) or Speed × Life
+        public bool Charge;            // hold to charge, let go to fire (Game.ChargeWeapon)
     }
+
+    /// WeaponDef.Range: how far the player's weapon `w` reaches from their centre right now, with `extra` extra projectiles.
+    public delegate float WeaponRangeFn(Game g, Player p, WeaponDef w, int extra);
 
     /// Where the dev tools' enemy list puts an enemy: by group, then in EnemyType order.
     public enum PickerGroup : byte { Hidden, Melee, Ranged, Late, Boss }
