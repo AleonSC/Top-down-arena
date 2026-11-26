@@ -26,7 +26,7 @@ namespace Arena
     /// Spirit Chalk (Healer Summoner): hold and drag to draw a line of spirit ink. It burns and slows enemies touching it, heals
     /// allies standing on it and (with the Warding Ink card) destroys enemy bullets that cross it, each wearing it down fast. Draw a loop round enemies and they
     /// are penned in until it fades (bosses aren't held). Clients see it through the snapshot (SyncInk). Looks: Game/ChalkLook.cs.
-    ///   Alt (Msg.WeaponDash DashIgnite): sets every sealed loop of yours alight. The enemies penned in burn ChalkIgniteDps for
+    ///   Alt (Msg.WeaponDash WeaponAlt.Ignite): sets every sealed loop of yours alight. The enemies penned in burn ChalkIgniteDps for
     ///   ChalkIgniteTime and the ring holds that long (or its own remaining time, if more). Needs a loop with enemies in it; cooldown ChalkIgniteCd.
     public partial class Game
     {
@@ -35,7 +35,6 @@ namespace Arena
         public const float ChalkErase = 0.3f;  // a dot with less life than this is fading out (erased, or about to expire) and no longer counts as ink down
         public const float ChalkSeal = 3.5f, ChalkCloseDist = 20f, ChalkMinLoopArea = 3600f;  // a loop closes within this of where it began; it holds this long; it must enclose at least about 60 x 60 px
         public const float ChalkIgniteCd = 6f, ChalkIgniteTime = 3f, ChalkIgniteDps = 40f;
-        const byte DashIgnite = 47;
         public const int ChalkMinLoopDots = 12;  // a loop is at least 120 px of line (so a scribble in place doesn't count)
 
         /// How far from you you can draw (Piercing Rounds stretch it); the aim line ends here too.
@@ -249,11 +248,11 @@ namespace Arena
                 return false;
             igniteLocalCd = ChalkIgniteCd;
             if (IsHost)
-                HostWeaponDash(MyId, DashIgnite, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.Ignite, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashIgnite);
+                w.Write(WeaponAlt.Ignite);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }
@@ -486,17 +485,17 @@ namespace Arena
                     int owner = 0, stroke = 0, pen = 0;
                     V2 pos = default(V2);
                     float t = 0f;
-                    s.Byte(ref owner); s.Short(ref stroke); s.Short(ref pen); s.Vec(ref pos); s.Float(ref t);
+                    s.Short(ref owner); s.Short(ref stroke); s.Short(ref pen); s.Vec(ref pos); s.Float(ref t);
                     Ink.Add(new InkDot { Owner = owner, Stroke = stroke, Pen = pen & 0x3fff, Lit = (pen & 0x4000) != 0, Pos = pos, T = t });
                 }
             }
             else
                 foreach (var d in Ink)
                 {
-                    int owner = d.Owner & 0xff, stroke = d.Stroke & 0x7fff, pen = (d.Pen & 0x3fff) | (d.Lit ? 0x4000 : 0);
+                    int owner = d.Owner & 0x7fff, stroke = d.Stroke & 0x7fff, pen = (d.Pen & 0x3fff) | (d.Lit ? 0x4000 : 0);
                     V2 pos = d.Pos;
                     float t = d.T;
-                    s.Byte(ref owner); s.Short(ref stroke); s.Short(ref pen); s.Vec(ref pos); s.Float(ref t);
+                    s.Short(ref owner); s.Short(ref stroke); s.Short(ref pen); s.Vec(ref pos); s.Float(ref t);
                 }
             int tips = InkTip.Count;
             s.Byte(ref tips);
@@ -507,16 +506,16 @@ namespace Arena
                 {
                     int owner = 0;
                     V2 pos = default(V2);
-                    s.Byte(ref owner); s.Vec(ref pos);
+                    s.Short(ref owner); s.Vec(ref pos);
                     InkTip[owner] = pos;
                 }
             }
             else
                 foreach (var kv in InkTip)
                 {
-                    int owner = kv.Key & 0xff;
+                    int owner = kv.Key & 0x7fff;
                     V2 pos = kv.Value;
-                    s.Byte(ref owner); s.Vec(ref pos);
+                    s.Short(ref owner); s.Vec(ref pos);
                 }
         }
     }

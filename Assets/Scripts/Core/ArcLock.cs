@@ -10,7 +10,7 @@ namespace Arena
     ///   Let go (FireVolley, KitWeapons.cs): lightning chains from your staff through every tag in the order they were tagged, one hop
     ///     every ArcHop (Player.ArcHops, landed by TickArcLock; FxKind.ArcLink). Each tag hit takes (Damage + ArcPerTag x tags), and a
     ///     ArcStun stun (not bosses). Nothing tagged: a fizzle (an ArcLink with no target).
-    ///   Alt, Forked Volley (Msg.WeaponDash, DashFork): three quick forked bolts curve into the three enemies nearest your cursor
+    ///   Alt, Forked Volley (Msg.WeaponDash, WeaponAlt.Fork): three quick forked bolts curve into the three enemies nearest your cursor
     ///     (within ForkPick of it and ForkRange of you), ForkGap apart, ForkDamage each; ForkCd cooldown (FxKind.ArcFork).
     ///   Upgrades: fire rate and Static Field tag faster; extra projectiles add ArcGrow damage; Barrage adds ArcFanTags tags a stack;
     ///     Homing Rounds widen the cone; Velocity and Piercing Rounds stretch it.
@@ -21,7 +21,6 @@ namespace Arena
         public const int ArcMaxTags = 10, ArcFanTags = 2, ArcTagCap = 16;
         public const float ForkCd = 1.4f, ForkGap = 0.07f, ForkDamage = 14f, ForkPick = 200f, ForkRange = 560f, ForkBend = 55f;
         public const int ForkBolts = 3;
-        const byte DashFork = 32;
 
         /// A chain or fork hit still to land (host only).
         public struct ArcHit
@@ -227,11 +226,11 @@ namespace Arena
                 return true;
             forkLocalCd = ForkCd;
             if (IsHost)
-                HostWeaponDash(MyId, DashFork, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.Fork, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashFork);
+                w.Write(WeaponAlt.Fork);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

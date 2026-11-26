@@ -176,7 +176,7 @@ namespace Arena
             float hitAge = 9f;
             V2 key = z.Pos + fwd;
             if (fxOn)
-                foreach (var fx in game.Effects)
+                foreach (var fx in FxOf(FxKind.CoverHit))
                     if (fx.Kind == FxKind.CoverHit && fx.T < hitAge && fx.Pos2.DistanceSq(key) < 1f)
                         hitAge = fx.T;
             float flash = hitAge < 0.07f ? 0.45f * (1f - hitAge / 0.07f) : 0f, jit = hitAge < 0.07f ? -1.4f * (1f - hitAge / 0.07f) : 0f;

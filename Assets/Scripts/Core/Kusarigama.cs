@@ -9,7 +9,7 @@ namespace Arena
     ///   - Whirl (the weapon-action key, Left Alt, held): the weight circles you, its orbit growing to KusariOrbitMax. Everything within
     ///     KusariPull is dragged toward you (never into you; bosses and heavies don't budge) and the chain cuts what it sweeps through.
     ///     You move at KusariWhirlSlow and can't swing. Let go, or run out of KusariWhirlMax, and the chain snaps in: a shockwave
-    ///     that knocks back and stuns. Your game sends Msg.WeaponDash (DashWhirlOn / DashWhirlOff); the host does the rest.
+    ///     that knocks back and stuns. Your game sends Msg.WeaponDash (WeaponAlt.WhirlOn / WeaponAlt.WhirlOff); the host does the rest.
     ///   - The throw is state, not an effect: HookId, HookT and KusariAim are replicated and the screen draws the weight from them
     ///     (Game/KusarigamaLook.cs); the host's timing is KusariThrowTime with the weight landing at KusariImpactAt.
     public partial class Game

@@ -58,6 +58,7 @@ namespace Arena
                 amount *= 1f - AdrenalineCut;  // Adrenaline Shot
             if (p.UnbreakT > 0f)
                 amount *= 1f - Math.Min(0.8f, CavGuard + p.Stats.UnbreakBonus);
+            amount *= 1f - BellCut(p);  // braced under your Siege Bell (SiegeBell.cs)
             amount *= 1f - CereCut(p);  // the Ninja's Ceremonial Armor at full regalia (CeremonialArmor.cs)
             amount *= 1f - VgCover(p);  // Cover Ally (Vowguard.cs)
             amount *= 1f - NodArmor(p);  // the Nodachi's Storm wind-ups (Nodachi.cs)
@@ -66,6 +67,7 @@ namespace Arena
             amount = LeashSoak(p, amount);  // Martyr's Leash sends a share down the chains (BloodLash.cs)
             amount = WardSoak(p, amount);  // a Spirit Ward near you takes it first (Ninja.cs)
             amount = JuggSoak(p, amount);  // then the Juggernaut Suit's armour (Juggernaut.cs)
+            amount = GolSoak(p, amount);  // then Blood Golem's coats (BloodGolem.cs)
             amount = TankSoak(p, amount);  // or A Literal Tank's (LiteralTank.cs)
             amount = TurretSoak(p, amount);  // the Deployable Turret you sit in takes the rest first (DeployableTurret.cs)
             amount = BallistaSoak(p, amount);  // the Ballista you ride takes a share (Ballista.cs)
@@ -304,6 +306,8 @@ namespace Arena
             bool held = ArenaHeld, cells = HoldingCells.Count > 0;  // the fight paused while everyone's in a Holding Cell (HoldingCell.cs)
             foreach (var b in Bullets.Values)
             {
+                b.Prev = b.Pos;  // (Enters: did it come in from outside a blocker this tick)
+                b.HasPrev = true;
                 if (held && !InCellZone(b.Pos))
                     continue;  // shots in the arena hold still
                 if (b.AngVel != 0f && b.Kind != Defs.FumaStar)  // a Fuma Shuriken's AngVel only says which way it loops (Ninja.cs)
@@ -714,6 +718,11 @@ namespace Arena
                 scratchIds.Add(b.Id);  // a Gale Wall: everything stops in its lens, red aimed shots too, and charges it (GaleWall.cs)
                 return;
             }
+            if (GlassStops(b))
+            {
+                scratchIds.Add(b.Id);  // a Sanctum Glass: every enemy shot that touches it turns into a healing mote (SanctumGlass.cs)
+                return;
+            }
             if (WardStops(b))
             {
                 scratchIds.Add(b.Id);  // a Water Ward drop eats it and bursts into mist (WaterWard.cs)
@@ -1016,7 +1025,8 @@ namespace Arena
                 if (e.Hp <= 0f)
                     dead.Add(e);
             foreach (var e in dead)
-                EnemyDied(e);
+                if (StillIn(e))  // (a boss's death can clear its adds first: those go without a kill or reward)
+                    EnemyDied(e);
         }
 
         /// One enemy's death: kill hooks, records, healing, score, XP, gold, vectors, orbs and its death effect.
@@ -1080,7 +1090,7 @@ namespace Arena
             float r = radius + b.Radius;
             if (b.Pos.DistanceSq(center) >= r * r)
                 return false;
-            V2 before = b.Pos - b.Vel * tickDt;
+            V2 before = b.HasPrev ? b.Prev : b.Pos - b.Vel * tickDt;  // its real last spot: slowed (parry slow, smoke) or frozen shots move less than Vel (fired this tick: a guess)
             return before.DistanceSq(center) >= r * r;
         }
 

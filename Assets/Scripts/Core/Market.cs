@@ -38,7 +38,6 @@ namespace Arena
             "Goes off once when an enemy walks over it.",
             "Slows everything that crosses it.",
         };
-        public static readonly string[] Units = { "pair", "each", "each", "each" };
 
         public static bool Valid(int kind) => kind >= 0 && kind < Count;
 

@@ -74,7 +74,7 @@ namespace Arena
                 dgPts[k] = dgPts[k] + n * (Mathf.Sin(k * 0.42f - t * 9f) * 7f * Mathf.Clamp01(dgU[k] * 4f));
             }
             if (fxOn)
-                foreach (var fx in game.Effects)
+                foreach (var fx in FxOf(FxKind.DragonBite))
                     if (fx.Kind == FxKind.DragonBite && (int)fx.Pos2.X == p.Id && fx.Pos2.Y > 0.5f)
                         dgLumps.Add(fx.T / Game.DogmaBiteFx);
             return true;
@@ -113,7 +113,7 @@ namespace Arena
                 open = Mathf.Clamp01(1f - (d - 20f) / 120f);
                 open = Mathf.Sin(open * Mathf.PI * 0.5f);
             }
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.DragonBite))
                 if (fx.Kind == FxKind.DragonBite && (int)fx.Pos2.X == p.Id && fx.T < 0.12f)
                     open = Mathf.Min(open, fx.T / 0.12f);  // just bit: shut, opening again
             return open;
@@ -431,7 +431,7 @@ namespace Arena
         /// Each bite of p's dragon: the shock ring, shards, and (devoured) the enemy's soul spiralling into the maw.
         void DrawDogmaBites(Player p)
         {
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.DragonBite))
             {
                 if (fx.Kind != FxKind.DragonBite || (int)fx.Pos2.X != p.Id)
                     continue;
@@ -474,7 +474,7 @@ namespace Arena
             float t = game.AnimT, life = DogmaLife(p);
             float sig = DogmaSigilOpen(p);
             if (sig > 0f && fxOn) GlowDisc(p.Disp, 110f, DgGold, 0.35f * sig);
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.DragonBite))
                 if (fx.Kind == FxKind.DragonBite && (int)fx.Pos2.X == p.Id && fx.T < 0.5f)
                     GlowDisc(fx.Pos, 100f * (0.5f + fx.T), DgCore, 0.6f * (1f - fx.T / 0.5f));
             if (!DogmaBody(p, t))

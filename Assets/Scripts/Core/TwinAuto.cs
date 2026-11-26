@@ -5,7 +5,7 @@ namespace Arena
     /// The Twin Rifle Auto (the Soldier DPS's fourth weapon, Choice 3). The Twin Rifle's guns held out to your sides, but you never pull
     /// the trigger: each rifle turns on its own to the nearest enemy on its side of you (left of your facing for the left gun, right for the
     /// right) and fires at it, up to the guns' range and with a clear line. A side with nobody on it borrows the other gun's target.
-    /// Alt (Msg.WeaponDash, DashLock) locks both guns on the enemy nearest your cursor until it dies, or until Alt is pressed again;
+    /// Alt (Msg.WeaponDash, WeaponAlt.Lock) locks both guns on the enemy nearest your cursor until it dies, or until Alt is pressed again;
     /// locked, both streams run at that one enemy and cross on it, so every hit is crossfire (1.5x). No grenades.
     /// Replicated: Player.TwinAimL / TwinAimR (each gun's heading relative to your facing, + toward your right) and Player.TwinLock (the enemy's id).
     /// The look is the Twin Rifle's, with the guns turned to those headings (Game/DpsGunLooks.cs TwinAutoPose) and a lock reticle (Game/TwinAutoLook.cs).

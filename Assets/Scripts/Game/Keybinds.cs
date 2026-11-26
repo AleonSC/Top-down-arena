@@ -122,21 +122,6 @@ namespace Arena
         /// Held now (never while rebinding).
         public static bool Held(KeyAction a) => !Busy && (Slot(a, keys[(int)a], Input.GetKey) || Slot(a, keys2[(int)a], Input.GetKey));
 
-        /// This OnGUI event is the action's key (or mouse button) going down: for screens that read keys in OnGUI.
-        public static bool IsEvent(KeyAction a, Event ev)
-        {
-            if (Busy || ev == null)
-                return false;
-            KeyCode k;
-            if (ev.type == EventType.KeyDown)
-                k = ev.keyCode;
-            else if (ev.type == EventType.MouseDown)
-                k = KeyCode.Mouse0 + ev.button;
-            else
-                return false;
-            return k != KeyCode.None && (Same(keys[(int)a], k) || Same(keys2[(int)a], k));
-        }
-
         static bool Same(KeyCode bound, KeyCode k) => bound != KeyCode.None && Either(bound, c => c == k);
 
         static bool Slot(KeyAction a, KeyCode k, Func<KeyCode, bool> test) => k != KeyCode.None && !NumberTaken(a, k) && Either(k, test);

@@ -15,7 +15,7 @@ namespace Arena
     ///     lands for CastBurstPerEmber a spent Ember, and leaves an incense cloud that grows and heals more with each Ember. It
     ///     spends every Ember and the head is reeled back on its own; no swings until it is. A downed ally in the cloud gets a
     ///     fifth of their revive at once and is revived twice as fast while it lasts. Your game sends Msg.WeaponDash
-    ///     (DashCast, aimed at the cursor); the host does the rest.
+    ///     (WeaponAlt.Cast, aimed at the cursor); the host does the rest.
     /// Each step is one effect (FxKind.CenserStep) and each throw one (FxKind.CenserCast), drawn from their age (Game/CenserLook.cs).
     public partial class Game
     {

@@ -396,6 +396,8 @@ namespace Arena
         public void OnPeerLeft(int id)
         {
             Players.Remove(id);
+            if (MapVotes.Remove(id) | MapLocked.Remove(id))
+                BroadcastHuntMap();  // a hunt-map vote from someone who left no longer counts (HuntMapGame.cs)
         }
 
         // --- Upgrades ----------------------------------------------------------
@@ -945,6 +947,7 @@ namespace Arena
                 session.SendToHost(Proto.End(pw));
             }
             NoteDuelBetweenWaves();  // GatekeeperRoom.cs (every game: enemies and kits fight in a duel between waves)
+            StaleEnemyIndex();  // EnemyIndex.cs: regather the enemies by type this tick
             if (IsHost)
             {
                 hostClock += dt;  // (every host tick, whatever the state: Dodge.cs times clients' dodges by it)
@@ -1181,6 +1184,8 @@ namespace Arena
                 move = V2.Zero;  // the Katana's Momentum Burst: planted for a moment (Katana.cs)
                 firing = false;
             }
+            if (BellRooted(me))
+                move = V2.Zero;  // braced under your Siege Bell while it rings (SiegeBell.cs)
             if (Riding(me))
             {
                 move = V2.Zero;  // inside a Trojan Horse: it carries you (TrojanHorse.cs)
@@ -1540,8 +1545,10 @@ namespace Arena
             TickHorseRiders(dt);  // TrojanHorse.cs: riders of a horse that's gone, Sally Forth's time
             TickArmadillo(dt);  // IronArmadillo.cs: the ball's time, its speed and hits, the uncurl slam
             TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders
+            TickGolem(dt);      // BloodGolem.cs: the gather, the golem's swings, shedding, clots and collapse
             TickSpirit(dt);     // SpiritAvatar.cs: the spirit's time, Moon Cleaves and swallowed shots
             TickGaleWalls(dt);  // GaleWall.cs: lenses run down and unleash
+            TickSanctumGlass(dt);  // SanctumGlass.cs: panes run down and shatter, motes land and heal
             TickWaterWards(dt);    // WaterWard.cs: the drops circle, land, spread and splash
             TickHarvest(dt);    // CrimsonHarvest.cs: blood torn out, the ball held and thrown
             TickBloodFreeze(dt);  // BloodFreeze.cs: the shockwave freezing what it reaches
@@ -1574,6 +1581,7 @@ namespace Arena
             TickWindWaves(dt);  // WindClash.cs: Wind Clash's waves and Tempests
             TickArcBalls(dt);   // StaticShock.cs: Arc Cannon balls and bursts
             TickTessenPetals(dt);  // TwinTessen.cs: the Petal Spin's petals landing
+            TickHeartDrops(dt);  // HeartFlail.cs: the Heart Flail's blood drops landing
             TickHive(dt);       // HiveCenser.cs: the Hive Censer's insects settling, swarms hunting and wrapping, chitin
             TickBloodBlast(dt);  // BloodBlast.cs: Blood Blast's returning blood
             TickTide(dt);       // BloodBlast.cs: Crimson Tides gathering and rolling out
@@ -1752,6 +1760,7 @@ namespace Arena
                 TickNodachi(p, dt);  // the Nodachi's step clock and the Guard's cone (Nodachi.cs)
                 TickTwinPistols(p, dt);  // Laser Sights running down, its key cooling down (TwinPistols.cs)
                 TickTessen(p, dt);  // the Twin Tessen's gust charge and cooldown, Tailwind (TwinTessen.cs)
+                TickHeartFlail(p, dt);  // the Heart Flail's swing, spin, thrown heart and beat (HeartFlail.cs)
                 p.DumpCd = Math.Max(0f, p.DumpCd - dt);  // the Railgun's Heat Dump (RailBeam.cs)
                 if (p.Weapon.Id != WeaponId.StaticShock && p.StaticOn)
                     ClearStaticShock(p);  // (StaticShock.cs)
@@ -1804,6 +1813,8 @@ namespace Arena
                 }
                 else if (ColOn(p))
                     ColossusTrigger(p);  // the golem: Fire slams, the weapon is put away (StoneColossus.cs)
+                else if (GolOn(p))
+                    GolemTrigger(p);  // Blood Golem: Fire punches, the weapon is put away (BloodGolem.cs)
                 else if (SpOn(p))
                     SpiritTrigger(p);  // Spirit Avatar: Fire is the Moon Cleave, the weapon is put away (SpiritAvatar.cs)
                 else if (p.StunShots > 0)
@@ -1812,6 +1823,8 @@ namespace Arena
                     RevolverTrigger(p, dt);  // a single-action gun, or the Fan stance's whip and fan (Weapons.cs, PistolWhip.cs)
                 else if (p.Weapon.Id == WeaponId.DoubleBarrel)
                     TickDoubleBarrel(p, dt);
+                else if (p.Weapon.Id == WeaponId.HeartFlail)
+                    HfTrigger(p, dt);  // a click swings, held spins; never a volley (HeartFlail.cs)
                 else if (p.Weapon.Id == WeaponId.GrenadeLauncher)
                     TickGrenadeLauncher(p, dt);  // the drums, the reload, the smoke (GrenadeLauncher.cs)  // two shells, a break-open reload (DoubleBarrel.cs)
                 else if (p.Weapon.Id == WeaponId.Stonespear)

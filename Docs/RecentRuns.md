@@ -132,7 +132,7 @@ Each phase ships on its own (code, tests, README, commit, push). Phase 1 is the 
   (`Tests/RecentRuns.cs`); preview `SECTION=4 [RTAB=1] [RSEL=n] [MOUSE=x,y] Tools/Preview/shot.sh x records`.
 - The page: run strip (four cards, arrows for the rest), six tiles, **Overview** (damage per second with team line,
   health per player, accuracy per wave) and **Trends** (wave reached and damage dealt by run, click to open one).
-- Kept 20 runs (`Profile.RecentKept`, was 6); the Rank page still lists the newest 6 (`Profile.RankPageRuns`).
+- Kept 20 runs (`Profile.RecentKept`, was 6).
 - `rlog` lines grew five-plus fields at the end (class, mode, seconds, dealt, taken, healing, players, file); older
   lines load with blanks, and older builds ignore the extra fields.
 - Left out for now (decided without waiting for the answers above, easy to change): hunts and challenge rooms have no

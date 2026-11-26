@@ -86,7 +86,7 @@ static partial class Program
         hp.Combo = 0; hp.ComboT = 0f;
         close.Pos = new V2(360f, 450f); far.Pos = new V2(415f, 450f);
         lash(); run(0.1f);
-        weaponDash.Invoke(g, new object[] { 1, 19, far.Pos });  // DashPullOn
+        weaponDash.Invoke(g, new object[] { 1, 19, far.Pos });  // WeaponAlt.PullOn
         run(0.1f);
         bool cSees = cp.LeashOn;
         hp.Hp = hp.MaxHp;

@@ -16,8 +16,8 @@ namespace Arena
         float WorkerPackSpeed(Enemy e)
         {
             int n = 0;
-            foreach (var o in Enemies.Values)
-                if (o != e && o.Type == EnemyType.Worker && o.SpawnT <= 0f && o.Pos.CloserThan(e.Pos, WorkerPackRange))
+            foreach (var o in EnemiesOf(EnemyType.Worker))  // (EnemyIndex.cs)
+                if (o != e && o.SpawnT <= 0f && o.Pos.CloserThan(e.Pos, WorkerPackRange) && StillIn(o))
                     n++;
             return 1f + Math.Min(WorkerPackMax, WorkerPackStep * n);
         }

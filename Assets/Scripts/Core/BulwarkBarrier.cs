@@ -14,7 +14,7 @@ namespace Arena
     ///     spins out BbThrowRange px, hangs, and comes back to you (BbThrowAt, the same path on every screen), cutting through
     ///     every enemy it passes (once out, once back) and the small shots in its way. While it is away there is no guard and
     ///     no Brace; the chain starts over when it is caught. The parry takes back a throw still winding up.
-    ///   Alt (hold the weapon-action key; Msg.WeaponDash DashBraceOn / DashBraceOff): Brace. You move at BraceSlow, the guard
+    ///   Alt (hold the weapon-action key; Msg.WeaponDash WeaponAlt.BraceOn / WeaponAlt.BraceOff): Brace. You move at BraceSlow, the guard
     ///     widens to 220° and every shot it stops is soaked into Ram (Player.BbRam, 0-100: BbRamShot a shot, BbRamBig a red or
     ///     big one). Ram drains BbRamDrain a second once you have been out of the Brace for BbRamHold. Braced, the plate also
     ///     stops enemy melee from the front (bodies, cuts, rakes; BulwarkMelee, from ParryContact and ParryStrike): the hit is
@@ -62,7 +62,6 @@ namespace Arena
         public const float BbShardDmg = 12f, BbShardSpeed = 560f, BbShardLife = 0.45f, BbShardFan = 1.24f;
 
         public static readonly Rgba BbGlow = new Rgba(0.56f, 0.82f, 1f), BbGold = new Rgba(1f, 0.82f, 0.48f), BbSpark = new Rgba(1f, 0.85f, 0.55f);
-        const byte DashBraceOn = 40, DashBraceOff = 41;
 
         /// How far from your centre the shield stands (where shots stop).
         public static float BulwarkRadius(Player p) => p.Def.BodyR + BbGuardGap;
@@ -490,7 +489,7 @@ namespace Arena
                 return false;
             if (pressed || released)
             {
-                byte kind = pressed ? DashBraceOn : DashBraceOff;
+                byte kind = pressed ? WeaponAlt.BraceOn : WeaponAlt.BraceOff;
                 if (!IsHost && pressed && !me.Downed && me.StunT <= 0f)
                     me.BbBrace = true;  // (the slow starts at once on your own screen; the host's snapshot agrees)
                 else if (!IsHost && released)

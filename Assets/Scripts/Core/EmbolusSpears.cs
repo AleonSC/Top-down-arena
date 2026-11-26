@@ -10,7 +10,7 @@ namespace Arena
     ///     flight) and sticks in the first wall, pillar or arena edge its tip reaches (or drops in the floor after EsRange).
     ///   Fire with both out: both are recalled. They tear back to your hands at EsBackSpeed, hitting every enemy again on the way,
     ///     and each one caught heals back what it cost. Holding Fire throws both and recalls once both have stuck.
-    ///   Alt (Msg.WeaponDash, DashEmbolus): every spear out bursts where it is, EsBlastR round it for EsBlastMax down to EsBlastMin
+    ///   Alt (Msg.WeaponDash, WeaponAlt.Embolus): every spear out bursts where it is, EsBlastR round it for EsBlastMax down to EsBlastMin
     ///     x the damage, giving back only half its cost (EsBlastHeal); new spears harden in your hands after EsRegrow.
     ///   Extra projectiles add EsExtraDmg damage each; Burst Vessels makes the blast bigger and harder. Going down or putting the
     ///   weapon away crumbles the spears out (their health is lost).
@@ -21,7 +21,6 @@ namespace Arena
         public const float EsCatch = 22f, EsBlastR = 120f, EsBlastMax = 3f, EsBlastMin = 1.5f, EsBlastHeal = 0.5f, EsRegrow = 0.45f, EsExtraDmg = 0.2f;
         public const float EsHandFwd = 14f, EsHandSide = 11f;  // the hands, held out in front (the model's two-handed hold, CharacterModels.cs)
         public static readonly Rgba EsBlood = new Rgba(0.56f, 0.06f, 0.13f);
-        const byte DashEmbolus = 39;
 
         /// Where hand i (0 left, 1 right) holds its spear, for someone at `pos` aiming along `aim`.
         public static V2 EsHand(V2 pos, float aim, int i) => pos + V2.FromAngle(aim) * EsHandFwd + V2.FromAngle(aim + MathX.Pi / 2f) * (i == 0 ? -EsHandSide : EsHandSide);
@@ -228,11 +227,11 @@ namespace Arena
             if (EsOut(me.EsSt[0]) || EsOut(me.EsSt[1]))
             {
                 if (IsHost)
-                    HostWeaponDash(MyId, DashEmbolus, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.Embolus, aimAt);
                 else
                 {
                     var w = Proto.Begin(Msg.WeaponDash);
-                    w.Write(DashEmbolus);
+                    w.Write(WeaponAlt.Embolus);
                     w.Write(aimAt);
                     session.SendToHost(Proto.End(w));
                 }

@@ -74,13 +74,6 @@ namespace Arena
 
         static float EaseIn3(float x) => x * x * x;
 
-        static float BackOut(float x)
-        {
-            const float c = 1.6f;
-            float q = x - 1f;
-            return 1f + (c + 1f) * q * q * q + c * q * q;
-        }
-
         /// The drawer's slide (BeginDrawer): in from the left as it opens, out as it closes.
         /// With effects on it holo-boots in place instead of sliding in (CrtWindows.cs, BeginDrawer); it still slides out.
         float DrawerSlide => (FxCalm ? -(1f - EaseOut(Mathf.Clamp01(WinT / 0.3f))) * DrawerSlideW : docking ? DockDrawerIn(WinT) : 0f) - EaseIn3(winCloseK) * DrawerSlideW;

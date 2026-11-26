@@ -141,8 +141,6 @@ namespace Arena
 
         // ---- the maze ----
 
-        public static bool IsWallTile(char c) => c == '#' || c == 'x';
-
         /// Whether a tile can be walked: walls never; the door only for ghosts going in or out.
         public bool Open(int x, int y, bool door = false)
         {

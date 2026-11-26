@@ -137,9 +137,6 @@ namespace Arena
 
         // --- Drawing ------------------------------------------------------------
 
-        /// The blue the big boxes (the menu card, the lobby's body) are lit with.
-        public static readonly Color PanelBlue = new Color(0.42f, 0.6f, 1f);
-
 
         public static void Label(Rect r, string text, int size, Color color, TextAnchor align = TextAnchor.MiddleLeft, bool bold = false, bool wrap = false)
         {

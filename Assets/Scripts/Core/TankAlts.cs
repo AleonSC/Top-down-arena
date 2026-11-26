@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// The Tank Soldier's weapon-action (Alt) fires, one per gun. Your game sends Msg.WeaponDash (DashDouble, DashMine, DashGas) with your
+    /// The Tank Soldier's weapon-action (Alt) fires, one per gun. Your game sends Msg.WeaponDash (WeaponAlt.Double, WeaponAlt.Mine, WeaponAlt.Gas) with your
     /// aim; the host checks the weapon, the stock or cooldown, and fires.
     ///   Scattergun, Shock Grenade: ScatShellMax grenades (Player.ScatShells) that load over time, one every ScatRegen s (Player.ScatCharge is
     ///     the percent toward the next). Each Alt press lobs one to your cursor (ZoneKind.ShockGrenade, up to ScatLobRange px out); after
@@ -45,25 +45,25 @@ namespace Arena
                     if (scatLocalCd > 0f || me.ScatShells == 0)
                         return false;
                     scatLocalCd = ScatDumpCd;
-                    kind = DashDouble;
+                    kind = WeaponAlt.Double;
                     break;
                 case WeaponId.FlakCannon:
                     if (mineLocalCd > 0f)
                         return false;
                     mineLocalCd = MineCd - me.Stats.MineCdCut;  // (Wide Burst: sooner)
-                    kind = DashMine;
+                    kind = WeaponAlt.Mine;
                     break;
                 case WeaponId.RiotRepeater:
                     if (gasLocalCd > 0f)
                         return false;
                     gasLocalCd = TearGasCd;
-                    kind = DashGas;
+                    kind = WeaponAlt.Gas;
                     break;
                 case WeaponId.BoneGuard:  // (the Tank Summoner's Ossuary Wall: BoneGuard.cs)
                     if (boneWallLocalCd > 0f)
                         return false;
                     boneWallLocalCd = BoneWallCd;
-                    kind = DashBoneWall;
+                    kind = WeaponAlt.BoneWall;
                     break;
                 default:
                     return false;

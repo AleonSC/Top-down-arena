@@ -120,6 +120,8 @@ namespace Arena
             AddFx(kind, pos, color, radius, dur);
             Effects[Effects.Count - 1].Pos2 = pos2;
             Sounds.Add(sound);
+            if (!session.HasPeers)
+                return;  // playing alone: nobody to tell (no message built)
             var w = Proto.Begin(Msg.Fx);
             w.Write((byte)kind);
             w.Write(pos);
@@ -131,11 +133,23 @@ namespace Arena
             session.Broadcast(Proto.End(w));
         }
 
+        MemoryStream snapBuf;  // reused by SendSnapshot: no new stream 20 times a second (not kept in a run save: RunSnapshot.Skip)
+        BinaryWriter snapWriter;
+
         void SendSnapshot()
         {
-            var w = Proto.Begin(Msg.Snapshot);
-            SyncSnapshot(new NetSync(w));
-            session.Broadcast(Proto.End(w));
+            if (snapBuf == null || snapWriter == null)
+            {
+                snapBuf = new MemoryStream();
+                snapWriter = new BinaryWriter(snapBuf);
+            }
+            snapBuf.SetLength(0);
+            var w = snapWriter;
+            w.Write((byte)Msg.Snapshot);
+            SyncSnapshot(new NetSync(w));  // (written even alone: a few fields the host draws from are worked out here, BarrierFrac and the like)
+            w.Flush();
+            if (session.HasPeers)
+                session.Broadcast(snapBuf.ToArray());
         }
 
         // --- Client-side replication ------------------------------------------
@@ -391,8 +405,13 @@ namespace Arena
             int count = Players.Count;
             s.Byte(ref count);
             if (s.Reading)
+            {
+                snapSeen.Clear();
                 for (int i = 0; i < count; i++)
-                    SyncPlayer(s, null);
+                    snapSeen.Add(SyncPlayer(s, null));
+                snapSeen.Add(MyId);  // (never your own)
+                RemoveUnseen(Players);  // someone who left: the host dropped them (OnPeerLeft), so they go here too
+            }
             else
                 foreach (var p in Players.Values)
                     SyncPlayer(s, p);
@@ -419,7 +438,7 @@ namespace Arena
                     SyncEnemy(s, e);
 
             count = Minions.Count;
-            s.Byte(ref count);
+            s.Short(ref count);
             if (s.Reading)
             {
                 snapSeen.Clear();
@@ -432,7 +451,7 @@ namespace Arena
                     SyncMinion(s, m);
 
             count = Zones.Count;
-            s.Byte(ref count);
+            s.Short(ref count);
             if (s.Reading)
             {
                 Zones.Clear();
@@ -479,9 +498,20 @@ namespace Arena
                 all.Remove(id);
         }
 
+        void RemoveUnseen<T>(SortedDictionary<int, T> all)  // (the players)
+        {
+            snapGone.Clear();
+            foreach (int id in all.Keys)
+                if (!snapSeen.Contains(id))
+                    snapGone.Add(id);
+            foreach (int id in snapGone)
+                all.Remove(id);
+        }
+
         /// A player. p is null when reading: the id picks who it is. Your own position, aim, cooldowns, parry, and
         /// bow draw are your game's own, so those aren't overwritten for you.
-        void SyncPlayer(NetSync s, Player p)
+        /// Returns the player's id.
+        int SyncPlayer(NetSync s, Player p)
         {
             int id = p != null ? p.Id : 0;
             s.Int(ref id);
@@ -583,6 +613,10 @@ namespace Arena
             s.Float(ref p.ColT);  // Stone Colossus (StoneColossus.cs)
             s.Float(ref p.ColAge);
             s.Float(ref p.ColWind);
+            s.Float(ref p.GolT);  // Blood Golem (BloodGolem.cs)
+            s.Float(ref p.GolAge);
+            s.Float(ref p.GolCoats);
+            s.Float(ref p.GolPunch);
             s.Float(ref p.SpT);  // Spirit Avatar (SpiritAvatar.cs)
             s.Float(ref p.SpAge);
             s.Float(ref p.SpWind);
@@ -722,6 +756,15 @@ namespace Arena
             }
             else if (s.Reading)
                 p.GaleDots.Clear();
+            s.Float(ref p.GlassT);  // Sanctum Glass (SanctumGlass.cs)
+            if (p.GlassT > 0f)
+            {
+                s.Vec(ref p.GlassPos);
+                s.Float(ref p.GlassAim);
+                s.Bool(ref p.GlassWide);
+                s.Float(ref p.GlassHealed);
+                s.Float(ref p.GlassCap);
+            }
             int drops = Math.Min(Game.WwMax, p.WwOff.Count);  // Water Ward (WaterWard.cs)
             s.Byte(ref drops);
             if (drops > 0)
@@ -938,6 +981,15 @@ namespace Arena
             s.Float(ref p.TtGustCd);
             s.Float(ref p.TtTailT);
             s.Byte(ref p.TtBreeze);
+            s.Byte(ref p.HfMode);  // the Heart Flail (HeartFlail.cs)
+            s.Byte(ref p.HfBpm);
+            s.Byte(ref p.HfBeats);
+            s.Float(ref p.HfT);
+            s.Float(ref p.HfAng);
+            s.Float(ref p.HfCd);
+            s.SByte(ref p.HfSide);
+            s.Float(ref p.HfAim0);
+            s.Vec(ref p.HfPos);
             s.Float(ref p.ChitinHp);  // the Hive Censer (HiveCenser.cs)
             s.Bool(ref p.HiveOn);
             s.Vec(ref p.HivePour);
@@ -1004,7 +1056,7 @@ namespace Arena
             SyncVectors(s, p);         // ExpansionGame.cs
             SyncArcanist(s, p);        // Arcanist.cs
             if (!s.Reading || !known)
-                return;
+                return id;
 
             if (!mine)
             {
@@ -1029,6 +1081,7 @@ namespace Arena
             if (mine && RerollPending && (rerolls < rerollsAtRequest || offers == 0))
                 rerollsAtRequest = -1;
             p.Offer = offer == null || (mine && awaitingPick) ? null : offer;
+            return id;
         }
 
         /// An enemy; returns its id. Reading, a new id brings a new enemy.
@@ -1117,7 +1170,7 @@ namespace Arena
             s.Bool(ref slowed);     // slowed by anything (Chill.cs; Chilled, in the status bits, is ice only)
             s.Bool(ref hit);        // just hit: the white flash (not every drop in health, or a burning enemy would stay white)
             int challengeBy = !s.Reading && e.ChallengeT > 0f ? e.ChallengeBy : 0;
-            s.Byte(ref challengeBy);  // a Gauntlet's Challenge: who threw it (0: none) and how long it has left (Gauntlet.cs)
+            s.Short(ref challengeBy);  // (a player id: a long-hosted game's ids pass 255)  a Gauntlet's Challenge: who threw it (0: none) and how long it has left (Gauntlet.cs)
             float challengeT = !s.Reading && challengeBy > 0 ? e.ChallengeT : 0f;
             if (challengeBy > 0)
                 s.Float(ref challengeT);
@@ -1132,7 +1185,7 @@ namespace Arena
             int blastStacks = !s.Reading ? e.BlastStacks : 0, blastOwner = !s.Reading ? e.BlastOwner : 0;
             s.Byte(ref blastStacks);  // Blood Blast stacks on it, and whose (BloodBlast.cs)
             if (blastStacks > 0)
-                s.Byte(ref blastOwner);
+                s.Short(ref blastOwner);  // (a player id)
             int fpBrands = !s.Reading ? e.FpBrands : 0;
             s.Byte(ref fpBrands);  // Forbidden Path's Blood Brands on it (ForbiddenPath.cs)
             var kind = (EnemyType)type;

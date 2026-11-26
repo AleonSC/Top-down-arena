@@ -37,29 +37,6 @@ namespace Arena
 
         public static float FloorTintAmt = 0.04f;  // how strongly the floor takes the boss colour (previews: FLOORTINT)
 
-        /// The arena floor in the coming boss's colour: a flat wash plus a soft glow pooled in the middle.
-        void DrawBossFloor()
-        {
-            if (FloorTintAmt <= 0f)
-                return;
-            if (game.SurvivalOn && game.RoomsOn)  // Survival's big room: the same flat wash over all of it, not just the classic arena's corner of it (no boss to pool light for)
-            {
-                V2 lo = game.CurrentWorld.Min, hi = game.CurrentWorld.Max;
-                FillRect(lo.X, lo.Y, hi.X - lo.X, hi.Y - lo.Y, Ink.WithAlpha(FloorTintAmt * 1.5f));
-                return;
-            }
-            float fx = 0f, fy = 0f, fw = AW, fh = AH;
-            if (game.ExpandingOn && game.Expanded.Count >= 4 && Expansion.IsGridCore(game.Expanded[0]))  // a Grid run's core is one room with the start room: the wash covers all of it (GridRooms.cs)
-            {
-                fx = Expansion.GridX0; fy = Expansion.GridY0; fw = 4 * Expansion.GridCell; fh = 3 * Expansion.GridCell;
-            }
-            FillRect(fx, fy, fw, fh, Ink.WithAlpha(FloorTintAmt));
-            V2 mid = new V2(fx + fw / 2f, fy + fh / 2f);
-            float r = Mathf.Min(fw, fh) * 0.5f;
-            for (int i = 1; i <= 8; i++)  // stacked discs: smooth falloff to the edge
-                Circle(mid, r * i / 8f, Ink.WithAlpha(FloorTintAmt * 0.125f), 48);
-        }
-
         Rgba wallInkNow = Cyan;  // eased toward the target so walls that stay up (the Rooms hub) shift colour gently
 
         /// This frame's Ink (outlines) and WallFill (fill and hatching), themed for the boss this cycle leads to.

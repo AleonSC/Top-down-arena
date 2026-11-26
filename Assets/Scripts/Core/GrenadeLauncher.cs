@@ -7,7 +7,7 @@ namespace Arena
     ///     GlRange px), GlGap apart. It flies GlFlight(distance), hops GlHop px in GlHopTime, then bursts: WeaponDef damage in GlRadius,
     ///     half at the edge, and a small shove (ExplodeGrenade in Combat.cs calls GlBlast). GlDrum rounds (Heavy Drum: more), then a
     ///     reload of GlReloadTime (Player.GlReload counts it down, speeding up with fire rate). Player.GlUsed counts the rounds spent.
-    ///   Alt (Msg.WeaponDash, DashDrum): lobs a smoke canister to the cursor (like the Riot Repeater's Tear Gas), GlSmokeGap apart, while the
+    ///   Alt (Msg.WeaponDash, WeaponAlt.Drum): lobs a smoke canister to the cursor (like the Riot Repeater's Tear Gas), GlSmokeGap apart, while the
     ///     HE drum keeps firing. Player.GlMode and GlSwap stay 0 (the old drum swap, kept in the snapshot). The canister (ZoneKind.SmokeShell) flies like a grenade, bounces
     ///     twice (GlSmokeHops) and opens into a cloud GlSmokeRadius round for GlSmokeLife. Regular enemies in it are slowed GlSmokeSlow
     ///     and can't attack (Enemy.SmokeT, read with the daze in EnemyAI.cs); bosses and mini-bosses are only slowed GlSmokeBossSlow.
@@ -219,11 +219,11 @@ namespace Arena
                 return false;
             glLocalCd = GlSmokeGap;
             if (IsHost)
-                HostWeaponDash(MyId, DashDrum, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.Drum, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashDrum);
+                w.Write(WeaponAlt.Drum);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

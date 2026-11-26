@@ -194,7 +194,7 @@ namespace Arena
             ClearChargeCam();  // ChargeCameraFx.cs
             wardenIntroT = -1f;
             myHp = -1f; myLevel = -1; myLegendaries = -1;
-            heldFrame = false;
+            heldFrame = holdOwed = false;
             radiantTrails.Clear();
             ClearAmbience();  // Ambience.cs
             ClearJuiceMoments();  // JuiceMoments.cs
@@ -1193,7 +1193,7 @@ namespace Arena
                 else
                     GlowDisc(p.Pos, p.Size * (1.6f - f), p.Kind == PFlash ? Rgba.White : p.Col, 0.5f * f);
             }
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.Boom))
                 if (fx.Kind == FxKind.Boom && !HammerBoomDrawnByMelee(fx) && !IsLeapBoom(fx))
                 {
                     float f = fx.Dur > 0f ? Mathf.Clamp01(fx.T / fx.Dur) : 1f;
@@ -1213,11 +1213,13 @@ namespace Arena
             DrawArcLightningGlow();  // Arc Lightning's lock-on chain (ArcLockLook.cs)
             DrawWindClashGlow();  // Wind Clash's waves and Tempest (WindClashLook.cs)
             DrawTessenGlow();  // the Twin Tessen's gust and full Breeze (TwinTessenLook.cs)
+            DrawHeartGlow();  // the Heart Flail's beating heart and Cardiac Burst (HeartFlailLook.cs)
             DrawHiveGlow();  // the Hive Censer's insects (HiveCenserLook.cs)
             DrawStaticShockGlow();  // Static Shock's cone, circuit, Overcharge and Arc Cannon (StaticShockLook.cs)
             DrawBloodBlastGlow();  // the Blood Blast's Cleave, Tide and returning blood (BloodBlastLook.cs)
             DrawFrostLanceGlow();  // the Frost Lance's head, slams, shatters and Absolute Zero (FrostLanceLook.cs)
             DrawWarhornGlow();  // Warhorn Volley's horn, burning arrowheads and fires (WarhornVolleyLook.cs)
+            DrawSiegeBellGlow();  // Siege Bell's halo and shockwave (SiegeBellLook.cs)
             DrawCannonGlow();  // Cannon Call's flare, fuse and slam flash (CannonCallLook.cs)
             DrawOrbitalGlow();  // Orbital Laser's lock-on, beam and crater (OrbitalLaserLook.cs)
             DrawDragonsDogmaGlow();  // Dragon's Dogma's light (DragonsDogmaLook.cs)
@@ -1360,7 +1362,7 @@ namespace Arena
 
         Material glowMaterial;
         static Color glCur;
-        bool recording, heldFrame;
+        bool recording, heldFrame, holdOwed;
         readonly List<Vector3> recVerts = new List<Vector3>();
         readonly List<Color> recCols = new List<Color>();
         readonly List<int> recGlowFrom = new List<int>(), recGlowTo = new List<int>();
@@ -1394,18 +1396,25 @@ namespace Arena
             return glowMaterial;
         }
 
-        /// DrawWorld, first thing: while the picture holds, draw last frame again and say so (DrawWorld then stops).
+        /// DrawWorld, first thing: while the picture holds, draw the held frame again and say so (DrawWorld then stops).
+        /// Only the frame a hold starts on is recorded (not every frame, in case one starts): it is drawn live and kept,
+        /// and the frames after it replay it; the frame drawn live is paid back at the end (holdOwed), so a hold freezes
+        /// the picture for as many frames as before.
         bool ReplayHeldFrame()
         {
-            if (!Juicy || holdT <= 0f || !heldFrame || recVerts.Count == 0)
+            if (!Juicy || !(holdT > 0f || holdOwed) || !heldFrame || recVerts.Count == 0)
             {
-                recording = Juicy && !fxReduced;
+                recording = Juicy && !fxReduced && holdT > 0f;
+                heldFrame = false;
+                holdOwed = recording;
                 if (recording)
                 {
                     recVerts.Clear(); recCols.Clear(); recGlowFrom.Clear(); recGlowTo.Clear();
                 }
                 return false;
             }
+            if (holdT <= 0f)
+                holdOwed = false;
             recording = false;
             int glow = 0;
             for (int i = 0; i < recVerts.Count; i++)

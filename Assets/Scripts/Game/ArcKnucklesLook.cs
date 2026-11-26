@@ -76,7 +76,7 @@ namespace Arena
         Effect KnuckleDashFxOf(int id)
         {
             Effect best = null;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.KnuckleDash))
                 if (fx.Kind == FxKind.KnuckleDash && Mathf.RoundToInt(fx.Radius) == id && fx.T < KnDashPose && (best == null || fx.T < best.T))
                     best = fx;
             return best;
@@ -158,7 +158,7 @@ namespace Arena
         Effect KnuckleFxOf(int id)
         {
             Effect best = null;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.KnuckleStep))
             {
                 if (fx.Kind != FxKind.KnuckleStep || Mathf.RoundToInt(fx.Radius) / 10 != id)
                     continue;
@@ -498,7 +498,7 @@ namespace Arena
         Effect KnuckleChainFxOf(int id)
         {
             Effect best = null;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.KnuckleChain))
                 if (fx.Kind == FxKind.KnuckleChain && Mathf.RoundToInt(fx.Radius) / 10 == id && fx.T < fx.Dur && (best == null || fx.T < best.T))
                     best = fx;
             return best;

@@ -22,18 +22,14 @@ namespace Arena
 
     /// Everything about the Singularity's fight its body doesn't carry. The host runs it; clients get it in the snapshot
     /// (SyncSing) to draw the accretion disk, the event horizon and the phase change.
-    public class SingState
+    public class SingState : BossFight<SingStage, SingTurn>  // TransT: > 0 changing phase (can't be hurt), counting down
     {
-        public SingStage Stage, TransTo;
-        public SingTurn Turn;
-        public float TurnT, TransT;      // seconds into the turn; > 0: changing phase (can't be hurt), counting down
         public float Horizon;            // the event horizon's radius (Spaghettify and the last stand), else 0
         public float DiskT;              // the accretion disk's clock: where its orbs are
         public int DiskGone;             // outer-ring slots flung off by the Slingshot (bit per slot)
 
         // Host only.
-        public int Step = -1;
-        public float TurnLen, StageT, Orbit, RingT, RefillT;
+        public float StageT, Orbit, RingT, RefillT;
         public bool Reversed;
     }
 
@@ -91,7 +87,7 @@ namespace Arena
         public readonly Dictionary<int, Cage> Cages = new Dictionary<int, Cage>();
         int nextCageId = 1;
 
-        SingState SingOf(Enemy e) => e.Sing ?? (e.Sing = new SingState());
+        SingState SingOf(Enemy e) => BossOf<SingState>(e);
 
         public static bool SingImmune(Enemy e) => e.Type == EnemyType.Singularity && e.Sing != null && (e.Sing.TransT > 0f || e.Sing.Turn == SingTurn.Split);
 
@@ -285,15 +281,11 @@ namespace Arena
 
         void NextSingTurn(Enemy e, SingState s)
         {
-            var turns = SingTurns[(int)s.Stage];
             if (s.Turn == SingTurn.Cage)
                 ClearCages();
             if (s.Turn == SingTurn.Split)
                 ClearShards();
-            s.Step = (s.Step + 1) % turns.Length;
-            s.Turn = turns[s.Step];
-            s.TurnLen = BossTurnLen((byte)s.Turn, SingTimes[(int)s.Stage][s.Step]);  // (the tier's rest pace: BossRules.cs)
-            s.TurnT = 0f;
+            s.NextTurn(this, SingTurns, SingTimes);
             s.RingT = 0f;
             s.Reversed = false;
             e.FireT = 0.3f;

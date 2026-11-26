@@ -4,7 +4,12 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 526: Cannon Call (DPS Knight 4th choice): `AbilityId.CannonCall` and `FxKind.CannonCall` (both at the end).
+- 531: Cannon Call (DPS Knight 4th choice): `AbilityId.CannonCall` and `FxKind.CannonCall` (both at the end, after Blood Golem's and the Heart Flail's); loopback test transport (Net.cs) changes nothing on the wire.
+- 530: Heart Flail (Healer Hemomancer 4th weapon): `WeaponId.HeartFlail`, `FxKind.HeartDrops`/`HeartPulse`/`HeartBurst` (at the end), `Player.HfMode`/`HfBpm`/`HfBeats`/`HfT`/`HfAng`/`HfCd`/`HfSide`/`HfAim0`/`HfPos` in the player sync after `TtBreeze`, `Msg.WeaponDash` kind 71 (`WeaponAlt.HeartThrow`), the Rare card Pacemaker (card ids shift).
+- 529: Blood Golem (the Tank Hemomancer's third ultimate): `Player.GolT`, `GolAge`, `GolCoats`, `GolPunch` in the player snapshot; `AbilityId.BloodGolem`; `FxKind.GolemFx`; Msg.WeaponDash kind 70 (Hurl Clot).
+- 528: Siege Bell (Tank Knight 4th choice): `AbilityId.SiegeBell`, `FxKind.SiegeBell` and `Sfx.SiegeBell` (each at the end).
+- 527: Player gains Sanctum Glass (GlassT, and while it's up GlassPos, GlassAim, GlassWide, GlassHealed, GlassCap); AbilityId.SanctumGlass; FxKind.GlassMote, GlassShatter
+- 526: Audit fixes: the snapshot's minion and zone counts are 2 bytes (were 1); a Gauntlet Challenge's `ChallengeBy`, a Blood Blast's owner and ink dot / ink tip owners are 2-byte player ids; `Msg.BulletSync` adds each shot's `Radius` (float) and `Look` (byte); the transport sends empty keepalive frames (length 0) every 2 s and drops a peer silent for 30 s.
 - 525: Difficulty gets a 28th value, `DiffKnob.Mechanics` (the mechanics tier, Docs/DifficultyTiers.md step 1), in the lobby message, run saves and recordings; older data with 27 reads the preset's own tier (Custom: Normal).
 - 525: Ballista (DPS Knight third ultimate, key 2): `AbilityId.Ballista` and `ZoneKind.Ballista` (at the end), `Msg.BallistaMount` (after `HorseBoard`), bullet kind `Defs.BallistaBolt` = 86, a Ballista zone syncs `Rider` (int), `BoltsLeft` (byte) and `GunCd` (float) after `Aim`.
 - 524: Trojan Horse (Tank Knight second ultimate, key 1): `AbilityId.TrojanHorse`, `ZoneKind.TrojanHorse`, `FxKind.TrojanEnd`, `Msg.HorseBoard`, bullet kind `Defs.HorseArrow` = 85 (each at the end); `Player.HorseId` and `SallyT` in the player sync before `BoilT`; a Trojan Horse zone sends `Marched` and `Quiet`.

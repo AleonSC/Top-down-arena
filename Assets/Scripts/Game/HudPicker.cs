@@ -611,7 +611,7 @@ namespace Arena
             DrawCrtChip(chipR, rarity, rc, selected);
             var tile = new Rect(r.center.x - 52f, r.y + 42f, 104f, 104f);
             DrawCrtTile(tile, rc, selected);  // the icon keeps its own colours
-            Ui.Icon(new Rect(tile.center.x - 38f, tile.center.y - 38f, 76f, 76f), PixelArt.ForUpgrade(u.Name));
+            Ui.Icon(new Rect(tile.center.x - 38f, tile.center.y - 38f, 76f, 76f), PixelArt.ForUpgrade(u));
             if (u.Rarity >= Rarity.Rare)
             {
                 // A slow shine across rare and better cards (quicker and brighter on legendaries).
@@ -710,7 +710,7 @@ namespace Arena
                 Ui.Fill(new Rect(sweep * r.width + 22f, 0f, 6f, r.height), new Color(1f, 0.9f, 0.6f, 0.05f));
                 GUI.EndGroup();
             }
-            var icon = PixelArt.ForUpgrade(u.Name);
+            var icon = PixelArt.ForUpgrade(u);
             float bob = selected ? 3f * Mathf.Sin(now * 3f) : 0f;
             string note = UpgradeNote(me, index, u);
             if (compact)
@@ -780,68 +780,6 @@ namespace Arena
             if (have > 0 && Upgrades.Diminishes(u))  // diminishing returns (Upgrades.CopyStrength): say what this copy is worth
                 return "You have " + have + "  ·  this copy " + Mathf.RoundToInt(Upgrades.CopyStrength(u, have + 1) * 100f) + "% strength";
             return have > 0 ? "You have " + have : "";
-        }
-
-        /// Your current stats; with a card selected, the ones it would change show their new value.
-        /// shopPreview: an upgrade from the Bazaar's shelf to preview instead of the picker's selection.
-        void DrawStatPanel(Player me, Rect r, int shopPreview = -1)
-        {
-            var now = Stats(me, -1, 0);
-            List<StatLine> after = null;
-            if (shopPreview >= 0)
-                after = Stats(me, shopPreview, 0);
-            else if (selectedCard >= 0 && me.Offer != null && selectedCard < me.Offer.Length && !me.OfferCards)
-                after = Stats(me, me.Offer[selectedCard], pickKey);
-            var lines = after ?? now;
-            var green = new Color(0.45f, 1f, 0.5f);
-            float y = r.y;
-            for (int i = 0; i < lines.Count && y < r.yMax - 20f; i++)
-            {
-                var line = lines[i];
-                if (line.Header)
-                {
-                    y += 6f;
-                    Label(new Rect(r.x + 12f, y, r.width - 24f, 18f), line.Label.ToUpperInvariant(), 12, new Color(1f, 0.8f, 0.45f), TextAnchor.MiddleLeft, true);
-                    y += 20f;
-                    continue;
-                }
-                // Compare with the same row in the current stats to spot what the card changes.
-                string old = null;
-                foreach (var n in now)
-                    if (n.Label == line.Label && !n.Header)
-                        old = n.Value;
-                bool changed = after != null && old != line.Value;
-                Label(new Rect(r.x + 12f, y, r.width - 24f, 18f), line.Label, 13, changed ? green : new Color(1, 1, 1, 0.75f), TextAnchor.MiddleLeft);
-                if (changed && old != null)
-                {
-                    // old value, an arrow, the new value (right-aligned)
-                    float right = r.xMax - 12f, nw = Ui.TextWidth(line.Value, 13, true);
-                    Label(new Rect(right - nw - 2f, y, nw + 4f, 18f), line.Value, 13, green, TextAnchor.MiddleRight, true);
-                    var arrow = new Rect(right - nw - 18f, y + 3f, 12f, 12f);
-                    Ui.Icon(arrow, PixelArt.Get("ui_arrow"), green);
-                    Label(new Rect(r.x + 12f, y, arrow.x - 4f - (r.x + 12f), 18f), old, 13, green.WithAlpha(0.6f), TextAnchor.MiddleRight);
-                }
-                else
-                    Label(new Rect(r.x + 12f, y, r.width - 24f, 18f), changed ? "NEW " + line.Value : line.Value, 13, changed ? green : Color.white, TextAnchor.MiddleRight, changed);
-                y += 20f;
-            }
-        }
-
-        const float StatsSidebarW = 270f;
-
-        /// YOUR STATS (Tab menu and upgrade picker): a see-through strip down the whole left edge of the screen,
-        /// with the title and your weapon and ability at the top. Returns the space below for the stats.
-        Rect StatsSidebar(Player me)
-        {
-            var r = new Rect(0f, 0f, StatsSidebarW, H);
-            var rc = me.Def.Color.ToColor();
-            Ui.Fill(r, new Color(0.05f, 0.07f, 0.13f, 0.6f));
-            Ui.Fill(new Rect(r.xMax - 1f, 0f, 1f, H), new Color(1f, 1f, 1f, 0.22f));
-            Ui.Fill(new Rect(r.xMax - 5f, 0f, 4f, H), rc.WithAlpha(0.18f));
-            Ui.Label(new Rect(20f, 20f, r.width - 40f, 24f), "YOUR STATS", 16, Color.white, TextAnchor.MiddleLeft, true);
-            Label(new Rect(20f, 44f, r.width - 40f, 18f), me.Weapon.Name + " · " + Upgrades.Ability(me.FirstAbility).Name, 12, rc, TextAnchor.MiddleLeft);
-            Ui.Fill(new Rect(20f, 70f, r.width - 40f, 1f), new Color(1f, 1f, 1f, 0.1f));
-            return new Rect(8f, 80f, r.width - 20f, H - 92f);
         }
     }
 }

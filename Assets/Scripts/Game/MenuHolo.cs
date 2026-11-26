@@ -43,22 +43,6 @@ namespace Arena
         void NeonRect(Rect r, float a) =>
             NeonPath(new[] { new V2(r.x, r.y), new V2(r.xMax, r.y), new V2(r.xMax, r.yMax), new V2(r.x, r.yMax) }, true, a);
 
-        /// The title screen's outer edge (its bezel), following it as it drops in during the intro (CrtBox).
-        static Rect TitleNeonRect { get { var b = CrtBox; return new Rect(b.x - 8f, b.y - 8f, b.width + 16f, b.height + 16f); } }
-
-        /// IMGUI: the neon round the title, drawn over its bezel (called by DrawMenuTitleText).
-        void DrawTitleNeon(float a)
-        {
-            if (a > 0f && BeginUiGl())
-            {
-                UiModelAt(V2.Zero, 1f);
-                NeonRect(TitleNeonRect, a * NeonFlicker(Time.unscaledTime, 9f, 3f));
-                NeonSparkSound(9f, 3f, a);
-                HoloCorners(TitleNeonRect, a);
-                EndUiGl();
-            }
-        }
-
         /// GL: glowing corner brackets just outside a panel (the settings windows' look, Docs/Mockups/settings-holo.html): a soft halo
         /// under a bright 3 px stroke, 22 px along each side, 9 px out from the panel's neon edge.
         void HoloCorners(Rect r, float a, float gap = 9f, float len = 22f)
@@ -90,8 +74,6 @@ namespace Arena
         const string WhoTitleText = "WHO'S PLAYING?";
 
         // --- Sounds (MenuSoundBank.cs) -----------------------------------------------------------------------------------------
-
-        int roomsHeard = -1, neonHeard = -1;
 
         /// A menu key's own sound, in place of the generic click (Ui.TakeClick takes this event's click so it doesn't play too).
         void MenuSound(Sfx s, float vol = SoundBank.MenuSoundVolume)
@@ -130,20 +112,6 @@ namespace Arena
             MenuSound(Sfx.MenuQuit, 0.8f);
             if (quitAt < 0f)
                 quitAt = Time.unscaledTime + 0.45f;
-        }
-
-        /// The neon's two tiny sparks as it flickers (the same clock as NeonFlicker), once per flicker.
-        void NeonSparkSound(float period, float offset, float a)
-        {
-            if (sounds == null || a <= 0f || fxReduced || !fxOn || Event.current.type != EventType.Repaint)
-                return;
-            float t = Time.unscaledTime + offset;
-            int cycle = Mathf.FloorToInt(t / period);
-            if (MathX.Fmod(t, period) / period >= 0.91f && cycle != neonHeard)
-            {
-                neonHeard = cycle;
-                sounds.Play(Sfx.NeonSpark, 0.4f * a, Time.unscaledTime);
-            }
         }
 
         string runHoverId;
@@ -259,218 +227,6 @@ namespace Arena
                     }
             }
             EndUiGl();
-        }
-
-        // --- The Play key's chevrons ------------------------------------------------------------------------------------------
-
-        const float PlayChevW = 46f;
-
-        /// The main menu's Play key (also its split halves in the bay-doors move, MenuServo.cs): three chevrons before PLAY.
-        bool PlayKey(Rect r) => KeyUi.Key(r, "PLAY", null, 34, drawIcon: DrawPlayChevrons, iconW: PlayChevW);
-
-        /// Three chevrons in r, lighting one after another (a 1.2 s wave, each 0.15 s behind the one before); steady with Reduced effects.
-        void DrawPlayChevrons(Rect r, float a)
-        {
-            const float cw = 12f, gap = 5f, thick = 5f;
-            float h = Mathf.Min(26f, r.height), y0 = r.center.y - h / 2f, t = Time.unscaledTime;
-            for (int i = 0; i < 3; i++)
-            {
-                float glow = 1f;
-                if (!fxReduced && fxOn)
-                {
-                    float u = MathX.Fmod(t - i * 0.15f, 1.2f) / 1.2f;
-                    glow = u < 0.4f ? Mathf.Lerp(0.25f, 1f, u / 0.4f) : Mathf.Lerp(1f, 0.25f, (u - 0.4f) / 0.6f);
-                }
-                float x0 = r.x + i * (cw + gap);
-                var c = new Color(1f, 1f, 1f, a * glow);
-                var shade = new Color(0f, 0f, 0f, 0.4f * a * glow);
-                for (int y = 0; y < (int)h; y++)
-                {
-                    float d = Mathf.Abs(y + 0.5f - h / 2f) / (h / 2f), x = x0 + (1f - d) * (cw - thick);
-                    Ui.Fill(new Rect(x, y0 + y + 1f, thick, 1f), shade);  // engraved, like the legend
-                    Ui.Fill(new Rect(x, y0 + y, thick, 1f), c);
-                }
-            }
-        }
-
-        // --- The drive bay ledge ------------------------------------------------------------------------------------------
-
-        const float BayCut = 10f;
-
-        // --- Rooms ----------------------------------------------------------------------------------------------------------
-
-        struct MenuRoom
-        {
-            public Rect r;
-            public char door;   // the wall facing the menu ('t', 'r', 'b', 'l'), drawn with a doorway gap
-        }
-
-        static MenuRoom Rm(float x, float y, float w, float h, char door) => new MenuRoom { r = new Rect(x, y, w, h), door = door };
-
-        // Rooms round the menu box (300-980 by 268-588, its corner brackets 9 px out).
-        static readonly MenuRoom[][] BoxRoomSets =
-        {
-            new[] { Rm(214, 372, 72, 96, 'r'), Rm(994, 372, 72, 96, 'l') },
-            new[] { Rm(214, 282, 72, 92, 'r'), Rm(214, 380, 72, 92, 'r'), Rm(994, 282, 72, 92, 'l'), Rm(994, 380, 72, 92, 'l') },
-            new[] { Rm(214, 300, 72, 150, 'r'), Rm(994, 420, 72, 150, 'l') },
-            new[] { Rm(214, 470, 72, 110, 'r'), Rm(994, 470, 72, 110, 'l'), Rm(994, 350, 72, 112, 'l') },
-        };
-
-
-        // The rooms come one at a time: the first RoomDelay seconds after the screen shows (or the menu's intro ends), then one every
-        // RoomGap seconds. Each draws in over RoomBuild; once RoomMax are up, each new one starts as the oldest un-draws (RoomFold).
-        const float RoomDelay = 4f, RoomGap = 3.5f, RoomBuild = 1.3f, RoomFold = 0.9f;
-        const int RoomMax = 3;
-
-        float roomsStart;
-        int roomsFrame = -10;
-        MenuRoom[][] roomsLower;
-        readonly System.Collections.Generic.List<MenuRoom> roomPool = new System.Collections.Generic.List<MenuRoom>();
-        readonly System.Collections.Generic.List<int> roomSeq = new System.Collections.Generic.List<int>();
-
-        /// GL: the main menu's rooms (round the box). Off with Reduced effects.
-        void DrawMenuRooms(float t, float a) => DrawRooms(t, a, BoxRoomSets);
-
-        /// GL: rooms drawing themselves round `lower` only (the menu box; not the title),
-        /// one at a time: each outline traced by a bright pen point, then a faint grid and a scan line fill it; it stays until RoomMax
-        /// newer ones are up, then un-draws as the next one starts. Each new room picks a spot clear of the ones still showing.
-        void DrawRooms(float t, float a, MenuRoom[][] lower)
-        {
-            if (a <= 0f || fxReduced || !fxOn)
-                return;
-            if (Time.frameCount - roomsFrame > 2 || !ReferenceEquals(lower, roomsLower))
-            {
-                // the screen has just come up (or changed): start again, after a pause
-                roomsStart = t + RoomDelay;
-                roomsHeard = -1;
-                roomSeq.Clear();
-                if (!ReferenceEquals(lower, roomsLower))
-                {
-                    roomsLower = lower;
-                    roomPool.Clear();
-                    foreach (var set in lower)  // (only round the box, never the title)
-                        foreach (var m in set)
-                            AddRoomSpot(m);
-                }
-            }
-            roomsFrame = Time.frameCount;
-            float e = t - roomsStart;
-            if (e < 0f || roomPool.Count == 0)
-                return;
-            int now = Mathf.FloorToInt(e / RoomGap);
-            if (now != roomsHeard && e - now * RoomGap < RoomBuild)
-            {
-                roomsHeard = now;
-                if (sounds != null)
-                    sounds.Play(Sfx.MenuRooms, 0.4f * a, Time.unscaledTime);  // quiet bleeps while its walls draw (MenuSoundBank.cs)
-            }
-            for (int k = Mathf.Max(0, now - RoomMax); k <= now; k++)
-                DrawRoom(roomPool[RoomAt(k)], e - k * RoomGap, RoomMax * RoomGap - RoomBuild, t, a);
-        }
-
-        void AddRoomSpot(MenuRoom m)
-        {
-            foreach (var o in roomPool)
-                if (o.r.x == m.r.x && o.r.y == m.r.y && o.r.width == m.r.width && o.r.height == m.r.height)
-                    return;
-            roomPool.Add(m);
-        }
-
-        /// Which spot the k-th room takes: a hashed pick, moved on past any spot that overlaps the rooms before it still on screen.
-        int RoomAt(int k)
-        {
-            while (roomSeq.Count <= k)
-            {
-                int i = roomSeq.Count, n = roomPool.Count, pick = (int)(Hash(i * 13 + 5) * n) % n;
-                for (int j = 0; j < n; j++)
-                {
-                    int c = (pick + j) % n;
-                    bool clear = true;
-                    for (int back = 1; back <= RoomMax && back <= i && clear; back++)
-                    {
-                        var o = roomPool[roomSeq[i - back]].r;
-                        var cr = roomPool[c].r;
-                        if (c == roomSeq[i - back] || (cr.x < o.xMax + 6f && cr.xMax > o.x - 6f && cr.y < o.yMax + 6f && cr.yMax > o.y - 6f))
-                            clear = false;
-                    }
-                    if (clear)
-                    {
-                        pick = c;
-                        break;
-                    }
-                }
-                roomSeq.Add(pick);
-            }
-            return roomSeq[k];
-        }
-
-        static readonly V2[] roomPts = new V2[16];
-
-        void DrawRoom(MenuRoom m, float age, float hold, float t, float a)
-        {
-            if (age <= 0f)
-                return;
-            float p = age < RoomBuild ? age / RoomBuild : age < RoomBuild + hold ? 1f : 1f - (age - RoomBuild - hold) / RoomFold;
-            if (p <= 0f)
-                return;
-            var r = m.r;
-            // The outline as one pen path, clockwise from the top-left, with a doorway in the wall facing the menu; big rooms get a divider.
-            int n = 0;
-            V2[] c = { new V2(r.x, r.y), new V2(r.xMax, r.y), new V2(r.xMax, r.yMax), new V2(r.x, r.yMax) };
-            const string walls = "trbl";
-            for (int i = 0; i < 4; i++)
-            {
-                V2 s = c[i], e = c[(i + 1) % 4];
-                if (walls[i] == m.door)
-                {
-                    roomPts[n++] = s; roomPts[n++] = V2.Lerp(s, e, 0.32f);
-                    roomPts[n++] = V2.Lerp(s, e, 0.68f); roomPts[n++] = e;
-                }
-                else
-                {
-                    roomPts[n++] = s; roomPts[n++] = e;
-                }
-            }
-            if (r.height > 100f) { roomPts[n++] = new V2(r.x, r.y + r.height / 2f); roomPts[n++] = new V2(r.x + r.width * 0.55f, r.y + r.height / 2f); }
-            if (r.width > 150f) { roomPts[n++] = new V2(r.x + r.width / 2f, r.y); roomPts[n++] = new V2(r.x + r.width / 2f, r.y + r.height * 0.6f); }
-            float total = 0f;
-            for (int i = 0; i < n; i += 2)
-                total += (roomPts[i + 1] - roomPts[i]).Length;
-            // the fill, once the outline is done
-            float fill = Mathf.Clamp01((p - 0.85f) / 0.15f) * a;
-            if (fill > 0f)
-            {
-                FillRect(r.x, r.y, r.width, r.height, new Rgba(0.16f, 0.27f, 0.59f, 0.16f * fill));
-                var grid = new Rgba(0.43f, 0.59f, 0.94f, 0.1f * fill);
-                for (float gx = r.x + 12f; gx < r.xMax; gx += 12f)
-                    FillRect(gx, r.y, 1f, r.height, grid);
-                for (float gy = r.y + 12f; gy < r.yMax; gy += 12f)
-                    FillRect(r.x, gy, r.width, 1f, grid);
-                FillRect(r.x, r.y + MathX.Fmod(t * 28f, r.height), r.width, 2f, new Rgba(0.59f, 0.75f, 1f, 0.14f * fill));
-            }
-            // the outline, as far as the pen has got
-            float left = total * Mathf.Clamp01(p);
-            V2 tip = default;
-            bool drawing = false;
-            for (int i = 0; i < n && left > 0f; i += 2)
-            {
-                V2 s = roomPts[i], e = roomPts[i + 1];
-                float l = (e - s).Length, k = Mathf.Min(1f, left / l);
-                V2 to = V2.Lerp(s, e, k);
-                Line(s, to, 6f, new Rgba(0.36f, 0.52f, 0.91f, 0.15f * a));
-                Line(s, to, 2f, new Rgba(0.59f, 0.73f, 1f, 0.9f * a));
-                drawing = k < 1f;
-                tip = to;
-                left -= l;
-            }
-            if (drawing)
-            {
-                Circle(tip, 7f, new Rgba(0.62f, 0.75f, 1f, 0.3f * a), 12);
-                FillRect(tip.X - 2.5f, tip.Y - 2.5f, 5f, 5f, new Rgba(1f, 1f, 1f, a));
-            }
-            if (p >= 1f)
-                foreach (var q in c)
-                    FillRect(q.X - 2f, q.Y - 2f, 4f, 4f, new Rgba(0.82f, 0.88f, 1f, 0.9f * a));
         }
 
         // --- The Holo Floor background ------------------------------------------------------------------------------------
