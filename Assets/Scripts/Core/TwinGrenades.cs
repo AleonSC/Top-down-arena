@@ -47,7 +47,7 @@ namespace Arena
                 p.TwinNades++;
                 if (p.TwinNades >= TwinNadeMax)
                     charge = 0;
-                BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.GrenadeShot), 24f, 0.25f, Sfx.Pick);
+                BroadcastFx(FxKind.Ring, p.Pos, Defs.BulletColor(Defs.GrenadeShot), 24f, 0.25f, Sfx.TwinNadeLoad);
             }
             p.TwinCharge = (byte)charge;
         }
@@ -66,10 +66,11 @@ namespace Arena
             var g = SpawnBullet(Defs.GrenadeShot, from, (cross - from) / TwinNadeFlight, 0f, TwinNadeFlight, TwinNadeDamage * p.Stats.DmgMult, p.Id);
             g.Splash = GrenadeRadius;
             g.Burst = 8;
+            g.TwinNade = true;
             p.TwinNades--;
             p.TwinNext = (byte)(1 - tube);  // the tubes take turns, however they were refilled
             p.TwinNadeCd = TwinNadeCd;
-            BroadcastFx(FxKind.Ring, from, Defs.BulletColor(Defs.GrenadeShot), 16f, 0.2f, Sfx.Throw);
+            BroadcastFx(FxKind.Ring, from, Defs.BulletColor(Defs.GrenadeShot), 16f, 0.2f, Sfx.TwinNadeLaunch);
         }
 
         /// Host, every tick: the tubes' cooldown runs down, and they empty when the rifle is put away.

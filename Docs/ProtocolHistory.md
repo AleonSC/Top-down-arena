@@ -3,6 +3,7 @@
 One line per bump, newest first. When you bump `Session.ProtocolVersion`, add your line at the top
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
+- 544: Twin Rifle grenade sounds: `Sfx.TwinNadeLoad`, `TwinNadeLaunch`, `TwinNadeBoom` (at the end); no player or snapshot fields.
 - 543: Blood Totem (Tank Hemomancer 4th choice): `AbilityId.BloodTotem`, `ZoneKind.BloodTotem` (each at the end); no player or snapshot fields.
 - 542: Hazard Foam (Healer Soldier fourth ultimate): `AbilityId.HazardFoam`, `ZoneKind.HazardFoam` (both at the end), bullet kind `Defs.FoamGlob` = 88; the player sync adds `FoamT`, `FoamTank` after `RocketT`.
 

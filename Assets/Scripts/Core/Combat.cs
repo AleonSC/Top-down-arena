@@ -284,7 +284,7 @@ namespace Arena
             foreach (var e in FoesInCircle(b.Pos, b.Splash, by: b.Owner))
                 HurtEnemy(e, b.Dmg, b.Owner);
             SpawnRing(Defs.DpsShot, b.Pos, b.Burst, 520f, 0.45f, b.Dmg * 0.12f, b.Owner);
-            BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.GrenadeShot), b.Splash, 0.35f, Sfx.Explode);
+            BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.GrenadeShot), b.Splash, 0.35f, b.TwinNade ? Sfx.TwinNadeBoom : Sfx.Explode);
             PropBlast(b.Pos, b.Splash, b.Owner);  // sets barrels off (Props.cs)
             GateLockBlast(b.Pos, b.Splash, b.Owner);  // and cracks a Warden gate's lock (Warden.cs)
         }
