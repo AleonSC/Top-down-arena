@@ -314,6 +314,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Vein Tithe | Tank | ultimate | 75 s | - | Lasts 40 s and costs 25% less. | Bind every enemy on screen at the cost of your health. |
 | Bloodbath | Tank | ultimate | 75 s | - | The pool spreads to 220 px and gives back 35% of the bleed. | Flood the floor with blood that slows and bleeds enemies and heals you. |
 | Blood Golem | Tank | ultimate | 80 s | - | Lasts 13 s and each coat left bursts for 30. | Tear the blood off enemies and your own veins into coats, then fight as a golem made of them. |
+| Blood Ritual | Tank | ultimate | 80 s | - | The portal stays open 10 s and pours out 50 imps. | Bleed a pentagram onto the floor that tears open and floods out blood imps to claw and taunt enemies. |
 | Blood Gift | Healer | 1st, choice 1 | 8 s | 25% of current health | Also heals everyone else within 200 px of them for half as much. | Pay health to heal the most hurt ally twice as much. |
 | Blood Freeze | Healer | 1st, choice 2 | 14 s | 25% of max health | Frozen enemies take 25% more damage. | Freeze every enemy near you at a cost of health; enemies that die frozen heal you. |
 | Martyr | Healer | 1st, choice 3 | 16 s | 40% of max health | You're invulnerable for 2 s after the sacrifice. | Pay health to revive a downed ally, or ward the most hurt one. |
