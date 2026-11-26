@@ -228,9 +228,17 @@ The lobby fits about 8 class cards in a row before they get too small.
   - `run.sh 1 30` (or `core`) = the **core** match tests (~165 checks).
   - `run.sh 1 30 features` = the **feature** suite (~247 checks). `music` still works: it was its old name.
     **Run both before committing.** `run.sh 1 30 all` runs the two back to back.
-  - `Tools/SimTest/extras.sh [k/n]` = every pass/fail suite the two above skip (`CiExtras` in `Program.cs`, ~6 min here),
-    each in its own process, built once; `k/n` runs one shard. CI runs it as two shards beside `core` and `features`.
-    **A new suite whose tests aren't in `FeatureTests` goes in `CiExtras`.** `TIMES=1 run.sh ...` prints each test's time.
+  - `Tools/SimTest/extras.sh [k/n] [jobs]` = every pass/fail suite the two above skip (`CiExtras` in `Program.cs`),
+    each in its own process, built once, one per CPU at a time; `k/n` runs one shard. CI runs it as two shards beside
+    `core` and `features`. A failing suite is run once more alone and reported as FLAKY if it then passes (a bug to fix).
+    **A new suite whose tests aren't in `FeatureTests` goes in `CiExtras`**: `Tools/SimTest/ci_coverage.py` (CI's core
+    job) fails on a suite CI wouldn't run. (76 suites were left out until Nov 2026, and 6 had quietly broken.)
+    `TIMES=1 run.sh ...` prints each test's time.
+  - **In-memory network:** the suites set `NetPeer.Loopback` (Core/Net.cs): a host and its joiners in one process are
+    wired together in memory, so a message sent is waiting on the receiver's next `Poll`, every time, and suites share
+    no ports (they can run in parallel). Over real localhost TCP a busy CI machine sometimes hadn't delivered a message
+    by the next `Poll`, which was the main cause of checks failing once and passing on a re-run. `SIMTEST_TCP=1` runs
+    the old real-TCP way. Don't add `Thread.Sleep` waits for the network in new tests (`Nap` in Program.cs sleeps only over TCP).
   - Single systems: `snapshot` (run snapshots, F6 / F7), `parry`, `aim`, `extra`, `knight`, `ninja`, `blood`, `bloodlash`, `paths`, `bazaar`, `bosses`,
     `warden`, `singularity`, `mastery`, `longrun` (the 100-wave Campaign), `bossschedule` (the boss schedules match the old formulas), `quickfights` (Quick Play boss fights with bots: each boss's fight length after waves 10/20/30), `quick` (Quick Play: its waves, boss, records, endless, room building with two bots, the tutorial; prints each boss's health after waves 10/20/30), `bossgate` (the boss gate before a boss: holds the wave until everyone is in, bots walk in; the only suite with `Game.GatesOn`), `wardencycle` (its Warden wave lessons), `reapercult` (the Twin Reapers' faction: Bound Wraiths, Scythe Wraith, Lamplighter, Mourner), `checkpoints` (lives and retries), `classcards`, `showcase`, `ultimates`, `mods`, `cardids` (card ids over the network as 2 bytes), `offers` (every card offer reads the weapon), `cardfilters` (class and weapon-list cards), `classcardlists` (each class's card list), `hitfx` (hit flash and blast thinning), `nonshooters` (Fuse Runner, Hookman, Sapper), `turnkey` (the Warden faction's Turnkey: wave-3 debut, running, traps, Cell Doors), `aitrace` (every non-boss enemy alone for 12 s vs `Golden/aitrace.txt`, the enemy behaviour refactor's safety net, Docs/EnemyBehaviours.md; `AITRACE=update` rewrites it), ... Reports (numbers, no pass/fail):
     `ttk`, `lab`, `levels`, `bulletcount`, `perf` (sim ms a frame, host and friend, through a Quick Play breach wave: `run.sh 1 1 perf [secs] [boss] [wave]`), `survperf` (the same for Survival at the 60-enemy cap: `run.sh 1 1 survperf [secs] [start min]`), `wavemix` (each wave's share of shooters, melee and support), `dps`, `ultdps`, `balance` (each damage upgrade's worth per pick and full
@@ -242,9 +250,7 @@ The lobby fits about 8 class cards in a row before they get too small.
     come out the same each run. Rolls a game keeps off its own rng (the Expanding map's seed, the Warden's orbs,
     Quick Play's order, party bots) come from `Game.NewSideRandom()`, seeded the same way. `SEED=random` gives fresh
     rolls; `SEED=<n>` tries another fixed set (sweep a few to find seed-fragile checks); `ONLY=<i> run.sh 1 1 <suite>`
-    runs just the suite's i-th test (from 0) with its usual seed; `PORTBASE=<n>` lets runs go in parallel. Timing
-    between the host and client threads still varies a little, so a check that only just passes can still
-    flicker. The real game never seeds, so it stays random.
+    runs just the suite's i-th test (from 0) with its usual seed; `PORTBASE=<n>` lets real-TCP runs go in parallel. The real game never seeds, so it stays random.
   - Formerly flaky checks, now steady under the seeds (each passed 4+ runs in a row in Oct 2026): perfect
     parry, extra projectiles, bullet budget, Barrier vs regular waves, Mirror Guard, Swarm Fields / Sniper Ridge
     mixes, fire warning, the session's "regeneration" entry. "Once broken, the parry stops blocking" used to wait

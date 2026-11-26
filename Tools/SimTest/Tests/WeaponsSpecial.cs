@@ -73,7 +73,7 @@ static partial class Program
             {
                 bool fire = every <= 0 || f % every < down;
                 Quiet(); foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == client ? new PlayerInput { AimAt = hp.Pos + new V2(400f, 0f), Fire = fire, Parry = parry } : new PlayerInput()); }
-                Thread.Sleep(1);
+                Nap(1);
                 foreach (var b in host.Game.Bullets.Values) if (b.Owner == hp.Id && seen.Add(b.Id)) shots.Add(b);
                 sawPull |= cme.RevCockT > 0f;
                 sawUncocked |= !cme.RevCocked;
@@ -135,7 +135,7 @@ static partial class Program
             {
                 host.Game.Enemies.Clear();
                 foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == client ? new PlayerInput { AimAt = cme.Pos + new V2(400f, 0f), Fire = fireAt(f), Move = move } : new PlayerInput()); }
-                Thread.Sleep(1);
+                Nap(1);
                 sawDrawOnHost |= hp.DrawT > 0.3f;
                 foreach (var b in host.Game.Bullets.Values) if (b.Owner == hp.Id && seen.Add(b.Id)) shots.Add(b);
             }
@@ -217,7 +217,7 @@ static partial class Program
             {
                 queue.Clear();
                 foreach (var x in s) { x.Poll(); x.Game.FixedStep(dt, x == client ? new PlayerInput { AimAt = home + new V2(400f, 0f), WeaponAction = alt && f < 3 } : new PlayerInput()); }
-                Thread.Sleep(1);
+                Nap(1);
             }
         };
         hp.Stats.DmgMult = 1f;
@@ -455,7 +455,7 @@ static partial class Program
                 client.Game.Players[2].Pos = new V2(400f, 650f);
                 host.Poll(); g.FixedStep(dt, new PlayerInput { Fire = fire, AimAt = at }); g.Update(dt);
                 client.Poll(); client.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(400f, 900f) }); client.Game.Update(dt);
-                if (f % 2 == 0) Thread.Sleep(1);
+                if (f % 2 == 0) Nap(1);
             }
         };
         hold(0.3f, false, dummy.Pos);

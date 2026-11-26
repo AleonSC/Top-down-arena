@@ -735,6 +735,8 @@ namespace Arena
                 Apply = s => { s.GauntletRange += 0.4f; s.GauntletDamage += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CaughtSteel, MaxStacks = 2, Name = "Forged Edge", Desc = "Caught Steel's shards hit 8 harder, and it catches bullets passing 6 px further out",
                 Apply = s => { s.SteelDamage += 8f; s.SteelReach += 6f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CannonCall, MaxStacks = 2, Name = "Siege Powder", Desc = "Cannon Call hits 25% harder and its blast is 15% wider",
+                Apply = s => { s.CannonDamage += 0.25f; s.CannonWide += 0.15f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.WarhornVolley, MaxStacks = 2, Name = "Bodkin Points", Desc = "Warhorn Volley's arrows hit 25% harder and the volley is 20% wider",
                 Apply = s => { s.VolleyDamage += 0.25f; s.VolleyWide += 0.2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Ballista, MaxStacks = 2, Name = "Windlass", Desc = "The Ballista holds 2 more bolts and reloads 25% faster",
@@ -847,6 +849,13 @@ namespace Arena
             },
             new AbilityDef
             {
+                Id = AbilityId.CannonCall, Kit = Kit.Knight, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (CannonCall.cs)
+                Name = "Cannon Call", Icon = "cannonball", Cooldown = 12f, Desc = "Flare a spot and a cannonball slams into it, blasting and stunning the pack; 3 kills give back half the cooldown.",
+                Capstone = "Two smaller balls land either side of the mark along your aim.",
+                Bot = b => b.HaveTarget && b.TargetD > 120f && b.TargetD < 420f,
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.LastStand, Kit = Kit.Knight, Role = Role.Tank, Choice = AbilityDef.Ult,
                 Name = "Last Stand", Cooldown = 70f, Desc = "Plant yourself behind a wall of steel plates that blocks every bullet in front.",
                 Capstone = "You take 5% of the damage instead of 10%.",
@@ -953,6 +962,9 @@ namespace Arena
                     return true;
                 case AbilityId.CaughtSteel:
                     CastCaughtSteel(p, pw, cap);  // CaughtSteel.cs
+                    return true;
+                case AbilityId.CannonCall:
+                    CastCannonCall(p, target, cap, pw);  // CannonCall.cs (the 4th choice)
                     return true;
 
                 // Ultimates

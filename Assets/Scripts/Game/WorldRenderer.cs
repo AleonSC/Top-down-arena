@@ -218,6 +218,7 @@ namespace Arena
             DrawHoneyRaids(t);  // the Healer Summoner's Honey Raid: the giant bee and its falling glob (HoneyRaidLook.cs)
             DrawMammoths(t);  // the DPS Summoner's Mammoth Fall: forming, diving, rampaging, leaving (MammothFallLook.cs)
             DrawWarhornSky();  // Warhorn Volley's horn and the arrows in the air (WarhornVolleyLook.cs)
+            DrawCannonSky();  // Cannon Call's flare and the iron balls dropping in (CannonCallLook.cs)
             DrawOrbitalSky();  // Orbital Laser's lock-on, beam, shockwave and flash (OrbitalLaserLook.cs)
             DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon (DragonsDogmaLook.cs)
             DrawRavagerDrops();  // Blood Ravager's drops (BloodRavagerLook.cs)

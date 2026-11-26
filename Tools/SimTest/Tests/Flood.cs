@@ -26,9 +26,9 @@ static partial class Program
         bool othersThree = true;
         foreach (Role r in new[] { Role.Tank, Role.Healer, Role.Dps })
             for (int k = 0; k < Defs.KitCount; k++)
-                if ((Kit)k != Kit.Elementalist && !((Kit)k == Kit.Soldier || r == Role.Tank && (Kit)k == Kit.Summoner || r == Role.Dps && (Kit)k == Kit.Hemomancer || (Kit)k == Kit.Ninja && r != Role.Healer || r == Role.Dps && (Kit)k == Kit.Summoner || r == Role.Healer && (Kit)k == Kit.Knight || r == Role.Tank && (Kit)k == Kit.Knight))  // (every Elementalist role has a 4th: Flood, Water Ward, Gale Wall; the Soldier: Deployable Cover, Decoy Dummy, Deployable Turret; the DPS Hemomancer: Thorn Bloom; the Tank and DPS Ninja: Bamboo Grove, Senbon Seekers; the Summoner: Stampede, Land Shark; the Healer Knight: Sanctum Glass; the Tank Knight: Siege Bell)
+                if (!Upgrades.Abilities.Any(a => a.Choice == AbilityDef.Fourth && a.Role == r && a.Kit == (Kit)k))  // (read from the table: a new 4th choice elsewhere doesn't break this)
                     othersThree &= Upgrades.AbilityLimit(r, (Kit)k) == 3 && Upgrades.FirstAbility(r, (Kit)k, 3) == Upgrades.FirstAbility(r, (Kit)k, 0);
-        Check(othersThree && Upgrades.AbilityLimit(Role.Wildcard, Kit.Soldier) == 3, "every non-Elementalist class has three (a 4th pick falls back to the first)");
+        Check(othersThree && Upgrades.AbilityLimit(Role.Wildcard, Kit.Soldier) == 3, "every class and role without a 4th choice has three (a 4th pick falls back to the first)");
         Check(Upgrades.All.Any(u => u.ClassAbility && u.Grants == AbilityId.Flood), "Flood is a very rare card for Tank Elementalists who picked another");
 
         // A 4th pick for a class without one is clamped by the host.
@@ -38,9 +38,9 @@ static partial class Program
             lh.Host(lp, "Host", Role.Healer, 0, 0, Kit.Knight);
             var lc = new Session();
             lc.Join("127.0.0.1", lp, "Tide", Role.Tank, 0, 3, Kit.Elementalist);
-            for (int i = 0; i < 300 && !(lc.Lobby.Count == 2 && lh.Lobby.Count == 2); i++) { Step(lh, dt); Step(lc, dt); System.Threading.Thread.Sleep(2); }
+            for (int i = 0; i < 300 && !(lc.Lobby.Count == 2 && lh.Lobby.Count == 2); i++) { Step(lh, dt); Step(lc, dt); Nap(2); }
             int cid = lc.MyId;
-            Func<int, bool> settle = want => { for (int i = 0; i < 200; i++) { Step(lh, dt); Step(lc, dt); if (lh.Lobby[cid].Ability == want && lc.Lobby[cid].Ability == want) return true; System.Threading.Thread.Sleep(1); } return false; };
+            Func<int, bool> settle = want => { for (int i = 0; i < 200; i++) { Step(lh, dt); Step(lc, dt); if (lh.Lobby[cid].Ability == want && lc.Lobby[cid].Ability == want) return true; Nap(1); } return false; };
             Check(lh.Lobby.ContainsKey(cid) && settle(3), "a Tank Elementalist can pick the 4th key, and everyone sees it");
             lc.RequestKit(Kit.Hemomancer);
             Check(settle(0), "changing to a class with three abilities goes back to the first");

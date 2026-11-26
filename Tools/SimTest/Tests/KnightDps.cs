@@ -40,7 +40,7 @@ static partial class Program
         {
             for (int f = 0; f < secs * 60; f++)
             {
-                Thread.Sleep(1);
+                Nap(1);
                 host.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = aimAt }); g.Update(dt);
                 client.Poll(); client.Game.FixedStep(dt, new PlayerInput { AimAt = new V2(800, 450) }); client.Game.Update(dt);
                 Clear();

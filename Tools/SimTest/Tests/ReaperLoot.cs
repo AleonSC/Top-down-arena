@@ -49,7 +49,7 @@ static partial class Program
             s[0].Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(800f, 100f) }); g.Update(dt);
             s[1].Poll(); s[1].Game.FixedStep(dt, input); s[1].Game.Update(dt);
         };
-        Action<float> drive = secs => { for (int f = 0; f < secs * 60; f++) { step(new PlayerInput { AimAt = home + new V2(100f, 0f) }); if (f % 2 == 0) Thread.Sleep(1); } };
+        Action<float> drive = secs => { for (int f = 0; f < secs * 60; f++) { step(new PlayerInput { AimAt = home + new V2(100f, 0f) }); if (f % 2 == 0) Nap(1); } };
         Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); pins.Clear(); drive(0.1f); };
         cp.Pos = cp.Disp = hp.Pos = home;
         drive(0.3f);

@@ -64,7 +64,7 @@ namespace Arena
         }
 
         /// The landing's plain Boom (disc glow and sparks) that the look replaces; its scorch mark, ripple and shake stay.
-        bool IsLeapBoom(Effect fx) => fxOn && fx.Kind == FxKind.Boom && SameRgb(fx.Color, Game.LeapBoomColor);
+        bool IsLeapBoom(Effect fx) => fxOn && fx.Kind == FxKind.Boom && (SameRgb(fx.Color, Game.LeapBoomColor) || SameRgb(fx.Color, Game.CcBoomColor));  // (Cannon Call's slam too: CannonCallLook.cs)
 
         void LeapHex(V2 c, float r, float rot, float w, Rgba col)
         {

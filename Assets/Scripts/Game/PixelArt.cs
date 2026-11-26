@@ -117,6 +117,7 @@ namespace Arena
             { "Coup de Grace", "bladeddive" },
             { "Iron Grip", "gauntlet" },
             { "Forged Edge", "caughtsteel" },
+            { "Siege Powder", "cannonball" },
             { "Bodkin Points", "firearrows" },
             // Ninja: each ability's upgrade card shares its ability's icon (AbilityDef.Icon); they never meet in an offer.
             { "Mirror Image", "clone" },
@@ -1253,6 +1254,21 @@ namespace Arena
                 ".....y......",
                 "......o.....",
                 ".....ror....",
+            },
+            ["cannonball"] = new[]
+            {
+                "........y...",
+                ".......yoy..",
+                "........M...",
+                ".......M....",
+                "....kkkk....",
+                "...kGGGGk...",
+                "..kGgwGGGk..",
+                "..kGgGGGGk..",
+                "..kGGGGGkk..",
+                "..kkGGGkkk..",
+                "...kkkkkk...",
+                "....kkkk....",
             },
             ["caughtsteel"] = new[]
             {

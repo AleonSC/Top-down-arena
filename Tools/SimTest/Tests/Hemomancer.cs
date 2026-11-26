@@ -42,7 +42,7 @@ static partial class Program
                 g.FixedStep(dt, new PlayerInput { Fire = true, AimAt = aimAt });
                 g.Update(dt);
                 Step(client, dt);
-                if (f % 2 == 0) Thread.Sleep(1);
+                if (f % 2 == 0) Nap(1);
             }
             return before - target.Hp;
         };
@@ -114,7 +114,7 @@ static partial class Program
                 g.FixedStep(dt, new PlayerInput { Fire = fire, AimAt = at + new V2(300f, 0f) });
                 g.Update(dt);
                 Step(client, dt);
-                if (f % 2 == 0) Thread.Sleep(1);
+                if (f % 2 == 0) Nap(1);
             }
         };
         Hold(true, 0.1f);

@@ -28,7 +28,7 @@ static partial class Program
         var host = HostAs(new Session { AutoStart = 9, StartWave = 3 }, port, false, "Keeper", Role.Healer, 0, 0, Kit.Summoner);
         var client = JoinAs(port, false, "Friend", Role.Tank, 0, 0, Kit.Summoner);
         WaitForLobby(host, client);
-        Action settle = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); System.Threading.Thread.Sleep(1); } };
+        Action settle = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Nap(1); } };
         host.RequestUlt(1);
         settle();
         Check(host.Lobby[1].Ult == 1 && client.Lobby[1].Ult == 1 && host.Lobby[1].UltId == AbilityId.HoneyRaid, "the pick reaches everyone");

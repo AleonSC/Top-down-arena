@@ -1180,6 +1180,7 @@ static partial class Shot {
     OfudaScene();  // OFUDA=<s> (ShotOfuda.cs)
     NeedlesScene();  // NEEDLES=<s> (ShotNeedles.cs)
     ThornBloomScene();  // THORNBLOOM=<s since the cast> [THORNCAP=1] (ShotThornBloom.cs)
+    CannonCallScene();  // CANNON=<s since the cast> [CANNONCAP=1] (ShotCannonCall.cs)
     BambooGroveScene();  // BAMBOO=<s since the cast> [BAMBOOCAP=1] (ShotBambooGrove.cs)
     SiegeBellScene();  // BELL=<s since the cast> [BELLCAP=1] (ShotSiegeBell.cs)
     ChakraScene();  // CHAKRA=<s since the cast> [CHAKRACAP=1] (ShotChakra.cs)

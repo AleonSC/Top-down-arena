@@ -120,7 +120,7 @@ static partial class Program
             }
             if (++frame % 60 == 0)
             {
-                for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+                for (int k = 0; k < 5; k++) { Nap(2); s[1].Poll(); }
                 ghosts += Ghosts(s);
             }
         });
@@ -256,6 +256,11 @@ static partial class Program
                 foreach (var p in s[0].Game.Players.Values)
                     s[0].Game.DevSetGod(p.Id, true);
             }
+            // The Duelist's own test (duelist, in features) checks its phases; here the simple bots lose to it at wave 30 (a run on main showed a
+            // game over in Nov 2026), so they can't be killed either: this checks its decoys reach the client and it can be beaten.
+            if (Find(s[0], EnemyType.Duelist) != null)
+                foreach (var p in s[0].Game.Players.Values)
+                    s[0].Game.DevSetGod(p.Id, true);
             // (The Storm Herald gets longer: 475k health against a duo of Good bots doing about 1,000 a second on a slow seed.)
             Run(s, dt, boss == EnemyType.Lich ? 700 : boss == EnemyType.StormHerald ? 600 : 400, () => !BossAlive(s[0]) && s[0].Game.State != MatchState.Fighting || s[0].Game.State == MatchState.GameOver, () =>
             {
@@ -298,7 +303,7 @@ static partial class Program
                 }
                 if (++frame % 60 == 0)
                 {
-                    for (int k = 0; k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+                    for (int k = 0; k < 5; k++) { Nap(2); s[1].Poll(); }
                     int g = Ghosts(s);
                     if (g > 0)
                         foreach (var b in s[1].Game.Bullets.Values)

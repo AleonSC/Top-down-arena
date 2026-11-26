@@ -42,7 +42,7 @@ static partial class Program
         for (int i = 0; i < 300 && !(host.Game.Running && host.Game.Players.Count >= seats.Length); i++)
         {
             Step(host, dt); lab.StepClients(dt); lab.UpdateClients(dt);
-            Thread.Sleep(2);
+            Nap(2);
         }
         int frames = 0;
         if (Environment.GetEnvironmentVariable("LABLOG") != null)  // LABLOG=1: the host's log, timed in seconds from the fight's start
@@ -129,7 +129,7 @@ static partial class Program
         lab.Seats[2].Kit = Kit.Summoner;
         var host = new Session();
         lab.Start(host, nextPort++);
-        for (int i = 0; i < 300 && !(host.Game.Running && host.Game.Players.Count >= 3); i++) { Step(host, dt); lab.StepClients(dt); lab.UpdateClients(dt); Thread.Sleep(2); }
+        for (int i = 0; i < 300 && !(host.Game.Running && host.Game.Players.Count >= 3); i++) { Step(host, dt); lab.StepClients(dt); lab.UpdateClients(dt); Nap(2); }
         for (int f = 0; f < 60 * 12; f++) { Step(host, dt); lab.StepClients(dt); lab.UpdateClients(dt); lab.Watch(dt); }
         var p3 = host.Game.Players.Values.FirstOrDefault(p => p.Kit == Kit.Summoner);
         Console.WriteLine("  lab: {0} players, boss {1}, fight {2:0.0}s, boss hp {3:0}%, picks each {4}, summoner {5}",

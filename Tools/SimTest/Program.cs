@@ -84,19 +84,19 @@ static partial class Program
     // Step both games until the client is in the run (at most 300 steps).
     static void WaitForGame(Session host, Session client, float dt)
     {
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Game; i++) { Step(host, dt); Step(client, dt); Nap(2); }
     }
 
     // Step both sessions until Practice is up on the client (it plays behind the lobby: the screen stays the lobby).
     static void WaitForPractice(Session host, Session client, float dt)
     {
-        for (int i = 0; i < 300 && !client.Game.Practicing; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 300 && !client.Game.Practicing; i++) { Step(host, dt); Step(client, dt); Nap(2); }
     }
 
     // Poll both sessions until the client is in the lobby (at most 300 polls).
     static void WaitForLobby(Session host, Session client)
     {
-        for (int i = 0; i < 300 && client.Screen != AppScreen.Lobby; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
+        for (int i = 0; i < 300 && client.Screen != AppScreen.Lobby; i++) { host.Poll(); client.Poll(); Nap(2); }
     }
 
     // Finish every push still sliding (Knock.cs: pushes travel over Game.KnockTime), for checks made right after one.
@@ -110,7 +110,7 @@ static partial class Program
     // Poll both sessions `times` times, letting messages cross.
     static void PollBoth(Session host, Session client, int times = 40)
     {
-        for (int i = 0; i < times; i++) { host.Poll(); client.Poll(); Thread.Sleep(2); }
+        for (int i = 0; i < times; i++) { host.Poll(); client.Poll(); Nap(2); }
     }
 
     // Start a bot match at a given wave with both players buffed so they survive a while.
@@ -144,6 +144,11 @@ static partial class Program
         return new[] { host, client };
     }
 
+    /// Wait a moment: over real TCP (SIMTEST_TCP=1) a real sleep, for the network; over loopback (which delivers on the next
+    /// Poll) the session's test clock moves on instead (Session.TestClock: the Hangout room's send rate reads it).
+    static double napClock;
+    static void Nap(int ms) { if (NetPeer.Loopback) napClock += ms / 1000.0; else Thread.Sleep(ms); }
+
     static bool domesAllowed;  // only the dome test leaves Fortress's dome standing
     static void Run(Session[] s, float dt, float seconds, Func<bool> stop = null, Action each = null)
     {
@@ -152,13 +157,13 @@ static partial class Program
             foreach (var x in s)
                 Step(x, dt);
             if (i % 2 == 0)
-                Thread.Sleep(1);
+                Nap(1);
             if (each != null)
                 each();
             if (stop != null && stop())
                 break;
         }
-        for (int k = 0; s.Length > 1 && k < 5; k++) { Thread.Sleep(2); s[1].Poll(); }
+        for (int k = 0; s.Length > 1 && k < 5; k++) { Nap(2); s[1].Poll(); }
     }
 
     static int Ghosts(Session[] s)
@@ -436,6 +441,7 @@ static partial class Program
         Test("bloodfreeze", "Blood Freeze: 25% health, a charge then a 260 px wave that freezes every enemy it reaches for 5 s (bosses 3 s), no damage, allies untouched, Hungry Earth, mastered +25% damage", () => BloodFreezeTest(Dt)),
         Test("flood", "Flood, the Tank Elementalist's 4th choice: the 4th lobby key (only that class, clamped elsewhere), the stamp (10 damage, 60 px shove, heavies stay), a 190 px pool for 6 s, 40/20% slow, wet while in and 3 s after, lightning arcs, draining does nothing, Deluge and High Tide", () => FloodTest(Dt)),
         Test("deployturret", "Deployable Turret, the DPS Soldier's 4th choice: the 4th lobby key, a drop that roots you, no rounds while unfolding or without Fire, a lane that pierces 2, the spool-up, the overheat and the 160 px blast, folding quietly when you go down, mastery (14 s, pierce 4)", () => DeployTurretTest(Dt)),
+        Test("cannoncall", "Cannon Call, the DPS Knight's 4th choice: the 4th lobby key, the 420 px mark, one effect a ball on both screens, 70 in the core and 35 to the edge after the fall, the shove and stun, half the cooldown back for 3 kills, mastery (three balls) and Siege Powder", () => CannonCallTest(Dt)),
         Test("thornbloom", "Thorn Bloom, the DPS Hemomancer's 4th choice: the 4th lobby key, the 12% cost, twelve needles on both screens landing on arrival (45 and a bleed stack, the first enemy only), the tendril chain (30, 20% less a jump, 3 jumps, never the same enemy twice), mastery (5 jumps) and Thornwork", () => ThornBloomTest(Dt)),
         Test("chakra", "Chakra Reserves, the Healer Ninja's 4th choice: the 4th lobby key, the heal (40 + 15% missing), the Chakra Surge (faster moving and attacks, both screens), the teammate's cooldowns refreshed on their own game but not the ultimate, nobody in reach (half on you, no refresh), going down ending it, Deep Reserves and mastery", () => ChakraReservesTest(Dt)),
         Test("bamboo", "Bamboo Grove, the Tank Ninja's 4th choice: the 4th lobby key, the wind-up, the wave reaching near before far (40 and a stun, heavy enemies less), the bleed once the stun ends, nothing past the radius, the fence holding enemies out and stopping shots, mastery (6 s fence) and Rhizome", () => BambooGroveTest(Dt)),
@@ -623,11 +629,24 @@ static partial class Program
         "exploit", "doublebarrel", "railgun", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "vowguard", "embolus", "needleswarm", "bloodbrawler", "arclock", "twinauto", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
         "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "hangoutmode", "training", "foequery", "pvp", "three", "wrap", "ready", "wavekinds", "landmarks",
         "arcanist", "stages", "bossrules", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
+        // (these were missing until Nov 2026, so nothing caught them breaking; ci_coverage.py now fails CI on a suite left out)
+        "abilitycards", "armordrop", "astral", "ballista", "bamboo", "boil", "bosses", "botdodge", "botgate", "botweapon", "bulwark",
+        "bumbleremote", "cannoncall", "cardfilters", "cardids", "celllayouts", "chests", "classcardlists", "claymore", "corelayouts",
+        "cover", "decoy", "deployturret", "dogma", "engbots", "factionrelics", "flashfire", "forbidden", "galewall", "graze",
+        "grenadelauncher", "gridrooms", "helicopter", "hivecenser", "hospital", "huntmap", "huntsave", "ironarmadillo", "ironhide",
+        "landshark", "late", "latewaves", "layouttest", "lighting", "literaltank", "livingbolt", "mammoth", "needles", "offers", "ofuda",
+        "oneway", "orbital", "pickheld", "pits", "portals", "ravager", "refdoc", "rodent", "roomfog", "scratch", "senbon", "shrines",
+        "stampede", "staticbubble", "staticshock", "stayin", "supplydrop", "survival", "thornbloom", "trojanhorse", "twintessen",
+        "ultimates", "waterward", "wiki", "windclash", "wyvernstaff",
+        "heartflail", "sanctumglass", "siegebell", "chakra", "honeyraid", "heartbeat",
     };
 
     static int Main(string[] args)
     {
         Game.IronhideOff = true;  // tests read a Tank's health loss exactly; IronhideTest turns it on (Ironhide.cs)
+        NetPeer.Loopback = Environment.GetEnvironmentVariable("SIMTEST_TCP") == null;  // hosts and joins meet in memory: every message is there on the next Poll, however busy the machine (SIMTEST_TCP=1: real localhost TCP)
+        if (NetPeer.Loopback)
+            Session.TestClock = () => napClock;
         if (args.Length == 1 && args[0] == "extras-list")
         {
             foreach (var n in CiExtras)
