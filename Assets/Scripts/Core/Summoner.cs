@@ -126,21 +126,21 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.GolemWall, Kit = Kit.Summoner, Role = Role.Tank, Choice = 0,
-                Name = "Golem Wall", Cooldown = 13f, Desc = "Raise three golems that block every enemy bullet.",
+                Name = "Golem Wall", Icon = "guard_wide", Cooldown = 13f, Desc = "Raise three golems that block every enemy bullet.",
                 Capstone = "Raises five golems.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.Earthquake, Kit = Kit.Summoner, Role = Role.Tank, Choice = 1, Instant = true,
-                Name = "Earthquake", Cooldown = 10f, Desc = "Slam the ground, then a Burrower tunnels through enemies.",
+                Name = "Earthquake", Icon = "earthshaker", Cooldown = 10f, Desc = "Slam the ground, then a Burrower tunnels through enemies.",
                 Capstone = "Also freezes everything it hurts for 1 s (not bosses).",
                 Bot = b => b.Danger || b.HaveTarget && b.TargetD < 230f,
             },
             new AbilityDef
             {
                 Id = AbilityId.ForcePact, Kit = Kit.Summoner, Role = Role.Tank, Choice = 2,
-                Name = "Force Pact", Cooldown = 12f, Desc = "Make a regular enemy fight for you.",
+                Name = "Force Pact", Icon = "guard_reinforced", Cooldown = 12f, Desc = "Make a regular enemy fight for you.",
                 Capstone = "A second thrall: the pact keeps the last two types you chose.",
                 Bot = b => b.HaveTarget,  // it takes whatever is nearest the cursor, so any target will do
             },
@@ -154,41 +154,41 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.SpiritSwarm, Kit = Kit.Summoner, Role = Role.Healer, Choice = 0,
-                Name = "Spirit Swarm", Cooldown = 14f, Desc = "Release healing sprites.",
+                Name = "Spirit Swarm", Icon = "regen2", Cooldown = 14f, Desc = "Release healing sprites.",
                 Capstone = "Releases 8 sprites.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.Phoenix, Kit = Kit.Summoner, Role = Role.Healer, Choice = 1,
-                Name = "Phoenix", Cooldown = 22f, Desc = "A phoenix follows your cursor, shooting and healing, and revives anyone who goes down.",
+                Name = "Phoenix", Icon = "flame", Cooldown = 22f, Desc = "A phoenix follows your cursor, shooting and healing, and revives anyone who goes down.",
                 Capstone = "Revives at full health, and the phoenix keeps fighting.",
                 Bot = b => b.AllyHurt && b.HaveTarget,
             },
             new AbilityDef
             {
                 Id = AbilityId.SoulLantern, Kit = Kit.Summoner, Role = Role.Healer, Choice = 2,
-                Name = "Soul Lantern", Cooldown = 18f, Desc = "A lantern links to an ally, healing them and burning nearby enemies.",
+                Name = "Soul Lantern", Icon = "halo", Cooldown = 18f, Desc = "A lantern links to an ally, healing them and burning nearby enemies.",
                 Capstone = "Lasts 9 s, and the linked player can't go down.",
                 Bot = b => b.AllyHurt && b.HaveTarget,
             },
             new AbilityDef
             {
                 Id = AbilityId.BatSwarm, Kit = Kit.Summoner, Role = Role.Dps, Choice = 0,
-                Name = "Bat Swarm", Cooldown = 12f, Desc = "Release bats that hunt enemies.",
+                Name = "Bat Swarm", Icon = "brood", Cooldown = 12f, Desc = "Release bats that hunt enemies.",
                 Capstone = "Releases 14 bats.",
             },
             new AbilityDef
             {
                 Id = AbilityId.Hydra, Kit = Kit.Summoner, Role = Role.Dps, Choice = 1,
-                Name = "Hydra", Cooldown = 18f, Desc = "A three-headed hydra spits venom at enemies.",
+                Name = "Hydra", Icon = "split", Cooldown = 18f, Desc = "A three-headed hydra spits venom at enemies.",
                 Capstone = "A fourth head.",
                 Bot = b => b.HaveTarget,
             },
             new AbilityDef
             {
                 Id = AbilityId.AlphaCall, Kit = Kit.Summoner, Role = Role.Dps, Choice = 2,
-                Name = "Alpha Call", Cooldown = 14f, Desc = "Your minions bite faster, then lunge for triple damage.",
+                Name = "Alpha Call", Icon = "fangs", Cooldown = 14f, Desc = "Your minions bite faster, then lunge for triple damage.",
                 Capstone = "Also summons 3 wolves for 6 s.",
             },
             new AbilityDef

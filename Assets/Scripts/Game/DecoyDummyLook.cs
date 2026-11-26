@@ -148,7 +148,7 @@ namespace Arena
             // the last hit: a wobble and a squash
             float hitAge = 9f;
             V2 key = z.Pos + fwd;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.DecoyHit))
                 if (fx.Kind == FxKind.DecoyHit && fx.T < hitAge && fx.Pos2.DistanceSq(key) < 1f)
                     hitAge = fx.T;
             float wob = hitAge < 0.3f ? 1f - hitAge / 0.3f : 0f, wave = Mathf.Sin(hitAge * 45f) * wob;

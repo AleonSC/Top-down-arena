@@ -17,7 +17,7 @@ namespace Arena
     ///   - hitting a wall (or a prop) faster than ArmBashAt of ArmTop: ArmBash within ArmBashR, and you bounce;
     ///   - your weapon, its Alt, your abilities and the Dodge are locked; your minions keep fighting.
     /// It ends on time with the uncurl slam (ArmSlam within ArmSlamR, regulars shoved), or quietly if you go down or the wave
-    /// ends. Your own game rolls you (LocalArmRoll) and sends a Msg.WeaponDash (DashArmBash) for a wall bash; the host times it,
+    /// ends. Your own game rolls you (LocalArmRoll) and sends a Msg.WeaponDash (WeaponAlt.ArmBash) for a wall bash; the host times it,
     /// reads your speed from how you move (ArmSpd) and does the hits. `Player.ArmT` (time left, the curl included; 0 = off) and
     /// `ArmAge` are replicated; Game/IronArmadilloLook.cs draws it.
     public partial class Game
@@ -36,7 +36,6 @@ namespace Arena
         // The lobby preview (Showcase.cs): the ball rolls at the dummies in a pen the size of the preview's view, slower, and
         // flings them less far, so it stays in the picture and the view doesn't zoom out after them.
         public const float ArmShowTop = 300f, ArmShowFling = 0.35f, ArmShowHalfW = 160f, ArmShowAbove = 340f, ArmShowBelow = 90f;
-        const byte DashArmBash = 66;                         // Msg.WeaponDash kind (the rest are listed in Ninja.cs)
         public static readonly Rgba ArmShell = new Rgba(0.79f, 0.71f, 0.54f), ArmSpirit = new Rgba(0.37f, 0.88f, 0.82f),
             ArmGold = new Rgba(1f, 0.8f, 0.35f);
 
@@ -144,9 +143,8 @@ namespace Arena
         void ArmHits(Player p)
         {
             armTouch.Clear();
-            foreach (var e in Enemies.Values)
-                if (Targetable(e) && e.Pos.CloserThan(p.Pos, ArmR + e.Radius))
-                    armTouch.Add(e);
+            foreach (var e in FoesInCircle(p.Pos, ArmR, by: p.Id))
+                armTouch.Add(e);
             foreach (var e in armTouch)
             {
                 long key = (long)p.Id << 32 | (uint)e.Id;
@@ -331,7 +329,7 @@ namespace Arena
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashArmBash);
+                w.Write(WeaponAlt.ArmBash);
                 w.Write(at);
                 session.SendToHost(Proto.End(w));
             }

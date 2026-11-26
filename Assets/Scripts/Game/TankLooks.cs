@@ -56,7 +56,7 @@ namespace Arena
         {
             if (!fxOn || game == null || game.ShowcaseMode)  // (the lobby's preview doesn't shake the screen)
                 return;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.Callout))
             {
                 if (fx.Kind != FxKind.Callout || fx.T > 0.25f)
                     continue;

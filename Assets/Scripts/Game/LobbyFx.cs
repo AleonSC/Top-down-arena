@@ -225,27 +225,6 @@ namespace Arena
                 CrtKit.Frame(new Rect(card.x - 2f, card.y - 2f, card.width + 4f, card.height + 4f), 1f,
                     good.WithAlpha(0.18f + 0.1f * Mathf.Sin(Time.unscaledTime * 2f + e.Id)));
         }
-
-        // --- Radar sweep --------------------------------------------------------------------------------------------------
-
-        /// (Not called any more: the loadout preview has no radar sweep.) GL, inside the loadout preview pass: a slow beam sweeping round from low
-        /// in the window, with a fading trail and faint range rings. No blips.
-        void DrawPreviewRadar(Rect view)
-        {
-            if (!LobbyFxOn)
-                return;
-            var c = new V2(view.center.x, view.y + view.height * 0.72f);
-            float ang = Time.unscaledTime * 1.3f, r = Mathf.Sqrt(view.width * view.width + view.height * view.height);
-            const int trail = 20;
-            for (int k = 0; k < trail; k++)
-            {
-                float a = 0.07f * (1f - k / (float)trail);
-                Wedge(c, r, ang - k * 0.03f - 0.015f, 0.015f, new Rgba(CrtStyle.Ink.r, CrtStyle.Ink.g, CrtStyle.Ink.b, a), 2);
-            }
-            Line(c, c + V2.FromAngle(ang) * r, 1.5f, new Rgba(0.9f, 0.95f, 1f, 0.45f));
-            for (int i = 1; i <= 4; i++)
-                Arc(c, 70f * i, 1f, new Rgba(CrtStyle.Ink.r, CrtStyle.Ink.g, CrtStyle.Ink.b, 0.07f), 48);
-        }
     }
 
     public partial class ArenaApp

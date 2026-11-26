@@ -9,7 +9,7 @@ namespace Arena
     /// between. With one loaded, that one is in the tube TwinNext names; reloading fills the other. The grenade leaves its own tube and
     /// flies down that rifle's stream line to the crossing point (your cursor's distance, as the streams cross), then bursts like the
     /// old Cluster Grenade: TwinNadeDamage in GrenadeRadius and 8 shards (Combat.cs ExplodeGrenade).
-    /// Your game sends Msg.WeaponDash (DashNade) with your aim; the host checks the stock and the short cooldown and fires it.
+    /// Your game sends Msg.WeaponDash (WeaponAlt.Nade) with your aim; the host checks the stock and the short cooldown and fires it.
     /// Replicated: TwinNades, TwinNext, TwinCharge (hits toward the next grenade), drawn as tubes on the guns and pips behind you.
     public partial class Game
     {

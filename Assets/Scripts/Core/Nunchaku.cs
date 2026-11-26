@@ -8,7 +8,7 @@ namespace Arena
     ///   - Fire: Snap (the right chuck whips straight ahead), Backhand (the left sweeps back across), Double Figure-8 (both cross in
     ///     front twice: four hits), Twin Crush (both spin overhead and slam: a shockwave that stuns), then it starts over. The host
     ///     counts the steps in Player.Combo's low bits, as the Twin Blades do; NunChainWindow without a step and it starts over.
-    ///   - Alt (the weapon-action key, Msg.WeaponDash DashNunGuard): the Twin Windmill guard, and again to leave it (Player.NunGuard).
+    ///   - Alt (the weapon-action key, Msg.WeaponDash WeaponAlt.NunGuard): the Twin Windmill guard, and again to leave it (Player.NunGuard).
     ///     Both chucks spin a disc at each side in front of you; small enemy shots that touch one are swatted back at the nearest
     ///     enemy as yours (each counts towards the counter, up to NunSwatCap: Player.NunSwats). You move slower while it's up.
     ///     Fire in the guard is the Twin Counter: both chucks lash straight ahead, harder for every shot swatted, which it uses up.
@@ -17,7 +17,6 @@ namespace Arena
     /// FxKind.NunCounter (Game/NunchakuLook.cs).
     public partial class Game
     {
-        const byte DashNunGuard = 37;
         public const float NunChainWindow = 1f;
         /// Each step's damage against the weapon's Damage (20): Snap 20, Backhand 22, each of the Figure-8's four hits 12, the Crush 68.
         public static readonly float[] NunMult = { 1f, 1.1f, 0.6f, 3.4f };
@@ -235,19 +234,7 @@ namespace Arena
                 Bullet b;
                 if (!Bullets.TryGetValue(id, out b))
                     continue;
-                Enemy target = null;
-                float best = NunSwatSeek;
-                foreach (var e in Enemies.Values)
-                {
-                    if (!Targetable(e))
-                        continue;
-                    float d = e.Pos.DistanceTo(b.Pos);
-                    if (d < best)
-                    {
-                        best = d;
-                        target = e;
-                    }
-                }
+                Enemy target = NearestEnemy(b.Pos, NunSwatSeek, p.Id);
                 V2 dir = target != null ? (target.Pos - b.Pos).Normalized() : (b.Vel.IsZero ? V2.FromAngle(p.Aim) : -b.Vel.Normalized());
                 if (dir.IsZero)
                     dir = V2.FromAngle(p.Aim);
@@ -271,11 +258,11 @@ namespace Arena
                 return true;
             nunSwitchLocalCd = NunSwitchCd;
             if (IsHost)
-                HostWeaponDash(MyId, DashNunGuard, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.NunGuard, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashNunGuard);
+                w.Write(WeaponAlt.NunGuard);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

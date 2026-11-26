@@ -436,7 +436,7 @@ namespace Arena
                 V2 at = ToUi(p.Disp + new V2(0f, p.Def.BodyR + 24f));
                 ShkLabel(at, p.OverchargeT.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + "s", 11, 1f);
             }
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.Overcharge))
             {
                 if (fx.Kind != FxKind.Overcharge)
                     continue;

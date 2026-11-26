@@ -74,7 +74,7 @@ namespace Arena
             // where each plate has just been hit
             for (int i = 0; i < standHeat.Length; i++)
                 standHeat[i] = 0f;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.StandHit))
                 if (fx.Kind == FxKind.StandHit && fx.Pos2.DistanceTo(p.Pos) < 40f)
                 {
                     V2 off = fx.Pos - p.Pos;

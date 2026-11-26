@@ -12,7 +12,7 @@ namespace Arena
     ///     keeps following it for FangFollow seconds, cutting every enemy it spins through (each again every FangRehit) and
     ///     small shots too. Enemies don't stop it; a wall or pillar (or the arena's edge) does, and then it flies back to your
     ///     hand. You can't swing until you catch it; the cooldown counts from the catch. Your game sends Msg.WeaponDash
-    ///     (DashStrike); the host flies the pair after Player.AimAt and replicates it (Player.FangOut, FangAt).
+    ///     (WeaponAlt.Strike); the host flies the pair after Player.AimAt and replicates it (Player.FangOut, FangAt).
     /// Each step is one effect (FxKind.TwinStep) and each throw one (FxKind.TwinFang), drawn from their age (Game/TwinBladesLook.cs).
     public partial class Game
     {

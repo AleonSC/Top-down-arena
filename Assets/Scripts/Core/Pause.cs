@@ -57,6 +57,8 @@ namespace Arena
                 w.Write(b.Life0);
                 w.Write(b.FromBoss);
                 w.Write(b.Homing);
+                w.Write(b.Radius);  // (Magnum Rounds and the like: the size it really is)
+                w.Write((byte)b.Look);  // a dart or a crescent stays one after the pause (Readability.cs)
             }
             session.Broadcast(Proto.End(w));
             DoLog(pause ? "paused by " + id : "resumed");
@@ -77,7 +79,8 @@ namespace Arena
                 b.Life0 = r.ReadSingle();  // the Fuma Shuriken's loop and the Golem Staff's arc go by it
                 b.FromBoss = r.ReadBoolean();
                 b.Homing = r.ReadSingle();
-                b.Radius = Defs.BulletRadius(b.Kind);
+                b.Radius = r.ReadSingle();
+                b.Look = (ShotLook)(r.ReadByte() & 3);
                 Bullets[b.Id] = b;
             }
         }

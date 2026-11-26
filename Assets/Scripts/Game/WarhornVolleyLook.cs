@@ -147,7 +147,7 @@ namespace Arena
 
         void DrawWarhornSky()
         {
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.WarhornVolley))
                 if (fx.Kind == FxKind.WarhornVolley)
                     DrawWarhornSkyFx(fx);
         }
@@ -232,7 +232,7 @@ namespace Arena
 
         void DrawWarhornGlow()
         {
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.WarhornVolley))
             {
                 if (fx.Kind != FxKind.WarhornVolley)
                     continue;

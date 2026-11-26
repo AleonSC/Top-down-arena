@@ -30,7 +30,6 @@ namespace Arena
         static Rect LobbyPartyLabel => new Rect(PartyX, 146f, 220f, 22f);
         const float PartyTop = 176f;      // the top of the first party card
         const float PartyCardH = 84f, PartySlotH = 80f, PartyGap = 10f;  // the first card 84, the others and the open slots 80
-        const float LobbyNoteY = 548f;    // who we're waiting for, just above Ready
         const float LobbySetupY = 512f;   // the top of the actions band (who we're waiting for, Ready and Start)
         const float LobbyReadyY = 586f, LobbyReadyH = 48f, LobbyStartY = 640f, LobbyStartH = 44f;  // Ready over Start (a guest's Ready takes the Start slot)
 

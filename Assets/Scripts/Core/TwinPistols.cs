@@ -7,14 +7,13 @@ namespace Arena
     ///   Fire: the guns take turns, left then right (Player.TpSide, replicated), one round every FireInterval, each within
     ///         TpSpread of your aim. A round that hits can knock a tiny health orb loose (TpShed, at most every ShedEvery s
     ///         per enemy, shared with the Repulsion Cannon).
-    ///   Alt:  Laser Sights (Msg.WeaponDash DashLaser): for TpLaserDur s (TpLaserT, replicated) both guns fire together every
+    ///   Alt:  Laser Sights (Msg.WeaponDash WeaponAlt.Laser): for TpLaserDur s (TpLaserT, replicated) both guns fire together every
     ///         TpLaserInterval, their rounds TpLaserMult harder and aimed down the beams to meet at your cursor, knocking orbs
     ///         loose more often (TpLaserShed); you move at TpLaserSlow. TpCd (replicated) counts down from the press.
     ///   Each extra projectile (Multishot): one more round a shot, fanned TpFan apart, and Laser Sights lasts TpLaserPerExtra s longer.
     /// The look is Game/TwinPistolsLook.cs.
     public partial class Game
     {
-        const byte DashLaser = 50;
         public const float TpSpread = 0.026f;          // radians either side of your aim (3° in all)
         public const float TpGunGap = 11f;             // each gun's distance from your middle, sideways
         public const float TpMuzzleOut = 22f;          // how far past your edge the muzzles are
@@ -103,11 +102,11 @@ namespace Arena
             {
                 laserLocalCd = 0.3f;  // (the host's TpCd arrives with the next snapshot)
                 if (IsHost)
-                    HostWeaponDash(MyId, DashLaser, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.Laser, aimAt);
                 else
                 {
                     var w = Proto.Begin(Msg.WeaponDash);
-                    w.Write(DashLaser);
+                    w.Write(WeaponAlt.Laser);
                     w.Write(aimAt);
                     session.SendToHost(Proto.End(w));
                 }

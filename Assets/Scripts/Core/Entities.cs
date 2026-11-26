@@ -852,15 +852,16 @@ namespace Arena
         public int TargetId, ParentId;
         public int CueSig = int.MinValue;  // host: the boss attack last announced with a sound
         public bool Spawning;  // replicated SpawnT > 0 on clients
-        public WardenState Warden;  // the Warden's fight (Warden.cs; replicated)
-        public QueenState Queen;    // the Hive Queen's fight (Queen.cs; replicated)
-        public SingState Sing;      // the Singularity's fight (Singularity.cs; replicated)
-        public HeraldState Herald;  // the Storm Herald's fight (Herald.cs; replicated)
-        public EclipseState Eclipse;  // the Eclipse's fight (Eclipse.cs; replicated)
-        public DevourState Devour;  // the Devourer's fight (Devourer.cs; replicated)
-        public DuelState Duel;      // the Duelist's fight (Duelist.cs; replicated)
-        public LichState Lich;      // the Lich's fight (Lich.cs; replicated)
-        public ColossusState Colossus;  // the Colossus's fight (Colossus.cs; replicated)
+        public BossFight Boss;      // a boss's fight (BossFight.cs; replicated by each boss's Sync), or null; one of these:
+        public WardenState Warden { get { return Boss as WardenState; } set { Boss = value; } }        // Warden.cs
+        public QueenState Queen { get { return Boss as QueenState; } set { Boss = value; } }           // the Hive Queen (Queen.cs)
+        public SingState Sing { get { return Boss as SingState; } set { Boss = value; } }              // the Singularity (Singularity.cs)
+        public HeraldState Herald { get { return Boss as HeraldState; } set { Boss = value; } }        // the Storm Herald (Herald.cs)
+        public EclipseState Eclipse { get { return Boss as EclipseState; } set { Boss = value; } }     // Eclipse.cs
+        public DevourState Devour { get { return Boss as DevourState; } set { Boss = value; } }        // the Devourer (Devourer.cs)
+        public DuelState Duel { get { return Boss as DuelState; } set { Boss = value; } }              // the Duelist and the Court (Duelist.cs)
+        public LichState Lich { get { return Boss as LichState; } set { Boss = value; } }              // Lich.cs
+        public ColossusState Colossus { get { return Boss as ColossusState; } set { Boss = value; } }  // Colossus.cs
         public float ShedT;           // host: until the Repulsion Cannon can knock another health orb out of it
         public int SweepMark;         // host: the last Halberd sweep that hit it (once a sweep)
         public float KatanaShockT;    // host: marked by a Katana's Momentum Burst for this long (caltrops thrown then seek it; Katana.cs)
@@ -894,6 +895,8 @@ namespace Arena
         public int Id;
         public byte Kind;
         public V2 Pos, Vel;
+        public V2 Prev;           // host only: where it was before this tick's move (Combat.Enters), once HasPrev
+        public bool HasPrev;
         public float AngVel, Life, Radius, Dmg;
         public float Life0;       // its lifetime when fired (for drawing it aging: the Flamethrower's flames)
         public int Owner, Pierce, LastHit;

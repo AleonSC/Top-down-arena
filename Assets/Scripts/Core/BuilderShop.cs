@@ -19,20 +19,6 @@ namespace Arena
         /// The Builder Shop's shelf this wave.
         public PieceCard[] BuilderCards => Expansion.GridBuilderOffers(expandSeed, Wave);
 
-        /// A Builder Shop room is on the connected map.
-        public bool HasBuilderRoom
-        {
-            get
-            {
-                if (!ExpandingOn || !RoomsOn)
-                    return false;
-                foreach (var a in ExpansionWorld.Areas)
-                    if (a.Kind == Arena.RoomKind.Builder && !a.Sealed)
-                        return true;
-                return false;
-            }
-        }
-
         public bool InBuilderRoom(Player p)
         {
             var a = ExpandedAreaAt(p.Disp);

@@ -7,7 +7,7 @@ namespace Arena
     /// under it. Left click calls lightning onto the spot beneath it. Enemies under the rain are WET (Tsunami.cs: slowed, and
     /// every lightning hit arcs to them) while there and NimbusWetLinger s after. The cloud is a companion Minion (so everyone
     /// sees it); its drift, rain and strikes are host logic here. Looks: Game/NimbusLook.cs (the Anvil: Docs/Mockups/nimbus-rework.html).
-    ///   Eye of the Storm (Alt, Msg.WeaponDash DashStorm): the cloud spins up into a hurricane (NimbusStormRadius) for
+    ///   Eye of the Storm (Alt, Msg.WeaponDash WeaponAlt.Storm): the cloud spins up into a hurricane (NimbusStormRadius) for
     ///     NimbusStormTime, drifting after your cursor at NimbusStormDrift of its speed. Its arms drag enemies round and in
     ///     (NimbusStormSwirl/NimbusStormPull px/s, not heavies or bosses), hurt them NimbusStormDps and soak them; a bolt from
     ///     the arms hits an enemy in it every NimbusStormZap (NimbusStormBolt, arcing to wet enemies as lightning does); enemy
@@ -22,7 +22,6 @@ namespace Arena
         public const float NimbusStormTime = 4f, NimbusStormCd = 12f, NimbusStormRadius = 140f, NimbusStormDrift = 0.5f, NimbusStormDps = 20f;
         public const float NimbusStormSwirl = 120f, NimbusStormPull = 60f, NimbusStormZap = 0.33f, NimbusStormBolt = 10f;
         public const float NimbusEyeRadius = 26f, NimbusEyeHeal = 16f, NimbusBurstShove = 70f, NimbusStormSpinUp = 0.4f;
-        const byte DashStorm = 33;
         public static readonly Rgba NimbusBoltColor = new Rgba(0.78f, 0.86f, 1f);
 
         float stormLocalCd;  // your own game: until the Alt fires again (drawn as a ring under your feet)
@@ -84,11 +83,11 @@ namespace Arena
                 return false;
             stormLocalCd = NimbusStormCd;
             if (IsHost)
-                HostWeaponDash(MyId, DashStorm, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.Storm, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashStorm);
+                w.Write(WeaponAlt.Storm);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

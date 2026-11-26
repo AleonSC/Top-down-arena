@@ -102,7 +102,7 @@ Grounder 0b7ec2e5d3101fdd at (610,450) phase 3 hp 0 shots 28
 Pylon f7670cd32b661f7f at (746,589) phase 1 hp 378 shots 0
 Lineman b7b2f9d28515a21b at (503,491) phase 0 hp 0 shots 16
 Thunderhead 29715ff67d437bd0 at (800,450) phase 0 hp 1505 shots 0
-Turnkey c58ca32c35a08d2a at (681,104) phase 1 hp 0 shots 1
+Turnkey 55367f82c2bbb511 at (609,114) phase 1 hp 0 shots 1
 CellDoor c5fe99cdbcf53ea5 at (480,450) phase 2 hp 0 shots 0
 FloorMine b700376a6a338815 at (480,450) phase 1 hp 0 shots 0
 ShackleTrap b81b70c44e26b4bd at (480,450) phase 1 hp 0 shots 0

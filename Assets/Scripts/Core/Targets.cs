@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Arena
@@ -57,7 +58,11 @@ namespace Arena
 
         /// Host: the nearest Targetable enemy to `at` within `range` (null: none). `by`: the player it's for (a summon's owner): with PvP
         /// on, the other players count too, as their stand-ins (Pvp.cs).
-        Enemy NearestEnemy(V2 at, float range = float.MaxValue, int by = 0)
+        Enemy NearestEnemy(V2 at, float range = float.MaxValue, int by = 0) => NearestEnemy(at, null, range, by);
+
+        /// Host: the same, among the foes `ok` accepts (null: any), e.g. the enemies Force Pact can bind. The first in the
+        /// enemy list wins a tie, as in a hand-written loop.
+        Enemy NearestEnemy(V2 at, Func<Enemy, bool> ok, float range = float.MaxValue, int by = 0)
         {
             Enemy best = null;
             if (range <= 0f)
@@ -65,6 +70,8 @@ namespace Arena
             float bestD = range < float.MaxValue ? range * range : float.MaxValue;
             foreach (var e in AllFoes(by: by))
             {
+                if (ok != null && !ok(e))
+                    continue;
                 float d = e.Pos.DistanceSq(at);
                 if (d < bestD)
                 {

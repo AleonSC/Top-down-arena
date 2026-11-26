@@ -124,41 +124,41 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Barrier, Kit = Kit.Soldier, Role = Role.Tank, Choice = 0,
-                Name = "Barrier", Cooldown = 12f, Desc = "A bubble that stops enemy bullets.",
+                Name = "Barrier", Icon = "bubble", Cooldown = 12f, Desc = "A bubble that stops enemy bullets.",
                 Capstone = "Bullets that hit the barrier are reflected back as your own.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.MendPulse, Kit = Kit.Soldier, Role = Role.Healer, Choice = 0, Instant = true,
-                Name = "Mend Pulse", Cooldown = 10f, Desc = "Heal everyone nearby and revive downed allies.",
+                Name = "Mend Pulse", Icon = "pulse", Cooldown = 10f, Desc = "Heal everyone nearby and revive downed allies.",
                 Capstone = "Also erases enemy bullets within its range.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.PoisonDart, Kit = Kit.Soldier, Role = Role.Dps, Choice = 0,
-                Name = "Poison Dart", Cooldown = 8f, Desc = "Poison the nearest enemy; the poison spreads when it dies.",
+                Name = "Poison Dart", Icon = "poisondart", Cooldown = 8f, Desc = "Poison the nearest enemy; the poison spreads when it dies.",
                 Capstone = "Spreads to 5 enemies at a time, at full strength.",
                 Bot = b => b.HaveTarget && b.TargetD < 700f,
             },
             new AbilityDef
             {
                 Id = AbilityId.Shockwave, Instant = true,
-                Name = "Shockwave", Cooldown = 14f, Desc = "A shockwave erases bullets and shoves enemies back.",
+                Name = "Shockwave", Icon = "shockwave", Cooldown = 14f, Desc = "A shockwave erases bullets and shoves enemies back.",
                 Capstone = "The wave runs out 300 px.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.Overdrive,
-                Name = "Overdrive", Cooldown = 18f, Desc = "Double your fire rate for a few seconds.",
+                Name = "Overdrive", Icon = "bolt", Cooldown = 18f, Desc = "Double your fire rate for a few seconds.",
                 Capstone = "+1 extra projectile while it lasts.",
             },
             new AbilityDef
             {
                 Id = AbilityId.Blink,
-                Name = "Blink", Cooldown = 7f, Desc = "Teleport toward your cursor.",
+                Name = "Blink", Icon = "blink", Cooldown = 7f, Desc = "Teleport toward your cursor.",
                 Capstone = "Erases enemy bullets where you leave and where you land.",
                 Bot = b => b.BotDanger > 2.5f,
             },
@@ -172,60 +172,60 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Turret,
-                Name = "Turret", Cooldown = 20f, Desc = "Deploy a turret that shoots for a while.",
+                Name = "Turret", Icon = "turret", Cooldown = 20f, Desc = "Deploy a turret that shoots for a while.",
                 Capstone = "Deploys two turrets.",
             },
             new AbilityDef
             {
                 Id = AbilityId.Roar, Kit = Kit.Soldier, Role = Role.Tank, Choice = 1, Instant = true,
-                Name = "Roar", Cooldown = 14f, Desc = "Every enemy targets you, and you take less damage.",
+                Name = "Roar", Icon = "roar", Cooldown = 14f, Desc = "Every enemy targets you, and you take less damage.",
                 Capstone = "Also knocks enemies within 250 px back and slows them for 2 s.",
                 Bot = b => b.HaveTarget && b.Players > 1 && (b.AllyThreatened || b.Me.Hp < b.Me.MaxHp * 0.5f),  // draw the enemies off a teammate in trouble
             },
             new AbilityDef
             {
                 Id = AbilityId.Bulldoze, Kit = Kit.Soldier, Role = Role.Tank, Choice = 2, Instant = true,
-                Name = "Bulldoze", Cooldown = 9f, Desc = "Charge forward, damaging and knocking back everything in your path.",
+                Name = "Bulldoze", Icon = "fist", Cooldown = 9f, Desc = "Charge forward, damaging and knocking back everything in your path.",
                 Capstone = "Erases enemy bullets along the charge.",
             },
             new AbilityDef
             {
                 Id = AbilityId.DeployableCover, Kit = Kit.Soldier, Role = Role.Tank, Choice = AbilityDef.Fourth, ExtraCharges = 1,  // the lobby's 4th choice (DeployableCover.cs)
-                Name = "Deployable Cover", Cooldown = CoverCooldown, Desc = "Plant steel cover that stops enemy bullets while your team shoots through.",
+                Name = "Deployable Cover", Icon = "guard_wide", Cooldown = CoverCooldown, Desc = "Plant steel cover that stops enemy bullets while your team shoots through.",
                 Capstone = "Covers take 600 damage, and each charge comes back 25% sooner.",
                 Bot = b => b.Danger || b.NearEnemies >= 3,
             },
             new AbilityDef
             {
                 Id = AbilityId.Adrenaline, Kit = Kit.Soldier, Role = Role.Healer, Choice = 1,
-                Name = "Adrenaline Shot", Cooldown = AdrenalineCooldown, Desc = "Boost a player's speed and fire rate and cut their damage taken.",
+                Name = "Adrenaline Shot", Icon = "pulse", Cooldown = AdrenalineCooldown, Desc = "Boost a player's speed and fire rate and cut their damage taken.",
                 Capstone = "Also gives the nearest other ally within 250 px a half-length (4 s) dose.",
                 Bot = b => b.HaveTarget,
             },
             new AbilityDef
             {
                 Id = AbilityId.Medkit, Kit = Kit.Soldier, Role = Role.Healer, Choice = 2,
-                Name = "Deployable Medkit", Cooldown = MedkitCooldown, Desc = "Throw a medkit that bursts into health orbs anyone can grab.",
+                Name = "Deployable Medkit", Icon = "pulse", Cooldown = MedkitCooldown, Desc = "Throw a medkit that bursts into health orbs anyone can grab.",
                 Capstone = "Bursts into 9 orbs worth 20 health each.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.DecoyDummy, Kit = Kit.Soldier, Role = Role.Healer, Choice = AbilityDef.Fourth, ExtraCharges = DecoyCharges - 1,  // the lobby's 4th choice (DecoyDummy.cs)
-                Name = "Decoy Dummy", Cooldown = DecoyCooldown, Desc = "Throw an inflatable soldier that enemies shoot at instead of you.",
+                Name = "Decoy Dummy", Icon = "clone", Cooldown = DecoyCooldown, Desc = "Throw an inflatable soldier that enemies shoot at instead of you.",
                 Capstone = "Dummies have 50% more health, and the confetti blast reaches 130 px.",
                 Bot = b => b.Danger || b.NearEnemies >= 3,
             },
             new AbilityDef
             {
                 Id = AbilityId.Airstrike, Kit = Kit.Soldier, Role = Role.Dps, Choice = 1,
-                Name = "Airstrike", Cooldown = 16f, Desc = "Call a jet to carpet a line with bombs.",
+                Name = "Airstrike", Icon = "explode", Cooldown = 16f, Desc = "Call a jet to carpet a line with bombs.",
                 Capstone = "A second wall lands 160 px further out, half a second later.",
             },
             new AbilityDef
             {
                 Id = AbilityId.Claymore, Kit = Kit.Soldier, Role = Role.Dps, Choice = 2, ExtraCharges = ClaymoreCharges - 1,  // (Claymore.cs)
-                Name = "Claymore", Cooldown = ClaymoreCooldown, Desc = "Plant a mine at your cursor; the first enemy to step into the cone in front of it sets off a wide blast.",
+                Name = "Claymore", Icon = "claymore", Cooldown = ClaymoreCooldown, Desc = "Plant a mine at your cursor; the first enemy to step into the cone in front of it sets off a wide blast.",
                 Capstone = "Each claymore re-arms once after its first blast: it goes off twice.",
                 Bot = b => b.HaveTarget && b.TargetD < 420f,
             },

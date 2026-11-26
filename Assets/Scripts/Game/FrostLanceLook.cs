@@ -366,18 +366,6 @@ namespace Arena
             }
         }
 
-        void FlHexBlock(V2 c, float r, float a)
-        {
-            SetColor(FlEdge.WithAlpha(a));
-            V2[] pts = new V2[6];
-            for (int i = 0; i < 6; i++)
-                pts[i] = c + new V2(Mathf.Cos(i * MathX.Tau / 6f + 0.52f) * r, Mathf.Sin(i * MathX.Tau / 6f + 0.52f) * r * 0.86f);
-            for (int i = 0; i < 6; i++)
-                Tri(c, pts[i] + (pts[i] - c) * 0.1f, pts[(i + 1) % 6] + (pts[(i + 1) % 6] - c) * 0.1f);
-            for (int i = 0; i < 6; i++)
-                VTri(c, FlMid.WithAlpha(0.8f * a), pts[i], FlTip.Mix(FlDeep, i / 6f).WithAlpha(0.9f * a), pts[(i + 1) % 6], FlTip.Mix(FlDeep, (i + 1) / 6f).WithAlpha(0.9f * a));
-        }
-
         // --- the effects ----------------------------------------------------------------------------------------
 
         /// One chain step from its effect's age.
@@ -389,7 +377,7 @@ namespace Arena
             game.Players.TryGetValue(id, out owner);
             // A parry broke this step: its ground marks stay, its sweep stops.
             bool broken = false;
-            foreach (var o in game.Effects)
+            foreach (var o in FxOf(FxKind.FrostBreak))
                 if (o.Kind == FxKind.FrostBreak && Mathf.RoundToInt(o.Pos2.Y) == id && o.T < fx.T)
                     broken = true;
             V2 body = owner != null && c < 0.5f ? owner.Disp : fx.Pos, g = fx.Pos, dir = V2.FromAngle(aim);
@@ -616,7 +604,7 @@ namespace Arena
         void DrawFlPips(Player p, float t)
         {
             Effect last = null;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.FrostStep))
                 if (fx.Kind == FxKind.FrostStep && FlOwner(fx) == p.Id && (last == null || fx.T < last.T))
                     last = fx;
             int lit = last != null && last.T < Game.FlGap[FlStepOf(last) % 5] + Game.FlComboReset ? FlStepOf(last) % 5 + 1 : 0;

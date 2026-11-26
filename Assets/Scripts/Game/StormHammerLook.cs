@@ -20,7 +20,7 @@ namespace Arena
         {
             var q = new HammerPoseData { Ang = 0.25f, Scale = 1.35f, Vis = 1f, Charge = 0.12f + 0.06f * Mathf.Sin(mT * 9f), Mode = -1 };
             Effect fx = null;
-            foreach (var e in game.Effects)
+            foreach (var e in FxOf(FxKind.HammerThrow))
                 if (e.Kind == FxKind.HammerThrow && (int)e.Radius == p.Id && (fx == null || e.T < fx.T))
                     fx = e;
             if (fx == null)

@@ -11,7 +11,7 @@ namespace Arena
     ///     HbChainWindow after a step without one, the chain starts over (TwinBlades.cs runs Combo's clock). Raising the parry
     ///     starts it over and takes back a step still winding up (ResetHalberdChain).
     ///     Each step's hits are timed from its motion (HalberdMotion.StepAt / StepCross), so the blade is where the hit says it is.
-    ///   Alt (hold the weapon-action key; Msg.WeaponDash DashPikeOn / DashPikeOff): Set the Pike. You move at PikeSlow and can't
+    ///   Alt (hold the weapon-action key; Msg.WeaponDash WeaponAlt.PikeOn / WeaponAlt.PikeOff): Set the Pike. You move at PikeSlow and can't
     ///     swing; the pike turns on its own toward the nearest enemy within PikeScan (Player.HbPikeA, PikeTurn rad/s, your aim
     ///     doesn't matter) and pokes it whenever it is lined up and within the point's reach (PikeReachK of the weapon's): a thin
     ///     box out to the point, PikeMult of the weapon's damage, a PikeKnock shove straight away from you and a PikeStun stun
@@ -36,7 +36,6 @@ namespace Arena
         public const float PikeGap = 0.45f, PikeMult = 0.75f, PikeKnock = 110f, PikeStun = 0.3f, PikeHalfW = 16f, PikeJab = 0.07f, PikeFxTime = 0.32f;
         public static readonly Rgba HbGlow = new Rgba(0.56f, 0.94f, 0.78f), HbSpark = new Rgba(1f, 0.67f, 0.36f);
         public const float LungeMult = 40f / 30f, LungeKnock = 80f, LungeStun = 0.4f, LungeHalfW = 15f, LungeCd = 1.2f;
-        const byte DashPikeOn = 58, DashPikeOff = 59;
 
         /// How far the pike's point reaches for `p` (Long Haft and extra projectiles lengthen it).
         public static float PikeReach(Player p, int extra) => MeleeReach(p, (p.Weapon.Reach + p.Weapon.Grow * extra) * p.Stats.HalberdReachMult) * PikeReachK;
@@ -254,7 +253,7 @@ namespace Arena
                 return false;
             if (pressed || released)
             {
-                byte kind = pressed ? DashPikeOn : DashPikeOff;
+                byte kind = pressed ? WeaponAlt.PikeOn : WeaponAlt.PikeOff;
                 if (!IsHost && pressed && !me.Downed && me.StunT <= 0f)
                     me.HbSet = true;  // (the slow starts at once on your own screen; the host's snapshot agrees)
                 else if (!IsHost && released)

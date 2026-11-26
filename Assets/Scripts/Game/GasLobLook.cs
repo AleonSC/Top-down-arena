@@ -12,7 +12,7 @@ namespace Arena
         /// A lob in progress for this grenadier, as (s into the wind-up, the time of the throw, the flight).
         bool GasLobOf(Enemy e, out float age, out float throwAt, out float flight)
         {
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.GasLob))
                 if (fx.Kind == FxKind.GasLob && fx.Pos2.Y > 0f && (int)fx.Pos2.X == e.Id)
                 {
                     age = fx.T; flight = fx.Pos2.Y; throwAt = fx.Dur - flight;

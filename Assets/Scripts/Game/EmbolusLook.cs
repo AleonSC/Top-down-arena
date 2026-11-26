@@ -71,7 +71,7 @@ namespace Arena
                 for (int i = 0; i < 2; i++)
                     EsTrack(p, i, d[i], dt);
             }
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.EmbolusBlast))
                 if (fx.Kind == FxKind.EmbolusBlast && esBlastsSeen.Add(fx))
                     EsSpray(fx.Pos, 26, 420f, 3.2f);
             esBlastsSeen.RemoveWhere(fx => !game.Effects.Contains(fx));

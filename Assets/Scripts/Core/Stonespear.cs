@@ -8,7 +8,7 @@ namespace Arena
     ///     enemy within SsSlamRadius (a small shove, not on heavies; FxKind.StoneSlam, Pos2.X 1: the ring, the cracks and the dust), and
     ///     SsPerSide spears a side tear out of the ground and lift to their slots round you (Player.SsMask, one bit a slot).
     ///   Fire with spears up: the risen spear nearest your cursor is thrown at it (Defs.StoneSpear, SsPierce), one every FireInterval.
-    ///   Alt (Msg.WeaponDash, DashVolley): every spear left goes, SsVolleyGap apart, at the enemy nearest your cursor (within SsLockRange):
+    ///   Alt (Msg.WeaponDash, WeaponAlt.Volley): every spear left goes, SsVolleyGap apart, at the enemy nearest your cursor (within SsLockRange):
     ///     each peels out to its side, then curves in on it (Bullet.HomeOn, steered by the host), for SsVolleyMult x the damage.
     ///   SsCd after the last spear leaves, the next Fire slams again. Extra projectiles add a spear a side and throw one more a click;
     ///   Tectonic adds a spear a side.
@@ -20,7 +20,6 @@ namespace Arena
         public const float SsRise = 0.42f, SsRiseGap = 0.035f;                 // a spear's rise out of the ground; each slot starts this much after the last
         public const float SsVolleyGap = 0.06f, SsVolleyMult = 1.25f, SsLockRange = 220f, SsVolleySpeed = 620f, SsVolleyTop = 1100f, SsVolleyLife = 2.2f, SsPeel = 1.1f;
         public const int SsPerSide = 3, SsPierce = 1, SsMaxSide = 8;
-        const byte DashVolley = 30;
 
         /// How many spears a side this player raises: 3, +1 per extra projectile and per Tectonic.
         public int SsSideCount(Player p) => Math.Min(SsMaxSide, SsPerSide + ExtraShots(p) + (p != null ? p.Stats.SsSideBonus : 0));
@@ -282,11 +281,11 @@ namespace Arena
             if (me.SsMask != 0)
             {
                 if (IsHost)
-                    HostWeaponDash(MyId, DashVolley, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.Volley, aimAt);
                 else
                 {
                     var w = Proto.Begin(Msg.WeaponDash);
-                    w.Write(DashVolley);
+                    w.Write(WeaponAlt.Volley);
                     w.Write(aimAt);
                     session.SendToHost(Proto.End(w));
                 }

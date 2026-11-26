@@ -31,7 +31,7 @@ namespace Arena
     ///   Chitin (Player.ChitinHp, replicated): a barrier, up to ChitinMax, that wears ChitinWear a second and takes hits
     ///     before any shield (Combat.Hurt). Anyone within ChitinR of a swarm (anyone's) gains ChitinFill a second,
     ///     scaled by the swarm's size.
-    ///   Alt (Msg.WeaponDash DashHiveCall): Hive Call. Every swarm of yours rushes to your cursor at HiveCallSpeed for
+    ///   Alt (Msg.WeaponDash WeaponAlt.HiveCall): Hive Call. Every swarm of yours rushes to your cursor at HiveCallSpeed for
     ///     HiveCallTime; HiveCallCd cooldown. FxKind.HiveCall marks the spot.
     ///   Extra projectiles: one more swarm and HiveExtraPour more pour (and insects kept) each.
     ///   The host sends the swarms (SyncHive) and each pourer's Player.HiveOn / HivePour; every screen flies its own insects
@@ -48,7 +48,6 @@ namespace Arena
         public const float HiveCallCd = 6f, HiveCallTime = 1.2f, HiveCallSpeed = 320f;
         public const byte HiveIdle = 0, HiveFoe = 1, HiveAlly = 2, HiveCalled = 3;
         public static readonly Rgba HiveGold = new Rgba(1f, 0.8f, 0.35f), ChitinGold = new Rgba(1f, 0.84f, 0.47f);
-        const byte DashHiveCall = 68;
 
         /// Everyone's swarms, oldest first.
         public readonly List<HiveSwarm> Swarms = new List<HiveSwarm>();
@@ -379,11 +378,11 @@ namespace Arena
             {
                 hiveLocalCd = HiveCallCd;
                 if (IsHost)
-                    HostWeaponDash(MyId, DashHiveCall, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.HiveCall, aimAt);
                 else
                 {
                     var w = Proto.Begin(Msg.WeaponDash);
-                    w.Write(DashHiveCall);
+                    w.Write(WeaponAlt.HiveCall);
                     w.Write(aimAt);
                     session.SendToHost(Proto.End(w));
                 }

@@ -59,11 +59,11 @@ namespace Arena
             var e = FindHerald(game);
             int seed = (int)(t * 14f);
             // Ball lightning arcs to its neighbours whenever two are close.
-            foreach (var a in game.Enemies.Values)
+            foreach (var a in EnemiesOf(EnemyType.BallLightning))
             {
                 if (a.Type != EnemyType.BallLightning || game.IsSpawning(a))
                     continue;
-                foreach (var b in game.Enemies.Values)
+                foreach (var b in EnemiesOf(EnemyType.BallLightning))
                     if (b.Type == EnemyType.BallLightning && b.Id > a.Id && !game.IsSpawning(b) && a.Disp.DistanceTo(b.Disp) < Game.BallArcRange)
                         DrawBolt(a.Disp, b.Disp, 2.5f, new Rgba(0.7f, 0.86f, 1f), seed + a.Id * 7 + b.Id);
             }

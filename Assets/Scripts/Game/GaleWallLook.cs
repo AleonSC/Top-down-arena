@@ -66,7 +66,7 @@ namespace Arena
             if (p.GaleT <= 0f)
                 return;
             galeRipples.Clear();
-            foreach (var fx in game.Effects)  // this lens's recent catches; Pos2.Y becomes their lens coordinate
+            foreach (var fx in FxOf(FxKind.GaleCatch))  // this lens's recent catches; Pos2.Y becomes their lens coordinate
                 if (fx.Kind == FxKind.GaleCatch && (int)fx.Pos2.X == p.Id && fx.T < GaleRipple)
                     galeRipples.Add(new Effect { Pos = fx.Pos, Pos2 = new V2(0f, GaleU(p, fx.Pos)), T = fx.T });
 

@@ -9,7 +9,7 @@ namespace Arena
     ///   Stinger Stream (always on): it shoots stingers (Defs.DpsShot) at the enemy nearest it (within BumbleRange) every BumbleAuto s;
     ///     holding Fire doubles the rate (BumbleHeld) and, with nothing in range, sprays them the way it faces. Each extra projectile adds
     ///     one more stinger to each shot, fanned.
-    ///   Swarm Burst (Alt, Msg.WeaponDash DashBumbleBurst, BumbleBurstCd cooldown): it dives to your cursor and lands with a shockwave:
+    ///   Swarm Burst (Alt, Msg.WeaponDash WeaponAlt.BumbleBurst, BumbleBurstCd cooldown): it dives to your cursor and lands with a shockwave:
     ///     BumbleBurstDmg to every enemy within BumbleBurstR, shoved out (heavies less, bosses not at all), and BumbleBees free bees
     ///     (the Honeybee Staff's MinionKind.Bee, one more per extra projectile) burst out of it to sting the enemies nearest them.
     ///   It cruises no farther than BumbleLeash from you; while you're down it hovers over you and holds its fire.
@@ -21,7 +21,6 @@ namespace Arena
         public const float BumbleBeeDmg = 8f, BumbleBeeSpeed = 240f;
         public const int BumbleBees = 6;
         public static readonly Rgba BumbleGold = new Rgba(1f, 0.8f, 0.3f);
-        const byte DashBumbleBurst = 67;  // (64-65 the Twin Tessen's gust, 66 Iron Armadillo's bash)
 
         public static float BumbleBurstRadiusOf(Player p) => BumbleBurstR * AreaMult(p);
 
@@ -169,11 +168,11 @@ namespace Arena
                 return false;
             bumbleLocalCd = BumbleBurstCd;
             if (IsHost)
-                HostWeaponDash(MyId, DashBumbleBurst, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.BumbleBurst, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashBumbleBurst);
+                w.Write(WeaponAlt.BumbleBurst);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

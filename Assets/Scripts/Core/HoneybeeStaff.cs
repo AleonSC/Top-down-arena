@@ -9,7 +9,7 @@ namespace Arena
     ///     FxKind.BeeSting). With nothing to sting it hangs about and fizzles after BeeLife. At most BeeCap of your hatched bees are out.
     ///   Swarm: a sting that lands within SwarmGap of the last sting on the same enemy builds its chain (Enemy.BeeChain); from the
     ///     SwarmN-th on, stings hit SwarmMult harder.
-    ///   Alt, held (Msg.WeaponDash, DashHoneyOn / DashHoneyOff): the staff sprays honey globs (Defs.HoneyGlob) in a short cone at your
+    ///   Alt, held (Msg.WeaponDash, WeaponAlt.HoneyOn / WeaponAlt.HoneyOff): the staff sprays honey globs (Defs.HoneyGlob) in a short cone at your
     ///     cursor while the honey meter (Player.HoneyFill) lasts; they land as honey puddles (ZoneKind.HoneyPuddle, slow 40%), a glob that
     ///     lands in one of your puddles grows it and keeps it fresh. The meter refills HoneyRegenWait after you stop.
     ///   Harvest: an enemy that dies standing in your honey bursts open (FxKind.HoneyHarvest) and HarvestBees free bees fly out of it at the
@@ -24,7 +24,6 @@ namespace Arena
         public const float HoneyMax = 100f, HoneyDrain = 38f, HoneyRegen = 22f, HoneyRegenWait = 0.6f, HoneyMin = 6f;
         public const float HoneyRate = 16f, HoneySpread = 0.42f, HoneySpeed = 300f, HoneyRangeMin = 110f, HoneyRangeMax = 160f;
         public const float PuddleR = 22f, PuddleGrow = 2.5f, PuddleMaxR = 58f, PuddleTime = 3f, PuddleMerge = 0.8f;
-        const byte DashHoneyOn = 35, DashHoneyOff = 36;
 
         /// The whole wait before a fresh bee goes for an enemy (hatching, then buzzing on the spot).
         public static float BeeWait => BeeHatch + BeeHover;
@@ -228,7 +227,7 @@ namespace Arena
                 return false;
             if (!pressed && !released)
                 return true;
-            byte kind = pressed ? DashHoneyOn : DashHoneyOff;
+            byte kind = pressed ? WeaponAlt.HoneyOn : WeaponAlt.HoneyOff;
             if (IsHost)
                 HostWeaponDash(MyId, kind, aimAt);
             else
@@ -244,9 +243,9 @@ namespace Arena
         /// From HostWeaponDash: the Honeybee Staff's kinds.
         bool HostHoneyDash(Player p, int kind)
         {
-            if (kind != DashHoneyOn && kind != DashHoneyOff)
+            if (kind != WeaponAlt.HoneyOn && kind != WeaponAlt.HoneyOff)
                 return false;
-            HostHoney(p, kind == DashHoneyOn);
+            HostHoney(p, kind == WeaponAlt.HoneyOn);
             return true;
         }
     }

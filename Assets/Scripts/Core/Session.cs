@@ -490,6 +490,9 @@ namespace Arena
                 Net.Send(1, msg);
         }
 
+        /// The host with at least one guest connected (playing alone, broadcasts reach nobody: skip building them).
+        public bool HasPeers => Net != null && IsHost && Net.PeerCount > 0;
+
         public void Broadcast(byte[] msg)
         {
             if (Net != null && IsHost)

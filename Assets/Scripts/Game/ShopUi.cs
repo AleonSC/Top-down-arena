@@ -396,10 +396,10 @@ namespace Arena
                     if (i < count)
                     {
                         if (me.Shelf[i] >= 0)
-                            Ui.Icon(icon, PixelArt.ForUpgrade(Upgrades.All[me.Shelf[i]].Name), da);
+                            Ui.Icon(icon, PixelArt.ForUpgrade(Upgrades.All[me.Shelf[i]]), da);
                     }
                     else if (k >= 40)
-                        Ui.Icon(icon, PixelArt.ForUpgrade(Upgrades.All[Game.ModIds[k - 40]].Name), Upgrades.Available(Game.ModIds[k - 40], game.OfferFor(me)) ? 1f : 0.4f);
+                        Ui.Icon(icon, PixelArt.ForUpgrade(Upgrades.All[Game.ModIds[k - 40]]), Upgrades.Available(Game.ModIds[k - 40], game.OfferFor(me)) ? 1f : 0.4f);
                     else if (k >= 6)
                     {
                         var m = GUI.matrix;
@@ -549,7 +549,7 @@ namespace Arena
             var tile = new Rect(r.center.x - 40f, r.y + 42f, 80f, 80f);
             Ui.Pill(new Rect(tile.x - 3f, tile.y - 3f, tile.width + 6f, tile.height + 6f), rc.WithAlpha(selected ? 0.35f : 0.18f));
             Ui.Pill(tile, new Color(rc.r * 0.22f, rc.g * 0.22f, rc.b * 0.22f, 1f));
-            Ui.Icon(new Rect(tile.x + 10f, tile.y + 10f + (selected ? 2f * Mathf.Sin(t * 3f) : 0f), 60f, 60f), PixelArt.ForUpgrade(u.Name), dim);
+            Ui.Icon(new Rect(tile.x + 10f, tile.y + 10f + (selected ? 2f * Mathf.Sin(t * 3f) : 0f), 60f, 60f), PixelArt.ForUpgrade(u), dim);
             Ui.Label(new Rect(r.x + 8f, r.y + 130f, r.width - 16f, 26f), u.Name, u.Name.Length > 16 ? 15 : 18, new Color(1f, 1f, 1f, dim), TextAnchor.MiddleCenter, true);
             Ui.Fill(new Rect(r.x + 36f, r.y + 160f, r.width - 72f, 1f), rc.WithAlpha(0.4f));
             string desc = Upgrades.DescFor(u, me.Weapon);
@@ -595,7 +595,7 @@ namespace Arena
             var tile = new Rect(r.center.x - 40f, r.y + 42f, 80f, 80f);
             Ui.Pill(new Rect(tile.x - 3f, tile.y - 3f, tile.width + 6f, tile.height + 6f), rc.WithAlpha(selected ? 0.35f : 0.18f));
             Ui.Pill(tile, new Color(rc.r * 0.22f, rc.g * 0.22f, rc.b * 0.22f, 1f));
-            Ui.Icon(new Rect(tile.x + 10f, tile.y + 10f + (selected ? 2f * Mathf.Sin(t * 3f) : 0f), 60f, 60f), PixelArt.ForUpgrade(u.Name), dim);
+            Ui.Icon(new Rect(tile.x + 10f, tile.y + 10f + (selected ? 2f * Mathf.Sin(t * 3f) : 0f), 60f, 60f), PixelArt.ForUpgrade(u), dim);
             // The stacks you hold: a square each, filled.
             for (int s = 0; s < u.MaxStacks; s++)
             {
@@ -806,7 +806,7 @@ namespace Arena
                 var rc = Upgrades.RarityColor(u.Rarity).ToColor();
                 bool over = b.Contains(Event.current.mousePosition);
                 DkHud(b, over ? rc : (Color?)null);
-                Ui.Icon(new Rect(b.x + 6f, b.y + 5f, 24f, 24f), PixelArt.ForUpgrade(u.Name));
+                Ui.Icon(new Rect(b.x + 6f, b.y + 5f, 24f, 24f), PixelArt.ForUpgrade(u));
                 Ui.Label(new Rect(b.x + 36f, b.y, b.width - 76f, b.height), u.Name + (have > 1 ? "  ×" + have : ""), 12, over ? Color.white : Ui.Text, TextAnchor.MiddleLeft, true);
                 Ui.Label(new Rect(b.xMax - 44f, b.y, 38f, b.height), "+" + Game.SellPrice(seen[i]), 12, CrtStyle.Gold, TextAnchor.MiddleRight, true);
                 if (Ui.HitArea(b))

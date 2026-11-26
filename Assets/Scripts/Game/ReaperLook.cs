@@ -73,7 +73,7 @@ namespace Arena
                 }
             }
             Enemy d = null;
-            foreach (var e in game.Enemies.Values)
+            foreach (var e in EnemiesOf(EnemyType.DualReaper))
                 if (e.Type == EnemyType.DualReaper)
                     d = e;
             if (d != null && R.Trans == 0 && R.Turn == ReaperTurn.Lasers && !R.Trapped && R.Leap <= 0f)
@@ -196,7 +196,7 @@ namespace Arena
             var R = game.Reapers;
             if (R == null || R.Turn != ReaperTurn.Lasers || R.Suck > 0f)
                 return;
-            foreach (var o in game.Enemies.Values)
+            foreach (var o in EnemiesOf(EnemyType.DualReaper))
                 if (o.Type == EnemyType.DualReaper)
                     for (float d = 0f; d < 1f; d += 0.06f)
                         Line(V2.Lerp(flame, o.Disp, d), V2.Lerp(flame, o.Disp, d + 0.025f), 2f, DualGold.WithAlpha(0.25f));

@@ -99,8 +99,7 @@ namespace Arena
         public long Xp;
         public string Frame = "", Trail = "", Background = "", CardBg = "", NameFx = "", AimLine = "", Cursor = "";
         public readonly List<RankLog> Recent = new List<RankLog>();
-        public const int RecentKept = 20;  // (the Rank page lists the newest RankPageRuns)
-        public const int RankPageRuns = 6;
+        public const int RecentKept = 20;
 
         // Class expertise (Expertise.cs): XP per class ("Soldier" -> XP), and the weapon skin equipped per weapon ("TwinRifle" -> skin id).
         public readonly Dictionary<string, long> ClassXp = new Dictionary<string, long>();

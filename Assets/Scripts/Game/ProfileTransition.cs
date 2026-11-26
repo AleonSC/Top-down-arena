@@ -27,9 +27,6 @@ namespace Arena
 
         bool ProfTrFull => fxOn && !fxReduced;
 
-        /// The menu's intro is part of this move: the menu reads the move's clock (MachT) and the title types from 2.6 s.
-        float MenuAxisK => 1f;
-
         /// A profile was picked (ChooseProfile): play the boot sequence, or just show the menu.
         void StartProfTrIn(string id)
         {
