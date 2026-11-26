@@ -17,7 +17,8 @@ namespace Arena
         // Ultimates (F): one per role and class
         Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, ArtilleryAssault, BulletRain, Legion,
         // Knight (1st ability), then the Knight ultimates
-        ShieldWall, LeapSlam, CavalryCall, Consecrate, GuardiansOath, LayOnHands, BladedDive, Gauntlet, CaughtSteel,
+        ShieldWall, LeapSlam, CavalryCall, Consecrate, GuardiansOath, LayOnHands, BladedDive, Gauntlet, CaltropRun,  // Caltrop Run (CaltropRun.cs) took Caught Steel's place (and number)
+       
         LastStand, HallowedBlade, Drawbridge,
         // Ninja (1st ability), then the Ninja ultimates
         ShadowClone, SmokeBomb, CeremonialArmor, HealingDash, Substitution, SpiritWard, ShadowStep, Vanish, BladeFan,
@@ -77,6 +78,7 @@ namespace Arena
         ChakraReserves, // the Healer Ninja's 4th choice (ChakraReserves.cs), the lobby's 4th choice
         Heartbeat,      // the Healer Hemomancer's second ultimate (Heartbeat.cs), key 1 of the lobby's Ultimate row
         CannonCall,     // the DPS Knight's 4th choice (CannonCall.cs), the lobby's 4th choice
+        TidalTusker,    // the Tank Summoner's fourth ultimate (TidalTusker.cs), key 3 of the lobby's Ultimate row
         None = 255,
     }
 
@@ -123,7 +125,7 @@ namespace Arena
         public float SlamRadiusMult = 1f, SlamStunBonus;
         public float UnbreakBonus, CavalryDmgBonus;  // Cavalry Call: extra damage blocked while the guard is up, extra damage per lance
         public float HolyRangeMult = 1f, HolySwiftBonus, OathCut, LayMult = 1f;
-        public float BladedDamage, BladedReach, GauntletRange = 1f, GauntletDamage = 1f, SteelDamage, SteelReach;  // the DPS Knight's cards: Coup de Grace, Iron Grip, Forged Edge
+        public float BladedDamage, BladedReach, GauntletRange = 1f, GauntletDamage = 1f, CaltropDamage; public int CaltropMore;  // the DPS Knight's cards: Coup de Grace, Iron Grip, Barbed Iron
         public float CannonDamage, CannonWide;  // Siege Powder (CannonCall.cs): +25% damage, +15% blast radius a stack
         public float ApBonusTime, ApDmgMult = 1f;  // Astral Bond (AstralProjection.cs): +2 s, +25% bolt damage a stack
         public float FpDmgMult = 1f, FpKillHealMult = 1f;  // Forbidden Hunger (ForbiddenPath.cs): +20% combo damage, kills heal twice as much, a stack
@@ -170,6 +172,7 @@ namespace Arena
         public float StampedeDmgMult = 1f;                                 // Stampede: Thundering Herd
         public float LandSharkDmgMult = 1f;                                // Land Shark: Great White
         public float RatShare, RatBleed;                                   // Rodent Minigun: Plague Rats (more rats, and they bleed what they bite)
+        public float TuskReachMult = 1f, TuskWet;                            // Tidal Tusker: Deep Trunk (the stream reaches farther, soaks longer)
         public float MammothWaveMult = 1f, MammothStun;                    // Mammoth Fall: Ice Age (a wider shockwave, a longer stun)
         public float GolemHpMult = 1f;                                     // Golem Wall: Basalt Hide
         public float QuakeBonusTime, QuakeDmgMult = 1f;                    // Earthquake: Deep Tremor
@@ -371,7 +374,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Elementalist, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// Hemomancer.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.HeartbeatUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.TuskerUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.HeartbeatUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 

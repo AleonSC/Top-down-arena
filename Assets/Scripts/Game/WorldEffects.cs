@@ -166,10 +166,10 @@ namespace Arena
             d[(int)FxKind.PhalanxSpark] = (fx, f, t) => DrawPhalanxSparkFx(fx);  // BonePhalanxLook.cs
             d[(int)FxKind.PhalanxBreak] = (fx, f, t) => DrawPhalanxBreakFx(fx);
             d[(int)FxKind.PhalanxJab] = DrawFxPhalanxJab;
-            d[(int)FxKind.SteelCatch] = DrawFxSteelCatch;
-            d[(int)FxKind.SteelRelease] = DrawFxSteelCatch;
-            d[(int)FxKind.SteelHit] = DrawFxSteelCatch;
-            d[(int)FxKind.SteelDrop] = DrawFxSteelCatch;
+            d[(int)FxKind.CaltropHit] = (fx, f, t) => DrawCaltropHitFx(fx);  // CaltropRunLook.cs
+            d[(int)FxKind.CaltropRun] = (fx, f, t) => DrawCaltropRunFx(fx);
+            d[(int)FxKind.CaltropBreak] = (fx, f, t) => DrawCaltropBreakFx(fx);
+            d[(int)FxKind.SteelHit] = (fx, f, t) => DrawSteelHitFx(fx);  // KnightDpsLook.cs
             d[(int)FxKind.VeinCut] = (fx, f, t) => DrawVeinCutFx(fx, t);  // VeinRushLook.cs
             d[(int)FxKind.ThornBloom] = (fx, f, t) => DrawThornBloomFx(fx);  // ThornBloomLook.cs
             d[(int)FxKind.ThornNeedle] = (fx, f, t) => DrawThornNeedleFx(fx);
@@ -343,11 +343,6 @@ namespace Arena
         void DrawFxPhalanxJab(Effect fx, float f, float t)
         {
             return;  // drawn as the skeleton's spear thrust (BonePhalanxLook.cs DrawPhalanx)
-        }
-
-        void DrawFxSteelCatch(Effect fx, float f, float t)
-        {
-            return;  // drawn with the knight's shards (KnightDpsLook.cs DrawSteel)
         }
 
         void DrawFxLink(Effect fx, float f, float t)

@@ -1189,6 +1189,7 @@ static partial class Shot {
     BloodBoilScene();  // BOIL=<s since the cast> [BOILHP=<0-1>] [BOILEND=1] (ShotBloodBoil.cs)
     RodentMinigunScene();  // RODENT=<s since the cast> [RODENTAIM=<deg>] (ShotRodentMinigun.cs)
     MammothFallScene();  // MAMMOTH=<s since the cast> (ShotMammothFall.cs)
+    TuskerScene();  // TUSKER=<s since the cast> [TUSKERCAP=1]: the Tank Summoner's Tidal Tusker (ShotTusker.cs)
     ForbiddenPathScene();  // FORBIDDEN=<s since the cast> (ShotForbiddenPath.cs)
     HoneyRaidScene();  // HONEY=<s since the cast> [HONEYCAP=1]: the Healer Summoner's Honey Raid (ShotHoneyRaid.cs)
     HeartbeatScene();  // HEARTBEAT=<s since the cast>: the Healer Hemomancer's Heartbeat (ShotHeartbeat.cs)

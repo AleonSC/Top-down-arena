@@ -83,12 +83,6 @@ namespace Arena
                 ThrowGrasp(p);
                 return;
             }
-            if (SteelRelease(p, slot))  // Caught Steel pressed again: the cut throws the shards (no cooldown spent for the press)
-            {
-                p.Run.AbilitiesUsed++;
-                ReleaseSteel(p);
-                return;
-            }
             if ((p.StandOn || Seated(p)) && MovesYou(p.Slots[slot].Id))
                 return;  // planted: nothing that would carry you off
             if (!consumed && p.Slots[slot].Id == AbilityId.WaterWard && WwFull(p))

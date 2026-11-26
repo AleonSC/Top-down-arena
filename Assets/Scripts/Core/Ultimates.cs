@@ -162,6 +162,10 @@ namespace Arena
                     CastArmadillo(p, cap);
                     break;
 
+                case AbilityId.TidalTusker:  // Tank: Summoner, the fourth ultimate (TidalTusker.cs)
+                    CastTusker(p, cap);
+                    break;
+
                 case AbilityId.GlacialTomb:  // Tank: Elementalist
                     EraseEnemyBullets(p.Pos, 99999f);
                     foreach (var e in AllFoes(by: p.Id))

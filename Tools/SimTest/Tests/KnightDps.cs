@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Arena;
 
-// The DPS Knight's 1st abilities and ultimate: Caught Steel, the Gauntlet, Bladed Dive and the Drawbridge.
+// The DPS Knight's 1st abilities and ultimate: the Gauntlet, Bladed Dive and the Drawbridge.
 static partial class Program
 {
     static void KnightDpsTest(float dt)
@@ -16,7 +16,7 @@ static partial class Program
         var damage = typeof(Game).GetMethod("Damage", flags);
 
         Check(Upgrades.FirstAbility(Role.Dps, Kit.Knight, 0) == AbilityId.BladedDive && Upgrades.Ability(AbilityId.BladedDive).Name == "Bladed Dive"
-            && Upgrades.Ability(AbilityId.Gauntlet).Name == "The Gauntlet" && Upgrades.Ability(AbilityId.CaughtSteel).Name == "Caught Steel"
+            && Upgrades.Ability(AbilityId.Gauntlet).Name == "The Gauntlet" && Upgrades.Ability(AbilityId.CaltropRun).Name == "Caltrop Run"
             && Upgrades.Ability(AbilityId.Drawbridge).Name == "Drawbridge" && Upgrades.Ultimate(Role.Dps, Kit.Knight) == AbilityId.Drawbridge,
             "the DPS Knight's abilities keep their slots under their new names");
 
@@ -58,41 +58,6 @@ static partial class Program
         };
         Func<V2, V2, Bullet> Shot = (at, vel) => (Bullet)shoot.Invoke(g, new object[] { Defs.SmallShot, at, vel, 0f, 5f, 10f, 0, false, 0f });
         Clear(); Step(0.2f, new V2(1000f, 450f));
-
-        // --- Caught Steel ---
-        Reset();
-        me.Pos = new V2(600f, 450f);
-        me.Slots[0].Id = AbilityId.CaughtSteel;
-        cast.Invoke(g, new object[] { 1, 0, me.Pos, true });
-        var skim = Shot(new V2(380f, 465f), new V2(320f, 0f));    // passes 15 px from the knight's centre
-        var wide = Shot(new V2(380f, 520f), new V2(320f, 0f));    // passes 70 px away
-        Step(1.2f, new V2(1000f, 450f));
-        Console.WriteLine("  caught steel: {0} held, window {1:0.0} s, the wide shot {2}", me.Steel, me.SteelT, g.Bullets.ContainsKey(wide.Id) ? "still flying" : "gone");
-        Check(me.Steel == 1 && !g.Bullets.ContainsKey(skim.Id), "Caught Steel catches a bullet that skims past");
-        Check(g.Bullets.ContainsKey(wide.Id) || wide.Pos.X > 900f, "a bullet passing well clear isn't caught");
-        Check(client.Game.Players[1].SteelT > 0f && client.Game.Players[1].Steel == 1, "the other player sees the window and the shard");
-        float timer0 = me.Slots[0].Timer;
-        Step(0.5f, new V2(1000f, 450f));
-        Check(Math.Abs(me.Slots[0].Timer - timer0) < 0.01f, "the cooldown waits while you're catching");
-        var target = Mob(EnemyType.Brute, new V2(820f, 450f), 1e6f);
-        cast.Invoke(g, new object[] { 1, 0, me.Pos, false });  // pressed again
-        Step(0.6f, new V2(820f, 450f));
-        Console.WriteLine("  caught steel: release hit the brute for {0:0}", 1e6f - target.Hp);
-        Check(me.SteelT <= 0f && me.Steel == 0 && 1e6f - target.Hp >= Game.SteelDamage * 0.9f, "pressing again hurls the shard into the enemy in front");
-        Reset();
-        me.Slots[0].Id = AbilityId.CaughtSteel;
-        cast.Invoke(g, new object[] { 1, 0, me.Pos, true });
-        for (int k = 0; k < 3; k++) Shot(new V2(380f - k * 40f, 465f), new V2(320f, 0f));
-        Step(1.4f, new V2(1000f, 450f));
-        int held = me.Steel;
-        g.DevSetGod(1, false); me.InvulnT = 0f;
-        damage.Invoke(g, new object[] { me, 5f, "test" });
-        g.DevSetGod(1, true); me.Hp = me.MaxHp;
-        Console.WriteLine("  caught steel: {0} held, {1} after a hit", held, me.Steel);
-        Check(held == 3 && me.Steel == 2, "a hit knocks a third of the shards loose");
-        me.SteelT = 0.01f;
-        Step(0.3f, new V2(1000f, 450f));
-        Check(me.Steel == 0 && g.Bullets.Values.Count(b => b.Kind == Defs.SteelShard) == 2, "when the window runs out the shards are thrown");
 
         // --- The Gauntlet ---
         Reset();

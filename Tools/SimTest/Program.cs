@@ -353,7 +353,8 @@ static partial class Program
         Test("showcase", "the lobby's loadout preview", () => ShowcaseTest(Dt)),
         Test("knight", "the Knight", () => KnightTest(Dt)),
         Test("twinblades", "the Twin Blades: each step's shove", () => TwinBladesTest(Dt)),
-        Test("knightdps", "the DPS Knight's Caught Steel, Gauntlet, Bladed Dive and Drawbridge", () => KnightDpsTest(Dt)),
+        Test("knightdps", "the DPS Knight's Gauntlet, Bladed Dive and Drawbridge", () => KnightDpsTest(Dt)),
+        Test("caltroprun", "Caltrop Run, the DPS Knight's 3rd choice: the 20% sprint, a caltrop per 34 px moved (none standing), 16 at most, landing behind you, the bite (12, bleed, 40% slow; heavies 20%; once per enemy), breaking after two, gone after 6 s, the cooldown waiting, the other screen, Barbed Iron and mastery", () => CaltropRunTest(Dt)),
         Test("basicfaction", "the basic faction: the eight plain enemies left, Quick Play's build-up for a boss with no faction, nothing retired in any wave", BasicFactionTest),
         Test("court", "the Duelist's faction (all four steps): the Fencer's hop, the Blade Dancer's blades, the Parrier's parries, the Second's daggers, the Marshal's circle, the Gallant's salute, the Harlequin's crossing, the Mummer's copies, the Ring of Honour, the ten lessons", () => CourtTest(Dt)),
         Test("quarry", "the Colossus's faction, step 1: Rubble, the Quarryman and the Stomper's push ring", () => QuarryTest(Dt)),
@@ -509,6 +510,7 @@ static partial class Program
         Test("airstrike", "Airstrike: a carpet of bombs across the aim, wall to wall, the burning lane, the mastered second wall, Bigger Boom", () => AirstrikeTest(Dt)),
         Test("volley", "Warhorn Volley: the DPS Knight's key 1 ultimate; burning arrows sweep the lane once per enemy (120, burn 20/s for 5 s, pinned 40% for 3 s), knock ordinary shots down, mastered wider and longer fire", () => WarhornVolleyTest(Dt)),
         Test("honeyraid", "Honey Raid: the Healer Summoner's key 1 ultimate; the bee coming in from behind, drips on the way, the 40 splash, a 240 px pool slowing 55/35/20%, burning 12/s and healing allies 10/s, setting to stick grunts (not bosses), mastered 300 px", () => HoneyRaidTest(Dt)),
+        Test("tusker", "Tidal Tusker: the Tank Summoner's key 3 ultimate; the rise, following behind you, the hose (40 a second, wet, the first enemy in line, nothing out of reach, grunts pushed, heavies not), the client seeing it, the taunt (not bosses), shots stopped, the stomp when broken or on time or when you go down, mastered two streams, Deep Trunk", () => TidalTuskerTest(Dt)),
         Test("mammoth", "Mammoth Fall: the DPS Summoner's key 2 ultimate; the ring following the aim within 520 px, the client seeing it, the slam (120 under it, 25 and a 1.5 s stun in 200 px, heavies not shoved), the rampage charging and trampling enemies near the crater, the end on time, going down while it forms, mastered, Ice Age", () => MammothFallTest(Dt)),
         Test("rodent", "Rodent Minigun: the DPS Summoner's key 1 ultimate; the portal's timeline (about 207 rodents), the weapon away, 75% speed, the barrel dragging at 240°/s, the mix of mice, rats and hamsters, the rat's shove, no weapon mods, Plague Rats, going down, mastered", () => RodentMinigunTest(Dt)),
         Test("forbidden", "Forbidden Path: the DPS Ninja's key 1 ultimate; the shed, the lock-on, Fire held running all five stages (Pounce, Rake, Spiral's pull, Rend, Gate and the brands bursting), the weapon away, the drain, a kill's heal, the client's view, the end, going down, mastered, Forbidden Hunger", () => ForbiddenPathTest(Dt)),
@@ -638,7 +640,7 @@ static partial class Program
         "oneway", "orbital", "pickheld", "pits", "portals", "ravager", "refdoc", "rodent", "roomfog", "scratch", "senbon", "shrines",
         "stampede", "staticbubble", "staticshock", "stayin", "supplydrop", "survival", "thornbloom", "trojanhorse", "twintessen",
         "ultimates", "waterward", "wiki", "windclash", "wyvernstaff",
-        "heartflail", "sanctumglass", "siegebell", "chakra", "honeyraid", "heartbeat",
+        "heartflail", "sanctumglass", "siegebell", "chakra", "honeyraid", "heartbeat", "tusker",
     };
 
     static int Main(string[] args)
