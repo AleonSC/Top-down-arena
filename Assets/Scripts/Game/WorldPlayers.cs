@@ -63,9 +63,13 @@ namespace Arena
                 bool inTank = rebuild < 0f && DrawLiteralTank(p, t, col.A);  // A Literal Tank: drawn in place of the model (LiteralTankLook.cs)
                 inTank |= !inTank && rebuild < 0f && DrawIronArmadillo(p, t, col.A);  // Iron Armadillo: the ball in place of the model (IronArmadilloLook.cs)
                 bool golem = !inTank && rebuild < 0f && ColossusStanding(p);  // Stone Colossus: the golem stands in for the model (StoneColossusLook.cs)
+                bool bloodGolem = !inTank && !golem && rebuild < 0f && GolemStanding(p);  // Blood Golem: the same (BloodGolemLook.cs)
+                golem |= bloodGolem;
                 if (inTank)
                 {
                 }
+                else if (bloodGolem)
+                    DrawBloodGolem(p, t, col.A);
                 else if (golem)
                     DrawColossus(p, t, col.A);
                 else if (rebuild >= 0f && !preview)
@@ -90,6 +94,7 @@ namespace Arena
                 {
                     if (!golem)
                         DrawColossus(p, t, col.A);  // the rise: rocks gathering onto you (StoneColossusLook.cs)
+                    DrawGolemGather(p, modelR, t, col.A);  // Blood Golem's gather: coats piling onto you (BloodGolemLook.cs)
                     DrawJuggernaut(p, modelR, t, col.A);  // the Juggernaut Suit's plates (JuggernautLook.cs)
                     DrawDebtRing(p, modelR, t, col.A);  // Blood Debt and Arterial Spray: any class can have them (Wildcard)
                     DrawSpray(p, modelR, t, col.A);

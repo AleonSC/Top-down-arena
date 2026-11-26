@@ -688,7 +688,7 @@ namespace Arena
             Ability = (g, p, id, target) => g.BloodAbility(p, id, target),
             Tick = (g, dt) => g.TickHemomancers(dt),
             OnShotHit = (g, b, e, hit) => g.BloodShotHit(b, e, hit),  // Hemomancer shots drain, pool and drop orbs
-            OnKill = (g, e) => { g.DebtKill(e); g.BlastKill(e); },  // a kill pays back Blood Debt (BloodDebt.cs) and sends Blood Blast stacks home (BloodBlast.cs)
+            OnKill = (g, e) => { g.DebtKill(e); g.BlastKill(e); g.GolemKill(e); },  // a kill pays back Blood Debt (BloodDebt.cs), sends Blood Blast stacks home (BloodBlast.cs) and grows a Blood Golem a coat (BloodGolem.cs)
         };
 
         /// The Hemomancer's weapons (Kit.Hemomancer; FireBloodWeapon).
@@ -983,6 +983,9 @@ namespace Arena
                     CastTithe(p, cap);  // VeinTithe.cs
                     return true;
                 }
+                case AbilityId.BloodGolem:
+                    CastGolem(p, cap);  // BloodGolem.cs
+                    return true;
                 case AbilityId.Bloodbath:
                     CastBloodbath(p, cap);  // Bloodbath.cs
                     return true;

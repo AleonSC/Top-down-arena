@@ -4,7 +4,8 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 529: Honey Raid (Healer Summoner second ultimate, key 1): `AbilityId.HoneyRaid` and `ZoneKind.HoneyRaid` (each at the end); the zone sync sends its `Origin` (where the bee came in).
+- 530: Honey Raid (Healer Summoner second ultimate, key 1): `AbilityId.HoneyRaid` and `ZoneKind.HoneyRaid` (each at the end); the zone sync sends its `Origin` (where the bee came in).
+- 529: Blood Golem (the Tank Hemomancer's third ultimate): `Player.GolT`, `GolAge`, `GolCoats`, `GolPunch` in the player snapshot; `AbilityId.BloodGolem`; `FxKind.GolemFx`; Msg.WeaponDash kind 70 (Hurl Clot).
 - 528: Siege Bell (Tank Knight 4th choice): `AbilityId.SiegeBell`, `FxKind.SiegeBell` and `Sfx.SiegeBell` (each at the end).
 - 527: Player gains Sanctum Glass (GlassT, and while it's up GlassPos, GlassAim, GlassWide, GlassHealed, GlassCap); AbilityId.SanctumGlass; FxKind.GlassMote, GlassShatter
 - 526: Audit fixes: the snapshot's minion and zone counts are 2 bytes (were 1); a Gauntlet Challenge's `ChallengeBy`, a Blood Blast's owner and ink dot / ink tip owners are 2-byte player ids; `Msg.BulletSync` adds each shot's `Radius` (float) and `Look` (byte); the transport sends empty keepalive frames (length 0) every 2 s and drops a peer silent for 30 s.
