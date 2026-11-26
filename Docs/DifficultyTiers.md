@@ -1,6 +1,6 @@
 # Difficulty tiers: mechanics that change with difficulty
 
-**Status: planned** (audit Nov 25, protocol 522 when written). No code yet; build one step at a time ("start on step N").
+**Status: step 1 built** (protocol 525): the Mechanics knob and `Game.MechTier`. Steps 2-6 planned; build one at a time ("start on step N").
 
 Today a difficulty only changes numbers (`Core/Difficulty.cs`: 27 knobs, 5 retired). No gameplay code reads the level,
 so a harder mode can't add a boss phase, swap an enemy's behaviour or bring in an enemy type. This plan adds a
@@ -33,10 +33,11 @@ The boss phase number already goes over the network as one byte (`Enemy.Phase`) 
 
 ## Steps
 
-### Step 1: the tier
+### Step 1: the tier (built)
 - `DiffKnob.Mechanics` at the end of the knob list (Count unit, 0-3; presets 0/1/2/3, not a flavour knob). Lobby slider in `DifficultyUi.cs` with the tier names.
-- `enum Tier : byte { Easy, Normal, Hard, Nightmare }`, `Game.Tier` and `Game.TierAtLeast(t)`, read from the knob.
-- Rows filter with `MinTier`/`MaxTier` (default Easy..Nightmare = always). One helper `TierOk(min, max)`.
+- `enum MechTier : byte { Easy, Normal, Hard, Nightmare }` (named so it isn't confused with rank tiers), `Difficulty.Tier`,
+  `Game.MechTier` and `Game.MechAtLeast(t)`, read from the knob (`KnobUnit.Tier`: shows and reads the names, whole steps only).
+- Rows filter with `MinTier`/`MaxTier` (default Easy..Nightmare = always). One helper `Game.MechOk(min, max)`.
 - Old saves and recordings with no Mechanics value read as Normal. Protocol bump (the lobby message's difficulty gets one more value).
 - Tests: a preset sets the tier; Custom keeps it; parsing old text gives Normal.
 

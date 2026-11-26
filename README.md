@@ -1756,12 +1756,18 @@ and green when it's easier. Hover a number for what it does.
 | Revive time | 3 s | **4 s** | 5 s | 6 s | 1-10 s |
 | Hit grace (after a hit) | 0.35 s | **0.25 s** | 0.2 s | 0.15 s | 0.05-1 s |
 | Lives (respawns at the start of the wave you went down on) | 3 | **2** | 1 | 0 | 0-5 |
+| Mechanics (which fights and enemies the run uses) | Easy | **Normal** | Hard | Nightmare | any of the four |
 | Boss approach (the themed share of the wave before a boss) | 85% | **85%** | 85% | 85% | 0-100% |
 | Approach ramp (build up over the four steps) | On | **On** | On | On | On / Off |
 
 The two **boss approach** numbers are flavour, not difficulty: they're the same on every preset, changing them doesn't
 make the difficulty Custom, and picking a preset keeps them. They're fixed at Blend (85% with the ramp): the lobby's
 Blend / Fully themed picker is gone (Nov 18).
+
+**Mechanics** is the run's tier: not a number but which fights and enemies it uses. Each preset sets its own; Custom keeps
+the one it had and the host can pick another (slider or type the name). Hard and Nightmare will add boss stages, attacks
+and enemy variants, and Easy will take some away; Normal plays as balanced. Nothing reads it yet (Docs/DifficultyTiers.md
+lists the steps).
 The arena isn't picked here any more: the Campaign is the Expanding arena, the **Simple Arena** modifier keeps the open
 arena with its floor plans (always on). (The Rooms arena prototype was removed Nov 18.) A run saved before the
 Campaign keeps the arena it was saved with.
