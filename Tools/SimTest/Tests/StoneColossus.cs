@@ -59,7 +59,7 @@ static partial class Program
         Func<V2, EnemyType, Enemy> make = (at, type) =>
         {
             var e = (Enemy)spawn.Invoke(g, new object[] { type, at, 0f, 0, false });
-            e.Hp = e.MaxHp = 1e6f; e.SpawnT = 0f; e.FrozenT = 999f; mine.Add(e.Id); return e;
+            e.Hp = e.MaxHp = 1e6f; e.SpawnT = 0f; e.FrozenT = e.StunT = 999f; mine.Add(e.Id); return e;  // (held by a stun, not ice: Brittle would shatter ice)
         };
         bool fire = false;
         Func<int, V2> where = f => mePos;
@@ -71,6 +71,7 @@ static partial class Program
                 foreach (var id in g.Enemies.Keys.Where(k => !mine.Contains(k)).ToList()) g.Enemies.Remove(id);
                 foreach (var id in g.Bullets.Values.Where(x => x.Owner != 1).Select(x => x.Id).ToList()) g.Bullets.Remove(id);
                 me.Pos = where(f); ally.Pos = new V2(200f, 200f);
+                foreach (var e in g.Enemies.Values) e.BrittleT = 0f;  // (the dummies are held in ice: no Brittle shatter or bonus in the numbers; elementstatus tests it)
                 host.Poll(); client.Poll();
                 g.FixedStep(dt, new PlayerInput { AimAt = aimAt, Fire = fire });
             }

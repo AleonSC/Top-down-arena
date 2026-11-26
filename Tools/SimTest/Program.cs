@@ -425,6 +425,7 @@ static partial class Program
         Test("tsunami", "Tsunami: the wave, wet, the slow, lightning arcing to every wet enemy, wearing off, the mastered return", () => TsunamiTest(Dt)),
         Test("charged", "Charged: lightning charges, charged enemies conduct, wet and charged ones short out", () => ChargedTest(Dt)),
         Test("steam", "Steam: wet and burning turns to steam, the cloud scalds and jams, refreshes, ends", () => SteamTest(Dt)),
+        Test("elementstatus", "Brittle and Dazzled (the Elementalist's earth and light), Flame Wall burning, Healing Rain wet, Vortex wind", () => ElementStatusTest(Dt)),
         Test("wind", "Wind reactions: Wind Chill on wet enemies, Fan the Flames on burning ones, once a second", () => WindTest(Dt)),
         Test("chill", "Slowed vs Chilled: plain slows never freeze, ice slows and chills, the third freezes and lifts the slows", () => ChillTest(Dt)),
         Test("elementguns", "The Flamethrower's variants: the Water Gun splashes wet, the Gale Gun slices and slows", () => ElementGunsTest(Dt)),
@@ -634,7 +635,7 @@ static partial class Program
         // (these were missing until Nov 2026, so nothing caught them breaking; ci_coverage.py now fails CI on a suite left out)
         "abilitycards", "armordrop", "astral", "ballista", "bamboo", "boil", "bosses", "botdodge", "botgate", "botweapon", "bulwark",
         "bumbleremote", "cannoncall", "cardfilters", "cardids", "celllayouts", "chests", "classcardlists", "claymore", "corelayouts",
-        "cover", "decoy", "deployturret", "dogma", "engbots", "factionrelics", "flashfire", "forbidden", "galewall", "graze",
+        "cover", "decoy", "elementstatus", "deployturret", "dogma", "engbots", "factionrelics", "flashfire", "forbidden", "galewall", "graze",
         "grenadelauncher", "gridrooms", "helicopter", "hivecenser", "hospital", "huntmap", "huntsave", "ironarmadillo", "ironhide",
         "landshark", "late", "latewaves", "layouttest", "lighting", "literaltank", "livingbolt", "mammoth", "needles", "offers", "ofuda",
         "oneway", "orbital", "pickheld", "pits", "portals", "ravager", "refdoc", "rodent", "roomfog", "scratch", "senbon", "shrines",

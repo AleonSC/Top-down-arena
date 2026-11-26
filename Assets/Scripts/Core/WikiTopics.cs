@@ -41,12 +41,14 @@ namespace Arena
         public static readonly Topic[] Statuses =
         {
             new Topic("Slowed", "Moves slower for a while, from anything that slows (wind, honey, gas, ink, ice...). Only the strongest slow counts; the next-strongest takes over when it ends. It never builds to a freeze. Heavy enemies and bosses are too heavy to slow down. On you: honey puddles and some attacks slow you too."),
-            new Topic("Burning", "On fire (the Flamethrower, Incendiary Rounds, burning ground): takes damage every second until it burns out."),
+            new Topic("Burning", "On fire (the Flamethrower, the Fireball, Flash Fire, Flame Wall, Incendiary Rounds, burning ground): takes damage every second until it burns out."),
             new Topic("Bleeding", "The shared bleed (claws, Sanguine Orb, the Needle Swarm, Vein Rush, Arterial Spray): damage over time. Bleed stacks go up to five from any source; a Needle Swarm cut that fills them bursts it. On you: a Rioter's bottle cut bleeds you for a while."),
             new Topic("Chilled", "Ice only. Every ice attack (Frost Lance, Frost Nova, Blizzard, Cryo Rounds, Ice Shards, Wind Chill) slows it and adds a chill; steady ice adds one a second at most. The third chill freezes it, and the freeze lifts the slow. Bosses are only slowed."),
             new Topic("Frozen", "Encased in ice (Glacial Tomb, Blood Freeze, a third chill): can't move or shoot. It melts into 6 s of wet."),
-            new Topic("Wet", "Soaked by Tsunami: slowed, and lightning arcs to it."),
+            new Topic("Wet", "Soaked by water (Tsunami, the Water Gun, Waterball, Flood, Water Ward, the Nimbus, Healing Rain, Bullet Rain): slowed, and lightning arcs to it."),
             new Topic("Charged", "Hit by lightning (Arc Lightning, Storm Hammer, Static Shock, the Nimbus, Arc Knuckles, EMP, Shock Grenades...): charged for 4 s. Alone it does nothing; wet and charged, it shorts out: constant damage, and every 2.5 s an arc to the three enemies nearest it."),
+            new Topic("Brittle", "Cracked by earth (Stonespear, the Earthball and its rubble, Meteor, Stone Colossus): for 5 s it takes 20% more damage (bosses 10%). Frozen while brittle, it shatters: the ice and the cracks break for a burst of damage, and half of it hits the enemies around it."),
+            new Topic("Dazzled", "Dazzled by light (the Radiant Orb, Chain Light, standing in a Lumen Ward): for 3 s its shots stray up to 25° either way (bosses 12°)."),
             new Topic("Stunned", "Held in place, with stars over its head: can't move or shoot until it wears off. On you: a Taser Guard's Fork Bolt stops you moving for a moment."),
             new Topic("Dazed", "Dazed by a close-in hit: can't attack for a moment, then can't be dazed again for a while."),
             new Topic("Caged", "Caged by a third Bone Guard dart: can't move or shoot."),
