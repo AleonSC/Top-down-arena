@@ -34,7 +34,8 @@ namespace Arena
     /// SyncLarder; the facing is locked while it's busy (LarderFaceLocked), so the cone and the chop show where they hit.
     public static class LarderKin
     {
-        public static bool Is(EnemyType t) => t >= EnemyType.Gnawling && t <= EnemyType.BileSpitter || t >= EnemyType.Gutworm && t <= EnemyType.MawPriest;  // (the Eclipse's faction sits between the two steps)
+        static readonly bool[] members = IdTable.Set(EnemyType.Gnawling, EnemyType.Butcher, EnemyType.Gulper, EnemyType.CarcassBearer, EnemyType.BileSpitter, EnemyType.Gutworm, EnemyType.HookThrower, EnemyType.MawPriest);  // (a list, not a range: ids are in name order)
+        public static bool Is(EnemyType t) => (int)t < members.Length && members[(int)t];  // (the Eclipse's faction sits between the two steps)
     }
 
     public partial class Enemy

@@ -34,7 +34,7 @@ namespace Arena
         {
             if (hiveSpecs == null)
             {
-                hiveSpecs = new HiveSpec[(int)EnemyType.Hornet + 1];
+                hiveSpecs = new HiveSpec[Defs.Enemies.Length];  // (by id: the ids are in name order)
                 hiveSpecs[(int)EnemyType.Worker] = new HiveSpec { Col = Hex(0xffc533), S = 1.15f, AbdX = 6f, AbdY = 4.2f, Th = 3.5f, Head = 2.7f, Stripes = 2, WingL = 8f, WingW = 3f, Flap = 62f };
                 hiveSpecs[(int)EnemyType.Soldier] = new HiveSpec { Col = Hex(0xff7a1f), S = 1.45f, AbdX = 9f, AbdY = 6.5f, Th = 5.4f, Head = 4.2f, Stripes = 3, WingL = 10f, WingW = 3.4f, Flap = 34f, Armor = true, Mand = 0.25f };
                 hiveSpecs[(int)EnemyType.CombShield] = new HiveSpec { Col = Hex(0xffc533), S = 1.2f, AbdX = 7f, AbdY = 5f, Th = 4.4f, Head = 3.2f, Stripes = 2, WingL = 9f, WingW = 3f, Flap = 40f, Plate = true };
