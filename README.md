@@ -34,7 +34,7 @@ Every weapon, ability, enemy, role and class with its numbers (health, damage, c
 The lobby is one calm blue CRT screen with a 36 px margin and soft, darker edges: the party column is on the left, the big loadout screen on the right washed with a soft gradient in your role's colour (it eases when you pick another role), and the tabs above it are small, faded caps with the open one a lit pill. Every option is a digital key (outlined, inverse video under the mouse or when picked; locked ones are dashed with a padlock), and the colour lives in the party cards, the live preview, the stat bars and the pixel icons. With Visual effects on (and Reduced effects off) it's alive: its pieces **holo-boot** as you come in (a scan line wipes down each, then it flickers), box frames near the cursor light up with a crisp bright line (and a faint echo just outside) where they're closest, the scanlines crawl slowly down, a faint **radar sweep** turns over the loadout preview, and readying sends a small green spark with a short tail from Ready up the gap between the party column and the big screen into that player's card, a thin ring bursts 10 px off it and the card keeps a faint thin green line while ready. Starting the run glitches the lobby (red and blue copies split off, torn bands jump sideways) and switches it off like an old CRT, squashed to a line that shrinks to a point, before the drop-in. In it each player picks a **role** (Tank, Healer, DPS), a **class** (Soldier, Elementalist, Summoner, Knight,
 Ninja, Hemomancer), then one of that combination's three weapons (four for the Soldier, Elementalist, Summoner, Knight, Ninja and Hemomancer DPS and the Soldier, Elementalist, Summoner, Knight, Ninja and Hemomancer Tank, and the Healer Soldier, Elementalist, Summoner, Knight and Ninja: their fourth on the 4th key) and three 1st abilities (four for a few: their fourth on the 4th key). Weapons and abilities are
 unique to their role and class. The **Ultimate** row under them shows the combination's ultimates: key 0 is its default
-ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, and on key 2 A Literal Tank and key 3 Armor Drop, the Tank Elementalist: Lightning Rod, with Stone Colossus on key 2 and Vortex on key 3, the Tank Summoner: Bone Phalanx, and on key 2 **Iron Armadillo**, the Tank Ninja: Dragon's Dogma, with Spirit Avatar on key 2, the Tank Hemomancer: **Bloodbath**, the DPS Soldier: Attack Helicopter, and on key 2 Orbital Laser, the DPS Elementalist: **Living Bolt**, and on key 2 **Flash Fire**, the Healer Soldier: Field Hospital, and on key 2 Supply Drop, and the DPS Knight: Warhorn Volley, and the DPS Ninja: **Forbidden Path**, and the Healer Ninja: **Astral Projection**, and the Healer Elementalist: **Static Bubble**); the
+ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, and on key 2 A Literal Tank and key 3 Armor Drop, the Tank Elementalist: Lightning Rod, with Stone Colossus on key 2 and Vortex on key 3, the Tank Summoner: Bone Phalanx, and on key 2 **Iron Armadillo**, the Tank Ninja: Dragon's Dogma, with Spirit Avatar on key 2, the Tank Hemomancer: **Bloodbath**, the Tank Knight: **Trojan Horse**, the DPS Soldier: Attack Helicopter, and on key 2 Orbital Laser, the DPS Elementalist: **Living Bolt**, and on key 2 **Flash Fire**, the Healer Soldier: Field Hospital, and on key 2 Supply Drop, and the DPS Knight: Warhorn Volley, and the DPS Ninja: **Forbidden Path**, and the Healer Ninja: **Astral Projection**, and the Healer Elementalist: **Static Bubble**); the
 other keys are locked. Click a key to pick it (inverse video, like the weapon and ability keys): the detail box and the
 preview show it. The pick goes back to the default when you change role or class; bots use the default, a Wildcard's
 row lists its class wheel's class, and a saved run's seats keep theirs.
@@ -415,7 +415,7 @@ Parry upgrades show up like any other card:
 **Q** fires your **ultimate**. Each role and class combination has its own default one, and some have others to
 pick instead on the lobby's **Ultimate** row (so far the Tank Soldier: **Juggernaut Suit**, **A Literal Tank** and **Armor Drop** and the Tank Elementalist: **Lightning Rod**, **Stone Colossus** and **Vortex**, below the table; and the DPS Elementalist: **Living Bolt** and **Flash Fire**, below; and the
 Tank Hemomancer: **Bloodbath**, in the Hemomancer table; and the Tank Summoner: **Bone Phalanx** and, on key 2, **Iron Armadillo**, below the table; and the
-Tank Ninja: **Dragon's Dogma** and, on key 2, **Spirit Avatar**, below; and the DPS Soldier: **Attack Helicopter** and **Orbital Laser**, below; and the Healer Soldier: **Field Hospital** and on key 2 **Supply Drop**, below; and the DPS Knight: **Warhorn Volley**, below; and the DPS Hemomancer: **Blood Ravager** and, on key 2, **Blood Boil**, below; and the DPS Summoner: **Rodent Minigun** and, on key 2, **Mammoth Fall**, below; and the DPS Ninja: **Forbidden Path**, below; and the Healer Ninja: **Astral Projection**, below; and the Healer Elementalist: **Static Bubble**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
+Tank Ninja: **Dragon's Dogma** and, on key 2, **Spirit Avatar**, below; and the DPS Soldier: **Attack Helicopter** and **Orbital Laser**, below; and the Healer Soldier: **Field Hospital** and on key 2 **Supply Drop**, below; and the DPS Knight: **Warhorn Volley**, below; and the Tank Knight: **Trojan Horse**, below; and the DPS Hemomancer: **Blood Ravager** and, on key 2, **Blood Boil**, below; and the DPS Summoner: **Rodent Minigun** and, on key 2, **Mammoth Fall**, below; and the DPS Ninja: **Forbidden Path**, below; and the Healer Ninja: **Astral Projection**, below; and the Healer Elementalist: **Static Bubble**, below; a Wildcard picks any class's DPS ultimate). Ultimates have long cooldowns
 that upgrades don't shorten, and start each run half charged. The HUD shows the charge in the gold slot.
 
 **Juggernaut Suit** (Tank Soldier, picked instead of Fortress, 75 s): six steel plates clamp onto you over 0.6 s and
@@ -456,6 +456,21 @@ and are gone after 20 s; the crate folds away once every vest is taken or gone. 
 and walk to a vest when they're short of armor. Mastered: the crate holds a 4th vest. Design:
 [mockup](https://claude.ai/artifact/4CUNVxkwG8EgAe3tNViHpC). Preview: `ARMORDROP=<s since the cast> [ARMORCAP=1]
 [ARMORHIT=<armor>] ZOOM=2 CAMAT=860,450 Tools/Preview/shot.sh x hud 6 1 3`; test suite `armordrop`.
+
+**Trojan Horse** (Tank Knight, key 1 of the Ultimate row, picked instead of Last Stand, 75 s): a wooden horse on wheels
+rolls out from you along your aim at **90 px/s**, shoving regular enemies out of its path, and parks where the arena's
+edge, a wall or a prop stops it (or after 1,400 px). It has its own health (**1,200** with one player, +200 for each more:
+1,400 for two, 1,600 for three), shown as a bar over it with one pip per seat lit in each rider's colour and its time arc.
+Any player within **80 px** presses **Interact** (F) to **climb in**, and again to drop out beside it. Inside you go where
+it goes, nothing can hurt you, enemies don't pick you, and your weapon, its Alt, abilities and the Dodge are put away:
+**Fire** shoots **arrows** out of the side slit nearer your aim (**16** each, every 0.35 s, each piercing one enemy; the
+slit glows gold). Its body stops **every enemy shot**, red aimed ones too, and enemies can't walk through it; each shot
+and bite wears it. While **everyone still up is inside**, enemies have nobody to pick and go for the horse (it pulses
+red). At 0 health it **breaks**: planks fly and the riders are thrown out, untouchable for 1 s. After **20 s** it springs
+open, **Sally Forth**: its sides swing down, regular enemies within 120 px are shoved 110 px, and everyone who was inside
+deals **25% more damage for 4 s** (a gold ring round them). It also folds away between waves. The cooldown starts when it
+comes down. Bots walk to a horse within 420 px and climb in. Mastered: 40% more health, and the arrows pierce one more
+enemy.
 
 **Attack Helicopter** (DPS Soldier, picked instead of Artillery Assault, 70 s): a gold radio ring goes out from you and
 an olive gunship drops in from off-screen over 0.9 s (high and big, its shadow tightening), then for **10 s** it circles
@@ -715,7 +730,7 @@ each), and red aimed shots just stop. Each enemy you roll into takes 20 at rest 
 launch's top speed), times your damage, at most once every 0.4 s: regular enemies are flung, and one flung fast hurts
 what it hits (as a Lance shove); Heavies are stunned 0.6 s and bounce you off, and so do bosses. Hitting a wall or a prop
 faster than 312 px/s bashes it for 50 within 120 px, and you bounce (the plain arena wraps round, so walls are the
-Expanding arena's, Solid Walls' and the like). Your weapon, its Alt, your abilities and the Dodge are locked; your
+Expanding arena's, Tiny Arena's and the like). Your weapon, its Alt, your abilities and the Dodge are locked; your
 minions keep fighting. On time the ball uncurls with a slam: 90 within 180 px, shoving regular enemies back; going down
 or the wave ending uncurls it quietly. Mastered: rolls 13 s and the slam hits for 130. Bots cast it with an enemy within
 420 px. The banded plates roll over the top as it goes, with a teal spirit rim, a dust trail and speed lines (gold while
@@ -771,6 +786,7 @@ the key, pops "MASTERY 3" over it and shows a line above the keys with what it g
 | **Consecrate** | Two more crosses fly out 22 degrees either side (each target is hit once). | **Guardian's Oath** | Charges up to 800 px (not 600). The ward is wider, follows you, and stands a downed ally back up at 25% health. |
 | **Lay on Hands** | Also heals everyone else near them for half as much. | **Bladed Dive** | Each kill heals you 5% of your health. |
 | **The Gauntlet** | The Challenge lasts 8 s, and the charge's impact stuns for 1 s. | **Caught Steel** | Holds up to 18 shards. |
+| **Trojan Horse** | 40% more health, and the arrows pierce one more enemy. | | |
 | **Last Stand** | You take 5% of the damage instead of 10%. | **Hallowed Blade** | Three swords fall: one at your cursor and one either side. |
 | **Drawbridge** | The bridge stands for 8 s. | **Lightning Rod** | Lasts 8 s and each bolt arcs to 3 enemies. |
 | **Flood** | Deluge: the flood is 30% wider and lasts 9 s. | **Bone Phalanx** | 10 skeletons with 180 health each (a 250 px front). |
@@ -790,7 +806,7 @@ level-up picks and the Bazaar). Where space is tight the text gets smaller, then
 with "…"; hover a Tab tile to read it in full.
 
 In the lobby, the loadout screen's **Ultimate** row has four keys. Key 0 is your role and class's default ultimate;
-the next keys hold the others you can pick instead (key 1 is **Juggernaut Suit** for the Tank Soldier, with **A Literal Tank** on key 2 and **Armor Drop** on key 3, **Lightning Rod**
+the next keys hold the others you can pick instead (key 1 is **Juggernaut Suit** for the Tank Soldier, with **A Literal Tank** on key 2 and **Armor Drop** on key 3, **Trojan Horse** for the Tank Knight, **Lightning Rod**
 for the Tank Elementalist (key 2: **Stone Colossus**, key 3: **Vortex**), **Bloodbath** for the Tank Hemomancer, **Bone Phalanx** for the Tank Summoner (key 2: **Iron Armadillo**), **Dragon's Dogma** for the Tank Ninja, **Attack Helicopter** for the DPS Soldier (key 2: **Orbital Laser**), **Living Bolt** for the DPS Elementalist (key 2: **Flash Fire**), **Field Hospital** (key 2: **Supply Drop**) for the Healer Soldier and **Warhorn Volley** for the DPS Knight, **Forbidden Path** for the DPS Ninja, **Astral Projection** for the Healer Ninja), and the rest
 are locked slots for ultimates still to come. Click a key to pick it (the picked one is in inverse video, like the
 weapon and ability keys): it goes to the host and the other players like your other picks, the detail box shows its
@@ -811,7 +827,7 @@ Upgrades with a stack cap show squares that fill with how many you hold (the nex
 ability and its key) shows on the card itself. Hold **Tab** for all your stats. Boss rewards say **BOSS REWARD!** (legendary cards)
 or **WEAPON MOD** (a grid of every mod you can take). Don't like the cards? **Reroll** (or R) for a fresh set: the first click
 (or press) arms it (the button turns orange and reads CLICK AGAIN TO REROLL for 3 seconds), the second rerolls. You
-start with 2 rerolls and everyone gets 2 more for each boss killed. Where a shop will take gold (the Bazaar, Gold Rush, the Expanding arena), a normal level-up also has a **GOLD INSTEAD** key under the buttons: skip the cards for 20 gold plus 2 every two waves. Boss rewards, weapon mods, milestones and challenge prizes can't be swapped. The next wave waits until everyone have chosen.
+start with 2 rerolls and everyone gets 2 more for each boss killed. Where a shop will take gold (the Bazaar, the Expanding arena), a normal level-up also has a **GOLD INSTEAD** key under the buttons: skip the cards for 20 gold plus 2 every two waves. Boss rewards, weapon mods, milestones and challenge prizes can't be swapped. The next wave waits until everyone have chosen.
 
 **Repeat copies give less.** The plain stat cards you can take any number of times (Sharpened Rounds, Quick Trigger,
 Light Boots, Vitality, Mending, Focus, Hollow Points, Hair Trigger, Sprinter, Fortitude, Regeneration, Clarity) are
@@ -1371,7 +1387,7 @@ design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
 - **Edge gates.** Some layouts wall the edges of the arena. **Player gates** (teal chevrons) are the gaps you can wrap
   through, and each comes out of the matching gap on the opposite edge. **Enemy gates** (stretches of the edge wall that look like the rest of it: red is
   kept for breaches) are where enemies come in; squads form up in front of one. A layout with open edges lets you wrap anywhere
-  and enemies come in along the edges it allows. Narrow Pass, Tiny Arena and Solid Walls close the arena, so the edge
+  and enemies come in along the edges it allows. Narrow Pass and Tiny Arena close the arena, so the edge
   gates drop away (the inner walls stay).
 - Layouts are always on (the starting room only; the grid rooms have their own pillars and wall stubs).
 - Enemies that walk steer round a wall that's in their way instead of pushing at it. Standing against a wall or in a corner
@@ -1623,7 +1639,7 @@ instead; Boss Hunts and runs saved before the Campaign use the open arena). Desi
   **400** the third (3 stacks at most, as before). It sells nothing else. In the Expanding arena this is the only place to get weapon mods (bosses give the card pick instead).
   Its card comes like the other service cards: wave drops, chests and the boss card pick.
 - **Medic**: a tiny rose room with a cot, an IV stand and a heartbeat line, from its service card (wave drops, chests, the boss pick) or a mystery door. While the shop is open, stand in it for a
-  **Full heal** (40) or a **Revive token** (120; one at a time). It is the only room shop that sells them (the Bazaar's and Gold Rush's shops, which have no rooms, still do).
+  **Full heal** (40) or a **Revive token** (120; one at a time). It is the only room shop that sells them (the Bazaar's shop, which has no rooms, still does).
 - **Breaches**: a rare event: on wave 5 and every 8th wave after it (13, 21, 29, ...), once the first room is built, enemies come in through **breaches** in the outer wall: a stretch of wall cracks open
   and a **red holographic barrier** stands in the gap (you can't go out through it; red chevrons on the floor point where they come
   from, and a red dash marks each on the minimap). 2 open on a breach wave, one more per 3 rooms built (at most 6), 400 px apart or
@@ -1684,8 +1700,8 @@ that's on, in its tier's colour (click one to turn it off; when they don't fit o
 the name on hover). The host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active
 ones show as chips above the wave panel during the run.
 
-**In Survival** every modifier works except four that have nothing to act on in its one walled room: **Tiny Arena**,
-**Solid Walls**, **Gold Rush** (no shop) and **Simple Arena**. Their cards are dimmed and say *NO EFFECT IN SURVIVAL*,
+**In Survival** every modifier works except two that have nothing to act on in its one walled room: **Tiny Arena**
+and **Simple Arena**. Their cards are dimmed and say *NO EFFECT IN SURVIVAL*,
 they don't count toward rank XP there, and no chip shows for them. **Zombie Infection** turns every Survival spawn into a
 horde zombie of the clock's wave (zombies count for less of the spawner's budget, as in a horde wave); **Hunted** picks a
 new quarry and **Second Wind** comes back on the clock's waves (every 30 s, and every 2.5 min); **Cluttered** fills the room
@@ -1702,12 +1718,10 @@ with 1.6x its crates. **Nightfall** covers wherever the camera is, in every mode
 | Head Start | Everyone starts at level 3 (its two picks waiting) with a free legendary pick from the first boss's pool | Easier |
 | Practiced | Abilities gain mastery twice as fast | Easier |
 | Bloodlust | Every kill heals its killer (2 HP + 0.1 every two waves, like Blood Moon), but enemies don't drop health orbs (bosses still do) and nobody regenerates (the Healer's aura stops healing themselves; it still heals allies) | Risky |
-| Gold Rush | Every kill gives everyone gold (like the Bazaar), and a shop opens before each boss; gold you don't spend is kept for the next shop instead of turning into XP | Easier |
 | Tiny Arena | After each boss, walls close in and take a quarter of the room (of its area), down to 40%. No wrapping round the edges while they're up, and bullets stop at them. They open for each boss's countdown and fight | Harder |
 | Nightfall | Dark everywhere except 210 px round each player and a lantern beam (560 px, 48°) toward where each player aims; downed players lose their lantern | Harder |
 | Hunted | As each wave starts, one player (at random, among those standing) is hunted: every enemy goes for them (a Roar still pulls enemies off), and they deal double damage. Red brackets turn round them, and the HUD chip says who. While they're down, enemies pick someone else | Risky |
 | Death Throes | Every regular enemy (not bosses, nor things that give no XP) bursts into a ring of 6 slow shots 0.5 s after it dies, with a warning circle. Killing up close costs you | Harder |
-| Solid Walls | No wrapping round the edges: the arena's sides are walls (drawn as a glowing border), and bullets stop at them | Harder |
 | Cluttered | Every wave piles a lot more crates into the arena: 17 on wave 1, +3 every two waves, up to 48 (a normal run has 2 to 10), heavy crates from wave 15. They stay until enemy fire breaks them, so the field turns into a maze you have to wind through. Your shots still fly over them; enemy shots stop at them. Boss fights clear the arena, as usual. | Harder |
 | Simple Arena | The open arena with its floor plans all run, instead of the Campaign's Expanding arena: no building rooms, and a path offer after each boss | Risky |
 | Second Wind | Once per boss cycle (waves 1-10, 11-20, ...), each player who goes down gets back up by themselves 2 s later at half health; it's used before a revive token. The HUD chip shows whether yours is ready. While anyone holds one, everyone being down isn't game over | Easier |
@@ -1858,7 +1872,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 | Parry | Hold right click (changeable) |
 | Alternative fire (Kunai blink, Twin Fang, Sunlance, Hook & Haul, Shuriken's Great Star stance, Bo Staff shove, Kusarigama whirl) | Left Alt |
 | Ultimate | Q |
-| Interact: take your chest item (standing on it; B discards it), open a mystery door, shut a gate, open a room shop again | F |
+| Interact: take your chest item (standing on it; B discards it), open a mystery door, shut a gate, open a room shop again, climb into or out of a Trojan Horse | F |
 | Gadget: tap to switch on / off, hold and let go to throw it where you aim (right click while holding cancels) | X |
 | Gadget wheel: hold to open, let go on a gadget to swap it into your hand | C |
 | Wiki: tap to look anything up (pauses a solo run; in co-op only on your screen); hold and click anything on screen (text, an enemy, a player) to open its page | I |

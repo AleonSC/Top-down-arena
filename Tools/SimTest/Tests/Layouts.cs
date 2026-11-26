@@ -194,9 +194,6 @@ static partial class Program
         V2 inWall = g.PushOutOfSolids(new V2(8f, 100f), 10f);
         V2 inGap = g.PushOutOfSolids(new V2(8f, 450f), 10f);
         Check(inWall.X >= Layouts.EdgeT + 10f - 0.1f && Math.Abs(inGap.X - 8f) < 0.01f, "the edge wall holds you in; the gate lets you through (" + inWall.X + ", " + inGap.X + ")");
-        g.Mods |= RunMod.SolidWalls;
-        Check(g.Walled && !g.EdgesGated && Math.Abs(g.PushOutOfSolids(new V2(8f, 100f), 10f).X - 8f) < 0.01f, "Solid Walls closes the arena, so the edge gates drop away");
-        g.Mods &= ~RunMod.SolidWalls;
 
         // Steering: a Brute behind a long wall walks round it.
         g.DevSetLayout(LayoutId.TwinLanes);

@@ -119,6 +119,7 @@ namespace Arena
                 DrawTankBar(p, r);     // A Literal Tank's armour and time (LiteralTankLook.cs)
                 DrawArmBar(p);         // Iron Armadillo's time (IronArmadilloLook.cs)
                 DrawArmorBar(p, r);    // an Armor Drop vest's armor, five steel segments (ArmorDropLook.cs)
+                DrawSallyRing(p, t);   // Sally Forth, out of a Trojan Horse (TrojanHorseLook.cs)
             }
             if (p.Downed)
             {

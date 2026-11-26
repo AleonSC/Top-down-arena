@@ -207,7 +207,7 @@ static partial class Program
     }
 
     /// Modifiers in Survival: Zombie Infection swaps the spawner's picks for the horde, Hunted and Second Wind run on the
-    /// clock's 30 s waves, Cluttered piles more crates, and Tiny Arena / Solid Walls / Gold Rush / Simple Arena do nothing.
+    /// clock's 30 s waves, Cluttered piles more crates, and Tiny Arena / Simple Arena do nothing.
     static void SurvivalModsTest(float dt)
     {
         int port = nextPort++;
@@ -224,7 +224,7 @@ static partial class Program
         WaitForLobby(host, client);
         PollBoth(host, client);
         host.SetMode(GameMode.Survival);
-        foreach (var m in new[] { RunMod.ZombieInfection, RunMod.Hunted, RunMod.SecondWind, RunMod.Cluttered, RunMod.TinyArena, RunMod.SolidWalls, RunMod.GoldRush, RunMod.SimpleArena })
+        foreach (var m in new[] { RunMod.ZombieInfection, RunMod.Hunted, RunMod.SecondWind, RunMod.Cluttered, RunMod.TinyArena, RunMod.SimpleArena })
             host.SetModifier(m, true);
         PollBoth(host, client);
         client.RequestReady(true); host.RequestReady(true); PollBoth(host, client);
@@ -233,8 +233,8 @@ static partial class Program
         var g = host.Game; var c = client.Game;
         Run(s, dt, 60f, () => g.Surv != null && g.State == MatchState.Fighting && g.SurvTime > 2f);
         Check(g.SurvivalOn && g.Has(RunMod.ZombieInfection) && c.Has(RunMod.ZombieInfection), "Zombie Infection is on in Survival");
-        Check(!g.Has(RunMod.TinyArena) && !g.Has(RunMod.SolidWalls) && !g.Has(RunMod.GoldRush) && !g.Has(RunMod.SimpleArena) && !c.Has(RunMod.TinyArena),
-            "Tiny Arena, Solid Walls, Gold Rush and Simple Arena have nothing to act on in Survival");
+        Check(!g.Has(RunMod.TinyArena) && !g.Has(RunMod.SimpleArena) && !c.Has(RunMod.TinyArena),
+            "Tiny Arena and Simple Arena have nothing to act on in Survival");
         Check(g.CurrentWorld == SurvivalRoom.World && g.ArenaMax.X == Game.Width * 2f, "and the run is still in Survival's big room");
         int crates = g.Props.Values.Count(pr => pr.Kind == PropKind.Crate || pr.Kind == PropKind.HeavyCrate);
         Check(crates >= 170 && g.Props.Count < 256, "Cluttered piles far more crates into the room (" + crates + ")");

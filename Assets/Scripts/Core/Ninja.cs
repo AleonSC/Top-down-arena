@@ -1211,7 +1211,7 @@ namespace Arena
         void HostWeaponDash(int id, int kind, V2 target)
         {
             Player p;
-            if (!Players.TryGetValue(id, out p) || p.Downed || TankOn(p))  // (in A Literal Tank: no Alt, LiteralTank.cs)
+            if (!Players.TryGetValue(id, out p) || p.Downed || TankOn(p) || Riding(p))  // (in A Literal Tank or a Trojan Horse: no Alt, LiteralTank.cs)
                 return;
             if (kind == DashArmBash)
             {

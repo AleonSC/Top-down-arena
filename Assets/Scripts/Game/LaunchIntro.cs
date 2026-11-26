@@ -104,7 +104,7 @@ namespace Arena
         }
 
         /// Not drawn yet: their pillar hasn't landed (the real match only, not the lobby's preview).
-        bool LaunchHides(Player p) => LaunchActive && ReferenceEquals(game, session.Game) && launchT < LandTime(p) || RecallHides(p) || StepHides(p) || BeamHides(p);  // (or gone up theirs: Recall.cs)
+        bool LaunchHides(Player p) => LaunchActive && ReferenceEquals(game, session.Game) && launchT < LandTime(p) || RecallHides(p) || StepHides(p) || BeamHides(p) || game.HorseOf(p) != null;  // (or gone up theirs: Recall.cs; or inside a Trojan Horse: TrojanHorseLook.cs)
 
         static float Seg(float t, float a, float b) => Mathf.Clamp01((t - a) / (b - a));
 
