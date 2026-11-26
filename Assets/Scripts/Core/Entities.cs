@@ -167,6 +167,8 @@ namespace Arena
         RodentSqueak, RodentPortal,
         // Siege Bell (SiegeBellSoundBank.cs): the three tolls and the shockwave's thump in one take. Sent with the cast.
         SiegeBell,
+        // Twin Rifle grenade tubes (TwinRifleSoundBank.cs): a tube loaded, a grenade fired, its blast.
+        TwinNadeLoad, TwinNadeLaunch, TwinNadeBoom,
     }
 
     public struct SoundCue
@@ -984,6 +986,7 @@ namespace Arena
         public float FragDmg, FragSpeed, FragLife, FragSplash;
         public bool FragSideways; // fragments fly out to the sides (shatter, shrapnel) rather than all around (bomblets)
         public bool GlNade;       // host only: a Grenade Launcher HE grenade (it bursts with GlBlast: GrenadeLauncher.cs)
+        public bool TwinNade;     // host only: a Twin Rifle tube grenade (its own blast sound, Sfx.TwinNadeBoom)
         public bool Incendiary;   // host only: an Incendiary gadget's bottle: it lands as burning ground (IncendiaryBurst: Gadgets.cs; Dmg is its damage multiplier)
         public bool Bomblet;      // host only: a Flak Cannon bomblet; it pops where it lands (Burst marks it as landing)
         public bool Pulled;       // host only: bent by a gravity well (so the host sends its course)
