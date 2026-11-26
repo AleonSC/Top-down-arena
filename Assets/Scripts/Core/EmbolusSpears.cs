@@ -6,7 +6,7 @@ namespace Arena
     /// The DPS Hemomancer's Embolus Spears (the DPS weapon on the lobby's 4th key; mockup Docs/Mockups/embolus-spears.html, look A
     /// Clot Javelin). Arms out, a hardened blood spear in each hand (Player.EsSt, EsPos, EsDir: one slot a hand, 0 left, 1 right).
     ///   Fire with a spear in hand: the left one, then the right, is thrown at the cursor. Each costs EsCost of your max health
-    ///     (PayHealth: never below 1, what was paid is kept in EsPaid). It flies at EsSpeed through every enemy (each hit once a
+    ///     (PayHealth: never below the blood floor, what was paid is kept in EsPaid). It flies at EsSpeed through every enemy (each hit once a
     ///     flight) and sticks in the first wall, pillar or arena edge its tip reaches (or drops in the floor after EsRange).
     ///   Fire with both out: both are recalled. They tear back to your hands at EsBackSpeed, hitting every enemy again on the way,
     ///     and each one caught heals back what it cost. Holding Fire throws both and recalls once both have stuck.
@@ -17,7 +17,7 @@ namespace Arena
     public partial class Game
     {
         public const int EsInHand = 0, EsFlying = 1, EsStuck = 2, EsReturning = 3, EsHardening = 4;
-        public const float EsCost = 0.2f, EsSpeed = 1100f, EsBackSpeed = 1300f, EsRange = 1500f, EsLen = 56f, EsHalfWidth = 7f, EsSink = 10f;
+        public const float EsCost = 0.12f, EsSpeed = 1100f, EsBackSpeed = 1300f, EsRange = 1500f, EsLen = 56f, EsHalfWidth = 7f, EsSink = 10f;
         public const float EsCatch = 22f, EsBlastR = 120f, EsBlastMax = 3f, EsBlastMin = 1.5f, EsBlastHeal = 0.5f, EsRegrow = 0.45f, EsExtraDmg = 0.2f;
         public const float EsHandFwd = 14f, EsHandSide = 11f;  // the hands, held out in front (the model's two-handed hold, CharacterModels.cs)
         public static readonly Rgba EsBlood = new Rgba(0.56f, 0.06f, 0.13f);

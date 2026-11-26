@@ -18,6 +18,7 @@ namespace Arena
         class FreezeWave
         {
             public V2 Pos;
+            public int Owner;
             public float Age, Bonus;
             public bool Cap;
             public HashSet<int> Hit = new HashSet<int>();
@@ -48,7 +49,7 @@ namespace Arena
 
         void CastBloodFreeze(Player p, bool cap, float bonus)
         {
-            freezeWaves.Add(new FreezeWave { Pos = p.Pos, Bonus = bonus, Cap = cap });
+            freezeWaves.Add(new FreezeWave { Pos = p.Pos, Owner = p.Id, Bonus = bonus, Cap = cap });
             BroadcastFx(FxKind.BloodFreeze, p.Pos, new V2(p.Id, FreezeTime + bonus), new Rgba(0.88f, 0.16f, 0.29f, cap ? 1f : 0.5f), FreezeMaxR, FreezeFxTime(bonus), Sfx.Freeze);
         }
 
@@ -70,6 +71,7 @@ namespace Arena
                         float hold = FreezeHold(e.Def.IsBoss, w.Bonus);
                         Hold(e, hold);
                         e.IceT = hold;
+                        e.IceBy = w.Owner;
                         e.IceMult = w.Cap ? FreezeVuln : 1f;
                     }
                 }
@@ -86,6 +88,17 @@ namespace Arena
                         e.IceMult = 1f;
                     }
                 }
+        }
+
+        public const float FreezeKillHeal = 0.03f;  // an enemy that dies frozen gives whoever froze it this share of their max health
+
+        /// Host (HemomancerKit.OnKill): an enemy that dies while still frozen heals the Hemomancer who froze it, whoever kills it.
+        public void FreezeKill(Enemy e)
+        {
+            Player p;
+            if (e.IceT <= 0f || !Players.TryGetValue(e.IceBy, out p) || p.Downed)
+                return;
+            Heal(p, p.MaxHp * FreezeKillHeal, p);
         }
     }
 }

@@ -63,11 +63,8 @@ namespace Arena
             if (!p.DevGod)
             {
                 float cost = p.MaxHp * WallRate(p.BloodWallClock, WallDoubleOf(p)) * dt;
-                float paid = Math.Min(cost, Math.Max(0f, p.Hp));
-                p.Hp -= paid;
-                p.Run.DamageTaken += paid;
-                DownIfDead(p, "Blood Wall");
-                if (p.Downed)
+                PayHealth(p, cost / p.Stats.HealthCostMult, "Blood Wall");  // (its ramp isn't cut by Bloodthirst)
+                if (AtHealthFloor(p))  // the blood floor: it ends there instead of downing you
                 {
                     EndBloodWall(p);
                     return;

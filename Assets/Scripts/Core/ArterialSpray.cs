@@ -5,14 +5,14 @@ namespace Arena
     /// The DPS Hemomancer's Arterial Spray (was Blood Boil). Press to open a vein: a 60° jet
     /// of blood follows your aim and hurts everything in it (Blood Price makes it hit harder as your health falls), slowing
     /// and bleeding what it soaks and pushing small enemies back. It drains you while it runs; press again to stop, and it
-    /// sputters out at 15% health. The cooldown starts when it stops (like Blood Shell).
+    /// sputters out at the blood floor (HemoFloor). The cooldown starts when it stops (like Blood Shell).
     /// Player.SprayOn is replicated, and the jet follows the replicated aim: Game/ArterialSprayLook.cs (look A "Jet" of
     /// Docs/Mockups/arterial-spray.html).
     public partial class Game
     {
         public const float SprayReach = 200f;                    // the jet's length...
         public const float SprayHalfArc = 30f * MathX.Pi / 180f; // ...and half its spread
-        public const float SprayFloor = 0.15f;                   // it sputters out at this share of your max health
+        public const float SprayFloor = HemoFloor;               // it sputters out at the blood floor
         const float SprayDps = 30f, SprayDrain = 0.04f;          // damage a second to each enemy in it; your max health a second it costs
         const float SprayTickTime = 0.1f;                        // damage lands in ticks this far apart
         const float SprayBleed = 1.5f, SpraySlow = 0.2f, SprayPush = 40f;  // bleed added a tick (stacks up to 5); the slow; px/s small enemies are pushed

@@ -121,6 +121,23 @@ static partial class Program
         castIt(false); step(Game.FreezeCharge + 0.5f);
         Console.WriteLine("  blood freeze: Hungry Earth holds {0:0.00} s", h.FrozenT);
         Check(h.FrozenT > 5.8f && h.FrozenT <= Game.FreezeTime + 1.5f, "Hungry Earth holds everything 1.5 s longer");
+
+        // An enemy that dies frozen heals whoever froze it 3% of their max health (the class's OnKill hook); one that
+        // dies thawed gives nothing. (Called directly: a real kill also drops orbs and XP that heal on their own.)
+        reset();
+        keepFull = false;
+        var dies = pin(new V2(500f, 450f), EnemyType.Grunt);
+        castIt(false); step(Game.FreezeCharge + 0.5f);
+        Check(dies.IceT > 0f && dies.IceBy == me.Id, "a frozen enemy remembers who froze it");
+        me.Hp = me.MaxHp * 0.5f; float fh = me.Hp;
+        g.FreezeKill(dies);
+        float frozeHeal = me.Hp - fh;
+        Console.WriteLine("  blood freeze: a frozen kill healed {0:0.0}", frozeHeal);
+        Check(Math.Abs(frozeHeal - me.MaxHp * Game.FreezeKillHeal) < 0.5f, "an enemy that dies frozen heals the caster 3% of their max health");
+        var thawed = pin(new V2(520f, 450f), EnemyType.Grunt);
+        fh = me.Hp;
+        g.FreezeKill(thawed);
+        Check(Math.Abs(me.Hp - fh) < 0.01f, "an enemy that wasn't frozen heals nothing");
         host.Leave(""); client.Leave("");
     }
 

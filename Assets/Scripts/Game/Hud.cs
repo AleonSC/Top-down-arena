@@ -398,6 +398,7 @@ namespace Arena
             }
             GhostBar(hp, frac, HealthColor(frac), PlayerKey(p.Id, true));
             DrawWound(hp, p);  // the part no heal can bring back (carried across waves) (HealthBars.cs)
+            DrawBloodFloor(hp, p);  // the Hemomancer's blood floor (HealthBars.cs)
             if (Game.Ironhide(p) > 0f)  // the Tank's Ironhide: a steel stripe along the bottom (Ironhide.cs)
                 Ui.Bar(new Rect(hp.x + 1f, hp.yMax - 2f, (hp.width - 2f) * Mathf.Clamp01(Game.Ironhide(p) / Mathf.Max(1f, p.MaxHp)), 2f), 1f, CrtStyle.Steel, new Color(0f, 0f, 0f, 0f));
             if (p.ShieldHp > 0f)
@@ -533,6 +534,7 @@ namespace Arena
             {
                 GhostBar(hpBar, frac, hpCol, PlayerKey(p.Id, true));
                 DrawWound(hpBar, p);  // the part no heal can bring back (carried across waves) (HealthBars.cs)
+                DrawBloodFloor(hpBar, p);  // the Hemomancer's blood floor (HealthBars.cs)
                 if (Game.Ironhide(p) > 0f)  // the Tank's Ironhide: a steel stripe along the bottom (Ironhide.cs)
                     Ui.Bar(new Rect(hpBar.x + 2f, hpBar.yMax - 4f, (hpBar.width - 4f) * Mathf.Clamp01(Game.Ironhide(p) / Mathf.Max(1f, p.MaxHp)), 3f), 1f, CrtStyle.Steel, new Color(0f, 0f, 0f, 0f));
                 if (p.ShieldHp > 0f)  // a shield: a blue stripe along the bottom of the health bar
@@ -654,7 +656,7 @@ namespace Arena
             }
             bool ready = slot.Charges > 0;
             float cd = game.Cooldown(me, i);
-            float fill = slot.Charges >= slot.MaxCharges ? 1f : 1f - slot.Timer / Mathf.Max(0.01f, cd);
+            float fill = slot.Charges >= slot.MaxCharges ? 1f : Mathf.Clamp01(1f - slot.Timer / Mathf.Max(0.01f, cd));
             float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 4f);
             Color keyCol = ultimate ? CrtStyle.Gold : ready ? KeyGreen : CrtStyle.Ink;  // gold ultimate, green when ready, blue while it recharges
             CrtKeyBox(r, keyCol.WithAlpha(ready ? (ultimate ? 0.65f + 0.35f * pulse : 1f) : 0.7f), false);

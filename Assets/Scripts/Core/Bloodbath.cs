@@ -13,16 +13,15 @@ namespace Arena
     ///   Enemies wading in it are slowed (BathSlow; Heavy enemies BathSlowHeavy and bosses BathSlowBoss, through `Enemy.WadeMult`, as the usual
     ///   slow skips them) and bleed BathBleed a second,
     ///   bosses too, as a hit from you every BathTick s (so your damage multiplier, Blood Price and the rest scale it).
-    ///   Every tick heals you BathHeal (mastered BathHealMastered) of the damage it dealt, wherever you are; those ticks don't also
-    ///   give the class's usual 3% (bathTick, BloodLifesteal). Allies standing in it, you included, take BathGuard less damage.
+    ///   Every tick heals you BathHeal (mastered BathHealMastered) of the damage it dealt, wherever you are. Allies standing in it, you included, take BathGuard less damage.
     ///   The drain and the heal pull against each other: with about four enemies wading, the pool pays for itself.
-    /// Its own tick rather than the shared bleed (ApplyBleed): that bleed stacks and lingers BleedTime s after the last hit, and
-    /// heals through the normal 3%, while this one must stop the moment an enemy steps out and pay back its own share.
+    /// Its own tick rather than the shared bleed (ApplyBleed): that bleed stacks and lingers BleedTime s after the last hit,
+    /// while this one must stop the moment an enemy steps out and pay back its own share.
     /// Replicated as an ordinary zone (Pos, Radius, T, Duration), so every screen grows, ripples and dries it the same
     /// (Game/BloodbathLook.cs); each tick's heal is sent as `FxKind.BathHeal` for the small numbers over you.
     public partial class Game
     {
-        public const float BathDrain = 0.04f, BathFloor = 0.15f, BathCooldown = 75f;  // the channel's cost: 4% of max health a second, ending at 15%
+        public const float BathDrain = 0.04f, BathFloor = HemoFloor, BathCooldown = 75f;  // the channel's cost: 4% of max health a second, ending at the blood floor
         public const float BathRadius = 170f, BathRadiusMastered = 220f, BathGrow = 0.9f, BathTime = 10f;
         public const float BathSlow = 0.5f, BathSlowHeavy = 0.35f, BathSlowBoss = 0.2f;
         public const float BathBleed = 15f, BathTick = 0.5f, BathHeal = 0.25f, BathHealMastered = 0.35f, BathGuard = 0.2f;
@@ -30,7 +29,6 @@ namespace Arena
         public const float BathDry = 1.2f;     // how long an ended pool takes to dry up on screen (it does nothing meanwhile)
         public const float BathHealFxTime = 0.9f;
 
-        bool bathTick;  // a Bloodbath tick is dealing its damage: BloodLifesteal gives no 3% on it
         readonly System.Collections.Generic.List<Enemy> bathScratch = new System.Collections.Generic.List<Enemy>();
 
         /// How far the pool has spread: from BathStart of its size to all of it over BathGrow s (easing out).
@@ -113,8 +111,8 @@ namespace Arena
                 return;
             }
             if (!p.DevGod)
-                PayHealth(p, p.MaxHp * BathDrain * dt, "Bloodbath");  // the channel's price (never below 1 HP)
-            if (p.Hp <= p.MaxHp * BathFloor)
+                PayHealth(p, p.MaxHp * BathDrain * dt, "Bloodbath");  // the channel's price (never below the blood floor)
+            if (p.Hp <= p.MaxHp * BathFloor + 0.01f)
             {
                 EndBath(z);
                 return;
@@ -151,15 +149,7 @@ namespace Arena
             foreach (var e in bathScratch)
             {
                 float before = e.Hp;
-                bathTick = true;
-                try
-                {
-                    HurtEnemy(e, dmg, z.Owner);
-                }
-                finally
-                {
-                    bathTick = false;
-                }
+                HurtEnemy(e, dmg, z.Owner);
                 heal += Math.Max(0f, before - Math.Max(0f, e.Hp)) * z.HealBack;
             }
             bathScratch.Clear();

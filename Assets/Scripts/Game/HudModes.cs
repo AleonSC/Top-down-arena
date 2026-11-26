@@ -70,6 +70,27 @@ namespace Arena
                 Ui.Fill(new Rect(r.x + i * (cw + 2f), r.y, cw, r.height), c.ScaleAlpha((i < lit ? 1f : 0.18f) * a));
         }
 
+        /// The Hemomancer's blood floor (Game.HemoFloor) over MiniCells: a crimson tick past the cells it guards (the first
+        /// fifth), above and below them; brighter, and the guarded cells rimmed, while you stand at the floor.
+        static void MiniBloodFloor(Rect r, Player p, int n, float a)
+        {
+            if (p.Downed || p.Kit != Kit.Hemomancer || p.MaxHp <= 0f)
+                return;
+            float cw = (r.width - 2f * (n - 1)) / n;
+            int under = Mathf.Clamp(Mathf.RoundToInt(Game.HemoFloor * n), 1, n);
+            bool at = Game.AtHealthFloor(p);
+            Color red = CrtStyle.Danger;
+            float x = r.x + under * (cw + 2f) - 1.5f, rise = Mathf.Max(3f, r.height * 0.5f);
+            Ui.Fill(new Rect(x - 0.5f, r.y - rise, 2f, r.height + 2f * rise), red.ScaleAlpha((at ? 1f : 0.8f) * a));
+            if (at)
+                for (int i = 0; i < under; i++)
+                {
+                    var c = new Rect(r.x + i * (cw + 2f), r.y, cw, r.height);
+                    Ui.Fill(new Rect(c.x, c.y, c.width, 1f), red.ScaleAlpha(a));
+                    Ui.Fill(new Rect(c.x, c.yMax - 1f, c.width, 1f), red.ScaleAlpha(a));
+                }
+        }
+
         /// A wound (Combat.cs, Docs/PowerStacking.md) over MiniCells: the cells at the right end that no heal reaches, in red with a bright
         /// rim, and a tall red tick where healing stops.
         void MiniWoundCells(Rect r, Player p, int n, float a)
@@ -200,6 +221,7 @@ namespace Arena
                 MiniText(new Rect(mx, hr.y + 30f, 120f, 26f), max, 24, low ? red : dim, a);
                 MiniCells(new Rect(hr.x, hr.y + 64f, hr.width, 8f), frac, 20, hc, low ? MiniBlink(a) : a);
                 MiniWoundCells(new Rect(hr.x, hr.y + 64f, hr.width, 8f), me, 20, a);
+                MiniBloodFloor(new Rect(hr.x, hr.y + 64f, hr.width, 8f), me, 20, a);  // a Hemomancer's blood floor
                 if (me.Wound > 0.5f)  // how much of your health no heal brings back, on the title row
                     MiniText(new Rect(hr.x, hr.y, hr.width, 16f), "WOUND -" + Mathf.CeilToInt(me.Wound), 16, red, a, TextAnchor.MiddleRight);
                 float extraX = mx + CrtUi.TitleWidth(max, 24) + 8f;
@@ -246,6 +268,7 @@ namespace Arena
                     p.Downed ? "DOWNED " + Mathf.RoundToInt(p.Revive * 100f) + "%" : Mathf.CeilToInt(p.Hp) + (p.OverHp > 0f ? "+" + Mathf.CeilToInt(p.OverHp) : "") + " / " + Mathf.CeilToInt(p.MaxHp), 16, pc, a, TextAnchor.MiddleRight);
                 MiniCells(new Rect(row.x, row.y + 17f, row.width, 4f), p.Downed ? p.Revive : pf, 20, pc, plow ? MiniBlink(a) : a);
                 MiniWoundCells(new Rect(row.x, row.y + 17f, row.width, 4f), p, 20, a);
+                MiniBloodFloor(new Rect(row.x, row.y + 17f, row.width, 4f), p, 20, a);
                 ty -= 28f;
             }
 

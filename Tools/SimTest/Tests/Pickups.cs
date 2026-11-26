@@ -165,17 +165,17 @@ static partial class Program
         {
             host.Kit = kit;
             g.Orbs.Clear();
-            int made = 0; bool shared = true;
+            int made = 0; bool mine = true;
             for (int k = 0; k < 6; k++)
             {
                 g.DevSpawnEnemy(1, EnemyType.Grunt, 10, false);
                 foreach (var e in g.Enemies.Values) { e.LastHitBy = 1; e.Hp = 0f; }
                 Run(s, dt, dt * 2f, null, null);
                 made += g.Orbs.Values.Count(o => o.Blood);
-                foreach (var o in g.Orbs.Values.Where(o => o.Blood).ToList()) { shared &= o.Owner == 0 && !o.Big && o.Life > Game.OrbLifetime; g.Orbs.Remove(o.Id); }
+                foreach (var o in g.Orbs.Values.Where(o => o.Blood).ToList()) { mine &= o.Owner == host.Id && !o.Big && o.Life > Game.OrbLifetime; g.Orbs.Remove(o.Id); }
             }
             if (made > 0)
-                Check(shared, "each blood orb is one shared orb that lasts longer");
+                Check(mine, "each blood orb is the killer's own (only they see and drink it), small, and lasts longer");
             return made;
         };
         int hemo = Kills(Kit.Hemomancer), other = Kills(Kit.Soldier);
@@ -183,17 +183,21 @@ static partial class Program
         Check(other == 0, "kills by another class drop none (" + other + ")");
         host.Kit = was;
 
-        // Anyone can drink one: it reaches the client, then drifts across the room to the hurt teammate.
+        // Only its Hemomancer drinks it: one dropped for the client's player reaches them and drifts across the room to them;
+        // one dropped for the host is left alone by the hurt teammate.
         g.Orbs.Clear();
         var friend = g.Players[2];
         friend.Hp = friend.HealCap - 40f; host.Hp = host.HealCap;
         var at = friend.Pos + new V2(-400f, 0f);
-        g.Orbs[7300] = new Orb { Id = 7300, Blood = true, Pos = at, Disp = at, Life = Game.BloodOrbLife };
+        var hostOrb = friend.Pos + new V2(0f, 30f);
+        g.Orbs[7301] = new Orb { Id = 7301, Blood = true, Pos = hostOrb, Disp = hostOrb, Life = Game.BloodOrbLife, Owner = host.Id };
+        g.Orbs[7300] = new Orb { Id = 7300, Blood = true, Pos = at, Disp = at, Life = Game.BloodOrbLife, Owner = friend.Id };
         Run(s, dt, 0.1f, null, () => { Quiet(); Put(); });
         Check(cg.Orbs.ContainsKey(7300) && cg.Orbs[7300].Blood && cg.MinePickup(cg.Orbs[7300].Owner), "the client sees the blood orb as one it can take");
         float before = friend.Hp;
         Run(s, dt, 3f, () => !g.Orbs.ContainsKey(7300), () => { Quiet(); Put(); });
-        Check(!g.Orbs.ContainsKey(7300) && friend.Hp >= before + Game.BloodOrbHeal - 0.5f, "it drifts 400 px to the hurt teammate and heals them (" + before + " -> " + friend.Hp + ")");
+        Check(!g.Orbs.ContainsKey(7300) && friend.Hp >= before + Game.BloodOrbHeal - 0.5f, "it drifts 400 px to its own Hemomancer and heals them a small orb's worth (" + before + " -> " + friend.Hp + ")");
+        Check(g.Orbs.ContainsKey(7301), "a hurt teammate leaves another Hemomancer's blood orb alone");
         friend.Hp = friend.HealCap;
     }
 }

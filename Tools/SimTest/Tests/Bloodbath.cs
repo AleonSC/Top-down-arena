@@ -111,13 +111,13 @@ static partial class Program
         step(Game.BathDry);
         Check(!g.Zones.Values.Any(z => z.Kind == ZoneKind.Bloodbath), "and it's gone 1.2 s later");
 
-        // The drain stops it at 15% health.
+        // The drain stops it at the blood floor (20% health).
         reset();
         cast();
-        me.Hp = me.MaxHp * 0.17f;
+        me.Hp = me.MaxHp * 0.22f;
         step(1f);
         Console.WriteLine("  bloodbath: stopped at {0:0.0}% health", me.Hp / me.MaxHp * 100f);
-        Check(bath() == null && drying() != null && me.Hp >= me.MaxHp * 0.14f && me.Hp <= me.MaxHp * 0.155f, "the channel stops when the drain brings you to 15% health");
+        Check(bath() == null && drying() != null && me.Hp >= me.MaxHp * 0.195f && me.Hp <= me.MaxHp * 0.205f, "the channel stops when the drain brings you to the blood floor (20%)");
 
         // The slow: 50%, Heavy enemies 35%, bosses 20%; nothing outside it.
         reset();
@@ -157,19 +157,19 @@ static partial class Program
 
         // Blood Price scales it.
         reset();
-        pinHp = me.MaxHp * 0.2f;
+        pinHp = me.MaxHp * 0.3f;
         grunt = make(EnemyType.Grunt, mePos + new V2(60f, 0f));
         cast();
-        pinHp = me.MaxHp * 0.2f;
+        pinHp = me.MaxHp * 0.3f;
         step(Game.BathGrow);
         gh = grunt.Hp;
         step(2f);
         float priced = gh - grunt.Hp;
-        float price = 1f + 0.4f * (0.8f / 0.9f);  // Blood Price at 20% health (the channel stops at 15%)
-        Console.WriteLine("  bloodbath: at 20% health it bled {0:0.0} ({1:0.00}x, expect {2:0.00}x)", priced, priced / bled, price);
-        Check(Math.Abs(priced / bled - price) < 0.02f, "Blood Price scales the bleed (36% more at 20% health)");
+        float price = 1f + 0.4f * (0.7f / 0.8f);  // Blood Price at 30% health (the channel stops at 20%)
+        Console.WriteLine("  bloodbath: at 30% health it bled {0:0.0} ({1:0.00}x, expect {2:0.00}x)", priced, priced / bled, price);
+        Check(Math.Abs(priced / bled - price) < 0.02f, "Blood Price scales the bleed (35% more at 30% health)");
 
-        // The heal: 25% of what it dealt, wherever you are; not the class's 3% on top.
+        // The heal: 25% of what it dealt, wherever you are (the class has no other lifesteal).
         reset();
         grunt = make(EnemyType.Grunt, mePos + new V2(60f, 0f));
         var grunt2 = make(EnemyType.Grunt, mePos + new V2(-50f, 50f));

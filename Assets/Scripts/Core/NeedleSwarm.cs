@@ -19,7 +19,7 @@ namespace Arena
     {
         public const int NsBase = 160, NsPerExtra = 20, NsTendrils = 3, NsWrap = 30, NsWrapPerExtra = 5, NsBurst = 24;
         public const float NsCutPerExtra = 0.1f;  // each extra projectile: wrapped needles cut 10% harder
-        public const float NsCost = 0.0014f, NsRate = 32f, NsFloor = 0.15f;      // health per needle (of max), needles a second, no siphon below
+        public const float NsCost = 0.0014f, NsRate = 32f, NsFloor = HemoFloor;      // health per needle (of max), needles a second, no siphon below
         public const float NsInner = 22f, NsOuter = 72f, NsEdge = 46f;          // the ring's band round you; where tendrils leave it
         public const float NsReach = 260f, NsLetGo = 1.5f, NsGrow = 140f, NsRetract = 3f, NsWrapRate = 26f, NsShare = 0.45f;
         public const float NsSlow = 0.5f, NsTick = 0.2f, NsBleedEvery = 0.5f, NsBleedHit = 9f, NsBlockFull = 0.35f;

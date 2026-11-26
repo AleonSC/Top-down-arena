@@ -99,7 +99,7 @@ namespace Arena
             CellSkillUsed(p);  // in a Holding Cell: a second off its clock (HoldingCell.cs)
             var id0 = p.Slots[slot].Id;
             bool hadTargets = Battle && AnyTarget();
-            PayAbilityCost(p, id0);  // Hemomancer abilities cost health (Hemomancer.cs)
+            PayAbilityCost(p, slot, id0);  // Hemomancer abilities cost health (Hemomancer.cs)
             BeginCast(p, id0);
             CastAbility(p, slot, target);
             EndCast(p, slot, id0, hadTargets);

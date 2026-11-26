@@ -109,10 +109,9 @@ namespace Arena
                 float cost = p.MaxHp * TitheRate(p) * dt;
                 if (cost <= 0f)
                     continue;
-                float paid = Math.Min(cost, Math.Max(0f, p.Hp));
-                p.Hp -= paid;
-                p.Run.DamageTaken += paid;
-                DownIfDead(p, "Vein Tithe");
+                PayHealth(p, cost / p.Stats.HealthCostMult, "Vein Tithe");  // (Bloodthirst doesn't cut it, as before)
+                if (AtHealthFloor(p))  // the blood floor: every artery lets go instead of downing you
+                    EndTithe(p);
             }
         }
 

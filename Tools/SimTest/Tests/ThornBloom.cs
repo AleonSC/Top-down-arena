@@ -81,6 +81,9 @@ static partial class Program
         Check(client.Game.Effects.Count(f => f.Kind == FxKind.ThornNeedle) == 12 && client.Game.Effects.Count(f => f.Kind == FxKind.ThornTendril) == 3,
             "the other screen sees the twelve needles and three tendril jumps");
         Check(lost(row[0]) >= 45f && lost(row[0]) < 45f * 1.5f && row[0].BleedStacks >= 1, "the needle lands on arrival: 45 (Blood Price on top) and a bleed stack (" + lost(row[0]).ToString("0") + ")");
+        float back = me.Hp - (me.MaxHp - paid);
+        Console.WriteLine("  thorn bloom: one needle struck, {0:0.0} health back", back);
+        Check(Math.Abs(back - me.MaxHp * Game.TbNeedleHeal) < 0.3f, "each needle that strikes heals you 1% of your max health");
         step(0.8f);
         float l1 = lost(row[1]), l2 = lost(row[2]), l3 = lost(row[3]);
         Console.WriteLine("  thorn bloom: needle {0:0}, tendrils {1:0}, {2:0}, {3:0}, then {4:0}", lost(row[0]), l1, l2, l3, lost(row[4]));
