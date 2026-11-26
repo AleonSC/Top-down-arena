@@ -26,6 +26,7 @@ namespace Arena
         ArcShard, ArcBlade,  // the Arcanist's Orbit Shards (circle you, cut small shots, flung at the cursor and back) and Dancing Blades (hover behind you, launched to slash at the cursor) (Arcanist.cs)
         BumbleBot,    // the Bumble Remote's robot bee: follows your cursor, shoots stingers, dives into a Swarm Burst; enemies ignore it (BumbleRemote.cs)
         Octopus,      // Octopus Familiar (the Healer Summoner's 4th choice): floats round the player it guards and slaps enemies near them, up to 8 at once (OctopusFamiliar.cs)
+        BloodImp,     // Blood Ritual (the Tank Hemomancer's fourth ultimate): pours out of the portal, circles an enemy clawing and taunting it, flies home at the close (BloodRitual.cs)
         None = 255,
     }
 
@@ -49,7 +50,7 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, BlastOfuda, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital, Steam, StaticResidue, SupplyDrop, LandShark, Claymore, Mammoth, ArmorDrop, TrojanHorse, Ballista, HoneyRaid, Caltrop, Tusker, RocketDrop, RocketFire, AegisStandard, PilgrimsStandard, WarStandard, GongSmoke }
+    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, BlastOfuda, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital, Steam, StaticResidue, SupplyDrop, LandShark, Claymore, Mammoth, ArmorDrop, TrojanHorse, Ballista, HoneyRaid, Caltrop, Tusker, RocketDrop, RocketFire, AegisStandard, PilgrimsStandard, WarStandard, GongSmoke, BloodRitual }
 
     public class ZoneDef
     {
@@ -132,6 +133,8 @@ namespace Arena
             new MinionDef { Name = "Dancing Blade", Radius = 8f, Sides = 3, Color = new Rgba(1f, 0.83f, 0.42f), Move = MinionMove.Static },  // flown by Arcanist.cs (MoveArcane)
             new MinionDef { Name = "Bumble Bot", Radius = 22f, Sides = 6, Color = new Rgba(1f, 0.8f, 0.3f), Move = MinionMove.Static, Range = Game.BumbleRange },  // flown and fired by BumbleRemote.cs (MoveBumble)
             new MinionDef { Name = "Octopus", Radius = 16f, Sides = 8, Color = Game.OctoColor, Move = MinionMove.Static },  // floated and its arms by OctopusFamiliar.cs; health in Minion.Hp (HasHealth, Stun.cs)
+            new MinionDef { Name = "Blood Imp", Radius = 7f, Sides = 3, Color = new Rgba(0.86f, 0.1f, 0.2f), Move = MinionMove.Static, Speed = 260f,
+                Attack = MinionAttack.Bite, Interval = 0.4f, Damage = 6f, BlockRadius = 10f, BlockCapacity = 30f },  // flown, clawing and taunting by BloodRitual.cs (TickBloodImp); BlockCapacity its health
         };
 
         // Indexed by ZoneKind.
@@ -201,6 +204,7 @@ namespace Arena
             new ZoneDef { Name = "Pilgrim's Standard", Color = new Rgba(1f, 0.89f, 0.6f) },  // the Healer Knight's banner ultimate (KnightBanners.cs); TickT (host) the time to the next heal
             new ZoneDef { Name = "War Standard", Color = new Rgba(1f, 0.42f, 0.35f) },  // the DPS Knight's banner ultimate (KnightBanners.cs)
             new ZoneDef { Name = "Gong Smoke", Color = new Rgba(0.72f, 0.61f, 1f), Slow = Game.FsgSmokeSlow },  // a Five Shadow Gong shadow's smoke grenade (FiveShadowGong.cs): Pos, Radius; slows enemies in it, moving and shooting (Enemy.FsgSmokeT)
+            new ZoneDef { Name = "Blood Ritual", Color = new Rgba(0.86f, 0.1f, 0.2f) },  // the Tank Hemomancer's fourth ultimate (BloodRitual.cs): Pos the sigil, Radius its size, its age the phase; Side (host) imps poured out, TickT the next one, Landed opened, Cap mastered
         };
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];

@@ -261,6 +261,9 @@ namespace Arena
                 case ZoneKind.Bloodbath:
                     DrawBloodbath(z, t);  // BloodbathLook.cs (its own time ring when Visual effects are off)
                     return;
+                case ZoneKind.BloodRitual:
+                    DrawBloodRitual(z, t);  // BloodRitualLook.cs (no timer ring: its phases show its time)
+                    return;
                 case ZoneKind.Cover:
                     DrawCover(z, t);  // DeployableCoverLook.cs
                     return;
@@ -515,6 +518,11 @@ namespace Arena
             if (m.Kind == MinionKind.Butterfly)
             {
                 DrawButterfly(m, t);  // WorldTreeLook.cs
+                return;
+            }
+            if (m.Kind == MinionKind.BloodImp)
+            {
+                DrawBloodImp(m, t);  // BloodRitualLook.cs
                 return;
             }
             if (m.Kind == MinionKind.Bat)

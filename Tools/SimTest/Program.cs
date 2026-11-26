@@ -474,6 +474,7 @@ static partial class Program
         Test("landshark", "Land Shark, the DPS Summoner's 4th choice: the 4th lobby key, the puddle at the cursor (420 px reach), the bite (120 once and a stun, heavies too), only what is in the puddle, the drain, Great White and mastery", () => LandSharkTest(Dt)),
         Test("rod", "Lightning Rod and the lobby's ultimate choice: the pick reaching the run and saves, 80% cut, taunt, a bolt per hit with 2 arcs, the per-enemy cap, wet arcs, ends on time or on going down", () => RodTest(Dt)),
         Test("stonecolossus", "Stone Colossus: key 2 of the Tank Elementalist's Ultimate row, the rise, 70% cut, taunt, stomps, the slam, the crumble's boulders, ending on time or going down, mastered and Bedrock", () => StoneColossusTest(Dt)),
+        Test("ritual", "Blood Ritual: key 3 of the Tank Hemomancer's Ultimate row, the sigil at the cursor clamped to 320 px, 15% paid over the inscribe, the open sigil slowing, a burst of 8 then 4 a second (24 out, 40 in all), both screens, claws bleeding and taunting (not bosses), swatted imps popping, the close healing 1% an imp, broken by going down, the imps going with the sigil, mastered", () => BloodRitualTest(Dt)),
         Test("bloodgolem", "Blood Golem: key 2 of the Tank Hemomancer's Ultimate row, the gather (stacks torn off, the rest paid), coats soaking and shedding, Golem Fist and the Slam, Hurl Clot, kills growing a coat, the collapse, ending, mastered", () => BloodGolemTest(Dt)),
         Test("vortex", "Vortex: key 3 of the Tank Elementalist's Ultimate row, the wind-up, swirl and pull, the fringe, heavies, 45 a second, shots swept away, the fling, going down, mastered", () => VortexTest(Dt)),
         Test("ravager", "Blood Ravager: key 1 of the DPS Hemomancer's Ultimate row, the cast (9 s, 1.8x speed, the weapon away), a click lashing the free leg nearest an enemy in reach, up to 3 at once on different enemies, the walk's stomps and the ram, a client's click, ending on time and going down, mastered", () => BloodRavagerTest(Dt)),
@@ -664,7 +665,7 @@ static partial class Program
         "stampede", "staticbubble", "staticshock", "stayin", "supplydrop", "survival", "thornbloom", "trojanhorse", "twintessen",
         "ultimates", "waterward", "wiki", "windclash", "wyvernstaff",
         "heartflail", "sanctumglass", "siegebell", "chakra", "honeyraid", "heartbeat", "tusker",
-        "contentfuzz", "caltroprun", "rocketdrop", "banners", "shadowgong", "octopus",
+        "contentfuzz", "caltroprun", "rocketdrop", "banners", "shadowgong", "octopus", "ritual",
     };
 
     static int Main(string[] args)

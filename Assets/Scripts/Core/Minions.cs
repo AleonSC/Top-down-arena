@@ -318,11 +318,19 @@ namespace Arena
                             SentryFolds(m);  // SentryNova.cs
                         else if (m.Kind == MinionKind.Octopus)
                             OctoBurst(m);  // its time is up: it bursts into ink (OctopusFamiliar.cs)
+                        else if (m.Kind == MinionKind.BloodImp && m.BlockHp <= 0f)
+                            RitImpPop(m);  // shot down: it pops (BloodRitual.cs)
                         expired.Add(m);
                         continue;
                     }
                 }
                 var d = m.Def;
+                if (m.Kind == MinionKind.BloodImp)
+                {
+                    if (TickBloodImp(m, owner, dt))  // home, popped, or its portal gone (BloodRitual.cs)
+                        expired.Add(m);
+                    continue;
+                }
                 m.HurtT -= dt;
                 if (m.StaggerT > 0f)
                 {
@@ -655,7 +663,7 @@ namespace Arena
             {
                 if (m.Def.BlockRadius <= 0f || m.StaggerT > 0f || m.BlockHp <= 0f || (IsTitanLike(m.Kind) && !TitanBlocking(m)) || !Enters(b, m.Pos, m.Def.BlockRadius * m.Scale))
                     continue;
-                m.BlockHp -= m.Kind == MinionKind.CloneWall || m.Kind == MinionKind.Clone || m.Kind == MinionKind.Wall || m.Kind == MinionKind.VectorBlock ? b.Dmg * EnemyDamageScale(Wave) : BlockerWear(b);  // a wall clone or a golem wears from every shot, not just a boss's
+                m.BlockHp -= m.Kind == MinionKind.CloneWall || m.Kind == MinionKind.Clone || m.Kind == MinionKind.Wall || m.Kind == MinionKind.VectorBlock || m.Kind == MinionKind.BloodImp ? b.Dmg * EnemyDamageScale(Wave) : BlockerWear(b);  // a wall clone or a golem wears from every shot, not just a boss's
                 if (m.BlockHp <= 0f)
                 {
                     if (m.Companion)
@@ -797,6 +805,11 @@ namespace Arena
                     TickDrawbridge(z);  // Drawbridge.cs
                 if (z.Kind == ZoneKind.Bloodbath)
                     TickBloodbath(z, dt);  // Bloodbath.cs
+                if (z.Kind == ZoneKind.BloodRitual)
+                {
+                    TickRitual(z, dt);  // the price, the slow and the imps (BloodRitual.cs)
+                    continue;
+                }
                 if (z.Kind == ZoneKind.Flood)
                     TickFlood(z);  // Flood.cs
                 if (z.Kind == ZoneKind.GustGate)

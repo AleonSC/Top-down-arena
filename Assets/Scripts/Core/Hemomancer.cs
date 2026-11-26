@@ -1006,6 +1006,9 @@ namespace Arena
                 case AbilityId.Bloodbath:
                     CastBloodbath(p, cap);  // Bloodbath.cs
                     return true;
+                case AbilityId.BloodRitual:
+                    CastRitual(p, target, cap);  // BloodRitual.cs
+                    return true;
                 case AbilityId.SanguineRain:
                     CastRain(p, cap);  // SanguineRain.cs
                     return true;

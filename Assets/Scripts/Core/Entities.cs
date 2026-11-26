@@ -826,6 +826,7 @@ namespace Arena
         public bool GasLocked;              // host: GasAt is set for this wind-up
         public float SlowT, SlowMult = 1f;  // the strongest slow and its time left (host; set with Game.Slow)
         public float SlowT2, SlowMult2 = 1f;  // the next-strongest slow, taken over when the strongest ends (Game.Slow)
+        public float ImpTauntT; public int ImpTauntId;  // host: a Blood Ritual imp clawed it: it goes for that imp this long (BloodRitual.cs)
         public float WadeT, WadeMult = 1f;  // host: wading in a Bloodbath, for Heavy enemies and bosses, which the usual slow skips (Bloodbath.cs)
         public float BurnT, BurnDps;        // the Flamethrower's fire (host)
         public float BurnPool, PoolT;       // Incendiary Rounds: damage still to burn, and the time left to burn it in (host)
