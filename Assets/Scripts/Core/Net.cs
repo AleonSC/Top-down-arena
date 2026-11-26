@@ -38,7 +38,8 @@ namespace Arena
 
         /// A quiet link sends an empty frame this often, and a peer heard nothing from for PeerTimeout is dropped:
         /// a Wi-Fi drop otherwise leaves a half-open connection holding its lobby seat forever.
-        public const double KeepAliveEvery = 2.0, PeerTimeout = 30.0;
+        public const double KeepAliveEvery = 2.0;
+        public static double PeerTimeout = 30.0;  // (the sim tests step games slower than real time and turn it off)
         DateTime lastPoll = DateTime.UtcNow;
 
         /// Host: how long a connection may stay without a Hello the game accepted, and the biggest frame it may send meanwhile.
