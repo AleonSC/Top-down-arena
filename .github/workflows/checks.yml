@@ -16,6 +16,8 @@ jobs:
         run: Tools/CompileCheck/check.sh -W
       - name: CODEMAP.md lists every source file once
         run: python3 Tools/CodeMap/check.py
+      - name: CI runs every test suite
+        run: python3 Tools/SimTest/ci_coverage.py
       - name: Core suite
         run: Tools/SimTest/run.sh
   features:

@@ -114,7 +114,7 @@ static partial class Program
         float fhp = friend.Hp;
         damage.Invoke(hg, new object[] { friend, 10f, "test" });
         Check(Math.Abs(friend.IronLost - 10f * Game.IronhideShare) < 0.01f && Math.Abs(fhp - friend.Hp - 10f * (1f - Game.IronhideShare)) < 0.01f && Math.Abs(friend.IronWait - Game.IronhideDelay) < 0.01f, "the gift splits hits like Ironhide, with the base wait");
-        for (int f = 0; f < 60; f++) { Step(sh, dt); Step(client, dt); Thread.Sleep(2); }
+        for (int f = 0; f < 60; f++) { Step(sh, dt); Step(client, dt); Nap(2); }
         Check(Math.Abs(client.Game.Players[2].IronCap - Game.IronShareGift) < 0.01f, "the friend's game knows the shield (for the plates and the HUD)");
 
         // The Healer aura's falloff.

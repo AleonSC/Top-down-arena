@@ -50,7 +50,7 @@ static partial class Program
                 g.State = MatchState.Fighting;
                 s[0].Poll(); g.FixedStep(dt, new PlayerInput { AimAt = new V2(800f, 100f) }); g.Update(dt);
                 s[1].Poll(); s[1].Game.FixedStep(dt, f == 0 ? input : new PlayerInput { AimAt = input.AimAt }); s[1].Game.Update(dt);
-                if (f % 2 == 0) Thread.Sleep(1);
+                if (f % 2 == 0) Nap(1);
             }
         };
         Action reset = () => { foreach (var e in keep) e.Hp = 0f; keep.Clear(); pins.Clear(); drive(0.1f, new PlayerInput()); };

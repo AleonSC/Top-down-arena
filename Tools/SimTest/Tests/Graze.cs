@@ -33,9 +33,9 @@ static partial class Program
                 host.Poll(); client.Poll();
                 g.FixedStep(dt, new PlayerInput { AimAt = mePos + new V2(100f, 0f) });
                 client.Game.FixedStep(dt, new PlayerInput { AimAt = friendPos + new V2(100f, 0f) });
-                if (f % 2 == 0) System.Threading.Thread.Sleep(1);
+                if (f % 2 == 0) Nap(1);
             }
-            for (int k = 0; k < 5; k++) { System.Threading.Thread.Sleep(2); client.Poll(); }
+            for (int k = 0; k < 5; k++) { Nap(2); client.Poll(); }
         };
         // A shot flying left to right past `at`, `miss` px from its middle (0: straight through).
         Func<V2, float, Bullet> pass = (at, miss) =>

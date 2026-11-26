@@ -17,7 +17,7 @@ static partial class Program
                 Step(host, dt);
                 pb.Step(host, dt);
                 pb.Update(dt);
-                if (i % 2 == 0) Thread.Sleep(1);
+                if (i % 2 == 0) Nap(1);
                 if (stop != null && stop()) break;
             }
         };
@@ -114,7 +114,7 @@ static partial class Program
                 Step(host, dt);
                 pb.Step(host, dt);
                 pb.Update(dt);
-                if (i % 2 == 0) Thread.Sleep(1);
+                if (i % 2 == 0) Nap(1);
                 if (stop != null && stop()) break;
             }
         };
@@ -164,7 +164,7 @@ static partial class Program
                 Step(host, dt);
                 pb.Step(host, dt);
                 pb.Update(dt);
-                if (i % 2 == 0) Thread.Sleep(1);
+                if (i % 2 == 0) Nap(1);
                 if (stop != null && stop()) break;
             }
         };

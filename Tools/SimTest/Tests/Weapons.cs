@@ -28,14 +28,14 @@ static partial class Program
                     Step(host, dt);
                     Step(client, dt);
                     if (i % 2 == 0)
-                        Thread.Sleep(1);
+                        Nap(1);
                     foreach (var b in host.Game.Bullets.Values)
                         if (b.Kind < Defs.SmallShot)
                             fired++;
                     fired += host.Game.Effects.Count(fx => fx.Kind == FxKind.RailBeam);  // (the Railgun's beam has no bullets)
                     if (i % 30 == 0)
                     {
-                        for (int k = 0; k < 5; k++) { Thread.Sleep(2); client.Poll(); }
+                        for (int k = 0; k < 5; k++) { Nap(2); client.Poll(); }
                         foreach (var b in client.Game.Bullets.Values)
                             if (!host.Game.Bullets.ContainsKey(b.Id))
                                 ghosts++;
@@ -1040,7 +1040,7 @@ static partial class Program
                         x.Poll();
                         x.Game.FixedStep(dt, x == who ? new PlayerInput { AimAt = target, Fire = i % 4 < 2 } : new PlayerInput { AimAt = new V2(0f, 0f) });  // clicks: the Revolver is single-action (a click fires, the next cocks it)
                     }
-                    Thread.Sleep(1);
+                    Nap(1);
                     foreach (var b in host.Game.Bullets.Values)
                         if (b.Owner == me.Id && !seen.Contains(b.Id))
                             got = b.Vel.Angle;

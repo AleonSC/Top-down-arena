@@ -342,7 +342,7 @@ static partial class Program
         // The wind pushes each player on their own game, and bends bullets.
         V2 before = c.Players[2].Pos;
         float windDir = h.Herald.Wind;
-        for (int f = 0; f < 30; f++) { safe(); g.Players[1].Pos = c.Players[1].Pos = new V2(700f, 600f); Step(s[0], dt); Step(s[1], dt); Thread.Sleep(1); }
+        for (int f = 0; f < 30; f++) { safe(); g.Players[1].Pos = c.Players[1].Pos = new V2(700f, 600f); Step(s[0], dt); Step(s[1], dt); Nap(1); }
         float pushed = (c.Players[2].Pos.X - before.X) * windDir;
         Console.WriteLine("  wind: the client's player drifted {0:0} px downwind in 0.5 s", pushed);
         Check(pushed > 20f && pushed < 50f, "the wind pushes players about 70 px/s");
@@ -504,7 +504,7 @@ static partial class Program
         Run(s, dt, 22f, () => h.Devour.Turn == DevourTurn.Inhale && h.Devour.InhaleT > 1.7f, () => { safe(); Place(new V2(300f, 150f), new V2(1300f, 150f)); });
         V2 dir = V2.FromAngle(h.Facing), start = h.Pos + dir * 230f;
         Place(new V2(100f, 100f), start);
-        for (int f = 0; f < 20; f++) { safe(); g.Players[1].Pos = c.Players[1].Pos = new V2(100f, 100f); Step(s[0], dt); Step(s[1], dt); Thread.Sleep(1); }
+        for (int f = 0; f < 20; f++) { safe(); g.Players[1].Pos = c.Players[1].Pos = new V2(100f, 100f); Step(s[0], dt); Step(s[1], dt); Nap(1); }
         float pulled = start.DistanceTo(h.Pos) - c.Players[2].Pos.DistanceTo(h.Pos);
         Run(s, dt, 3f, () => h.Devour.SwallowId != 0, () => { safe(); g.Players[1].Pos = c.Players[1].Pos = new V2(100f, 100f); clear(); });
         var friend = g.Players[2];

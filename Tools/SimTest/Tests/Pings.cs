@@ -20,11 +20,11 @@ static partial class Program
         client.RequestReady(true);
         PollBoth(host, client, 40);
         host.StartMatch();
-        for (int i = 0; i < 40; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 40; i++) { Step(host, dt); Step(client, dt); Nap(2); }
         int cid = client.MyId;
 
         Check(client.SendPing(PingKind.Danger, new V2(400f, 300f)), "a client can ping in a run");
-        for (int i = 0; i < 40; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 40; i++) { Step(host, dt); Step(client, dt); Nap(2); }
         V2 at; float age;
         Check(host.Pings.Count == 1 && client.Pings.Count == 1 && host.PingNow(0, out at, out age) && client.PingNow(0, out at, out age) && (at - new V2(400f, 300f)).Length < 0.01f && client.Pings[0].Owner == cid && client.Pings[0].Kind == PingKind.Danger,
             "the ping shows on the host and on the client, with its owner and kind");
@@ -33,7 +33,7 @@ static partial class Program
         // The cap: a fourth replaces the oldest.
         for (int n = 0; n < 4; n++)
         {
-            Thread.Sleep((int)(Session.PingPause * 1000f) + 60);
+            Nap((int)(Session.PingPause * 1000f) + 60);
             Check(host.SendPing(PingKind.Here, new V2(100f + n * 10f, 200f)), "the host pings too");
         }
         PollBoth(host, client, 40);
@@ -43,7 +43,7 @@ static partial class Program
         Check(mine == Session.PingMax && host.Pings.Count == client.Pings.Count, "three live pings each at most, the oldest goes");
 
         // The host refuses a nonsense position, or a ping spammed past the pause.
-        Thread.Sleep(500);
+        Nap(500);
         int before = host.Pings.Count;
         Check(!client.SendPing(PingKind.Here, new V2(float.NaN, 5f)), "a nonsense position is never sent");
         Check(!host.SendPing((PingKind)9, new V2(5f, 5f)), "an unknown kind is never sent");

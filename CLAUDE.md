@@ -28,6 +28,10 @@ no Unity in the cloud container: check changes with the tools below.
   so never push to `main` directly. Before opening it, `git fetch origin main && git merge origin/main`; rerun
   `Tools/CompileCheck/check.sh` only (CI runs the suites), plus the suites if the merge touched `Core/` files you
   changed. Commit messages end with the session's attribution lines; no model ids in commits.
+- **Auto-merge waits for CI**: GitHub refuses `enable_pr_auto_merge` while the checks are still running ("unstable
+  status"); that is not a failure. Right after opening the PR, `subscribe_pr_activity` and end the turn; when the
+  checks pass, enable auto-merge. A check that fails is a real bug: find the cause in its log and fix it (never
+  re-run until green, skip or loosen a test). Report a PR as queued only once auto-merge is on.
 - Do the whole job: code, tests, README, a `CODEMAP.md` line for new files, then commit, push and open the auto-merge PR. End with a
   short report that names the protocol version and what's next.
 - The **very last line** of every session's final message is `Branch used: <branch>`, e.g. `Branch used: claude/xyz (PR #n, auto-merge on)` or
@@ -69,6 +73,9 @@ no Unity in the cloud container: check changes with the tools below.
 
 **Run only the relevant suites** before committing: the single-system suites for what you changed (`run.sh list`),
 plus core/features only when shared `Core/` code changed. The merge queue runs every suite, so leave the full run to it.
+A **new suite** goes in `FeatureTests` or `CiExtras` (`Tools/SimTest/Program.cs`); `Tools/SimTest/ci_coverage.py`
+(run by CI) fails on one CI wouldn't run. Tests talk over an in-memory network (`NetPeer.Loopback`): a message is there
+on the receiver's next `Poll`, so don't add `Thread.Sleep` waits for the network (`SIMTEST_TCP=1` runs real TCP).
 
 Mono may be missing: `apt-get update && apt-get install -y mono-mcs mono-runtime libmono-system-core4.0-cil`.
 

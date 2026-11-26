@@ -45,7 +45,7 @@ static partial class Program
             if (host.Game.Wave > lastWave || host.Game.State == MatchState.Victory)
                 break;
             if (frame % 600 == 0)
-                Thread.Sleep(1);
+                Nap(1);
         }
         host.Leave(""); client.Leave("");
     }

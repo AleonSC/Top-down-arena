@@ -18,13 +18,24 @@ namespace Arena
 
     /// Minimal TCP transport polled from the main thread. Messages are framed
     /// with a 4-byte length prefix. The host is peer 1; clients get 2, 3, ...
+    /// With `Loopback` on (the test suites, Tools/SimTest), hosts and joins in this process are wired together in memory
+    /// instead: a message sent is waiting on the receiver's next Poll, every time, so a test never depends on how fast the
+    /// machine's TCP stack delivers (the old cause of tests failing now and then on a busy CI machine).
     public class NetPeer
     {
+        /// Tests: connect hosts and joins in this process in memory, not over TCP (set before hosting or joining).
+        public static bool Loopback;
+
         class Conn
         {
             public int Id;
             public TcpClient Tcp;
             public NetworkStream Stream;
+            public Conn Remote;                                // loopback: the other end (null until the host accepts)
+            public NetPeer Owner;                              // loopback: the peer this end belongs to
+            public readonly Queue<byte[]> Inbox = new Queue<byte[]>();    // loopback: messages sent here, not yet read
+            public readonly List<byte[]> Unsent = new List<byte[]>();     // loopback: a joiner's sends before the host accepted
+            public bool RemoteClosed;                          // loopback: the other end hung up (or was turned away)
             public byte[] Buf = new byte[1 << 16];
             public int Len;
             public bool Dead;
@@ -63,8 +74,24 @@ namespace Arena
         readonly List<NetEvent> events = new List<NetEvent>();
         int nextId = 2;
 
+        static readonly Dictionary<int, NetPeer> loopHosts = new Dictionary<int, NetPeer>();  // loopback: hosts by port
+        readonly List<Conn> loopAccept = new List<Conn>();  // loopback host: joiners waiting to be accepted on the next Poll
+        int loopPort = -1;                                  // loopback: the port hosted on, or (a joiner) to connect to
+        bool loopJoining;
+
         public static NetPeer Host(int port)
         {
+            if (Loopback)
+            {
+                lock (loopHosts)
+                {
+                    if (loopHosts.ContainsKey(port))
+                        throw new SocketException(10048);  // (address in use, as TCP would say)
+                    var lp = new NetPeer { IsHost = true, loopPort = port };
+                    loopHosts[port] = lp;
+                    return lp;
+                }
+            }
             var peer = new NetPeer { IsHost = true };
             peer.listener = new TcpListener(IPAddress.Any, port);
             peer.listener.Start();
@@ -76,6 +103,8 @@ namespace Arena
 
         public static NetPeer Join(string host, int port)
         {
+            if (Loopback)
+                return new NetPeer { IsHost = false, loopPort = port, loopJoining = true };
             var peer = new NetPeer { IsHost = false };
             peer.pendingClient = new TcpClient();
             peer.connectTask = peer.pendingClient.ConnectAsync(host, port);
@@ -86,6 +115,10 @@ namespace Arena
         public List<NetEvent> Poll()
         {
             events.Clear();
+            if (loopJoining)
+                LoopConnect();
+            if (loopAccept.Count > 0)
+                LoopAccept();
             if (listener != null)
             {
                 while (listener.Pending())
@@ -131,11 +164,62 @@ namespace Arena
                     dead.Add(c.Id);
             foreach (int id in dead)
             {
-                conns[id].Tcp.Close();
+                Hangup(conns[id]);
                 conns.Remove(id);
                 events.Add(new NetEvent { Type = NetEventType.Disconnected, Peer = id });
             }
             return events;
+        }
+
+        /// Loopback joiner: reach the host on our port (it accepts on its next Poll), or fail at once if nobody hosts there.
+        void LoopConnect()
+        {
+            loopJoining = false;
+            NetPeer host;
+            lock (loopHosts)
+                loopHosts.TryGetValue(loopPort, out host);
+            if (host == null)
+            {
+                events.Add(new NetEvent { Type = NetEventType.ConnectFailed });
+                return;
+            }
+            var c = new Conn { Id = 1, Owner = this };
+            conns[1] = c;
+            host.loopAccept.Add(c);
+            events.Add(new NetEvent { Type = NetEventType.Connected, Peer = 1 });
+        }
+
+        /// Loopback host: take the joiners waiting (or turn them away when full), as the TCP listener does.
+        void LoopAccept()
+        {
+            foreach (var j in loopAccept)
+            {
+                if (j.RemoteClosed)
+                    continue;  // (it gave up before we got to it)
+                if (conns.Count >= MaxClients)
+                {
+                    j.RemoteClosed = true;
+                    continue;
+                }
+                var c = new Conn { Id = nextId++, Owner = this, Remote = j };
+                j.Remote = c;
+                foreach (var m in j.Unsent)
+                    c.Inbox.Enqueue(m);
+                j.Unsent.Clear();
+                conns[c.Id] = c;
+                events.Add(new NetEvent { Type = NetEventType.Connected, Peer = c.Id });
+            }
+            loopAccept.Clear();
+        }
+
+        /// Close one connection: the socket, or (loopback) tell the other end it was hung up on.
+        void Hangup(Conn c)
+        {
+            if (c.Tcp != null)
+                c.Tcp.Close();
+            if (c.Remote != null)
+                c.Remote.RemoteClosed = true;
+            c.Dead = true;
         }
 
         void AddConn(int id, TcpClient tcp)
@@ -152,6 +236,11 @@ namespace Arena
         {
             if (c.Dead)
                 return;
+            if (c.Owner != null)
+            {
+                ReadLoop(c);
+                return;
+            }
             try
             {
                 var sock = c.Tcp.Client;
@@ -207,11 +296,41 @@ namespace Arena
             }
         }
 
+        /// Loopback: hand on what was sent here (as TCP would, the rest arrives before the hang-up).
+        void ReadLoop(Conn c)
+        {
+            while (c.Inbox.Count > 0)
+            {
+                var msg = c.Inbox.Dequeue();
+                BytesIn += msg.Length + 4;
+                if (msg.Length > (IsHost && !c.Greeted ? UngreetedMaxFrame : 1 << 24))
+                {
+                    c.Dead = true;
+                    return;
+                }
+                events.Add(new NetEvent { Type = NetEventType.Data, Peer = c.Id, Data = msg });
+            }
+            if (c.RemoteClosed)
+                c.Dead = true;
+        }
+
         public void Send(int peer, byte[] data)
         {
             Conn c;
             if (!conns.TryGetValue(peer, out c) || c.Dead)
                 return;
+            if (c.Owner != null)
+            {
+                if (c.RemoteClosed)
+                    return;
+                var copy = (byte[])data.Clone();  // (the caller may reuse its buffer)
+                if (c.Remote != null)
+                    c.Remote.Inbox.Enqueue(copy);
+                else
+                    c.Unsent.Add(copy);
+                BytesOut += data.Length + 4;
+                return;
+            }
             try
             {
                 var frame = new byte[data.Length + 4];
@@ -250,8 +369,19 @@ namespace Arena
         public void Close()
         {
             foreach (var c in conns.Values)
-                c.Tcp.Close();
+                Hangup(c);
             conns.Clear();
+            foreach (var j in loopAccept)
+                j.RemoteClosed = true;
+            loopAccept.Clear();
+            loopJoining = false;
+            if (IsHost && loopPort >= 0)
+                lock (loopHosts)
+                {
+                    NetPeer h;
+                    if (loopHosts.TryGetValue(loopPort, out h) && h == this)
+                        loopHosts.Remove(loopPort);
+                }
             if (listener != null)
                 listener.Stop();
             if (pendingClient != null)

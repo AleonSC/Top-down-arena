@@ -45,7 +45,7 @@ static partial class Program
         var host = HostAs(new Session { AutoStart = 9 }, port, false, "Tank", Role.Tank, 0, 0, Kit.Soldier);  // (AutoStart: StartMatch below needs no Ready)
         var client = JoinAs(port, false, "Friend", Role.Tank, 0, 0, Kit.Soldier);
         WaitForLobby(host, client);
-        Action settle = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Thread.Sleep(1); } };
+        Action settle = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Nap(1); } };
         host.RequestUlt(1);
         client.RequestUlt(1);
         settle();

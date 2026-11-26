@@ -194,7 +194,7 @@ static partial class Program
                 host.Poll(); client.Poll();
                 g.FixedStep(dt, new PlayerInput { AimAt = me.Pos });
                 cg.FixedStep(dt, new PlayerInput { AimAt = cHome + new V2(240f, 0f), Fire = cFire });
-                Thread.Sleep(1);
+                Nap(1);
             }
         };
         cme.Pos = cHome; ally.Pos = cHome;

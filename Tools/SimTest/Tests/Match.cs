@@ -36,7 +36,7 @@ static partial class Program
         {
             Step(host, dt);
             Step(client, dt);
-            Thread.Sleep(2);
+            Nap(2);
         }
         Check(client.MyId == 2, "client got id 2");
         Check(host.Screen == AppScreen.Game && client.Screen == AppScreen.Game, "both in game after autostart");
@@ -54,7 +54,7 @@ static partial class Program
             {
                 h2.Poll();
                 other.Poll();
-                Thread.Sleep(5);
+                Nap(5);
             }
             Console.WriteLine("  friend sees: " + other.Status);
             Console.WriteLine("  host sees: " + h2.Status);
@@ -71,7 +71,7 @@ static partial class Program
             Step(host, dt);
             Step(client, dt);
             extra.Poll();
-            Thread.Sleep(2);
+            Nap(2);
         }
         Check(extra.Screen == AppScreen.Menu && host.Lobby.Count == 2, "third player rejected, lobby unchanged");
 
@@ -89,7 +89,7 @@ static partial class Program
                 recentEnemies.Dequeue();
             Step(client, dt);
             if (i % 2 == 0)
-                Thread.Sleep(1);
+                Nap(1);
             maxBullets = Math.Max(maxBullets, host.Game.Bullets.Count);
             foreach (int id in host.Game.Orbs.Keys)
                 if (hostOrbIds.Add(id))
@@ -101,7 +101,7 @@ static partial class Program
             if (i % 30 == 0)
             {
                 // Let in-flight messages land, then compare the two views.
-                for (int k = 0; k < 5; k++) { Thread.Sleep(2); client.Poll(); }
+                for (int k = 0; k < 5; k++) { Nap(2); client.Poll(); }
                 samples++;
                 // Every client bullet must exist on the host (no ghosts), every host
                 // bullet the client has already heard about must exist on the client,
@@ -195,13 +195,13 @@ static partial class Program
                 Step(host, dt);
                 Step(client, dt);
                 if (i % 2 == 0)
-                    Thread.Sleep(1);
+                    Nap(1);
                 foreach (var m in client.Game.Minions.Values)
                     if (m.Kind == MinionKind.Turret)
                         turretsSeen++;
                 if (i % 30 == 0)
                 {
-                    for (int k = 0; k < 5; k++) { Thread.Sleep(2); client.Poll(); }
+                    for (int k = 0; k < 5; k++) { Nap(2); client.Poll(); }
                     foreach (var b in client.Game.Bullets.Values)
                         if (!host.Game.Bullets.ContainsKey(b.Id))
                             ghostsAfter++;
@@ -244,23 +244,23 @@ static partial class Program
 
         // Host restarts after game over / returns everyone to the lobby.
         host.ReturnToLobby();
-        for (int i = 0; i < 30; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 30; i++) { Step(host, dt); Step(client, dt); Nap(2); }
         Check(client.Screen == AppScreen.Lobby && !client.Game.Running, "client follows host back to lobby");
 
         client.RequestRole(Role.Dps);
-        for (int i = 0; i < 30; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 30; i++) { Step(host, dt); Step(client, dt); Nap(2); }
         client.RequestWeapon(1);
-        for (int i = 0; i < 30; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 30; i++) { Step(host, dt); Step(client, dt); Nap(2); }
         Check(host.Lobby[2].Role == Role.Dps && client.Lobby[2].Role == Role.Dps, "role change reaches host and client");
 
         host.StartMatch();
-        for (int i = 0; i < 30; i++) { Step(host, dt); Step(client, dt); Thread.Sleep(2); }
+        for (int i = 0; i < 30; i++) { Step(host, dt); Step(client, dt); Nap(2); }
         Check(client.Screen == AppScreen.Game && client.Game.Players[2].Role == Role.Dps, "second match starts with new role");
         Check(host.Game.Players[2].Weapon.Id == WeaponId.Railgun, "weapon change in lobby applies (Railgun)");
 
         // Host quits: the client should drop back to the menu with a message.
         host.Leave("");
-        for (int i = 0; i < 60 && client.Screen != AppScreen.Menu; i++) { client.Poll(); Thread.Sleep(5); }
+        for (int i = 0; i < 60 && client.Screen != AppScreen.Menu; i++) { client.Poll(); Nap(5); }
         Check(client.Screen == AppScreen.Menu && client.Status.Length > 0, "client notices host leaving");
 
         BossRerollScenario(dt);
@@ -299,7 +299,7 @@ static partial class Program
         for (int i = 0; i < 600 && (a.Screen != AppScreen.Game || b.Screen != AppScreen.Game); i++)
         {
             foreach (var x in all) Step(x, dt);
-            Thread.Sleep(2);
+            Nap(2);
         }
         bool started = host.Game.Players.Count == 3 && a.Game.Players.Count == 3 && b.Game.Players.Count == 3;
         float hpRatio = 0f;
@@ -308,7 +308,7 @@ static partial class Program
         for (int i = 0; i < 60 * 90 && host.Game.Wave < 4; i++)
         {
             foreach (var x in all) Step(x, dt);
-            if (i % 2 == 0) Thread.Sleep(1);
+            if (i % 2 == 0) Nap(1);
             foreach (var p in host.Game.Players.Values)
                 p.InvulnT = 1f;
             foreach (var e in host.Game.Enemies.Values)
@@ -316,7 +316,7 @@ static partial class Program
                     hpRatio = e.MaxHp / (e.Def.Hp * (1f + 0.15f * (host.Game.Wave - 1)));
             if (i % 120 == 0)
             {
-                for (int k = 0; k < 5; k++) { Thread.Sleep(2); a.Poll(); b.Poll(); }
+                for (int k = 0; k < 5; k++) { Nap(2); a.Poll(); b.Poll(); }
                 foreach (var c in new[] { a, b })
                 {
                     foreach (var bl in c.Game.Bullets.Values)

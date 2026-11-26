@@ -267,6 +267,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Drawbridge | Dps | ultimate | 75 s | - | The bridge stands for 8 s. | A drawbridge crushes the lane ahead, then blocks enemies and shots. |
 | Warhorn Volley | Dps | ultimate | 70 s | - | The volley is 40% wider and the fire burns for 8 s. | A volley of fire arrows sweeps the field, burning and pinning enemies. |
 | Ballista | Dps | ultimate | 75 s | - | 10 bolts, and each one pins what it hits. | A giant ballista drops in front of you. Anyone can mount it (Interact) and fire 8 giant bolts that go through everything. |
+| Cannon Call | Dps | 1st, choice 5 | 12 s | - | Two smaller balls land either side of the mark along your aim. | Flare a spot and a cannonball slams into it, blasting and stunning the pack; 3 kills give back half the cooldown. |
 
 ### Ninja
 

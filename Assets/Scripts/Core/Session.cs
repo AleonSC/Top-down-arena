@@ -348,7 +348,7 @@ namespace Arena
         readonly Dictionary<int, double> emoteLast = new Dictionary<int, double>();
         double emoteReadyAt;
         static readonly System.Diagnostics.Stopwatch clock = System.Diagnostics.Stopwatch.StartNew();
-        public static double Clock => clock.Elapsed.TotalSeconds;
+        public static double Clock => TestClock != null ? TestClock() : clock.Elapsed.TotalSeconds;  // (tests: their own clock, LobbyAvatars.cs TestClock)
 
         public bool AnyEmote;  // a lobby bot (PartyBots.cs): every emote is its own, whatever its rank
         public readonly HashSet<int> BotSeats = new HashSet<int>();  // host: the lobby seats that belong to lobby bots (they may play any emote)
