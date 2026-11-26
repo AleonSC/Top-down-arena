@@ -832,6 +832,7 @@ namespace Arena
             }
             trauma = Mathf.Max(0f, trauma - realDt * 1.8f);
             TwinKickStep(realDt);  // the Twin Rifle's screen kick (TwinRifleFx.cs)
+            BlurStep(realDt);      // a launch's blur (LaunchBlur.cs)
             ChargeCamStep(game.Me, realDt);  // a charge weapon's draw pull-back and release kick (ChargeCameraFx.cs)
             hurtTint = Mathf.Max(0f, hurtTint - realDt * 2.2f);
             introT = Mathf.Max(0f, introT - realDt);
@@ -1059,6 +1060,7 @@ namespace Arena
             }
             BeginTwinKick(game.Me);  // the Twin Rifle's push and punch (TwinRifleFx.cs)
             BeginChargeCam(game.Me); // a charge weapon's pull-back and kick (ChargeCameraFx.cs)
+            BeginBlurFrame();        // a launch's blur records the frame (LaunchBlur.cs)
         }
 
         void EndJuiceFrame()
@@ -1381,7 +1383,7 @@ namespace Arena
                 FpVtx(v);  // first person: collected, drawn far to near (FirstPerson.cs)
                 return;
             }
-            if (recording)
+            if (recording || blurRec)  // (the blur's recording too: LaunchBlur.cs)
             {
                 recVerts.Add(v);
                 recCols.Add(glCur);
@@ -1457,18 +1459,18 @@ namespace Arena
         {
             if (!Juicy)
                 return;
-            if (recording) recGlowFrom.Add(recVerts.Count);
+            if (recording || blurRec) recGlowFrom.Add(recVerts.Count);
             SwitchToGlow(true);
             DrawGlowPass();
             SwitchToGlow(false);
-            if (recording) recGlowTo.Add(recVerts.Count);
+            if (recording || blurRec) recGlowTo.Add(recVerts.Count);
         }
 
         void EndRecording()
         {
             if (recording)
                 heldFrame = true;
-            recording = false;
+            recording = blurRec = false;
         }
 
         // --- On the HUD (IMGUI): damage numbers, the boss's entrance -----------------------------------------------------

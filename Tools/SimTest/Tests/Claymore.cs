@@ -18,8 +18,8 @@ static partial class Program
         var def = Upgrades.Ability(AbilityId.Claymore);
         Check(def.Name == "Claymore" && def.Choice == 2 && def.Kit == Kit.Soldier && def.Role == Role.Dps && def.Cooldown == 5f && def.ExtraCharges == 1,
             "Claymore: a 5 s DPS Soldier 1st ability with two charges, on the 3rd key");
-        Check(Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 2) == AbilityId.Claymore && Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 3) == AbilityId.DeployableTurret,
-            "the DPS Soldier's 3rd key is Claymore; the turret stays on the 4th");
+        Check(Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 2) == AbilityId.Claymore,
+            "the DPS Soldier's 3rd key is Claymore");
         Check(Upgrades.All.Any(u => u.Name == "Shaped Charge" && u.RequiresAbility == AbilityId.Claymore && u.Rarity == Rarity.Rare)
             && !Upgrades.All.Any(u => u.Name == "Exploit Weakness"), "Shaped Charge is its Rare card (Exploit Weakness is gone)");
 

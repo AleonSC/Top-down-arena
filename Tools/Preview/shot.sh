@@ -86,7 +86,7 @@
 # GAUNTLET=<clock s> (with GRIDCORE=1 EXPANDMAP=0: the Relic Gauntlet, RelicGauntlet.cs, at that laser clock; GAUNTLETAT=<0-1800> where you stand, GAUNTLETSPOT=<n>; ZOOM=0.45 sees it whole; clip.sh ... GAUNTLET=0:7:0.1 animates it).
 # ZOOM=1.8 (the scroll-wheel zoom on you, CameraZoom.cs).
 # FPV=<yaw deg>|big[,<pitch deg>] (the first-person view looking that way, FirstPerson.cs; 0 east, 90 south; big: at the biggest enemy; FPVKICK=<1-0>[,<swings>] the weapon mid-kick; FPVWEAPON=<WeaponId> hold that weapon).
-# MAPVIEW=<from>,<to>,<t> (the Map key's switch: 0 minimap, 1 full map, 2 off, t of the way; MapView.cs), MAPCYCLE=<s> (a scripted M, M, M for clip.sh); with EXPANDMAP=6 ZOOM=1.5.
+# MAPSTYLE=<0-2> (the map's dress: 1 Holo, the default; 0 old, 2 Blueprint; MapStyleLook.cs). MAPVIEW=<from>,<to>,<t> (the Map key's switch: 0 minimap, 1 full map, 2 off, t of the way; MapView.cs), MAPCYCLE=<s> (a scripted M, M, M for clip.sh); with EXPANDMAP=6 ZOOM=1.5.
 # NADET=<s> (the Twin Rifle's Rocket assist that long after a launch), NADELOAD=<s> (a tube loading; TwinNadeLook.cs);
 #   with RIFLEFIRE=1 (holding fire: the Twin Rifle held wide, Spread arms) and CROSSAT=<px> (the cursor's distance).
 # BALLISTA=<s since the cast> [BALLISTACAP=1 mastered] [BALLISTARIDE=<s>, -1 nobody] (the DPS Knight's Ballista played through the game, shot.sh x hud 1 6 1: falls 0-0.6, you climb on at 0.8 and fire a bolt every 0.9 s; use 0.3, 1, 3.2, 8.2; ShotBallista.cs).

@@ -20,9 +20,9 @@ static partial class Program
         var def = Upgrades.Ability(AbilityId.OrbitalLaser);
         Check(def.Name == "Orbital Laser" && def.Cooldown == 90f && def.Choice == AbilityDef.Ult && def.UltKey == 2 && def.Kit == Kit.Soldier && def.Role == Role.Dps && def.Capstone != null,
             "Orbital Laser is the DPS Soldier's ultimate on key 2, 90 s");
-        Check(Upgrades.Ultimate(Role.Dps, Kit.Soldier) == AbilityId.ArtilleryAssault && Upgrades.Ultimate(Role.Dps, Kit.Soldier, 1) == AbilityId.AttackHelicopter
+        Check(Upgrades.Ultimate(Role.Dps, Kit.Soldier) == AbilityId.DeployableTurret && Upgrades.Ultimate(Role.Dps, Kit.Soldier, 1) == AbilityId.AttackHelicopter
             && Upgrades.Ultimate(Role.Dps, Kit.Soldier, 2) == AbilityId.OrbitalLaser,
-            "Artillery Assault stays the default and the Attack Helicopter key 1; key 2 is Orbital Laser");
+            "the Deployable Turret is the default and the Attack Helicopter key 1; key 2 is Orbital Laser");
         int wild = Upgrades.WildUlt(Kit.Soldier, 2);
         Check(Upgrades.ClampUlt(Role.Wildcard, Kit.Soldier, wild) == wild && Upgrades.Ultimate(Role.Wildcard, Kit.Soldier, wild) == AbilityId.OrbitalLaser,
             "a Wildcard can pick it too");

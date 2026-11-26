@@ -18,6 +18,7 @@ namespace Arena
         class NadeSeen { public V2 Off; public float T, Puff; }
 
         const float NadeKickTime = 0.2f, NadeSettle = 0.12f, NadeLead = 0.12f, NadeShellIn = 0.17f, NadeSnap = 0.2f;
+        const float NadeShake = 0.25f, NadeBlurPx = 3f, NadeBlurTime = 0.14f;  // your own launch: shake trauma, the blur's offset each way and how long it fades
         static readonly Rgba NadeFlame = new Rgba(1f, 0.63f, 0.27f), NadeFlameCore = new Rgba(1f, 0.94f, 0.78f), NadeFlashCol = new Rgba(0.92f, 1f, 0.76f);
 
         readonly Dictionary<int, NadeSeen> nadeSeen = new Dictionary<int, NadeSeen>();
@@ -102,6 +103,16 @@ namespace Arena
             n.Off = mouth - b.Pos;
             n.T = juiceClock;
             n.Puff = 0f;
+            if (owner.Id == game.MyId)
+                NadeLaunchFeel(gd);
+        }
+
+        /// Your own launch: a slight shake and a quick blur along the shot (LaunchBlur.cs).
+        void NadeLaunchFeel(V2 gd)
+        {
+            if (trauma < 0.3f)
+                Shake(NadeShake);
+            ScreenBlur(gd, NadeBlurPx, NadeBlurTime);
         }
 
         /// Where a grenade is drawn: its real position plus what is left of its lead-in from the tube.

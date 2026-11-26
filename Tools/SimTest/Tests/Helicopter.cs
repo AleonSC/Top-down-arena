@@ -23,9 +23,9 @@ static partial class Program
         var def = Upgrades.Ability(AbilityId.AttackHelicopter);
         Check(def.Name == "Attack Helicopter" && def.Cooldown == 70f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Role == Role.Dps && def.Kit == Kit.Soldier && def.Capstone != null,
             "the Attack Helicopter is the DPS Soldier's ultimate on key 1, 70 s");
-        Check(Upgrades.Ultimate(Role.Dps, Kit.Soldier) == AbilityId.ArtilleryAssault && Upgrades.Ultimate(Role.Dps, Kit.Soldier, 1) == AbilityId.AttackHelicopter
+        Check(Upgrades.Ultimate(Role.Dps, Kit.Soldier) == AbilityId.DeployableTurret && Upgrades.Ultimate(Role.Dps, Kit.Soldier, 1) == AbilityId.AttackHelicopter
             && Upgrades.AltUltimate(Role.Dps, Kit.Soldier, 2) == AbilityId.OrbitalLaser && Upgrades.AltUltimate(Role.Tank, Kit.Soldier, 1) == AbilityId.JuggernautSuit,
-            "Artillery Assault stays the default; key 1 is the Attack Helicopter (key 2 Orbital Laser); the Tank Soldier keeps the Juggernaut Suit");
+            "the Deployable Turret is the default; key 1 is the Attack Helicopter (key 2 Orbital Laser); the Tank Soldier keeps the Juggernaut Suit");
         int wild = Upgrades.WildUlt(Kit.Soldier, 1);
         Check(Upgrades.ClampUlt(Role.Wildcard, Kit.Soldier, wild) == wild && Upgrades.Ultimate(Role.Wildcard, Kit.Soldier, wild) == AbilityId.AttackHelicopter,
             "a Wildcard can pick it too");
