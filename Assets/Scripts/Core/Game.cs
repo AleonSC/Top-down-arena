@@ -1546,6 +1546,7 @@ namespace Arena
             TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders
             TickSpirit(dt);     // SpiritAvatar.cs: the spirit's time, Moon Cleaves and swallowed shots
             TickGaleWalls(dt);  // GaleWall.cs: lenses run down and unleash
+            TickSanctumGlass(dt);  // SanctumGlass.cs: panes run down and shatter, motes land and heal
             TickWaterWards(dt);    // WaterWard.cs: the drops circle, land, spread and splash
             TickHarvest(dt);    // CrimsonHarvest.cs: blood torn out, the ball held and thrown
             TickBloodFreeze(dt);  // BloodFreeze.cs: the shockwave freezing what it reaches

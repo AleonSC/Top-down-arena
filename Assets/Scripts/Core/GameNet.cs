@@ -752,6 +752,15 @@ namespace Arena
             }
             else if (s.Reading)
                 p.GaleDots.Clear();
+            s.Float(ref p.GlassT);  // Sanctum Glass (SanctumGlass.cs)
+            if (p.GlassT > 0f)
+            {
+                s.Vec(ref p.GlassPos);
+                s.Float(ref p.GlassAim);
+                s.Bool(ref p.GlassWide);
+                s.Float(ref p.GlassHealed);
+                s.Float(ref p.GlassCap);
+            }
             int drops = Math.Min(Game.WwMax, p.WwOff.Count);  // Water Ward (WaterWard.cs)
             s.Byte(ref drops);
             if (drops > 0)

@@ -717,6 +717,11 @@ namespace Arena
                 scratchIds.Add(b.Id);  // a Gale Wall: everything stops in its lens, red aimed shots too, and charges it (GaleWall.cs)
                 return;
             }
+            if (GlassStops(b))
+            {
+                scratchIds.Add(b.Id);  // a Sanctum Glass: every enemy shot that touches it turns into a healing mote (SanctumGlass.cs)
+                return;
+            }
             if (WardStops(b))
             {
                 scratchIds.Add(b.Id);  // a Water Ward drop eats it and bursts into mist (WaterWard.cs)

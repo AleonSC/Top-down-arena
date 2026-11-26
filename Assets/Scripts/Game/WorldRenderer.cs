@@ -669,6 +669,8 @@ namespace Arena
                 DrawRain(p, t);
             if (p.GaleT > 0f)  // Gale Wall's lens and the shots hung in it (GaleWallLook.cs)
                 DrawGaleWall(p, t);
+            if (p.GlassT > 0f)  // Sanctum Glass's pane (SanctumGlassLook.cs)
+                DrawSanctumGlass(p, t);
             if (p.HarvestHold > 0f)  // Crimson Harvest's ball and tendrils (CrimsonHarvestLook.cs)
                 DrawHarvest(p, t);
             if (p.OrbitT > 0f)  // Blade Fan's circling kunai (NinjaLooks.cs)
