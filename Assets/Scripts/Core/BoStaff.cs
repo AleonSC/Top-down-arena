@@ -6,7 +6,7 @@ namespace Arena
     /// The Bo Staff's shove (Docs/Mockups/bo-staff-rework.html). The weapon-action key turns the staff sideways and drives it
     /// out ahead of you as a bar: everything in it takes a little damage and is pushed straight ahead. It also starts the
     /// slash, jab, spin chain over (the chain itself is in FireNinjaWeapon, Ninja.cs). Your game sends Msg.WeaponDash
-    /// (DashShove) as with the other weapon moves; the host checks the cooldown and lands the shove BoShoveWind later, once
+    /// (WeaponAlt.Shove) as with the other weapon moves; the host checks the cooldown and lands the shove BoShoveWind later, once
     /// the staff has been drawn back (the look, Game/BoStaffLook.cs, plays from the same moment).
     public partial class Game
     {

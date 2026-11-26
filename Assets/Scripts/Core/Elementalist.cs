@@ -139,21 +139,21 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Aeroaegis, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 0,
-                Name = "Aeroaegis", Cooldown = 11f, Desc = "A wind vortex wraps a player: enemies can't enter and bullets reflect back.",
+                Name = "Aeroaegis", Icon = "aeroaegis", Cooldown = 11f, Desc = "A wind vortex wraps a player: enemies can't enter and bullets reflect back.",
                 Capstone = "Lasts 4.5 s and reflects bullets for double damage.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.FrostNova, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 1, Instant = true,
-                Name = "Frost Nova", Cooldown = 12f, Desc = "Freeze every enemy near you and damage them.",
+                Name = "Frost Nova", Icon = "snow", Cooldown = 12f, Desc = "Freeze every enemy near you and damage them.",
                 Capstone = "Also erases enemy bullets around you.",
                 Bot = b => b.Danger || b.HaveTarget && b.TargetD < 230f,
             },
             new AbilityDef
             {
                 Id = AbilityId.FlameWall, Kit = Kit.Elementalist, Role = Role.Tank, Choice = 2,
-                Name = "Flame Wall", Cooldown = 14f, Desc = "A wall of fire at your cursor that burns enemies and blocks bullets.",
+                Name = "Flame Wall", Icon = "flame", Cooldown = 14f, Desc = "A wall of fire at your cursor that burns enemies and blocks bullets.",
                 Capstone = "The fire also slows enemies by 40%.",
             },
             new AbilityDef
@@ -166,21 +166,21 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.HealingRain, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 0,
-                Name = "Healing Rain", Cooldown = 16f, Desc = "A rain at your cursor that heals allies and slows enemies.",
+                Name = "Healing Rain", Icon = "rain", Cooldown = 16f, Desc = "A rain at your cursor that heals allies and slows enemies.",
                 Capstone = "Lasts 10 s, and downed allies inside revive twice as fast.",
                 Bot = b => b.AllyHurt,
             },
             new AbilityDef
             {
                 Id = AbilityId.GustGate, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 1,  // Gust Gate (GustGate.cs)
-                Name = "Gust Gate", Cooldown = GgCooldown, Desc = "A wind ring that gives anyone passing through a speed boost.",
+                Name = "Gust Gate", Icon = "galewall", Cooldown = GgCooldown, Desc = "A wind ring that gives anyone passing through a speed boost.",
                 Capstone = "The ring is 40% wider and pushes enemies twice as hard.",
                 Bot = b => b.Danger,
             },
             new AbilityDef
             {
                 Id = AbilityId.LumenWard, Kit = Kit.Elementalist, Role = Role.Healer, Choice = 2,  // Lumen Ward (LumenWard.cs)
-                Name = "Lumen Ward", Cooldown = 20f, Desc = "A cone of light that heals allies and burns away enemy bullets.",
+                Name = "Lumen Ward", Icon = "aura", Cooldown = 20f, Desc = "A cone of light that heals allies and burns away enemy bullets.",
                 Capstone = "Also freezes enemies outside the light for as long as it lasts (not bosses).",
                 Bot = b => b.AllyHurt || b.Danger,
             },
@@ -195,25 +195,25 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Meteor, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 0,
-                Name = "Meteor", Cooldown = 10f, Desc = "Call a meteor down at your cursor.",
+                Name = "Meteor", Icon = "explode", Cooldown = 10f, Desc = "Call a meteor down at your cursor.",
                 Capstone = "Leaves burning ground for 3 s.",
             },
             new AbilityDef
             {
                 Id = AbilityId.Blizzard, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 1,
-                Name = "Blizzard", Cooldown = 14f, Desc = "A storm at your cursor that slows and damages enemies.",
+                Name = "Blizzard", Icon = "snow", Cooldown = 14f, Desc = "A storm at your cursor that slows and damages enemies.",
                 Capstone = "Lasts 10 s.",
             },
             new AbilityDef
             {
                 Id = AbilityId.Tsunami, Kit = Kit.Elementalist, Role = Role.Dps, Choice = 2,
-                Name = "Tsunami", Cooldown = 16f, Desc = "A wave that soaks enemies, so lightning arcs to every one.",
+                Name = "Tsunami", Icon = "cyclone", Cooldown = 16f, Desc = "A wave that soaks enemies, so lightning arcs to every one.",
                 Capstone = "Wet lasts 14 s, and the wave rolls back to you, wetting what it missed.",
             },
             new AbilityDef
             {
                 Id = AbilityId.GaleWall, Kit = Kit.Elementalist, Role = Role.Dps, Choice = AbilityDef.Fourth,
-                Name = "Gale Wall", Cooldown = 18f,
+                Name = "Gale Wall", Icon = "galewall", Cooldown = 18f,
                 Desc = "A wind wall that traps enemy shots, then unleashes them as a blast.",
                 Capstone = "The wall is 40% wider and holds up to 60 charges.",
             },

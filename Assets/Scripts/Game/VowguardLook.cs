@@ -50,7 +50,7 @@ namespace Arena
         Effect VgFxOf(int id)
         {
             Effect best = null;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.VgStep))
             {
                 if (fx.Kind != FxKind.VgStep || fx.T >= fx.Dur || Mathf.RoundToInt(fx.Radius) / 100 != id)
                     continue;

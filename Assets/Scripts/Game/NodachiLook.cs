@@ -29,7 +29,7 @@ namespace Arena
         Effect NodFxOf(int id)
         {
             Effect best = null;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.NodStep))
                 if (fx.Kind == FxKind.NodStep && fx.T < fx.Dur && Mathf.RoundToInt(fx.Radius) / 100 == id && (best == null || fx.T < best.T))
                     best = fx;
             return best;

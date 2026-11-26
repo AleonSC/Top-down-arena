@@ -14,7 +14,7 @@ Concepts A (Swipe & Bend) and C (Wind-up & Flick) are in the same mockup and wer
   again (0.25 s). A shield or cover that stops it puts it straight back in your hand.
 
 ## How it's built
-- `Core/GreatStar.cs`: the switch (`HostStarSwitch`, the old `DashRecall` kind), the route on your own game (`LocalGreatStar`),
+- `Core/GreatStar.cs`: the switch (`HostStarSwitch`, the old `WeaponAlt.Recall` kind), the route on your own game (`LocalGreatStar`),
   the throw (`Msg.StarThrow` guest -> host with the points; host -> all with bullet id, owner and points), the flight on every game
   (`TickGreatStars`; Msg.Steer keeps clients in step).
 - `Game/GreatStarLook.cs`: the held star, the ink route and ink bar, the thrown star and its trail.

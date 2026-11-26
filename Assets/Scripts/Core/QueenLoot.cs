@@ -215,7 +215,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.RoyalDive,
-                Name = "Royal Dive", Cooldown = 12f,
+                Name = "Royal Dive", Icon = "royaldive", Cooldown = 12f,
                 Desc = "Leap and crash down at your cursor, leaving a honey pool.",
                 Capstone = "A wider honey pool (150 px) that lasts 6 s.",
                 Bot = b => b.HaveTarget && b.TargetD > 120f && b.TargetD < 380f || b.BotDanger > 2.5f,

@@ -28,11 +28,8 @@ namespace Arena
 
     /// Everything about the Lich's fight its body doesn't carry. The host runs it; clients get it in the snapshot
     /// (SyncLich) to draw the graves, the soul sweep, the prisons, the spirits and the phase change.
-    public class LichState
+    public class LichState : BossFight<LichStage, LichTurn>  // TransT: > 0 changing phase (can't be hurt), counting down
     {
-        public LichStage Stage, TransTo;
-        public LichTurn Turn;
-        public float TurnT, TransT;      // seconds into the turn; > 0: changing phase (can't be hurt), counting down
         public float Window;             // > 0: its phylacteries are broken and it can be hurt, for this long
         public byte SweepOn;             // the soul sweep: 0 off, 1 warning, 2 live
         public float SweepA;             // its angle
@@ -42,8 +39,8 @@ namespace Arena
         public readonly List<LichSpirit> Spirits = new List<LichSpirit>();
 
         // Host only.
-        public int Step = -1, Fired, PhylLeft;  // PhylLeft: phylacteries standing last tick (a drop cracks)
-        public float TurnLen, Rebuild, SweepFrom, SweepDir, SweepT, FanT, RingT, RiseT, HandT, HopT;
+        public int PhylLeft;  // PhylLeft: phylacteries standing last tick (a drop cracks)
+        public float Rebuild, SweepFrom, SweepDir, SweepT, FanT, RingT, RiseT, HandT, HopT;
     }
 
     /// The Lich (wave 35): a fight in three phases by its health, like the Warden's, then a last stand.
@@ -95,7 +92,7 @@ namespace Arena
             return new V2(lo.X + (hi.X - lo.X) * GraveFx[i], lo.Y + (hi.Y - lo.Y) * GraveFy[i]);
         }
 
-        LichState LichOf(Enemy e) => e.Lich ?? (e.Lich = new LichState());
+        LichState LichOf(Enemy e) => BossOf<LichState>(e);
 
         public static bool LichImmune(Enemy e) => e.Type == EnemyType.Lich && (e.Phase == LichGuarded || e.Phase == LichFaded || e.Phase == LichShift);
 
@@ -301,11 +298,7 @@ namespace Arena
 
         void NextLichTurn(Enemy e, LichState s)
         {
-            var turns = LichTurns[(int)s.Stage];
-            s.Step = (s.Step + 1) % turns.Length;
-            s.Turn = turns[s.Step];
-            s.TurnLen = BossTurnLen((byte)s.Turn, LichTimes[(int)s.Stage][s.Step]);  // (the tier's rest pace: BossRules.cs)
-            s.TurnT = 0f;
+            s.NextTurn(this, LichTurns, LichTimes);
             s.Fired = 0;
             s.SweepOn = 0;
             s.HandT = s.HopT = 0f;

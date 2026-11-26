@@ -12,7 +12,7 @@ namespace Arena
     /// user's to hit it (Enemy.BlastOwner); when the enemy dies (BlastKill, the Hemomancer's KitDef.OnKill) its blood flies back
     /// to them as a Blood Vortex and heals BlastHealPerStack a stack as it arrives, BlastReturnTime later (TickBloodBlast).
     /// The step is the host's (Player.BlastStep) and is mirrored in Player.Combo (count above, step in the low 3 bits) for the look.
-    /// Alt (the weapon-action key, Msg.WeaponDash DashTide), Crimson Tide: TideCost of max health and a TideCd cooldown; the blood
+    /// Alt (the weapon-action key, Msg.WeaponDash WeaponAlt.Tide), Crimson Tide: TideCost of max health and a TideCd cooldown; the blood
     /// gathers for TideCharge, then a crescent (TideHalf either side of the aim) rolls out from TideR0 to TideR1 over TideTravel,
     /// hitting every enemy it reaches once for TideMult x the weapon's damage, shoving it TideKnock and adding a stack (TickTide).
     /// Extra projectiles: +15% damage and reach each (BlastGrow), the Tide's too.
@@ -186,7 +186,6 @@ namespace Arena
 
         public const float TideCost = 0.12f, TideCd = 8f, TideCharge = 0.65f, TideTravel = 0.65f, TideR0 = 40f, TideR1 = 400f;
         public const float TideHalf = 50f * MathX.Pi / 180f, TideMult = 60f / 22f, TideKnock = 150f;
-        const byte DashTide = 46;
 
         class TideRun
         {
@@ -212,11 +211,11 @@ namespace Arena
                 return false;
             tideLocalCd = TideCd;
             if (IsHost)
-                HostWeaponDash(MyId, DashTide, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.Tide, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashTide);
+                w.Write(WeaponAlt.Tide);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

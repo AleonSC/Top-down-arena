@@ -31,7 +31,7 @@ namespace Arena
         {
             if (!ReferenceEquals(game, session.Game))
                 return false;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.BossBeam))
                 if (fx.Kind == FxKind.BossBeam && (int)(fx.Radius + 0.5f) == p.Id && fx.T >= BeamLiftAt && fx.T < BeamLandAt)
                     return true;
             return false;

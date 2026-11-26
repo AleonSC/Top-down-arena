@@ -8,8 +8,6 @@ namespace Arena
     public partial class ArenaApp
     {
         
-        static readonly Color ModColor = new Color(0.85f, 0.45f, 0.95f);
-
         int lobbyTab;              // 0 = your loadout (its own key), 1 = unused (was the Practice Range), 2 = modifiers, 3 = difficulty, 4 = boss hunt, 5 = perks (from the loadout), 6 = the retired Hangout room, 12 = Practice (HangoutUi.cs)
         bool connInfoOpen;         // the "!" popup by the title: hosting/port and the invite addresses
         readonly Player previewPlayer = new Player { Id = -100 };

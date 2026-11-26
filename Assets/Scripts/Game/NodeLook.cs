@@ -145,26 +145,7 @@ namespace Arena
             }
         }
 
-        // The relic and vector chest nodes' opening (each is spent the moment someone walks up, so each screen times it from when it saw the change).
-        readonly HashSet<long> nodeSeenShut = new HashSet<long>();
-        readonly Dictionary<long, float> nodeOpenedAt = new Dictionary<long, float>();
         internal static float PreviewOpenAge = -1f;  // preview RELICOPEN=<s> / VECOPEN=<s>: every spent relic or vector chest node opened that long ago
-
-        static long OpenKey(V2 c, ChestKind k) => ((long)Mathf.RoundToInt(c.X) << 32) ^ (uint)Mathf.RoundToInt(c.Y) ^ ((long)k << 60);
-
-        /// Seconds since this node opened: from when this screen first saw it spent after seeing it shut; one already spent when first seen is long open.
-        float NodeOpenAge(long key, float t)
-        {
-            if (PreviewOpenAge >= 0f)
-                return PreviewOpenAge;
-            float at;
-            if (nodeOpenedAt.TryGetValue(key, out at))
-                return t - at;
-            if (!nodeSeenShut.Remove(key))
-                return 99f;
-            nodeOpenedAt[key] = t;
-            return 0f;
-        }
 
         /// A chest opening (the relic and vector chest nodes, and every chest prop): the chest shakes and flashes, the lid flies up, rings burst out in its ink, light pours up with
         /// its emblems rising, and the prize (the relic's gem, or the vector arrow) climbs out, spins and shoots off; then it settles dim with the lid up.
@@ -279,18 +260,6 @@ namespace Arena
             Ui.Fill(new Rect(chip.x + 3f, chip.y + 4f, 3f, chip.height - 8f), ink);
             Ui.Label(new Rect(chip.x + 12f, chip.y, w, chip.height), text, 10, ink, TextAnchor.MiddleLeft, true);
             return true;
-        }
-
-        /// A relic: a cut diamond, scaled.
-        void RelicGem(V2 c, float k, Rgba col)
-        {
-            V2 top = c + new V2(0f, -20f * k), right = c + new V2(15f * k, -6f * k), bottom = c + new V2(0f, 20f * k), left = c + new V2(-15f * k, -6f * k);
-            Line(top, right, 3f * k, col);
-            Line(right, bottom, 3f * k, col);
-            Line(bottom, left, 3f * k, col);
-            Line(left, top, 3f * k, col);
-            Line(left, right, 2f * k, col.WithAlpha(col.A * 0.7f));  // the girdle
-            Line(top, bottom, 1.5f * k, col.WithAlpha(col.A * 0.45f));
         }
 
         /// A fogged node's "?": a hook over a stem and a dot, scaled.

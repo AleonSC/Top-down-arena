@@ -275,19 +275,6 @@ namespace Arena
         public float RecentKbIn => Recent(KbInAt, 4);
         public float RecentKbOut => Recent(KbOutAt, 4);
 
-        /// The worst ping on the strip (30 s), NaN if none.
-        public float StripMaxPing
-        {
-            get
-            {
-                float m = float.NaN;
-                for (int i = 0; i < filled; i++)
-                    if (!float.IsNaN(PingAt(i)) && (float.IsNaN(m) || PingAt(i) > m))
-                        m = PingAt(i);
-                return m;
-            }
-        }
-
         // --- Totals -----------------------------------------------------------------------
 
         public int PingCount => pings.Count;

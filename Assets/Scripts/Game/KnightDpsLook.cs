@@ -116,20 +116,6 @@ namespace Arena
             Ellipse(P(-1f, 11.5f), 6.6f, 5.2f, ang, col.WithAlpha(0.8f * alpha), 10);
         }
 
-        /// A dashed circle.
-        void KDashedRing(V2 c, float r, float w, Rgba col, float dash, float gap, float offset)
-        {
-            if (r <= 1f)
-                return;
-            float per = dash + gap, circ = MathX.Tau * r;
-            for (float s = -Mathf.Repeat(offset, per); s < circ; s += per)
-            {
-                float a0 = Mathf.Max(0f, s) / r, a1 = Mathf.Min(circ, s + dash) / r;
-                if (a1 > a0)
-                    Arc(c, r, w, col, 3, a0, a1 - a0);
-            }
-        }
-
         /// Hooked into the arena's drawing (WorldRenderer.cs): under the enemies, over them, and over the players.
         void DrawKnightDpsUnder(float t)
         {
@@ -591,7 +577,7 @@ namespace Arena
                     Line(c + d * (29f * grow), c + d * (34f * grow), 2f, HeraldAccent.WithAlpha(0.75f * fade));
                 }
             }
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.GauntletCharge))
             {
                 if (fx.Kind != FxKind.GauntletCharge)
                     continue;
@@ -627,7 +613,7 @@ namespace Arena
         {
             if (!p.GauntletDown)
                 return;
-            foreach (var fx in game.Effects)  // still in the air: the throw draws it
+            foreach (var fx in FxOf(FxKind.GauntletThrow))  // still in the air: the throw draws it
                 if (fx.Kind == FxKind.GauntletThrow && (int)(fx.Radius / 10f + 0.001f) == p.Id && fx.T < GauntletFlight(fx))
                     return;
             V2 away = p.GauntletRest - p.Disp;

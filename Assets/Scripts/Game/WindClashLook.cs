@@ -224,7 +224,7 @@ namespace Arena
         /// The glow pass: a soft light along each wave's bright edge and in the Tempest's eye.
         void DrawWindClashGlow()
         {
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.WindWave))
             {
                 if (fx.Kind != FxKind.WindWave)
                     continue;
@@ -261,7 +261,7 @@ namespace Arena
         void WcHandPose(Player p, ref float rhx, ref float rhy, ref float lhx, ref float lhy)
         {
             Effect last = null;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.WindWave))
                 if (fx.Kind == FxKind.WindWave && (int)fx.Pos2.Y / 4 == p.Id && (last == null || fx.T < last.T))
                     last = fx;
             if (last == null || last.T > 0.5f)

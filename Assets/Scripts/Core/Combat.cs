@@ -304,6 +304,8 @@ namespace Arena
             bool held = ArenaHeld, cells = HoldingCells.Count > 0;  // the fight paused while everyone's in a Holding Cell (HoldingCell.cs)
             foreach (var b in Bullets.Values)
             {
+                b.Prev = b.Pos;  // (Enters: did it come in from outside a blocker this tick)
+                b.HasPrev = true;
                 if (held && !InCellZone(b.Pos))
                     continue;  // shots in the arena hold still
                 if (b.AngVel != 0f && b.Kind != Defs.FumaStar)  // a Fuma Shuriken's AngVel only says which way it loops (Ninja.cs)
@@ -1016,7 +1018,8 @@ namespace Arena
                 if (e.Hp <= 0f)
                     dead.Add(e);
             foreach (var e in dead)
-                EnemyDied(e);
+                if (StillIn(e))  // (a boss's death can clear its adds first: those go without a kill or reward)
+                    EnemyDied(e);
         }
 
         /// One enemy's death: kill hooks, records, healing, score, XP, gold, vectors, orbs and its death effect.
@@ -1080,7 +1083,7 @@ namespace Arena
             float r = radius + b.Radius;
             if (b.Pos.DistanceSq(center) >= r * r)
                 return false;
-            V2 before = b.Pos - b.Vel * tickDt;
+            V2 before = b.HasPrev ? b.Prev : b.Pos - b.Vel * tickDt;  // its real last spot: slowed (parry slow, smoke) or frozen shots move less than Vel (fired this tick: a guess)
             return before.DistanceSq(center) >= r * r;
         }
 

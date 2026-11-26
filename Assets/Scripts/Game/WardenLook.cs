@@ -422,7 +422,7 @@ namespace Arena
         void DrawGuardFloor(float t)
         {
             var tell = new Rgba(1f, 0.78f, 0.35f);
-            foreach (var e in game.Enemies.Values)
+            foreach (var e in EnemiesOf(EnemyType.Guard))
             {
                 if (e.Type != EnemyType.Guard || game.IsSpawning(e))
                     continue;
@@ -739,7 +739,7 @@ namespace Arena
                     float dark = Smooth((p.DistanceTo(e.Disp) - e.Radius - 40f) / AlarmEdge);
                     foreach (var pl in game.Players.Values)
                         dark = Mathf.Min(dark, Smooth((p.DistanceTo(pl.Disp) - AlarmSight) / AlarmEdge));
-                    foreach (var g in game.Enemies.Values)  // the Warden's Taser Guards stay lit, so you can see who's charging
+                    foreach (var g in EnemiesOf(EnemyType.TaserGuard))  // the Warden's Taser Guards stay lit, so you can see who's charging
                         if (g.Type == EnemyType.TaserGuard && g.ParentId == e.Id)
                             dark = Mathf.Min(dark, Smooth((p.DistanceTo(g.Disp) - g.Radius - 50f) / AlarmEdge));
                     if (light)

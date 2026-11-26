@@ -17,8 +17,8 @@ namespace Arena
     ///   - Alt (the weapon-action key), Martyr's Leash: hold (up to LeashMax s, LeashDrain of your max health a second). Every
     ///     chained enemy is taunted, held (its chain doesn't fade) and dragged back in if it's farther than LeashLength; LeashShare
     ///     of each hit you take is taken off and runs down the chains into them, LeashReturn times over, split by their links.
-    ///     LeashCooldown s after it ends before it can start again. Your game sends Msg.WeaponDash (DashPullOn on press,
-    ///     DashPullOff on release, the Repulsion Cannon's kinds); the host does the rest (TickBloodLash).
+    ///     LeashCooldown s after it ends before it can start again. Your game sends Msg.WeaponDash (WeaponAlt.PullOn on press,
+    ///     WeaponAlt.PullOff on release, the Repulsion Cannon's kinds); the host does the rest (TickBloodLash).
     public partial class Game
     {
         public const float LashChainWindow = 0.8f;

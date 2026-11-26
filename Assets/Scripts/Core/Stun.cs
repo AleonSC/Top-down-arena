@@ -22,7 +22,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.StunGun,
-                Name = "Stun Gun", Cooldown = 14f,
+                Name = "Stun Gun", Icon = "stungun", Cooldown = 14f,
                 Desc = "Your next shots are stun bolts.",
                 Capstone = "Nine shots instead of six.",
                 Bot = b => b.HaveTarget && b.TargetD < 560f,

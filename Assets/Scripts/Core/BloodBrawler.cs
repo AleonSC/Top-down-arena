@@ -15,7 +15,7 @@ namespace Arena
     ///     (stunned; `Enemy.BsLiftT`), and every Blood Brawler hit on an airborne enemy deals BsAirMult. Marrow Burst hits for
     ///     BsBurstBase + BsBurstPer a hit landed earlier in the string, and bursts into BsShards bone shards (Defs.BloodBrawlerShot,
     ///     Marrow: more) that cut out to BsShardReach. Each extra projectile lands every move on one more enemy near the mark, at SympMult. Heavies and bosses take the hits but aren't moved.
-    ///   - Alt (Msg.WeaponDash, DashSympathy), Sympathy: binds up to SympMax enemies within SympRange of the marked one
+    ///   - Alt (Msg.WeaponDash, WeaponAlt.Sympathy), Sympathy: binds up to SympMax enemies within SympRange of the marked one
     ///     (`Player.SympBound`, `SympSrc`, `SympT`, replicated) for SympTime s; every move landed on it meanwhile also lands on
     ///     each of them at SympMult. SympCooldown s before the next.
     public partial class Game
@@ -30,7 +30,6 @@ namespace Arena
         public const float BsMoveCost = 1f, BsBurstCost = 3f;
         public const float SympRange = 170f, SympTime = 4f, SympCooldown = 8f, SympMult = 0.5f;
         public const int SympMax = 4;
-        const byte DashSympathy = 45;
         static readonly Rgba BsRed = new Rgba(0.9f, 0.16f, 0.24f);
 
         class BsHit
@@ -215,11 +214,11 @@ namespace Arena
             if (!pressed)
                 return true;
             if (IsHost)
-                HostWeaponDash(MyId, DashSympathy, aimAt);
+                HostWeaponDash(MyId, WeaponAlt.Sympathy, aimAt);
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashSympathy);
+                w.Write(WeaponAlt.Sympathy);
                 w.Write(aimAt);
                 session.SendToHost(Proto.End(w));
             }

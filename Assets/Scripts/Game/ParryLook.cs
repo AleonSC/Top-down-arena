@@ -50,7 +50,7 @@ namespace Arena
         /// The additive pass: a burst of light at the contact point and along the shield.
         void DrawPerfectParryGlow()
         {
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.PerfectParry))
             {
                 if (fx.Kind != FxKind.PerfectParry || fx.T > 0.3f)
                     continue;

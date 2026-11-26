@@ -162,7 +162,7 @@ namespace Arena
             if (me == null || LaunchHides(me))
                 return;
             Effect settle = null;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.DebtSettle))
                 if (fx.Kind == FxKind.DebtSettle && (int)fx.Pos2.X == me.Id && fx.Pos2.Y < 1.5f)
                     settle = fx;
             bool owing = me.DebtT > 0f && me.Debt > 0f;
@@ -222,7 +222,7 @@ namespace Arena
             Ui.Label(new Rect(lx, ly + 37f, 70f, 16f), forfeit ? "LOST" : "LEFT", 11, UiCol(DebtMuted, fade));
             Ui.Label(new Rect(vx, ly + 37f, 60f, 16f), Mathf.RoundToInt(forfeit ? lost : debt).ToString(), 12, UiCol(forfeit ? DebtFresh : DebtInk, fade), TextAnchor.MiddleRight, true);
             // Your coins flying in
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.DebtCoin))
             {
                 if (fx.Kind != FxKind.DebtCoin || (int)fx.Pos2.X != me.Id)
                     continue;

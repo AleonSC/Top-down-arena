@@ -6,7 +6,7 @@ namespace Arena
     /// then right, then left again (the swing itself is in FireKnightWeapon, Knight.cs; the screen's look alternates the
     /// direction). Every enemy a swipe hits adds a Jab stack (Player.StaffStacks), up to StaffBaseStacks plus one per extra
     /// projectile, and stacks never fade. The weapon-action key (Left Alt) spends one for a jab: a short cone in front of you that
-    /// hurts everything in it, shoves it back, bats bullets and heals as the swipes do. Your game sends Msg.WeaponDash (DashJab)
+    /// hurts everything in it, shoves it back, bats bullets and heals as the swipes do. Your game sends Msg.WeaponDash (WeaponAlt.Jab)
     /// as with the other weapon moves; the host checks the stacks and the cooldown and lands the jab StaffJabWind later.
     public partial class Game
     {

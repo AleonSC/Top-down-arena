@@ -814,7 +814,7 @@ namespace Arena
         {
             if (p.DrawT > 0f)
                 return true;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.Jab))
                 if (fx.Kind == FxKind.Jab && fx.Color.R == Game.HammerBoomColor.R && fx.Color.G == Game.HammerBoomColor.G && fx.Color.B == Game.HammerBoomColor.B
                     && fx.T < HammerSwingTime + HammerReturn)
                 {
@@ -935,7 +935,7 @@ namespace Arena
         {
             if (!fxOn)
                 return;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.Jab))
             {
                 if (fx.Kind != FxKind.Jab || fx.Color.R != Game.HammerBoomColor.R || fx.Color.G != Game.HammerBoomColor.G
                     || fx.Color.B != Game.HammerBoomColor.B)

@@ -12,11 +12,8 @@ namespace Arena
     /// Everything about the Devourer's fight its body doesn't carry. The host runs it; clients get it in the snapshot
     /// (SyncDevour) to draw the lunge lines, the inhale cone, the burrow ripple, the jaws and the teeth, and to pull
     /// their own player into its mouth.
-    public class DevourState
+    public class DevourState : BossFight<DevourStage, DevourTurn>  // TransT: > 0 changing phase (can't be hurt), counting down
     {
-        public DevourStage Stage, TransTo;
-        public DevourTurn Turn;
-        public float TurnT, TransT;  // seconds into the turn; > 0: changing phase (can't be hurt), counting down
         public bool Lunging;         // a lunge: the warning line shows for LungeWarn, then it dashes LungeLen along LungeAng
         public float LungeWarn, LungeAng, LungeLen;
         public V2 LungeFrom;
@@ -29,8 +26,8 @@ namespace Arena
         public int SwallowId;        // the player inside it (0 for none)
 
         // Host only.
-        public int Step = -1, Fired, Who;
-        public float TurnLen, ActT, LungeDone, SwallowT, SwallowTaken, StomachT, BileTickT;
+        public int Who;
+        public float LungeDone, SwallowT, SwallowTaken, StomachT, BileTickT;
         public int BurrowTarget;
         public bool LungeRing;
         public byte MawHit;          // the last shot that reached it (BlocksShot): 1 into the Maw, 2 on its back
@@ -79,7 +76,7 @@ namespace Arena
             new[] { 999f },
         };
 
-        DevourState DevourOf(Enemy e) => e.Devour ?? (e.Devour = new DevourState());
+        DevourState DevourOf(Enemy e) => BossOf<DevourState>(e);
 
         /// Changing phase, or underground: it can't be hurt.
         public static bool DevourImmune(Enemy e) => e.Type == EnemyType.Devourer && e.Devour != null && (e.Devour.TransT > 0f || e.Devour.BurrowT > 0f);
@@ -699,11 +696,7 @@ namespace Arena
         {
             if (s.Turn == DevourTurn.Hungry)
                 RemoveAll(EnemyType.Morsel);  // what it didn't eat rots away
-            var turns = DevourTurns[(int)s.Stage];
-            s.Step = (s.Step + 1) % turns.Length;
-            s.Turn = turns[s.Step];
-            s.TurnLen = BossTurnLen((byte)s.Turn, DevourTimes[(int)s.Stage][s.Step]);  // (the tier's rest pace: BossRules.cs)
-            s.TurnT = 0f;
+            s.NextTurn(this, DevourTurns, DevourTimes);
             s.ActT = 0.3f;
             s.Fired = 0;
             e.Phase = (byte)(s.Turn == DevourTurn.Hungry ? 1 : 0);  // Hungry(e): your shots heal it

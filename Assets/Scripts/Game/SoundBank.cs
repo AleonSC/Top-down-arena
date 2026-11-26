@@ -344,8 +344,6 @@ namespace Arena
             return c;
         }
 
-        public static Category CategoryOf(Sfx s) => categories[(int)s];
-
         float CategoryVolume(Sfx s)
         {
             switch (categories[(int)s])

@@ -16,7 +16,7 @@ namespace Arena
     ///   - Discharge: when the time runs out, DischargeDamage to every enemy within DischargeRadius px of you. Going down, the
     ///     wave ending or the slot changing ends it at once, with no discharge.
     /// All damage scales by your damage. Mastered: BoltTimeMastered s, and the residue stays ResidueTimeMastered s.
-    /// Like the Blink, your own game moves you (LocalLivingBolt) and sends Msg.WeaponDash (DashBolt) to the host, which shocks
+    /// Like the Blink, your own game moves you (LocalLivingBolt) and sends Msg.WeaponDash (WeaponAlt.Bolt) to the host, which shocks
     /// along the path from where it last had you (HostBoltDash).
     /// Replicated: Player.BoltT (time left, the channel included; 0 = off) and BoltAge (seconds since the cast); the residue is
     /// a zone (Pos its middle, Aim its heading, Radius half its length). FxKind.LivingBolt is one dash; the shocks are
@@ -30,7 +30,6 @@ namespace Arena
         public const float DischargeRadius = 130f, DischargeDamage = 60f;
         public const float BoltDashFx = 0.35f;     // a dash's look: the bolt and its afterimages fade out over this
         const float BoltSlack = 80f;               // the host lets a dash run this much past its reach (where it had you lags a little)
-        const byte DashBolt = 60;                  // Msg.WeaponDash kind (the rest are listed in Ninja.cs)
         public static readonly Rgba BoltCyan = new Rgba(0.5f, 0.91f, 1f), BoltViolet = new Rgba(0.79f, 0.65f, 1f);
         public static readonly Rgba BoltWhite = new Rgba(0.96f, 0.99f, 1f), BoltGold = new Rgba(1f, 0.79f, 0.29f);
 
@@ -147,7 +146,7 @@ namespace Arena
             }
         }
 
-        /// Host: a dash to `to` (Msg.WeaponDash DashBolt, or the host's own game). The path runs from where the host has them.
+        /// Host: a dash to `to` (Msg.WeaponDash WeaponAlt.Bolt, or the host's own game). The path runs from where the host has them.
         void HostBoltDash(Player p, V2 to)
         {
             if (!BoltCharged(p) || p.BoltLockT > 0f || State == MatchState.GameOver || !to.IsFinite)
@@ -215,7 +214,7 @@ namespace Arena
             else
             {
                 var w = Proto.Begin(Msg.WeaponDash);
-                w.Write(DashBolt);
+                w.Write(WeaponAlt.Bolt);
                 w.Write(to);
                 session.SendToHost(Proto.End(w));
             }

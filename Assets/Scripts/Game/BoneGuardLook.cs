@@ -27,7 +27,7 @@ namespace Arena
                 Line(pa, pb, 2.2f, MarrowBead.WithAlpha(al));
                 return;
             }
-            foreach (var o in game.Effects)  // a loose thread gives way to a taut one for the same pair
+            foreach (var o in FxOf(FxKind.MarrowLink))  // a loose thread gives way to a taut one for the same pair
                 if (o.Kind == FxKind.MarrowLink && o.Radius >= 0.5f && o.T < o.Dur
                     && ((int)o.Pos2.X == ia && (int)o.Pos2.Y == ib || (int)o.Pos2.X == ib && (int)o.Pos2.Y == ia))
                     return;

@@ -52,7 +52,7 @@ namespace Arena
         /// out from its body to the rim as the fist comes back; the jab flashes the wedge white (ThugPunch.cs).
         void DrawThugFloor(float t)
         {
-            foreach (var e in game.Enemies.Values)
+            foreach (var e in EnemiesOf(EnemyType.Thug))
             {
                 if (e.Type != EnemyType.Thug || e.LarderStage == Game.LarderIdle || game.IsSpawning(e))
                     continue;

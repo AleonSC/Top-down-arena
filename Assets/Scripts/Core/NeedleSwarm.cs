@@ -13,7 +13,7 @@ namespace Arena
     ///     good: each wrapped needle cuts for the weapon's Damage a second, slows it NsSlow, and every NsBleedEvery adds a bleed stack
     ///     (the stack that fills its bleed bursts it, NeedleBleed). It lets go when the enemy dies or gets NsLetGo x the reach away.
     ///     Holding on, once it has wrapped, the next enemy nearest the cursor gets the next tendril: NsTendrils at once.
-    ///   Alt (Msg.WeaponDash, DashNeedles): NsBurst needles leave the ring as a fan of needles at your aim (Defs.BloodShot), NsBurstCd.
+    ///   Alt (Msg.WeaponDash, WeaponAlt.Needles): NsBurst needles leave the ring as a fan of needles at your aim (Defs.BloodShot), NsBurstCd.
     ///   Extra projectiles: +NsPerExtra needles in the swarm, +NsWrapPerExtra wrapped round each enemy, cutting NsCutPerExtra harder, +4 in the burst.
     public partial class Game
     {
@@ -25,7 +25,6 @@ namespace Arena
         public const float NsSlow = 0.5f, NsTick = 0.2f, NsBleedEvery = 0.5f, NsBleedHit = 9f, NsBlockFull = 0.35f;
         public const float NsBurstDmg = 14f, NsBurstSpeed = 900f, NsBurstLife = 0.45f, NsBurstFan = 0.02f, NsBurstCd = 2.5f;
         public static readonly Rgba NsBlood = new Rgba(0.76f, 0.08f, 0.18f);
-        const byte DashNeedles = 62;
 
         /// How many needles a full swarm holds.
         public int NsMax(Player p) => NsBase + NsPerExtra * ExtraShots(p);
@@ -246,11 +245,11 @@ namespace Arena
             if (me.NsBurstCd <= 0f && me.NsCount > 0)
             {
                 if (IsHost)
-                    HostWeaponDash(MyId, DashNeedles, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.Needles, aimAt);
                 else
                 {
                     var w = Proto.Begin(Msg.WeaponDash);
-                    w.Write(DashNeedles);
+                    w.Write(WeaponAlt.Needles);
                     w.Write(aimAt);
                     session.SendToHost(Proto.End(w));
                 }

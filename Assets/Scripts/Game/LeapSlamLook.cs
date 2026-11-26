@@ -28,7 +28,7 @@ namespace Arena
             h = 0f;
             if (!fxOn || !ReferenceEquals(game, session.Game))
                 return false;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.LeapSlam))
                 if (fx.Kind == FxKind.LeapSlam && fx.T < Game.LeapTime && (int)(fx.Radius / 1000f + 0.001f) == p.Id)
                 {
                     h = Mathf.Sin(Mathf.PI * Mathf.Clamp01(fx.T / Game.LeapTime));
@@ -43,7 +43,7 @@ namespace Arena
             left = 0f;
             if (!fxOn || !e.Frozen || e.Def.IsBoss)
                 return false;
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.LeapSlam))
             {
                 if (fx.Kind != FxKind.LeapSlam || fx.T < Game.LeapTime)
                     continue;

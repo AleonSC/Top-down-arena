@@ -580,11 +580,11 @@ namespace Arena
             {
                 katanaSwitchLocalCd = KatanaSwitchCd;
                 if (IsHost)
-                    HostWeaponDash(MyId, DashKatanaStance, aimAt);
+                    HostWeaponDash(MyId, WeaponAlt.KatanaStance, aimAt);
                 else
                 {
                     var w = Proto.Begin(Msg.WeaponDash);
-                    w.Write(DashKatanaStance);
+                    w.Write(WeaponAlt.KatanaStance);
                     w.Write(aimAt);
                     session.SendToHost(Proto.End(w));
                 }

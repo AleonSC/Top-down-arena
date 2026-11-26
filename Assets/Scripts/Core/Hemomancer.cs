@@ -786,63 +786,63 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.BloodShell, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0,
-                Name = "Blood Shell", Cooldown = 9f, Desc = "Hold to wrap yourself and allies in a bubble that blocks bullets.",
+                Name = "Blood Shell", Icon = "bloodshell", Cooldown = 9f, Desc = "Hold to wrap yourself and allies in a bubble that blocks bullets.",
                 Capstone = "The burst also erases enemy bullets within 160 px.",
                 Bot = b => b.Danger && b.Me.Hp > b.Me.MaxHp * 0.55f,
             },
             new AbilityDef
             {
                 Id = AbilityId.BloodWall, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1,
-                Name = "Blood Wall", Cooldown = 8f, Desc = "Toggle a wall of blood behind you that blocks bullets and hurts enemies.",
+                Name = "Blood Wall", Icon = "pact", Cooldown = 8f, Desc = "Toggle a wall of blood behind you that blocks bullets and hurts enemies.",
                 Capstone = "Enemies against the wall take double and are slowed 40%.",
                 Bot = b => b.HaveTarget && b.TargetD < 320f && b.Me.Hp > b.Me.MaxHp * 0.7f,
             },
             new AbilityDef
             {
                 Id = AbilityId.Exsanguinate, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2,
-                Name = "Exsanguinate", Cooldown = 8f, HealthCost = 0.1f, Desc = "Yank every nearby enemy in, stunned, and drain them.",
+                Name = "Exsanguinate", Icon = "drain", Cooldown = 8f, HealthCost = 0.1f, Desc = "Yank every nearby enemy in, stunned, and drain them.",
                 Capstone = "Also slows the enemies it drains by 50% for 2 s.",
                 Bot = b => b.HaveTarget && b.TargetD < 220f && b.Me.Hp > b.Me.MaxHp * 0.35f,
             },
             new AbilityDef
             {
                 Id = AbilityId.BloodGift, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 0,
-                Name = "Blood Gift", Cooldown = 8f, HealthCost = 0.25f, CostsCurrent = true, Desc = "Pay health to heal the most hurt ally twice as much.",
+                Name = "Blood Gift", Icon = "gift", Cooldown = 8f, HealthCost = 0.25f, CostsCurrent = true, Desc = "Pay health to heal the most hurt ally twice as much.",
                 Capstone = "Also heals everyone else within 200 px of them for half as much.",
                 Bot = b => b.AllyHurt && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
                 Id = AbilityId.BloodFreeze, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 1,
-                Name = "Blood Freeze", Cooldown = 14f, HealthCost = 0.25f, Desc = "Freeze every enemy near you at a cost of health.",
+                Name = "Blood Freeze", Icon = "bloodfreeze", Cooldown = 14f, HealthCost = 0.25f, Desc = "Freeze every enemy near you at a cost of health.",
                 Capstone = "Frozen enemies take 25% more damage.",
                 Bot = b => b.Danger && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
                 Id = AbilityId.Martyr, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 2,
-                Name = "Martyr", Cooldown = 16f, HealthCost = 0.4f, Desc = "Pay health to revive a downed ally, or ward the most hurt one.",
+                Name = "Martyr", Icon = "martyr", Cooldown = 16f, HealthCost = 0.4f, Desc = "Pay health to revive a downed ally, or ward the most hurt one.",
                 Capstone = "You're invulnerable for 2 s after the sacrifice.",
                 Bot = b => b.AllyDown || b.Players == 1 && b.Danger && b.Me.WardT <= 0f && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
                 Id = AbilityId.ArterialSpray, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0,
-                Name = "Arterial Spray", Cooldown = 8f, Desc = "Open a vein: a jet of blood hurts and bleeds everything in front of you.",
+                Name = "Arterial Spray", Icon = "spray", Cooldown = 8f, Desc = "Open a vein: a jet of blood hurts and bleeds everything in front of you.",
                 Capstone = "The spray also washes away enemy bullets it touches.",
                 Bot = b => b.HaveTarget && b.TargetD < 190f && b.Me.Hp > b.Me.MaxHp * 0.5f,
             },
             new AbilityDef
             {
                 Id = AbilityId.BloodDebt, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1,
-                Name = "Blood Debt", Cooldown = 16f, Desc = "Borrow health to heal on hit, and pay it back with kills.",
+                Name = "Blood Debt", Icon = "debt", Cooldown = 16f, Desc = "Borrow health to heal on hit, and pay it back with kills.",
                 Capstone = "Kills repay 50% more.",
                 Bot = b => b.HaveTarget && b.TargetD < 350f && b.Me.Hp > b.Me.MaxHp * 0.7f,
             },
             new AbilityDef
             {
                 Id = AbilityId.VeinRush, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Instant = true,
-                Name = "Vein Rush", Cooldown = 6f, HealthCost = 0.1f, Desc = "Rush toward your cursor untouchable, bleeding enemies on the way.",
+                Name = "Vein Rush", Icon = "veinrush", Cooldown = 6f, HealthCost = 0.1f, Desc = "Rush toward your cursor untouchable, bleeding enemies on the way.",
                 Capstone = "The trail bursts after 1 s for 20 to everything on it.",
                 Bot = b => b.HaveTarget && b.TargetD < 260f && b.Me.Hp > b.Me.MaxHp * 0.3f,
             },

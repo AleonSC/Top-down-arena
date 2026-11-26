@@ -18,11 +18,8 @@ namespace Arena
     /// Everything about the Storm Herald's fight its body doesn't carry. The host runs it; clients get it in the
     /// snapshot (SyncHerald) to draw the rods, arcs, wind, the Conductor and the spokes, and to push their own player
     /// and bend their bullets with the wind.
-    public class HeraldState
+    public class HeraldState : BossFight<HeraldStage, HeraldTurn>  // TransT: > 0 changing phase (can't be hurt), counting down
     {
-        public HeraldStage Stage, TransTo;
-        public HeraldTurn Turn;
-        public float TurnT, TransT;  // seconds into the turn; > 0: changing phase (can't be hurt), counting down
         public int Wind;             // the Gale's wind: -1 west, +1 east, 0 still
         public float Spin;           // the last stand's spokes
         public int CondId;           // the Supercell's Conductor (a player id, 0 for none) and seconds left on the mark
@@ -31,8 +28,8 @@ namespace Arena
         public readonly List<HeraldArc> Arcs = new List<HeraldArc>();
 
         // Host only.
-        public int Step = -1, Fired, FrontSide = -1, FrontStep, FrontGap, CageOpen, CondNext;
-        public float TurnLen, ActT, CondWait, BoomT;  // BoomT: > 0, counting down to the thunder of strikes it marked
+        public int FrontSide = -1, FrontStep, FrontGap, CageOpen, CondNext;
+        public float CondWait, BoomT;  // BoomT: > 0, counting down to the thunder of strikes it marked
     }
 
     /// The Storm Herald (wave 40): a fight in three phases by its health, like the Warden's, then a last stand.
@@ -72,7 +69,7 @@ namespace Arena
             new[] { 999f },
         };
 
-        HeraldState HeraldOf(Enemy e) => e.Herald ?? (e.Herald = new HeraldState());
+        HeraldState HeraldOf(Enemy e) => BossOf<HeraldState>(e);
 
         public static bool HeraldImmune(Enemy e) => e.Type == EnemyType.StormHerald && e.Herald != null && e.Herald.TransT > 0f;
 
@@ -466,11 +463,7 @@ namespace Arena
 
         void NextHeraldTurn(Enemy e, HeraldState s)
         {
-            var turns = HeraldTurns[(int)s.Stage];
-            s.Step = (s.Step + 1) % turns.Length;
-            s.Turn = turns[s.Step];
-            s.TurnLen = BossTurnLen((byte)s.Turn, HeraldTimes[(int)s.Stage][s.Step]);  // (the tier's rest pace: BossRules.cs)
-            s.TurnT = 0f;
+            s.NextTurn(this, HeraldTurns, HeraldTimes);
             s.ActT = 0.3f;
             s.Fired = 0;
             s.Rods.Clear();

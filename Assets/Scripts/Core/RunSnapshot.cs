@@ -255,7 +255,8 @@ namespace Arena
         {
             var t = f.FieldType;
             if (typeof(Delegate).IsAssignableFrom(t) || t == typeof(Session)
-                || t == typeof(LagStats) || t == typeof(System.Diagnostics.Stopwatch))
+                || t == typeof(LagStats) || t == typeof(System.Diagnostics.Stopwatch)
+                || typeof(System.IO.Stream).IsAssignableFrom(t) || t == typeof(System.IO.BinaryWriter))  // (SendSnapshot's reused buffer)
                 return true;
             switch (f.Name)
             {

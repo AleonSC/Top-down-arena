@@ -102,7 +102,7 @@ namespace Arena
                 // a Grave Caller's Shambler: a faint soul thread back to the Caller that raised it (kill that and it crumbles)
                 Enemy best = null;
                 float bd = 900f;
-                foreach (var o in game.Enemies.Values)
+                foreach (var o in EnemiesOf(EnemyType.GraveCaller))
                     if (o.Type == EnemyType.GraveCaller && o.Hp > 0f && o.Disp.DistanceTo(pos) < bd)
                     {
                         best = o;
@@ -164,7 +164,7 @@ namespace Arena
         {
             if (p.StunT <= 0f)
                 return false;
-            foreach (var e in game.Enemies.Values)
+            foreach (var e in EnemiesOf(EnemyType.Crawler))
                 if (e.Type == EnemyType.Crawler && (e.Phase & Zombies.PhGrab) != 0 && e.Disp.DistanceTo(p.Disp) < e.Radius + 40f)
                     return true;
             return false;
@@ -191,7 +191,7 @@ namespace Arena
         void DrawGravePatch(PathPatch pt, float t)
         {
             bool caller = false;
-            foreach (var o in game.Enemies.Values)
+            foreach (var o in EnemiesOf(EnemyType.GraveCaller))
                 if (o.Type == EnemyType.GraveCaller && o.Hp > 0f)
                 {
                     caller = true;

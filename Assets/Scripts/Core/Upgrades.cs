@@ -85,6 +85,7 @@ namespace Arena
         public bool FillsGaps;         // a class still being built (the Engineer): stands in for the class's empty 1st ability (or Ultimate) places; the lobby shows them locked
         public int UltKey;             // an ultimate's key on the lobby's Ultimate row: 0 the default one, 1-3 the ones picked instead (LobbyEntry.Ult)
         public string Name, Desc;
+        public string Icon;            // its icon's key in Game/PixelArt.cs (PixelArt.ForAbility; a card that grants it shows it too); null: none yet
         public string Capstone;        // what mastering it (level 5) adds
         public float Cooldown;
         public bool Instant;           // earns mastery XP by what it hits (0.5x for nothing, up to 1.5x); lasting ones earn the full amount
@@ -956,7 +957,7 @@ namespace Arena
                 offer[i] = pick;
                 used.Add(pick);
             }
-            return offer;
+            return Array.IndexOf(offer, -1) < 0 ? offer : Array.FindAll(offer, id => id >= 0);  // every pool spent: fewer cards, never a -1 (HostPick would index All[-1])
         }
 
         public static Stats Compute(List<int> taken)

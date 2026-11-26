@@ -167,7 +167,7 @@ namespace Arena
             var rune = LockViolet.WithAlpha(0.9f);
             V2 up = c + new V2(0f, -5f), rt = c + new V2(4f, 0f), dn = c + new V2(0f, 5f), lf = c + new V2(-4f, 0f);
             Line(up, rt, 1.5f, rune); Line(rt, dn, 1.5f, rune); Line(dn, lf, 1.5f, rune); Line(lf, up, 1.5f, rune);
-            foreach (var fx in game.Effects)
+            foreach (var fx in FxOf(FxKind.ArcTag))
                 if (fx.Kind == FxKind.ArcTag && (int)fx.Pos2.Y == e.Id && fx.T < 0.15f)
                     LockGlowDisc(c, 26f, LockViolet, 0.8f * (1f - fx.T / 0.15f));
         }
