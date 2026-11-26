@@ -85,6 +85,16 @@ namespace Arena
             return new[] { MakePieceCardMods(shape, PieceMods.Roll(rng, 1)) };
         }
 
+        /// The starting piece pick: two seeded piece cards of different shapes (any 1 to 4 cells), modifiers rolled; the first is GridStartHand's.
+        public static PieceCard[] GridStartOffer(int seed)
+        {
+            var rng = new DetRandom(seed);
+            var shape = gridStart[rng.Int(gridStart.Length)];
+            var first = MakePieceCardMods(shape, PieceMods.Roll(rng, 1));
+            var other = gridStart[(System.Array.IndexOf(gridStart, shape) + 1 + rng.Int(gridStart.Length - 1)) % gridStart.Length];
+            return new[] { first, MakePieceCardMods(other, PieceMods.Roll(rng, 1)) };
+        }
+
         /// The basic card each build round gives: a domino after odd waves, a single after even ones, its modifiers rolled.
         public static PieceCard GridRoundCard(DetRandom rng, int wave) => MakePieceCardMods(wave % 2 == 1 ? PieceShape.Domino : PieceShape.Mono, PieceMods.Roll(rng, wave));
 

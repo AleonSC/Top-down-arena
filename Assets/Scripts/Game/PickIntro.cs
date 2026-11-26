@@ -23,8 +23,23 @@ namespace Arena
         /// How long until card i has landed.
         float IntroLanded(int i) => IntroCardsAt + Mathf.Min(i, 5) * IntroCardGap + IntroCardFly;
 
-        /// Still opening: the cards can't be picked yet (keys and clicks wait for the last card to land).
-        bool PickIntroPlaying(Player me) => me != null && me.Offer != null && IntroElapsed < IntroLanded(me.Offer.Length - 1);
+        /// The starting piece pick (Player.OfferStart): each card lands face down and rolls through the piece shapes, slowing
+        /// to a stop, for StartRoll seconds (the next card StartRollGap later), then locks on its piece with a flash and a ring.
+        const float StartRoll = 1.1f, StartRollGap = 0.45f, StartFlash = 0.35f;
+        const int StartRollTicks = 16;
+
+        /// When card i shows what it is: as it lands, or after its roll on the starting piece pick.
+        float IntroRevealed(Player me, int i) => me != null && me.OfferStart ? IntroLanded(i) + StartRoll + Mathf.Min(i, 5) * StartRollGap : IntroLanded(i);
+
+        /// Which step of its roll card i is on at time e: fast at first, slowing to a stop (0 .. StartRollTicks).
+        int StartRollTick(Player me, int i, float e)
+        {
+            float u = Seg(e, IntroLanded(i), IntroRevealed(me, i));
+            return Mathf.FloorToInt(StartRollTicks * (1f - (1f - u) * (1f - u)));
+        }
+
+        /// Still opening: the cards can't be picked yet (keys and clicks wait for the last card to land, or to lock on the starting pick).
+        bool PickIntroPlaying(Player me) => me != null && me.Offer != null && IntroElapsed < IntroRevealed(me, me.Offer.Length - 1);
 
         /// Called when new cards appear (SyncSelection): a full opening unless the cards were rerolled, or the last
         /// pick's close has only just ended (several picks in a row open one after another without the fanfare).
@@ -144,12 +159,12 @@ namespace Arena
         void DrawPickIntroOver(Player me, Rect[] slots, int n)
         {
             float e = IntroElapsed;
-            if (e > IntroLanded(n - 1) + IntroRingTime || !BeginUiGl())
+            if (e > IntroRevealed(me, n - 1) + IntroRingTime || !BeginUiGl())
                 return;
             UiModelAt(V2.Zero, 1f);
             for (int i = 0; i < n; i++)
             {
-                float g = Seg(e, IntroLanded(i), IntroLanded(i) + IntroRingTime);
+                float g = Seg(e, IntroRevealed(me, i), IntroRevealed(me, i) + IntroRingTime);
                 if (g > 0f && g < 1f)
                 {
                     var c = slots[i];
@@ -182,7 +197,7 @@ namespace Arena
         /// How far below its place the bottom row (what the pick changes, Reroll, Take, the hint) still is, and its alpha.
         float PickButtonsRise(Player me, out float alpha)
         {
-            float last = IntroLanded(me.Offer.Length - 1), k = EaseOut(Seg(IntroElapsed, last - 0.35f, last + 0.05f));
+            float last = IntroRevealed(me, me.Offer.Length - 1), k = EaseOut(Seg(IntroElapsed, last - 0.35f, last + 0.05f));
             alpha = k;
             return (1f - k) * 140f;
         }

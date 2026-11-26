@@ -89,6 +89,9 @@ static partial class Program
         var hand = Expansion.GridStartHand(5);
         Check(hand.Length == 1 && Expansion.IsShapePieceCard(hand[0]) && hand.SequenceEqual(Expansion.GridStartHand(5)), "the starting hand: one piece card (modifiers rolled), the same each time");
         Check(Enumerable.Range(0, 40).Select(s => Expansion.GridStartHand(s)[0]).Distinct().Count() > 3, "the starting piece varies with the seed");
+        var so = Expansion.GridStartOffer(5);
+        Check(so.Length == 2 && so.All(Expansion.IsShapePieceCard) && Expansion.ShapeOfPieceCard(so[0]) != Expansion.ShapeOfPieceCard(so[1]) && so.SequenceEqual(Expansion.GridStartOffer(5))
+            && Enumerable.Range(0, 60).All(s2 => { var o = Expansion.GridStartOffer(s2); return Expansion.ShapeOfPieceCard(o[0]) != Expansion.ShapeOfPieceCard(o[1]); }), "the starting pick: two pieces of different shapes, the same each time");
         Check(Expansion.ShapeOfPieceCard(Expansion.GridRoundCard(new DetRandom(4), 1)) == PieceShape.Domino && Expansion.ShapeOfPieceCard(Expansion.GridRoundCard(new DetRandom(4), 2)) == PieceShape.Mono, "the round card: a domino after odd waves, a single after even");
         int service = 0, themed = 0, fighting = 0, tet = 0, pieces = 0, bad = 0;
         for (int i = 0; i < 600; i++)
@@ -176,16 +179,22 @@ static partial class Program
         Run(s, dt, 0.6f, () => cg.Expanded.Count == 4, noPicks);
         Check(g.Expanded.Count == 4 && cg.Expanded.Count == 4, "the core is up first");
 
-        // The first build round deals the hand: the starting piece, then a wave card pick (the round's basic piece or a dropped card), and the friend's game has them.
+        // The first build round deals the hand: the starting pick (one of two pieces), then a wave card pick (the round's basic piece or a dropped card), and the friend's game has them.
         foreach (var p in g.Players.Values) { p.PendingPicks = p.PendingLegendary = p.PendingMods = p.PendingCards = p.WavePicks = 0; p.LegendaryQueue.Clear(); p.Offer = null; }
         typeof(Game).GetMethod("OpenBuildRound", flags).Invoke(g, null);
         var friend = g.Players[2];
-        Check(Game.HandCount(friend) == 1 && Expansion.IsShapePieceCard((PieceCard)friend.Hand[0]), "the first round deals one piece (" + friend.Hand[0] + ")");
-        Check(friend.OfferCards && friend.OfferWave && friend.PendingCards == 1 && friend.WavePicks == 1 && friend.Offer.Length == 2
-            && Expansion.IsShapePieceCard((PieceCard)friend.Offer[0]) && Expansion.ShapeOfPieceCard((PieceCard)friend.Offer[0]) == (g.Wave % 2 == 1 ? PieceShape.Domino : PieceShape.Mono) && friend.Offer[1] != friend.Offer[0], "and a wave pick of two: the round's basic piece and a dropped card (" + string.Join(",", friend.Offer.Select(BossCards.Name)) + ")");
         var fought = g.State;
         g.State = MatchState.Intermission;  // (picks only count in a break; called on the host directly, so the round isn't ticked through)
+        Check(Game.HandCount(friend) == 0 && friend.OfferCards && friend.OfferWave && friend.OfferStart && friend.StartPick && friend.PendingCards == 2 && friend.WavePicks == 1 && friend.Offer.Length == 2
+            && friend.Offer.All(c => Expansion.IsShapePieceCard((PieceCard)c)) && friend.Offer[0] != friend.Offer[1], "the first round offers the starting pick first: two pieces (" + string.Join(",", friend.Offer.Select(BossCards.Name)) + ")");
         friend.Rerolls = 3;
+        g.HostReroll(2);
+        Check(friend.Rerolls == 3 && friend.OfferStart, "the starting pick can't be rerolled");
+        int wantStart = friend.Offer[1];
+        typeof(Game).GetMethod("HostPick", flags).Invoke(g, new object[] { 2, 1, 0 });
+        Check(Game.HandCount(friend) == 1 && friend.Hand[0] == wantStart && !friend.StartPick && !friend.OfferStart && friend.PendingCards == 1 && friend.WavePicks == 1, "the picked piece starts the hand (" + BossCards.Name(wantStart) + ")");
+        Check(friend.OfferCards && friend.OfferWave && friend.PendingCards == 1 && friend.WavePicks == 1 && friend.Offer.Length == 2
+            && Expansion.IsShapePieceCard((PieceCard)friend.Offer[0]) && Expansion.ShapeOfPieceCard((PieceCard)friend.Offer[0]) == (g.Wave % 2 == 1 ? PieceShape.Domino : PieceShape.Mono) && friend.Offer[1] != friend.Offer[0], "and a wave pick of two: the round's basic piece and a dropped card (" + string.Join(",", friend.Offer.Select(BossCards.Name)) + ")");
         g.HostReroll(2);
         Check(friend.Rerolls == 3 && friend.OfferWave, "a wave pick can't be rerolled");
         int wantWave = friend.Offer[1];
