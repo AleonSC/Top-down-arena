@@ -76,7 +76,7 @@ static partial class Program
         g.Zones.Clear(); me.GlSmokeUsed = 0; me.GlCharge = 0f;
 
         // a regular enemy shoots until a cloud opens on it; then it's jammed and slowed. A mini-boss is only slowed.
-        var miniType = ((EnemyType[])Enum.GetValues(typeof(EnemyType))).First(t => (int)t < Defs.Enemies.Length && Defs.Get(t).Mini);
+        var miniType = FirstEnemy(d => d.Mini);
         var shooter = Dummy(EnemyType.Grunt, from + new V2(250f, 0f));
         var mini = Dummy(miniType, from + new V2(270f, 50f));
         shooter.FireT = 0.1f;

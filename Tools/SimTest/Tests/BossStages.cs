@@ -9,8 +9,7 @@ static partial class Program
     static void BossStagesTest(float dt)
     {
         // --- The tables --------------------------------------------------------------------------------------------------
-        var bosses = new[] { EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity, EnemyType.Colossus,
-            EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse };
+        var bosses = Defs.Bosses;
         bool ordered = true, hardSame = true, easyShort = true;
         foreach (var b in bosses)
         {
@@ -29,6 +28,10 @@ static partial class Program
         Check(Game.StagesFor(EnemyType.ReaperOfDawn, MechTier.Normal) == Game.StagesFor(EnemyType.ReaperOfDusk, MechTier.Normal)
               && Game.StagesFor(EnemyType.Grunt, MechTier.Normal).Length == 0,
             "both Reapers share one table; an enemy that isn't a boss has none");
+        // The roster (Defs.Bosses): a new boss (IsBoss) must join the Campaign's cycle, have a faction and its relics.
+        Check(Defs.Bosses.Length >= 10 && Game.BossCycle.Length == Defs.Bosses.Length && Defs.Bosses.All(b => Game.BossCycle.Contains(b))
+              && Defs.Bosses.All(b => Approaches.All.Count(f => f.Boss == b) == 1) && Relics.PerFaction.Length == Defs.Bosses.Length,
+            "every boss (Defs.Bosses: " + Defs.Bosses.Length + ") is in the Campaign's cycle and has one faction and its relics");
 
         // Normal is the fight as balanced: the thresholds it had before the tables.
         Func<EnemyType, byte, float> at = (b, st) => Game.StageAt(b, st, MechTier.Normal);

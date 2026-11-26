@@ -224,7 +224,14 @@ The lobby fits about 8 class cards in a row before they get too small.
   `Knight`, `Ninja`, `Hemomancer`, `Classes`, `Enemies`, `Bosses`, `Paths`, `BossLab`, `Reports`, `Music`). `run.sh list` prints every suite.
   - **Setup helpers** (`Program.cs`): `HostAs(new Session { ... }, port, bot, name, role, ...)`, `JoinAs(port, bot, name,
     role, ...)`, `WaitForGame(host, client, dt)`, `WaitForLobby(host, client)` and `PollBoth(host, client)`. Use them in
-    new tests instead of writing the loops out. Big systems span several files (`Weapons`, `WeaponsByKit`,
+    new tests instead of writing the loops out. To loop over content, use the registries, not a typed-out list, so new
+    entries are covered: `Defs.Bosses` (every boss fight; `Defs.BossParts` are the Reapers' second halves), `Classes.All`,
+    `Defs.Weapons`, `Defs.Enemies`, `Upgrades.All`, `Modifiers.All`, `Paths.All`, `Hunts.All`, `Challenges.All`; and
+    `FirstEnemy(d => ...)` / `HeavyFoe()` (Program.cs) for "some heavy" or "some boss" without naming one.
+    Suites that cover every entry by themselves: `everyenemy` (each enemy type over the network), `lists` (each modifier,
+    path, hunt, challenge room), `ultimates` (each class's ultimates), `stages` (each boss's stages, cycle, faction, relics).
+    **Protocol guard** (`protocol`): `Golden/protocol.txt` keeps the version, every Core enum and a hash of the wire
+    read/write lines; after a bump (or a change that sends nothing new) run `PROTOCOL=update run.sh 1 1 protocol`. Big systems span several files (`Weapons`, `WeaponsByKit`,
     `WeaponsSpecial`; `Bosses`, `BossesLate`, `BossMechanics`).
   - `run.sh 1 30` (or `core`) = the **core** match tests (~165 checks).
   - `run.sh 1 30 features` = the **feature** suite (~247 checks). `music` still works: it was its old name.

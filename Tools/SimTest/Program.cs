@@ -23,6 +23,16 @@ static partial class Program
             failures++;
     }
 
+    /// The first enemy type (in EnemyType order) whose def matches, for a test that needs "a heavy", "a boss", ...
+    /// without naming one, so it still works as enemies are added. HeavyFoe: the first heavy that isn't a boss.
+    static EnemyType FirstEnemy(Func<EnemyDef, bool> match)
+    {
+        for (int i = 0; i < Defs.Enemies.Length; i++)
+            if (Defs.Enemies[i] != null && match(Defs.Enemies[i])) return (EnemyType)i;
+        throw new InvalidOperationException("no enemy type matches");
+    }
+    static EnemyType HeavyFoe(bool moving = false) => FirstEnemy(d => d.Heavy && !d.IsBoss && (!moving || d.Speed > 0f));
+
     static readonly List<Sfx> clientHeard = new List<Sfx>();  // every sound the client games played
 
     static void Step(Session s, float dt)
@@ -388,6 +398,9 @@ static partial class Program
         Test("shielder", "Shielders' shields wearing down", () => ShielderTest(Dt)),
         Test("warden", "the Warden", () => WardenTest(Dt)),
         Test("bossrules", "boss numbers by mechanics tier (BossRules.cs): summons, escorts, rest pace", () => BossRulesTest(Dt)),
+        Test("protocol", "the protocol guard (ProtocolGuard.cs): the enums and wire read/write lines match Golden/protocol.txt for this ProtocolVersion, enum values keep their numbers, the version has its history line (PROTOCOL=update rewrites it)", () => ProtocolGuardTest()),
+        Test("everyenemy", "every enemy type, bosses too, through one life over the network (EveryEnemy.cs): spawns, shows on the friend's screen, takes a hit both see, dies and is gone", () => EveryEnemyTest(Dt)),
+        Test("lists", "every entry of the smaller lists (ListEntries.cs): each run modifier, path, Boss Hunt and challenge room is complete and plays over the network", () => ListEntriesTest(Dt)),
         Test("stages", "boss stage tables (BossStages.cs): Normal as balanced, Easy without the last stands, fights following their tier", () => BossStagesTest(Dt)),
         Test("holdingcell", "the Warden's net and Holding Cells: guards, the padlock, abilities, the fight pausing, next door, downed inside", () => HoldingCellTest(Dt)),
         Test("botdodge", "smart bots dodge walls of shots and sprint to cross the arena, without overusing either", () => BotDodgeTest(Dt)),
@@ -635,7 +648,7 @@ static partial class Program
         "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
         "exploit", "doublebarrel", "railgun", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "vowguard", "embolus", "needleswarm", "bloodbrawler", "arclock", "twinauto", "caltroprun", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
         "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "hangoutmode", "training", "foequery", "pvp", "three", "wrap", "ready", "wavekinds", "landmarks",
-        "arcanist", "stages", "bossrules", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
+        "arcanist", "caltroprun", "protocol", "everyenemy", "lists", "stages", "bossrules", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
         // (these were missing until Nov 2026, so nothing caught them breaking; ci_coverage.py now fails CI on a suite left out)
         "abilitycards", "armordrop", "astral", "ballista", "bamboo", "boil", "bosses", "botdodge", "botgate", "botweapon", "bulwark",
         "bumbleremote", "cannoncall", "cardfilters", "cardids", "celllayouts", "chests", "classcardlists", "claymore", "corelayouts",

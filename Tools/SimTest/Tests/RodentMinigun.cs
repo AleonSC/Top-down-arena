@@ -165,7 +165,7 @@ static partial class Program
         int ratId = Enumerable.Range(1, 1000).First(i => Game.RodentOf(i, Game.RmRatShare) == Game.Rodent.Rat);
         int mouseId = Enumerable.Range(1, 1000).First(i => Game.RodentOf(i, Game.RmRatShare) == Game.Rodent.Mouse);
         var grunt = pin(new V2(600f, 300f), EnemyType.Grunt);
-        var heavyType = Enum.GetValues(typeof(EnemyType)).Cast<EnemyType>().First(t => (int)t < 250 && Defs.Get(t).Heavy && !Defs.Get(t).IsBoss && Defs.Get(t).Speed > 0f);
+        var heavyType = HeavyFoe(moving: true);
         var heavy = pin(new V2(600f, 600f), heavyType);
         Func<int, Bullet> rodent = id => new Bullet { Id = id, Kind = Defs.RodentShot, Owner = 1, Vel = new V2(600f, 0f), Dmg = 9f };
         rodentHit.Invoke(g, new object[] { rodent(mouseId), grunt });

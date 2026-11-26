@@ -110,7 +110,7 @@ static partial class Program
         var under = pin(at + new V2(20f, 0f), EnemyType.Grunt);
         var inWave = pin(at + new V2(0f, 150f), EnemyType.Grunt);
         var outside = pin(at + new V2(0f, -280f), EnemyType.Grunt);
-        var heavyType = Enum.GetValues(typeof(EnemyType)).Cast<EnemyType>().First(t => (int)t < 250 && Defs.Get(t).Heavy && !Defs.Get(t).IsBoss && Defs.Get(t).Speed > 0f);
+        var heavyType = HeavyFoe(moving: true);
         var heavy = pin(at + new V2(-150f, 0f), heavyType);
         step(dt);
         cast.Invoke(g, new object[] { me, U, aim });

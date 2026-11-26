@@ -67,8 +67,7 @@ static partial class Program
             me.Slots[0].Charges = 1; me.Slots[0].Timer = 0f; me.Pos = home; me.Aim = 0f; me.Downed = false; me.Hp = me.MaxHp;
             me.MasteryXp.Remove(AbilityId.SiegeBell); me.Stats.BellRadiusMult = 1f; me.Stats.BellStunBonus = 0f;
         };
-        EnemyType heavyType = EnemyType.Grunt;
-        foreach (EnemyType et in Enum.GetValues(typeof(EnemyType))) { if ((int)et >= Defs.Enemies.Length) continue; var d = Defs.Get(et); if (d != null && d.Heavy && !d.IsBoss) { heavyType = et; break; } }
+        var heavyType = HeavyFoe();
 
         // The real key path: a press casts it, with its sound, on both screens.
         reset();

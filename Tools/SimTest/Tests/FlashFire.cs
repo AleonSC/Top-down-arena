@@ -75,8 +75,7 @@ static partial class Program
             g.State = MatchState.Fighting;
         };
         Action cast = () => hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, home, false });
-        EnemyType heavyType = EnemyType.Grunt;
-        foreach (EnemyType et in Enum.GetValues(typeof(EnemyType))) { if ((int)et >= Defs.Enemies.Length) continue; var d = Defs.Get(et); if (d != null && d.Heavy && !d.IsBoss) { heavyType = et; break; } }
+        var heavyType = HeavyFoe();
         float dmg = me.Stats.DmgMult;
 
         // The kindle, then the ring rolling out.
