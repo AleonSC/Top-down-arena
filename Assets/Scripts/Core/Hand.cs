@@ -102,8 +102,8 @@ namespace Arena
             p.Hand[p.Hand.Length - 1] = (int)PieceCard.None;
         }
 
-        /// Host, as a build round opens: anyone not dealt yet gets the starting hand (Expansion.GridStartHand), then everyone a wave card pick
-        /// (WaveCardOffer: take one of two, after any boss pick).
+        /// Host, as a build round opens: anyone not dealt yet with an empty hand gets the starting piece pick (StartCardOffer: one of two, first),
+        /// then everyone a wave card pick (WaveCardOffer: take one of two, after any boss pick).
         void DealRoundCards()
         {
             if (!IsHost || !ExpandingOn || !ModeRules.RunEvents)
@@ -114,8 +114,10 @@ namespace Arena
                 {
                     p.CardsDealt = true;
                     if (HandCount(p) == 0)
-                        foreach (var c in Expansion.GridStartHand(expandSeed + p.Id * 31))
-                            GiveCard(p, c, "starting hand");
+                    {
+                        p.StartPick = true;
+                        p.PendingCards++;
+                    }
                 }
                 p.PendingCards++;
                 p.WavePicks++;
@@ -123,6 +125,9 @@ namespace Arena
                     NextOffer(p);
             }
         }
+
+        /// Host: the starting piece pick's two cards (Expansion.GridStartOffer), seeded per player.
+        int[] StartCardOffer(Player p) => Array.ConvertAll(Expansion.GridStartOffer(expandSeed + p.Id * 31), c => (int)c);
 
         /// Host: a wave card pick's two cards: the round's basic piece (Expansion.GridRoundCard) and a dropped card (Expansion.GridDropCard), seeded per player and wave.
         int[] WaveCardOffer(Player p)

@@ -48,6 +48,7 @@ namespace Arena
                 p.OfferCards = false;
                 p.WavePicks = 0;
                 p.OfferWave = false;
+                p.StartPick = p.OfferStart = false;
                 p.PendingMilestones = 0;
                 p.OfferMilestone = false;
             }

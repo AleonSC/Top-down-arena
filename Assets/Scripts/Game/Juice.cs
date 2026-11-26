@@ -198,6 +198,7 @@ namespace Arena
             radiantTrails.Clear();
             ClearAmbience();  // Ambience.cs
             ClearJuiceMoments();  // JuiceMoments.cs
+            ClearMoveFeel();  // MoveFeel.cs
         }
 
         void AddPart(Part p)
@@ -348,6 +349,7 @@ namespace Arena
             }
             juiceClock += dt;
             juiceFrame++;
+            TickMoveFeel(dt);  // stretch, dust, dash ghosts (MoveFeel.cs)
             UpdateRadiantStardust(dt);  // the Radiant Orb's trail (RadiantOrbLooks.cs)
             UpdateAirTrails(dt);  // the air trail behind fast movers (AirTrailLooks.cs)
             float t = game.AnimT;
@@ -416,6 +418,8 @@ namespace Arena
         {
             if (fx.Kind == FxKind.RocketBlast && trauma < 0.4f && me != null && me.Pos.DistanceTo(fx.Pos) < 700f)
                 Shake(0.14f);  // a Rocket Drop rocket's blast (RocketDropLook.cs)
+            if (fx.Kind == FxKind.GongSplit && trauma < 0.3f && me != null && me.Pos.DistanceTo(fx.Pos) < 900f)
+                Shake(0.05f);  // a Five Shadow Gong cut landing at the sheathe (FiveShadowGongLook.cs)
             if (fx.Kind == FxKind.Repulse && trauma < 0.3f && me != null && me.Pos.DistanceTo(fx.Pos) < 40f)
                 Shake(0.1f);  // your own cannon's kick: very small, and it never builds up (RepulseLook.cs)
             if (fx.Kind == FxKind.PerfectParry && (int)fx.Pos2.X == game.MyId)

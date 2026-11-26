@@ -222,6 +222,7 @@ namespace Arena
             DrawCannonSky();  // Cannon Call's flare and the iron balls dropping in (CannonCallLook.cs)
             DrawOrbitalSky();  // Orbital Laser's lock-on, beam, shockwave and flash (OrbitalLaserLook.cs)
             DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon (DragonsDogmaLook.cs)
+            DrawShadowGongs(t);  // Five Shadow Gong: the gong, the shadows, their cuts and the splits (FiveShadowGongLook.cs)
             DrawRavagerDrops();  // Blood Ravager's drops (BloodRavagerLook.cs)
             DrawBoilOver();  // Blood Boil's bubbles and steam (BloodBoilLook.cs)
             DrawHeartbeatOver();  // Heartbeat's flung drops and the heart on the chest (HeartbeatLook.cs)
@@ -285,6 +286,7 @@ namespace Arena
             DrawClotStains(t);       // the Gore Mortar's drops on the floor (GoreMortarLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
+            DrawHazardFoam(t);  // Hazard Foam's lumps, all together so they merge (HazardFoamLook.cs)
             DrawInk(t);  // Spirit Chalk's lines and loops (ChalkLook.cs)
             DrawHiveFloor(t);  // the Hive Censer's refill rings and reach; its insects fly here (HiveCenserLook.cs)
             foreach (var h in game.Hazards.Values)
@@ -355,6 +357,7 @@ namespace Arena
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
             DrawBambooGroveFront(t);  // Bamboo Grove's near stalks, in front of the enemies (BambooGroveLook.cs)
             DrawSiegeBellOver(t);  // Siege Bell's bell and its stun marks (SiegeBellLook.cs)
+            DrawBloodTotemsOver(t);  // Blood Totems and their veins to the enemies they hold (BloodTotemLook.cs)
             DrawFlashFireFront(t);  // Flash Fire's near flames, in front of the enemies (FlashFireLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawBloodbathOver(t);  // enemies wading in a Bloodbath: tinted, bleeding drops (BloodbathLook.cs)
@@ -525,6 +528,7 @@ namespace Arena
             DrawBuffTimers(p, t);  // a shrinking arc under them for each timed buff (AbilityLooks.cs)
             DrawBannerAura(p, t);  // the Knight banners on the allies in them (KnightBannersLook.cs)
             DrawRocketAura(p, t);  // Rocket Drop's time ring, the ∞ chip and your blast reach (RocketDropLook.cs)
+            DrawFoamAura(p, t);    // Hazard Foam's time ring, tank bar and where your foam lands (HazardFoamLook.cs)
             DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
             DrawVortex(p, t);      // the Vortex ultimate's storm (VortexLook.cs)
             DrawLivingBoltAura(p, t);  // Living Bolt's channel, halo and time ring (LivingBoltLook.cs)
@@ -552,6 +556,8 @@ namespace Arena
                 DrawGreatStarRoute(p, t);  // the Great Star's ink route as you draw it (GreatStarLook.cs)
             if (p.Id == game.MyId && game.OathPickSlot >= 0)
                 DrawOathPick(p, t);  // Guardian's Oath waiting for you to click the ally to grab (GuardiansOathLook.cs)
+            if (p.Id == game.MyId && game.OctoPickSlot >= 0)
+                DrawOctoPick(p, t);  // Octopus Familiar waiting for you to click a player (OctopusFamiliarLook.cs)
             if (p.Weapon.Id == WeaponId.Kunai && p.KunaiMarkT > 0f)  // the shadow kunai's mark: blink there with a double-tap
             {
                 var shade = new Rgba(0.55f, 0.45f, 0.85f);
@@ -833,6 +839,7 @@ namespace Arena
             if (LaunchHides(p))
                 return;  // still on its way down in a pillar of light (LaunchIntro.cs)
             DrawNeedleSwarm(p, t);  // the Needle Swarm's ring and tendrils, under the player (NeedleSwarmLook.cs)
+            DrawMoveGhosts(p, t);  // a dash's fading copies (MoveFeel.cs)
             DrawPlayer(p, t);
             if (!p.Downed)
                 DrawStonespears(p, t);  // the hovering spears (StonespearLook.cs)
@@ -871,6 +878,8 @@ namespace Arena
         {
             if (fpProject)
                 return FpPx(p);  // first person: through your eyes (FirstPerson.cs)
+            if (bodyXfOn)
+                p = BodyFeelPoint(p);  // a moving body's stretch and lean (MoveFeel.cs)
             if (camZoomOn)
                 p = ZoomPoint(p);  // the scroll-wheel zoom (CameraZoom.cs)
             var v = CanvasPx(glShift + p * glZoom);

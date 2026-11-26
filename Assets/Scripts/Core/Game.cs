@@ -77,7 +77,7 @@ namespace Arena
         public bool RerollPending => rerollsAtRequest >= 0;
 
         public bool Bot;  // drive the local player automatically (testing)
-        V2 iceVel;        // your sliding velocity on the Frozen Lake path (Paths.cs)
+        V2 iceVel;        // your walking velocity: eased (WalkStartTime/WalkStopTime), and sliding on the Frozen Lake path (Paths.cs)
         public bool HoldParry;  // keep the parry up (testing)
 
         /// Round trip to the host in milliseconds (0 when you're the host), measured four times a second (Game.PingEvery).
@@ -357,6 +357,7 @@ namespace Arena
             DevSpawners.Clear();
             Zones.Clear();
             Effects.Clear();
+            FsgRuns.Clear();  // FiveShadowGong.cs
             Sounds.Clear();
             ResetMeleeSounds();  // MeleeSounds.cs
             spawnQueue.Clear();
@@ -692,7 +693,7 @@ namespace Arena
                     return;
                 }
                 if (p.OfferWave)
-                    GiveCard(p, BossCards.CardOf(code), "wave pick");
+                    GiveCard(p, BossCards.CardOf(code), p.OfferStart ? "starting pick" : "wave pick");
                 else
                     GrantBossCard(p, code);
                 UseCardPick(p);
@@ -735,6 +736,7 @@ namespace Arena
             p.OfferMod = false;
             p.OfferCards = false;
             p.OfferWave = false;
+            p.OfferStart = false;
             p.WavePicks = Math.Min(p.WavePicks, p.PendingCards);
             p.OfferMilestone = false;
             p.OfferPrize = false;
@@ -747,15 +749,19 @@ namespace Arena
             }
             if (!p.OfferLegendary && mods == null && p.PendingCards > 0)
             {
-                bool wave = p.PendingCards <= p.WavePicks;  // the boss's picks first, then the wave's (Hand.cs)
-                cards = wave ? WaveCardOffer(p) : BossCardOffer(p);
+                bool start = p.StartPick, wave = start || p.PendingCards <= p.WavePicks;  // the starting piece first, then the boss's picks, then the wave's (Hand.cs)
+                cards = start ? StartCardOffer(p) : wave ? WaveCardOffer(p) : BossCardOffer(p);
                 if (!AnyBossCardUsable(p, cards))
                 {
                     p.PendingCards = p.WavePicks = 0;  // a full hand and full kits: nothing to take
+                    p.StartPick = false;
                     cards = null;
                 }
                 else
+                {
                     p.OfferWave = wave;
+                    p.OfferStart = start;
+                }
             }
             if (p.OfferLegendary)
                 p.Offer = Upgrades.LegendaryOffer(rng, p.LegendaryQueue[0], OfferFor(p));
@@ -1211,6 +1217,7 @@ namespace Arena
                 move = V2.Zero;  // the Arc Knuckles' Flurry, Grab & Throw and Barrage: rooted while they run (ArcKnucklesChain.cs, ArcKnucklesBrawl.cs)
             bool oathClick = LocalOathPick(me, aimAt, input.Fire && !Bot, ref firing);  // Guardian's Oath: Fire picks the ally instead of shooting (GuardiansOath.cs)
             bool hospClick = LocalHospPick(me, aimAt, input.Fire && !Bot, ref firing);  // Field Hospital: Fire picks the door instead of shooting (FieldHospital.cs)
+            bool octoClick = LocalOctoPick(me, aimAt, input.Fire && !Bot, ref firing);  // Octopus Familiar: Fire picks the player instead of shooting (OctopusFamiliar.cs)
             float bowRelease = LocalBow(me, firing && !Riding(me), dt);  // (in a Trojan Horse: arrows, no charge: TrojanHorse.cs)
             if (me.Downed)
                 DashT = 0f;
@@ -1219,7 +1226,8 @@ namespace Arena
                 KickReachOn(me, dt);  // a Dodge ending just short of a wall reaches on to it (Dodge.cs)
                 DashT -= dt;
                 me.Pos += DashDir * dashSpeed * dt;
-                iceVel = DashDir * me.Speed * Paths.IceTopSpeed;  // on ice you slide out of a dash
+                bool iceDash = OnPathOf(PathId.FrozenLake) || FloorAt(me.Pos) == PathId.FrozenLake;
+                iceVel = iceDash ? DashDir * me.Speed * Paths.IceTopSpeed : V2.Zero;  // on ice you slide out of a dash; elsewhere a dash ends where it lands
             }
             else if (ArmOn(me))
                 LocalArmRoll(me, move, aimAt, firing && !HoldControls, dt);  // Iron Armadillo: rolling, not walking (IronArmadillo.cs)
@@ -1234,8 +1242,15 @@ namespace Arena
                 }
                 else
                 {
-                    iceVel = want;
-                    me.Pos += want * dt;
+                    // A little weight (WalkStartTime, WalkStopTime in Balance.cs): speed builds and falls fast, but not at once.
+                    // (Not for the test bot: its dodging plans with instant speed, so it would dodge worse and fights would drag.)
+                    bool braking = want.IsZero || want.Dot(iceVel) < 0f;
+                    float top = Math.Max(me.Speed, want.Length);
+                    if (Bot)
+                        iceVel = want;
+                    else
+                        iceVel += (want - iceVel).LimitLength(top * dt / (braking ? WalkStopTime : WalkStartTime));
+                    me.Pos += iceVel * dt;
                 }
             }
             if (!ArmOn(me))
@@ -1278,6 +1293,8 @@ namespace Arena
                 me.Pos = PushOutOfProps(me.Pos, me.Def.HitR + PropPad);  // crates, barrels and a closed chest are solid (Props.cs)
                 WallKick(me, kickWant);  // a Dodge into it bounces off (Dodge.cs)
             }
+            if (!me.Downed && FoamUp())
+                me.Pos = PushOutOfFoam(me.Pos, me.Def.HitR + PropPad);  // Hazard Foam is solid to allies too (HazardFoam.cs)
             // Touching a boss shoves you back out (its body doesn't hurt: TickEnemies).
             if (!me.Downed && shoveT <= 0f)
                 foreach (var e in Enemies.Values)
@@ -1332,6 +1349,21 @@ namespace Arena
                         continue;
                     }
                     pressed = hospClick;  // the click on a lit door is the cast
+                }
+                else if (OctoPickSlot == slot)
+                {
+                    if (pressed)
+                    {
+                        OctoPickSlot = -1;  // the key again: never mind
+                        continue;
+                    }
+                    pressed = octoClick;  // the click on a player is the cast
+                }
+                else if (pressed && !Bot && me.Slots[slot].Id == AbilityId.OctopusFamiliar && !me.Downed && Players.Count > 1)
+                {
+                    if (me.Slots[slot].Charges > 0)
+                        OctoPickSlot = slot;  // now click a player (alone: cast on you at once)
+                    continue;
                 }
                 else if (pressed && !Bot && me.Slots[slot].Id == AbilityId.FieldHospital && !me.Downed && HospOnGrid)
                 {
@@ -1389,6 +1421,13 @@ namespace Arena
                         target = LocalOathCharge(me, aimAt, Bot ? OathTarget(me, aimAt, OathRangeFor(me)) : OathPickTarget(me, aimAt));  // GuardiansOath.cs: charge to the ally you clicked
                         OathPickSlot = -1;
                         break;
+                    case AbilityId.OctopusFamiliar:
+                    {
+                        var q = Bot || OctoPickSlot < 0 ? null : OctoPickTarget(me, aimAt);
+                        target = q != null ? q.Pos : Bot ? aimAt : me.Pos;  // OctopusFamiliar.cs: the player you clicked (alone: you)
+                        OctoPickSlot = -1;
+                        break;
+                    }
                     case AbilityId.FieldHospital:
                     {
                         var spot = Bot || HospPickSlot < 0 ? (HospSpot?)null : HospPickTarget(me, aimAt);
@@ -1461,7 +1500,7 @@ namespace Arena
 
             LocalDodge(me, move, dodgePress, dodgeHeld, dt);  // the tiny dash with invulnerability (Dodge.cs)
             me.Sprint = (byte)Math.Round(SprintFade * 255f);  // for everyone else's wake (sent in Msg.Input, then the snapshot)
-            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me) && !ArmOn(me) && !Riding(me) && !RocketOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
+            LocalWeaponDash(me, move, aimAt, weaponAction && !me.ParryActive && !TankOn(me) && !ArmOn(me) && !Riding(me) && !RocketOn(me) && !FoamOn(me), dt);  // weapon secondaries on their own key (Ninja.cs)
             if (LocalLivingBolt(me, firing && !HoldControls, aimAt, dt))
                 firing = false;  // electrified: Fire is the dash (LivingBolt.cs)
             if (LocalRavager(me, firing && !HoldControls, dt))
@@ -1551,6 +1590,7 @@ namespace Arena
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickTanks(dt);      // LiteralTank.cs: the tank's time, running enemies over, getting out
             TickRocketLaunchers(dt);  // RocketDrop.cs: the launcher's time, dropping the tube
+            TickFoamSprayers(dt);  // HazardFoam.cs: the sprayer's time and tank, taking it off
             TickHorseRiders(dt);  // TrojanHorse.cs: riders of a horse that's gone, Sally Forth's time
             TickArmadillo(dt);  // IronArmadillo.cs: the ball's time, its speed and hits, the uncurl slam
             TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders
@@ -1623,6 +1663,7 @@ namespace Arena
             TickRavager(dt);  // Blood Ravager: its clock, the legs' walk and stomps, the ram and the lashes (BloodRavager.cs)
             TickBoil(dt);  // Blood Boil: its clock and the drain (BloodBoil.cs)
             TickForbiddenPath(dt);  // Forbidden Path: the beast's clock, drain, lock-on and combo stages (ForbiddenPath.cs)
+            TickShadowGong(dt);  // Five Shadow Gong: the strike, shadows, cuts, sheathe and smoke on each cast's clock (FiveShadowGong.cs)
             TickAstral(dt);  // Astral Projection: the spirit's clock, its host, lean and heal (AstralProjection.cs)
             TickRodentMinigun(dt);  // Rodent Minigun: the portal's clock, its turn after the aim and the rodents it spits (RodentMinigun.cs)
             TickHeartbeat(dt);  // Heartbeat: its clock, the beats' health and the waves' hits (Heartbeat.cs)
@@ -1632,6 +1673,7 @@ namespace Arena
             KeepOffBridges(dt);    // the Drawbridge (Drawbridge.cs)
             KeepOffBloodWalls(dt);  // Blood Wall (BloodWall.cs): pushes enemies back, bleeds those against it
             KeepOffCovers();  // Deployable Cover (DeployableCover.cs): enemies can't walk through its plates
+            KeepOffFoam(dt);  // Hazard Foam (HazardFoam.cs): enemies can't walk through it; they chew it, bosses plough through
             KeepOffGroveFences();  // Bamboo Grove's fence (BambooGrove.cs): enemies stay outside it
             KeepOffOssuaryWalls(dt);  // the Bone Guard's Ossuary Wall (BoneGuard.cs): pushes enemies back, darts those against it
             KeepOffPhalanx();    // the Bone Phalanx's shields (BonePhalanx.cs)
@@ -1804,6 +1846,8 @@ namespace Arena
                     TickTankGun(p, dt);
                 else if (RocketOn(p))
                     TickRocketGun(p, dt);  // Rocket Drop: the launcher, not your weapon (RocketDrop.cs)
+                else if (FoamOn(p))
+                    TickFoamGun(p, dt);  // Hazard Foam: the sprayer, not your weapon (HazardFoam.cs)
                 else if (ArmOn(p))
                 {
                     // curled up in Iron Armadillo: the weapon is away, Fire revs the roll (IronArmadillo.cs)

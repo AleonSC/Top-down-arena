@@ -24,6 +24,11 @@ namespace Arena
         /// The mark in the middle of a floating room: a ring, and a coin ring (shop), a plus (Black Market), a crosshair (Arms Dealer), a pill (Medic) or a diamond (Gatekeeper).
         void DrawFloatingMark(RoomArea a)
         {
+            if (!a.Sealed && a.PedestalWalls != 0)  // a vendor room: its wares on pedestals along its walls (ShopPedestalLook.cs)
+            {
+                DrawShopPedestals(a);
+                return;
+            }
             if (!a.Sealed && a.Kind == RoomKind.Arms)  // an Arms Dealer: its stall (ArmsDealerLook.cs)
             {
                 DrawArmsStall(a.Mid);
@@ -34,9 +39,9 @@ namespace Arena
                 DrawMedicBay(a.Mid);
                 return;
             }
-            if (!a.Sealed && (a.Kind == RoomKind.Shop || a.Kind == RoomKind.BlackMarket))  // an opened shop or Black Market room: its stall or pedestal
+            if (!a.Sealed && (a.Kind == RoomKind.Shop || a.Kind == RoomKind.BlackMarket))  // an opened shop or Black Market room: its pedestals or pedestal
             {
-                if (a.Kind == RoomKind.Shop) DrawShopStall(a.Mid); else DrawMarketPedestal(a.Mid);
+                if (a.Kind == RoomKind.Shop) DrawShopPedestals(a); else DrawMarketPedestal(a.Mid);  // (the shop's wares on pedestals: ShopPedestalLook.cs)
                 return;
             }
             var ink = KindInk(a.Kind, a.Floor);

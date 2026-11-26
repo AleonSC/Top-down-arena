@@ -152,8 +152,12 @@ namespace Arena
                 if (IsHospital(built[a - 1]))
                     continue;  // (a Field Hospital's cell is there for a minute: nothing is built off it)
                 BoxOf(built, a, out int x0, out int y0, out int x1, out int y1);
+                int pedestals = PedestalShop(built, a) ? ShopPedestalWalls(built, a) : 0;
+                byte[] sideWall = { ShopPedestals.North, ShopPedestals.South, ShopPedestals.West, ShopPedestals.East };
                 for (int side = 0; side < 4; side++)
                 {
+                    if ((pedestals & sideWall[side]) != 0)
+                        continue;  // (nothing is built off a vendor room's pedestal walls: ShopPedestals.cs)
                     bool across = side < 2;
                     int line = side == 0 ? y0 : side == 1 ? y1 : side == 2 ? x0 : x1;
                     if (GridMod(line, across ? GridY0 : GridX0) != 0)

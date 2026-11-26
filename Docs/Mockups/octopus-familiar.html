@@ -1,0 +1,287 @@
+<title>Octopus Familiar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, live stage (canvas + controls), how-it-works + numbers, open questions.
+   Colour: spirit violet for the octopus (the Summoner's spirit summons), teal for its reach and timer. */
+:root{
+  --bg:#eff0f3; --fg:#1b1d24; --muted:#5d6070; --panel:#f9f9fb; --line:#d2d4dc;
+  --octo:#7a35c9; --teal:#0f8f8a; --warn:#b4412a; --chip:#e2e3ea; --chip-on:#1b1d24; --chip-on-fg:#f3f4f8;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1015; --fg:#e8e9f0; --muted:#9396a6; --panel:#171820; --line:#2c2e3a;
+  --octo:#c9a0ff; --teal:#5fe3d8; --warn:#ff8466; --chip:#242633; --chip-on:#e8e9f0; --chip-on-fg:#0f1015; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1015; --fg:#e8e9f0; --muted:#9396a6; --panel:#171820; --line:#2c2e3a;
+  --octo:#c9a0ff; --teal:#5fe3d8; --warn:#ff8466; --chip:#242633; --chip-on:#e8e9f0; --chip-on-fg:#0f1015; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:32px}
+h1{font:700 clamp(34px,6vw,54px)/1 var(--display);text-transform:uppercase;letter-spacing:.01em;margin:0 0 10px;text-wrap:balance}
+h2{font:700 24px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
+header p{margin:0;max-width:64ch;color:var(--muted)}
+.tag{font:500 12px var(--mono);letter-spacing:.04em;color:var(--muted)}
+.stage{display:flex;flex-direction:column;gap:12px;min-width:0}
+.controls{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.group>span{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+button{font:500 14px var(--body);background:var(--chip);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 13px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button.primary{background:var(--octo);color:#fff;border-color:var(--octo)}
+:root:not([data-theme="light"]) button.primary{color:#1a0f2a}
+@media (prefers-color-scheme:light){button.primary{color:#fff!important}}
+button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.frame{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0b0d14;max-width:100%}
+canvas{display:block;width:100%;height:auto;aspect-ratio:900/520;cursor:default;touch-action:manipulation}
+canvas.picking{cursor:crosshair}
+.cap{position:absolute;left:12px;top:10px;font:500 12px var(--mono);color:#e3e2ef;background:#000b;padding:5px 9px;border-radius:4px;letter-spacing:.03em;max-width:calc(100% - 24px);pointer-events:none}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px 20px;min-width:0}
+ol.beats{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+ol.beats li{display:grid;grid-template-columns:70px 1fr;gap:12px}
+ol.beats b{font:500 12px var(--mono);color:var(--octo);padding-top:3px}
+ol.beats p{margin:0}
+ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:8px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:420px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top;font-size:15px}
+th{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.n{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+.note{font-size:14px;color:var(--muted);margin:10px 0 0}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+
+<main>
+<header>
+  <div class="tag">HEALER SUMMONER · 4TH ABILITY · MOCKUP (APPROXIMATE)</div>
+  <h1>Octopus Familiar</h1>
+  <p>Press the ability, click a player. A spirit octopus floats round them for 60 s and slaps every enemy that comes close, up to 8 at once, one per arm. It goes early if it takes enough damage.</p>
+</header>
+
+<section class="stage">
+  <div class="controls">
+    <div class="group"><button id="cast" class="primary">Cast (Q)</button><button id="hurt">Hurt octopus −60</button><button id="reset">Reset cooldown</button></div>
+    <div class="group"><span>Enemies</span><button id="calm" aria-pressed="false">Few</button><button id="swarm" aria-pressed="true">Swarm</button></div>
+    <div class="group"><span>Speed</span><button id="s1" aria-pressed="true">1×</button><button id="s3" aria-pressed="false">3×</button><button id="s0" aria-pressed="false">Pause</button></div>
+  </div>
+  <div class="frame">
+    <canvas id="cv" width="900" height="520" aria-label="Arena with three players, enemies and the octopus familiar"></canvas>
+    <div class="cap" id="cap">Press Q, then click a player</div>
+  </div>
+  <p class="note">Browser mockup: the glow and soft edges are approximate; the game version is drawn with the arena's own shapes.</p>
+</section>
+
+<div class="grid">
+  <section class="card">
+    <h2>How it works</h2>
+    <ol class="beats">
+      <li><b>Press</b><p>Pick mode: reach ring round you, a ring on each player, tether to the one under the cursor. The key again cancels, nothing spent. Alone, it goes to you at once.</p></li>
+      <li><b>Click</b><p>Octopus pops out of an ink splash beside that player (you included) and floats round them.</p></li>
+      <li><b>Guard</b><p>Enemies inside 130 px of the player get slapped: 8 arms, one enemy each, so up to 8 at once. Each slap heals the player 3.</p></li>
+      <li><b>Soak</b><p>Its body blocks enemy shots and takes bites. Health bar over it, timer ring round it.</p></li>
+      <li><b>Gone</b><p>After 60 s, or at 0 health, it bursts into ink. Casting again moves it.</p></li>
+    </ol>
+  </section>
+  <section class="card">
+    <h2>Numbers to start from</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Stat</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Pick range</td><td class="n">500 px from you</td></tr>
+        <tr><td>Lasts</td><td class="n">60 s</td></tr>
+        <tr><td>Health</td><td class="n">260</td></tr>
+        <tr><td>Guard reach</td><td class="n">130 px from the player</td></tr>
+        <tr><td>Arm slap</td><td class="n">16 dmg + shove, 0.75 s per arm</td></tr>
+        <tr><td>Targets</td><td class="n">8 (one per arm)</td></tr>
+        <tr><td>Shot hit / bite</td><td class="n">−14 / −10 a second</td></tr>
+        <tr><td>Heal</td><td class="n">3 a slap, to the guarded player</td></tr>
+        <tr><td>Cooldown</td><td class="n">40 s from the cast</td></tr>
+        <tr><td>Mastered</td><td class="n">380 health, 22 a slap</td></tr>
+        <tr><td>Three Hearts (Rare)</td><td class="n">+50% health, +25% slaps</td></tr>
+        <tr><td>One at a time</td><td>Recasting moves it to the new player</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Open questions</h2>
+  <ul>
+    <li><b>Capstone</b>: now 380 health and 22 a slap; two octopuses, or arms that ink (slow) what they hit, instead?</li>
+    <li><b>Wave end</b>: like other summons it goes when the wave ends, even with time left. Keep it to the next wave?</li>
+    <li><b>Downed players</b>: can it be cast on one to guard them while they're revived?</li>
+  </ul>
+</section>
+</main>
+
+<script>
+(()=>{
+const W=900,H=520,TAU=Math.PI*2;
+const cv=document.getElementById('cv'),cx=cv.getContext('2d'),cap=document.getElementById('cap');
+const dpr=Math.min(window.devicePixelRatio||1,2);cv.width=W*dpr;cv.height=H*dpr;cx.setTransform(dpr,0,0,dpr,0,0);
+const N={pick:500,life:60,hp:260,reach:130,dmg:16,armCd:.75,strike:.42,land:.2,shot:14,bite:10,cd:40,orbit:46};
+const rnd=(a,b)=>a+Math.random()*(b-a),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t;
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+let T=0,speed=1,swarm=true,pick=false,mouse={x:-99,y:-99},cool=0,eid=0,slaps=0;
+const players=[
+  {name:'You',role:'Healer',col:'#5ef0a0',ax:300,ay:290,ph:0,me:true},
+  {name:'Bram',role:'Tank',col:'#6aa8ff',ax:580,ay:200,ph:2.1},
+  {name:'Kit',role:'DPS',col:'#ffa05a',ax:610,ay:370,ph:4.3}];
+players.forEach(p=>{p.x=p.ax;p.y=p.ay});
+let enemies=[],shots=[],fx=[],octo=null;
+
+function spawn(){const s=Math.floor(rnd(0,4));let x,y;
+  if(s==0){x=rnd(0,W);y=-14}else if(s==1){x=W+14;y=rnd(0,H)}else if(s==2){x=rnd(0,W);y=H+14}else{x=-14;y=rnd(0,H)}
+  enemies.push({id:++eid,x,y,vx:0,vy:0,hp:40,max:40,r:10,shooter:Math.random()<.28,fire:rnd(1,3),hit:0,wob:rnd(0,TAU)});}
+function nearestPlayer(e){let b=null,bd=1e9;for(const p of players){const d=dist(e,p);if(d<bd){bd=d;b=p}}return [b,bd]}
+
+function cast(p){
+  const fresh=!octo;
+  if(octo) puff(octo.x,octo.y,8);
+  octo={tgt:p,age:0,hp:N.hp,x:p.x+30,y:p.y-30,orb:rnd(0,TAU),look:{x:0,y:0},hurtT:0,
+    arms:Array.from({length:8},(_,i)=>({rest:i/8*TAU+.2,st:0,t:0,cd:rnd(0,.25),e:null,ex:0,ey:0,landed:false,tip:null}))};
+  fx.push({k:'splash',x:octo.x,y:octo.y,t:0,life:.6});
+  cool=N.cd;pick=false;cv.classList.remove('picking');
+}
+function puff(x,y,n){for(let i=0;i<n;i++){const a=rnd(0,TAU),s=rnd(20,70);fx.push({k:'ink',x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,r:rnd(5,11),t:0,life:rnd(.6,1)})}}
+function endOcto(){puff(octo.x,octo.y,16);fx.push({k:'ring',x:octo.x,y:octo.y,t:0,life:.5});octo=null}
+function startPick(){if(cool>0||pick)return;pick=true;cv.classList.add('picking')}
+function cancelPick(){pick=false;cv.classList.remove('picking')}
+function hovered(){if(!pick)return null;const me=players[0];let b=null,bd=48;
+  for(const p of players){const d=dist(p,mouse);if(d<bd&&dist(p,me)<=N.pick){bd=d;b=p}}return b}
+
+function armBase(o,a){const ang=a.rest+o.orb*.35;return{x:o.x+Math.cos(ang)*9,y:o.y+6+Math.sin(ang)*6,ang}}
+function idleTip(o,a,i){const b=armBase(o,a),w=b.ang+Math.sin(T*2.2+i*1.7)*.35,l=24+Math.sin(T*3+i)*4;return{x:b.x+Math.cos(w)*l,y:b.y+Math.sin(w)*l*.8+6}}
+
+function step(dt){
+  T+=dt;if(cool>0)cool=Math.max(0,cool-dt);
+  players.forEach(p=>{p.x=p.ax+Math.sin(T*.37+p.ph)*70;p.y=p.ay+Math.cos(T*.49+p.ph*1.3)*42});
+  const want=swarm?24:8;if(enemies.length<want&&Math.random()<dt*(swarm?6:1.5))spawn();
+  for(const e of enemies){
+    const [p,d]=nearestPlayer(e);const dx=(p.x-e.x)/d,dy=(p.y-e.y)/d;
+    const sp=e.shooter?(d>200?34:0):40;const go=d>18?sp:0;
+    e.x+=dx*go*dt+e.vx*dt;e.y+=dy*go*dt+e.vy*dt;e.vx*=Math.pow(.02,dt);e.vy*=Math.pow(.02,dt);
+    e.hit=Math.max(0,e.hit-dt);e.wob+=dt*6;
+    if(e.shooter){e.fire-=dt;if(e.fire<=0&&d<400){e.fire=rnd(2,3.4);shots.push({x:e.x,y:e.y,vx:dx*170,vy:dy*170,t:0})}}
+    if(octo&&dist(e,octo)<e.r+16){octo.hp-=N.bite*dt;octo.hurtT=.12}
+  }
+  for(let i=0;i<enemies.length;i++)for(let j=i+1;j<enemies.length;j++){const a=enemies[i],b=enemies[j];const d=dist(a,b)||1;if(d<22){const k=(22-d)/2/d;a.x-=(b.x-a.x)*k;a.y-=(b.y-a.y)*k;b.x+=(b.x-a.x)*k;b.y+=(b.y-a.y)*k}}
+  shots=shots.filter(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;s.t+=dt;
+    if(octo&&dist(s,octo)<19){octo.hp-=N.shot;octo.hurtT=.15;fx.push({k:'block',x:s.x,y:s.y,t:0,life:.3});return false}
+    for(const p of players)if(dist(s,p)<11){fx.push({k:'block',x:s.x,y:s.y,t:0,life:.2});return false}
+    return s.x>-20&&s.x<W+20&&s.y>-20&&s.y<H+20});
+  if(octo){const o=octo;o.age+=dt;o.orb+=dt*1.05;o.hurtT=Math.max(0,o.hurtT-dt);
+    const tx=o.tgt.x+Math.cos(o.orb)*N.orbit,ty=o.tgt.y+Math.sin(o.orb)*N.orbit*.75-14+Math.sin(T*2.4)*4;
+    const k=1-Math.pow(.002,dt);o.x=lerp(o.x,tx,k);o.y=lerp(o.y,ty,k);
+    const taken=new Set(o.arms.filter(a=>a.st&&a.e).map(a=>a.e.id));
+    const near=enemies.filter(e=>!taken.has(e.id)&&dist(e,o.tgt)<N.reach).sort((a,b)=>dist(a,o.tgt)-dist(b,o.tgt));
+    for(const e of near){let best=null,bd=9;const ea=Math.atan2(e.y-o.y,e.x-o.x);
+      for(const a of o.arms){if(a.st||a.cd>0)continue;const b=armBase(o,a);let da=Math.abs(((ea-b.ang)%TAU+TAU*1.5)%TAU-Math.PI);if(da<bd){bd=da;best=a}}
+      if(!best)break;best.st=1;best.t=0;best.e=e;best.landed=false;best.ex=e.x;best.ey=e.y}
+    o.arms.forEach(a=>{if(!a.st){a.cd-=dt;return}a.t+=dt;if(a.e&&a.e.hp>0){a.ex=a.e.x;a.ey=a.e.y}
+      if(!a.landed&&a.t>=N.land){a.landed=true;if(a.e&&a.e.hp>0){const e=a.e,d=dist(e,o)||1;e.hp-=N.dmg;e.hit=.15;e.vx+=(e.x-o.x)/d*150;e.vy+=(e.y-o.y)/d*150;slaps++;
+        fx.push({k:'slap',x:e.x,y:e.y,t:0,life:.3})}}
+      if(a.t>=N.strike){a.st=0;a.e=null;a.cd=N.armCd}});
+    let lx=0,ly=0,ln=0;for(const a of o.arms)if(a.st){lx+=a.ex-o.x;ly+=a.ey-o.y;ln++}
+    const lt=ln?{x:lx/ln,y:ly/ln}:{x:o.tgt.x-o.x,y:o.tgt.y-o.y};const ll=Math.hypot(lt.x,lt.y)||1;
+    o.look.x=lerp(o.look.x,lt.x/ll*1.8,.2);o.look.y=lerp(o.look.y,lt.y/ll*1.8,.2);
+    if(o.hp<=0||o.age>=N.life)endOcto();}
+  enemies=enemies.filter(e=>{if(e.hp>0)return true;fx.push({k:'die',x:e.x,y:e.y,t:0,life:.35});return false});
+  fx=fx.filter(f=>{f.t+=dt;if(f.vx){f.x+=f.vx*dt;f.y+=f.vy*dt;f.vx*=.95;f.vy*=.95}return f.t<f.life});
+}
+
+// ---------- drawing
+function circ(x,y,r,fill){cx.beginPath();cx.arc(x,y,r,0,TAU);cx.fillStyle=fill;cx.fill()}
+function ring(x,y,r,col,w,dash){cx.beginPath();cx.arc(x,y,r,0,TAU);cx.strokeStyle=col;cx.lineWidth=w;cx.setLineDash(dash||[]);cx.stroke();cx.setLineDash([])}
+function floor(){cx.fillStyle='#10131c';cx.fillRect(0,0,W,H);cx.strokeStyle='#1a1f2c';cx.lineWidth=1;
+  for(let x=0;x<=W;x+=40){cx.beginPath();cx.moveTo(x+.5,0);cx.lineTo(x+.5,H);cx.stroke()}
+  for(let y=0;y<=H;y+=40){cx.beginPath();cx.moveTo(0,y+.5);cx.lineTo(W,y+.5);cx.stroke()}}
+function drawPlayer(p){circ(p.x,p.y+11,10,'#0007');circ(p.x,p.y,11,p.col);circ(p.x-3,p.y-3,4,'#ffffff55');
+  cx.font='500 11px "IBM Plex Mono",monospace';cx.textAlign='center';cx.fillStyle='#cfd2e0';cx.fillText(p.name,p.x,p.y+27)}
+function drawEnemy(e){circ(e.x,e.y+9,9,'#0006');const c=e.hit>0?'#ffffff':(e.shooter?'#e0566a':'#c43b4c');
+  cx.beginPath();for(let i=0;i<16;i++){const a=i/16*TAU,r=e.r+(i%2?2.5:-.5)+Math.sin(e.wob+i)*.6;cx.lineTo(e.x+Math.cos(a)*r,e.y+Math.sin(a)*r)}cx.closePath();cx.fillStyle=c;cx.fill();
+  if(e.shooter)circ(e.x,e.y,3.5,'#ffd0d6');
+  if(e.hp<e.max){cx.fillStyle='#0009';cx.fillRect(e.x-10,e.y-17,20,3);cx.fillStyle='#ff6b7d';cx.fillRect(e.x-10,e.y-17,20*e.hp/e.max,3)}}
+function tentacle(bx,by,tx,ty,i,s){
+  const dx=tx-bx,dy=ty-by,L=Math.hypot(dx,dy)||1,nx=-dy/L,ny=dx/L;
+  const bend=Math.sin(T*4+i*1.3)*(8*(1-s))+(i%2?1:-1)*L*.18*(s>0?1-s*.6:1);
+  const mx=bx+dx*.5+nx*bend,my=by+dy*.5+ny*bend,n=14,L1=[],R=[],pts=[];
+  for(let k=0;k<=n;k++){const u=k/n,a=(1-u)*(1-u),b=2*(1-u)*u,c=u*u;
+    const x=a*bx+b*mx+c*tx,y=a*by+b*my+c*ty;const gx=2*(1-u)*(mx-bx)+2*u*(tx-mx),gy=2*(1-u)*(my-by)+2*u*(ty-my),gl=Math.hypot(gx,gy)||1;
+    const w=lerp(5.2,1.1,u)+(s>.85&&u>.9?2:0);pts.push({x,y,px:-gy/gl,py:gx/gl,w,u});L1.push([x-gy/gl*w,y+gx/gl*w]);R.push([x+gy/gl*w,y-gx/gl*w])}
+  cx.beginPath();L1.forEach(([x,y],k)=>k?cx.lineTo(x,y):cx.moveTo(x,y));R.reverse().forEach(([x,y])=>cx.lineTo(x,y));cx.closePath();
+  const g=cx.createLinearGradient(bx,by,tx,ty);g.addColorStop(0,'#9a52e8');g.addColorStop(1,s>0?'#e6a8ff':'#b679f2');cx.fillStyle=g;cx.fill();
+  for(const p of pts)if(p.u>.25&&p.u<.92&&Math.round(p.u*n)%2==0)circ(p.x+p.px*p.w*.55,p.y+p.py*p.w*.55,Math.max(.9,p.w*.35),'#f6d6ff');
+}
+function drawOcto(o){
+  const sp=clamp(o.age/.45,0,1),sc=sp<1?1-Math.pow(1-sp,3)*1+Math.sin(sp*Math.PI)*.15:1;
+  const fading=Math.max(0,o.age-(N.life-3))/3;
+  // shadow on the floor + tether to the guarded player
+  cx.globalAlpha=.35;cx.beginPath();cx.ellipse(o.x,o.y+34,15,5,0,0,TAU);cx.fillStyle='#000';cx.fill();cx.globalAlpha=1;
+  cx.setLineDash([2,5]);cx.strokeStyle='#b98cff55';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(o.x,o.y+8);cx.lineTo(o.tgt.x,o.tgt.y);cx.stroke();cx.setLineDash([]);
+  const gl=cx.createRadialGradient(o.x,o.y,4,o.x,o.y,44);gl.addColorStop(0,'#b46cff40');gl.addColorStop(1,'#b46cff00');circ(o.x,o.y,44,gl);
+  cx.save();cx.translate(o.x,o.y);cx.scale(sc,sc);cx.translate(-o.x,-o.y);
+  if(fading>0)cx.globalAlpha=1-fading*.5*(.5+.5*Math.sin(T*18));
+  o.arms.forEach((a,i)=>{const b=armBase(o,a),it=idleTip(o,a,i);let s=0,tx=it.x,ty=it.y;
+    if(a.st){s=a.t<N.land?1-Math.pow(1-a.t/N.land,2):1-(a.t-N.land)/(N.strike-N.land);s=clamp(s,0,1);tx=lerp(it.x,a.ex,s);ty=lerp(it.y,a.ey,s)}
+    tentacle(b.x,b.y,tx,ty,i,s)});
+  const hurt=o.hurtT>0;
+  cx.beginPath();cx.ellipse(o.x,o.y+5,15,7,0,0,TAU);cx.fillStyle=hurt?'#ffd0e0':'#8b45dc';cx.fill();
+  const mg=cx.createLinearGradient(o.x,o.y-26,o.x,o.y+6);mg.addColorStop(0,hurt?'#fff':'#efc8ff');mg.addColorStop(1,hurt?'#ff9ab8':'#9d55ea');
+  cx.beginPath();cx.ellipse(o.x,o.y-7,14,18,0,0,TAU);cx.fillStyle=mg;cx.fill();
+  circ(o.x-5,o.y-16,2.2,'#c98cf6');circ(o.x+6,o.y-19,1.6,'#c98cf6');circ(o.x+2,o.y-12,1.3,'#c98cf6');
+  for(const sx of[-5.5,5.5]){circ(o.x+sx,o.y,4.3,'#fff');circ(o.x+sx+o.look.x,o.y+o.look.y,2.3,'#24123a');circ(o.x+sx+o.look.x-.8,o.y+o.look.y-.9,.8,'#fff')}
+  cx.restore();cx.globalAlpha=1;
+  // timer ring + health bar
+  const left=1-o.age/N.life;cx.beginPath();cx.arc(o.x,o.y-4,30,-Math.PI/2,-Math.PI/2+TAU*left);cx.strokeStyle='#5fe3d8aa';cx.lineWidth=2;cx.stroke();
+  cx.fillStyle='#000a';cx.fillRect(o.x-18,o.y-42,36,5);cx.fillStyle=o.hp/N.hp>.3?'#c98cff':'#ff6b7d';cx.fillRect(o.x-18,o.y-42,36*Math.max(0,o.hp)/N.hp,5);
+}
+function drawPick(){const me=players[0],h=hovered(),pulse=.5+.5*Math.sin(T*6);
+  ring(me.x,me.y,N.pick,'#5fe3d855',1.5,[6,8]);
+  for(const p of players){const ok=dist(p,me)<=N.pick;ring(p.x,p.y,17+pulse*2,ok?'#c98cff':'#666',p===h?3:1.5);}
+  if(h){cx.strokeStyle='#c98cffcc';cx.lineWidth=2;cx.setLineDash([8,6]);cx.lineDashOffset=-T*40;cx.beginPath();cx.moveTo(me.x,me.y);cx.lineTo(h.x,h.y);cx.stroke();cx.setLineDash([]);
+    ring(h.x,h.y,N.reach,'#5fe3d866',1.5,[4,6]);
+    cx.font='700 13px "Barlow Condensed",sans-serif';cx.textAlign='center';cx.fillStyle='#efe2ff';cx.fillText('OCTOPUS → '+h.name.toUpperCase(),h.x,h.y-28)}
+  else{cx.font='500 11px "IBM Plex Mono",monospace';cx.textAlign='left';cx.fillStyle='#d9c4ff';cx.fillText('click a player',mouse.x+12,mouse.y-10)}}
+function drawFx(){for(const f of fx){const u=f.t/f.life;
+  if(f.k=='slap'){ring(f.x,f.y,6+u*16,`rgba(240,200,255,${1-u})`,2.5);for(let i=0;i<5;i++){const a=i/5*TAU+f.x;cx.strokeStyle=`rgba(255,255,255,${1-u})`;cx.lineWidth=2;cx.beginPath();cx.moveTo(f.x+Math.cos(a)*(8+u*8),f.y+Math.sin(a)*(8+u*8));cx.lineTo(f.x+Math.cos(a)*(13+u*12),f.y+Math.sin(a)*(13+u*12));cx.stroke()}}
+  else if(f.k=='ink')circ(f.x,f.y,f.r*(1+u*.8),`rgba(70,30,110,${.75*(1-u)})`);
+  else if(f.k=='splash'){ring(f.x,f.y,8+u*40,`rgba(201,140,255,${1-u})`,3);circ(f.x,f.y,20*(1-u),`rgba(60,25,100,${.6*(1-u)})`)}
+  else if(f.k=='ring')ring(f.x,f.y,10+u*36,`rgba(95,227,216,${1-u})`,2);
+  else if(f.k=='block')circ(f.x,f.y,3+u*7,`rgba(255,220,240,${1-u})`);
+  else if(f.k=='die')ring(f.x,f.y,6+u*14,`rgba(255,110,125,${1-u})`,2)}}
+function drawHud(){const x=16,y=H-70,s=54;cx.fillStyle='#0b0e18e6';cx.fillRect(x,y,s,s);cx.strokeStyle=pick?'#c98cff':'#3a4466';cx.lineWidth=pick?2:1;cx.strokeRect(x+.5,y+.5,s-1,s-1);
+  // icon: tiny octopus
+  const ix=x+s/2,iy=y+s/2-2;for(let i=0;i<6;i++){const a=Math.PI*.15+i/5*Math.PI*.7;cx.strokeStyle='#b679f2';cx.lineWidth=2.4;cx.beginPath();cx.moveTo(ix,iy+3);cx.quadraticCurveTo(ix+Math.cos(a)*10,iy+3+Math.sin(a)*12,ix+Math.cos(a)*14+Math.sin(T*3+i)*1.5,iy+5+Math.sin(a)*13);cx.stroke()}
+  cx.beginPath();cx.ellipse(ix,iy-3,9,10,0,0,TAU);cx.fillStyle='#d9a6ff';cx.fill();circ(ix-3.5,iy-1,1.8,'#24123a');circ(ix+3.5,iy-1,1.8,'#24123a');
+  cx.font='700 11px "IBM Plex Mono",monospace';cx.textAlign='left';cx.fillStyle='#cfd2e0';cx.fillText('Q',x+4,y+12);
+  if(cool>0){cx.fillStyle='#000a';cx.fillRect(x,y+s*(1-cool/N.cd),s,s*cool/N.cd);cx.fillStyle='#fff';cx.textAlign='center';cx.font='700 16px "IBM Plex Mono",monospace';cx.fillText(Math.ceil(cool),ix,iy+6)}
+  cx.textAlign='left';cx.font='500 11px "IBM Plex Mono",monospace';cx.fillStyle='#8b90a8';cx.fillText('slaps '+slaps,x+s+10,y+s-4)}
+function draw(){floor();
+  if(octo)ring(octo.tgt.x,octo.tgt.y,N.reach,'#5fe3d830',1.5,[4,7]);
+  players.forEach(drawPlayer);enemies.forEach(drawEnemy);
+  for(const s of shots){circ(s.x,s.y,4.5,'#ff5d73');circ(s.x,s.y,2,'#ffe1e6')}
+  drawFx();if(octo)drawOcto(octo);if(pick)drawPick();drawHud();
+  const busy=octo?octo.arms.filter(a=>a.st).length:0;
+  cap.textContent=pick?'Click a player (Esc cancels)':octo?`Octopus on ${octo.tgt.name} · ${Math.ceil(N.life-octo.age)} s · ${Math.max(0,Math.ceil(octo.hp))}/${N.hp} · arms busy ${busy}/8`:cool>0?`Cooldown ${Math.ceil(cool)} s`:'Press Q, then click a player';}
+
+let last=performance.now();
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;for(let i=0;i<speed;i++)step(dt);draw();requestAnimationFrame(frame)}
+// start in a working state: octopus already on Bram, mid-fight
+for(let i=0;i<20;i++)spawn();cast(players[1]);cool=0;for(let i=0;i<120;i++)step(1/60);
+requestAnimationFrame(frame);
+
+function toPt(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
+cv.addEventListener('pointermove',e=>{mouse=toPt(e)});
+cv.addEventListener('pointerdown',e=>{mouse=toPt(e);if(e.button==2){cancelPick();return}if(!pick)return;const h=hovered();if(h)cast(h)});
+cv.addEventListener('contextmenu',e=>{if(pick){e.preventDefault();cancelPick()}});
+addEventListener('keydown',e=>{if(e.key=='q'||e.key=='Q'){if(pick)cancelPick();else startPick()}else if(e.key=='Escape')cancelPick()});
+const $=id=>document.getElementById(id);
+$('cast').onclick=startPick;$('hurt').onclick=()=>{if(octo){octo.hp-=60;octo.hurtT=.2;if(octo.hp<=0)endOcto()}};$('reset').onclick=()=>{cool=0};
+function seg(ids,fn){ids.forEach(id=>$(id).onclick=()=>{ids.forEach(j=>$(j).setAttribute('aria-pressed',j==id));fn(id)})}
+seg(['calm','swarm'],id=>{swarm=id=='swarm';if(!swarm)enemies=enemies.slice(0,8)});
+seg(['s1','s3','s0'],id=>{speed=id=='s1'?1:id=='s3'?3:0});
+})();
+</script>

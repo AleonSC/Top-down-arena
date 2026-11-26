@@ -219,9 +219,9 @@ namespace Arena
         }
 
         /// Shots thrown in an arc (grenades, boulders, Gore Mortar clots, medkits): they fly over what's below and land.
-        static bool Lobbed(byte kind) => kind == Defs.GrenadeShot || kind == Defs.BoulderShot || kind == Defs.ClotShot || kind == Defs.MedkitShot || kind == Defs.HoneyGlob;
+        static bool Lobbed(byte kind) => kind == Defs.GrenadeShot || kind == Defs.BoulderShot || kind == Defs.ClotShot || kind == Defs.MedkitShot || kind == Defs.HoneyGlob || kind == Defs.FoamGlob;
 
-        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop && kind != Defs.HoneyGlob && kind != Defs.TankShell && kind != Defs.RocketShell && kind != Defs.HorseArrow && kind != Defs.RodentShot && kind != Defs.Senbon && kind != Defs.BallistaBolt;
+        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop && kind != Defs.HoneyGlob && kind != Defs.FoamGlob && kind != Defs.TankShell && kind != Defs.RocketShell && kind != Defs.HorseArrow && kind != Defs.RodentShot && kind != Defs.Senbon && kind != Defs.BallistaBolt;
 
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false, float homing = 0f)
         {
@@ -284,7 +284,7 @@ namespace Arena
             foreach (var e in FoesInCircle(b.Pos, b.Splash, by: b.Owner))
                 HurtEnemy(e, b.Dmg, b.Owner);
             SpawnRing(Defs.DpsShot, b.Pos, b.Burst, 520f, 0.45f, b.Dmg * 0.12f, b.Owner);
-            BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.GrenadeShot), b.Splash, 0.35f, Sfx.Explode);
+            BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(Defs.GrenadeShot), b.Splash, 0.35f, b.TwinNade ? Sfx.TwinNadeBoom : Sfx.Explode);
             PropBlast(b.Pos, b.Splash, b.Owner);  // sets barrels off (Props.cs)
             GateLockBlast(b.Pos, b.Splash, b.Owner);  // and cracks a Warden gate's lock (Warden.cs)
         }
@@ -369,6 +369,11 @@ namespace Arena
                 if (b.Kind == Defs.HoneyGlob)
                 {
                     LandHoney(b);  // a honey puddle (HoneybeeStaff.cs)
+                    continue;
+                }
+                if (b.Kind == Defs.FoamGlob)
+                {
+                    LandFoam(b);  // a lump of foam (HazardFoam.cs)
                     continue;
                 }
                 if (b.Kind == Defs.BoulderShot)
@@ -531,6 +536,8 @@ namespace Arena
             return false;
         }
 
+        bool foamNow;  // (Collide: any Hazard Foam up this tick)
+
         void Collide()
         {
             scratchIds.Clear();
@@ -550,6 +557,7 @@ namespace Arena
             FindQuarryCover();    // rubble piles and dropped slabs (QuarryFaction.cs)
             FindEclipseMoon();    // the Eclipse's moon (Eclipse.cs)
             FindMoonwards();      // Moonwards' moons (Penumbral.cs)
+            foamNow = FoamUp();   // Hazard Foam's lumps (HazardFoam.cs)
             foreach (var b in Bullets.Values)
             {
                 if (Lobbed(b.Kind) || b.Kind == Defs.FlakShell || b.Tossed)
@@ -585,6 +593,8 @@ namespace Arena
                 return true;  // your shot hits a room's turret (RoomTraps.cs)
             if (Props.Count > 0 && PropStops(b))
                 return true;  // a crate takes an enemy shot; a barrel any shot (Props.cs)
+            if (foamNow && FoamStops(b))
+                return true;  // Hazard Foam stops every shot, both ways (HazardFoam.cs)
             if (quarryCover && QuarryCoverStops(b))
                 return true;  // a rubble pile or a dropped slab stops shots both ways (QuarryFaction.cs)
             if (colCover != null && ColossusCoverStops(b))

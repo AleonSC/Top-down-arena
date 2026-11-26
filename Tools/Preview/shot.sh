@@ -17,6 +17,7 @@
 # OFUDA=<s> (the Healer Ninja's Ofuda: talismans bending onto a hurt teammate, a Blast Ofuda stuck to a grunt and one on the ground; mode hud, 3 players, ZOOM=1.6).
 # ARCLOCK=<s> (Arc Lightning's lock-on: hold from 0, let go at 1.5 s; ARCFORK=1 the Forked Volley instead; mode hud).
 # OATHPICK=1|0 (Guardian's Oath waiting for the click: cursor on an ally, or off; mode hud, 3 players).
+# MOVEFEEL=walk|stop|dash [MFOFF=1] (movement feel, MoveFeel.cs: the stretch, dust, dash ghosts; MFOFF the before; mode hud, 2 players, ZOOM=2.5).
 # SPRINT=<s> (the Dodge's held sprint that long in, running right with its fading wake; mode hud).
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
 # MOMENTUM=<0-5> (the DPS passive's stack pips round you; mode hud, 2 players).
@@ -93,8 +94,10 @@
 # CANNON=<s since the cast> [CANNONCAP=1 mastered] (the DPS Knight's Cannon Call played through the game, shot.sh x hud 1 6 1: flare 0.08-0.3, ball drops 0.35-1.25, slam at 1.25, crater to 4.25; use 0.2, 0.9, 1.15, 1.3, 1.5, 2.5; ShotCannonCall.cs).
 # THORNBLOOM=<s since the cast> [THORNCAP=1 mastered] (the DPS Hemomancer's Thorn Bloom played through the game, shot.sh x hud 1 6 1: needles fly 0-0.2, tendrils whip on to ~0.9; use 0.05, 0.15, 0.3, 0.5, 0.8; ShotThornBloom.cs).
 # BAMBOO=<s since the cast> [BAMBOOCAP=1 mastered] (the Tank Ninja's Bamboo Grove played through the game, ZOOM=2 shot.sh x hud 1 6 1: wind-up 0-0.35, rings burst 0.35-0.7, fence to 3.9; use 0.2, 0.42, 0.6, 1.0, 2.5; ShotBambooGrove.cs).
+# TOTEM=<s since the last plant> [TOTEMCAP=1 mastered] (the Tank Hemomancer's Blood Totem played through the game, ZOOM=1.3 shot.sh x hud 1 6 1: three totems round you, each rising 0-0.25, veins growing to 0.5; use 0.1, 0.4, 1.5, 4; ShotBloodTotem.cs).
 # BELL=<s since the cast> [BELLCAP=1 mastered] (the Tank Knight's Siege Bell played through the game, ZOOM=1.3 shot.sh x hud 1 6 1: bell down 0-0.22, tolls 0.3/0.8/1.3, shockwave 1.3-1.75, bell gone 2.45, stuns to ~3.8; use 0.4, 1.0, 1.45, 1.6, 2.4; ShotSiegeBell.cs).
 # CHAKRA=<s since the cast> [CHAKRACAP=1 mastered] (the Healer Ninja's Chakra Reserves on a hurt teammate, ZOOM=2 shot.sh x hud 1 6 2: thread 0-0.22, lotus to 0.95, Surge to 5; use 0.1, 0.3, 0.6, 2.0; ShotChakra.cs).
+# OCTO=<s since the cast> [OCTOHP=<0-1>] or OCTOPICK=1 (the Healer Summoner's Octopus Familiar guarding a teammate among grunts, ZOOM=2 shot.sh x hud 1 6 2: pops out by 0.45, arms slap from then; use 0.2, 0.5, 1.4; ShotOctopus.cs).
 # ROD=<s since the cast> (you take Lightning Rod, the tank Elementalist's second ultimate, and cast it that long before the shot; mode hud).
 # TANKALT=<s> (the Tank Soldier's Alt fires: Double Barrel that long after firing, shells pips, Proximity Shells, Tear Gas; TankAltLook.cs).
 # HORSE=<s since the cast> [HORSEALL=1] [HORSEWEAR=<0-1>] [HORSEEND=broke|sally] (the Tank Knight's Trojan Horse rolling out, teammates inside shooting arrows; HORSEALL: you too, enemies go for it; mode hud, 3 players, ZOOM=2; ShotTrojanHorse.cs).
@@ -123,6 +126,7 @@
 # JUGG=<s since cast> JUGGARMOR=<0-1> (the Tank Soldier's Juggernaut Suit: plates, armour bar, flak tracers; mode hud).
 # ARMORDROP=<s since the cast> [ARMORCAP=1] [ARMORHIT=<armor left>] (the Tank Soldier's Armor Drop: crate, vests, armor shell and bar; mode hud).
 # ROCKETDROP=<s since the cast> [ROCKETCAP=1] (the DPS Soldier's Rocket Drop: pod, launcher, rockets, blasts, fire; ShotRocketDrop.cs; ZOOM=1.1 CAMAT=780,480 shot.sh x hud 1 6 1).
+# FOAM=<s since the cast> [FOAMCAP=1] [FOAMFIZZ=1] (the Healer Soldier's Hazard Foam: sprayer, globs, a wall of foam soaking grunts' shots; ShotHazardFoam.cs; ZOOM=1.3 CAMAT=700,520 shot.sh x hud 1 6 3).
 # BANNER=aegis|pilgrim|war [BANNERT=<s since the cast>] [BANNERCAP=1] (the Knight banner ultimates; ShotKnightBanners.cs; ZOOM=1.3 CAMAT=700,430 shot.sh x hud 1 6 3).
 # VORTEX=<s since cast> VXMASTERED=1 (the Tank Elementalist's Vortex: wind-up, storm, grunts swept round, shots swept away; mode hud; VortexLook.cs).
 # RAVAGER=<s since cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (the DPS Hemomancer's Blood Ravager walking right through grunts, clicking over the last 0.4 s; ShotBloodRavager.cs; ZOOM=2.2, mode hud).

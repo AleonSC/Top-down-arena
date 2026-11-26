@@ -2441,6 +2441,21 @@ namespace Arena
                 "G..G........",
                 "............",
             },
+            ["octopus"] = new[]  // Octopus Familiar: a violet octopus with big eyes and curling arms (Summoner.cs)
+            {
+                "....vvvv....",
+                "...vwvvvv...",
+                "..vwvvvvvv..",
+                "..vvvvvvvv..",
+                "..vwkvvwkv..",
+                "..vwwvvwwv..",
+                "..VvvvvvvV..",
+                ".VvVvVVvVvV.",
+                "Vv.Vv..vV.vV",
+                "V..v.VV.v..V",
+                ".V.V.V..V.V.",
+                "..V...V...V.",
+            },
             ["landshark"] = new[]  // Land Shark: a grey fin cutting through its puddle (Summoner.cs)
             {
                 "............",
@@ -2531,6 +2546,21 @@ namespace Arena
                 "...Nnnnnn...",
                 "....NNNN....",
             },
+            ["bloodtotem"] = new[]  // Blood Totem: a clot spike with a beating heart on top, veins reaching out (BloodTotem.cs)
+            {
+                "r...........",
+                ".r...rr...r.",
+                "..r.rprr.r..",
+                "...rrrrrr...",
+                ".....rr....r",
+                "....kRRk..r.",
+                "r...kRrk.r..",
+                ".r.kRRRRk...",
+                "..rkRrRRk...",
+                "..kRRRRrRk..",
+                "..kRrRRRRk..",
+                ".kkkkkkkkkk.",
+            },
             ["thornbloom"] = new[]  // Thorn Bloom: blood needles bursting out all round (Hemomancer.cs)
             {
                 "p....p.....p",
@@ -2575,6 +2605,9 @@ namespace Arena
         }
 
         /// The rows of an upgrade's icon, for drawing it in the world with GL (a chest item, PropsLook.cs), or null.
+        /// The rows of a named icon, for drawing it in the world with GL, or null.
+        public static string[] RowsOf(string key) { string[] rows; return Icons.TryGetValue(key, out rows) ? rows : null; }
+
         public static string[] RowsFor(UpgradeDef u)
         {
             string key = IconKey(u);

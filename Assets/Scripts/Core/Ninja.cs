@@ -347,6 +347,8 @@ namespace Arena
                 Apply = s => { s.FpDmgMult += Game.FpHungerDmg; s.FpKillHealMult += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.AstralProjection, MaxStacks = 2, Name = "Astral Bond", Desc = "Astral Projection lasts 2 s longer, and its astral bolts hit 25% harder",
                 Apply = s => { s.ApBonusTime += Game.ApBondTime; s.ApDmgMult += Game.ApBondDmg; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.FiveShadowGong, MaxStacks = 2, Name = "Temple Bronze", Desc = "Five Shadow Gong's cuts hit 20% harder, and its smoke spreads 25% wider",
+                Apply = s => { s.FsgDmgMult += Game.FsgBronzeDmg; s.FsgSmokeMult += Game.FsgBronzeSmoke; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Ninja, MaxStacks = 2, Name = "Ghost Step", Desc = "+6% move speed, and you take 30% less damage for 1 s after you dodge (1 s longer per extra copy)",
                 Apply = s => { s.SpeedMult += 0.06f; s.GhostCut = 0.3f; s.GhostTime += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Kusarigama }, MaxStacks = 2, Name = "Heavy Weight", Desc = "The Kusarigama's thrown weight flies 25% farther and stuns 0.4 s longer",
@@ -1227,7 +1229,7 @@ namespace Arena
         void HostWeaponDash(int id, int kind, V2 target)
         {
             Player p;
-            if (!Players.TryGetValue(id, out p) || p.Downed || TankOn(p) || Riding(p) || RocketOn(p))  // (in A Literal Tank or a Trojan Horse: no Alt, LiteralTank.cs)
+            if (!Players.TryGetValue(id, out p) || p.Downed || TankOn(p) || Riding(p) || RocketOn(p) || FoamOn(p))  // (in A Literal Tank or a Trojan Horse: no Alt, LiteralTank.cs)
                 return;
             if (kind == WeaponAlt.ArmBash)
             {

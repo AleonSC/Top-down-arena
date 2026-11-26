@@ -102,6 +102,7 @@ namespace Arena
                     : shown == AbilityId.HoneyRaid ? Game.HrTotal + 1.5f  // (the pool dries up before the next)
                     : shown == AbilityId.StaticBubble ? Game.BubTime + 1.5f  // (it pops before the next)
                     : shown == AbilityId.Heartbeat ? Game.HbTotal + 1.5f  // (the stains dry before the next)
+                    : shown == AbilityId.FiveShadowGong ? Game.FsgEndAt(Game.FsgPer) + Game.FsgSmokeLife + 0.5f  // (the smoke clears before the next)
                     : shown == AbilityId.AstralProjection ? Game.ApTime + 1.5f  // (the spirit snaps back before the next)
                     : shown == AbilityId.RodentMinigun ? Game.RmTotal(Game.RmFull) + 1.5f  // (the portal closes before the next)
                     : shown == AbilityId.MammothFall ? Game.MfTotal(Game.MfRampage) + 1.5f  // (it has run off before the next)
@@ -116,6 +117,7 @@ namespace Arena
                     : shown == AbilityId.SupplyDrop ? Game.SupplyCallIn + Game.SupplyOpen + Game.SupplyTime + Game.SupplyFold + 1f  // (the crate folds away before the next)
                     : shown == AbilityId.Ballista ? Game.BaFall + 9f  // (it climbs on and empties it, then the next)
                     : shown == AbilityId.RocketDrop ? Game.RocketCallIn + Game.RocketOpen + Game.RocketTime + 2f  // (it fires its rockets, then the next)
+                    : shown == AbilityId.HazardFoam ? Game.FoamTime + 2f  // (it sprays its tank out, then the next)
                     : shown == AbilityId.ArmorDrop ? Game.ArmorCallIn + Game.ArmorOpen + 4f  // (the vests lie out a while, then the next)
                     : shown == AbilityId.DragonsDogma ? Game.DogmaTime + 1.5f  // (it coils back in before the next)
                     : shown == AbilityId.Bloodbath ? Game.BathTime + 1.5f  // (a Bloodbath dries up before the next)
@@ -238,7 +240,7 @@ namespace Arena
                 if (draw || aimTicks == 0)  // (the cursor goes to a teammate for a cast only between strokes)
                     input.AimAt = aim;
             }
-            if (Game.OathPickSlot >= 0)
+            if (Game.OathPickSlot >= 0 || Game.OctoPickSlot >= 0)
             {
                 // Guardian's Oath waits for a click on a teammate (GuardiansOath.cs): the cursor on one, Fire let go a tick, then pressed.
                 input.AimAt = Game.ShowcaseAllyPos(castCount % 2);

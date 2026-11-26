@@ -241,7 +241,7 @@ namespace Arena
                         continue;
                     int bx0, by0, bx1, by1;
                     BoxOf(rooms, b, out bx0, out by0, out bx1, out by1);
-                    if (SharedRun(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1) >= MinDoorRun || Joined(rooms, a, b))
+                    if (SharedRun(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1) >= MinDoorRun && !ShopWallBetween(rooms, a, b) || Joined(rooms, a, b))
                     {
                         seen[b] = true;
                         queue.Enqueue(b);
@@ -741,7 +741,7 @@ namespace Arena
                     if (Overlaps(q[0], q[1], q[0] + q[2], q[1] + q[3], bx0, by0, bx1, by1)) { why = "Overlaps a room"; return null; }
                     int run = SharedRun(q[0], q[1], q[0] + q[2], q[1] + q[3], bx0, by0, bx1, by1);
                     shared += run;
-                    if (run >= MinDoorRun && linked[a] && run > best && !(a > 0 && IsHospital(built[a - 1]))) { best = run; root = p; rootParent = a; }  // (never off a Field Hospital: it comes off the map)
+                    if (run >= MinDoorRun && linked[a] && run > best && !(a > 0 && IsHospital(built[a - 1])) && !OnShopPedestalWall(built, a, q[0], q[1], q[0] + q[2], q[1] + q[3])) { best = run; root = p; rootParent = a; }  // (never off a Field Hospital: it comes off the map)
                 }
                 for (int o = 0; o < pieces.Count; o++)
                     if (o != p)
@@ -1111,6 +1111,8 @@ namespace Arena
                     Min = new V2(x0, y0), Max = new V2(x1, y1), Hub = a == 0,
                     Kind = kind, Floor = a == 0 ? PathId.None : rooms[a - 1].Floor, Owner = a == 0 ? 0 : rooms[a - 1].Owner, Floating = a > 0 && rooms[a - 1].Floating, Surprise = a == 0 ? (byte)0 : rooms[a - 1].Surprise,
                 };
+                if (a > 0)
+                    areas[a].PedestalWalls = ShopPedestalWalls(rooms, a);  // (a vendor room's pedestal walls: ShopPedestals.cs)
                 // Doors to every earlier room it shares enough wall with (its parent is always one of them).
                 for (int b = 0; b < a; b++)
                 {
@@ -1120,6 +1122,8 @@ namespace Arena
                     int run = SharedRun(x0, y0, x1, y1, bx0, by0, bx1, by1);
                     if (run < MinDoorRun && !(joined && run > 0))
                         continue;
+                    if (!joined && ShopWallBetween(rooms, a, b))
+                        continue;  // (a pedestal shop's pedestal walls take no door: ShopPedestals.cs)
                     int ox0 = Math.Max(x0, bx0), ox1 = Math.Min(x1, bx1), oy0 = Math.Max(y0, by0), oy1 = Math.Min(y1, by1);
                     float open = joined ? Math.Max(ox1 - ox0, oy1 - oy0) : 0f;
                     float dy = joined ? (oy0 + oy1) / 2f : GridDoorAlong(oy0, oy1, x0 == bx1 ? x0 : x1, GridX0, GridY0, (y0 + y1) / 2f);
@@ -1211,6 +1215,8 @@ namespace Arena
                     continue;  // (a sliver of a drawn outline: no cover in it)
                 if (gridRun && core != CoreLayoutId.None && IsGridCore(cr))
                     continue;  // (the core's floor plan covers it: CoreLayouts.cs)
+                if (IsVendor(cr.Kind))
+                    continue;  // (a vendor room is bare: its wares stand on pedestals along its walls, ShopPedestals.cs)
                 AddCover(cover, cr, doorSpots, gridRun ? plans : null);
                 if (gridRun && RelicGauntlet.Is(cr))
                     RelicGauntlet.AddPits(pits, cr);  // (the Relic Gauntlet's voids)
