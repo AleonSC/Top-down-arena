@@ -505,7 +505,7 @@ namespace Arena
             for (int i = 0; i < p.Slots.Length; i++)
             {
                 var s = p.Slots[i];
-                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.ArterialSpray && p.SprayOn || s.Id == AbilityId.BloodWall && p.BloodWallOn || s.Id == AbilityId.LastStand && p.StandOn || s.Id == AbilityId.TrojanHorse && HorseOut(p) || s.Id == AbilityId.CaltropRun && p.CaltropT > 0f)
+                if (s.Id == AbilityId.None || s.Charges >= s.MaxCharges || StunHeld(p, s) || s.Id == AbilityId.BloodShell && p.ShellOn || s.Id == AbilityId.ArterialSpray && p.SprayOn || s.Id == AbilityId.BloodWall && p.BloodWallOn || s.Id == AbilityId.LastStand && p.StandOn || s.Id == AbilityId.TrojanHorse && HorseOut(p) || s.Id == AbilityId.FieldHospital && HospitalOut(p) || s.Id == AbilityId.CaltropRun && p.CaltropT > 0f)
                     continue;  // (the Stun Gun's cooldown waits until its shots are spent)
                 if (HangoutOn)
                 {

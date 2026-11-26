@@ -349,6 +349,15 @@ namespace Arena
             }
         }
 
+        /// Is this player's own Field Hospital up (the cooldown waits for it to come down: TickSlots)?
+        public bool HospitalOut(Player p)
+        {
+            foreach (var z in Zones.Values)
+                if (z.Kind == ZoneKind.FieldHospital && z.Owner == p.Id && z.T > 0f)
+                    return true;
+            return false;
+        }
+
         /// Is a Field Hospital up anywhere (no run save while one is)?
         public bool HospitalUp
         {
