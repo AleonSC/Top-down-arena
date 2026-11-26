@@ -66,7 +66,7 @@ namespace Arena
         public static bool GutwormUnder(Enemy e) => e.Type == EnemyType.Gutworm && e.LarderStage != LarderIdle;
 
         /// Is `from` in front of a Maw Priest, in its maw?
-        public static bool InPriestMaw(Enemy e, V2 from) => Math.Abs(MathX.WrapPi((from - e.Pos).Angle - e.Facing)) < PriestMawHalf;
+        public static bool InPriestMaw(Enemy e, V2 from) => MathX.AngleWithin((from - e.Pos).Angle, e.Facing, PriestMawHalf);
 
         /// Its facing stays put while it's busy, so the chop and the cone land where they showed.
         public static bool LarderFaceLocked(Enemy e) => LarderPlanted(e);
@@ -80,15 +80,7 @@ namespace Arena
 
         /// Is `p` in a cone `half` either side of `face`, within `reach` of `from`?
         static bool InCone(V2 from, float face, float half, float reach, V2 p, float pad)
-        {
-            V2 to = p - from;
-            float d = to.Length;
-            if (d > reach + pad)
-                return false;
-            if (d < pad)
-                return true;
-            return Math.Abs(MathX.WrapPi(to.Angle - face)) < half;
-        }
+            => MathX.InCone(from, face, half, reach, p, pad, inner: pad, padBody: false, strict: true);
 
         /// Host, in Special: starts, runs and ends a Butcher's chop or a Gulper's breath.
         void LarderSpecial(Enemy e, V2 tpos, float dt)
@@ -264,8 +256,7 @@ namespace Arena
                 if (Hittable(p) && p.SwallowT <= 0f && p.Pos.CloserThan(e.Pos, GutMarkR + p.Def.HitR))
                     Damage(p, GutBite, "Gutworm");
             float off = RandAngle();
-            for (int i = 0; i < GutRing; i++)
-                EnemyShot(e, off + MathX.Tau * i / GutRing, GutRingSpeed, Defs.SmallShot);
+            EnemyRing(e, GutRing, off, GutRingSpeed, Defs.SmallShot);
             BroadcastFx(FxKind.Boom, e.Pos, new Rgba(0.85f, 0.64f, 0.5f), GutMarkR + 14f, 0.4f, Sfx.BossSlam);  // it erupts
             e.LarderStage = LarderIdle;
             e.LarderCd = GutEvery;

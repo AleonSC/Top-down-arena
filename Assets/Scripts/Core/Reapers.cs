@@ -464,8 +464,7 @@ namespace Arena
                     if (e.Pos.FartherThan(new V2(Width / 2f + side * 300f, Height / 2f), 8f))
                         break;
                     e.Ang += e.Type == EnemyType.ReaperOfDusk ? 0.2f : -0.2f;
-                    for (int k = 0; k < 3; k++)
-                        EnemyShot(e, e.Ang + MathX.Tau * k / 3f, 140f, Defs.SmallShot);
+                    EnemyRing(e, 3, e.Ang, 140f, Defs.SmallShot);
                     break;
                 }
                 case ReaperTurn.Crossfire:  // a 7-shot fan from the wall

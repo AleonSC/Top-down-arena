@@ -478,14 +478,12 @@ namespace Arena
                 case WardenTurn.Rings:  // slow rings of big orbs
                     e.FireT = 1f;
                     e.Ang += 0.12f;
-                    for (int i = 0; i < 26; i++)
-                        EnemyShot(e, e.Ang + MathX.Tau * i / 26f, 110f, Defs.BigShot);
+                    EnemyRing(e, 26, e.Ang, 110f, Defs.BigShot);
                     break;
                 case WardenTurn.Spiral:  // four-armed spiral, standing still
                     e.FireT = 0.07f;
                     e.Ang += 0.19f;
-                    for (int k = 0; k < 4; k++)
-                        EnemyShot(e, e.Ang + MathX.Tau * k / 4f, 150f, Defs.SmallShot);
+                    EnemyRing(e, 4, e.Ang, 150f, Defs.SmallShot);
                     break;
                 case WardenTurn.Fan:  // aimed fan: red lines first (aimed then), the volley FanWarnTime later
                     if (!fanPending)
@@ -542,8 +540,7 @@ namespace Arena
                     if (cycle != w.Plant)  // a pause begins: one orb ring
                     {
                         w.Plant = cycle;
-                        for (int i = 0; i < 26; i++)
-                            EnemyShot(e, facing + MathX.Pi / 4f + MathX.Tau * i / 26f, 110f, Defs.BigShot);
+                        EnemyRing(e, 26, facing + MathX.Pi / 4f, 110f, Defs.BigShot);
                     }
                     if (into >= LastStandGap)  // the burst: straight streams along its four faces
                         for (int k = 0; k < 4; k++)

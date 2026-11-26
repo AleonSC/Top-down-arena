@@ -182,8 +182,7 @@ namespace Arena
                     s.FadeT = 0f;
                     e.Pos = s.BlinkTo;
                     float off = RandAngle();
-                    for (int i = 0; i < 20; i++)
-                        EnemyShot(e, off + MathX.Tau * i / 20f, 110f, Defs.BigShot);
+                    EnemyRing(e, 20, off, 110f, Defs.BigShot);
                     BroadcastFx(FxKind.Ring, e.Pos, LichColor(LichStage.Undeath), 90f, 0.45f, Sfx.SpellArcane);
                 }
             }
@@ -585,8 +584,7 @@ namespace Arena
         void LichRing(Enemy e)
         {
             e.Ang += 12f * MathX.Pi / 180f;
-            for (int i = 0; i < 16; i++)
-                EnemyShot(e, e.Ang + MathX.Tau * i / 16f, 90f, Defs.BigShot);
+            EnemyRing(e, 16, e.Ang, 90f, Defs.BigShot);
         }
 
         void SyncLich(NetSync s, Enemy e)

@@ -196,7 +196,7 @@ namespace Arena
         }
 
         public static bool GrounderFaces(Enemy e, V2 from) =>
-            e.Type == EnemyType.Grounder && Math.Abs(MathX.WrapPi((from - e.Pos).Angle - e.Facing)) < GrounderArc;
+            e.Type == EnemyType.Grounder && MathX.AngleWithin((from - e.Pos).Angle, e.Facing, GrounderArc);
 
         /// A player's shot grounded on a Grounder's face (Combat.cs, after BlocksShot): it charges, and full, it claps.
         void GroundShot(Enemy e)

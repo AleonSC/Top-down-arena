@@ -31,16 +31,7 @@ namespace Arena
 
         /// Is something of this radius at pos in this cone of the mine?
         public static bool InClaymoreCone(Zone z, V2 pos, float radius, float half, float reach)
-        {
-            V2 d = pos - z.Pos;
-            float len = d.Length;
-            if (len > reach + radius)
-                return false;
-            if (len <= radius)
-                return true;
-            float off = Math.Abs(MathX.WrapPi(d.Angle - z.Aim));
-            return off <= half + (float)Math.Asin(Math.Min(1f, radius / len));  // (its body counts)
-        }
+            => MathX.InCone(z.Pos, z.Aim, half, reach, pos, radius, inner: radius, padBody: true);  // (its body counts)
 
         /// This player's claymores, oldest first.
         public List<Zone> ClaymoresOf(int owner)

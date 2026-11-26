@@ -40,15 +40,7 @@ namespace Arena
 
         /// Whether a body (centre c, radius r) is in the cone from `hand` along `aim`.
         public static bool InStaticCone(V2 hand, float aim, float range, V2 c, float r)
-        {
-            V2 rel = c - hand;
-            float d = rel.Length;
-            if (d > range + r)
-                return false;
-            if (d < r)
-                return true;
-            return Math.Abs(MathX.WrapPi(rel.Angle - aim)) < StaticHalf + (float)Math.Asin(Math.Min(1f, r / d));
-        }
+            => MathX.InCone(hand, aim, StaticHalf, range, c, r, inner: r, padBody: true, strict: true);
 
         /// The circuit: up to `max` enemies in the cone, nearest the hand first, each wired (from[i]: -1 the hand, else the
         /// index of the enemy it wires to) to the nearest point already in it. pos: where each enemy is (the host's Pos,

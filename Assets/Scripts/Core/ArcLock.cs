@@ -47,16 +47,7 @@ namespace Arena
 
         /// Inside the cone (scanned from your centre along `aim`).
         public static bool InArcCone(Player p, float aim, V2 at, float r)
-        {
-            V2 rel = at - p.Pos;
-            float d = rel.Length;
-            if (d > ArcReach(p) + r)
-                return false;
-            if (d <= r + p.Def.BodyR)
-                return true;
-            float off = Math.Abs(MathX.WrapPi(rel.Angle - aim));
-            return off <= ArcHalf(p) + (float)Math.Asin(Math.Min(1f, r / d));
-        }
+            => MathX.InCone(p.Pos, aim, ArcHalf(p), ArcReach(p), at, r, inner: r + p.Def.BodyR, padBody: true);
 
         /// Host, every tick for every player: tags while the draw is held, drops them when it's cancelled, lands the chain's and the
         /// fork's hits, counts the fork's cooldown down.
