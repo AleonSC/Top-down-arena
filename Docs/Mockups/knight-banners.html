@@ -51,9 +51,9 @@ li::marker{color:var(--dim)}
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">Knight · new ability mockup</div>
+    <div class="eyebrow">Knight · new ultimates mockup</div>
     <h1>Knight Banners</h1>
-    <p class="lede">One planted standard per role. Allies standing in its ring get the buff; step out and it fades. Pick a banner to watch it in play.</p>
+    <p class="lede">One planted standard per role, as an ultimate: long-lasting and strong. Allies standing in its ring get the buff; step out and it fades. Pick a banner to watch it in play.</p>
   </header>
 
   <div class="tabs" role="tablist" id="tabs"></div>
@@ -79,21 +79,21 @@ li::marker{color:var(--dim)}
 const TAU = Math.PI * 2;
 const BANNERS = {
   tank: {
-    key:'tank', role:'Tank Knight', name:'Aegis Standard', short:'Allies inside get a 40-point shield that regenerates.',
-    R:170, D:8, c:'#9cc8ff', cloth:'#2f5a96', cloth2:'#1d3a66', trim:'#d6ebff', glow:'159,200,255',
-    nums:[['Cooldown','18 s'],['Lasts','<b>8 s</b>'],['Ring','170 px'],['Shield','<b>40</b> while inside (fills on entering)'],['Regen','<b>15/s</b> after 1.5 s without a hit'],['Leaving','the shield fades over 1.5 s'],['Mastered','60 shield, regen after 0.75 s'],['Rare card','Tower Standard: ring 25% wider']],
+    key:'tank', role:'Tank Knight', name:'Aegis Standard', short:'Ultimate: allies inside get an 80-point shield that regenerates.',
+    R:220, D:15, c:'#9cc8ff', cloth:'#2f5a96', cloth2:'#1d3a66', trim:'#d6ebff', glow:'159,200,255',
+    nums:[['Slot','Tank Knight ultimate, key 3'],['Cooldown','75 s'],['Lasts','<b>15 s</b>'],['Ring','220 px'],['Shield','<b>80</b> while inside (fills on entering)'],['Regen','<b>25/s</b> after 1.5 s without a hit'],['Leaving','the shield fades over 1.5 s'],['Mastered','120 shield, regen after 0.75 s'],['Rare card','Tower Standard: ring 25% wider']],
     look:['Steel-blue standard with a silver kite shield','Hex-plated rim with turning steel ticks, a draining time arc','Each ally wears a hex bubble that flashes and cracks where shots land','Broken bubble shatters; regen sweeps an arc back round it']
   },
   healer: {
-    key:'healer', role:'Healer Knight', name:"Pilgrim's Standard", short:'Allies inside heal slowly, 2.5% of max health a second.',
-    R:180, D:10, c:'#ffe39a', cloth:'#eee3c2', cloth2:'#c9b884', trim:'#ffcf6b', glow:'255,227,154',
-    nums:[['Cooldown','18 s'],['Lasts','<b>10 s</b>'],['Ring','180 px'],['Heal','<b>2.5%</b> of max health a second (25% over the whole time)'],['Downed','revives inside go 50% faster'],['Mastered','14 s and 3.5% a second'],['Rare card','Long Road: heals keep going 3 s after you step out']],
+    key:'healer', role:'Healer Knight', name:"Pilgrim's Standard", short:'Ultimate: allies inside heal 4% of max health a second.',
+    R:230, D:18, c:'#ffe39a', cloth:'#eee3c2', cloth2:'#c9b884', trim:'#ffcf6b', glow:'255,227,154',
+    nums:[['Slot','Healer Knight ultimate, key 1'],['Cooldown','80 s'],['Lasts','<b>18 s</b>'],['Ring','230 px'],['Heal','<b>4%</b> of max health a second (72% over the whole time)'],['Downed','revives inside go 50% faster'],['Mastered','24 s and 5% a second'],['Rare card','Long Road: heals keep going 3 s after you step out']],
     look:['Ivory standard with a gold sun','Soft gold floor light, motes drifting up from the ring','A thin light thread from the finial to each ally being healed','Small gold +numbers tick up; bars fill slowly']
   },
   dps: {
-    key:'dps', role:'DPS Knight', name:'War Standard', short:'Allies inside attack 25% faster and hit 15% harder.',
-    R:160, D:8, c:'#ff6b5a', cloth:'#a3202f', cloth2:'#62121d', trim:'#ffcf6b', glow:'255,107,90',
-    nums:[['Cooldown','20 s'],['Lasts','<b>8 s</b>'],['Ring','160 px'],['Attack speed','<b>+25%</b> (swing 0.5 s → 0.4 s)'],['Damage','<b>+15%</b> (16 → 18)'],['Mastered','+35% speed, +20% damage; a kill inside adds 0.5 s'],['Rare card','Blood Oriflamme: +10% crit inside']],
+    key:'dps', role:'DPS Knight', name:'War Standard', short:'Ultimate: allies inside attack 40% faster and hit 25% harder.',
+    R:210, D:15, c:'#ff6b5a', cloth:'#a3202f', cloth2:'#62121d', trim:'#ffcf6b', glow:'255,107,90',
+    nums:[['Slot','DPS Knight ultimate, key 2'],['Cooldown','70 s'],['Lasts','<b>15 s</b>'],['Ring','210 px'],['Attack speed','<b>+40%</b> (swing 0.5 s → 0.36 s)'],['Damage','<b>+25%</b> (16 → 20)'],['Mastered','+55% speed, +35% damage; a kill inside adds 0.5 s'],['Rare card','Blood Oriflamme: +10% crit inside']],
     look:['Crimson standard with crossed gold swords','Crimson rim with chevrons turning outward, embers rising','Allies inside: a red aura under their feet and crimson swing trails','Damage numbers turn gold and bigger inside the ring']
   }
 };
@@ -209,7 +209,7 @@ function place(t){
   const P = S.players;
   P[0].x = 382 + Math.sin(t*1.3)*4; P[0].y = 338 + Math.cos(t*1.1)*3;
   P[1].x = 492 + Math.cos(t*1.25)*26; P[1].y = 236 + Math.sin(t*1.25)*20;
-  P[2].x = 600 + Math.sin(t*TAU/7 - 0.6)*150; P[2].y = 372 + Math.sin(t*1.7)*8;
+  P[2].x = 650 + Math.sin(t*TAU/7 - 0.6)*160; P[2].y = 372 + Math.sin(t*1.7)*8;
   if (BANNERS[cur].key === 'dps') S.players.forEach((p,i) => { const f = S.foes[i]; f.x = p.x + 40; f.y = p.y - 6 + i*4; });
 }
 function ring(t){
@@ -244,7 +244,7 @@ function step(dt){
       s.x += s.vx * dt; s.y += s.vy * dt;
       for (const p of S.players){
         if (s.dead || Math.hypot(s.x - p.x, s.y - p.y) > (p.sh > 0.5 ? 22 : 14)) continue;
-        s.dead = true; const dmg = b.key === 'tank' ? 9 : 5;
+        s.dead = true; const dmg = b.key === 'tank' ? 12 : 5;
         p.last = t;
         if (b.key === 'tank' && p.sh > 0){
           p.sh -= dmg; p.flash = 0.18; p.hitA = Math.atan2(s.y - p.y, s.x - p.x);
@@ -261,19 +261,19 @@ function step(dt){
     p.flash = Math.max(0, p.flash - dt);
     if (b.key === 'tank'){
       if (p.inside){
-        if (!p.wasIn){ p.sh = 40; text(p.x, p.y - 42, '+40 SHIELD', '#cfe6ff', 12); }
-        if (p.sh < 40 && t - p.last > 1.5){ p.sh = Math.min(40, p.sh + 15 * dt); p.regen = true; } else p.regen = false;
-      } else { p.regen = false; if (p.sh > 0) p.sh = Math.max(0, p.sh - 40 / 1.5 * dt); }
+        if (!p.wasIn){ p.sh = 80; text(p.x, p.y - 42, '+80 SHIELD', '#cfe6ff', 12); }
+        if (p.sh < 80 && t - p.last > 1.5){ p.sh = Math.min(80, p.sh + 25 * dt); p.regen = true; } else p.regen = false;
+      } else { p.regen = false; if (p.sh > 0) p.sh = Math.max(0, p.sh - 80 / 1.5 * dt); }
     } else if (b.key === 'healer'){
-      if (p.inside){ p.hp = Math.min(p.max, p.hp + 2.5 * dt); p.tick += dt; if (p.tick > 0.8){ p.tick -= 0.8; text(p.x + 12, p.y - 30, '+2', '#ffe39a', 12, 1.0); } p.glyph += dt; }
+      if (p.inside){ p.hp = Math.min(p.max, p.hp + 4 * dt); p.tick += dt; if (p.tick > 0.75){ p.tick -= 0.75; text(p.x + 12, p.y - 30, '+3', '#ffe39a', 12, 1.0); } p.glyph += dt; }
       else p.tick = 0.3;
     } else {
       // swing at the grunt in front
       const f = S.foes[S.players.indexOf(p)];
       p.swingCd -= dt;
       if (p.swingCd <= 0 && !f.dead){
-        p.swingCd = p.inside ? 0.4 : 0.5; p.swing = t; p.swungIn = p.inside;
-        const dmg = p.inside ? 18 : 16; f.hp -= dmg; f.hit = 0.12;
+        p.swingCd = p.inside ? 0.36 : 0.5; p.swing = t; p.swungIn = p.inside;
+        const dmg = p.inside ? 20 : 16; f.hp -= dmg; f.hit = 0.12;
         text(f.x + 4 + (S.rand()-0.5)*14, f.y - 24, String(dmg), p.inside ? '#ffcf6b' : '#dfe8ff', p.inside ? 15 : 12, 0.7);
         if (f.hp <= 0){ f.dead = 0.7; burst(f.x, f.y, 'hit', 14, 120, 0.5); }
       }
@@ -370,7 +370,7 @@ function drawPlayer(p, b, t, i){
 
   // tank: hex bubble
   if (b.key === 'tank' && p.sh > 0.3){
-    const k = p.sh / 40, R = 22;
+    const k = p.sh / 80, R = 22;
     g.save(); g.translate(p.x, p.y);
     g.beginPath(); for (let q = 0; q < 6; q++){ const a = q / 6 * TAU + Math.PI / 6; g.lineTo(Math.cos(a)*R, Math.sin(a)*R); } g.closePath();
     g.fillStyle = rgba(b.glow, 0.10 + 0.12 * k + (p.flash > 0 ? 0.25 : 0)); g.fill();
@@ -403,13 +403,13 @@ function drawPlayer(p, b, t, i){
       if (inC){ g.strokeStyle = rgba('255,207,107', 0.9 * (1 - k)); g.lineWidth = 2; g.beginPath(); g.arc(0,0,34,-0.9,a0); g.stroke(); }
       g.restore();
     }
-    if (p.inside){ g.fillStyle = b.c; g.font = '700 10px IBM Plex Mono, monospace'; g.textAlign = 'center'; g.fillText('▲ +25% +15%', p.x, p.y + 32); g.textAlign = 'start'; }
+    if (p.inside){ g.fillStyle = b.c; g.font = '700 10px IBM Plex Mono, monospace'; g.textAlign = 'center'; g.fillText('▲ +40% +25%', p.x, p.y + 32); g.textAlign = 'start'; }
   }
   // bars
   const w = 34, x0 = p.x - w / 2, y0 = p.y - 24;
   g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(x0 - 1, y0 - 1, w + 2, 6);
   g.fillStyle = p.hp / p.max > 0.5 ? '#6fe08a' : '#e8c35a'; g.fillRect(x0, y0, w * p.hp / p.max, 4);
-  if (b.key === 'tank' && p.sh > 0){ g.fillStyle = '#cfe6ff'; g.fillRect(x0, y0 - 4, w * p.sh / 40, 3); }
+  if (b.key === 'tank' && p.sh > 0){ g.fillStyle = '#cfe6ff'; g.fillRect(x0, y0 - 4, w * p.sh / 80, 3); }
   g.fillStyle = '#9fb3d6'; g.font = '600 9px IBM Plex Mono, monospace'; g.textAlign = 'center'; g.fillText(p.name, p.x, y0 - (b.key === 'tank' ? 7 : 4)); g.textAlign = 'start';
 }
 function drawFoes(b){
