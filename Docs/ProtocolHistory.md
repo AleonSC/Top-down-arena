@@ -4,7 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
-- 526: Siege Bell (Tank Knight 4th choice): `AbilityId.SiegeBell`, `FxKind.SiegeBell` and `Sfx.SiegeBell` (each at the end).
+- 527: Siege Bell (Tank Knight 4th choice): `AbilityId.SiegeBell`, `FxKind.SiegeBell` and `Sfx.SiegeBell` (each at the end).
 - 526: Audit fixes: the snapshot's minion and zone counts are 2 bytes (were 1); a Gauntlet Challenge's `ChallengeBy`, a Blood Blast's owner and ink dot / ink tip owners are 2-byte player ids; `Msg.BulletSync` adds each shot's `Radius` (float) and `Look` (byte); the transport sends empty keepalive frames (length 0) every 2 s and drops a peer silent for 30 s.
 - 525: Difficulty gets a 28th value, `DiffKnob.Mechanics` (the mechanics tier, Docs/DifficultyTiers.md step 1), in the lobby message, run saves and recordings; older data with 27 reads the preset's own tier (Custom: Normal).
 - 525: Ballista (DPS Knight third ultimate, key 2): `AbilityId.Ballista` and `ZoneKind.Ballista` (at the end), `Msg.BallistaMount` (after `HorseBoard`), bullet kind `Defs.BallistaBolt` = 86, a Ballista zone syncs `Rider` (int), `BoltsLeft` (byte) and `GunCd` (float) after `Aim`.
