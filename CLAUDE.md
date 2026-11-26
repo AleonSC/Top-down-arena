@@ -36,8 +36,14 @@ no Unity in the cloud container: check changes with the tools below.
   short report that names the protocol version and what's next.
 - The **very last line** of every session's final message is `Branch used: <branch>`, e.g. `Branch used: claude/xyz (PR #n, auto-merge on)` or
   `Branch used: claude/xyz (not merged to main)`, so the owner knows whether it's queued.
-- **Bump `Session.ProtocolVersion`** (`Core/Session.cs`) whenever a network message or snapshot format changes. Add a line for the new number at the top of `Docs/ProtocolHistory.md`; the code keeps only the number. Then `PROTOCOL=update Tools/SimTest/run.sh 1 1 protocol` (the `protocol` suite fails on any Core enum or wire read/write change without a bump). New
-  enum values (`Msg`, `Kit`, `WeaponId`, `AbilityId`, `EnemyType`, ...) go at the **end**, before `None`.
+- **Bump `Session.ProtocolVersion`** (`Core/Session.cs`) only when a network message or snapshot layout changes (a field
+  read or written). Add a line for the new number at the top of `Docs/ProtocolHistory.md`, then `PROTOCOL=update
+  Tools/SimTest/run.sh 1 1 protocol` (the `protocol` suite fails on a wire read/write change without a bump). New ids
+  and cards need no bump: `Session.IdsHash`, sent with Hello, tells builds with different ones apart.
+- **Ids in name order:** the growing id lists (`AbilityId`, `EnemyType`, `FxKind`, `MinionKind`, `Sfx`, `WeaponId`,
+  `ZoneKind`) are kept in name order, one per line, so parallel sessions don't clash; add a new id anywhere and run
+  `python3 Tools/Ids/ids.py --fix` (CI checks the order). Their tables of definitions are keyed by id (`[ZoneKind.X] = ...`,
+  `IdTable.Of`), so a new definition can sit beside its relatives. Other enums still take new values at the end.
 - Ask every question to the owner through the in-chat question box (`AskUserQuestion`), never as plain text or an artifact form. Batch related questions into one box. Ask before deleting code.
 - The Bestiary, Armory and Field guide are gone and retired (the owner will regenerate them later): don't recreate, update or mention them in code, docs, tests or reports.
 - New UI uses `DevKit.cs`'s CRT widgets (`DkKey`, `DkSwitch`, `DkField`, `DkSub`, `DkPanel`, `DkTitle`, ...); `Ui.cs` holds drawing primitives only.

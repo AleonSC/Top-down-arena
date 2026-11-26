@@ -216,10 +216,10 @@ namespace Arena
                     Link(e, r);
                 abilityOf[a.Id] = e;
             }
-            foreach (var t in (EnemyType[])Enum.GetValues(typeof(EnemyType)))
+            var types = ((EnemyType[])Enum.GetValues(typeof(EnemyType))).Where(t => (int)t < Defs.Enemies.Length)
+                .OrderBy(t => Defs.Get(t) != null && Defs.Get(t).IsBoss ? 0 : 1).ToList();  // bosses first, so a stand-in carrying a boss's name is seen as one
+            foreach (var t in types)
             {
-                if ((int)t >= Defs.Enemies.Length)
-                    continue;
                 var d = Defs.Get(t);
                 // Skip repeats, and a boss's stand-ins that carry its name (the Duelist's decoys).
                 if (d == null || string.IsNullOrEmpty(d.Name) || Find(d.Name, d.IsBoss ? WikiKind.Boss : WikiKind.Enemy) != null

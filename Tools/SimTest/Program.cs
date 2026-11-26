@@ -398,7 +398,7 @@ static partial class Program
         Test("shielder", "Shielders' shields wearing down", () => ShielderTest(Dt)),
         Test("warden", "the Warden", () => WardenTest(Dt)),
         Test("bossrules", "boss numbers by mechanics tier (BossRules.cs): summons, escorts, rest pace", () => BossRulesTest(Dt)),
-        Test("protocol", "the protocol guard (ProtocolGuard.cs): the enums and wire read/write lines match Golden/protocol.txt for this ProtocolVersion, enum values keep their numbers, the version has its history line (PROTOCOL=update rewrites it)", () => ProtocolGuardTest()),
+        Test("protocol", "the protocol guard (ProtocolGuard.cs): the wire read/write lines match Golden/protocol.txt for this ProtocolVersion, the version has its history line, Session.IdsHash tells builds with different ids or cards apart (PROTOCOL=update rewrites it)", () => ProtocolGuardTest()),
         Test("everyenemy", "every enemy type, bosses too, through one life over the network (EveryEnemy.cs): spawns, shows on the friend's screen, takes a hit both see, dies and is gone", () => EveryEnemyTest(Dt)),
         Test("lists", "every entry of the smaller lists (ListEntries.cs): each run modifier, path, Boss Hunt and challenge room is complete and plays over the network", () => ListEntriesTest(Dt)),
         Test("stages", "boss stage tables (BossStages.cs): Normal as balanced, Easy without the last stands, fights following their tier", () => BossStagesTest(Dt)),

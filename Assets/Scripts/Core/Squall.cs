@@ -145,7 +145,8 @@ namespace Arena
                 stormFronts.Remove(id);
         }
 
-        public static bool IsSquall(EnemyType t) => t >= EnemyType.DustDevil && t <= EnemyType.Thunderhead;
+        static readonly bool[] isSquallSet = IdTable.Set(EnemyType.DustDevil, EnemyType.SquallGunner, EnemyType.Stormcaller, EnemyType.Grounder, EnemyType.Pylon, EnemyType.Lineman, EnemyType.Thunderhead);  // (a list, not a range: ids are in name order)
+        public static bool IsSquall(EnemyType t) => (int)t < isSquallSet.Length && isSquallSet[(int)t];
         readonly System.Collections.Generic.Dictionary<int, int> pylonArcs = new System.Collections.Generic.Dictionary<int, int>();  // host: arcs fired this plant, by leader
         bool pylonPairing;  // host: SpawnEnemyAt is making a partner
 

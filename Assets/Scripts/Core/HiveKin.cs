@@ -8,6 +8,7 @@ namespace Arena
     public static class HiveKin
     {
         /// Is it one of the Hive's eight bees?
-        public static bool Is(EnemyType t) => t >= EnemyType.Worker && t <= EnemyType.Hornet;
+        static readonly bool[] members = IdTable.Set(EnemyType.Worker, EnemyType.Soldier, EnemyType.CombShield, EnemyType.HoneyLobber, EnemyType.Stinger, EnemyType.Needler, EnemyType.Bumble, EnemyType.Hornet);  // (a list, not a range: ids are in name order)
+        public static bool Is(EnemyType t) => (int)t < members.Length && members[(int)t];
     }
 }

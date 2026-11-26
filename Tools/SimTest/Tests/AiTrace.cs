@@ -17,12 +17,20 @@ static partial class Program
     const string AiTraceFile = "Golden/aitrace.txt";
     const float AiTraceSeconds = 12f;
 
+    static int NameSeed(string name)
+    {
+        uint h = 2166136261;
+        foreach (char c in name)
+            h = (h ^ c) * 16777619;
+        return (int)(h & 0x7fffffff);
+    }
+
     static string AiTraceOne(EnemyType type)
     {
         var flags = BindingFlags.NonPublic | BindingFlags.Instance;
         var spawn = typeof(Game).GetMethod("SpawnEnemyAt", flags);
         var queue = typeof(Game).GetField("spawnQueue", flags);
-        Game.SeedForTests(80000 + (int)type);
+        Game.SeedForTests(80000 + NameSeed(type.ToString()) % 100000);  // (by name, not number: the ids are in name order and move)
         TimedWaves.Enabled = false;
         var host = new Session { AutoStart = 1, StartWave = 3 };
         for (int tries = 0; !host.Host(nextPort++, "Host", Role.Tank) && tries < 20; tries++) { }  // a port still held by an earlier run: take the next
@@ -76,7 +84,7 @@ static partial class Program
                         continue;
                     if (Environment.GetEnvironmentVariable("AITRACE_DUMP") == type.ToString())  // AITRACE_DUMP=<type>: print its frames (to diff against an older commit)
                         Console.WriteLine("dbg f" + f + " " + o.Id + " " + o.Type + " " + o.Pos.X.ToString("0.00") + "," + o.Pos.Y.ToString("0.00") + " ph" + o.Phase + " pt" + o.PhaseT.ToString("0.000") + " ft" + o.FireT.ToString("0.000") + " hp" + o.Hp.ToString("0.0"));
-                    mix((int)o.Type); mix(o.Pos.X); mix(o.Pos.Y); mix(o.Phase); mix(o.Facing); mix(o.Hp);
+                    mix(NameSeed(o.Type.ToString())); mix(o.Pos.X); mix(o.Pos.Y); mix(o.Phase); mix(o.Facing); mix(o.Hp);
                 }
                 foreach (var b in g.Bullets.Values.OrderBy(x => x.Id))
                 {
