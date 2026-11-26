@@ -996,6 +996,11 @@ namespace Arena
                 case AbilityId.Ballista:
                     CastBallista(p, target, cap);  // Ballista.cs (key 1)
                     return true;
+                case AbilityId.AegisStandard:
+                case AbilityId.PilgrimsStandard:
+                case AbilityId.WarStandard:
+                    CastBanner(p, id, target, cap);  // KnightBanners.cs
+                    return true;
             }
             return false;
         }
@@ -1026,6 +1031,7 @@ namespace Arena
                 p.BossContactT = Math.Max(0f, p.BossContactT - dt);
                 p.MeleeGraceT = Math.Max(0f, p.MeleeGraceT - dt);
                 TickStand(p, dt);  // LastStand.cs
+                TickStdShield(p, dt);  // the Aegis Standard's shield (KnightBanners.cs)
                 if (p.Downed)
                 {
                     Array.Clear(p.WallPlate, 0, Player.WallPlates);

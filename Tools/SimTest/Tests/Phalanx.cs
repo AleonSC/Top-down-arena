@@ -50,12 +50,13 @@ static partial class Program
         client.RequestUlt(1);
         for (int i = 0; i < 60 && client.Lobby[2].Ult != 1; i++) { Program.Step(host, dt); Program.Step(client, dt); Nap(2); }
         Check(host.Lobby[2].Ult == 1 && client.Lobby[2].Ult == 1, "...and back to everyone");
-        var bare = Content.RoleWithoutUlt(1);  // (a role and class with no ultimate on key 1)
+        int bareKey;
+        var bare = Content.RoleWithAFreeUltKey(out bareKey);  // (a role and class with nothing on one of its keys)
         client.RequestRole(bare.Role);
         client.RequestKit(bare.Kit);
         for (int i = 0; i < 60 && !(client.Lobby[2].Kit == bare.Kit && client.Lobby[2].Role == bare.Role); i++) { Program.Step(host, dt); Program.Step(client, dt); Nap(2); }
         Check(host.Lobby[2].Ult == 0, "changing class resets the pick");
-        client.RequestUlt(1);
+        client.RequestUlt(bareKey);
         for (int i = 0; i < 30; i++) { Program.Step(host, dt); Program.Step(client, dt); Nap(2); }
         Check(host.Lobby[2].Ult == 0, "the host clamps a pick the class doesn't have (" + bare + ")");
         client.RequestRole(Role.Tank);

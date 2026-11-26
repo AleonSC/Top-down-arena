@@ -28,12 +28,13 @@ static partial class Program
         Check(Upgrades.ClampUlt(Role.Tank, Kit.Elementalist, 1) == 1 && Content.UltFallsBack(1) && Content.WildUltFallsBack(1),
             "key 1 is the tank Elementalist's Lightning Rod; a role and class without a key 1 (and a Wildcard from a class without a DPS key 1) fall back to their default");
 
-        var bare = Content.RoleWithoutUlt(1);  // (a role and class with no ultimate on key 1)
+        int bareKey;
+        var bare = Content.RoleWithAFreeUltKey(out bareKey);  // (a role and class with nothing on one of its keys)
         int port = nextPort++;
         var host = new Session { AutoStart = 3, StartWave = 3 };  // (3: it never starts on its own with two, but StartMatch needs no Ready)
         host.Host(port, "Rod", Role.Tank, 0, 0, Kit.Elementalist, 0, 1);
         var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", bare.Role, 0, 0, bare.Kit, 0, 1);
+        client.Join("127.0.0.1", port, "Friend", bare.Role, 0, 0, bare.Kit, 0, bareKey);
         var s = new[] { host, client };
         Run(s, dt, 3, () => host.Lobby.Count == 2 && client.Lobby.Count == 2 && !host.Game.Running);
         LobbyEntry hostMe = host.Lobby[1], friend = host.Lobby.Values.First(e => e.Id != 1);
@@ -71,7 +72,7 @@ static partial class Program
         // A saved run keeps it.
         var save = new RunSave { Wave = 4 };
         save.Seats.Add(new SeatSave { Name = "Rod", Role = Role.Tank, Kit = Kit.Elementalist, Ult = 1 });
-        save.Seats.Add(new SeatSave { Name = "Old", Role = Role.Healer, Kit = Kit.Knight, Ult = 1 });
+        save.Seats.Add(new SeatSave { Name = "Old", Role = bare.Role, Kit = bare.Kit, Ult = bareKey });
         var back = RunSave.Parse(save.ToText());
         Check(back.Seats[0].Ult == 1 && back.Seats[1].Ult == 0, "a saved run keeps each seat's ultimate (clamped to what the seat's class has)");
         var oldLine = RunSave.Parse(save.ToText().Replace("Tank Elementalist 0 0 0 1", "Tank Elementalist 0 0 0"));

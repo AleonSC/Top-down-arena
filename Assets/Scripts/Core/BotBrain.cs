@@ -420,6 +420,11 @@ namespace Arena
                     held[slot] = botHeldLast[slot] = true;
                 return true;
             }
+            if (IsBanner(s.Id) && ActiveBanner(me) != null)
+            {
+                held[slot] = botHeldLast[slot] = false;  // a Knight banner: leave it standing (KnightBanners.cs)
+                return true;
+            }
             Zone bath;
             if (s.Id == AbilityId.Bloodbath && (bath = ActiveBath(me)) != null)
             {

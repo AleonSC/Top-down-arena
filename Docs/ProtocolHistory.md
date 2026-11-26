@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 539: Knight banner ultimates: `AbilityId.AegisStandard`, `PilgrimsStandard`, `WarStandard` and the same three `ZoneKind`s (all at the end); the player sync adds `StdShieldHp`, `StdShieldMax` after `RocketT`.
 - 538: Rocket Drop (DPS Soldier fourth ultimate): `AbilityId.RocketDrop`, `ZoneKind.RocketDrop` and `ZoneKind.RocketFire`, `FxKind.RocketBlast` (all at the end), bullet kind `Defs.RocketShell` (87); the player sync adds `RocketT` after A Literal Tank's fields.
 - 537: Elementalist statuses Brittle (earth) and Dazzled (light): the enemy sync adds a byte after `fpBrands` (bit 1 Brittle, bit 2 Dazzled).
 - 536: Tidal Tusker (Tank Summoner fourth ultimate): `AbilityId.TidalTusker` and `ZoneKind.Tusker` (both at the end, after Caltrop's); its zone sync adds `Origin`, `Origin2`, `Side` and `Rider` after `Aim`, and keeps `GuardFrac` (its health); the Rare card Deep Trunk (card ids shift).
