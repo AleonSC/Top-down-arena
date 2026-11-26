@@ -44,6 +44,7 @@
 # SENBON=<needles>[,<s since the last cast>[,<enemies>]] [SENBONCAP=1] (the DPS Ninja's Senbon Seekers: the ring of needles, new ones coming out under 0.35 s, needles curving in on enemies 170 px off; ZOOM=2, mode hud; ShotSenbon.cs).
 # LANDSHARK=<s since the cast> [LANDSHARKMASTERED=1] (the DPS Summoner's Land Shark: the puddle, the fin, the leap and bite, the drain; use 0.6, 1.0, 1.1, 1.25; mode hud).
 # HEMODPS=spray|debt|rush (the DPS Hemomancer's Arterial Spray, Blood Debt, Vein Rush; DEBTSETTLE=paid|forfeit, RUSHT=<s>; mode hud).
+# SANCTUM=<s into the scene> (the Healer Knight's Sanctum Glass like the mock-up: raised at 0.5 s, shots from 0.4 s, a hurt friend; SANCTUMCAP=1 mastered; mode hud, 2 players; ShotSanctumGlass.cs).
 # GALEWALL=<s into the scene> (Gale Wall like the mockup: cast at 0.5 s, shots from 0.4 s; GALEBLAST=<s> unleashes it then; GALECAP=1 mastered; ShotGaleWall.cs).
 # QUEENHOLD=swell,<0-1>|lay,<s>|dive,<s> (with FLANKERS=1: the Brood Mother swelling before her eggs, laying them, in a royal dive).
 # QUEENSTAGE=<0-3> (with FLANKERS=1: the Hive Queen's Brood Mother body in Swarm, Honeycomb, Frenzy, Last Stand; ZOOM=2.6 CAMAT=800,215, mode hud 3 1 1).

@@ -144,6 +144,8 @@ namespace Arena
             { "Blizzard", "snow" },
             { "Tsunami", "cyclone" },
             { "Gale Wall", "galewall" },
+            { "Sanctum Glass", "sanctumglass" },
+            { "Rose Window", "sanctumglass" },
             { "Deployable Cover", "guard_wide" },
             { "Decoy Dummy", "clone" },
             { "Golem Wall", "guard_wide" },
@@ -2389,6 +2391,21 @@ namespace Arena
                 ".......kk...",
                 "............",
                 "............",
+            },
+            ["sanctumglass"] = new[]  // Sanctum Glass: a pane of stained glass in a lead frame, a healing cross in light below
+            {
+                "............",
+                ".kkkkkkkkkk.",
+                ".krrkbbkyyk.",
+                ".krrkbbkyyk.",
+                ".kkkkkkkkkk.",
+                ".knnkvvkrrk.",
+                ".knnkvvkrrk.",
+                ".kkkkkkkkkk.",
+                "............",
+                ".....nn.....",
+                "....nwwn....",
+                ".....nn.....",
             },
             ["galewall"] = new[]  // Gale Wall: gusts of wind curling back on themselves
             {

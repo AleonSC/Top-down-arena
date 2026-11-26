@@ -103,6 +103,8 @@ namespace Arena
             d[(int)FxKind.BulwarkThrow] = (fx, f, t) => DrawBulwarkThrowFx(fx, t);  // BulwarkBarrierLook.cs
             d[(int)FxKind.GaleCatch] = (fx, f, t) => DrawGaleCatchFx(fx);  // GaleWallLook.cs
             d[(int)FxKind.GaleBlast] = (fx, f, t) => DrawGaleBlastFx(fx);  // GaleWallLook.cs
+            d[(int)FxKind.GlassMote] = (fx, f, t) => DrawGlassMoteFx(fx);  // SanctumGlassLook.cs
+            d[(int)FxKind.GlassShatter] = (fx, f, t) => DrawGlassShatterFx(fx);  // SanctumGlassLook.cs
             d[(int)FxKind.WwSplash] = (fx, f, t) => DrawWwSplashFx(fx);  // WaterWardLook.cs
             d[(int)FxKind.WwBurst] = (fx, f, t) => DrawWwBurstFx(fx);  // WaterWardLook.cs
             d[(int)FxKind.CoverHit] = DrawFxCoverHit;
