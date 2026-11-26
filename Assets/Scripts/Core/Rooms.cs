@@ -14,6 +14,7 @@ namespace Arena
         public int Owner;       // the player who drew it (the Expanding arena; 0: none)
         public RoomKind Kind;   // what the room does (Expansion.cs)
         public PathId Floor;    // a rule room's path (its ground and hazards); None otherwise
+        public byte PedestalWalls;  // a shop room: the walls its pedestals line, 1 west and east, 2 north and south (ShopPedestals.cs); 0 not a shop
         public int Group;       // a multi-box room (an Expanding arena outline or bent hallway): its head's area index + 1, shared by its boxes; 0: a plain box
         public V2 Mid => (Min + Max) * 0.5f;
         public V2 Size => Max - Min;

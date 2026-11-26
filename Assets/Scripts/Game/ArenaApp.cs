@@ -342,7 +342,7 @@ namespace Arena
                 tabOpens++;  // (the TAB hint in the corner retires once you've used it: Hud.cs)
             Keybinds.SetPickerNumbers(choosing && !tabHeld ? Mathf.Min(me.Offer.Length, CardKeys.Length) : 0);  // its card keys win over a bound number key
             bool pathChoice = session.Screen == AppScreen.Game && (game.PathOffer != null || game.HuntMapVoting || ExpandWindowUp);
-            bool shopping = session.Screen == AppScreen.Game && ShopScreenUp(me);  // the Bazaar's shop covers the arena (ShopUi.cs)
+            bool shopping = session.Screen == AppScreen.Game && (ShopScreenUp(me) || PedestalSellUp(me));  // the Bazaar's shop covers the arena (ShopUi.cs)
             bool overlay = menuUp || wikiPicking || choosing || tabHeld || pathChoice || shopping || game.State == MatchState.GameOver || game.State == MatchState.Victory || MouseOnDock() || WaveBoxShown(me) || MouseOnWcStrip(me) || MouseOnBuilderShop(me);  // (the Builder Shop's shelf, BuilderShopUi.cs; the Wave cleared box has buttons: a click on Ready must not fire, ping or emote)
             if (!(session.Screen == AppScreen.Lobby && lobbyTab == HangoutTab))  // (the Hangout ticks its own, in OnGUI)
                 TickEmoteBar(session.Screen == AppScreen.Game && me != null && !me.Downed && !overlay);  // EmoteBar.cs: while it's open a click picks an emote
@@ -540,6 +540,10 @@ namespace Arena
             else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && game.Me != null && game.GateNear(game.Me.Pos) >= 0
                      && Keybinds.Down(KeyAction.Interact))
                 game.UseGate();
+            // At a pedestal in the shop room: F buys it (ShopPedestalLook.cs).
+            else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && !PedestalSellUp(game.Me) && TickPedestalKey(game.Me))
+            {
+            }
             // In a shop room you've left (Done shopping): F opens its screen again, any time between waves (ExpansionUi.cs DrawShopReopenHint).
             else if (session.Screen == AppScreen.Game && !menuUp && !tabHeld && GUIUtility.keyboardControl == 0 && ShopReopenable(game.Me)
                      && Keybinds.Down(KeyAction.Interact))
@@ -610,6 +614,8 @@ namespace Arena
                     MenuBack();  // a window closes first; then the pause menu's Settings: back to its choices (MenuDrawer.cs)
                 else if (EscPressed && !menuUp && ShopScreenUp(me))
                     ShopEsc();  // the shop / Black Market: a popup or category closes first, then Esc leaves it (ShopUi.cs)
+                else if (EscPressed && !menuUp && PedestalSellUp(me))
+                    shopSellOpen = false;  // the pedestal shop's sell list  // the shop / Black Market: a popup or category closes first, then Esc leaves it (ShopUi.cs)
                 else if (EscPressed)
                 {
                     if (menuUp)
