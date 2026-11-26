@@ -984,6 +984,21 @@ namespace Arena
                 ".kbbbbbbk...",
                 ".kkkkkkkk...",
             },
+            ["siegebell"] = new[]  // Siege Bell: a ghostly teal bell with its clapper, sound rings either side
+            {
+                ".....kk.....",
+                "....kwck....",
+                "...kccbbk...",
+                "c..kwcbbk..c",
+                ".c.kwcbbk.c.",
+                ".c.kwcbbk.c.",
+                "c.kwccbbbk.c",
+                "..kwccbbbk..",
+                ".kwccccbbbk.",
+                ".kkkkkkkkkk.",
+                ".....kk.....",
+                ".....bb.....",
+            },
             ["smoke"] = new[]
             {
                 "........yo..",

@@ -20,8 +20,8 @@ static partial class Program
         Check(def.Name == "Sanctum Glass" && def.Choice == AbilityDef.Fourth && def.Kit == Kit.Knight && def.Role == Role.Healer && def.Cooldown == 16f,
             "Sanctum Glass: a 16 s Healer Knight 1st ability on the 4th key");
         Check(Upgrades.AbilityLimit(Role.Healer, Kit.Knight) == 4 && Upgrades.FirstAbility(Role.Healer, Kit.Knight, 3) == AbilityId.SanctumGlass
-            && Upgrades.FirstAbility(Role.Healer, Kit.Knight, 2) == AbilityId.LayOnHands && Upgrades.AbilityLimit(Role.Tank, Kit.Knight) == 3,
-            "the Healer Knight's 4th key is Sanctum Glass; its first three are unchanged, and the Tank Knight keeps three");
+            && Upgrades.FirstAbility(Role.Healer, Kit.Knight, 2) == AbilityId.LayOnHands && Upgrades.AbilityLimit(Role.Dps, Kit.Knight) == 3,
+            "the Healer Knight's 4th key is Sanctum Glass; its first three are unchanged, and the DPS Knight keeps three");
         Check(Upgrades.All.Any(u => u.Name == "Rose Window" && u.RequiresAbility == AbilityId.SanctumGlass), "Rose Window is its upgrade card");
 
         int port = nextPort++;
