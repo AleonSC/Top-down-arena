@@ -1055,7 +1055,7 @@ namespace Arena
             MaybeRise(e, killer);  // Zombies.cs
             if (ExpandingOn)
                 DropCoins(e);  // Coins.cs: gold lies on the ground as coins that never despawn
-            else if (OnPathOf(PathId.Bazaar) || Has(RunMod.GoldRush) || ServiceRooms)
+            else if (OnPathOf(PathId.Bazaar) || ServiceRooms)
                 GrantGold(e);  // Shop.cs
             GrantVectorKill(killer, e.Pos);  // and a vector pickup every VectorKillEvery kills (ExpansionGame.cs)
             MomentumKill(killer, e);  // DPS role passive (Momentum.cs)

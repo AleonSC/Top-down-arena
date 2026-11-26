@@ -730,7 +730,7 @@ each), and red aimed shots just stop. Each enemy you roll into takes 20 at rest 
 launch's top speed), times your damage, at most once every 0.4 s: regular enemies are flung, and one flung fast hurts
 what it hits (as a Lance shove); Heavies are stunned 0.6 s and bounce you off, and so do bosses. Hitting a wall or a prop
 faster than 312 px/s bashes it for 50 within 120 px, and you bounce (the plain arena wraps round, so walls are the
-Expanding arena's, Solid Walls' and the like). Your weapon, its Alt, your abilities and the Dodge are locked; your
+Expanding arena's, Tiny Arena's and the like). Your weapon, its Alt, your abilities and the Dodge are locked; your
 minions keep fighting. On time the ball uncurls with a slam: 90 within 180 px, shoving regular enemies back; going down
 or the wave ending uncurls it quietly. Mastered: rolls 13 s and the slam hits for 130. Bots cast it with an enemy within
 420 px. The banded plates roll over the top as it goes, with a teal spirit rim, a dust trail and speed lines (gold while
@@ -827,7 +827,7 @@ Upgrades with a stack cap show squares that fill with how many you hold (the nex
 ability and its key) shows on the card itself. Hold **Tab** for all your stats. Boss rewards say **BOSS REWARD!** (legendary cards)
 or **WEAPON MOD** (a grid of every mod you can take). Don't like the cards? **Reroll** (or R) for a fresh set: the first click
 (or press) arms it (the button turns orange and reads CLICK AGAIN TO REROLL for 3 seconds), the second rerolls. You
-start with 2 rerolls and everyone gets 2 more for each boss killed. Where a shop will take gold (the Bazaar, Gold Rush, the Expanding arena), a normal level-up also has a **GOLD INSTEAD** key under the buttons: skip the cards for 20 gold plus 2 every two waves. Boss rewards, weapon mods, milestones and challenge prizes can't be swapped. The next wave waits until everyone have chosen.
+start with 2 rerolls and everyone gets 2 more for each boss killed. Where a shop will take gold (the Bazaar, the Expanding arena), a normal level-up also has a **GOLD INSTEAD** key under the buttons: skip the cards for 20 gold plus 2 every two waves. Boss rewards, weapon mods, milestones and challenge prizes can't be swapped. The next wave waits until everyone have chosen.
 
 **Repeat copies give less.** The plain stat cards you can take any number of times (Sharpened Rounds, Quick Trigger,
 Light Boots, Vitality, Mending, Focus, Hollow Points, Hair Trigger, Sprinter, Fortitude, Regeneration, Clarity) are
@@ -1387,7 +1387,7 @@ design notes: [`Docs/ArenaLayouts.md`](Docs/ArenaLayouts.md).
 - **Edge gates.** Some layouts wall the edges of the arena. **Player gates** (teal chevrons) are the gaps you can wrap
   through, and each comes out of the matching gap on the opposite edge. **Enemy gates** (stretches of the edge wall that look like the rest of it: red is
   kept for breaches) are where enemies come in; squads form up in front of one. A layout with open edges lets you wrap anywhere
-  and enemies come in along the edges it allows. Narrow Pass, Tiny Arena and Solid Walls close the arena, so the edge
+  and enemies come in along the edges it allows. Narrow Pass and Tiny Arena close the arena, so the edge
   gates drop away (the inner walls stay).
 - Layouts are always on (the starting room only; the grid rooms have their own pillars and wall stubs).
 - Enemies that walk steer round a wall that's in their way instead of pushing at it. Standing against a wall or in a corner
@@ -1639,7 +1639,7 @@ instead; Boss Hunts and runs saved before the Campaign use the open arena). Desi
   **400** the third (3 stacks at most, as before). It sells nothing else. In the Expanding arena this is the only place to get weapon mods (bosses give the card pick instead).
   Its card comes like the other service cards: wave drops, chests and the boss card pick.
 - **Medic**: a tiny rose room with a cot, an IV stand and a heartbeat line, from its service card (wave drops, chests, the boss pick) or a mystery door. While the shop is open, stand in it for a
-  **Full heal** (40) or a **Revive token** (120; one at a time). It is the only room shop that sells them (the Bazaar's and Gold Rush's shops, which have no rooms, still do).
+  **Full heal** (40) or a **Revive token** (120; one at a time). It is the only room shop that sells them (the Bazaar's shop, which has no rooms, still does).
 - **Breaches**: a rare event: on wave 5 and every 8th wave after it (13, 21, 29, ...), once the first room is built, enemies come in through **breaches** in the outer wall: a stretch of wall cracks open
   and a **red holographic barrier** stands in the gap (you can't go out through it; red chevrons on the floor point where they come
   from, and a red dash marks each on the minimap). 2 open on a breach wave, one more per 3 rooms built (at most 6), 400 px apart or
@@ -1700,8 +1700,8 @@ that's on, in its tier's colour (click one to turn it off; when they don't fit o
 the name on hover). The host turns them on and off; the others see them, and changing one takes back everyone's Ready. Active
 ones show as chips above the wave panel during the run.
 
-**In Survival** every modifier works except four that have nothing to act on in its one walled room: **Tiny Arena**,
-**Solid Walls**, **Gold Rush** (no shop) and **Simple Arena**. Their cards are dimmed and say *NO EFFECT IN SURVIVAL*,
+**In Survival** every modifier works except two that have nothing to act on in its one walled room: **Tiny Arena**
+and **Simple Arena**. Their cards are dimmed and say *NO EFFECT IN SURVIVAL*,
 they don't count toward rank XP there, and no chip shows for them. **Zombie Infection** turns every Survival spawn into a
 horde zombie of the clock's wave (zombies count for less of the spawner's budget, as in a horde wave); **Hunted** picks a
 new quarry and **Second Wind** comes back on the clock's waves (every 30 s, and every 2.5 min); **Cluttered** fills the room
@@ -1718,12 +1718,10 @@ with 1.6x its crates. **Nightfall** covers wherever the camera is, in every mode
 | Head Start | Everyone starts at level 3 (its two picks waiting) with a free legendary pick from the first boss's pool | Easier |
 | Practiced | Abilities gain mastery twice as fast | Easier |
 | Bloodlust | Every kill heals its killer (2 HP + 0.1 every two waves, like Blood Moon), but enemies don't drop health orbs (bosses still do) and nobody regenerates (the Healer's aura stops healing themselves; it still heals allies) | Risky |
-| Gold Rush | Every kill gives everyone gold (like the Bazaar), and a shop opens before each boss; gold you don't spend is kept for the next shop instead of turning into XP | Easier |
 | Tiny Arena | After each boss, walls close in and take a quarter of the room (of its area), down to 40%. No wrapping round the edges while they're up, and bullets stop at them. They open for each boss's countdown and fight | Harder |
 | Nightfall | Dark everywhere except 210 px round each player and a lantern beam (560 px, 48°) toward where each player aims; downed players lose their lantern | Harder |
 | Hunted | As each wave starts, one player (at random, among those standing) is hunted: every enemy goes for them (a Roar still pulls enemies off), and they deal double damage. Red brackets turn round them, and the HUD chip says who. While they're down, enemies pick someone else | Risky |
 | Death Throes | Every regular enemy (not bosses, nor things that give no XP) bursts into a ring of 6 slow shots 0.5 s after it dies, with a warning circle. Killing up close costs you | Harder |
-| Solid Walls | No wrapping round the edges: the arena's sides are walls (drawn as a glowing border), and bullets stop at them | Harder |
 | Cluttered | Every wave piles a lot more crates into the arena: 17 on wave 1, +3 every two waves, up to 48 (a normal run has 2 to 10), heavy crates from wave 15. They stay until enemy fire breaks them, so the field turns into a maze you have to wind through. Your shots still fly over them; enemy shots stop at them. Boss fights clear the arena, as usual. | Harder |
 | Simple Arena | The open arena with its floor plans all run, instead of the Campaign's Expanding arena: no building rooms, and a path offer after each boss | Risky |
 | Second Wind | Once per boss cycle (waves 1-10, 11-20, ...), each player who goes down gets back up by themselves 2 s later at half health; it's used before a revive token. The HUD chip shows whether yours is ready. While anyone holds one, everyone being down isn't game over | Easier |

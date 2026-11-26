@@ -115,7 +115,6 @@ namespace Arena
                 case RunMod.Lucky: return "mod_lucky";
                 case RunMod.HeadStart: return "mod_headstart";
                 case RunMod.Practiced: return "mod_practiced";
-                case RunMod.GoldRush: return "mod_goldrush";
                 case RunMod.SecondWind: return "mod_secondwind";
                 case RunMod.GlassCannon: return "mod_glasscannon";
                 case RunMod.Bloodlust: return "mod_bloodlust";
@@ -127,7 +126,6 @@ namespace Arena
                 case RunMod.TinyArena: return "mod_tinyarena";
                 case RunMod.Nightfall: return "mod_nightfall";
                 case RunMod.DeathThroes: return "mod_deaththroes";
-                case RunMod.SolidWalls: return "mod_solidwalls";
                 case RunMod.ZombieInfection: return "mod_zombie";
                 case RunMod.Cluttered: return "mod_cluttered";
                 case RunMod.SimpleArena: return "mod_simplearena";
@@ -188,7 +186,6 @@ namespace Arena
         }
 
         static readonly Rgba HuntRed = new Rgba(1f, 0.3f, 0.32f);
-        static readonly Rgba WallBlue = new Rgba(0.55f, 0.65f, 0.9f);
 
         /// Hunted: four brackets turning round the quarry, and a faint pulse.
         void DrawHuntedMark(V2 at, float r, float t)
@@ -197,22 +194,6 @@ namespace Arena
             Arc(at, rr + 6f, 1.5f, HuntRed.WithAlpha(0.18f + 0.12f * Mathf.Sin(t * 6f)), 28);
             for (int k = 0; k < 4; k++)
                 Arc(at, rr, 3f, HuntRed.WithAlpha(0.9f), 6, t * 1.5f + k * MathX.Pi / 2f - 0.35f, 0.7f);
-        }
-
-        /// Solid Walls: the arena's edges drawn as walls (a bright inner edge with a glow falling off inward).
-        void DrawSolidWalls(float t)
-        {
-            float a = 0.55f + 0.1f * Mathf.Sin(t * 1.5f);
-            V2[] c = { new V2(0f, 0f), new V2(AW, 0f), new V2(AW, AH), new V2(0f, AH) };
-            for (int k = 0; k < 4; k++)
-            {
-                V2 p0 = c[k], p1 = c[(k + 1) % 4];
-                V2 inward = (new V2(AW / 2f, AH / 2f) - (p0 + p1) / 2f).Normalized();
-                inward = Mathf.Abs(inward.X) > Mathf.Abs(inward.Y) ? new V2(inward.X > 0f ? 1f : -1f, 0f) : new V2(0f, inward.Y > 0f ? 1f : -1f);
-                Line(p0, p1, 10f, WallBlue.WithAlpha(0.35f * a));
-                Line(p0 + inward * 9f, p1 + inward * 9f, 8f, WallBlue.WithAlpha(0.1f * a));
-                Line(p0 + inward * 3f, p1 + inward * 3f, 2f, new Rgba(0.85f, 0.9f, 1f, a));
-            }
         }
     }
 }
