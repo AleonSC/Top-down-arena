@@ -127,8 +127,10 @@ static partial class Program
                 Run(s, dt, 0.2f, null, calm);
                 cg.Me.Pos = pit.Pos;
                 int falls = g.PlayerFalls;
-                Run(s, dt, 0.5f, null, calm);
-                Check(cg.PitAt(cg.Me.Pos) < 0 && cg.Me.Pos.CloserThan(pit.Pos, half + 80f), "a player who falls in climbs out on the rim beside it");
+                Run(s, dt, 0.2f, null, calm);
+                Check(cg.PitFallT > 0f && cg.PitAt(cg.Me.Pos) >= 0, "a player who walks off the lip drops in: held down in the pit a moment (" + cg.PitFallT.ToString("0.00") + " s left)");
+                Run(s, dt, 0.6f, null, calm);
+                Check(cg.PitFallT <= 0f && cg.PitAt(cg.Me.Pos) < 0 && cg.Me.Pos.CloserThan(pit.Pos, half + 80f), "a player who falls in climbs out on the rim beside it");
                 Check(g.PlayerFalls == falls + 1 && Math.Abs(friend.Hp - friend.MaxHp * (1f - Game.PitHurt)) < 1.5f && friend.InvulnT > 0.3f, "and the host takes 15% of their health and gives a moment's shield (" + friend.Hp.ToString("0") + " / " + friend.MaxHp.ToString("0") + ")");
 
                 // never lethal: the host's own player at 5 HP
@@ -138,7 +140,7 @@ static partial class Program
                 me.Hp = 5f; me.InvulnT = 0f;
                 Run(s, dt, 0.1f, null, still);
                 me.Pos = pit.Pos;
-                Run(s, dt, 0.4f, null, still);
+                Run(s, dt, 0.8f, null, still);
                 Check(!me.Downed && Math.Abs(me.Hp - 1f) < 0.01f && g.PitAt(me.Pos) < 0, "a fall never downs you: it stops at 1 HP (" + me.Hp.ToString("0.00") + " HP, downed " + me.Downed + ", in a pit " + (g.PitAt(me.Pos) >= 0) + ")");
             }
         }
