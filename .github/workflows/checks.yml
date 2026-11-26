@@ -18,6 +18,8 @@ jobs:
         run: python3 Tools/CodeMap/check.py
       - name: CI runs every test suite
         run: python3 Tools/SimTest/ci_coverage.py
+      - name: Id lists in name order
+        run: python3 Tools/Ids/ids.py
       - name: Core suite
         run: Tools/SimTest/run.sh
   features:

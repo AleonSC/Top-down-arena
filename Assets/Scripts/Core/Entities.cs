@@ -8,165 +8,601 @@ namespace Arena
     // Effect classes the Game holds.
     public enum MatchState : byte { Idle, Fighting, Intermission, GameOver, Victory }
 
-    public enum FxKind : byte { Boom, Spark, Ring, Bolt, Target, Slash, Jab, Shatter, Claw, Implode, Repulse, Icicle, Splinter, LightCone, BloodCoat, ArcField, ChainThrow, IonTrail, SteelWall, Debris, Callout, Bleed, BloodShell, Drain, DebtCoin, WallSplash, Link, Knock, RootLash, Strike, Tsunami, Meteor, Lifeline, RiotBlock, DeathLotus, ShadowStep, LeapSlam, ShellHit, ShellPop, HolyCross, KatanaStrike, StandHit, CavalryCall, KatanaCut, HarvestThrow, StaffShove , TitanSlam, RainRelease, TitheSnap, PactBind, PactSnap, PactDissolve, PactRise, BurrowSnap, KatanaHitCue, GreatRend, MartyrCast, BloodFreeze, TwinStep, TwinFang, TwinHit, HammerThrow, HammerSlam, LightStep, Sunlance, DebtSettle, VeinRush, VeinCut, CenserStep, CenserCast, Exsanguinate, LightMark, LanceStep, LanceHook, LanceHit, LanceSpark, LanceImpact, Airstrike, CaltropHit, CaltropRun, SteelHit, CaltropBreak, GauntletThrow, GauntletCharge, GauntletBowl, GauntletImpact, GauntletBack, DiveRush, DiveHit, DiveReset, BridgeSpark, JuggShard, BathHeal , RodBolt, RodArc, RodGround, PhalanxJab, PhalanxSpark, PhalanxBreak, VenomDart, VenomSpread, PerfectParry, KatanaStanceFx, KatanaHop, KatanaDash, KatanaSweep, KatanaSlash, KatanaBurst, TaserHit, BossBeam, DoubleBarrel, KnuckleStep, KnuckleDash, KnuckleChain, KnuckleHit, GasLob, PortalSeal, Shockwave, Sentry, Nova, MarrowLink, StoneSlam, ArcTag, ArcLink, ArcFork, NimbusStrike, NimbusStorm, BeeSting, HoneyHarvest, NunStep, NunCounter, WindWave, WindCatch, EmbolusBlast, BulwarkStep, BulwarkBlock, BulwarkBash, PistolWhip, GaleCatch, GaleBlast, WwSplash, WwBurst, CoverHit, CoverBreak, CoverFold, DragonBite, CereBlock, CereBreak, WyvernSlam, Cauterize, BulwarkThrow, BreachSmash, FrostStep, FrostBurst, FrostBreak, AbsoluteZero, BsBlow, BlastCut, BlastTide, BlastReturn, WarhornVolley, FistShove, NodStep, DecoyHit, DecoyPop, DecoyFold, VgStep, VgDome, PitFall, ThornBloom, ThornNeedle, ThornTendril, Graze, RailBeam, HeatDump, ArcBall, ArcBurst, Overcharge, HalberdStep, HalberdPoke, VortexWisp, LivingBolt , BambooGrove, SpiritInk, OrbitalLaser, FlashFire, ClaymoreBlast, RavagerLash, ForbiddenPath, NeedleSwarm, TalismanBurst, TessenStep, TessenPetals, TessenGust, StaticBurst, BoilEnd, BumbleBurst, HiveCall, NeedleBurst, TrojanEnd, GlassMote, GlassShatter, SiegeBell, HeartDrops, HeartPulse, HeartBurst, GolemFx, ChakraThread, CannonCall, RocketBlast, GongShow, GongCut, GongSplit, OctoSlap, OctoInk }  // GongShow: Five Shadow Gong's gong for the whole cast (Pos = the gong, Pos2 = where the Ninja stood, Radius = their id, Dur = the cast + the gong's fade); GongCut: a shadow appearing (Pos = Pos2) or cutting from Pos to Pos2, lasting until the shadows vanish (Radius = the Ninja's id * 10 + the shadow); GongSplit: an enemy cut at the sheathe (Pos = it, Pos2 = Pos + the cut's way, Radius = its size, Color = its colour; Core/FiveShadowGong.cs, Game/FiveShadowGongLook.cs)  // CannonCall: one ball of the DPS Knight's Cannon Call, sent at the cast (Pos = where the knight stood, Pos2 = where it lands, Radius = their id * 1000 + the blast radius, Color.A = the landing time / 4 s, Dur = the landing + Game.CcCraterT; Core/CannonCall.cs, Game/CannonCallLook.cs)  // GolemFx: Blood Golem (Radius = the kind: Game.GolFxShed a coat falling off (Pos = the golem, Pos2 = Pos + the way it falls), GolFxCollapse its burst (Pos2 = (coats left, the Hemomancer's id)), GolFxClot a Hurl Clot in flight then its splash (Pos = from, Pos2 = where it lands, Dur = Game.GolClotFlight + GolClotTail); Core/BloodGolem.cs, Game/BloodGolemLook.cs)  // ChakraThread: Chakra Reserves' thread and lotus (Pos = the caster, Pos2 = the teammate, Radius = their id + 0.5 when it refreshed their cooldowns, Dur = Game.CrFxDur; Core/ChakraReserves.cs, Game/ChakraReservesLook.cs)  // GolemFx: Blood Golem (Radius = the kind: Game.GolFxShed a coat falling off (Pos = the golem, Pos2 = Pos + the way it falls), GolFxCollapse its burst (Pos2 = (coats left, the Hemomancer's id)), GolFxClot a Hurl Clot in flight then its splash (Pos = from, Pos2 = where it lands, Dur = Game.GolClotFlight + GolClotTail); Core/BloodGolem.cs, Game/BloodGolemLook.cs)  // TrojanEnd: a Trojan Horse coming down (Pos = the horse, Pos2 = one px along its heading, Radius = 1 it broke / 0 Sally Forth, Dur = the planks' tumble; Core/TrojanHorse.cs, Game/TrojanHorseLook.cs)  // NeedleBurst: Acupuncture Needles coming out of a body at once (Pos = it, Pos2 = (0 Meridian Open on a player / 1 Pressure Point on an enemy, its id), Radius = its size, Color = jade or blood; Core/AcupunctureNeedles.cs, Game/AcupunctureLook.cs)  // BoilEnd: Blood Boil ending, a burst of steam off the Hemomancer (Pos = where, Pos2.X = their id; Core/BloodBoil.cs, Game/BloodBoilLook.cs)  // StaticBurst: a Static Bubble going off (Pos = the caster, Pos2 = (their id, 1 full / 0 a smaller pop), Radius = the blast's reach; Core/StaticBubble.cs, Game/StaticBubbleLook.cs)  // ClaymoreBlast: a Claymore going off (Pos = the mine, Pos2 = one px along its facing, Radius = the blast's reach; Core/Claymore.cs, Game/ClaymoreLook.cs)  // NeedleSwarm: a needle of the DPS Hemomancer's Needle Swarm leaving the ring (Pos = where, Pos2 = (the owner's id, 0 broken by a shot / 1 the Alt's burst), Radius = the shot's size / needles thrown, Color = the shot's colour; Core/NeedleSwarm.cs, Game/NeedleSwarmLook.cs)  // FlashFire: the DPS Elementalist's Flash Fire for its life (Pos = the middle, Pos2 = (the caster's id, the fire's life), Radius = its radius; Core/FlashFire.cs, Game/FlashFireLook.cs)  // OrbitalLaser: the DPS Soldier's Orbital Laser, sent once at the cast (Pos = the point, Pos2 = where the beam ends up, Radius = the caster's id, Color.A = the circle's radius / 1000, Dur = Game.OrbFxDur; Core/OrbitalLaser.cs, Game/OrbitalLaserLook.cs)  // SpiritInk: Spirit Avatar's ink (Pos2.X = Game.SpFxStroke the cleave's stroke (Pos = the Ninja, Pos2.Y = its heading, Radius = its reach), SpFxRise, SpFxRelease (Radius = the burst), SpFxSwallow a shot swallowed (Pos = where, Radius = its size); Pos2.Y = the Ninja's id except for the stroke; Core/SpiritAvatar.cs, Game/SpiritAvatarLook.cs)  // BambooGrove: the Tank Ninja's Bamboo Grove for its life (Pos = the middle, Pos2 = (the caster's id, the fence's life), Radius = its radius; Core/BambooGrove.cs, Game/BambooGroveLook.cs)  // LivingBolt: one Living Bolt dash (Pos = from, Pos2 = to, Radius = the dasher's id, Dur = Game.BoltDashFx; Core/LivingBolt.cs, Game/LivingBoltLook.cs)  // VortexWisp: an enemy shot swept away by a Vortex (Pos = where, Pos2 = the storm's middle, Radius = the shot's size, Color = its colour; Core/Vortex.cs, Game/VortexLook.cs)  // ArcBall: the Arc Cannon's ball rolling from Pos to Pos2 (Radius = the owner's id, Dur = its flight); ArcBurst: its burst (Radius = the burst's size); Overcharge: a teammate charged up (Pos2 = (their id, the giver's id), Radius = their size; Core/StaticShock.cs, Game/StaticShockLook.cs)  // RailBeam: one stretch of a Railgun beam (Pos = from, Pos2 = to, Radius = its width, Color = gold for a perfect shot, A = 0.5 + charge / 2, Dur = the flash or the charged path after it); HeatDump: the Railgun's Heat Dump (Pos = the shooter, Pos2 = the cone's far middle, Radius = the heat dumped; Core/RailBeam.cs, Game/RailBeamLook.cs)  // ThornBloom: the burst of needles out of a Hemomancer (Pos = them, Pos2 = (their id, the aim the ring starts from), Radius = needles); ThornNeedle: one needle (Pos = from, Pos2 = where it stops, Radius = 1 it struck an enemy, Dur = flight + Game.TbNeedleTail); ThornTendril: one jump of a tendril (Pos = from, Pos2 = to, Radius = the jump from 0, Color.A = its start delay / 4 s, Game.TbTendrilDelay; Core/ThornBloom.cs, Game/ThornBloomLook.cs)  // PitFall: a body falling into a pit (Pos = where it fell, Pos2 = the rim it climbed out on, Radius = its size, Color = its colour with A 1 a player (climbs out), 0.5 an enemy (dies); Core/Pits.cs, Game/PitLook.cs)  // VgStep: one Vowguard step, drawn from its age (Pos = the knight, Pos2 = along the aim, Radius = their id * 100 + the VgMove, Dur = the move + Game.VgFxTail); VgDome: an Aegis Dome for its life (Radius = its size; Core/Vowguard.cs, Game/VowguardLook.cs)  // NodStep: one Nodachi step, drawn from its age (Pos = the Ninja, Pos2 = along the aim, Radius = their id * 100 + the code: stance * 8 + step; Core/Nodachi.cs, Game/NodachiLook.cs);  // WarhornVolley: the DPS Knight's Warhorn Volley, sent once at the cast (Pos = where they stood, Pos2 = the lane's far end, Radius = their id, Color.A = the lane's half width / 1000, Dur = Game.VolFxDur; Core/WarhornVolley.cs, Game/WarhornVolleyLook.cs);  // BlastCut / BlastTide / BlastReturn: the Blood Blast's cuts, Crimson Tide and returning blood (fields in Game/BloodBlastLook.cs; Core/BloodBlast.cs);  // BsBlow: a Blood Brawler move on an enemy, sent at the press and drawn from its age (Pos = the enemy, Pos2 = (its id, the Hemomancer's id), Radius = the step 1-4, +10 for a Sympathy echo, Dur = Game.BsFxDur; the blow lands at Game.BsHitDelay; Core/BloodBrawler.cs, Game/BloodBrawlerLook.cs);  // BulwarkThrow: a thrown Bulwark Barrier in flight, drawn from its age (Pos = where it left the hand, Pos2 = its far end, Radius = the thrower's id, Dur = the flight + Game.BbThrowCatchFx (the catch); Core/BulwarkBarrier.cs, Game/BulwarkBarrierLook.cs);  // (the DPS Knight's Caltrop Run, Gauntlet, Misericorde and Drawbridge kinds are described in Core/CaltropRun.cs, Gauntlet.cs, Misericorde.cs, Drawbridge.cs); Target: a marker where something is about to land; Slash: a melee swing (Pos2 = tip, Radius = half the arc); Jab: the Lance's box (Pos2 = far end, Radius = half its width); Shatter: a parry shield breaking (Pos = its owner, Pos2 = the shield's middle, Radius = half its arc); Claw: a bear-claw swipe (Pos2 = reach, Radius = half the arc, signed by the way it rakes); Implode: blood collapsing into an enemy (Implosion); Icicle: the Frost Lance's icicle (Pos2 = its point, Radius = half its width); Splinter: shards off its sides (Pos2 = its point, Radius = how far out they fly); LightCone: Chain Light (Pos2 = the middle of its far edge, Radius = half its angle); BloodCoat: a Sanguine Orb circling in on an enemy (Pos2.X = the enemy's id, Radius = its radius); ArcField: Arc Lightning going off (Pos2 = the far end of its strip, Radius = half its width); ChainThrow: the Kusarigama's chain flying out (Pos2 = where it ends, Radius = 1 when it hooked something); IonTrail: a Railgun shot's charged path (Pos2 = its far end, Radius = the round's speed); SteelWall: a Greatsword's lingering crescent (Pos = the swing's centre, Pos2 = the middle of its edge, Radius = half its arc); Debris: a crate or barrel smashed (Props.cs); Callout: an ability's name over whoever cast it (Pos2 = (player id, AbilityId), drawn on the HUD); Bleed: a Hemomancer paying health for an ability (Pos2.X = their id, Radius = health paid); BloodShell: Blood Shell forming (Pos2.X = the caster's id); Drain: blood flowing from Pos to Pos2 (Exsanguinate, Blood Gift, Martyr; Radius = how thick); DebtCoin: a Blood Debt repayment, blood coins flying from a kill into the debtor's health bar (Pos = the kill, Pos2.X = the debtor's id, Radius = health repaid; Game/BloodDebtLook.cs); WallSplash: an enemy shot stopping on a Blood Wall (Pos = where, Pos2 = back along the shot, Radius = the shot's size; BloodWall.cs); Link: a beam of light from a caster (Pos) to whoever their ability reached (Pos2); Rewind: Time Rewind turning a player's clock back (Pos2.X = their id); RootLash: the Treant Rod's root whipping out (Pos2 = its tip, Radius = half its width); Strike: the Nimbus's lightning landing (Radius = its blast); Tsunami: a wave rolling from Pos to Pos2 (Radius = half its width; Tsunami.cs); Meteor: one landing (Radius = its blast; drawn by Game/ElementalistLooks.cs); Lifeline: one per player the ultimate reached (Pos = where the caster stood, Pos2 = (that player's id, the caster's id), Radius = how far they were; Game/LifelineLook.cs); RiotBlock: Riot Gear taking a hit (Pos = its owner, Pos2 = where the hit came from, Radius = the plate's reach; Game/RiotGearLook.cs); DeathLotus: the Ninja's Death Lotus (Pos2.X = -1 for the cast itself, Pos = the Ninja, Pos2.Y = their id, Radius = targets struck; otherwise one per enemy struck, Pos = the enemy, Pos2.X = seconds until its cuts land, Radius = its size; Game/DeathLotusLook.cs); ShadowStep: the smoke look of a Ninja's step (Pos = where they stood, Pos2 = where they landed, Radius = their id * 1000 + the radius of the enemy they struck, or just their id * 1000 when it was a short step with no enemy; Game/ShadowStepLook.cs); LeapSlam: the Knight's Leap Slam, sent once at the cast and lasting its leap, landing and stun (Pos = where they leapt from, Pos2 = where they land, Radius = their id * 1000 + the slam's radius, Color.A = 1 when mastered and 0.5 otherwise, Dur = LeapTime + LeapFxTail + the stun; Game/LeapSlamLook.cs); TitanSlam: the Titan (Titan.cs; Radius = its reach, Pos2.X = 0 for a slam, 1 for standing up, 2 for the rubble when it falls, Dur = how long the cracks or rubble stay; Game/TitanLook.cs), and Stone Colossus's earth kinds (Pos2.X = 3 a slam, 4 the rise, 5 the rubble, 6 the rolling boulders with Pos2.Y the first one's angle, 7 a footfall; Core/StoneColossus.cs, Game/StoneColossusLook.cs); HolyCross: a Holy Cross flying from Pos to Pos2 (Radius = its flight, Dur = flight + fade; Game/HolyCrossLook.cs); KatanaStrike: the Katana's Alt strike from the stance to its fading line, Pos to Pos2 (Radius = the striker's id, Color.A = 1 when empowered, 0.5 otherwise, Dur = the whole show; Game/KatanaLook.cs); KatanaCut: one enemy the strike cut (Pos = the enemy, Pos2 = the line's direction, Radius = its size, Color.A = 1 when it died, 0.5 when it lived); StandHit: a shot stopped by a planted Last Stand (Pos = where, Pos2 = the knight, Radius = its damage; Game/LastStandLook.cs); CavalryCall: Cavalry Call (Pos = where the knight stood, Pos2 = the lane's far end, Radius = lancers (2 or 4), colour alpha 1 = mastered; Game/CavalryCallLook.cs); HarvestThrow: a Crimson Harvest ball thrown from Pos (the Hemomancer's feet) to Pos2, flight then blast then the stain, drawn from its age (Radius = the blood in it, Dur = flight + tail; Game/CrimsonHarvestLook.cs); StaffShove: the Bo Staff's shove (Pos = the Ninja, Pos2 = the far end of the bar's push, Radius = half the bar's width; Game/BoStaffLook.cs); RainRelease: a Sanguine Rain ring splashing away when the rain ends (Pos = where the ring was, Radius = its size; Game/SanguineRainLook.cs); TitheSnap: a Vein Tithe tendril letting go of an enemy (Pos = the Hemomancer, Pos2 = the enemy, Radius = its size, Color.A = 1 when it was a boss; Game/VeinTitheLook.cs); PactBind: Force Pact's chain cuffing an enemy (Pos = the caster, Pos2 = the enemy, Radius = the enemy's EnemyType, Color = its colour, Dur = ForcePactBind; Game/ForcePactLook.cs); PactSnap: a thrall's chain snapping as it falls (Pos = the thrall, Pos2 = its owner, Radius = its EnemyType); PactDissolve: an old thrall dissolving into the new one (Pos = the old one, Pos2 = the new one's spot, Radius = the old EnemyType); PactRise: a fallen thrall thrown back out on its chain (Pos = its owner, Pos2 = where it lands, Radius = its EnemyType); BurrowSnap: the Burrower snapping up under an enemy it hurt (Pos = the enemy, Pos2 = the Burrower, Radius = the enemy's size, Dur = 0.7; Game/BurrowerLook.cs); KatanaHitCue: a Katana swipe or lunge that cut something, drawn as nothing: it carries the cut's sound, and your own lunge's hit-pause (Pos = the swordsman, Pos2.X = their id, Radius = enemies cut, Color.A = 1 for the lunge, 0.5 for a swipe; Game/Juice.cs); MartyrCast: Martyr (Pos = the Hemomancer, Pos2 = the ally, Radius = the ally's id * 10 + 1 for a revive, + 0 for a ward put on, + 2 for a ward spent (Pos2 = Pos), Dur = 1.4, or the invulnerability when longer (the shimmer); Game/MartyrLook.cs); BloodFreeze: the Hemomancer's Blood Freeze, sent once at the cast and lasting its charge, wave, freeze and thaw (Pos = where it was cast, Pos2 = (caster's id, seconds a regular enemy stays frozen), Radius = how far the wave goes, Color.A = 1 when mastered and 0.5 otherwise; Game/BloodFreezeLook.cs); TwinStep: one Twin Blades chain step, drawn from its age (Pos = the swordsman, Pos2 = along the aim at reach, Radius = their id * 10 + the step, Dur = the step + its recovery; Game/TwinBladesLook.cs); TwinFang: Twin Fang's wind-up and release (Pos = where from, Pos2 = the cursor, Radius = the thrower's id, Dur = FangRelease + 0.3; the pair in flight is Player.FangOut/FangAt); TwinHit: a Twin Blades step or thrown sabre that cut something, drawn as nothing: it carries the cut's sound, and the swordsman's own hit-pause and shake (Pos = the swordsman, Pos2 = (their id, the step 1-5, 6 the thrown pair cutting, 7 it striking a wall), Radius = enemies cut; Game/Juice.cs); HammerThrow: the Storm Hammer in its owner's hand (Radius = their id, Pos2.X = 0 for a throw, 1 for a slam's wind-up, Dur = how long the hand is busy; the held model reads its pose from it, Game/StormHammerLook.cs); HammerSlam: the Storm Hammer's shockwave (Pos = the crater, Pos2 = the player, Radius = how far the wave runs, Dur = how long the cracks last; Game/StormHammerLook.cs); LightStep: one Lightbringer chain step, drawn from its age (Pos = the knight, Pos2 = along the aim at the cut's reach or the Sunburst's radius, Radius = their id * 10 + the step 1-3, 4 a Radiant Noon, Dur = the step + its recovery; Game/LightbringerLook.cs); Sunlance: the thrust and the lance of light (Pos = the knight, Pos2 = where the ally stood, Radius = the knight's id * 1000 + the ally's id, Dur = the thrust + its recovery); DebtSettle: a Blood Debt's moments (Pos = the debtor, Pos2 = (their id, 2 borrowed at the cast / 1 paid in full / 0 forfeited), Radius = the health borrowed, paid or lost; Game/BloodDebtLook.cs); VeinRush: a Vein Rush streak from Pos to Pos2 (Radius = the rusher's id, Dur = the rush plus its fade; Game/VeinRushLook.cs); VeinCut: an enemy the rush cut through (Pos = the enemy, Pos2 = the rush's direction, Radius = the rusher's id * 1000 + the enemy's size; its blood flies back to the rusher); CenserStep: one Censer rite step, drawn from its age (Pos = the knight, Pos2 = along the aim at reach, Radius = their id * 10 + the step 1-3, Dur = the step + its recovery; Game/CenserLook.cs); CenserCast: Censer Cast thrown (Pos = where from, Pos2 = where the head lands, Radius = the thrower's id * 10 + Embers spent, Dur = CenserMotion.CastTotal); Exsanguinate: the Barbed Lash (Pos2.X = -1 the cast, -2 the impact, otherwise the hooked enemy's id; Pos2.Y = the caster's id; Core/Exsanguinate.cs, Game/ExsanguinateLook.cs); LightMark: a Lightbringer's mark on a player (Radius = their id; Pos2.X = 1 a heal burst, 2 a ward snapping shut, 3 a shot striking the ward; Pos2.Y = seconds before a burst or snap shows (the Sunburst's ring reaching them), or the angle the shot came from; Color.A = 1 for a Radiant Noon's bigger burst; Game/LightbringerLook.cs); LanceStep: one Lance chain step, drawn from its age (Pos = the knight, Pos2 = along the aim at the step's reach, Radius = their id * 10 + the step 1-4, Color.A = the Breaching Thrust's half width / 100, Dur = the step + its recovery; Game/LanceLook.cs); LanceHook: Hook & Haul (Pos = the knight, Pos2 = where the hooked enemy stood (or the aim point on a miss), Radius = their id * 10 + 1 when it hooked something, Dur = the move + its recovery); LanceHit: a Lance step that hit something, drawn as nothing: it carries the hit's sound, and the knight's own hit-pause and shake (Pos = the knight, Pos2 = (their id, the step 1-4, 5 the hook), Radius = enemies hit; Game/Juice.cs); LanceSpark: one enemy a Lance step hit (Pos = the enemy, Pos2 = Pos + the push's direction, Radius = 1 for the Breaching Thrust, 0.5 otherwise); LanceImpact: a shoved enemy hitting another or a wall (Pos = where, Pos2 = (the enemy's id, the other's id or -1 for a wall), Radius = the damage each took; Core/Lance.cs); Airstrike: one wall of the Soldier DPS's Airstrike (Pos = where the jet comes in, Pos2 = the lane's far end, Radius = thrower id * 10000 + the flare's distance along the lane, colour alpha 1 = with the flare, 0.5 = the mastered second wall; Core/Airstrike.cs; JuggShard: a Juggernaut Suit flak shard flying back at a shooter (Pos = where the shot struck the armour, Pos2 = the shooter, Radius = the wearer's id; Core/Juggernaut.cs, Game/JuggernautLook.cs)); RodBolt: Lightning Rod's bolt from the sky (Pos = where it lands, the shooter or where it stood; Pos2 = (the rod's player id, the bolt's damage); Radius = the struck enemy's size, 0 when it was already dead); RodArc: one arc on from a bolt (Pos = from, Pos2 = to, Radius = its damage); RodGround: an enemy hit grounded through a Lightning Rod (Pos = the player, Pos2 = (their id, the damage they took), Radius = 1 for a shot, 2 for a melee or contact hit; Core/LightningRod.cs, Game/LightningRodLook.cs); TaserHit: a Fork Bolt landing on a player (Pos = the player, Pos2 = a point one px on along the bolt's flight, Dur = 0.7; Game/TaserLook.cs); BossBeam: one player beamed into the hub before a boss wave (Pos = where they stood, Pos2 = where they land, Radius = their id, Dur = BeamTotal; Core/BossBeam.cs, Game/BossBeamLook.cs); DoubleBarrel: the Scattergun's Double Barrel going off (Pos = the muzzle, Pos2 = along the aim, Radius = the shooter's id * 10 + shells fired; Core/TankAlts.cs, Game/TankAltLook.cs); KnuckleStep: an Arc Knuckles punch, drawn from its age (Pos = the puncher, Pos2 = along the aim, Radius = the puncher's id * 10 + step, 6 the Counter Hammer; Core/ArcKnuckles.cs, Game/ArcKnucklesLook.cs); KnuckleDash: a Rocket Dash (Pos = where it started, Pos2 = where it ends, Radius = the dasher's id); KnuckleChain: a dash chain move (Pos = the puncher, Pos2 = along the aim, Radius = id * 10 + 1 Flurry, 2 Grab & Throw, 3 Rocket Punch; Core/ArcKnucklesChain.cs); KnuckleHit: an Arc Knuckles punch connecting (Pos = the first enemy hit, Pos2 = (puncher's id, kind), Radius = enemies hit; Game/Juice.cs); GasLob: a Gas Grenadier's lob (Pos = where it lands, Pos2 = (the grenadier's id, flight seconds), Radius = the cloud's size, Dur = the wind-up left + the flight; Pos2.Y = -1 is the release cue instead: Pos = the thrower, Sfx.Throw; Game/GasLobLook.cs); PortalSeal: a spawn portal shot closed (Radius = its size, Color = its colour; Game/SpawnPortalLook.cs); Shockwave: the Shockwave ability's wave (Pos = where it was cast, Pos2.X = the caster's id, Radius = how far it runs, Dur = ShockwaveFxTime; Core/Shockwave.cs, Game/ShockwaveLook.cs); Sentry: a Turret dropping in (Pos2.X = 0, or 2 a mastered second one) or powering down (1) (Pos2.Y = its aim, Radius = the owner's id; Core/SentryNova.cs, Game/SentryNovaLook.cs); Nova: the Nova ability's starburst (Pos2 = (caster id, shots), Radius = the aim the ring starts from); MarrowLink: a Bone Guard marrow thread between two enemies (Pos2 = (their ids), Radius 0 a loose thread for its life, 1 snapping taut as one is caged (drawn 0.45 s; it lasts as long as a loose one could, hiding it); Core/BoneGuard.cs, Game/BoneGuardLook.cs); StoneSlam: the Stonespear's slam (Pos = the slammer, Pos2.X = 0 the wind-up, 1 and up the impact (its fraction seeds the cracks), Pos2.Y = their id; Radius = the slam's reach; Core/Stonespear.cs, Game/StonespearLook.cs); ArcField: retired (Arc Lightning's old strip), never sent; ArcTag: Arc Lightning tagged an enemy (Pos2 = the shooter's id, the enemy's id; Radius = its place, from 0); ArcLink: a hop of its chain from Pos to Pos2 (Radius = the hop's place, -1 a fizzle at the staff); ArcFork: a Forked Volley bolt from Pos to Pos2 (Radius = its bend, px sideways) (Core/ArcLock.cs, Game/ArcLockLook.cs); NunStep: one Nunchaku step, drawn from its age (Pos = the Ninja, Pos2 = along the aim, Radius = their id * 10 + the step 1-4, 5 the Twin Counter); NunCounter: the counter's lash (Pos = the Ninja, Pos2 = its far end, Radius = shots swatted into it; Core/Nunchaku.cs, Game/NunchakuLook.cs); BeeSting: a Honeybee Staff bee's sting (Pos = where it died, Pos2 = (the enemy's id, 1 the first Swarm sting / 0.5 a later one / 0), Radius = the way it flew; Core/HoneybeeStaff.cs, Game/HoneybeeLook.cs); HoneyHarvest: an enemy bursting into bees in honey (Pos2 = (the owner's id, bees), Radius = its size); PistolWhip: the Revolver's Alt swing (Pos = the player, Pos2 = along the aim at reach, Radius = their id, Dur = the cooldown; Core/PistolWhip.cs, Game/PistolWhipLook.cs); GaleCatch: a shot caught by a Gale Wall (Pos = where, Pos2 = (the caster's id, the shot's heading), Radius = its size); GaleBlast: a Gale Wall unleashed (Pos = the caster, Pos2 = the cone's far middle, Radius = the charge; Core/GaleWall.cs, Game/GaleWallLook.cs); WwSplash / WwBurst: a Water Ward drop splashing on an enemy / bursting on a shot (Pos = the drop, Pos2 = its caster / the shot, Radius = the reach; Core/WaterWard.cs, Game/WaterWardLook.cs); CoverHit: a shot ringing off a Deployable Cover (Pos = where, Pos2 = its middle plus its facing, Radius = the shot's size); CoverBreak: a cover bursting apart (Pos = its middle, Pos2 = its middle plus its facing, Radius = its id as a seed, Dur covers the scraps left on the floor); CoverFold: a cover folding away (Pos/Pos2 as CoverBreak, Radius = its health left 0-1; Core/DeployableCover.cs, Game/DeployableCoverLook.cs); DragonBite: Dragon's Dogma biting an enemy (Pos = the enemy, Pos2 = (the Ninja's id, 1 devoured / 0 a big one bitten), Color = its colour, Radius = its size; Core/DragonsDogma.cs, Game/DragonsDogmaLook.cs); CereBlock: a Ceremonial Armor plate stopping a shot (Pos = where, Pos2 = the plate); CereBreak: a plate shattering (Pos = the plate, Pos2 = one px outward, Radius = the mastered burst or 0; Core/CeremonialArmor.cs, Game/CeremonialArmorLook.cs); DecoyHit: a shot or a bite landing on a Decoy Dummy (Pos = where, Pos2 = one px along its throw), DecoyPop: it popping (Radius = the blast), DecoyFold: it deflating (Radius = its health left; Core/DecoyDummy.cs, Game/DecoyDummyLook.cs); HalberdStep: a Reaper's Wheel step played from its age (Pos = the swinger, Pos2 = Pos plus the reach along the aim, Radius = id x 10 + step, Dur = HalberdMotion.StepTotal); HalberdPoke: the set pike jabbing out (Pos2 = the point at full reach, Radius = the poker; Core/Halberd.cs, Game/HalberdLook.cs)  // HiveCall: the Hive Censer's Alt calling every swarm of a player to a spot (Pos = the spot, Pos2.X = their id, Radius = the ring's size, Dur = Game.HiveCallTime; Core/HiveCenser.cs, Game/HiveCenserLook.cs)  // SiegeBell: the Tank Knight's Siege Bell for its life (Pos = the bell, Pos2 = (the caster's id, the stun), Radius = the shockwave's reach; Core/SiegeBell.cs, Game/SiegeBellLook.cs)  // OctoSlap: an Octopus Familiar arm reaching out (Pos = the octopus, Pos2 = the enemy, Radius = the arm, Dur = Game.OctoStrike); OctoInk: its ink (Radius 0 the splash it pops out of, 1 the burst as it goes; Core/OctopusFamiliar.cs, Game/OctopusFamiliarLook.cs)
+    public enum FxKind : byte
+    {
+        // In name order, one per line: Tools/Ids/ids.py (CI checks it; --fix sorts). Numbers follow from the order.
+        AbsoluteZero,
+        Airstrike,
+        ArcBall,  // ArcBall: the Arc Cannon's ball rolling from Pos to Pos2 (Radius = the owner's id, Dur = its flight); ArcBurst: its burst (Radius = the burst's size); Overcharge: a teammate charged up (Pos2 = (their id, the giver's id), Radius = their size; Core/StaticShock.cs, Game/StaticShockLook.cs)
+        ArcBurst,
+        ArcField,
+        ArcFork,
+        ArcLink,
+        ArcTag,
+        BambooGrove,  // BambooGrove: the Tank Ninja's Bamboo Grove for its life (Pos = the middle, Pos2 = (the caster's id, the fence's life), Radius = its radius; Core/BambooGrove.cs, Game/BambooGroveLook.cs)
+        BathHeal,
+        BeeSting,
+        BlastCut,
+        BlastReturn,
+        BlastTide,
+        Bleed,
+        BloodCoat,
+        BloodFreeze,
+        BloodShell,
+        BoilEnd,  // BoilEnd: Blood Boil ending, a burst of steam off the Hemomancer (Pos = where, Pos2.X = their id; Core/BloodBoil.cs, Game/BloodBoilLook.cs)
+        Bolt,
+        Boom,
+        BossBeam,
+        BreachSmash,
+        BridgeSpark,
+        BsBlow,  // BsBlow: a Blood Brawler move on an enemy, sent at the press and drawn from its age (Pos = the enemy, Pos2 = (its id, the Hemomancer's id), Radius = the step 1-4, +10 for a Sympathy echo, Dur = Game.BsFxDur; the blow lands at Game.BsHitDelay; Core/BloodBrawler.cs, Game/BloodBrawlerLook.cs);
+        BulwarkBash,
+        BulwarkBlock,
+        BulwarkStep,
+        BulwarkThrow,  // BulwarkThrow: a thrown Bulwark Barrier in flight, drawn from its age (Pos = where it left the hand, Pos2 = its far end, Radius = the thrower's id, Dur = the flight + Game.BbThrowCatchFx (the catch); Core/BulwarkBarrier.cs, Game/BulwarkBarrierLook.cs);
+        BumbleBurst,
+        BurrowSnap,
+        Callout,
+        CaltropBreak,
+        CaltropHit,
+        CaltropRun,
+        CannonCall,  // CannonCall: one ball of the DPS Knight's Cannon Call, sent at the cast (Pos = where the knight stood, Pos2 = where it lands, Radius = their id * 1000 + the blast radius, Color.A = the landing time / 4 s, Dur = the landing + Game.CcCraterT; Core/CannonCall.cs, Game/CannonCallLook.cs)
+        Cauterize,
+        CavalryCall,
+        CenserCast,
+        CenserStep,
+        CereBlock,
+        CereBreak,
+        ChainThrow,
+        ChakraThread,  // ChakraThread: Chakra Reserves' thread and lotus (Pos = the caster, Pos2 = the teammate, Radius = their id + 0.5 when it refreshed their cooldowns, Dur = Game.CrFxDur; Core/ChakraReserves.cs, Game/ChakraReservesLook.cs)
+        Claw,
+        ClaymoreBlast,  // ClaymoreBlast: a Claymore going off (Pos = the mine, Pos2 = one px along its facing, Radius = the blast's reach; Core/Claymore.cs, Game/ClaymoreLook.cs)
+        CoverBreak,
+        CoverFold,
+        CoverHit,
+        DeathLotus,
+        Debris,
+        DebtCoin,
+        DebtSettle,
+        DecoyFold,
+        DecoyHit,
+        DecoyPop,
+        DiveHit,
+        DiveReset,
+        DiveRush,
+        DoubleBarrel,
+        DragonBite,
+        Drain,
+        EmbolusBlast,
+        Exsanguinate,
+        FistShove,
+        FlashFire,  // FlashFire: the DPS Elementalist's Flash Fire for its life (Pos = the middle, Pos2 = (the caster's id, the fire's life), Radius = its radius; Core/FlashFire.cs, Game/FlashFireLook.cs)
+        ForbiddenPath,
+        FrostBreak,
+        FrostBurst,
+        FrostStep,
+        GaleBlast,
+        GaleCatch,
+        GasLob,
+        GauntletBack,
+        GauntletBowl,
+        GauntletCharge,
+        GauntletImpact,
+        GauntletThrow,
+        GlassMote,
+        GlassShatter,
+        GolemFx,  // GolemFx: Blood Golem (Radius = the kind: Game.GolFxShed a coat falling off (Pos = the golem, Pos2 = Pos + the way it falls), GolFxCollapse its burst (Pos2 = (coats left, the Hemomancer's id)), GolFxClot a Hurl Clot in flight then its splash (Pos = from, Pos2 = where it lands, Dur = Game.GolClotFlight + GolClotTail); Core/BloodGolem.cs, Game/BloodGolemLook.cs); GolemFx: Blood Golem (Radius = the kind: Game.GolFxShed a coat falling off (Pos = the golem, Pos2 = Pos + the way it falls), GolFxCollapse its burst (Pos2 = (coats left, the Hemomancer's id)), GolFxClot a Hurl Clot in flight then its splash (Pos = from, Pos2 = where it lands, Dur = Game.GolClotFlight + GolClotTail); Core/BloodGolem.cs, Game/BloodGolemLook.cs)
+        GongCut,
+        GongShow,  // GongShow: Five Shadow Gong's gong for the whole cast (Pos = the gong, Pos2 = where the Ninja stood, Radius = their id, Dur = the cast + the gong's fade); GongCut: a shadow appearing (Pos = Pos2) or cutting from Pos to Pos2, lasting until the shadows vanish (Radius = the Ninja's id * 10 + the shadow); GongSplit: an enemy cut at the sheathe (Pos = it, Pos2 = Pos + the cut's way, Radius = its size, Color = its colour; Core/FiveShadowGong.cs, Game/FiveShadowGongLook.cs)
+        GongSplit,
+        Graze,
+        GreatRend,
+        HalberdPoke,
+        HalberdStep,
+        HammerSlam,
+        HammerThrow,
+        HarvestThrow,
+        HeartBurst,
+        HeartDrops,
+        HeartPulse,
+        HeatDump,
+        HiveCall,  // HiveCall: the Hive Censer's Alt calling every swarm of a player to a spot (Pos = the spot, Pos2.X = their id, Radius = the ring's size, Dur = Game.HiveCallTime; Core/HiveCenser.cs, Game/HiveCenserLook.cs)
+        HolyCross,
+        HoneyHarvest,
+        Icicle,
+        Implode,
+        IonTrail,
+        Jab,
+        JuggShard,
+        KatanaBurst,
+        KatanaCut,
+        KatanaDash,
+        KatanaHitCue,
+        KatanaHop,
+        KatanaSlash,
+        KatanaStanceFx,
+        KatanaStrike,
+        KatanaSweep,
+        Knock,
+        KnuckleChain,
+        KnuckleDash,
+        KnuckleHit,
+        KnuckleStep,
+        LanceHit,
+        LanceHook,
+        LanceImpact,
+        LanceSpark,
+        LanceStep,
+        LeapSlam,
+        Lifeline,
+        LightCone,
+        LightMark,
+        LightStep,
+        Link,
+        LivingBolt,  // LivingBolt: one Living Bolt dash (Pos = from, Pos2 = to, Radius = the dasher's id, Dur = Game.BoltDashFx; Core/LivingBolt.cs, Game/LivingBoltLook.cs)
+        MarrowLink,
+        MartyrCast,
+        Meteor,
+        NeedleBurst,  // NeedleBurst: Acupuncture Needles coming out of a body at once (Pos = it, Pos2 = (0 Meridian Open on a player / 1 Pressure Point on an enemy, its id), Radius = its size, Color = jade or blood; Core/AcupunctureNeedles.cs, Game/AcupunctureLook.cs)
+        NeedleSwarm,  // NeedleSwarm: a needle of the DPS Hemomancer's Needle Swarm leaving the ring (Pos = where, Pos2 = (the owner's id, 0 broken by a shot / 1 the Alt's burst), Radius = the shot's size / needles thrown, Color = the shot's colour; Core/NeedleSwarm.cs, Game/NeedleSwarmLook.cs)
+        NimbusStorm,
+        NimbusStrike,
+        NodStep,  // NodStep: one Nodachi step, drawn from its age (Pos = the Ninja, Pos2 = along the aim, Radius = their id * 100 + the code: stance * 8 + step; Core/Nodachi.cs, Game/NodachiLook.cs);
+        Nova,
+        NunCounter,
+        NunStep,
+        OctoInk,
+        OctoSlap,  // OctoSlap: an Octopus Familiar arm reaching out (Pos = the octopus, Pos2 = the enemy, Radius = the arm, Dur = Game.OctoStrike); OctoInk: its ink (Radius 0 the splash it pops out of, 1 the burst as it goes; Core/OctopusFamiliar.cs, Game/OctopusFamiliarLook.cs)
+        OrbitalLaser,  // OrbitalLaser: the DPS Soldier's Orbital Laser, sent once at the cast (Pos = the point, Pos2 = where the beam ends up, Radius = the caster's id, Color.A = the circle's radius / 1000, Dur = Game.OrbFxDur; Core/OrbitalLaser.cs, Game/OrbitalLaserLook.cs)
+        Overcharge,
+        PactBind,
+        PactDissolve,
+        PactRise,
+        PactSnap,
+        PerfectParry,
+        PhalanxBreak,
+        PhalanxJab,
+        PhalanxSpark,
+        PistolWhip,
+        PitFall,  // PitFall: a body falling into a pit (Pos = where it fell, Pos2 = the rim it climbed out on, Radius = its size, Color = its colour with A 1 a player (climbs out), 0.5 an enemy (dies); Core/Pits.cs, Game/PitLook.cs)
+        PortalSeal,
+        RailBeam,  // RailBeam: one stretch of a Railgun beam (Pos = from, Pos2 = to, Radius = its width, Color = gold for a perfect shot, A = 0.5 + charge / 2, Dur = the flash or the charged path after it); HeatDump: the Railgun's Heat Dump (Pos = the shooter, Pos2 = the cone's far middle, Radius = the heat dumped; Core/RailBeam.cs, Game/RailBeamLook.cs)
+        RainRelease,
+        RavagerLash,
+        Repulse,
+        Ring,
+        RiotBlock,
+        RocketBlast,
+        RodArc,
+        RodBolt,
+        RodGround,
+        RootLash,
+        Sentry,
+        ShadowStep,
+        Shatter,
+        ShellHit,
+        ShellPop,
+        Shockwave,
+        SiegeBell,  // SiegeBell: the Tank Knight's Siege Bell for its life (Pos = the bell, Pos2 = (the caster's id, the stun), Radius = the shockwave's reach; Core/SiegeBell.cs, Game/SiegeBellLook.cs)
+        Slash,
+        Spark,
+        SpiritInk,  // SpiritInk: Spirit Avatar's ink (Pos2.X = Game.SpFxStroke the cleave's stroke (Pos = the Ninja, Pos2.Y = its heading, Radius = its reach), SpFxRise, SpFxRelease (Radius = the burst), SpFxSwallow a shot swallowed (Pos = where, Radius = its size); Pos2.Y = the Ninja's id except for the stroke; Core/SpiritAvatar.cs, Game/SpiritAvatarLook.cs)
+        Splinter,
+        StaffShove,
+        StandHit,
+        StaticBurst,  // StaticBurst: a Static Bubble going off (Pos = the caster, Pos2 = (their id, 1 full / 0 a smaller pop), Radius = the blast's reach; Core/StaticBubble.cs, Game/StaticBubbleLook.cs)
+        SteelHit,
+        SteelWall,
+        StoneSlam,
+        Strike,
+        Sunlance,
+        TalismanBurst,
+        Target,
+        TaserHit,
+        TessenGust,
+        TessenPetals,
+        TessenStep,
+        ThornBloom,  // ThornBloom: the burst of needles out of a Hemomancer (Pos = them, Pos2 = (their id, the aim the ring starts from), Radius = needles); ThornNeedle: one needle (Pos = from, Pos2 = where it stops, Radius = 1 it struck an enemy, Dur = flight + Game.TbNeedleTail); ThornTendril: one jump of a tendril (Pos = from, Pos2 = to, Radius = the jump from 0, Color.A = its start delay / 4 s, Game.TbTendrilDelay; Core/ThornBloom.cs, Game/ThornBloomLook.cs)
+        ThornNeedle,
+        ThornTendril,
+        TitanSlam,
+        TitheSnap,
+        TrojanEnd,  // TrojanEnd: a Trojan Horse coming down (Pos = the horse, Pos2 = one px along its heading, Radius = 1 it broke / 0 Sally Forth, Dur = the planks' tumble; Core/TrojanHorse.cs, Game/TrojanHorseLook.cs)
+        Tsunami,
+        TwinFang,
+        TwinHit,
+        TwinStep,
+        VeinCut,
+        VeinRush,
+        VenomDart,
+        VenomSpread,
+        VgDome,
+        VgStep,  // VgStep: one Vowguard step, drawn from its age (Pos = the knight, Pos2 = along the aim, Radius = their id * 100 + the VgMove, Dur = the move + Game.VgFxTail); VgDome: an Aegis Dome for its life (Radius = its size; Core/Vowguard.cs, Game/VowguardLook.cs)
+        VortexWisp,  // VortexWisp: an enemy shot swept away by a Vortex (Pos = where, Pos2 = the storm's middle, Radius = the shot's size, Color = its colour; Core/Vortex.cs, Game/VortexLook.cs)
+        WallSplash,
+        WarhornVolley,  // WarhornVolley: the DPS Knight's Warhorn Volley, sent once at the cast (Pos = where they stood, Pos2 = the lane's far end, Radius = their id, Color.A = the lane's half width / 1000, Dur = Game.VolFxDur; Core/WarhornVolley.cs, Game/WarhornVolleyLook.cs);
+        WindCatch,
+        WindWave,
+        WwBurst,
+        WwSplash,
+        WyvernSlam,
+    }
 
     /// Sound cues raised by the game; the Unity layer plays them.
     public enum Sfx : ushort
     {
-        None, EnemyShot, Hit, Hurt, Explode, BigExplode, Ability, Shockwave, Blink,
-        LevelUp, Pick, WaveStart, WaveClear, GameOver, Downed, Revive,
-        // One gunshot per weapon, plus the turret and Nova.
-        ShotShotgun, ShotCannon, ShotRifle, ShotPistol, ShotBow, ShotAssault, ShotSniper, ShotSmg,
-        ShotTurret, ShotNova,
-        Pickup, PickupBig, Roar, Victory,
-        SpellFire, SpellFrost, SpellZap, SpellArcane, SpellHoly, Throw, Summon, Freeze,
-        SwingLight, SwingHeavy, Clang,  // Knight swings, and a shield taking a hit
-        BossShift, BossCharge, BossPulse, BossChime,  // soft cues for bosses' abilities (BossSounds.cs)
-        // Bosses' own mechanics (SoundBank.cs recipes; wired in each boss's file). Kept at the end so values don't shift.
-        BossLaserWarn, BossLaser, BossSlam, BossWhoosh, BossSiren, BossBuzz, BossSplat, BossGong,
-        BossScythe, BossThunder, BossWarp, BossRumble, BossCrack, BossCage, BossChomp,
-        // The upgrade picker opening and closing (PickIntro.cs, PickOutro.cs): played on your own screen only, never sent.
-        PickRise, PickCardOut, PickCardLand, PickRare, PickReturn, PickAbsorb,
-        // A run launching (LaunchIntro.cs): your own screen only, never sent.
-        LaunchSweep, LaunchRipple, LaunchBeam, LaunchLand, LaunchHud,
-        // The pause menu's sounds (WindowAnim.cs; the typing was its old glitch opening's): your own screen only, never sent.
-        PauseType, PauseSettle, PauseClose,
-        // The Repulsion Cannon's blast, and Chain Light's cone and its first arc (SoundBank.cs recipes; named Shot/Spell so they use the Weapons volume).
-        ShotRepulse, SpellChainCone, SpellChainArc,
-        // The Radiant Orb (RadiantOrb.cs): cast, a twinkle each tick that touches something, and fading out. Sent, so quieter for allies.
-        RadiantCast, RadiantTouch, RadiantFade,
-        // Zombie Infection (Zombies.cs; SoundBank.cs recipes): a groan now and then, getting back up, spit, a grab, a scream, a burst, a mend.
-        ZombieGroan, ZombieRise, ZombieSpit, ZombieGrab, ZombieShriek, ZombieBurst, ZombieMend,
-        // The profile picker and the menu trading places (ProfileTransition.cs): your own screen only, never sent.
-        ProfSelect, ProfSweep, ProfSweepBack, ProfScratch, ProfBar, ProfChord,
-        // The menu title typing out (MenuIntro.cs, look B of Docs/Mockups/menu-typing-sounds.html): a key per letter, the space bar, and Enter on the last. Never sent.
-        TitleKey, TitleSpace, TitleEnter,
-        // A main menu button being hovered (MenuVhs.cs, look A of Docs/Mockups/menu-hover-sounds.html): a tape-head tick. Never sent.
-        MenuHover,
-        // The menu's Play transition (MenuServo.cs, version 2 of Docs/Mockups/menu-bay-doors.html): beeps, the doors' servo whine (and backwards),
-        // a clamp, the screen's power-on zap, the keys' whirr and tick, the box's lift, its seating thud, and a flap click per header letter. Never sent.
-        BayBeep, BayServo, BayServoBack, BayClamp, BayZap, BayWhirr, BayTick, BayLift, BaySeat, BayClack,
-        // New run's CRT boot into the lobby (LobbyCrt.cs, PlayCrtEntryCues): power-on thump, a key per typed character, a beep per log line, the scan line's sweep, and the ready chime. Never sent.
-        CrtPower, CrtType, CrtLine, CrtSweep, CrtReady,
-        // Picking a profile disk (ProfileTransition.cs, DriveSlot.cs): the clamps unlatching, the disk's whoosh, its clack as it tips flat, the slide into
-        // the drive slot (and the eject going back), the latch click, the drive reading, and a ready chime. Your own screen only, never sent.
-        DiskLift, DiskFly, DiskTip, DiskSlide, DiskEject, DiskClick, DiskRead, DiskReady,
-        // The melee rushers (MeleeSounds.cs, from Docs/Mockups/melee-enemy-sounds.html): made on every machine from the enemies' replicated state, never sent.
-        // Quieter the further they are from you.
-        SwarmerChomp, SwarmerDie, BruteStep, BruteGrunt, BruteBash, BruteDie,
-        LungerTell, LungerLeap, LungerLand, LungerDie,
-        SwarmerPatter, LungerPad,  // their footsteps
-        // The Ninja DPS (NinjaSoundBank.cs, the Shinobi set of Docs/Mockups/ninja-dps-sounds.html): the Kunai's whoosh (named Shot so it uses the Weapons
-        // volume), its blink, Shadow Step's smoke and its strike, Vanish, Blade Fan opening and flying out, and Death Lotus darkening the arena. Sent, so quieter for allies.
-        ShotKunai, NinjaBlink, NinjaStepCast, NinjaStepStrike, NinjaVanish, NinjaFanOpen, NinjaFanBurst, NinjaLotusCast,
-        // The Katana (KatanaSoundBank.cs, the Steel set of Docs/Mockups/katana-sounds.html; Katana.cs). Sent by the host: Senbon's swipes, the wind-up,
-        // Hayate's dash (KatanaLunge), a cut landing (the first five use the Weapons volume), the strike's cut and a chime per hop.
-        KatanaSwipe1, KatanaSwipe2, KatanaWindup, KatanaLunge, KatanaHit, KatanaStrikeCut,
-        KatanaChain1, KatanaChain2, KatanaChain3, KatanaChain4, KatanaChain5,
-        // The Treant Rod (TreantSoundBank.cs, from Docs/Mockups/treant-rod-sounds-seeds.html): the root lash's leaf rustle, the Treant's seed shot (Pod Pop) and a seed landing (Tick). Sent, so quieter for allies.
-        SwingRoot, ShotSeed, ShotSeedHit,
-        // The Greatsword (GreatswordSoundBank.cs): the overhead rend's blade lifting, the guard going up, a bullet stopped on it, Temper full and the Rend. Sent by the host; the wind-up and the Rend use the Weapons volume.
-        GreatWindup, GreatRaise, GreatBlock, GreatFull, GreatRend,
-        // The Twin Blades (TwinSoundBank.cs, the Crescent Waltz): the Rising and Falling Cuts, a jab, the Pirouette, the Crescent Shear, a cut landing (and a heavy one),
-        // Twin Fang thrown, its burst where the sabres cross, and the catch. Sent by the host; all but the catch use the Weapons volume.
-        TwinCut1, TwinCut2, TwinJab, TwinSpin, TwinShear, TwinHit, TwinHitHeavy, TwinThrow, TwinCross, TwinCatch,
-        // The Lightbringer (LightSoundBank.cs): Dawn and Mercy Cuts, Noon (from the click: the swell up to the blow, then the chord) and a Radiant Noon,
-        // a cut landing, a crescent healing and warding an ally, the Sunlance gathering and released, and your own key with too little light.
-        LightCut1, LightCut2, LightNoon, LightRadiant, LightHit, LightHeal, LightWard, LanceGather, LanceRelease, LanceFizzle,
-        // The Censer (CenserSoundBank.cs, the Thurible Rite): the Sweep and Return Sweep, the Benediction's whirl, a hit landing (and a heavy one),
-        // the blessing as a heal goes out, the Benediction's bell, Censer Cast thrown, its landing, and the head caught back. Sent by the host; the swings and hits use the Weapons volume.
-        CenserSweep1, CenserSweep2, CenserWhirl, CenserHit, CenserHitHeavy, CenserBless, CenserBell, CenserThrow, CenserLand, CenserCatch,
-        // The Lance (LanceSoundBank.cs, the Breach): a jab, the Wide Sweep, the Breaching Thrust (from the click: the wind-up, then the thrust), a hit landing (and the
-        // Breaching Thrust's heavy one), an Impact (a shoved enemy into another) and a wall slam, Hook & Haul thrown and its haul. Sent by the host; the first four use the Weapons volume.
-        LanceJab, LanceSweep, LanceBreach, LanceHitSfx, LanceHitHeavy, LanceImpactSfx, LanceWall, LanceHookOut, LanceHaul,
-        // A perfect parry (Parry.cs; ParrySoundBank.cs): a bright ping and the needle leaving. Sent; the Effects volume.
-        PerfectParry,
-        // The Katana switching stance (KatanaSoundBank.cs): the blade turned from one guard to the other and a short burst. Sent.
-        KatanaStanceSwap,
-        // The Dodge (DodgeSoundBank.cs, Cloth Swish of Docs/Mockups/dodge-sounds.html): a soft fabric rush as you dodge. Your own screen only; the Effects volume.
-        DodgeSwish,
-        // The Katana's finishers (KatanaSoundBank.cs): the Momentum Burst's ground stab and shockwave, the caltrops thrown, caltrops flung or seeking. Sent.
-        KatanaBurstSfx, KatanaCaltrops, KatanaFling,
-        // The Tank Soldier's Alt fires (TankAltSoundBank.cs): Double Barrel and a shell loading, the Proximity Shell fired, armed and
-        // going off, Tear Gas fired and hissing. Sent; the three launches use the Weapons volume.
-        TankDouble, TankShellLoad, TankMineLaunch, TankMineArm, TankMineBurst, TankGasLaunch, TankGasHiss,
-        // The Repulsion Cannon's Undertow (SoundBank.cs; Repulsion.cs): the inhale as the pull starts, a swirling hum repeated while it holds, and the
-        // soft pop as it lets go. Sent by the host; named Spell so they use the Weapons volume.
-        SpellPullStart, SpellPullHum, SpellPullStop,
-        // The Arc Knuckles (ArcKnucklesSoundBank.cs, the Arc Coil look): a jab or cross, the hook, the uppercut, the Twin Hammer's slam,
-        // the Counter Hammer, and the coils charging when a perfect parry arms it. Sent.
-        KnuckleJab, KnuckleHook, KnuckleUpper, KnuckleSlam, KnuckleCounter, KnuckleArm,
-        // The Rocket Dash (ArcKnucklesSoundBank.cs): the thruster firing, the fist landing. Sent.
-        KnuckleRocket, KnuckleRocketHit,
-        // The dash chain (ArcKnucklesSoundBank.cs): the grab latching on, the throw. Sent.
-        KnuckleGrab, KnuckleThrow,
-        // A punch connecting (ArcKnucklesSoundBank.cs; sent with FxKind.KnuckleHit): a light knock, a heavy one.
-        KnuckleImpact, KnuckleImpactHeavy,
-        // The Shuriken's Great Star (NinjaSoundBank.cs; GreatStar.cs): the throw, the catch. Sent.
-        GreatStarThrow, GreatStarCatch,
-        // A player touching a wall (WallHumSoundBank.cs): a looping hum, played locally, never sent.
-        WallHum,
-        // Played by each screen from what it sees, never sent (they were a side enum each while this was a byte): the Nova and Turret
-        // (SentryNovaSoundBank.cs), Bullet Rain (BulletRainSoundBank.cs), the Stonespear (StonespearSoundBank.cs), footsteps' two layers
-        // (FootstepSoundBank.cs), the menus' hover tick and click, and a wall pushed out (SoundBank.cs).
-        NovaBurst, TurretDeploy, TurretFold, RainCast, RainPatter, RainEnd, StoneThrow, StoneWind, StoneSlam, StoneHit, StoneStick,
-        StepThump, StepTick, UiHover, UiClick, WallPush /* retired with wall push, Nov 18: no sound */,
-        // Arc Lightning's lock-on (ArcLockSoundBank.cs): a tag, a hop, letting go, a Forked Volley bolt, a fizzle, and the charge hum (a loop). Never sent.
-        ArcTag, ArcHop, ArcCrack, ArcFork, ArcFizzle, ArcHum,
-        // The Fireball (FireballSoundBank.cs, Deep Roar of Docs/Mockups/fireball-sounds.html): the launch roar (the weapon's Sound) and the burn when it ignites an enemy. Sent.
-        ShotFireball, ShotFireballBurn,
-        // The Nunchaku (NunchakuSoundBank.cs, the Storm set of Docs/Mockups/nunchaku-sounds.html): each combo step and the Twin Counter as
-        // pressed, a stick landing, the windmill spinning up, a shot swatted. Sent.
-        NunSnap, NunBack, NunFig8, NunCrush, NunCounter, NunHit, NunGuard, NunSwat,
-        // The Attack Helicopter (HeliSoundBank.cs), played by each game itself from the look: the rotor's loop, a chaingun round,
-        // the barrels spinning up on a new target. Not sent.
-        HeliRotor, HeliShot, HeliSpin,
-        // Flood (FloodSoundBank.cs): the stamp and splash, the water lapping, the pool draining. Played by each screen from the pool's clock, never sent.
-        FloodCast, FloodLap, FloodDrain,
-        // Water Ward (WaterWardSoundBank.cs): a drop splashing on an enemy, a drop eating a shot and bursting into mist, the cast. Sent.
-        WwSplash, WwBurst, WwCast,
-        // Gale Wall (GaleWallSoundBank.cs): the cast, the field's hum (a loop), a catch, the full chime, the unleash. Played by each screen from what it sees, never sent.
-        GaleCast, GaleHum, GaleCatch, GaleFull, GaleUnleash,
-        // Deployable Cover (CoverSoundBank.cs): the throw and build, the cover bursting, folding away, a shot ringing off it. Played by each screen from the zone and FxKind.CoverBreak/CoverFold/CoverHit, never sent.
-        CoverDeploy, CoverBreak, CoverFold, CoverTing,
-        // Dragon's Dogma (DogmaSoundBank.cs): the cast's roar, a devour, a big one bitten, it coiling back in. Sent.
-        DogmaRoar, DogmaDevour, DogmaBite, DogmaHome,
-        // Ceremonial Armor (CeremonialArmorSoundBank.cs): a plate summoned (a chime, the drop and the click into its slot, 0.55 s in), a plate shattering. Sent.
-        CereSummon, CereBreak,
-        // The Frost Lance (FrostSoundBank.cs): the chain's five steps (the slam's swing, then its landing), a freeze, a shatter, a parry
-        // breaking the lance, Absolute Zero's charge, wave and shatter. Sent.
-        FrostCrescent, FrostBackhand, FrostWaltz, FrostFan, FrostSlamWind, FrostSlam, FrostFreeze, FrostShatter, FrostBreak, ZeroCharge, ZeroWave, ZeroShatter,
-        // The Blood Blast (BloodBlastSoundBank.cs): the chain's steps, a cut landing, Crimson Tide's gather and wave, the Blood Vortex. Sent.
-        BlastSlash, BlastFlurry, BlastWhirl, BlastCleave, BlastFlight, BlastHit, BlastTideGather, BlastTideWave, BlastReturn,
-        // Warhorn Volley (WarhornSoundBank.cs): the war horn and the whole volley after it (hiss, whistles, thuds, crackle) in one take. Sent.
-        Warhorn,
-        // The Rubber Chicken skin's sound pack for the Twin Blades (ChickenSoundBank.cs), one for each Twin cue: picked by the host from
-        // the swinger's skin (Game.TwinSfx). Sent.
-        ChickCut1, ChickCut2, ChickJab, ChickSpin, ChickShear, ChickHit, ChickHitHeavy, ChickThrow, ChickCross, ChickCatch,
-        // The Nodachi (NodachiSoundBank.cs): each step (sent at the press, timed to its strikes), a cut landing, a shot blocked, the stance switch. Sent.
-        NodNuki, NodKesa, NodMoon, NodTenchi, NodNagi, NodKasumi, NodNidan, NodSenbon, NodTsuka, NodHiki, NodHit, NodBlock, NodToStorm, NodToGuard,
-        // Decoy Dummy (DecoyDummySoundBank.cs): the throw and puff-up, a hit's rubber squeak, the pop and zip, the deflate. Played by each screen from the zone and FxKind.DecoyHit/DecoyPop/DecoyFold, never sent.
-        DecoyThrow, DecoySqueak, DecoyPop, DecoyFold,
-        // Deployable Turret (DeployTurretSoundBank.cs): the drop, a heavy round, the barrels spinning up, the overheat, the blast, the early dismount. Played by each screen from the zone, never sent.
-        DtDrop, DtShot, DtSpool, DtHeat, DtBlast, DtLatch,
-        // A One-way piece's door bumped from the wrong side (OneWayDoorSoundBank.cs): played by your own screen when it holds you back, never sent.
-        OneWayBump,
-        // The Rioter (RioterSoundBank.cs, the Mob voice): the yell on coming within earshot, the hit, the bottle's wind-up, its
-        // throw (sent), the bottle breaking, the death, a running step. Played by each screen from what it sees (MeleeSounds.cs), never sent but the throw.
-        RiotYell, RiotAttack, RiotHup, RiotWhoosh, RiotShatter, RiotDie, RiotStep,
-        // The main menu and saved-runs screen in the holo look (MenuSoundBank.cs): played by your own screen, never sent.
-        MenuPlay, MenuKey, MenuQuit, MenuEject, MenuRooms, NeonSpark, BayVault, BayBack, RunContinue, RunDelArm, RunDelete,
-        // Graze (Graze.cs, GrazeSoundBank.cs): an enemy shot skimming past you. Played by your own screen, never sent.
-        Graze,
-        // A Literal Tank (LitTankSoundBank.cs): the engine's loop, the main gun, the drop's whistle (sent with the cast), the landing,
-        // the last seconds' beep, the hatch. The rest are played by each screen from the look or the shell, never sent.
-        LitTankEngine, LitTankCannon, LitTankFall, LitTankLand, LitTankWarn, LitTankHatch,
-        // Orbital Laser (OrbitalSoundBank.cs): the whole strike in one take (uplink chirp, lock-on beeps, charge whine, the impact, the beam's roar, the sizzle). Sent.
-        OrbitalLaser,
-        // Rodent Minigun (RodentSoundBank.cs): a rodent squeaking out of the portal (each shot, quiet), the portal tearing open (sent with the cast).
-        RodentSqueak, RodentPortal,
-        // Siege Bell (SiegeBellSoundBank.cs): the three tolls and the shockwave's thump in one take. Sent with the cast.
-        SiegeBell,
+        // In name order, one per line: Tools/Ids/ids.py (CI checks it; --fix sorts). Numbers follow from the order.
+        None,
+        Ability,
+        ArcCrack,
+        ArcFizzle,
+        ArcFork,
+        ArcHop,
+        ArcHum,
+        ArcTag,  // Arc Lightning's lock-on (ArcLockSoundBank.cs): a tag, a hop, letting go, a Forked Volley bolt, a fizzle, and the charge hum (a loop). Never sent.
+        BayBack,
+        BayBeep,  // The menu's Play transition (MenuServo.cs, version 2 of Docs/Mockups/menu-bay-doors.html): beeps, the doors' servo whine (and backwards),; a clamp, the screen's power-on zap, the keys' whirr and tick, the box's lift, its seating thud, and a flap click per header letter. Never sent.
+        BayClack,
+        BayClamp,
+        BayLift,
+        BaySeat,
+        BayServo,
+        BayServoBack,
+        BayTick,
+        BayVault,
+        BayWhirr,
+        BayZap,
+        BigExplode,
+        BlastCleave,
+        BlastFlight,
+        BlastFlurry,
+        BlastHit,
+        BlastReturn,
+        BlastSlash,  // The Blood Blast (BloodBlastSoundBank.cs): the chain's steps, a cut landing, Crimson Tide's gather and wave, the Blood Vortex. Sent.
+        BlastTideGather,
+        BlastTideWave,
+        BlastWhirl,
+        Blink,
+        BossBuzz,
+        BossCage,
+        BossCharge,
+        BossChime,  // soft cues for bosses' abilities (BossSounds.cs)
+        BossChomp,
+        BossCrack,
+        BossGong,
+        BossLaser,
+        BossLaserWarn,  // Bosses' own mechanics (SoundBank.cs recipes; wired in each boss's file).
+        BossPulse,
+        BossRumble,
+        BossScythe,
+        BossShift,
+        BossSiren,
+        BossSlam,
+        BossSplat,
+        BossThunder,
+        BossWarp,
+        BossWhoosh,
+        BruteBash,
+        BruteDie,
+        BruteGrunt,
+        BruteStep,
+        CenserBell,
+        CenserBless,
+        CenserCatch,
+        CenserHit,
+        CenserHitHeavy,
+        CenserLand,
+        CenserSweep1,  // The Censer (CenserSoundBank.cs, the Thurible Rite): the Sweep and Return Sweep, the Benediction's whirl, a hit landing (and a heavy one),; the blessing as a heal goes out, the Benediction's bell, Censer Cast thrown, its landing, and the head caught back. Sent by the host; the swings and hits use the Weapons volume.
+        CenserSweep2,
+        CenserThrow,
+        CenserWhirl,
+        CereBreak,
+        CereSummon,  // Ceremonial Armor (CeremonialArmorSoundBank.cs): a plate summoned (a chime, the drop and the click into its slot, 0.55 s in), a plate shattering. Sent.
+        ChickCatch,
+        ChickCross,
+        ChickCut1,  // The Rubber Chicken skin's sound pack for the Twin Blades (ChickenSoundBank.cs), one for each Twin cue: picked by the host from
+        ChickCut2,
+        ChickHit,
+        ChickHitHeavy,
+        ChickJab,
+        ChickShear,
+        ChickSpin,
+        ChickThrow,
+        Clang,  // Knight swings, and a shield taking a hit
+        CoverBreak,
+        CoverDeploy,  // Deployable Cover (CoverSoundBank.cs): the throw and build, the cover bursting, folding away, a shot ringing off it. Played by each screen from the zone and FxKind.CoverBreak/CoverFold/CoverHit, never sent.
+        CoverFold,
+        CoverTing,
+        CrtLine,
+        CrtPower,  // New run's CRT boot into the lobby (LobbyCrt.cs, PlayCrtEntryCues): power-on thump, a key per typed character, a beep per log line, the scan line's sweep, and the ready chime. Never sent.
+        CrtReady,
+        CrtSweep,
+        CrtType,
+        DecoyFold,
+        DecoyPop,
+        DecoySqueak,
+        DecoyThrow,  // Decoy Dummy (DecoyDummySoundBank.cs): the throw and puff-up, a hit's rubber squeak, the pop and zip, the deflate. Played by each screen from the zone and FxKind.DecoyHit/DecoyPop/DecoyFold, never sent.
+        DiskClick,
+        DiskEject,
+        DiskFly,
+        DiskLift,  // Picking a profile disk (ProfileTransition.cs, DriveSlot.cs): the clamps unlatching, the disk's whoosh, its clack as it tips flat, the slide into; the drive slot (and the eject going back), the latch click, the drive reading, and a ready chime. Your own screen only, never sent.
+        DiskRead,
+        DiskReady,
+        DiskSlide,
+        DiskTip,
+        DodgeSwish,  // The Dodge (DodgeSoundBank.cs, Cloth Swish of Docs/Mockups/dodge-sounds.html): a soft fabric rush as you dodge. Your own screen only; the Effects volume.
+        DogmaBite,
+        DogmaDevour,
+        DogmaHome,
+        DogmaRoar,  // Dragon's Dogma (DogmaSoundBank.cs): the cast's roar, a devour, a big one bitten, it coiling back in. Sent.
+        Downed,
+        DtBlast,
+        DtDrop,  // Deployable Turret (DeployTurretSoundBank.cs): the drop, a heavy round, the barrels spinning up, the overheat, the blast, the early dismount. Played by each screen from the zone, never sent.
+        DtHeat,
+        DtLatch,
+        DtShot,
+        DtSpool,
+        EnemyShot,
+        Explode,
+        FloodCast,  // Flood (FloodSoundBank.cs): the stamp and splash, the water lapping, the pool draining. Played by each screen from the pool's clock, never sent.
+        FloodDrain,
+        FloodLap,
+        Freeze,
+        FrostBackhand,
+        FrostBreak,
+        FrostCrescent,  // The Frost Lance (FrostSoundBank.cs): the chain's five steps (the slam's swing, then its landing), a freeze, a shatter, a parry; breaking the lance, Absolute Zero's charge, wave and shatter. Sent.
+        FrostFan,
+        FrostFreeze,
+        FrostShatter,
+        FrostSlam,
+        FrostSlamWind,
+        FrostWaltz,
+        GaleCast,  // Gale Wall (GaleWallSoundBank.cs): the cast, the field's hum (a loop), a catch, the full chime, the unleash. Played by each screen from what it sees, never sent.
+        GaleCatch,
+        GaleFull,
+        GaleHum,
+        GaleUnleash,
+        GameOver,
+        Graze,  // Graze (Graze.cs, GrazeSoundBank.cs): an enemy shot skimming past you. Played by your own screen, never sent.
+        GreatBlock,
+        GreatFull,
+        GreatRaise,
+        GreatRend,
+        GreatStarCatch,
+        GreatStarThrow,  // The Shuriken's Great Star (NinjaSoundBank.cs; GreatStar.cs): the throw, the catch. Sent.
+        GreatWindup,  // The Greatsword (GreatswordSoundBank.cs): the overhead rend's blade lifting, the guard going up, a bullet stopped on it, Temper full and the Rend. Sent by the host; the wind-up and the Rend use the Weapons volume.
+        HeliRotor,  // The Attack Helicopter (HeliSoundBank.cs), played by each game itself from the look: the rotor's loop, a chaingun round,
+        HeliShot,
+        HeliSpin,
+        Hit,
+        Hurt,
+        KatanaBurstSfx,  // The Katana's finishers (KatanaSoundBank.cs): the Momentum Burst's ground stab and shockwave, the caltrops thrown, caltrops flung or seeking. Sent.
+        KatanaCaltrops,
+        KatanaChain1,
+        KatanaChain2,
+        KatanaChain3,
+        KatanaChain4,
+        KatanaChain5,
+        KatanaFling,
+        KatanaHit,
+        KatanaLunge,
+        KatanaStanceSwap,  // The Katana switching stance (KatanaSoundBank.cs): the blade turned from one guard to the other and a short burst. Sent.
+        KatanaStrikeCut,
+        KatanaSwipe1,  // The Katana (KatanaSoundBank.cs, the Steel set of Docs/Mockups/katana-sounds.html; Katana.cs). Sent by the host: Senbon's swipes, the wind-up,; Hayate's dash (KatanaLunge), a cut landing (the first five use the Weapons volume), the strike's cut and a chime per hop.
+        KatanaSwipe2,
+        KatanaWindup,
+        KnuckleArm,
+        KnuckleCounter,
+        KnuckleGrab,  // The dash chain (ArcKnucklesSoundBank.cs): the grab latching on, the throw. Sent.
+        KnuckleHook,
+        KnuckleImpact,  // A punch connecting (ArcKnucklesSoundBank.cs; sent with FxKind.KnuckleHit): a light knock, a heavy one.
+        KnuckleImpactHeavy,
+        KnuckleJab,  // The Arc Knuckles (ArcKnucklesSoundBank.cs, the Arc Coil look): a jab or cross, the hook, the uppercut, the Twin Hammer's slam,; the Counter Hammer, and the coils charging when a perfect parry arms it. Sent.
+        KnuckleRocket,  // The Rocket Dash (ArcKnucklesSoundBank.cs): the thruster firing, the fist landing. Sent.
+        KnuckleRocketHit,
+        KnuckleSlam,
+        KnuckleThrow,
+        KnuckleUpper,
+        LanceBreach,
+        LanceFizzle,
+        LanceGather,
+        LanceHaul,
+        LanceHitHeavy,
+        LanceHitSfx,
+        LanceHookOut,
+        LanceImpactSfx,
+        LanceJab,  // The Lance (LanceSoundBank.cs, the Breach): a jab, the Wide Sweep, the Breaching Thrust (from the click: the wind-up, then the thrust), a hit landing (and the; Breaching Thrust's heavy one), an Impact (a shoved enemy into another) and a wall slam, Hook & Haul thrown and its haul. Sent by the host; the first four use the Weapons volume.
+        LanceRelease,
+        LanceSweep,
+        LanceWall,
+        LaunchBeam,
+        LaunchHud,
+        LaunchLand,
+        LaunchRipple,
+        LaunchSweep,  // A run launching (LaunchIntro.cs): your own screen only, never sent.
+        LevelUp,
+        LightCut1,  // The Lightbringer (LightSoundBank.cs): Dawn and Mercy Cuts, Noon (from the click: the swell up to the blow, then the chord) and a Radiant Noon,; a cut landing, a crescent healing and warding an ally, the Sunlance gathering and released, and your own key with too little light.
+        LightCut2,
+        LightHeal,
+        LightHit,
+        LightNoon,
+        LightRadiant,
+        LightWard,
+        LitTankCannon,
+        LitTankEngine,  // A Literal Tank (LitTankSoundBank.cs): the engine's loop, the main gun, the drop's whistle (sent with the cast), the landing,; the last seconds' beep, the hatch. The rest are played by each screen from the look or the shell, never sent.
+        LitTankFall,
+        LitTankHatch,
+        LitTankLand,
+        LitTankWarn,
+        LungerDie,
+        LungerLand,
+        LungerLeap,
+        LungerPad,  // their footsteps
+        LungerTell,
+        MenuEject,
+        MenuHover,  // A main menu button being hovered (MenuVhs.cs, look A of Docs/Mockups/menu-hover-sounds.html): a tape-head tick. Never sent.
+        MenuKey,
+        MenuPlay,  // The main menu and saved-runs screen in the holo look (MenuSoundBank.cs): played by your own screen, never sent.
+        MenuQuit,
+        MenuRooms,
+        NeonSpark,
+        NinjaBlink,
+        NinjaFanBurst,
+        NinjaFanOpen,
+        NinjaLotusCast,
+        NinjaStepCast,
+        NinjaStepStrike,
+        NinjaVanish,
+        NodBlock,
+        NodHiki,
+        NodHit,
+        NodKasumi,
+        NodKesa,
+        NodMoon,
+        NodNagi,
+        NodNidan,
+        NodNuki,  // The Nodachi (NodachiSoundBank.cs): each step (sent at the press, timed to its strikes), a cut landing, a shot blocked, the stance switch. Sent.
+        NodSenbon,
+        NodTenchi,
+        NodToGuard,
+        NodToStorm,
+        NodTsuka,
+        NovaBurst,  // Played by each screen from what it sees, never sent (they were a side enum each while this was a byte): the Nova and Turret; (SentryNovaSoundBank.cs), Bullet Rain (BulletRainSoundBank.cs), the Stonespear (StonespearSoundBank.cs), footsteps' two layers; (FootstepSoundBank.cs), the menus' hover tick and click, and a wall pushed out (SoundBank.cs).
+        NunBack,
+        NunCounter,
+        NunCrush,
+        NunFig8,
+        NunGuard,
+        NunHit,
+        NunSnap,  // The Nunchaku (NunchakuSoundBank.cs, the Storm set of Docs/Mockups/nunchaku-sounds.html): each combo step and the Twin Counter as; pressed, a stick landing, the windmill spinning up, a shot swatted. Sent.
+        NunSwat,
+        OneWayBump,  // A One-way piece's door bumped from the wrong side (OneWayDoorSoundBank.cs): played by your own screen when it holds you back, never sent.
+        OrbitalLaser,  // Orbital Laser (OrbitalSoundBank.cs): the whole strike in one take (uplink chirp, lock-on beeps, charge whine, the impact, the beam's roar, the sizzle). Sent.
+        PauseClose,
+        PauseSettle,
+        PauseType,  // The pause menu's sounds (WindowAnim.cs; the typing was its old glitch opening's): your own screen only, never sent.
+        PerfectParry,  // A perfect parry (Parry.cs; ParrySoundBank.cs): a bright ping and the needle leaving. Sent; the Effects volume.
+        Pick,
+        PickAbsorb,
+        PickCardLand,
+        PickCardOut,
+        PickRare,
+        PickReturn,
+        PickRise,  // The upgrade picker opening and closing (PickIntro.cs, PickOutro.cs): played on your own screen only, never sent.
+        Pickup,
+        PickupBig,
+        ProfBar,
+        ProfChord,
+        ProfScratch,
+        ProfSelect,  // The profile picker and the menu trading places (ProfileTransition.cs): your own screen only, never sent.
+        ProfSweep,
+        ProfSweepBack,
+        RadiantCast,  // The Radiant Orb (RadiantOrb.cs): cast, a twinkle each tick that touches something, and fading out. Sent, so quieter for allies.
+        RadiantFade,
+        RadiantTouch,
+        RainCast,
+        RainEnd,
+        RainPatter,
+        Revive,
+        RiotAttack,
+        RiotDie,
+        RiotHup,
+        RiotShatter,
+        RiotStep,
+        RiotWhoosh,
+        RiotYell,  // The Rioter (RioterSoundBank.cs, the Mob voice): the yell on coming within earshot, the hit, the bottle's wind-up, its; throw (sent), the bottle breaking, the death, a running step. Played by each screen from what it sees (MeleeSounds.cs), never sent but the throw.
+        Roar,
+        RodentPortal,
+        RodentSqueak,  // Rodent Minigun (RodentSoundBank.cs): a rodent squeaking out of the portal (each shot, quiet), the portal tearing open (sent with the cast).
+        RunContinue,
+        RunDelArm,
+        RunDelete,
+        Shockwave,
+        ShotAssault,
+        ShotBow,
+        ShotCannon,
+        ShotFireball,  // The Fireball (FireballSoundBank.cs, Deep Roar of Docs/Mockups/fireball-sounds.html): the launch roar (the weapon's Sound) and the burn when it ignites an enemy. Sent.
+        ShotFireballBurn,
+        ShotKunai,  // The Ninja DPS (NinjaSoundBank.cs, the Shinobi set of Docs/Mockups/ninja-dps-sounds.html): the Kunai's whoosh (named Shot so it uses the Weapons; volume), its blink, Shadow Step's smoke and its strike, Vanish, Blade Fan opening and flying out, and Death Lotus darkening the arena. Sent, so quieter for allies.
+        ShotNova,
+        ShotPistol,
+        ShotRepulse,  // The Repulsion Cannon's blast, and Chain Light's cone and its first arc (SoundBank.cs recipes; named Shot/Spell so they use the Weapons volume).
+        ShotRifle,
+        ShotSeed,
+        ShotSeedHit,
+        ShotShotgun,
+        ShotSmg,
+        ShotSniper,
+        ShotTurret,
+        SiegeBell,  // Siege Bell (SiegeBellSoundBank.cs): the three tolls and the shockwave's thump in one take. Sent with the cast.
+        SpellArcane,
+        SpellChainArc,
+        SpellChainCone,
+        SpellFire,
+        SpellFrost,
+        SpellHoly,
+        SpellPullHum,
+        SpellPullStart,  // The Repulsion Cannon's Undertow (SoundBank.cs; Repulsion.cs): the inhale as the pull starts, a swirling hum repeated while it holds, and the; soft pop as it lets go. Sent by the host; named Spell so they use the Weapons volume.
+        SpellPullStop,
+        SpellZap,
+        StepThump,
+        StepTick,
+        StoneHit,
+        StoneSlam,
+        StoneStick,
+        StoneThrow,
+        StoneWind,
+        Summon,
+        SwarmerChomp,  // The melee rushers (MeleeSounds.cs, from Docs/Mockups/melee-enemy-sounds.html): made on every machine from the enemies' replicated state, never sent.
+        SwarmerDie,
+        SwarmerPatter,
+        SwingHeavy,
+        SwingLight,
+        SwingRoot,  // The Treant Rod (TreantSoundBank.cs, from Docs/Mockups/treant-rod-sounds-seeds.html): the root lash's leaf rustle, the Treant's seed shot (Pod Pop) and a seed landing (Tick). Sent, so quieter for allies.
+        TankDouble,  // The Tank Soldier's Alt fires (TankAltSoundBank.cs): Double Barrel and a shell loading, the Proximity Shell fired, armed and; going off, Tear Gas fired and hissing. Sent; the three launches use the Weapons volume.
+        TankGasHiss,
+        TankGasLaunch,
+        TankMineArm,
+        TankMineBurst,
+        TankMineLaunch,
+        TankShellLoad,
+        Throw,
+        TitleEnter,
+        TitleKey,  // The menu title typing out (MenuIntro.cs, look B of Docs/Mockups/menu-typing-sounds.html): a key per letter, the space bar, and Enter on the last. Never sent.
+        TitleSpace,
+        TurretDeploy,
+        TurretFold,
+        TwinCatch,
+        TwinCross,
+        TwinCut1,  // The Twin Blades (TwinSoundBank.cs, the Crescent Waltz): the Rising and Falling Cuts, a jab, the Pirouette, the Crescent Shear, a cut landing (and a heavy one),; Twin Fang thrown, its burst where the sabres cross, and the catch. Sent by the host; all but the catch use the Weapons volume.
+        TwinCut2,
+        TwinHit,
+        TwinHitHeavy,
+        TwinJab,
+        TwinShear,
+        TwinSpin,
+        TwinThrow,
+        UiClick,
+        UiHover,
+        Victory,
+        WallHum,  // A player touching a wall (WallHumSoundBank.cs): a looping hum, played locally, never sent.
+        WallPush,  // retired with wall push, Nov 18: no sound
+        Warhorn,  // Warhorn Volley (WarhornSoundBank.cs): the war horn and the whole volley after it (hiss, whistles, thuds, crackle) in one take. Sent.
+        WaveClear,
+        WaveStart,
+        WwBurst,
+        WwCast,
+        WwSplash,  // Water Ward (WaterWardSoundBank.cs): a drop splashing on an enemy, a drop eating a shot and bursting into mist, the cast. Sent.
+        ZeroCharge,
+        ZeroShatter,
+        ZeroWave,
+        ZombieBurst,
+        ZombieGrab,
+        ZombieGroan,  // Zombie Infection (Zombies.cs; SoundBank.cs recipes): a groan now and then, getting back up, spit, a grab, a scream, a burst, a mend.
+        ZombieMend,
+        ZombieRise,
+        ZombieShriek,
+        ZombieSpit,
     }
 
     public struct SoundCue

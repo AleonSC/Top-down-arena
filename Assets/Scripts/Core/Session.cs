@@ -143,10 +143,48 @@ namespace Arena
     {
         public const int DefaultPort = 7777;
 
-        /// Bump this whenever the messages the two games send each other change.
-        /// Players on different versions can't play together; the host turns them away with a message.
-        public const int ProtocolVersion = 544;  // history: Docs/ProtocolHistory.md
-        public static string VersionText => "Version " + ProtocolVersion;
+        /// Bump this whenever the layout of the messages the two games send each other changes (a field read or written).
+        /// Players on different versions can't play together; the host turns them away with a message. New ids and cards
+        /// need no bump: `IdsHash` tells two builds with different ones apart by itself.
+        public const int ProtocolVersion = 545;  // history: Docs/ProtocolHistory.md
+
+        static int idsHash;
+
+        /// A fingerprint of every id list (each enum's names and numbers) and of the upgrade cards in order, worked out at
+        /// start-up and sent with Hello beside ProtocolVersion. Ids are kept in name order (Tools/Ids/ids.py), so adding one
+        /// renumbers the others: this catches two builds whose ids or cards differ without anyone bumping a number.
+        public static int IdsHash
+        {
+            get
+            {
+                if (idsHash != 0)
+                    return idsHash;
+                uint h = 2166136261;
+                Action<string> mix = text =>
+                {
+                    foreach (char c in text)
+                        h = (h ^ c) * 16777619;
+                    h = (h ^ '|') * 16777619;
+                };
+                var enums = new List<Type>();
+                foreach (var t in typeof(Session).Assembly.GetTypes())
+                    if (t.IsEnum && t.Namespace == "Arena")
+                        enums.Add(t);
+                enums.Sort((a, b) => string.CompareOrdinal(a.FullName, b.FullName));
+                foreach (var t in enums)
+                {
+                    mix(t.FullName);
+                    foreach (var v in Enum.GetValues(t))
+                        mix(Enum.GetName(t, v) + "=" + Convert.ToInt64(v));
+                }
+                foreach (var u in Upgrades.All)
+                    mix(u.Name);
+                idsHash = (int)(h | 1);  // (never 0: 0 means not worked out yet)
+                return idsHash;
+            }
+        }
+
+        public static string VersionText => "Version " + ProtocolVersion + "." + (IdsHash & 0xffff).ToString("x4");
 
         const double WelcomeTimeout = 6.0;  // seconds to wait for the host to answer our hello
         public const int MaxPlayers = 3;
@@ -555,10 +593,19 @@ namespace Arena
                 case Msg.Hello:
                 {
                     int version = r.ReadInt32();
+                    int ids = version == Version ? r.ReadInt32() : 0;
                     if (version != Version)
                     {
                         // Builds from before version checks don't send a number, so this reads as garbage.
                         string theirs = version > 0 && version < 10000 ? "version " + version : "an older version";
+                        Reject(peer, "Version mismatch: the host is on " + VersionText + " and you're on " + theirs +
+                                     ". Both players need the same build of the game.");
+                        Status = "A friend tried to join on " + theirs + ", but you're on " + VersionText + ". You both need the same build.";
+                        return;
+                    }
+                    if (ids != IdsHash)  // the same protocol, but different ids or cards: another build
+                    {
+                        string theirs = "Version " + version + "." + (ids & 0xffff).ToString("x4");
                         Reject(peer, "Version mismatch: the host is on " + VersionText + " and you're on " + theirs +
                                      ". Both players need the same build of the game.");
                         Status = "A friend tried to join on " + theirs + ", but you're on " + VersionText + ". You both need the same build.";
@@ -1562,6 +1609,7 @@ namespace Arena
                     Status = "";
                     var w = Proto.Begin(Msg.Hello);
                     w.Write(Version);
+                    w.Write(IdsHash);
                     w.Write(joinName);
                     w.Write((byte)joinRole);
                     w.Write((byte)joinWeapon);

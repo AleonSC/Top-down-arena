@@ -1,31 +1,50 @@
+using System.Collections.Generic;
+
 namespace Arena
 {
     // Data for the summoner's minions and the ground zones that several abilities create.
 
     public enum MinionKind : byte
     {
-        Turret, Golem, Guard, Bear, Sprite, Treant, Wolf, Wisp, Imp, Bat, Phoenix, Guardian, Wall, Titan,
+        // In name order, one per line: Tools/Ids/ids.py (CI checks it; --fix sorts). Numbers follow from the order.
+        ArcBlade,  // the Arcanist's Orbit Shards (circle you, cut small shots, flung at the cursor and back) and Dancing Blades (hover behind you, launched to slash at the cursor) (Arcanist.cs)
+        ArcShard,
+        AssaultBot,  // the Engineer's robots (Iron Fist, Stasis Gun, Vector Blade): summoned by a click, they fight and draw aggro (EngineerBots.cs)
+        Bat,
+        Bear,
+        Bee,  // the Honeybee Staff's bee: hatches at the cursor, stings the nearest enemy once and dies (HoneybeeStaff.cs)
+        BumbleBot,  // the Bumble Remote's robot bee: follows your cursor, shoots stingers, dives into a Swarm Burst; enemies ignore it (BumbleRemote.cs)
+        Burrower,  // Earthquake's Burrower (the Tank Summoner's ability): breaks out at the cursor, tunnels through the pack hurting what it passes under (Burrower.cs)
+        Butterfly,  // World Tree's healing butterfly: flutters to an ally (LinkTo) and heals them on arrival (WorldTree.cs)
+        Clone,  // the Ninja's Shadow Clone: enemies target it; it bursts when it ends
+        CloneWall,  // Shadow Clone: one of nine afterimages in a wall that soaks bullets and gets shoved by players; it does nothing else (CloneWall.cs)
+        Golem,
+        Guard,
+        Guardian,
+        HiveBomber,  // Bomber Escort (the Hive Queen's legendary): flies at the toughest enemy near you and bursts on it (QueenLoot.cs)
+        HiveDrone,  // Hive Drones (the Hive Queen's legendary): circles you blocking bullets, flies out to sting, heals you coming home (QueenLoot.cs)
+        Hydra,  // Hydra (the DPS Summoner's ability): stays where it was called, its heads each spit venom at a different enemy (Hydra.cs)
+        Imp,
         LightOrb,  // Radiant Orb's extra projectiles: circles the orb while it's out (you otherwise), hurting enemies and healing allies it touches
-        Clone,     // the Ninja's Shadow Clone: enemies target it; it bursts when it ends
-        WardenGuard,  // Warden's Guard (legendary): walks with you and fights; it has health, and comes back after it falls (Stun.cs)
-        HiveDrone,    // Hive Drones (the Hive Queen's legendary): circles you blocking bullets, flies out to sting, heals you coming home (QueenLoot.cs)
-        HiveBomber,   // Bomber Escort (the Hive Queen's legendary): flies at the toughest enemy near you and bursts on it (QueenLoot.cs)
-        Scythe,       // Twin Scythes (the Twin Reapers' legendary): circles you, cutting enemies and small bullets (ReaperLoot.cs)
-        ThrownScythe, // Scythe Throw (the Twin Reapers' legendary ability): flies to your cursor and back, cutting (ReaperLoot.cs)
-        Nimbus,       // the Nimbus weapon's storm cloud: drifts after your cursor, rains healing on allies under it (Nimbus.cs)
+        MedicBot,
+        Nimbus,  // the Nimbus weapon's storm cloud: drifts after your cursor, rains healing on allies under it (Nimbus.cs)
+        Octopus,  // Octopus Familiar (the Healer Summoner's 4th choice): floats round the player it guards and slaps enemies near them, up to 8 at once (OctopusFamiliar.cs)
+        Phoenix,
+        Scythe,  // Twin Scythes (the Twin Reapers' legendary): circles you, cutting enemies and small bullets (ReaperLoot.cs)
         SoulLantern,  // Soul Lantern: hovers by the player it is linked to, heals them and flames enemies near it (SoulLantern.cs)
-        Hydra,        // Hydra (the DPS Summoner's ability): stays where it was called, its heads each spit venom at a different enemy (Hydra.cs)
-        Butterfly,    // World Tree's healing butterfly: flutters to an ally (LinkTo) and heals them on arrival (WorldTree.cs)
-        CloneWall,    // Shadow Clone: one of nine afterimages in a wall that soaks bullets and gets shoved by players; it does nothing else (CloneWall.cs)
-        Thrall,       // Force Pact (the Tank Summoner's ability): an enemy turned to your side; it fights near you, and comes back after it falls (ForcePact.cs)
-        Burrower,     // Earthquake's Burrower (the Tank Summoner's ability): breaks out at the cursor, tunnels through the pack hurting what it passes under (Burrower.cs)
-        Bee,          // the Honeybee Staff's bee: hatches at the cursor, stings the nearest enemy once and dies (HoneybeeStaff.cs)
+        Sprite,
+        TankBot,
+        Thrall,  // Force Pact (the Tank Summoner's ability): an enemy turned to your side; it fights near you, and comes back after it falls (ForcePact.cs)
+        ThrownScythe,  // Scythe Throw (the Twin Reapers' legendary ability): flies to your cursor and back, cutting (ReaperLoot.cs)
+        Titan,
+        Treant,
+        Turret,
         VectorBlock,  // one tile of a Vector Wall or Bastion: stops enemy shots until its soak is gone or it times out (Engineer.cs)
-        TankBot, MedicBot, AssaultBot,  // the Engineer's robots (Iron Fist, Stasis Gun, Vector Blade): summoned by a click, they fight and draw aggro (EngineerBots.cs)
-        Wyvern,       // the Wyvern Staff's wind Wyvern: hovers over you, its gale slows and shoves, it breathes fire at your cursor and slams (WyvernStaff.cs)
-        ArcShard, ArcBlade,  // the Arcanist's Orbit Shards (circle you, cut small shots, flung at the cursor and back) and Dancing Blades (hover behind you, launched to slash at the cursor) (Arcanist.cs)
-        BumbleBot,    // the Bumble Remote's robot bee: follows your cursor, shoots stingers, dives into a Swarm Burst; enemies ignore it (BumbleRemote.cs)
-        Octopus,      // Octopus Familiar (the Healer Summoner's 4th choice): floats round the player it guards and slaps enemies near them, up to 8 at once (OctopusFamiliar.cs)
+        Wall,
+        WardenGuard,  // Warden's Guard (legendary): walks with you and fights; it has health, and comes back after it falls (Stun.cs)
+        Wisp,
+        Wolf,
+        Wyvern,  // the Wyvern Staff's wind Wyvern: hovers over you, its gale slows and shoves, it breathes fire at your cursor and slams (WyvernStaff.cs)
         None = 255,
     }
 
@@ -49,7 +68,76 @@ namespace Arena
         public float BlockCapacity;  // boss damage it can soak before it breaks (or, for companions, staggers)
     }
 
-    public enum ZoneKind : byte { FlameWall, Blizzard, Meteor, Sanctum, Grove, Consecrate, HolySword, Smoke, Mist, Ward, BloodPool, BoneSpear, Incense, BlastOfuda, HoneyPool, HealingRain, BulletRain, LumenWard, HallowedBlade, OathWard, VeinTrail, Drawbridge, Bloodbath, BloodWall, Phalanx, FlakMine, TearGas, OssuaryWall, SmokeShell, HoneyPuddle, Flood, Cover, DragPylon, MedPylon, SafeRoom, Stasis, Stampede, DecoyDummy, DeployTurret, ToxicGas, GustGate, GrandSigil, SanctumSigil, ArcCrush, ShockGrenade, FieldHospital, Steam, StaticResidue, SupplyDrop, LandShark, Claymore, Mammoth, ArmorDrop, TrojanHorse, Ballista, HoneyRaid, Caltrop, Tusker, RocketDrop, RocketFire, AegisStandard, PilgrimsStandard, WarStandard, GongSmoke, HazardFoam, BloodTotem }
+    public enum ZoneKind : byte
+    {
+        // In name order, one per line: Tools/Ids/ids.py (CI checks it; --fix sorts). Numbers follow from the order.
+        AegisStandard,
+        ArcCrush,
+        ArmorDrop,
+        Ballista,
+        BlastOfuda,
+        Blizzard,
+        Bloodbath,
+        BloodPool,
+        BloodTotem,
+        BloodWall,
+        BoneSpear,
+        BulletRain,
+        Caltrop,
+        Claymore,
+        Consecrate,
+        Cover,
+        DecoyDummy,
+        DeployTurret,
+        DragPylon,
+        Drawbridge,
+        FieldHospital,
+        FlakMine,
+        FlameWall,
+        Flood,
+        GongSmoke,
+        GrandSigil,
+        Grove,
+        GustGate,
+        HallowedBlade,
+        HazardFoam,
+        HealingRain,
+        HolySword,
+        HoneyPool,
+        HoneyPuddle,
+        HoneyRaid,
+        Incense,
+        LandShark,
+        LumenWard,
+        Mammoth,
+        MedPylon,
+        Meteor,
+        Mist,
+        OathWard,
+        OssuaryWall,
+        Phalanx,
+        PilgrimsStandard,
+        RocketDrop,
+        RocketFire,
+        SafeRoom,
+        Sanctum,
+        SanctumSigil,
+        ShockGrenade,
+        Smoke,
+        SmokeShell,
+        Stampede,
+        Stasis,
+        StaticResidue,
+        Steam,
+        SupplyDrop,
+        TearGas,
+        ToxicGas,
+        TrojanHorse,
+        Tusker,
+        VeinTrail,
+        Ward,
+        WarStandard,
+    }
 
     public class ZoneDef
     {
@@ -65,145 +153,145 @@ namespace Arena
     public static class Kits
     {
         // Indexed by MinionKind.
-        public static readonly MinionDef[] Minions =
+        public static readonly MinionDef[] Minions = IdTable.Of(new Dictionary<MinionKind, MinionDef>
         {
-            new MinionDef { Name = "Turret", Radius = 13f, Sides = 6, Color = new Rgba(0.6f, 0.95f, 1f), Move = MinionMove.Static,
+            [MinionKind.Turret] = new MinionDef { Name = "Turret", Radius = 13f, Sides = 6, Color = new Rgba(0.6f, 0.95f, 1f), Move = MinionMove.Static,
                 Attack = MinionAttack.Shoot, Interval = 0.25f, Damage = 9f, Range = 520f },
-            new MinionDef { Name = "Golem", Radius = 18f, Sides = 6, Color = new Rgba(0.44f, 0.89f, 1f), Move = MinionMove.Chase, Speed = 110f,
+            [MinionKind.Golem] = new MinionDef { Name = "Golem", Radius = 18f, Sides = 6, Color = new Rgba(0.44f, 0.89f, 1f), Move = MinionMove.Chase, Speed = 110f,
                 Attack = MinionAttack.Slam, Interval = 1.2f, Damage = 130f, Range = 190f, BlockRadius = 140f, BlockCapacity = 1250f },  // a small Titan (Game.GolemScale): Titan.cs walks, slams and soaks for it; the numbers are for Scale 1
-            new MinionDef { Name = "Skeleton Guard", Radius = 10f, Sides = 4, Color = new Rgba(0.92f, 0.9f, 0.8f), Move = MinionMove.Orbit, Speed = 1.6f, OrbitRadius = 55f,
+            [MinionKind.Guard] = new MinionDef { Name = "Skeleton Guard", Radius = 10f, Sides = 4, Color = new Rgba(0.92f, 0.9f, 0.8f), Move = MinionMove.Orbit, Speed = 1.6f, OrbitRadius = 55f,
                 Attack = MinionAttack.Bite, Interval = 0.5f, Damage = 8f, BlockRadius = 16f, BlockCapacity = 90f },
-            new MinionDef { Name = "Bear", Radius = 15f, Sides = 7, Color = new Rgba(0.6f, 0.4f, 0.25f), Move = MinionMove.Chase, Speed = 200f,
+            [MinionKind.Bear] = new MinionDef { Name = "Bear", Radius = 15f, Sides = 7, Color = new Rgba(0.6f, 0.4f, 0.25f), Move = MinionMove.Chase, Speed = 200f,
                 Attack = MinionAttack.Bite, Interval = 0.6f, Damage = 22f },
-            new MinionDef { Name = "Sprite", Radius = 6f, Sides = 4, Color = new Rgba(0.5f, 1f, 0.6f), Move = MinionMove.FollowHurt, Speed = 220f,
+            [MinionKind.Sprite] = new MinionDef { Name = "Sprite", Radius = 6f, Sides = 4, Color = new Rgba(0.5f, 1f, 0.6f), Move = MinionMove.FollowHurt, Speed = 220f,
                 Attack = MinionAttack.Heal, HealRate = 5f, Range = 60f },
-            new MinionDef { Name = "Treant", Radius = 20f, Sides = 6, Color = new Rgba(0.35f, 0.7f, 0.3f), Move = MinionMove.FollowOwner, Speed = 160f,
+            [MinionKind.Treant] = new MinionDef { Name = "Treant", Radius = 20f, Sides = 6, Color = new Rgba(0.35f, 0.7f, 0.3f), Move = MinionMove.FollowOwner, Speed = 160f,
                 Attack = MinionAttack.Slam, Interval = 1.2f, Damage = 15f, Range = 50f, BlockRadius = 28f, BlockCapacity = 260f },
-            new MinionDef { Name = "Wolf", Radius = 10f, Sides = 3, Color = new Rgba(0.7f, 0.7f, 0.8f), Move = MinionMove.Chase, Speed = 260f,
+            [MinionKind.Wolf] = new MinionDef { Name = "Wolf", Radius = 10f, Sides = 3, Color = new Rgba(0.7f, 0.7f, 0.8f), Move = MinionMove.Chase, Speed = 260f,
                 Attack = MinionAttack.Bite, Interval = 0.5f, Damage = 12f },
-            new MinionDef { Name = "Wisp", Radius = 6f, Sides = 5, Color = new Rgba(0.85f, 1f, 0.95f), Move = MinionMove.Orbit, Speed = 2.5f, OrbitRadius = 40f,
+            [MinionKind.Wisp] = new MinionDef { Name = "Wisp", Radius = 6f, Sides = 5, Color = new Rgba(0.85f, 1f, 0.95f), Move = MinionMove.Orbit, Speed = 2.5f, OrbitRadius = 40f,
                 Attack = MinionAttack.Shoot, Interval = 0.5f, Damage = 7f, Range = 380f },
-            new MinionDef { Name = "Imp", Radius = 8f, Sides = 3, Color = new Rgba(1f, 0.35f, 0.2f), Move = MinionMove.Chase, Speed = 240f,
+            [MinionKind.Imp] = new MinionDef { Name = "Imp", Radius = 8f, Sides = 3, Color = new Rgba(1f, 0.35f, 0.2f), Move = MinionMove.Chase, Speed = 240f,
                 Attack = MinionAttack.Explode, Damage = 70f, Range = 70f },
-            new MinionDef { Name = "Bat", Radius = 6f, Sides = 3, Color = new Rgba(0.55f, 0.4f, 0.7f), Move = MinionMove.Chase, Speed = 320f,
+            [MinionKind.Bat] = new MinionDef { Name = "Bat", Radius = 6f, Sides = 3, Color = new Rgba(0.55f, 0.4f, 0.7f), Move = MinionMove.Chase, Speed = 320f,
                 Attack = MinionAttack.Bite, Interval = 0.4f, Damage = 6f },
-            new MinionDef { Name = "Phoenix", Radius = 12f, Sides = 5, Color = new Rgba(1f, 0.6f, 0.2f), Move = MinionMove.Orbit, Speed = 1.8f, OrbitRadius = 70f,
+            [MinionKind.Phoenix] = new MinionDef { Name = "Phoenix", Radius = 12f, Sides = 5, Color = new Rgba(1f, 0.6f, 0.2f), Move = MinionMove.Orbit, Speed = 1.8f, OrbitRadius = 70f,
                 Attack = MinionAttack.Shoot, Interval = 0.35f, Damage = 12f, Range = 450f },
-            new MinionDef { Name = "Guardian Spirit", Radius = 22f, Sides = 8, Color = new Rgba(0.55f, 0.75f, 1f), Move = MinionMove.FollowOwner, Speed = 400f,
+            [MinionKind.Guardian] = new MinionDef { Name = "Guardian Spirit", Radius = 22f, Sides = 8, Color = new Rgba(0.55f, 0.75f, 1f), Move = MinionMove.FollowOwner, Speed = 400f,
                 BlockRadius = 75f, BlockCapacity = 400f },
-            new MinionDef { Name = "Basalt Golem", Radius = 38f, Sides = 8, Color = new Rgba(0.26f, 0.25f, 0.3f), Move = MinionMove.Static,
+            [MinionKind.Wall] = new MinionDef { Name = "Basalt Golem", Radius = 38f, Sides = 8, Color = new Rgba(0.26f, 0.25f, 0.3f), Move = MinionMove.Static,
                 BlockRadius = 46f, BlockCapacity = 200f },  // Golem Wall: stays until its health is gone (BlockedBySummons); look in Game/GolemWallLook.cs
-            new MinionDef { Name = "Titan", Radius = 140f, Sides = 6, Color = new Rgba(0.44f, 0.89f, 1f), Move = MinionMove.Chase, Speed = 75f,
+            [MinionKind.Titan] = new MinionDef { Name = "Titan", Radius = 140f, Sides = 6, Color = new Rgba(0.44f, 0.89f, 1f), Move = MinionMove.Chase, Speed = 75f,
                 Attack = MinionAttack.Slam, Interval = 1.4f, Damage = 90f, Range = 190f, BlockRadius = 140f, BlockCapacity = 1000f },  // the Colossus: Titan.cs does its walking and slamming
-            new MinionDef { Name = "Light Orb", Radius = 8f, Sides = 6, Color = new Rgba(1f, 0.95f, 0.6f), Move = MinionMove.Orbit, Speed = 2.2f, OrbitRadius = 85f,
+            [MinionKind.LightOrb] = new MinionDef { Name = "Light Orb", Radius = 8f, Sides = 6, Color = new Rgba(1f, 0.95f, 0.6f), Move = MinionMove.Orbit, Speed = 2.2f, OrbitRadius = 85f,
                 Attack = MinionAttack.Bite, Interval = 0.35f, Damage = 12f, HealRate = 6f, Range = 22f },
-            new MinionDef { Name = "Shadow Clone", Radius = 14f, Sides = 8, Color = new Rgba(0.45f, 0.42f, 0.6f), Move = MinionMove.Static, BlockRadius = 16f, BlockCapacity = 100f },  // Thousand Clones: soaks enemy shots, bursts when it breaks
-            new MinionDef { Name = "Warden's Guard", Radius = 13f, Sides = 8, Color = new Rgba(0.35f, 0.55f, 1f), Move = MinionMove.Escort, Speed = 240f,  // looks like the riot's guards
+            [MinionKind.Clone] = new MinionDef { Name = "Shadow Clone", Radius = 14f, Sides = 8, Color = new Rgba(0.45f, 0.42f, 0.6f), Move = MinionMove.Static, BlockRadius = 16f, BlockCapacity = 100f },  // Thousand Clones: soaks enemy shots, bursts when it breaks
+            [MinionKind.WardenGuard] = new MinionDef { Name = "Warden's Guard", Radius = 13f, Sides = 8, Color = new Rgba(0.35f, 0.55f, 1f), Move = MinionMove.Escort, Speed = 240f,  // looks like the riot's guards
                 Attack = MinionAttack.Bite, Interval = 0.7f, Damage = 14f },
-            new MinionDef { Name = "Hive Drone", Radius = 7f, Sides = 3, Color = Rgba.Gold, Move = MinionMove.Orbit, Speed = 2.6f, OrbitRadius = 45f,
+            [MinionKind.HiveDrone] = new MinionDef { Name = "Hive Drone", Radius = 7f, Sides = 3, Color = Rgba.Gold, Move = MinionMove.Orbit, Speed = 2.6f, OrbitRadius = 45f,
                 BlockRadius = 16f, BlockCapacity = 60f },  // moved and stings by QueenLoot.cs
-            new MinionDef { Name = "Hive Bomber", Radius = 9f, Sides = 3, Color = new Rgba(1f, 0.5f, 0.18f), Move = MinionMove.Static,
+            [MinionKind.HiveBomber] = new MinionDef { Name = "Hive Bomber", Radius = 9f, Sides = 3, Color = new Rgba(1f, 0.5f, 0.18f), Move = MinionMove.Static,
                 Damage = 55f, Range = 70f },  // flown by QueenLoot.cs; bursts for Damage within Range
-            new MinionDef { Name = "Twin Scythe", Radius = 14f, Sides = 3, Color = new Rgba(1f, 0.35f, 0.6f), Move = MinionMove.Orbit, Speed = 2.4f, OrbitRadius = 60f,
+            [MinionKind.Scythe] = new MinionDef { Name = "Twin Scythe", Radius = 14f, Sides = 3, Color = new Rgba(1f, 0.35f, 0.6f), Move = MinionMove.Orbit, Speed = 2.4f, OrbitRadius = 60f,
                 Damage = 16f },  // moved and cuts by ReaperLoot.cs (Dusk's colour; the outer one is drawn in Dawn's)
-            new MinionDef { Name = "Thrown Scythe", Radius = 22f, Sides = 3, Color = new Rgba(0.85f, 0.75f, 1f), Move = MinionMove.Static,
+            [MinionKind.ThrownScythe] = new MinionDef { Name = "Thrown Scythe", Radius = 22f, Sides = 3, Color = new Rgba(0.85f, 0.75f, 1f), Move = MinionMove.Static,
                 Damage = 45f },  // thrown by ReaperLoot.cs
-            new MinionDef { Name = "Nimbus", Radius = 20f, Sides = 6, Color = new Rgba(0.62f, 0.74f, 1f), Move = MinionMove.FollowOwner, Speed = 600f },  // steered to your cursor and raining by Nimbus.cs
-            new MinionDef { Name = "Soul Lantern", Radius = 14f, Sides = 6, Color = new Rgba(0.47f, 1f, 0.88f), Move = MinionMove.Static },  // moved, healing and flaming by SoulLantern.cs
-            new MinionDef { Name = "Hydra", Radius = 26f, Sides = 8, Color = new Rgba(0.53f, 0.88f, 0.56f), Move = MinionMove.Static,
+            [MinionKind.Nimbus] = new MinionDef { Name = "Nimbus", Radius = 20f, Sides = 6, Color = new Rgba(0.62f, 0.74f, 1f), Move = MinionMove.FollowOwner, Speed = 600f },  // steered to your cursor and raining by Nimbus.cs
+            [MinionKind.SoulLantern] = new MinionDef { Name = "Soul Lantern", Radius = 14f, Sides = 6, Color = new Rgba(0.47f, 1f, 0.88f), Move = MinionMove.Static },  // moved, healing and flaming by SoulLantern.cs
+            [MinionKind.Hydra] = new MinionDef { Name = "Hydra", Radius = 26f, Sides = 8, Color = new Rgba(0.53f, 0.88f, 0.56f), Move = MinionMove.Static,
                 Interval = 0.6f, Damage = 10f, Range = 520f },  // shoots by Hydra.cs
-            new MinionDef { Name = "Butterfly", Radius = 6f, Sides = 4, Color = new Rgba(1f, 0.84f, 0.43f), Move = MinionMove.Static },  // flown by WorldTree.cs
-            new MinionDef { Name = "Shadow Clone", Radius = 16f, Sides = 8, Color = new Rgba(0.22f, 0.8f, 0.9f), Move = MinionMove.Static, BlockRadius = 16f, BlockCapacity = 50f },  // shoved by CloneWall.cs
-            new MinionDef { Name = "Thrall", Radius = 14f, Sides = 6, Color = new Rgba(0.75f, 0.55f, 1f), Move = MinionMove.Escort, Speed = 180f },  // ForcePact.cs: its shape, speed and attack come from the enemy type it was
-            new MinionDef { Name = "Burrower", Radius = 18f, Sides = 8, Color = new Rgba(0.64f, 0.54f, 0.38f), Move = MinionMove.Static,
+            [MinionKind.Butterfly] = new MinionDef { Name = "Butterfly", Radius = 6f, Sides = 4, Color = new Rgba(1f, 0.84f, 0.43f), Move = MinionMove.Static },  // flown by WorldTree.cs
+            [MinionKind.CloneWall] = new MinionDef { Name = "Shadow Clone", Radius = 16f, Sides = 8, Color = new Rgba(0.22f, 0.8f, 0.9f), Move = MinionMove.Static, BlockRadius = 16f, BlockCapacity = 50f },  // shoved by CloneWall.cs
+            [MinionKind.Thrall] = new MinionDef { Name = "Thrall", Radius = 14f, Sides = 6, Color = new Rgba(0.75f, 0.55f, 1f), Move = MinionMove.Escort, Speed = 180f },  // ForcePact.cs: its shape, speed and attack come from the enemy type it was
+            [MinionKind.Burrower] = new MinionDef { Name = "Burrower", Radius = 18f, Sides = 8, Color = new Rgba(0.64f, 0.54f, 0.38f), Move = MinionMove.Static,
                 Speed = 190f, Damage = 30f, Range = 38f },  // tunnels and bites by Burrower.cs (Range: how close it has to pass to an enemy)
-            new MinionDef { Name = "Bee", Radius = 5f, Sides = 3, Color = new Rgba(1f, 0.77f, 0.24f), Move = MinionMove.Static },  // flown by HoneybeeStaff.cs (MoveBee)
-            new MinionDef { Name = "Vector Block", Radius = 24f, Sides = 4, Color = new Rgba(0.36f, 0.88f, 1f), Move = MinionMove.Static,
+            [MinionKind.Bee] = new MinionDef { Name = "Bee", Radius = 5f, Sides = 3, Color = new Rgba(1f, 0.77f, 0.24f), Move = MinionMove.Static },  // flown by HoneybeeStaff.cs (MoveBee)
+            [MinionKind.VectorBlock] = new MinionDef { Name = "Vector Block", Radius = 24f, Sides = 4, Color = new Rgba(0.36f, 0.88f, 1f), Move = MinionMove.Static,
                 BlockRadius = 24f, BlockCapacity = 400f },
             // the Engineer's robots (EngineerBots.cs TickBot): Range is how far they shoot, Interval their fire rate
-            new MinionDef { Name = "Tank Bot", Radius = 24f, Sides = 6, Color = new Rgba(1f, 0.71f, 0.28f), Move = MinionMove.Static, Speed = 115f,
+            [MinionKind.TankBot] = new MinionDef { Name = "Tank Bot", Radius = 24f, Sides = 6, Color = new Rgba(1f, 0.71f, 0.28f), Move = MinionMove.Static, Speed = 115f,
                 Interval = 0.75f, Damage = 6f, Range = 210f },
-            new MinionDef { Name = "Medic Bot", Radius = 19f, Sides = 6, Color = new Rgba(0.44f, 0.94f, 0.66f), Move = MinionMove.Static, Speed = 150f,
+            [MinionKind.MedicBot] = new MinionDef { Name = "Medic Bot", Radius = 19f, Sides = 6, Color = new Rgba(0.44f, 0.94f, 0.66f), Move = MinionMove.Static, Speed = 150f,
                 Interval = 0.4f, Damage = 9f, Range = 330f, HealRate = 9f },
-            new MinionDef { Name = "Assault Bot", Radius = 19f, Sides = 6, Color = new Rgba(0.36f, 0.88f, 1f), Move = MinionMove.Static, Speed = 175f,
+            [MinionKind.AssaultBot] = new MinionDef { Name = "Assault Bot", Radius = 19f, Sides = 6, Color = new Rgba(0.36f, 0.88f, 1f), Move = MinionMove.Static, Speed = 175f,
                 Interval = 0.22f, Damage = 11f, Range = 340f },
-            new MinionDef { Name = "Wyvern", Radius = 22f, Sides = 6, Color = new Rgba(0.44f, 0.88f, 0.81f), Move = MinionMove.FollowOwner, Speed = 240f },  // flown by WyvernStaff.cs (MoveWyvern)
-            new MinionDef { Name = "Orbit Shard", Radius = 7f, Sides = 4, Color = new Rgba(0.72f, 0.55f, 1f), Move = MinionMove.Static },   // flown by Arcanist.cs (MoveArcane)
-            new MinionDef { Name = "Dancing Blade", Radius = 8f, Sides = 3, Color = new Rgba(1f, 0.83f, 0.42f), Move = MinionMove.Static },  // flown by Arcanist.cs (MoveArcane)
-            new MinionDef { Name = "Bumble Bot", Radius = 22f, Sides = 6, Color = new Rgba(1f, 0.8f, 0.3f), Move = MinionMove.Static, Range = Game.BumbleRange },  // flown and fired by BumbleRemote.cs (MoveBumble)
-            new MinionDef { Name = "Octopus", Radius = 16f, Sides = 8, Color = Game.OctoColor, Move = MinionMove.Static },  // floated and its arms by OctopusFamiliar.cs; health in Minion.Hp (HasHealth, Stun.cs)
-        };
+            [MinionKind.Wyvern] = new MinionDef { Name = "Wyvern", Radius = 22f, Sides = 6, Color = new Rgba(0.44f, 0.88f, 0.81f), Move = MinionMove.FollowOwner, Speed = 240f },  // flown by WyvernStaff.cs (MoveWyvern)
+            [MinionKind.ArcShard] = new MinionDef { Name = "Orbit Shard", Radius = 7f, Sides = 4, Color = new Rgba(0.72f, 0.55f, 1f), Move = MinionMove.Static },   // flown by Arcanist.cs (MoveArcane)
+            [MinionKind.ArcBlade] = new MinionDef { Name = "Dancing Blade", Radius = 8f, Sides = 3, Color = new Rgba(1f, 0.83f, 0.42f), Move = MinionMove.Static },  // flown by Arcanist.cs (MoveArcane)
+            [MinionKind.BumbleBot] = new MinionDef { Name = "Bumble Bot", Radius = 22f, Sides = 6, Color = new Rgba(1f, 0.8f, 0.3f), Move = MinionMove.Static, Range = Game.BumbleRange },  // flown and fired by BumbleRemote.cs (MoveBumble)
+            [MinionKind.Octopus] = new MinionDef { Name = "Octopus", Radius = 16f, Sides = 8, Color = Game.OctoColor, Move = MinionMove.Static },  // floated and its arms by OctopusFamiliar.cs; health in Minion.Hp (HasHealth, Stun.cs)
+        });
 
         // Indexed by ZoneKind.
-        public static readonly ZoneDef[] Zones =
+        public static readonly ZoneDef[] Zones = IdTable.Of(new Dictionary<ZoneKind, ZoneDef>
         {
-            new ZoneDef { Name = "Flame Wall", Color = new Rgba(1f, 0.45f, 0.15f), Dps = 30f, BlockCapacity = 300f },
-            new ZoneDef { Name = "Blizzard", Color = new Rgba(0.6f, 0.85f, 1f), Dps = 20f, Slow = 0.6f },
-            new ZoneDef { Name = "Meteor", Color = new Rgba(1f, 0.35f, 0.15f), BlastDamage = 150f },
-            new ZoneDef { Name = "Sanctum", Color = new Rgba(1f, 0.92f, 0.55f), PreventDown = true, BlockCapacity = 1500f },  // heals in pulses (Sanctum.cs), not by HealRate
-            new ZoneDef { Name = "World Tree", Color = new Rgba(0.4f, 0.9f, 0.4f), HealRate = 18f, Dps = 20f, Slow = 0.4f },
-            new ZoneDef { Name = "Consecrated Ground", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 12f, Dps = 20f },
-            new ZoneDef { Name = "Hallowed Blade", Color = new Rgba(1f, 0.95f, 0.65f), BlastDamage = 200f },
-            new ZoneDef { Name = "Smoke Bomb", Color = new Rgba(0.62f, 0.62f, 0.7f) },  // slows enemy bullets inside (Ninja.cs)
-            new ZoneDef { Name = "Healing Footprint", Color = new Rgba(0.55f, 1f, 0.8f) },  // a Healing Dash footprint: heals whoever stands in it (Ninja.cs)
-            new ZoneDef { Name = "Spirit Ward", Color = new Rgba(1f, 0.85f, 0.6f) },  // takes the damage allies near it would take, then pays some back as healing (Ninja.cs)
-            new ZoneDef { Name = "Blood Pool", Color = new Rgba(0.6f, 0.05f, 0.12f), Slow = 0.4f },  // a Gore Mortar's
-            new ZoneDef { Name = "Bone Spear", Color = new Rgba(0.95f, 0.9f, 0.82f) },
-            new ZoneDef { Name = "Incense", Color = new Rgba(0.85f, 0.8f, 0.6f), HealRate = 4f },  // the Censer's puffs and clouds (Censer.cs); enemy shots fired inside it stray
-            new ZoneDef { Name = "Blast Ofuda", Color = new Rgba(1f, 0.35f, 0.3f) },  // a Blast Ofuda stuck to an enemy or lying lit on the ground (Ofuda.cs)
-            new ZoneDef { Name = "Honey Pool", Color = new Rgba(1f, 0.75f, 0.2f), HealRate = 6f, Slow = 0.4f },  // Royal Dive's landing (QueenLoot.cs)  // an Ofuda charm stuck to the ground: bursts when an enemy steps on it (Ninja.cs)  // a thrown Bone Spear stuck in the ground: walk over it for its health back (Hemomancer.cs)
-            new ZoneDef { Name = "Healing Rain", Color = new Rgba(0.4f, 0.85f, 0.5f), HealRate = 8f, Slow = 0.3f },  // the Healer Elementalist's rain (Docs/HealingRain.md)
-            new ZoneDef { Name = "Bullet Rain", Color = new Rgba(0.47f, 0.69f, 0.94f), Dps = 45f },  // the Elementalist DPS ultimate (BulletRainLook.cs)
-            new ZoneDef { Name = "Lumen Ward", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 9f },  // a cone of light that follows the caster's aim (LumenWard.cs): heals and burns enemy bullets inside
-            new ZoneDef { Name = "Hallowed Blade", Color = new Rgba(1f, 0.95f, 0.65f), HealRate = 15f, Dps = 20f },  // the planted sword (HallowedBlade.cs): ring heals allies and burns enemies, and the whole arena gets a weaker pulse
-            new ZoneDef { Name = "Ward of Light", Color = new Rgba(1f, 0.85f, 0.4f) },  // Guardian's Oath (GuardiansOath.cs): allies inside take less damage (Zone.DamageCut) and downed ones revive faster
-            new ZoneDef { Name = "Vein Trail", Color = new Rgba(0.85f, 0.12f, 0.2f), Slow = 0.3f },  // the blood a Vein Rush leaves behind (VeinRush.cs): slows enemies on it
-            new ZoneDef { Name = "Drawbridge", Color = new Rgba(0.48f, 0.33f, 0.2f) },  // the Tank Knight's key-2 ultimate (Drawbridge.cs): Pos is the hinge, Aim the way it fell
-            new ZoneDef { Name = "Bloodbath", Color = new Rgba(0.55f, 0.03f, 0.08f) },  // the Tank Hemomancer's second ultimate (Bloodbath.cs): slows, bleeds and guards by its own tick
-            new ZoneDef { Name = "Blood Wall", Color = new Rgba(0.7f, 0.07f, 0.14f) },  // one node of the tank Hemomancer's Blood Wall (BloodWall.cs): Aim is the node before it
-            new ZoneDef { Name = "Bone Phalanx", Color = new Rgba(0.93f, 0.9f, 0.8f) },  // the Tank Summoner's second ultimate (BonePhalanx.cs): Pos is the middle of the shield face, Aim the heading
-            new ZoneDef { Name = "Proximity Shell", Color = new Rgba(1f, 0.72f, 0.3f) },  // the Flak Cannon's Alt (TankAlts.cs): Radius is the burst, Aim the way it flew in
-            new ZoneDef { Name = "Tear Gas", Color = new Rgba(0.92f, 0.9f, 0.7f) },  // the Riot Repeater's Alt (TankAlts.cs): suppresses and slows by its own tick
-            new ZoneDef { Name = "Ossuary Wall", Color = new Rgba(0.93f, 0.9f, 0.8f) },  // the Bone Guard's Alt (BoneGuard.cs): Pos the middle, Aim the way it was thrown, Radius half its length
-            new ZoneDef { Name = "Smoke Shell", Color = new Rgba(0.37f, 0.83f, 0.74f) },  // the Grenade Launcher's smoke (GrenadeLauncher.cs): Aim the way it flew in, GuardFrac its flight distance; slows and jams by its own tick
-            new ZoneDef { Name = "Honey Puddle", Color = new Rgba(1f, 0.71f, 0.18f), Slow = 0.4f },
-            new ZoneDef { Name = "Flood", Color = new Rgba(0.31f, 0.82f, 0.91f) },  // the Tank Elementalist's Flood (Flood.cs): slows and soaks by its own tick  // the Honeybee Staff's spray (HoneybeeStaff.cs): slows enemies; an enemy dying in it bursts into bees
-            new ZoneDef { Name = "Cover", Color = new Rgba(0.44f, 0.69f, 0.94f) },
-            new ZoneDef { Name = "Drag Pylon", Color = new Rgba(0.64f, 0.55f, 1f) },
-            new ZoneDef { Name = "Med Pylon", Color = new Rgba(0.44f, 0.94f, 0.66f), HealRate = 10f },  // the Healer Engineer's 1st ability: heals allies inside; stays until the next one
-            new ZoneDef { Name = "Safe Room", Color = new Rgba(0.44f, 0.94f, 0.66f), HealRate = 20f },  // the Healer Engineer's ultimate: a room (or dome) that heals and cuts damage (Zone.DamageCut)  // the Engineer's 1st ability (Engineer.cs): slows enemies inside by its own tick; stays until the next one  // the Tank Soldier's Deployable Cover (DeployableCover.cs): Pos its middle, Aim the way it faces, GuardFrac its health left; blocks by CoverStops, not as a circle
-            new ZoneDef { Name = "Stasis", Color = new Rgba(0.55f, 0.85f, 1f) },  // the Stasis Gun's field (EngineerBots.cs): at your cursor while you hold Fire; holds enemies in place and hurts them by its own tick
-            new ZoneDef { Name = "Stampede", Color = new Rgba(0.5f, 0.88f, 0.67f) },  // the Tank Summoner's 4th choice (Stampede.cs): Pos the middle of the line (it moves), Aim the heading, Radius half its length
-            new ZoneDef { Name = "Decoy Dummy", Color = new Rgba(0.95f, 0.85f, 0.71f) },  // the Healer Soldier's 4th choice (DecoyDummy.cs): Pos where it stands, Aim and Marched its throw, GuardFrac its health left
-            new ZoneDef { Name = "Deployable Turret", Color = new Rgba(1f, 0.78f, 0.29f) },  // the DPS Soldier's 4th choice (DeployableTurret.cs): Pos where it stands (you sit in it), Aim the way the guns point, Radius the seat
-            new ZoneDef { Name = "Gas Grenade", Color = new Rgba(0.72f, 0.42f, 1f) },  // a Gas Grenade gadget's cloud (Gadgets.cs): lobbed in like Tear Gas, Aim the way it flew; hurts and slows by its own tick
-            new ZoneDef { Name = "Gust Gate", Color = new Rgba(0.78f, 0.96f, 1f) },  // the Healer Elementalist's 2nd choice (GustGate.cs): boosts players crossing its edge and pushes enemies out by its own tick
-            new ZoneDef { Name = "Grand Sigil", Color = new Rgba(0.72f, 0.55f, 1f) },     // the Tank Arcanist's ultimate (Arcanist.cs): binds and taunts enemies inside, freezes enemy shots at its rim, sends them back as it ends
-            new ZoneDef { Name = "Sanctum Sigil", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 25f },  // the Healer Arcanist's ultimate (Arcanist.cs): follows its caster; Aim = the six runes left (a bit mask)
-            new ZoneDef { Name = "Telekinetic Crush", Color = new Rgba(0.72f, 0.55f, 1f) },  // the DPS Arcanist's 1st ability (Arcanist.cs): lifts and pulls enemies in, then slams them together as it ends
-            new ZoneDef { Name = "Shock Grenade", Color = new Rgba(0.45f, 0.85f, 1f) },
-            new ZoneDef { Name = "Field Hospital", Color = new Rgba(0.4f, 1f, 0.6f) },  // the Healer Soldier's second ultimate (FieldHospital.cs): Pos the cell's middle (or the tent's), Radius half the cell, Aim the way to its door (NaN: a tent), Side who has used its shrine (a bit per player id)  // the Tank Soldier's Scattergun Alt (TankAlts.cs): lobbed in, shocks and stuns on landing; Aim the way it flew in, Radius its reach
-            new ZoneDef { Name = "Steam", Color = new Rgba(0.9f, 0.93f, 0.95f) },  // fire + water (Steam.cs): scalds and jams by its own tick
-            new ZoneDef { Name = "Static Residue", Color = new Rgba(0.5f, 0.91f, 1f) },  // a Living Bolt dash's live trail (LivingBolt.cs): a lane, Pos its middle, Aim its heading, Radius half its length; hurts by its own tick
-            new ZoneDef { Name = "Supply Drop", Color = new Rgba(0.4f, 1f, 0.55f) },  // the Healer Soldier's third ultimate (SupplyDrop.cs): Pos the crate, Radius the open zone; its timer gives the phase (flare, landing, open, folding)
-            new ZoneDef { Name = "Land Shark", Color = new Rgba(0.36f, 0.62f, 0.92f) },  // the DPS Summoner's 4th choice (LandShark.cs): the puddle, Pos its middle, Radius its size, Aim the leap's heading
-            new ZoneDef { Name = "Claymore", Color = new Rgba(1f, 0.48f, 0.3f) },  // the DPS Soldier's 3rd choice (Claymore.cs): Pos the mine, Aim its facing, Radius the trigger's reach, GuardFrac its state, Marched a mastered spare blast
-            new ZoneDef { Name = "Mammoth Fall", Color = new Rgba(0.65f, 0.49f, 1f) },  // the DPS Summoner's third ultimate (MammothFall.cs): Pos the mammoth, Origin where it lands, Radius the shockwave, Aim its heading, Side its prey
-            new ZoneDef { Name = "Armor Drop", Color = new Rgba(0.62f, 0.85f, 1f) },  // the Tank Soldier's fourth ultimate (ArmorDrop.cs): Pos the crate, Radius the landing's blast; its timer gives the phase (flare, landing, open, fold)
-            new ZoneDef { Name = "Trojan Horse", Color = new Rgba(0.69f, 0.48f, 0.27f) },  // the Tank Knight's second ultimate (TrojanHorse.cs): Pos the horse, Aim its heading, Radius its half width, BlockHp/SoakMax its health, Marched how far it rolled, Quiet parked
-            new ZoneDef { Name = "Ballista", Color = Rgba.Gold },  // the DPS Knight's third ultimate (Ballista.cs): Pos the frame, Aim the bow, Radius the mount reach (0 = breaking), Rider, BoltsLeft, GunCd, GuardFrac its health
-            new ZoneDef { Name = "Honey Raid", Color = new Rgba(1f, 0.7f, 0.15f) },  // the Healer Summoner's second ultimate (HoneyRaid.cs): Pos the pool, Origin where the bee came in, Radius the pool; slows, hurts and heals by its own tick
-            new ZoneDef { Name = "Caltrop", Color = new Rgba(0.62f, 0.85f, 1f) },  // the DPS Knight's Caltrop Run (CaltropRun.cs): one caltrop, Pos where it lands, Aim the way it bounced, GuardFrac the catches left
-            new ZoneDef { Name = "Tidal Tusker", Color = new Rgba(0.39f, 0.89f, 0.82f) },  // the Tank Summoner's fourth ultimate (TidalTusker.cs): Pos the elephant, Aim its facing, Radius the stream's reach, GuardFrac its health, Origin/Origin2 where its streams end, Side/Rider what they hit
-            new ZoneDef { Name = "Rocket Drop", Color = new Rgba(1f, 0.54f, 0.11f) },  // the DPS Soldier's fourth ultimate (RocketDrop.cs): Pos the pod, Radius the slam; its timer gives the phase (call-in, landing, open, fold); Side (host) 1 = mastered
-            new ZoneDef { Name = "Rocket Fire", Color = new Rgba(1f, 0.45f, 0.1f) },  // a Rocket Drop rocket's burning ground (RocketDrop.cs): Pos, Radius; TickT (host) the time to the next burn
-            new ZoneDef { Name = "Aegis Standard", Color = new Rgba(0.62f, 0.78f, 1f) },  // the Tank Knight's banner ultimate (KnightBanners.cs): Pos the pole's foot, Radius the ring, Aim 1 folding, Cap mastered
-            new ZoneDef { Name = "Pilgrim's Standard", Color = new Rgba(1f, 0.89f, 0.6f) },  // the Healer Knight's banner ultimate (KnightBanners.cs); TickT (host) the time to the next heal
-            new ZoneDef { Name = "War Standard", Color = new Rgba(1f, 0.42f, 0.35f) },  // the DPS Knight's banner ultimate (KnightBanners.cs)
-            new ZoneDef { Name = "Gong Smoke", Color = new Rgba(0.72f, 0.61f, 1f), Slow = Game.FsgSmokeSlow },  // a Five Shadow Gong shadow's smoke grenade (FiveShadowGong.cs): Pos, Radius; slows enemies in it, moving and shooting (Enemy.FsgSmokeT)
-            new ZoneDef { Name = "Hazard Foam", Color = Game.FoamCream },  // a lump of the Healer Soldier's Hazard Foam (HazardFoam.cs): Pos, Radius; solid to everyone and every shot; Soak/SoakMax its health (GuardFrac replicated), Aim its bubbles' turn
-            new ZoneDef { Name = "Blood Totem", Color = new Rgba(0.88f, 0.29f, 0.37f) },  // the Tank Hemomancer's totem (BloodTotem.cs): its veins slow by their own tick; Radius is the reach
-        };
+            [ZoneKind.FlameWall] = new ZoneDef { Name = "Flame Wall", Color = new Rgba(1f, 0.45f, 0.15f), Dps = 30f, BlockCapacity = 300f },
+            [ZoneKind.Blizzard] = new ZoneDef { Name = "Blizzard", Color = new Rgba(0.6f, 0.85f, 1f), Dps = 20f, Slow = 0.6f },
+            [ZoneKind.Meteor] = new ZoneDef { Name = "Meteor", Color = new Rgba(1f, 0.35f, 0.15f), BlastDamage = 150f },
+            [ZoneKind.Sanctum] = new ZoneDef { Name = "Sanctum", Color = new Rgba(1f, 0.92f, 0.55f), PreventDown = true, BlockCapacity = 1500f },  // heals in pulses (Sanctum.cs), not by HealRate
+            [ZoneKind.Grove] = new ZoneDef { Name = "World Tree", Color = new Rgba(0.4f, 0.9f, 0.4f), HealRate = 18f, Dps = 20f, Slow = 0.4f },
+            [ZoneKind.Consecrate] = new ZoneDef { Name = "Consecrated Ground", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 12f, Dps = 20f },
+            [ZoneKind.HolySword] = new ZoneDef { Name = "Hallowed Blade", Color = new Rgba(1f, 0.95f, 0.65f), BlastDamage = 200f },
+            [ZoneKind.Smoke] = new ZoneDef { Name = "Smoke Bomb", Color = new Rgba(0.62f, 0.62f, 0.7f) },  // slows enemy bullets inside (Ninja.cs)
+            [ZoneKind.Mist] = new ZoneDef { Name = "Healing Footprint", Color = new Rgba(0.55f, 1f, 0.8f) },  // a Healing Dash footprint: heals whoever stands in it (Ninja.cs)
+            [ZoneKind.Ward] = new ZoneDef { Name = "Spirit Ward", Color = new Rgba(1f, 0.85f, 0.6f) },  // takes the damage allies near it would take, then pays some back as healing (Ninja.cs)
+            [ZoneKind.BloodPool] = new ZoneDef { Name = "Blood Pool", Color = new Rgba(0.6f, 0.05f, 0.12f), Slow = 0.4f },  // a Gore Mortar's
+            [ZoneKind.BoneSpear] = new ZoneDef { Name = "Bone Spear", Color = new Rgba(0.95f, 0.9f, 0.82f) },
+            [ZoneKind.Incense] = new ZoneDef { Name = "Incense", Color = new Rgba(0.85f, 0.8f, 0.6f), HealRate = 4f },  // the Censer's puffs and clouds (Censer.cs); enemy shots fired inside it stray
+            [ZoneKind.BlastOfuda] = new ZoneDef { Name = "Blast Ofuda", Color = new Rgba(1f, 0.35f, 0.3f) },  // a Blast Ofuda stuck to an enemy or lying lit on the ground (Ofuda.cs)
+            [ZoneKind.HoneyPool] = new ZoneDef { Name = "Honey Pool", Color = new Rgba(1f, 0.75f, 0.2f), HealRate = 6f, Slow = 0.4f },  // Royal Dive's landing (QueenLoot.cs)  // an Ofuda charm stuck to the ground: bursts when an enemy steps on it (Ninja.cs)  // a thrown Bone Spear stuck in the ground: walk over it for its health back (Hemomancer.cs)
+            [ZoneKind.HealingRain] = new ZoneDef { Name = "Healing Rain", Color = new Rgba(0.4f, 0.85f, 0.5f), HealRate = 8f, Slow = 0.3f },  // the Healer Elementalist's rain (Docs/HealingRain.md)
+            [ZoneKind.BulletRain] = new ZoneDef { Name = "Bullet Rain", Color = new Rgba(0.47f, 0.69f, 0.94f), Dps = 45f },  // the Elementalist DPS ultimate (BulletRainLook.cs)
+            [ZoneKind.LumenWard] = new ZoneDef { Name = "Lumen Ward", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 9f },  // a cone of light that follows the caster's aim (LumenWard.cs): heals and burns enemy bullets inside
+            [ZoneKind.HallowedBlade] = new ZoneDef { Name = "Hallowed Blade", Color = new Rgba(1f, 0.95f, 0.65f), HealRate = 15f, Dps = 20f },  // the planted sword (HallowedBlade.cs): ring heals allies and burns enemies, and the whole arena gets a weaker pulse
+            [ZoneKind.OathWard] = new ZoneDef { Name = "Ward of Light", Color = new Rgba(1f, 0.85f, 0.4f) },  // Guardian's Oath (GuardiansOath.cs): allies inside take less damage (Zone.DamageCut) and downed ones revive faster
+            [ZoneKind.VeinTrail] = new ZoneDef { Name = "Vein Trail", Color = new Rgba(0.85f, 0.12f, 0.2f), Slow = 0.3f },  // the blood a Vein Rush leaves behind (VeinRush.cs): slows enemies on it
+            [ZoneKind.Drawbridge] = new ZoneDef { Name = "Drawbridge", Color = new Rgba(0.48f, 0.33f, 0.2f) },  // the Tank Knight's key-2 ultimate (Drawbridge.cs): Pos is the hinge, Aim the way it fell
+            [ZoneKind.Bloodbath] = new ZoneDef { Name = "Bloodbath", Color = new Rgba(0.55f, 0.03f, 0.08f) },  // the Tank Hemomancer's second ultimate (Bloodbath.cs): slows, bleeds and guards by its own tick
+            [ZoneKind.BloodWall] = new ZoneDef { Name = "Blood Wall", Color = new Rgba(0.7f, 0.07f, 0.14f) },  // one node of the tank Hemomancer's Blood Wall (BloodWall.cs): Aim is the node before it
+            [ZoneKind.Phalanx] = new ZoneDef { Name = "Bone Phalanx", Color = new Rgba(0.93f, 0.9f, 0.8f) },  // the Tank Summoner's second ultimate (BonePhalanx.cs): Pos is the middle of the shield face, Aim the heading
+            [ZoneKind.FlakMine] = new ZoneDef { Name = "Proximity Shell", Color = new Rgba(1f, 0.72f, 0.3f) },  // the Flak Cannon's Alt (TankAlts.cs): Radius is the burst, Aim the way it flew in
+            [ZoneKind.TearGas] = new ZoneDef { Name = "Tear Gas", Color = new Rgba(0.92f, 0.9f, 0.7f) },  // the Riot Repeater's Alt (TankAlts.cs): suppresses and slows by its own tick
+            [ZoneKind.OssuaryWall] = new ZoneDef { Name = "Ossuary Wall", Color = new Rgba(0.93f, 0.9f, 0.8f) },  // the Bone Guard's Alt (BoneGuard.cs): Pos the middle, Aim the way it was thrown, Radius half its length
+            [ZoneKind.SmokeShell] = new ZoneDef { Name = "Smoke Shell", Color = new Rgba(0.37f, 0.83f, 0.74f) },  // the Grenade Launcher's smoke (GrenadeLauncher.cs): Aim the way it flew in, GuardFrac its flight distance; slows and jams by its own tick
+            [ZoneKind.HoneyPuddle] = new ZoneDef { Name = "Honey Puddle", Color = new Rgba(1f, 0.71f, 0.18f), Slow = 0.4f },
+            [ZoneKind.Flood] = new ZoneDef { Name = "Flood", Color = new Rgba(0.31f, 0.82f, 0.91f) },  // the Tank Elementalist's Flood (Flood.cs): slows and soaks by its own tick  // the Honeybee Staff's spray (HoneybeeStaff.cs): slows enemies; an enemy dying in it bursts into bees
+            [ZoneKind.Cover] = new ZoneDef { Name = "Cover", Color = new Rgba(0.44f, 0.69f, 0.94f) },
+            [ZoneKind.DragPylon] = new ZoneDef { Name = "Drag Pylon", Color = new Rgba(0.64f, 0.55f, 1f) },
+            [ZoneKind.MedPylon] = new ZoneDef { Name = "Med Pylon", Color = new Rgba(0.44f, 0.94f, 0.66f), HealRate = 10f },  // the Healer Engineer's 1st ability: heals allies inside; stays until the next one
+            [ZoneKind.SafeRoom] = new ZoneDef { Name = "Safe Room", Color = new Rgba(0.44f, 0.94f, 0.66f), HealRate = 20f },  // the Healer Engineer's ultimate: a room (or dome) that heals and cuts damage (Zone.DamageCut)  // the Engineer's 1st ability (Engineer.cs): slows enemies inside by its own tick; stays until the next one  // the Tank Soldier's Deployable Cover (DeployableCover.cs): Pos its middle, Aim the way it faces, GuardFrac its health left; blocks by CoverStops, not as a circle
+            [ZoneKind.Stasis] = new ZoneDef { Name = "Stasis", Color = new Rgba(0.55f, 0.85f, 1f) },  // the Stasis Gun's field (EngineerBots.cs): at your cursor while you hold Fire; holds enemies in place and hurts them by its own tick
+            [ZoneKind.Stampede] = new ZoneDef { Name = "Stampede", Color = new Rgba(0.5f, 0.88f, 0.67f) },  // the Tank Summoner's 4th choice (Stampede.cs): Pos the middle of the line (it moves), Aim the heading, Radius half its length
+            [ZoneKind.DecoyDummy] = new ZoneDef { Name = "Decoy Dummy", Color = new Rgba(0.95f, 0.85f, 0.71f) },  // the Healer Soldier's 4th choice (DecoyDummy.cs): Pos where it stands, Aim and Marched its throw, GuardFrac its health left
+            [ZoneKind.DeployTurret] = new ZoneDef { Name = "Deployable Turret", Color = new Rgba(1f, 0.78f, 0.29f) },  // the DPS Soldier's 4th choice (DeployableTurret.cs): Pos where it stands (you sit in it), Aim the way the guns point, Radius the seat
+            [ZoneKind.ToxicGas] = new ZoneDef { Name = "Gas Grenade", Color = new Rgba(0.72f, 0.42f, 1f) },  // a Gas Grenade gadget's cloud (Gadgets.cs): lobbed in like Tear Gas, Aim the way it flew; hurts and slows by its own tick
+            [ZoneKind.GustGate] = new ZoneDef { Name = "Gust Gate", Color = new Rgba(0.78f, 0.96f, 1f) },  // the Healer Elementalist's 2nd choice (GustGate.cs): boosts players crossing its edge and pushes enemies out by its own tick
+            [ZoneKind.GrandSigil] = new ZoneDef { Name = "Grand Sigil", Color = new Rgba(0.72f, 0.55f, 1f) },     // the Tank Arcanist's ultimate (Arcanist.cs): binds and taunts enemies inside, freezes enemy shots at its rim, sends them back as it ends
+            [ZoneKind.SanctumSigil] = new ZoneDef { Name = "Sanctum Sigil", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 25f },  // the Healer Arcanist's ultimate (Arcanist.cs): follows its caster; Aim = the six runes left (a bit mask)
+            [ZoneKind.ArcCrush] = new ZoneDef { Name = "Telekinetic Crush", Color = new Rgba(0.72f, 0.55f, 1f) },  // the DPS Arcanist's 1st ability (Arcanist.cs): lifts and pulls enemies in, then slams them together as it ends
+            [ZoneKind.ShockGrenade] = new ZoneDef { Name = "Shock Grenade", Color = new Rgba(0.45f, 0.85f, 1f) },
+            [ZoneKind.FieldHospital] = new ZoneDef { Name = "Field Hospital", Color = new Rgba(0.4f, 1f, 0.6f) },  // the Healer Soldier's second ultimate (FieldHospital.cs): Pos the cell's middle (or the tent's), Radius half the cell, Aim the way to its door (NaN: a tent), Side who has used its shrine (a bit per player id)  // the Tank Soldier's Scattergun Alt (TankAlts.cs): lobbed in, shocks and stuns on landing; Aim the way it flew in, Radius its reach
+            [ZoneKind.Steam] = new ZoneDef { Name = "Steam", Color = new Rgba(0.9f, 0.93f, 0.95f) },  // fire + water (Steam.cs): scalds and jams by its own tick
+            [ZoneKind.StaticResidue] = new ZoneDef { Name = "Static Residue", Color = new Rgba(0.5f, 0.91f, 1f) },  // a Living Bolt dash's live trail (LivingBolt.cs): a lane, Pos its middle, Aim its heading, Radius half its length; hurts by its own tick
+            [ZoneKind.SupplyDrop] = new ZoneDef { Name = "Supply Drop", Color = new Rgba(0.4f, 1f, 0.55f) },  // the Healer Soldier's third ultimate (SupplyDrop.cs): Pos the crate, Radius the open zone; its timer gives the phase (flare, landing, open, folding)
+            [ZoneKind.LandShark] = new ZoneDef { Name = "Land Shark", Color = new Rgba(0.36f, 0.62f, 0.92f) },  // the DPS Summoner's 4th choice (LandShark.cs): the puddle, Pos its middle, Radius its size, Aim the leap's heading
+            [ZoneKind.Claymore] = new ZoneDef { Name = "Claymore", Color = new Rgba(1f, 0.48f, 0.3f) },  // the DPS Soldier's 3rd choice (Claymore.cs): Pos the mine, Aim its facing, Radius the trigger's reach, GuardFrac its state, Marched a mastered spare blast
+            [ZoneKind.Mammoth] = new ZoneDef { Name = "Mammoth Fall", Color = new Rgba(0.65f, 0.49f, 1f) },  // the DPS Summoner's third ultimate (MammothFall.cs): Pos the mammoth, Origin where it lands, Radius the shockwave, Aim its heading, Side its prey
+            [ZoneKind.ArmorDrop] = new ZoneDef { Name = "Armor Drop", Color = new Rgba(0.62f, 0.85f, 1f) },  // the Tank Soldier's fourth ultimate (ArmorDrop.cs): Pos the crate, Radius the landing's blast; its timer gives the phase (flare, landing, open, fold)
+            [ZoneKind.TrojanHorse] = new ZoneDef { Name = "Trojan Horse", Color = new Rgba(0.69f, 0.48f, 0.27f) },  // the Tank Knight's second ultimate (TrojanHorse.cs): Pos the horse, Aim its heading, Radius its half width, BlockHp/SoakMax its health, Marched how far it rolled, Quiet parked
+            [ZoneKind.Ballista] = new ZoneDef { Name = "Ballista", Color = Rgba.Gold },  // the DPS Knight's third ultimate (Ballista.cs): Pos the frame, Aim the bow, Radius the mount reach (0 = breaking), Rider, BoltsLeft, GunCd, GuardFrac its health
+            [ZoneKind.HoneyRaid] = new ZoneDef { Name = "Honey Raid", Color = new Rgba(1f, 0.7f, 0.15f) },  // the Healer Summoner's second ultimate (HoneyRaid.cs): Pos the pool, Origin where the bee came in, Radius the pool; slows, hurts and heals by its own tick
+            [ZoneKind.Caltrop] = new ZoneDef { Name = "Caltrop", Color = new Rgba(0.62f, 0.85f, 1f) },  // the DPS Knight's Caltrop Run (CaltropRun.cs): one caltrop, Pos where it lands, Aim the way it bounced, GuardFrac the catches left
+            [ZoneKind.Tusker] = new ZoneDef { Name = "Tidal Tusker", Color = new Rgba(0.39f, 0.89f, 0.82f) },  // the Tank Summoner's fourth ultimate (TidalTusker.cs): Pos the elephant, Aim its facing, Radius the stream's reach, GuardFrac its health, Origin/Origin2 where its streams end, Side/Rider what they hit
+            [ZoneKind.RocketDrop] = new ZoneDef { Name = "Rocket Drop", Color = new Rgba(1f, 0.54f, 0.11f) },  // the DPS Soldier's fourth ultimate (RocketDrop.cs): Pos the pod, Radius the slam; its timer gives the phase (call-in, landing, open, fold); Side (host) 1 = mastered
+            [ZoneKind.RocketFire] = new ZoneDef { Name = "Rocket Fire", Color = new Rgba(1f, 0.45f, 0.1f) },  // a Rocket Drop rocket's burning ground (RocketDrop.cs): Pos, Radius; TickT (host) the time to the next burn
+            [ZoneKind.AegisStandard] = new ZoneDef { Name = "Aegis Standard", Color = new Rgba(0.62f, 0.78f, 1f) },  // the Tank Knight's banner ultimate (KnightBanners.cs): Pos the pole's foot, Radius the ring, Aim 1 folding, Cap mastered
+            [ZoneKind.PilgrimsStandard] = new ZoneDef { Name = "Pilgrim's Standard", Color = new Rgba(1f, 0.89f, 0.6f) },  // the Healer Knight's banner ultimate (KnightBanners.cs); TickT (host) the time to the next heal
+            [ZoneKind.WarStandard] = new ZoneDef { Name = "War Standard", Color = new Rgba(1f, 0.42f, 0.35f) },  // the DPS Knight's banner ultimate (KnightBanners.cs)
+            [ZoneKind.GongSmoke] = new ZoneDef { Name = "Gong Smoke", Color = new Rgba(0.72f, 0.61f, 1f), Slow = Game.FsgSmokeSlow },  // a Five Shadow Gong shadow's smoke grenade (FiveShadowGong.cs): Pos, Radius; slows enemies in it, moving and shooting (Enemy.FsgSmokeT)
+            [ZoneKind.HazardFoam] = new ZoneDef { Name = "Hazard Foam", Color = Game.FoamCream },  // a lump of the Healer Soldier's Hazard Foam (HazardFoam.cs): Pos, Radius; solid to everyone and every shot; Soak/SoakMax its health (GuardFrac replicated), Aim its bubbles' turn
+            [ZoneKind.BloodTotem] = new ZoneDef { Name = "Blood Totem", Color = new Rgba(0.88f, 0.29f, 0.37f) },  // the Tank Hemomancer's totem (BloodTotem.cs): its veins slow by their own tick; Radius is the reach
+        });
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];
         public static ZoneDef Get(ZoneKind k) => Zones[(int)k];

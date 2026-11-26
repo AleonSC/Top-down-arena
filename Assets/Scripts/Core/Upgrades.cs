@@ -8,85 +8,153 @@ namespace Arena
 
     public enum AbilityId : byte
     {
-        Barrier, MendPulse, PoisonDart, Shockwave, Overdrive, Blink, Starburst, Turret,
-        Roar, Bulldoze, Adrenaline, Medkit, Airstrike, Claymore,  // Claymore (Claymore.cs) took Mark for Death's place (and number); Poison Dart (PoisonDart.cs) took Dash's place (and number); Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
-        // Elementalist
-        Aeroaegis, FrostNova, FlameWall, HealingRain, GustGate, LumenWard, Meteor, Blizzard, Tsunami,  // Tsunami (Tsunami.cs) took Arcane Surge's place (and number); Gust Gate (GustGate.cs) took Energy Ward's
-        // Summoner
-        GolemWall, Earthquake, ForcePact, SpiritSwarm, Phoenix, SoulLantern, BatSwarm, Hydra, AlphaCall,
-        // Ultimates (F): one per role and class
-        Fortress, GlacialTomb, Titan, Lifeline, Sanctum, WorldTree, ArtilleryAssault, BulletRain, Legion,
-        // Knight (1st ability), then the Knight ultimates
-        ShieldWall, LeapSlam, CavalryCall, Consecrate, GuardiansOath, LayOnHands, BladedDive, Gauntlet, CaltropRun,  // Caltrop Run (CaltropRun.cs) took Caught Steel's place (and number)
-       
-        LastStand, HallowedBlade, Drawbridge,
-        // Ninja (1st ability), then the Ninja ultimates
-        ShadowClone, SmokeBomb, CeremonialArmor, HealingDash, Substitution, SpiritWard, ShadowStep, Vanish, BladeFan,
-        ThousandClones, BlossomStorm, DeathLotus,
-        // Hemomancer (1st ability), then the Hemomancer ultimates
-        BloodShell, BloodWall, Exsanguinate, BloodGift, BloodFreeze, Martyr, ArterialSpray, BloodDebt, VeinRush,
-        VeinTithe, SanguineRain, CrimsonHarvest,
-        StunGun,  // the Warden's legendary: a 2nd, 3rd or 4th ability (Stun.cs)
-        RoyalDive,  // the Hive Queen's legendary: a 2nd, 3rd or 4th ability (QueenLoot.cs)
-        ScytheThrow,  // the Twin Reapers' legendary: a 2nd, 3rd or 4th ability (ReaperLoot.cs)
-        JuggernautSuit,  // the Tank Soldier's second ultimate (Juggernaut.cs), picked on the lobby's Ultimate row
-        Bloodbath,    // the Tank Hemomancer's second ultimate (Bloodbath.cs), picked with LobbyEntry.Ult
-        LightningRod,    // the Tank Elementalist's second ultimate (LightningRod.cs), picked on the lobby's Ultimate row
-        BonePhalanx,  // the Tank Summoner's second ultimate (BonePhalanx.cs), picked on the lobby's Ultimate row
-        Flood,        // the Tank Elementalist's 4th choice (Flood.cs), the lobby's 4th choice
-        AttackHelicopter,  // the DPS Soldier's second ultimate (AttackHelicopter.cs), picked on the lobby's Ultimate row
-        GaleWall,  // the Elementalist DPS's 4th choice (GaleWall.cs), the lobby's 4th choice
-        WaterWard,    // the Healer Elementalist's 4th choice (WaterWard.cs), the lobby's 4th choice
-        DeployableCover,  // the Tank Soldier's 4th choice (DeployableCover.cs), the lobby's 4th choice
-        DragonsDogma,  // the Tank Ninja's second ultimate (DragonsDogma.cs), picked on the lobby's Ultimate row
-        DragPylon,     // the Engineer's 1st ability (Engineer.cs)
-        Breach,        // the Engineer's ultimate (Engineer.cs)
-        VectorWall, Bastion, MedPylon, SafeRoom,  // the Tank and Healer Engineer's 1st abilities and ultimates (Engineer.cs, step 4)
-        WarhornVolley,  // the DPS Knight's second ultimate (WarhornVolley.cs), picked on the lobby's Ultimate row
-        Stampede,      // the Tank Summoner's 4th choice (Stampede.cs), the lobby's 4th choice
-        DecoyDummy,    // the Healer Soldier's 4th choice (DecoyDummy.cs), the lobby's 4th choice
-        DeployableTurret,  // the DPS Soldier's 4th choice (DeployableTurret.cs), the lobby's 4th choice
-        ThornBloom,    // the DPS Hemomancer's 4th choice (ThornBloom.cs), the lobby's 4th choice
-        KineticGrasp, GrandSigil, ArcaneTether, SanctumSigil, TelekineticCrush, RunicArray,  // the Arcanist's 1st abilities and ultimates (Arcanist.cs)
-        FieldHospital,  // the Healer Soldier's second ultimate (FieldHospital.cs), picked on the lobby's Ultimate row
-        LiteralTank,    // the Tank Soldier's third ultimate (LiteralTank.cs), key 2 of the lobby's Ultimate row
-        StoneColossus,  // the Tank Elementalist's third ultimate (StoneColossus.cs), key 2 of the lobby's Ultimate row
-        Vortex,         // the Tank Elementalist's fourth ultimate (Vortex.cs), key 3 of the lobby's Ultimate row
-        LivingBolt,     // the DPS Elementalist's second ultimate (LivingBolt.cs), key 1 of the lobby's Ultimate row
-        BambooGrove,    // the Tank Ninja's 4th choice (BambooGrove.cs), the lobby's 4th choice
-        SpiritAvatar,   // the Tank Ninja's third ultimate (SpiritAvatar.cs), key 2 of the lobby's Ultimate row
-        SupplyDrop,     // the Healer Soldier's third ultimate (SupplyDrop.cs), key 2 of the lobby's Ultimate row
-        OrbitalLaser,   // the DPS Soldier's third ultimate (OrbitalLaser.cs), key 2 of the lobby's Ultimate row
-        FlashFire,      // the DPS Elementalist's third ultimate (FlashFire.cs), key 2 of the lobby's Ultimate row
-        LandShark,      // the DPS Summoner's 4th choice (LandShark.cs), the lobby's 4th choice
-        RodentMinigun,  // the DPS Summoner's second ultimate (RodentMinigun.cs), key 1 of the lobby's Ultimate row
-        MammothFall,    // the DPS Summoner's third ultimate (MammothFall.cs), key 2 of the lobby's Ultimate row
-        SenbonSeekers,  // the DPS Ninja's 4th choice (SenbonSeekers.cs), the lobby's 4th choice
-        BloodRavager,   // the DPS Hemomancer's second ultimate (BloodRavager.cs), key 1 of the lobby's Ultimate row
-        ForbiddenPath,  // the DPS Ninja's second ultimate (ForbiddenPath.cs), key 1 of the lobby's Ultimate row
-        AstralProjection,  // the Healer Ninja's second ultimate (AstralProjection.cs), key 1 of the lobby's Ultimate row
-        IronArmadillo,  // the Tank Summoner's third ultimate (IronArmadillo.cs), key 2 of the lobby's Ultimate row
-        StaticBubble,   // the Healer Elementalist's second ultimate (StaticBubble.cs), key 1 of the lobby's Ultimate row
-        BloodBoil,      // the DPS Hemomancer's third ultimate (BloodBoil.cs), key 2 of the lobby's Ultimate row
-        ArmorDrop,      // the Tank Soldier's fourth ultimate (ArmorDrop.cs), key 3 of the lobby's Ultimate row
-        TrojanHorse,    // the Tank Knight's second ultimate (TrojanHorse.cs), key 1 of the lobby's Ultimate row
-        Ballista,       // the DPS Knight's third ultimate (Ballista.cs), key 2 of the lobby's Ultimate row
-        SanctumGlass,   // the Healer Knight's 4th choice (SanctumGlass.cs), the lobby's 4th choice
-        SiegeBell,      // the Tank Knight's 4th choice (SiegeBell.cs), the lobby's 4th choice
-        BloodGolem,     // the Tank Hemomancer's third ultimate (BloodGolem.cs), key 2 of the lobby's Ultimate row
-        HoneyRaid,      // the Healer Summoner's second ultimate (HoneyRaid.cs), key 1 of the lobby's Ultimate row
-        ChakraReserves, // the Healer Ninja's 4th choice (ChakraReserves.cs), the lobby's 4th choice
-        Heartbeat,      // the Healer Hemomancer's second ultimate (Heartbeat.cs), key 1 of the lobby's Ultimate row
-        CannonCall,     // the DPS Knight's 4th choice (CannonCall.cs), the lobby's 4th choice
-        TidalTusker,    // the Tank Summoner's fourth ultimate (TidalTusker.cs), key 3 of the lobby's Ultimate row
-        RocketDrop,     // the DPS Soldier's fourth ultimate (RocketDrop.cs), key 3 of the lobby's Ultimate row
+        // In name order, one per line: Tools/Ids/ids.py (CI checks it; --fix sorts). Numbers follow from the order.
+        Adrenaline,
         AegisStandard,  // the Tank Knight's fourth ultimate (KnightBanners.cs), key 3 of the lobby's Ultimate row
-        PilgrimsStandard,  // the Healer Knight's second ultimate (KnightBanners.cs), key 1
-        WarStandard,    // the DPS Knight's third ultimate (KnightBanners.cs), key 2
+        Aeroaegis,
+        Airstrike,
+        AlphaCall,
+        ArcaneTether,
+        ArmorDrop,  // the Tank Soldier's fourth ultimate (ArmorDrop.cs), key 3 of the lobby's Ultimate row
+        ArterialSpray,
+        ArtilleryAssault,
+        AstralProjection,  // the Healer Ninja's second ultimate (AstralProjection.cs), key 1 of the lobby's Ultimate row
+        AttackHelicopter,  // the DPS Soldier's second ultimate (AttackHelicopter.cs), picked on the lobby's Ultimate row
+        Ballista,  // the DPS Knight's third ultimate (Ballista.cs), key 2 of the lobby's Ultimate row
+        BambooGrove,  // the Tank Ninja's 4th choice (BambooGrove.cs), the lobby's 4th choice
+        Barrier,
+        Bastion,
+        BatSwarm,
+        BladedDive,
+        BladeFan,
+        Blink,
+        Blizzard,
+        Bloodbath,  // the Tank Hemomancer's second ultimate (Bloodbath.cs), picked with LobbyEntry.Ult
+        BloodBoil,  // the DPS Hemomancer's third ultimate (BloodBoil.cs), key 2 of the lobby's Ultimate row
+        BloodDebt,
+        BloodFreeze,
+        BloodGift,
+        BloodGolem,  // the Tank Hemomancer's third ultimate (BloodGolem.cs), key 2 of the lobby's Ultimate row
+        BloodRavager,  // the DPS Hemomancer's second ultimate (BloodRavager.cs), key 1 of the lobby's Ultimate row
+        BloodShell,
+        BloodTotem,  // the Tank Hemomancer's 4th choice (BloodTotem.cs), the lobby's 4th choice
+        BloodWall,
+        BlossomStorm,
+        BonePhalanx,  // the Tank Summoner's second ultimate (BonePhalanx.cs), picked on the lobby's Ultimate row
+        Breach,  // the Engineer's ultimate (Engineer.cs)
+        Bulldoze,
+        BulletRain,
+        CaltropRun,  // Caltrop Run (CaltropRun.cs) took Caught Steel's place (and number)
+        CannonCall,  // the DPS Knight's 4th choice (CannonCall.cs), the lobby's 4th choice
+        CavalryCall,
+        CeremonialArmor,
+        ChakraReserves,  // the Healer Ninja's 4th choice (ChakraReserves.cs), the lobby's 4th choice
+        Claymore,  // Claymore (Claymore.cs) took Mark for Death's place (and number); Poison Dart (PoisonDart.cs) took Dash's place (and number); Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
+        Consecrate,
+        CrimsonHarvest,
+        DeathLotus,
+        DecoyDummy,  // the Healer Soldier's 4th choice (DecoyDummy.cs), the lobby's 4th choice
+        DeployableCover,  // the Tank Soldier's 4th choice (DeployableCover.cs), the lobby's 4th choice
+        DeployableTurret,  // the DPS Soldier's 4th choice (DeployableTurret.cs), the lobby's 4th choice
+        DragonsDogma,  // the Tank Ninja's second ultimate (DragonsDogma.cs), picked on the lobby's Ultimate row
+        DragPylon,  // the Engineer's 1st ability (Engineer.cs)
+        Drawbridge,
+        Earthquake,
+        Exsanguinate,
+        FieldHospital,  // the Healer Soldier's second ultimate (FieldHospital.cs), picked on the lobby's Ultimate row
         FiveShadowGong,  // the Tank Ninja's fourth ultimate (FiveShadowGong.cs), key 3 of the lobby's Ultimate row
+        FlameWall,
+        FlashFire,  // the DPS Elementalist's third ultimate (FlashFire.cs), key 2 of the lobby's Ultimate row
+        Flood,  // the Tank Elementalist's 4th choice (Flood.cs), the lobby's 4th choice
+        ForbiddenPath,  // the DPS Ninja's second ultimate (ForbiddenPath.cs), key 1 of the lobby's Ultimate row
+        ForcePact,
+        Fortress,  // Ultimates (F): one per role and class
+        FrostNova,
+        GaleWall,  // the Elementalist DPS's 4th choice (GaleWall.cs), the lobby's 4th choice
+        Gauntlet,
+        GlacialTomb,
+        GolemWall,
+        GrandSigil,
+        GuardiansOath,
+        GustGate,
+        HallowedBlade,
+        HazardFoam,  // the Healer Soldier's fourth ultimate (HazardFoam.cs), key 3 of the lobby's Ultimate row
+        HealingDash,
+        HealingRain,
+        Heartbeat,  // the Healer Hemomancer's second ultimate (Heartbeat.cs), key 1 of the lobby's Ultimate row
+        HoneyRaid,  // the Healer Summoner's second ultimate (HoneyRaid.cs), key 1 of the lobby's Ultimate row
+        Hydra,
+        IronArmadillo,  // the Tank Summoner's third ultimate (IronArmadillo.cs), key 2 of the lobby's Ultimate row
+        JuggernautSuit,  // the Tank Soldier's second ultimate (Juggernaut.cs), picked on the lobby's Ultimate row
+        KineticGrasp,
+        LandShark,  // the DPS Summoner's 4th choice (LandShark.cs), the lobby's 4th choice
+        LastStand,
+        LayOnHands,
+        LeapSlam,
+        Legion,
+        Lifeline,
+        LightningRod,  // the Tank Elementalist's second ultimate (LightningRod.cs), picked on the lobby's Ultimate row
+        LiteralTank,  // the Tank Soldier's third ultimate (LiteralTank.cs), key 2 of the lobby's Ultimate row
+        LivingBolt,  // the DPS Elementalist's second ultimate (LivingBolt.cs), key 1 of the lobby's Ultimate row
+        LumenWard,
+        MammothFall,  // the DPS Summoner's third ultimate (MammothFall.cs), key 2 of the lobby's Ultimate row
+        Martyr,
+        Medkit,
+        MedPylon,
+        MendPulse,
+        Meteor,
         OctopusFamiliar,  // the Healer Summoner's 4th choice (OctopusFamiliar.cs), the lobby's 4th choice
-        HazardFoam,     // the Healer Soldier's fourth ultimate (HazardFoam.cs), key 3 of the lobby's Ultimate row
-        BloodTotem,     // the Tank Hemomancer's 4th choice (BloodTotem.cs), the lobby's 4th choice
+        OrbitalLaser,  // the DPS Soldier's third ultimate (OrbitalLaser.cs), key 2 of the lobby's Ultimate row
+        Overdrive,
+        Phoenix,
+        PilgrimsStandard,  // the Healer Knight's second ultimate (KnightBanners.cs), key 1
+        PoisonDart,
+        Roar,
+        RocketDrop,  // the DPS Soldier's fourth ultimate (RocketDrop.cs), key 3 of the lobby's Ultimate row
+        RodentMinigun,  // the DPS Summoner's second ultimate (RodentMinigun.cs), key 1 of the lobby's Ultimate row
+        RoyalDive,  // the Hive Queen's legendary: a 2nd, 3rd or 4th ability (QueenLoot.cs)
+        RunicArray,  // the Arcanist's 1st abilities and ultimates (Arcanist.cs)
+        SafeRoom,  // the Tank and Healer Engineer's 1st abilities and ultimates (Engineer.cs, step 4)
+        Sanctum,
+        SanctumGlass,  // the Healer Knight's 4th choice (SanctumGlass.cs), the lobby's 4th choice
+        SanctumSigil,
+        SanguineRain,
+        ScytheThrow,  // the Twin Reapers' legendary: a 2nd, 3rd or 4th ability (ReaperLoot.cs)
+        SenbonSeekers,  // the DPS Ninja's 4th choice (SenbonSeekers.cs), the lobby's 4th choice
+        ShadowClone,
+        ShadowStep,
+        ShieldWall,
+        Shockwave,
+        SiegeBell,  // the Tank Knight's 4th choice (SiegeBell.cs), the lobby's 4th choice
+        SmokeBomb,
+        SoulLantern,
+        SpiritAvatar,  // the Tank Ninja's third ultimate (SpiritAvatar.cs), key 2 of the lobby's Ultimate row
+        SpiritSwarm,
+        SpiritWard,
+        Stampede,  // the Tank Summoner's 4th choice (Stampede.cs), the lobby's 4th choice
+        Starburst,
+        StaticBubble,  // the Healer Elementalist's second ultimate (StaticBubble.cs), key 1 of the lobby's Ultimate row
+        StoneColossus,  // the Tank Elementalist's third ultimate (StoneColossus.cs), key 2 of the lobby's Ultimate row
+        StunGun,  // the Warden's legendary: a 2nd, 3rd or 4th ability (Stun.cs)
+        Substitution,
+        SupplyDrop,  // the Healer Soldier's third ultimate (SupplyDrop.cs), key 2 of the lobby's Ultimate row
+        TelekineticCrush,
+        ThornBloom,  // the DPS Hemomancer's 4th choice (ThornBloom.cs), the lobby's 4th choice
+        ThousandClones,
+        TidalTusker,  // the Tank Summoner's fourth ultimate (TidalTusker.cs), key 3 of the lobby's Ultimate row
+        Titan,
+        TrojanHorse,  // the Tank Knight's second ultimate (TrojanHorse.cs), key 1 of the lobby's Ultimate row
+        Tsunami,  // Tsunami (Tsunami.cs) took Arcane Surge's place (and number); Gust Gate (GustGate.cs) took Energy Ward's
+        Turret,
+        Vanish,
+        VectorWall,
+        VeinRush,
+        VeinTithe,
+        Vortex,  // the Tank Elementalist's fourth ultimate (Vortex.cs), key 3 of the lobby's Ultimate row
+        WarhornVolley,  // the DPS Knight's second ultimate (WarhornVolley.cs), picked on the lobby's Ultimate row
+        WarStandard,  // the DPS Knight's third ultimate (KnightBanners.cs), key 2
+        WaterWard,  // the Healer Elementalist's 4th choice (WaterWard.cs), the lobby's 4th choice
+        WorldTree,
         None = 255,
     }
 
