@@ -572,6 +572,7 @@ namespace Arena
             SyncJuggernaut(s, p);  // Juggernaut.cs
             SyncLiteralTank(s, p);  // LiteralTank.cs
             SyncStoneColossus(s, p);  // StoneColossus.cs
+            SyncBloodGolem(s, p);  // BloodGolem.cs
             SyncSpiritAvatar(s, p);  // SpiritAvatar.cs
             SyncVeinTithe(s, p);  // VeinTithe.cs
             SyncKnight(s, p);  // Knight.cs
@@ -600,6 +601,7 @@ namespace Arena
             s.Byte(ref p.OrbitN);
             SyncHarvest(s, p);  // CrimsonHarvest.cs
             SyncGaleWall(s, p);  // GaleWall.cs
+            SyncSanctumGlass(s, p);  // SanctumGlass.cs
             SyncWaterWard(s, p);  // WaterWard.cs
             s.Float(ref p.RainClock);  // Sanguine Rain (SanguineRain.cs)
             SyncKusarigama(s, p);  // Kusarigama.cs
@@ -661,6 +663,7 @@ namespace Arena
             SyncTwinPistols(s, p);  // TwinPistols.cs
             SyncStaticShock(s, p);  // StaticShock.cs
             SyncTwinTessen(s, p);  // TwinTessen.cs
+            SyncHeartFlail(s, p);  // HeartFlail.cs
             SyncHiveCenser(s, p);  // HiveCenser.cs
             s.Float(ref p.SupplyT);  // Supply Drop (SupplyDrop.cs)
             s.Float(ref p.Armor);  // an Armor Drop vest's armor (ArmorDrop.cs)

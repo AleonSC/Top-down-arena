@@ -111,6 +111,8 @@ namespace Arena
                         pendingImplosions.Add(new Implode { Owner = p.Id, Target = e.Id, Extra = extra, Dmg = dmg * (casting && !firingWeapon ? castPower : 1f) });
                     break;
                 }
+                case WeaponId.HeartFlail:
+                    break;  // never a volley: HfTrigger and TickHeartFlail swing and spin it (HeartFlail.cs)
                 case WeaponId.BloodBrawler:
                     FireBloodBrawler(p, dmg, extra);  // the Marionette string on the enemy under the cursor (BloodBrawler.cs)
                     break;
@@ -688,7 +690,7 @@ namespace Arena
             Ability = (g, p, id, target) => g.BloodAbility(p, id, target),
             Tick = (g, dt) => g.TickHemomancers(dt),
             OnShotHit = (g, b, e, hit) => g.BloodShotHit(b, e, hit),  // Hemomancer shots drain, pool and drop orbs
-            OnKill = (g, e) => { g.DebtKill(e); g.BlastKill(e); },  // a kill pays back Blood Debt (BloodDebt.cs) and sends Blood Blast stacks home (BloodBlast.cs)
+            OnKill = (g, e) => { g.DebtKill(e); g.BlastKill(e); g.GolemKill(e); },  // a kill pays back Blood Debt (BloodDebt.cs), sends Blood Blast stacks home (BloodBlast.cs) and grows a Blood Golem a coat (BloodGolem.cs)
         };
 
         /// The Hemomancer's weapons (Kit.Hemomancer; FireBloodWeapon).
@@ -715,6 +717,9 @@ namespace Arena
             new WeaponDef { Id = WeaponId.VeinTether, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 2, Damage = 4f, Reach = 350f, Grow = 0.25f, ExtraDesc = "+25% beam length and +25% damage", Name = "Vein Tether", FireInterval = 0.08f,
                 Desc = "Primary Fire: A draining beam that hurts enemies and heals you and the nearest ally.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the beam 25% wider" },
+            new WeaponDef { Id = WeaponId.HeartFlail, BotAlt = HeartFlailBotAlt, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 3, Damage = 18f, Reach = 105f, Melee = true, BotRange = 110f, ExtraDesc = "+1 blood drop a hit and 10% more reach", Name = "Heart Flail", FireInterval = 0.45f,
+                Desc = "Primary Fire: Click to swing a living heart that makes enemies bleed and sprays healing blood; hold to spin it, healing allies near you with every heartbeat. Hits quicken the beat: at 180 the next beat is a Cardiac Burst.\n\nAlternative Fire: Open Heart: throw the heart to your cursor, where it roots and heals every ally near it through its veins.",
+                Sound = Sfx.SwingHeavy, AreaDesc = "the heartbeat pulses, the Cardiac Burst and Open Heart's veins reach 25% farther" },
             // DPS
             new WeaponDef { Id = WeaponId.NeedleSwarm, BotAlt = NeedleSwarmBotAlt, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0, Damage = 4f, Reach = Game.NsReach, ExtraDesc = "+20 needles in the swarm, +5 wrapped round each enemy and 10% harder cuts, +4 in the burst", Name = "Needle Swarm", FireInterval = 0.1f, BotRange = 220f,
                 Desc = "A swarm of blood needles circles you, blocking shots. Lost needles are siphoned from your health.\n\nPrimary Fire: Hold to grow a tendril to the enemy nearest your cursor; it wraps them and cuts until they die.\n\nAlternative Fire: Throw a fan of needles from the swarm.",
@@ -772,6 +777,8 @@ namespace Arena
                 Apply = s => { s.ReserveGainMult += 0.3f; s.CoatHealMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.VeinTether }, MaxStacks = 2, Name = "Red Thread", Desc = "15% more of the Vein Tether's damage heals",
                 Apply = s => { s.VeinStealBonus += 0.15f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.HeartFlail }, MaxStacks = 2, Name = "Pacemaker", Desc = "The Heart Flail's beat quickens 50% faster with each hit, and its pulses and Cardiac Burst heal 50% more",
+                Apply = s => { s.HfBpmMult += 0.5f; s.HfPulseMult += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.NeedleSwarm }, MaxStacks = 2, Name = "Hemophilia", Desc = "The Needle Swarm bursts an enemy one bleed stack sooner, 30% wider",
                 Apply = s => { s.HemoHitCut += 1; s.HemoRadiusMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Implosion }, MaxStacks = 2, Name = "Event Horizon", Desc = "Implosion pulls enemies in from 30% farther, and the crush hits 40% harder",
@@ -983,6 +990,9 @@ namespace Arena
                     CastTithe(p, cap);  // VeinTithe.cs
                     return true;
                 }
+                case AbilityId.BloodGolem:
+                    CastGolem(p, cap);  // BloodGolem.cs
+                    return true;
                 case AbilityId.Bloodbath:
                     CastBloodbath(p, cap);  // Bloodbath.cs
                     return true;

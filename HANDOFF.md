@@ -345,13 +345,14 @@ feature; `git log --oneline` is usually enough.
 The October 2026 audit and its work plan are done; the full notes (and the November second pass) are in
 [`Docs/History.md`](Docs/History.md) under "Audit findings". Still open:
 
-- **Late-Nov 2026 audit (protocol 526), still open:** per-weapon `switch` tables (partly done: `WeaponDef.BotAlt` replaced
-  `BotWeaponAlt`'s switches and `WeaponLooks.cs` the model/melee-look ones; left: `Weapons`, `ShotLooks`, `DpsGunLooks`,
-  `TankGunLooks`, `DrawMeleeModel`), `GameNet.SyncPlayer` (539 lines, ~264 `Player` fields; a per-weapon `Sync` hook), 7 copies of a cone test
-  (`MathX.InCone`), ~47 hand-written enemy bullet rings (`EnemyRing`), gold colour literals (61 copies of `CrtStyle.Gold`),
-  HUD strings rebuilt every OnGUI pass (`Hud.cs`), a new `byte[]` per received message (`Net.cs`), pooled `Effect`s.
-  Done in that pass: 11 network/sim bugs, solo snapshot cost, `EnemyIndex`, render buckets (`FxOf`/`EnemiesOf`),
-  `BossFight`, `WeaponAlt`, `AbilityDef.Icon`, ~900 lines of dead code.
+- **Late-Nov 2026 audit, still open:** the weapon `switch` tables left in `Weapons`, `DpsGunLooks`/`TankGunLooks`
+  (Twin Rifle cases share state) and `DrawMeleeModel` (cases share locals); `TtInCone` and `AmmoInCone` (reach rounds
+  differently from `MathX.InCone`); the irregular enemy rings (gaps, nested, half-step) not on `EnemyRing`; HUD strings
+  rebuilt every OnGUI pass (`Hud.cs`), a new `byte[]` per received message (`Net.cs`), pooled `Effect`s; 9 abilities
+  with no icon (suite `classes` lists them). Done: 11 network/sim bugs, solo snapshot cost, `EnemyIndex`, render
+  buckets (`FxOf`/`EnemiesOf`), `BossFight`, `WeaponAlt`, `AbilityDef.Icon`, ~900 lines of dead code, `WeaponDef.BotAlt`
+  and `WeaponLooks.cs`, per-weapon `Sync*` methods (SyncPlayer 550 -> 219 lines), `MathX.InCone`/`AngleWithin`,
+  `EnemyRing`, one gold (`Rgba.Gold` = `CrtStyle.Gold`; the 1/.82/.3 and 1/.82/.4 near-golds folded in).
 - **Reference tables are generated** into [`Docs/Reference.md`](Docs/Reference.md) (`run.sh 1 1 refdocwrite`; suite `refdoc` fails when stale). Still open: the README's hand-written weapon/enemy prose could link to or drop numbers that table now holds.
 - **Collision is all-pairs** (player bullets x enemies, enemy bullets x players). Cheap with the bullet budget; a
   uniform grid only matters if counts grow a lot (endless mode, more players).

@@ -410,7 +410,7 @@ namespace Arena
             alive.Clear();
             tanks.Clear();
             foreach (var p in Players.Values)
-                if (!p.Downed && !Jailed(p) && !Riding(p) && (p.TauntT > 0f || JuggOn(p) || p.RodT > 0f || ColOn(p) || SpOn(p)))
+                if (!p.Downed && !Jailed(p) && !Riding(p) && (p.TauntT > 0f || JuggOn(p) || p.RodT > 0f || ColOn(p) || SpOn(p) || GolOn(p)))
                     return p.Id;  // Roar (or the Juggernaut Suit, or a Lightning Rod's charge): everyone goes for the tank
             Player hunted;
             if (Has(RunMod.Hunted) && Players.TryGetValue(HuntedId, out hunted) && !hunted.Downed && hunted.VanishT <= 0f && !Jailed(hunted))

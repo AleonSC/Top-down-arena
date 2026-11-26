@@ -70,6 +70,9 @@ namespace Arena
         ArmorDrop,      // the Tank Soldier's fourth ultimate (ArmorDrop.cs), key 3 of the lobby's Ultimate row
         TrojanHorse,    // the Tank Knight's second ultimate (TrojanHorse.cs), key 1 of the lobby's Ultimate row
         Ballista,       // the DPS Knight's third ultimate (Ballista.cs), key 2 of the lobby's Ultimate row
+        SanctumGlass,   // the Healer Knight's 4th choice (SanctumGlass.cs), the lobby's 4th choice
+        SiegeBell,      // the Tank Knight's 4th choice (SiegeBell.cs), the lobby's 4th choice
+        BloodGolem,     // the Tank Hemomancer's third ultimate (BloodGolem.cs), key 2 of the lobby's Ultimate row
         None = 255,
     }
 
@@ -136,6 +139,7 @@ namespace Arena
         public float RushReach = 1f, RushRefund;               // Vein Rush: Crimson Tide
         public float TbDmgMult = 1f; public int TbExtraJumps;    // Thorn Bloom: Thornwork
         public float BgRadiusMult = 1f, BgBleedMult = 1f;        // Bamboo Grove: Rhizome
+        public float BellRadiusMult = 1f, BellStunBonus;         // Siege Bell: Great Bell
         public float SbDmgMult = 1f, SbStackBonus;               // Senbon Seekers: Hidden Needles
         public float FfRadiusMult = 1f, FfBurnMult = 1f;         // Flash Fire: Backdraft
         public bool ChalkWard;             // Warding Ink: Spirit Chalk blocks enemy bullets (at the cost of wearing the ink away)
@@ -149,6 +153,7 @@ namespace Arena
         public float MeteorDmgMult = 1f, MeteorRadiusMult = 1f;            // Meteor: Cataclysm
         public float BlizzardRadiusMult = 1f, BlizzardBonusTime;           // Blizzard: Whiteout
         public float GaleChargeMult = 1f;                                    // Gale Wall: Momentum Bank
+        public float GlassCapMult = 1f;                                      // Sanctum Glass: Rose Window
         public float TsunamiWidthMult = 1f, WetBonusTime;                  // Tsunami: Riptide
         public float FloodRadiusMult = 1f, FloodBonusTime;                 // Flood: High Tide
         public float CoverHpMult = 1f; public int CoverExtra;              // Deployable Cover: Reinforced Plating
@@ -249,6 +254,7 @@ namespace Arena
         public float PylonSizeMult = 1f, PylonSlowBonus;                   // Drag Pylon: Wide Field
         public float NunDiscMult = 1f, NunSwatBonus;                       // Nunchaku: Iron Links
         public float TtGustReachMult = 1f, TtHealMult = 1f;                // Twin Tessen: Divine Wind (TwinTessen.cs)
+        public float HfBpmMult = 1f, HfPulseMult = 1f;                     // Heart Flail: Pacemaker (HeartFlail.cs)
         public float NodReachMult = 1f, NodConeBonus;                      // Nodachi: Tamahagane
         public float WcReachMult = 1f, WcShoveMult = 1f;                 // Wind Clash: Gale Force
         public float SwatReachMult = 1f, SwatCdMult = 1f;                  // Out of Ammo: Gun Kata (Docs/UpgradePools.md step 13)
@@ -359,7 +365,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Elementalist, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// Hemomancer.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.HorseUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.HorseUltimates, Game.GolemUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 

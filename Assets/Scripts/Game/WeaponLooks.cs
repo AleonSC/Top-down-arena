@@ -99,6 +99,7 @@ namespace Arena
                                                      Hold = 3 });
             L(WeaponId.TwinTessen, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldTessen(p, t, hold),  // a war fan in each hand (TwinTessenLook.cs)
                                                     Hold = 2 });
+            L(WeaponId.HeartFlail, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldHeartFlail(p, t, hold) });  // an iron grip, the chain's first ring (HeartFlailLook.cs)
             L(WeaponId.HiveCenser, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldHiveCenser(p, t, hold),  // a small censer with insects round it (HiveCenserLook.cs)
                                                     Hold = 3 });
             L(WeaponId.IceShards, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldIceShards(p, t, hold),

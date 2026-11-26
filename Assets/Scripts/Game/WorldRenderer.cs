@@ -190,6 +190,9 @@ namespace Arena
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.Kusarigama)
                     DrawKusarigama(p);  // KusarigamaLook.cs
+            foreach (var p in game.Players.Values)
+                if (p.Weapon.Id == WeaponId.HeartFlail)
+                    DrawHeartFlail(p, t);  // the heart, its chain and beat (HeartFlailLook.cs)
             DrawFumaWorld(t);  // the Fuma Shuriken's Orbit stance (FumaLook.cs)
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.MendersBow && p.DrawT > 0f && !p.Downed)
@@ -265,6 +268,7 @@ namespace Arena
             DrawTombFloor(t);        // the Glacial Tomb's frost lattice and mandala (GlacialTombLook.cs)
             DrawBloodFreezeFloor(t); // Blood Freeze's frost, cracks, rune circle and wave (BloodFreezeLook.cs)
             DrawBambooGroveFloor(t); // Bamboo Grove's wash, cracks, front and shadows (BambooGroveLook.cs)
+            DrawSiegeBellFloor(t);  // Siege Bell's reach ring, tolls and shockwave (SiegeBellLook.cs)
             DrawFlashFireFloor(t);   // Flash Fire's kindle, rolling ring, scorched band and embers (FlashFireLook.cs)
             DrawShockwaveFloor();    // the Shockwave ability's scorch (ShockwaveLook.cs)
             DrawTitanFloor();        // the Titan golem's slam cracks and rubble (TitanLook.cs)
@@ -344,6 +348,7 @@ namespace Arena
             DrawDormantMarks(t);  // sleeping groups in unseen rooms: drifting z's (RoomFogLook.cs)
             DrawPennedMarks(t);  // enemies a chalk loop holds (ChalkLook.cs)
             DrawBambooGroveFront(t);  // Bamboo Grove's near stalks, in front of the enemies (BambooGroveLook.cs)
+            DrawSiegeBellOver(t);  // Siege Bell's bell and its stun marks (SiegeBellLook.cs)
             DrawFlashFireFront(t);  // Flash Fire's near flames, in front of the enemies (FlashFireLook.cs)
             DrawSprayOver(t);  // Arterial Spray's soaked enemies and drops in flight (ArterialSprayLook.cs)
             DrawBloodbathOver(t);  // enemies wading in a Bloodbath: tinted, bleeding drops (BloodbathLook.cs)
@@ -667,6 +672,8 @@ namespace Arena
                 DrawRain(p, t);
             if (p.GaleT > 0f)  // Gale Wall's lens and the shots hung in it (GaleWallLook.cs)
                 DrawGaleWall(p, t);
+            if (p.GlassT > 0f)  // Sanctum Glass's pane (SanctumGlassLook.cs)
+                DrawSanctumGlass(p, t);
             if (p.HarvestHold > 0f)  // Crimson Harvest's ball and tendrils (CrimsonHarvestLook.cs)
                 DrawHarvest(p, t);
             if (p.OrbitT > 0f)  // Blade Fan's circling kunai (NinjaLooks.cs)

@@ -47,6 +47,7 @@ namespace Arena
             { WeaponId.TreantRod, 34f },
             { WeaponId.SpiritChalk, 26f },
             { WeaponId.HiveCenser, 83f },
+            { WeaponId.HeartFlail, 40f },
             { WeaponId.WolfWhistle, 150f },
             { WeaponId.WispLantern, 84f },
             { WeaponId.ImpCaller, 77f },

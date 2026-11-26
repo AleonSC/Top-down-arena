@@ -685,6 +685,16 @@ static partial class Program
                 case WeaponId.TreantRod: ok = Math.Abs(b[4] - 1.6f) < 0.01f; break;       // a bigger treant
                 case WeaponId.Quarterstaff: ok = me.StaffStacks == Game.StaffBaseStacks + 2; break;  // each extra projectile stores one more Jab stack (the swipes fill it)
                 case WeaponId.GolemStaff: ok = a[2] == 1 && b[2] == 3; break;
+                case WeaponId.HeartFlail:  // the heart swings and spins 10% farther each, and each swing hit squeezes one more blood drop (HeartFlail.cs)
+                {
+                    me.Stats.ExtraShots = 0;
+                    float r0 = g.HfSpinROf(me);
+                    me.Stats.ExtraShots = 2;
+                    float r2 = g.HfSpinROf(me);
+                    me.Stats.ExtraShots = 0;
+                    ok = r2 > r0 * 1.15f && a[0] > 0f;
+                    break;
+                }
                 case WeaponId.BoneGuard: ok = b[2] == a[2] + 2; break;                     // guards block bullets around you
                 case WeaponId.WolfWhistle: case WeaponId.WispLantern: ok = b[2] == a[2] + 2 && ratio > 1.1f; break;
                 case WeaponId.RadiantOrb: ok = a[2] == 0 && b[2] == 2 && ratio > 1.1f; break;  // the orbs mostly guard and heal you
@@ -912,6 +922,13 @@ static partial class Program
                 {
                     // No bullets: a spear flies until a wall stops it, or EsRange (EmbolusSpears test); the aim line shows that.
                     if (Math.Abs(range - Game.EsRange) < 0.5f) pass++; else off.Add(w.Name + " (" + range.ToString("0") + ")");
+                    continue;
+                }
+                if (w.Id == WeaponId.HeartFlail)
+                {
+                    // No shots or swings: the heart spins round you at HfSpinR (10% more an extra projectile; HeartFlail test); the aim line shows its outer edge.
+                    float want = Game.HfSpinR * (1f + Game.HfExtraReach * extra) + Game.HfHeartR;
+                    if (Math.Abs(range - want) < 0.5f) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (" + want.ToString("0") + " vs " + range.ToString("0") + ")");
                     continue;
                 }
                 if (w.Id == WeaponId.FrostLance)

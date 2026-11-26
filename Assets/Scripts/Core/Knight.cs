@@ -721,10 +721,14 @@ namespace Arena
                 Apply = s => { s.SlamRadiusMult += 0.4f; s.SlamStunBonus += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.CavalryCall, MaxStacks = 2, Name = "Iron Will", Desc = "Cavalry Call blocks 10% more damage while the lancers ride and every lance hits for 10 more",
                 Apply = s => { s.UnbreakBonus += 0.1f; s.CavalryDmgBonus += 10f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SiegeBell, MaxStacks = 2, Name = "Great Bell", Desc = "Siege Bell's shockwave reaches 25% farther and stuns for 0.5 s longer",
+                Apply = s => { s.BellRadiusMult += 0.25f; s.BellStunBonus += 0.5f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Consecrate, MaxStacks = 2, Name = "Sacred Ground", Desc = "Consecrate flies 40% farther and its Swiftness lasts 2 s longer",
                 Apply = s => { s.HolyRangeMult += 0.4f; s.HolySwiftBonus += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GuardiansOath, MaxStacks = 2, Name = "Bulwark", Desc = "Guardian's Oath ward cuts 15% more damage", Apply = s => s.OathCut += 0.15f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LayOnHands, MaxStacks = 2, Name = "Miracle", Desc = "Lay on Hands heals 60% more and reaches 30% further", Apply = s => s.LayMult += 0.6f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SanctumGlass, MaxStacks = 2, Name = "Rose Window", Desc = "Sanctum Glass can heal 40% more before it shatters",
+                Apply = s => s.GlassCapMult += 0.4f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BladedDive, MaxStacks = 2, Name = "Coup de Grace", Desc = "Bladed Dive's cuts deal 25% more damage and it rushes 40 px further",
                 Apply = s => { s.BladedDamage += 0.25f; s.BladedReach += 40f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Gauntlet, MaxStacks = 2, Name = "Iron Grip", Desc = "The Gauntlet flies 40% further and its charge hits 50% harder",
@@ -787,6 +791,13 @@ namespace Arena
             },
             new AbilityDef
             {
+                Id = AbilityId.SiegeBell, Kit = Kit.Knight, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (SiegeBell.cs)
+                Name = "Siege Bell", Icon = "siegebell", Cooldown = BellCooldown, Desc = "Ring a ghostly bell three times; the last toll's shockwave stuns enemies around it.",
+                Capstone = "The stun lasts 3.5 s and the shockwave erases enemy bullets.",
+                Bot = b => b.NearEnemies >= 4 && b.TargetD < 220f,
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.Consecrate, Kit = Kit.Knight, Role = Role.Healer, Choice = 0,
                 Name = "Consecrate", Icon = "sacredground", Cooldown = 14f, Desc = "Throw a Holy Cross that heals and speeds allies and hurts enemies.",
                 Capstone = "Two more crosses fly out at 22 degrees either side (each target is hit once).",
@@ -805,6 +816,13 @@ namespace Arena
                 Name = "Lay on Hands", Icon = "miracle", Cooldown = 18f, Desc = "Heal the most hurt ally, or revive a downed one.",
                 Capstone = "Also heals everyone else near them for half as much.",
                 Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.SanctumGlass, Kit = Kit.Knight, Role = Role.Healer, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (SanctumGlass.cs)
+                Name = "Sanctum Glass", Icon = "sanctumglass", Cooldown = 16f, Desc = "Raise a pane of stained glass ahead that turns enemy shots passing through into healing.",
+                Capstone = "The pane is 40% wider and its motes heal 50% more.",
+                Bot = b => b.Danger || b.AllyHurt,
             },
             new AbilityDef
             {
@@ -886,6 +904,9 @@ namespace Arena
                 case AbilityId.CavalryCall:
                     CastCavalryCall(p, target, cap, pw);  // CavalryCall.cs
                     return true;
+                case AbilityId.SiegeBell:  // Siege Bell (SiegeBell.cs)
+                    CastSiegeBell(p, pw, cap);
+                    return true;
                 case AbilityId.Consecrate:
                 {
                     CastHolyCross(p, target, cap, pw);  // HolyCross.cs
@@ -921,6 +942,9 @@ namespace Arena
                     }
                     return true;
                 }
+                case AbilityId.SanctumGlass:
+                    CastSanctumGlass(p, cap);  // SanctumGlass.cs
+                    return true;
                 case AbilityId.BladedDive:
                     CastBladedDive(p, target, pw, cap);  // BladedDive.cs
                     return true;
@@ -983,6 +1007,7 @@ namespace Arena
             TickSteel(dt);      // CaughtSteel.cs
             TickGauntlets(dt);  // Gauntlet.cs
             TickBladed(dt);      // BladedDive.cs
+            TickBells(dt);       // SiegeBell.cs: the tolls and the shockwave
             foreach (var p in Players.Values)
             {
                 p.UnbreakT = Math.Max(0f, p.UnbreakT - dt);

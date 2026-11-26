@@ -934,6 +934,8 @@ namespace Arena
                 return;  // the Wyvern Staff's Wyrm Slam (WyvernStaff.cs)
             if (LocalBumbleBurst(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // the Bumble Remote's Swarm Burst (BumbleRemote.cs)
+            if (LocalGolemClot(me, aimAt, pressed && !me.Downed, dt))
+                return;  // Blood Golem: Alt is Hurl Clot, the weapon's own is put away (BloodGolem.cs)
             if (LocalTide(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // the Blood Blast's Crimson Tide (BloodBlast.cs)
             if (LocalZero(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
@@ -948,6 +950,8 @@ namespace Arena
                 return;  // the Orbit Shards' Shard Guard, held, and the Dancing Blades' recall (Arcanist.cs)
             if (LocalTessenGust(me, pressed, released, aimAt))
                 return;  // the Twin Tessen's Kamikaze Gust, held (TwinTessen.cs)
+            if (LocalHeartThrow(me, pressed, aimAt))
+                return;  // the Heart Flail's Open Heart (HeartFlail.cs)
             if (LocalHoneySpray(me, pressed, released, aimAt))
                 return;  // the Honeybee Staff's honey spray, held (HoneybeeStaff.cs)
             if (LocalNunGuard(me, aimAt, pressed, dt))
@@ -1225,6 +1229,11 @@ namespace Arena
                 HostRavagerLash(p);  // a Blood Ravager lash (BloodRavager.cs)
                 return;
             }
+            if (kind == WeaponAlt.Clot)
+            {
+                HostClot(p, target);  // Blood Golem's Hurl Clot (BloodGolem.cs)
+                return;
+            }
             if (kind == WeaponAlt.Bolt)
             {
                 HostBoltDash(p, target);  // a Living Bolt dash (LivingBolt.cs)
@@ -1235,6 +1244,8 @@ namespace Arena
                 return;  // Shard Guard and the blades' recall (Arcanist.cs)
             if (HostTessenDash(p, kind))
                 return;  // the Twin Tessen's gust, held then let go (TwinTessen.cs)
+            if (HostHeartDash(p, kind, target))
+                return;  // the Heart Flail's Open Heart (HeartFlail.cs)
             if (HostHoneyDash(p, kind))
                 return;  // the Honeybee Staff's spray (HoneybeeStaff.cs)
             if (kind == WeaponAlt.WhirlOn || kind == WeaponAlt.WhirlOff)
