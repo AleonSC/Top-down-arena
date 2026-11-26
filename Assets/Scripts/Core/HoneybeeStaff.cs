@@ -256,5 +256,18 @@ namespace Arena
             s.Float(ref p.HoneyFill);  // the Honeybee Staff
             s.Bool(ref p.HoneyOn);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): spray a group a little way off while the meter lasts (held)
+        static bool HoneybeeStaffBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            var e = v.ShootAt;
+            if (g.botAltWas)
+                return me.HoneyFill > 10f && e != null && v.ShootD < 260f;
+            if (e == null || v.ShootD < 100f || v.ShootD > 250f || me.HoneyFill < 40f || !g.Tap(g.EnemiesNear(e.Pos, 120f) >= 2, 1f))
+                return false;
+            aimAt = e.Pos;
+            return true;
+        }
     }
 }

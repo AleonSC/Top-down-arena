@@ -189,5 +189,12 @@ namespace Arena
             s.Float(ref p.RevT);
             s.Float(ref p.RevFanReload);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): the Fan stance with something in your face, the Gunslinger otherwise (in close, out past 220 px)
+        static bool RevolverBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var e = v.ShootAt;
+            return !late && g.Tap(v.Me.RevStance == 1 ? e == null || v.ShootD > 220f : e != null && v.ShootD < 130f, 0.8f);
+        }
     }
 }

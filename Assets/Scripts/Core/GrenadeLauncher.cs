@@ -242,5 +242,12 @@ namespace Arena
             s.Float(ref p.GlSwap);
             s.Float(ref p.GlCharge);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): a smoke canister when a pack closes in
+        static bool GrenadeLauncherBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            return !late && me.GlSmokeUsed < GlSmokeMax && g.Tap(g.EnemiesNear(me.Pos, 220f) >= 3, 2f);
+        }
     }
 }

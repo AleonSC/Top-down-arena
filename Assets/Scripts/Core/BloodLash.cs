@@ -330,5 +330,14 @@ namespace Arena
             s.Bool(ref p.LeashOn);  // Martyr's Leash
             s.Float(ref p.LeashT);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Martyr's Leash on a chained pack while healthy (it bleeds you; held)
+        static bool BloodLashBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            if (g.botAltWas)
+                return g.botAltHoldT < 2f && me.Hp > me.MaxHp * 0.4f;
+            return !me.LeashOn && g.Tap(me.Chains.Count >= 2 && me.Hp > me.MaxHp * 0.5f && (g.BotDanger > 1f || v.Downed != null || v.Lowest != null && v.Lowest.Hp < v.Lowest.MaxHp * 0.5f), 6f);
+        }
     }
 }

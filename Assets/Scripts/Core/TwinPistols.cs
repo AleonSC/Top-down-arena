@@ -133,5 +133,12 @@ namespace Arena
             s.Float(ref p.TpLaserT);
             s.Float(ref p.TpCd);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Laser Sights on the boss or a crowd in reach
+        static bool TwinPistolsBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var e = v.ShootAt;
+            return !late && e != null && v.InReach && v.Me.TpCd <= 0f && g.Tap(e.Def.IsBoss || g.EnemiesNear(e.Pos, 140f) >= 3, 1f);
+        }
     }
 }

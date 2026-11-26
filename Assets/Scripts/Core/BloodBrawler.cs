@@ -290,5 +290,14 @@ namespace Arena
                     p.SympBound.Add(boundId);
             }
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Sympathy when the mark has company
+        static bool BloodBrawlerBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            if (late || me.BsTarget == 0 || me.SympT > 0f || !g.Enemies.TryGetValue(me.BsTarget, out var mark))
+                return false;
+            return g.Tap(g.EnemiesNear(mark.Pos, 170f) >= 2, 8.5f);
+        }
     }
 }

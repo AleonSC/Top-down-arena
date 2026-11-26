@@ -337,5 +337,12 @@ namespace Arena
             }
             return true;
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Hook & Haul an enemy just out of reach, then Fire is the Breaching Thrust
+        static bool LanceBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var e = v.ShootAt;
+            return e != null && !e.Def.IsBoss && v.ShootD > 110f && v.ShootD < HookRange - 10f && g.Tap(true, HookCooldown + 0.2f);
+        }
     }
 }

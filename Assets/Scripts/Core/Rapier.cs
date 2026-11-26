@@ -233,5 +233,21 @@ namespace Arena
             s.Bool(ref p.RapierGuard);  // the Rapier's Riposte stance and its charge
             s.Byte(ref p.RapierCharge);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Riposte: raise it into shots or toward an enemy to lunge at, click once to lunge
+        static bool RapierBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var e = v.ShootAt;
+            if (!v.Me.RapierGuard)
+            {
+                g.botRapierT = 0f;
+                return e != null && g.Tap(v.Incoming >= 2 || v.ShootD > 200f && v.ShootD < 600f, 2f);
+            }
+            g.botRapierT += dt;
+            firing = e != null && g.botRapierT >= 0.6f && g.botRapierT < 0.6f + dt * 1.5f;  // one click (Fire was up till now): the lunge
+            if (firing)
+                aimAt = e.Pos;
+            return g.botRapierT > 2.5f && g.Tap(true, 2f);  // no lunge came of it: drop the stance
+        }
     }
 }

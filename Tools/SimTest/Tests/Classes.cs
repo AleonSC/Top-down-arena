@@ -50,7 +50,8 @@ static partial class Program
                     need(w.Melee ? w.Reach > 0f : w.Speed * w.Life > 0f || w.Reach > 0f || fireVolley.Contains("case WeaponId." + w.Id + ":"),
                         wn + ": a range (Reach for a swing or beam, Speed and Life for a shot, or a WeaponRange case)");
                     need(k.Fire != null || fireVolley.Contains("case WeaponId." + w.Id + ":"), wn + ": something fires it (KitDef.Fire, or its own case in FireVolley)");
-                    need(core.Contains("case WeaponId." + w.Id + ":"), wn + ": its own case in its class's fire method (a case WeaponId." + w.Id + ")");
+                    need(core.Contains("case WeaponId." + w.Id + ":") || core.Contains("Weapon.Id == WeaponId." + w.Id + ")"),  // (the Needle Swarm fires from the tick)
+                        wn + ": its own case in its class's fire method (a case WeaponId." + w.Id + ")");
                 }
 
             // Abilities: three 1st abilities per role and an ultimate, all its own, each with a cast.

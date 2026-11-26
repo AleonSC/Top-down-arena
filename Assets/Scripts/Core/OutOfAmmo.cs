@@ -291,5 +291,12 @@ namespace Arena
             s.Float(ref p.SwatAngR);
             s.Float(ref p.AmmoSpin);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): the spin when shots or bodies are right on you
+        static bool OutOfAmmoBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            return !late && me.AmmoSpin <= 0f && g.Tap(v.Incoming >= 3 || g.EnemiesNear(me.Pos, 90f) >= 2, 7.4f);
+        }
     }
 }

@@ -527,5 +527,18 @@ namespace Arena
             s.Byte(ref p.BbBashes);
             s.Vec(ref p.BbBashTo);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Brace into a barrage; bash with it once Ram has built (held)
+        static bool BulwarkBarrierBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            if (g.botAltWas)
+            {
+                if (me.BbRam >= 60f && v.ShootAt != null && v.ShootD < 260f)
+                    firing = true;  // the Shield Bash
+                return g.botAltHoldT < 4f && (v.Incoming >= 1 || g.BotDanger > 0.8f);
+            }
+            return g.Tap(v.Incoming >= 3 || g.EnemiesAhead(me, 70f, 1.2f) >= 2 || v.Near >= 3, 0.8f);  // (or a crowd close round it)
+        }
     }
 }

@@ -270,5 +270,13 @@ namespace Arena
                 s.Byte(ref p.NsBound[k]);
             }
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): a fan of needles at a pack ahead, while the swarm is thick enough to spare them
+        static bool NeedleSwarmBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            var e = v.ShootAt;
+            return !late && e != null && v.ShootD < 320f && me.NsBurstCd <= 0f && me.NsCount > g.NsMax(me) * 0.6f && g.Tap(g.EnemiesNear(e.Pos, 120f) >= 2 || e.Def.IsBoss, 1f);
+        }
     }
 }

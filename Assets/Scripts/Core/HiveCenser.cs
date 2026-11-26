@@ -474,5 +474,13 @@ namespace Arena
             s.Bool(ref p.HiveOn);
             s.Vec(ref p.HivePour);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Hive Call: every swarm onto a crowd or the boss it is pouring on
+        static bool HiveCenserBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            var e = v.ShootAt;
+            return !late && e != null && v.ShootD < HiveReach && g.Tap(g.HiveLocalCd <= 0f && g.Swarms.Exists(sw => sw.Owner == me.Id) && (e.Def.IsBoss || g.EnemiesNear(e.Pos, 120f) >= 3), 1f);
+        }
     }
 }

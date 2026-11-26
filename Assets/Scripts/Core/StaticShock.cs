@@ -340,5 +340,12 @@ namespace Arena
             s.Bool(ref p.StaticOn);  // Static Shock
             s.Float(ref p.OverchargeT);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): the Arc Cannon into a crowd or the boss
+        static bool StaticShockBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var e = v.ShootAt;
+            return !late && e != null && v.ShootD < CannonReach && g.Tap(g.ArcLocalCd <= 0f && (e.Def.IsBoss || g.EnemiesNear(e.Pos, CannonBurstR) >= 3), 1f);
+        }
     }
 }

@@ -82,5 +82,12 @@ namespace Arena
                     p.Run.ShotsHit++;
             }
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): shove off something hugging you
+        static bool BoStaffBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            return !late && g.Tap(g.EnemiesAhead(me, 80f, 0.9f) > 0 && (me.Hp < me.MaxHp * 0.6f || v.Near >= 2), 1.2f);
+        }
     }
 }

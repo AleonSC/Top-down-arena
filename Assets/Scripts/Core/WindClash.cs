@@ -277,5 +277,12 @@ namespace Arena
             s.Float(ref p.WcTempestT);  // Wind Clash's Tempest
             s.Float(ref p.WcTempestCd);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): the Tempest into a barrage or a crowd
+        static bool WindClashBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            return g.Tap(g.TempestLocalCd <= 0f && me.WcTempestT <= 0f && (v.Incoming >= 3 || g.EnemiesNear(me.Pos, 120f) >= 3), 1f);
+        }
     }
 }

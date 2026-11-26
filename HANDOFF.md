@@ -183,11 +183,14 @@ A class is mostly two new files plus a line in each registry. Templates: `Docs/C
    `WeaponDef`s (each with `Kit`, `Role`, `Choice` 0-2; `Sound`; `AreaDesc` if its damage lands in an area), its 12
    `AbilityDef`s (1st ability `Choice` 0-2, ultimates `AbilityDef.Ult`; a `Bot` rule each), the fire method (one `case` per
    weapon), the cast method (one `case` per ability, ultimates included, returning true) and a tick if it needs one.
-   Extra-projectile, Barrage and Homing texts: `ExtraDesc`, `BarrageDesc`, `HomingDesc` on the weapon.
+   Extra-projectile, Barrage and Homing texts: `ExtraDesc`, `BarrageDesc`, `HomingDesc` on the weapon. A weapon with an Alt
+   gets a smart-bot rule: `BotAlt = <Weapon>BotAlt` on its `WeaponDef` (a static method beside the weapon's code, e.g.
+   `LanceBotAlt` in `Lance.cs`; `BotAltHold = true` if the Alt is held, not tapped).
    Unusual weapon ranges (charge, beam, boomerang) get a case in `WeaponRange` (`Weapons.cs`).
 3. **Register it** with one line in `Classes.Lists` (`Classes.cs`: its `KitDef`, weapon list and ability list); `Classes.All`,
    `Defs.Weapons` and `Upgrades.Abilities` are built from it. The game stops at start-up with a message naming anything missing or doubled.
-4. **`Game/<Class>Look.cs`** from the template, plus its `KitLook` line in `Game/ClassLooks.cs`. Per-class player
+4. **`Game/<Class>Look.cs`** from the template, plus its `KitLook` line in `Game/ClassLooks.cs`, and an `L(WeaponId.X, ...)`
+   line per weapon in `Game/WeaponLooks.cs` (held model, grip, arms/pauldrons, melee colour and rest pose). Per-class player
    fields (timers, buffs) go on `Player` in `Game.cs`, and in `SyncPlayer` (`GameNet.cs`) if clients draw them.
 5. **Icons** in `PixelArt.cs`: the class card (`class_<name>`, named by `KitDef.Icon`) and one per 1st ability
    (named by its `AbilityDef.Icon`). Ultimates have none.
@@ -342,9 +345,9 @@ feature; `git log --oneline` is usually enough.
 The October 2026 audit and its work plan are done; the full notes (and the November second pass) are in
 [`Docs/History.md`](Docs/History.md) under "Audit findings". Still open:
 
-- **Late-Nov 2026 audit (protocol 526), still open:** per-weapon `switch` tables (a new weapon touches a median 9 files:
-  `BotWeaponAlt`, `Weapons`, `CharacterModels`, `MeleeLooks`, `ShotLooks`; a `WeaponDef.BotAlt` delegate and a look table would
-  cut it), `GameNet.SyncPlayer` (539 lines, ~264 `Player` fields; a per-weapon `Sync` hook), 7 copies of a cone test
+- **Late-Nov 2026 audit (protocol 526), still open:** per-weapon `switch` tables (partly done: `WeaponDef.BotAlt` replaced
+  `BotWeaponAlt`'s switches and `WeaponLooks.cs` the model/melee-look ones; left: `Weapons`, `ShotLooks`, `DpsGunLooks`,
+  `TankGunLooks`, `DrawMeleeModel`), `GameNet.SyncPlayer` (539 lines, ~264 `Player` fields; a per-weapon `Sync` hook), 7 copies of a cone test
   (`MathX.InCone`), ~47 hand-written enemy bullet rings (`EnemyRing`), gold colour literals (61 copies of `CrtStyle.Gold`),
   HUD strings rebuilt every OnGUI pass (`Hud.cs`), a new `byte[]` per received message (`Net.cs`), pooled `Effect`s.
   Done in that pass: 11 network/sim bugs, solo snapshot cost, `EnemyIndex`, render buckets (`FxOf`/`EnemiesOf`),

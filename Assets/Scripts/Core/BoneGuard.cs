@@ -214,5 +214,16 @@ namespace Arena
             }
             return false;
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): an Ossuary Wall in the way of a group coming in
+        static bool BoneGuardBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            var e = v.ShootAt;
+            if (late || e == null || v.ShootD > 360f || !g.Tap(g.BoneWallLocalCd <= 0f && (g.EnemiesNear(me.Pos, 260f) >= 3 || v.Incoming >= 3), 2f))
+                return false;
+            aimAt = me.Pos + (e.Pos - me.Pos) * 0.5f;
+            return true;
+        }
     }
 }

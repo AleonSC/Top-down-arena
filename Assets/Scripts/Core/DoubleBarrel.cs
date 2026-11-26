@@ -100,5 +100,19 @@ namespace Arena
             s.Byte(ref p.DbShot);
             s.Float(ref p.DbReload);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): both barrels point-blank
+        static bool DoubleBarrelBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            if (late || v.ShootAt == null || v.ShootD > 150f || me.DbUsed != 0 || me.DbReload > 0f)
+                return false;
+            if (g.Tap(true, 0.3f))
+            {
+                firing = false;
+                return true;
+            }
+            return false;
+        }
     }
 }

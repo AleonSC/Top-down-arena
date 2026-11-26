@@ -278,5 +278,14 @@ namespace Arena
             s.Bool(ref p.HbSet);  // the Halberd's set pike
             s.Float(ref p.HbPikeA);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): set the pike while a pack closes in; lift it once they've been kept off or it has held a while (held)
+        static bool HalberdBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var me = v.Me;
+            if (g.botAltWas)
+                return g.botAltHoldT < 3.5f && g.EnemiesNear(me.Pos, PikeScan) >= 1 && (v.Near >= 2 || g.botAltHoldT < 1f);
+            return g.Tap(v.Near >= 3 || g.EnemiesNear(me.Pos, 150f) >= 2, 1.2f);
+        }
     }
 }

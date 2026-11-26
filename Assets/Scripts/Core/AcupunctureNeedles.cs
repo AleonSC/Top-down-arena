@@ -205,5 +205,15 @@ namespace Arena
             s.Float(ref p.NeedleT);  // Acupuncture Needles in you
             s.Byte(ref p.NeedleN);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): Bloodletting at what it shoots, in reach
+        static bool AcupunctureNeedlesBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var e = v.ShootAt;
+            if (late || e == null || v.ShootD >= BloodRange || !g.Tap(g.BloodletLocalCd <= 0f, 1f))
+                return false;
+            aimAt = e.Pos;  // (Fire may be aimed at a hurt teammate)
+            return true;
+        }
     }
 }

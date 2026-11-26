@@ -204,6 +204,8 @@ namespace Arena
         public float Grow;             // per extra projectile: a shot lives (a beam reaches) this much longer, as a fraction;
                                        // a swing reaches this many px further. 0 if extras do something else
         public float BotRange = 330f;  // how far away bots like to fight with it
+        public BotAltFn BotAlt;        // when the smart bot presses its Alt (BotWeaponAlt.cs); null: never
+        public bool BotAltHold;        // that Alt is held down rather than tapped (the parry stays down while it is held: it would let go of it)
     }
 
     /// Where the dev tools' enemy list puts an enemy: by group, then in EnemyType order.

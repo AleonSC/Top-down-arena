@@ -364,5 +364,14 @@ namespace Arena
             s.Float(ref p.TtTailT);
             s.Byte(ref p.TtBreeze);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): charge the gust into a crowd, a barrage or a hurt teammate in front, let go at full charge (held)
+        static bool TwinTessenBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var e = v.ShootAt;
+            if (g.botAltWas)
+                return g.botAltHoldT < Game.TtChargeFull;
+            return v.Me.TtGustCd <= 0f && g.Tap(e != null && v.ShootD < 300f && (g.EnemiesNear(e.Pos, 140f) >= 3 || v.Incoming >= 3 || e.Def.IsBoss), 1f);
+        }
     }
 }

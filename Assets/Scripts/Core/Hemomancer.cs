@@ -696,7 +696,7 @@ namespace Arena
         internal static readonly WeaponDef[] HemomancerWeapons =
         {
             // Tank
-            new WeaponDef { Id = WeaponId.BloodLash, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach, +1 link per enemy and +1 max Clot", Name = "Blood Lash", FireInterval = 0.32f,
+            new WeaponDef { Id = WeaponId.BloodLash, BotAlt = BloodLashBotAlt, BotAltHold = true, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 0, Damage = 24f, Reach = 130f, Grow = 20f, Melee = true, ExtraDesc = "+20 px reach, +1 link per enemy and +1 max Clot", Name = "Blood Lash", FireInterval = 0.32f,
                 Desc = "Primary Fire: A four-step blood whip that chains enemies, then yanks them in.\n\nAlternative Fire: Hold for Martyr's Leash." },
             new WeaponDef { Id = WeaponId.GoreMortar, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Damage = 34f, BotRange = 380f, ExtraDesc = "+1 glob, fanned out", Name = "Gore Mortar", FireInterval = 0.75f,
                 Desc = "Primary Fire: Hold to charge, then lob a blood clot that leaves a slowing, healing pool.",
@@ -716,16 +716,16 @@ namespace Arena
                 Desc = "Primary Fire: A draining beam that hurts enemies and heals you and the nearest ally.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the beam 25% wider" },
             // DPS
-            new WeaponDef { Id = WeaponId.NeedleSwarm, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0, Damage = 4f, Reach = Game.NsReach, ExtraDesc = "+20 needles in the swarm, +5 wrapped round each enemy and 10% harder cuts, +4 in the burst", Name = "Needle Swarm", FireInterval = 0.1f, BotRange = 220f,
+            new WeaponDef { Id = WeaponId.NeedleSwarm, BotAlt = NeedleSwarmBotAlt, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 0, Damage = 4f, Reach = Game.NsReach, ExtraDesc = "+20 needles in the swarm, +5 wrapped round each enemy and 10% harder cuts, +4 in the burst", Name = "Needle Swarm", FireInterval = 0.1f, BotRange = 220f,
                 Desc = "A swarm of blood needles circles you, blocking shots. Lost needles are siphoned from your health.\n\nPrimary Fire: Hold to grow a tendril to the enemy nearest your cursor; it wraps them and cuts until they die.\n\nAlternative Fire: Throw a fan of needles from the swarm.",
                 Sound = Sfx.SpellArcane },
             new WeaponDef { Id = WeaponId.Implosion, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 1, Damage = 34f, Reach = 480f, ExtraDesc = "+1 implosion: another enemy near your target collapses too (60% damage)", Name = "Implosion", FireInterval = 0.45f,
                 Desc = "Primary Fire: Click an enemy to collapse its blood inward and pull nearby enemies in.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the collapse hurts and pulls in enemies 25% farther out" },
-            new WeaponDef { Id = WeaponId.BloodBrawler, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 520f, ExtraDesc = "+1 echo: every move also lands on the next enemy nearest the mark (50% damage)", Name = "Blood Brawler", FireInterval = Game.BsPulseTime,
+            new WeaponDef { Id = WeaponId.BloodBrawler, BotAlt = BloodBrawlerBotAlt, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 2, Damage = 18f, Reach = 520f, ExtraDesc = "+1 echo: every move also lands on the next enemy nearest the mark (50% damage)", Name = "Blood Brawler", FireInterval = Game.BsPulseTime,
                 Desc = "Primary Fire: Click an enemy to work its blood from range, ending in a bone-shard burst.\n\nAlternative Fire: Bind the enemies near it so your moves hit them too.",
                 Sound = Sfx.SpellArcane },
-            new WeaponDef { Id = WeaponId.EmbolusSpears, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 3, Speed = Game.EsSpeed, Damage = 30f, ExtraDesc = "+20% spear and blast damage", Name = "Embolus Spears", FireInterval = 0.25f, BotRange = 600f,
+            new WeaponDef { Id = WeaponId.EmbolusSpears, BotAlt = EmbolusSpearsBotAlt, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = 3, Speed = Game.EsSpeed, Damage = 30f, ExtraDesc = "+20% spear and blast damage", Name = "Embolus Spears", FireInterval = 0.25f, BotRange = 600f,
                 Desc = "Primary Fire: Throw a spear from each hand that pierces everything, then recall them to get health back.\n\nAlternative Fire: Burst the spears where they are.",
                 Sound = Sfx.Throw, AreaDesc = "the burst 25% wider" },
         };

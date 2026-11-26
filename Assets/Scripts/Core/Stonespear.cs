@@ -301,5 +301,12 @@ namespace Arena
             s.Byte(ref p.SsSide);
             s.Int(ref p.SsLock);
         }
+
+        /// WeaponDef.BotAlt (BotWeaponAlt.cs): the volley at the boss or out of reach, with a few spears up
+        static bool StonespearBotAlt(Game g, AltView v, float dt, bool late, ref bool firing, ref V2 aimAt)
+        {
+            var e = v.ShootAt;
+            return !late && e != null && CountBits(v.Me.SsMask) >= 2 && g.Tap(e.Def.IsBoss || !v.InReach || g.EnemiesNear(e.Pos, 120f) >= 2, 2f);
+        }
     }
 }
