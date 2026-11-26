@@ -954,6 +954,8 @@ namespace Arena
 
         /// Walls that come out from a drawn room's outer walls into the room, as wall spans (drawn and solid like any wall).
         /// Only from real wall (not a seam to the room's other boxes, not near a door or a corner); cover in the way goes.
+        public static bool ShopBare;  // MOCKUP: the shop room is built with no cover (its pedestals line the side walls)
+
         static void AddFins(List<WallSpan> spans, List<Solid> cover, IList<ExpansionRoom> rooms, int[] group, int a, List<RoomDoor> doors, IList<MapNode> nodes)
         {
             var r = rooms[a - 1];
@@ -1211,6 +1213,8 @@ namespace Arena
                     continue;  // (a sliver of a drawn outline: no cover in it)
                 if (gridRun && core != CoreLayoutId.None && IsGridCore(cr))
                     continue;  // (the core's floor plan covers it: CoreLayouts.cs)
+                if (ShopBare && cr.Kind == RoomKind.Shop)
+                    continue;  // MOCKUP (ShopPedestalLook.cs): the pedestal shop has no inner walls
                 AddCover(cover, cr, doorSpots, gridRun ? plans : null);
                 if (gridRun && RelicGauntlet.Is(cr))
                     RelicGauntlet.AddPits(pits, cr);  // (the Relic Gauntlet's voids)

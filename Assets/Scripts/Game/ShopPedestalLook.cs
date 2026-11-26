@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// MOCKUP: the shop room with its wares on pedestals instead of the stall: your shelf's first three cards on the back row, a heal and
-    /// a revive token in the side lanes; each is a stone plinth with a lit plate in the item's colour, the item's icon floating and turning
+    /// MOCKUP: the shop room with no stall and no inner walls (Expansion.ShopBare), its wares on pedestals along the side walls: your
+    /// shelf's first four cards on the left, the services (heal, revive token, add stock, sell) on the right; each is a stone plinth with a lit plate in the item's colour, the item's icon floating and turning
     /// over it, and a coin price tag under it (DrawPedestalTags, HUD). The one you stand by lights up and shows its name and the buy key.
     /// Preview: PEDESTALS=1 GRIDCORE=1 EXPANDMAP=0 CARDROOM=shop CARDDY=60 ZOOM=1.5 shot.sh x hud 1 0 1.
     public partial class ArenaApp
@@ -16,15 +16,19 @@ namespace Arena
         PedestalItem[] ShopPedestalItems(V2 c)
         {
             var me = game.Me;
-            var items = new PedestalItem[5];
-            for (int i = 0; i < 3; i++)
+            var items = new PedestalItem[8];
+            float[] ys = { -195f, -65f, 65f, 195f };
+            for (int i = 0; i < 4; i++)  // the left wall: your shelf's first four cards
             {
-                int id = me != null && me.ShelfLen > i ? me.Shelf[i] : i * 7;
+                int id = me != null && me.ShelfLen > i ? me.Shelf[i] : new[] { 0, 7, 14, 3 }[i];
                 var u = Upgrades.All[id];
-                items[i] = new PedestalItem { At = c + new V2(-80f + i * 80f, -95f), Rows = PixelArt.RowsFor(u), Ink = Upgrades.RarityColor(u.Rarity), Name = u.Name, Price = Game.Price(id) };
+                items[i] = new PedestalItem { At = c + new V2(-232f, ys[i]), Rows = PixelArt.RowsFor(u), Ink = Upgrades.RarityColor(u.Rarity), Name = u.Name, Price = Game.Price(id) };
             }
-            items[3] = new PedestalItem { At = c + new V2(-205f, 30f), Rows = PixelArt.RowsOf("regen2"), Ink = HealInk, Name = "Full heal", Price = Game.HealPrice };
-            items[4] = new PedestalItem { At = c + new V2(205f, 30f), Rows = PixelArt.RowsOf("halo"), Ink = HaloInk, Name = "Revive token", Price = Game.RevivePrice };
+            // the right wall: the services
+            items[4] = new PedestalItem { At = c + new V2(232f, ys[0]), Rows = PixelArt.RowsOf("regen2"), Ink = HealInk, Name = "Full heal", Price = Game.HealPrice };
+            items[5] = new PedestalItem { At = c + new V2(232f, ys[1]), Rows = PixelArt.RowsOf("halo"), Ink = HaloInk, Name = "Revive token", Price = Game.RevivePrice };
+            items[6] = new PedestalItem { At = c + new V2(232f, ys[2]), Rows = PixelArt.RowsOf("ricochet"), Ink = ShopInk, Name = "Add stock", Price = me != null ? Game.RestockPrice(me) : 25 };
+            items[7] = new PedestalItem { At = c + new V2(232f, ys[3]), Rows = PixelArt.RowsOf("axe"), Ink = new Rgba(0.75f, 0.8f, 0.9f), Name = "Sell upgrade", Price = 0 };
             return items;
         }
 
@@ -46,41 +50,38 @@ namespace Arena
             var ink = ShopInk;
             float t = game.AnimT, pulse = 0.5f + 0.5f * Mathf.Sin(t * 2.2f);
 
-            // The floor: a warm pool of light and a long gold runner up the middle to the back row.
-            Circle(c + new V2(0f, -40f), 190f, ink.WithAlpha(0.03f + 0.015f * pulse), 36);
-            float rx = c.X - 120f, ry = c.Y - 160f, rw = 240f, rh = 130f;
-            FillRect(rx, ry, rw, rh, StallDeep.WithAlpha(0.2f));
-            NodeFrame(rx, ry, rw, rh, 2f, ink.WithAlpha(0.55f));
-            NodeFrame(rx + 6f, ry + 6f, rw - 12f, rh - 12f, 1.5f, ink.WithAlpha(0.25f));
-            FillRect(c.X - 26f, ry + rh, 52f, 170f, StallDeep.WithAlpha(0.16f));
-            Line(new V2(c.X - 26f, ry + rh), new V2(c.X - 26f, ry + rh + 170f), 1.5f, ink.WithAlpha(0.35f));
-            Line(new V2(c.X + 26f, ry + rh), new V2(c.X + 26f, ry + rh + 170f), 1.5f, ink.WithAlpha(0.35f));
-            for (int i = 0; i < 5; i++)
-                Polygon(new V2(c.X, ry + rh + 18f + i * 32f), 7f, 4, 0f, ink.WithAlpha(i % 2 == 0 ? 0.28f : 0.14f));
+            // The floor: a warm pool of light and a gold runner from door to door, a strip of lit floor along each wall under the pedestals.
+            Circle(c, 230f, ink.WithAlpha(0.025f + 0.015f * pulse), 40);
+            FillRect(c.X - 40f, c.Y - 300f, 80f, 600f, StallDeep.WithAlpha(0.16f));
+            for (int s = -1; s <= 1; s += 2)
+            {
+                Line(new V2(c.X + s * 40f, c.Y - 300f), new V2(c.X + s * 40f, c.Y + 300f), 1.5f, ink.WithAlpha(0.4f));
+                Line(new V2(c.X + s * 32f, c.Y - 300f), new V2(c.X + s * 32f, c.Y + 300f), 1f, ink.WithAlpha(0.18f));
+                FillRect(c.X + s * 232f - 44f, c.Y - 270f, 88f, 540f, StallDeep.WithAlpha(0.12f));
+                NodeFrame(c.X + s * 232f - 44f, c.Y - 270f, 88f, 540f, 1.5f, ink.WithAlpha(0.3f));
+            }
+            for (int i = 0; i < 9; i++)
+                Polygon(new V2(c.X, c.Y - 256f + i * 64f), 9f, 4, 0f, ink.WithAlpha(i % 2 == 0 ? 0.3f : 0.15f));
+            // the coin crest in the middle of the runner
+            Polygon(c, 22f, 4, 0f, StallDeep.WithAlpha(0.8f));
+            Polygon(c, 15f, 4, 0f, ink.WithAlpha(0.45f + 0.3f * pulse));
+            Polygon(c, 6f, 4, 0f, Rgba.White.WithAlpha(0.5f + 0.35f * pulse));
 
             var items = ShopPedestalItems(c);
             int near = NearPedestal(items);
             for (int i = 0; i < items.Length; i++)
                 DrawWarePedestal(items[i], t + i * 0.7f, i == near);
 
-            // A gold banner over the back row: the coin crest and two hanging lanterns.
-            float by = c.Y - 185f;
-            GlowLine(new V2(c.X - 130f, by), new V2(c.X + 130f, by), 3f, ink.WithAlpha(0.9f));
-            var sign = new V2(c.X, by);
-            Polygon(sign, 16f, 4, 0f, StallDeep.WithAlpha(0.95f));
-            Polygon(sign, 11f, 4, 0f, ink.WithAlpha(0.6f + 0.3f * pulse));
-            Polygon(sign, 5f, 4, 0f, Rgba.White.WithAlpha(0.55f + 0.35f * pulse));
+            // a lantern on the wall between each pair of pedestals
             for (int s = -1; s <= 1; s += 2)
-            {
-                var hook = new V2(c.X + s * 118f, by);
-                float sw = Mathf.Sin(t * 1.7f + s) * 0.18f;
-                var lamp = hook + new V2(Mathf.Sin(sw) * 14f, Mathf.Cos(sw) * 14f);
-                Line(hook, lamp, 1.5f, ink.WithAlpha(0.6f));
-                float flick = 0.75f + 0.25f * Mathf.Sin(t * 9f + s * 2f) * Mathf.Sin(t * 5.3f);
-                GlowDisc(lamp + new V2(0f, 6f), 30f, ink, 0.35f * flick);
-                FillRect(lamp.X - 5f, lamp.Y, 10f, 12f, ink.WithAlpha(0.45f + 0.4f * flick));
-                NodeFrame(lamp.X - 6f, lamp.Y - 1f, 12f, 14f, 1.5f, ink.WithAlpha(0.95f));
-            }
+                for (int j = 0; j < 3; j++)
+                {
+                    var lamp = new V2(c.X + s * 284f, c.Y - 130f + j * 130f);
+                    float flick = 0.75f + 0.25f * Mathf.Sin(t * 9f + j * 2f + s) * Mathf.Sin(t * 5.3f + j);
+                    GlowDisc(lamp, 34f, ink, 0.3f * flick);
+                    FillRect(lamp.X - 5f, lamp.Y - 6f, 10f, 12f, ink.WithAlpha(0.45f + 0.4f * flick));
+                    NodeFrame(lamp.X - 6f, lamp.Y - 7f, 12f, 14f, 1.5f, ink.WithAlpha(0.95f));
+                }
         }
 
         /// One pedestal: a floor ring, a stone plinth with a lit plate in the item's colour, a beam, and the item's icon turning over it.
@@ -135,11 +136,11 @@ namespace Arena
                 {
                     var it = items[i];
                     bool afford = game.Me.Gold >= it.Price;
-                    V2 p = ToUi(it.At + new V2(0f, 52f));
+                    V2 p = ToUi(it.At + new V2(0f, 48f));
                     var r = new Rect(p.X - 30f, p.Y - 9f, 60f, 18f);
                     Ui.Pill(r, new Color(0.08f, 0.06f, 0.02f, 0.85f));
                     Ui.Icon(new Rect(r.x + 6f, r.y + 3f, 12f, 12f), PixelArt.Get("ui_coin"), afford ? 1f : 0.5f);
-                    Ui.Label(new Rect(r.x + 18f, r.y, r.width - 20f, r.height), it.Price.ToString(), 11, afford ? CrtStyle.Gold : CrtStyle.Danger, TextAnchor.MiddleCenter, true);
+                    Ui.Label(new Rect(r.x + 18f, r.y, r.width - 20f, r.height), it.Price == 0 ? "SELL" : it.Price.ToString(), 11, afford ? CrtStyle.Gold : CrtStyle.Danger, TextAnchor.MiddleCenter, true);
                     if (i != near) continue;
                     string key = Keybinds.KeyName(Keybinds.Get(KeyAction.Interact)).ToUpperInvariant();
                     V2 q = ToUi(game.Me.Disp) + new V2(0f, 74f);  // (under you, clear of the back row)
@@ -147,7 +148,7 @@ namespace Arena
                     Ui.Label(n, it.Name.ToUpperInvariant(), 13, it.Ink.ToColor(), TextAnchor.MiddleCenter, true);
                     var b = new Rect(q.X - 52f, q.Y - 4f, 104f, 20f);
                     Ui.Pill(b, afford ? CrtStyle.Gold : new Color(0f, 0f, 0f, 0.65f));
-                    Ui.Label(b, key + "  BUY", 11, afford ? new Color(0.12f, 0.08f, 0.02f) : CrtStyle.Danger, TextAnchor.MiddleCenter, true);
+                    Ui.Label(b, key + (it.Price == 0 ? "  SELL" : "  BUY"), 11, afford ? new Color(0.12f, 0.08f, 0.02f) : CrtStyle.Danger, TextAnchor.MiddleCenter, true);
                 }
             }
         }
