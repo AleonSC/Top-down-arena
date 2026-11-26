@@ -366,9 +366,12 @@ static partial class Program
             V2 toward = V2.FromAngle(me.Aim);  // a stun shot coming straight at the shield
             spawnBullet.Invoke(g, new object[] { Defs.StunShot, me.Pos + toward * (me.Def.BodyR + 20f), -toward * 280f, 0f, 2f, 9f, 0, true, 0f });
             bool stunnedW = false, clientSawStun = false; V2 frozenAt = V2.Zero; bool movedWhileStunned = false;
+            // (every add gone, not only grunts: a Taser Guard in the line would take the parried shot, and only the Warden is stunned by it)
+            Action clearAdds = () => { foreach (var e in g.Enemies.Values) if (e != w) e.Hp = 0f; };
+            clearAdds();
             Run(s, dt, 3f, () => stunnedW && w.Warden.StunT < 1f, () =>
             {
-                Clear(); me.Pos = new V2(300f, 300f);
+                clearAdds(); me.Pos = new V2(300f, 300f);
                 if (w.Warden.StunT > 0f && !stunnedW) { stunnedW = true; frozenAt = w.Pos; }
                 if (stunnedW && w.Warden.StunT > 0.05f && w.Pos.DistanceTo(frozenAt) > 1f) movedWhileStunned = true;
                 clientSawStun |= cg.Enemies[w.Id].Warden.StunT > 0f;

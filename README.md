@@ -1978,7 +1978,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 
 | | |
 |---|---|
-| Move | WASD / arrow keys |
+| Move | WASD / arrow keys. Walking has a little weight: full speed in 0.06 s, and a stop or a turn of more than 90° in 0.04 s (dashes and dodges are unchanged; the Frozen Lake still slides). With Visual effects on, your body stretches along where you're heading (up to 14% walking, 32% in a dash) and leans ahead, squashes and wobbles back as you stop or land a dash, kicks up a puff of dust each step, a burst behind a dash and a skid puff on a hard turn; a dash leaves up to 5 fading copies of you behind it and kicks the camera 9 px ahead (with Camera lean on). Reduced effects keeps the dust and copies but leaves the body and camera still |
 | Aim | Mouse |
 | Dodge | Ctrl, or double tap a movement key (changeable). A tiny 95 px dash with 0.22 s of invulnerability; 1.1 s cooldown; a soft cloth swish plays. With no direction held it steps back from your aim. **Hold** the key (or the double-tapped movement key) after the dodge for 0.2 s to **sprint**: +50% move speed, fading away over 2.2 s, with a pale-blue wake everyone sees; a tap doesn't sprint. **Wall kick**: dodge into a wall or a solid prop (crate, barrel, pillar, a walled arena's edge) and you kick off it with a gold ring: a fresh 150 px dash, faster than the dodge (a dodge that would stop up to 70 px short of the wall reaches on to it), and the dodge comes back at once for one free dodge (that one can't kick again) |
 | Shoot | Hold left click (changeable) |
@@ -2005,7 +2005,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 | Change any of these keys | Settings → Keybinds (see below) |
 | Developer tools | F1 (see below) |
 | Kill every enemy on the field (dev, host) | B (when not on a chest item), once the F1 WAVE drawer's kill-all key is on |
-| Camera lean on / off | Settings → Gameplay (on by default). The view eases a few percent toward where you aim and move; the arena and wrapping are unchanged |
+| Camera lean on / off | Settings → Gameplay (on by default). The view eases a few percent toward where you aim and move (aim 65%, movement 55%); the arena and wrapping are unchanged |
 | Rotate camera left / right | `[` / `]` (rebindable, Settings → Keybinds → Toggles). The view swings a quarter turn anticlockwise / clockwise (back and forth, any number of times) to look at what is above or below you; aiming, the move keys (W is always up the screen), the camera lean and the labels turn with it. Local only, resets when a run ends |
 | Zoom in / out | Mouse scroll wheel during a run: up zooms in on you (up to 2x, the view follows you and stays inside the arena), down zooms back out to the whole arena. Eases back out when a run ends. While zoomed, arrows at the edge of the view point to everything off-screen: teammates in their colour with their name (pulsing red when downed), enemies in red (elites orange, bosses a big crimson arrow with a ring), and any unopened treasure chest in a pulsing arrow with a ring in its kind's colour (also a square on the Rooms minimap); nearer ones are bigger. Settings → Gameplay → Scroll-wheel zoom turns it off (on by default) |
 | Teammate shots 25–100% | Settings → Gameplay (100% by default). How solid other players' bullets are drawn, so a crowd of them doesn't hide the fight; yours and the enemies' stay full. Local only, saved on your machine |

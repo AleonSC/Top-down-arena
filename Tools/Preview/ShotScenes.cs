@@ -2068,6 +2068,33 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // MOVEFEEL=walk|stop|dash (MoveFeel.cs): running right for 0.6 s and then: walk keeps running (the stretch, footstep dust),
+    // stop lets go 0.07 s before the picture (the squash), dash dodges 0.09 s before it (the ghosts, the burst, the stretch).
+    // MFOFF=1: the same moment with the movement feel cleared each frame (the before). A teammate does the same below you. Mode hud.
+    if (Environment.GetEnvironmentVariable("MOVEFEEL") != null) {
+      string mf = Environment.GetEnvironmentVariable("MOVEFEEL");
+      bool mfOff = Environment.GetEnvironmentVariable("MFOFF") != null;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      var clearFeel = typeof(ArenaApp).GetMethod("ClearMoveFeel", f2);
+      var partN = typeof(ArenaApp).GetField("partN", f2);
+      me.Role = Role.Dps; me.Kit = Kit.Soldier; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Soldier, 0); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      me.Pos = me.Disp = new V2(260f, 380f); me.Aim = 0f;
+      int run = 36, extra = mf == "stop" ? 4 : mf == "dash" ? 5 : 0;
+      for (int f = 0; f < run + extra; f++) {
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f;
+        bool going = mf != "stop" || f < run;
+        gm.FixedStep(1f / 60f, new PlayerInput { Move = going ? new V2(1f, 0f) : V2.Zero, Dodge = mf == "dash" && f == run, AimAt = me.Pos + new V2(200f, -40f) });
+        me.Disp = me.Pos;
+        foreach (var q in gm.Players.Values)
+          if (q != me) { q.Pos = q.Disp = me.Pos + new V2(-40f, 90f); q.Aim = 0f; }
+        if (mfOff) { clearFeel.Invoke(app, null); partN.SetValue(app, 0); }
+        draw.Invoke(app, null);
+      }
+      Console.Error.WriteLine("MOVEFEEL at " + me.Pos.X.ToString("0") + "," + me.Pos.Y.ToString("0"));
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // SPRINT=<s since it began>: the Dodge's held sprint (Dodge.cs): you dodged right and kept the key down, running right
     // that long into the sprint, with its fading pale-blue wake (NinjaLooks.cs DrawSprintWake); with 2 players a teammate
     // runs alongside, drawn from the replicated Player.Sprint. SPRINT=0 fresh; mode hud.

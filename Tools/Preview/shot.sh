@@ -17,6 +17,7 @@
 # OFUDA=<s> (the Healer Ninja's Ofuda: talismans bending onto a hurt teammate, a Blast Ofuda stuck to a grunt and one on the ground; mode hud, 3 players, ZOOM=1.6).
 # ARCLOCK=<s> (Arc Lightning's lock-on: hold from 0, let go at 1.5 s; ARCFORK=1 the Forked Volley instead; mode hud).
 # OATHPICK=1|0 (Guardian's Oath waiting for the click: cursor on an ally, or off; mode hud, 3 players).
+# MOVEFEEL=walk|stop|dash [MFOFF=1] (movement feel, MoveFeel.cs: the stretch, dust, dash ghosts; MFOFF the before; mode hud, 2 players, ZOOM=2.5).
 # SPRINT=<s> (the Dodge's held sprint that long in, running right with its fading wake; mode hud).
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
 # MOMENTUM=<0-5> (the DPS passive's stack pips round you; mode hud, 2 players).
