@@ -514,6 +514,10 @@ namespace Arena
         public float GolArmor, GolPer, GolPunchCd, GolSwingT = -1f, GolClotCd, GolPaid;  // host: the armour, a coat's worth, the swing's cooldown and clock, Hurl Clot's cooldown, coats paid for
         public int GolStep, GolNeed = -1, GolShown, GolBurst, GolRipped, GolPunches, GolSlams, GolKills;  // host: punches thrown, coats to pay, coats shown (the shedding), the last collapse's coats; counts for tests
         public bool GolUp, GolMastered;  // host (GolUp: on, so it collapses when it ends)
+        public float HbT;                       // Heartbeat (Heartbeat.cs), replicated: seconds since the cast (0 = off)
+        public bool HbMastered;                 // host
+        public int HbBeatCount, HbHits, HbOrbs; // host: beats, wave hits and blood orbs from its kills this run (tests)
+        public float HbPaid;                    // host: health the beats have cost this run (tests)
         public float BubT, BubR, BubCharge;      // Static Bubble (StaticBubble.cs), replicated: time left (0 = off), its size, its charge
         public float RushT, RushLen;           // ...Static Rush from its burst, replicated: time left, how long it was
         public float BubZapT;                   // host: until the next feed crackle
@@ -854,6 +858,7 @@ namespace Arena
         public float StunT;                 // host: stunned (Daze.cs Stun): held like FrozenT, but shown as stars over its head, not ice
         public bool Dazed;                  // replicated, for the stars over its head
         public int LastHitBy;
+        public bool HeartKill;              // host: a Heartbeat wave killed it, so it drops a blood orb (Heartbeat.cs)
         public bool Dormant;                // replicated: asleep in an unseen room until it is seen or hit (DormantGroups.cs): no moving, shooting or counting for the wave
         public bool Penned;                 // replicated: held in by an ink loop (Chalk.cs), for drawing
         public int PenId;                   // host: the ink loop (Chalk.cs InkPen) holding it in, 0 if none
