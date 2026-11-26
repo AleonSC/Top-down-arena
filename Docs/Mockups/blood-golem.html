@@ -1,0 +1,372 @@
+<title>Blood Golem</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: title block, then the arena loop (the hero) beside a live readout and toggles, a scrubbable timeline under it,
+   then the moments and the rules side by side. House mockup palette (as bloodbath.html); the blood lives in the arena. */
+:root{
+  --bg:#ebe8e1; --fg:#1c1e22; --muted:#5d6168; --panel:#f7f5f0; --line:#d2cec3; --chip:#e0dcd1;
+  --gold:#9a6608; --tank:#2f6fb3; --blood:#a3172a; --blood-soft:#f3dadd; --arena:#0c0f14;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101215; --fg:#e7e8ea; --muted:#979ca4; --panel:#171a1f; --line:#2b3037; --chip:#22262d;
+  --gold:#f0bd54; --tank:#76b2f2; --blood:#ff7d8c; --blood-soft:#3a1a20; --arena:#0a0c10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101215; --fg:#e7e8ea; --muted:#979ca4; --panel:#171a1f; --line:#2b3037; --chip:#22262d;
+  --gold:#f0bd54; --tank:#76b2f2; --blood:#ff7d8c; --blood-soft:#3a1a20; --arena:#0a0c10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 var(--body);margin:0;padding-block:28px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1140px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.eyebrow .tank{color:var(--tank)} .eyebrow .gold{color:var(--gold)}
+h1{font:800 clamp(52px,10vw,104px)/.88 var(--display);letter-spacing:.005em;text-transform:uppercase;margin:6px 0 10px;text-wrap:balance}
+h1 span{color:var(--blood)}
+.lede{margin:0;max-width:66ch;color:var(--muted);font-size:17px}
+.lede b{color:var(--fg);font-weight:600}
+h2{font:700 26px/1 var(--display);letter-spacing:.04em;text-transform:uppercase;margin:0}
+h2 small{font:500 12px var(--mono);letter-spacing:.04em;text-transform:none;color:var(--muted);margin-left:8px}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;align-items:start}
+@media (max-width:860px){.stage{grid-template-columns:minmax(0,1fr)}}
+.frame{position:relative;border-radius:8px;overflow:hidden;background:var(--arena);border:1px solid var(--line);box-shadow:0 18px 40px -24px rgba(60,0,10,.55)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;max-width:100%}
+.phase-tag{position:absolute;left:12px;top:10px;font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#f4c9cf;
+  background:rgba(40,4,10,.7);border:1px solid rgba(220,60,80,.45);padding:3px 8px;border-radius:3px;pointer-events:none}
+.side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.readout{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;font:500 13px var(--mono);margin:0}
+.readout dt{color:var(--muted)} .readout dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.readout .bar{grid-column:1/-1;height:8px;background:var(--chip);border-radius:2px;overflow:hidden;margin:-2px 0 4px}
+.readout .bar i{display:block;height:100%;width:50%;background:linear-gradient(90deg,var(--blood),#e2455a)}
+.readout .bar.armor i{background:repeating-linear-gradient(90deg,#6e0f1d 0 calc(100%/12 - 2px),transparent calc(100%/12 - 2px) calc(100%/12))}
+.readout .t{grid-column:1/-1;font:700 15px var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--fg);margin-bottom:2px}
+.toggles{display:flex;flex-direction:column;gap:8px}
+.tog{display:flex;align-items:center;gap:10px;font:500 14px var(--body);cursor:pointer;user-select:none}
+.tog input{appearance:none;width:34px;height:20px;border-radius:10px;background:var(--chip);border:1px solid var(--line);position:relative;cursor:pointer;flex:none;margin:0}
+.tog input::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .15s,background .15s}
+.tog input:checked{background:var(--blood-soft);border-color:var(--blood)} .tog input:checked::after{transform:translateX(14px);background:var(--blood)}
+.tog small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+input:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.transport{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+button{font:700 15px var(--display);letter-spacing:.05em;text-transform:uppercase;padding:7px 14px;border:1px solid var(--line);border-radius:5px;background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)}
+.track{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:4px}
+.bands{height:6px;border-radius:3px;overflow:hidden;display:flex}
+.bands i{display:block;height:100%}
+input[type=range]{width:100%;margin:0;accent-color:var(--blood)}
+.marks{position:relative;height:16px;font:500 11px var(--mono);color:var(--muted)}
+.marks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.clock{font:600 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted);min-width:9ch}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px}
+@media (max-width:860px){.two{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.moments{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.moments li{border-bottom:1px solid var(--line)}
+.moments button{all:unset;cursor:pointer;display:grid;grid-template-columns:62px minmax(0,1fr);gap:12px;padding:11px 4px;width:100%;box-sizing:border-box}
+.moments button:hover b{color:var(--blood)}
+.moments button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.moments time{font:600 12px var(--mono);color:var(--muted);padding-top:3px;font-variant-numeric:tabular-nums}
+.moments b{font:700 18px/1.1 var(--display);letter-spacing:.03em;text-transform:uppercase;display:block}
+.moments span{color:var(--muted);font-size:14.5px;line-height:1.45}
+.moments li.on b{color:var(--blood)}
+.rules{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.rules li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;font-size:15px;line-height:1.45}
+.rules li>b{font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:3px}
+@media (max-width:480px){.rules li{grid-template-columns:minmax(0,1fr)}}
+.cap{border-left:3px solid var(--gold);padding:8px 12px;background:var(--panel);font-size:15px}
+.cap b{color:var(--gold);font:700 14px var(--display);letter-spacing:.06em;text-transform:uppercase;margin-right:6px}
+.notes{margin:0;color:var(--muted);font-size:14px;max-width:86ch}
+</style>
+
+<main>
+<header>
+  <div class="eyebrow"><span class="tank">Tank</span>·<span>Hemomancer</span>·<span class="gold">Ultimate, key 2</span>·<span>Transform</span>·<span>80 s</span></div>
+  <h1>Blood <span>Golem</span></h1>
+  <p class="lede">Tear the blood stacks off every enemy near you and pile them onto yourself, paying for the rest with your own health, until
+    <b>12 coats</b> harden into a golem. For <b>10 s</b> you are a walking wall: the coats soak every hit, everything near you is taunted,
+    and your weapon becomes two huge fists. When it ends, whatever is left of the golem bursts and pays you back.</p>
+</header>
+
+<section class="stage" aria-label="Blood Golem in the arena">
+  <div class="frame">
+    <canvas id="arena" width="1920" height="1080" aria-label="Animated arena: the Hemomancer pulls blood off enemies and from their own health into layered coats, becomes a blood golem that punches and slams, sheds chunks as it is shot, then bursts"></canvas>
+    <div class="phase-tag" id="phaseTag">Cast</div>
+  </div>
+  <div class="side">
+    <dl class="readout">
+      <div class="t">Live</div>
+      <dt>Phase</dt><dd id="rPhase">–</dd>
+      <dt>Golem left</dt><dd id="rTime">–</dd>
+      <dt>Coats</dt><dd id="rCoats">0 / 12</dd>
+      <div class="bar armor"><i id="rCoatBar"></i></div>
+      <dt>Blood armor</dt><dd id="rArmor">0</dd>
+      <dt>Your health</dt><dd id="rHp">–</dd>
+      <div class="bar"><i id="rHpBar"></i></div>
+      <dt>Enemies killed</dt><dd id="rKills">0</dd>
+    </dl>
+    <div class="toggles">
+      <label class="tog" for="tRange"><input type="checkbox" id="tRange"><span>Show ranges<small>gather 300 px · taunt 240 px · burst 180 px</small></span></label>
+      <label class="tog" for="tSlow"><input type="checkbox" id="tSlow"><span>Slow motion<small>0.35×</small></span></label>
+    </div>
+  </div>
+</section>
+
+<section class="transport" aria-label="Timeline">
+  <button id="play" type="button">Pause</button>
+  <div class="track">
+    <div class="bands" id="bands"></div>
+    <input type="range" id="scrub" min="0" max="16" step="0.01" value="0" aria-label="Time">
+    <div class="marks" id="marks"></div>
+  </div>
+  <span class="clock" id="clock">0.00 s</span>
+</section>
+
+<section class="two">
+  <div class="col">
+    <h2>Moments <small>click to jump</small></h2>
+    <ul class="moments" id="moments"></ul>
+  </div>
+  <div class="col">
+    <h2>Rules <small>proposed numbers</small></h2>
+    <ul class="rules">
+      <li><b>Cast</b><span>80 s cooldown, nothing up front. You can move at 50% while it gathers.</span></li>
+      <li><b>Gather</b><span>2 s. Every <b>blood stack</b> on an enemy within 300 px is torn off and becomes a coat on you (it hurts them 6). Coats the stacks don't cover are paid from your health, <b>2.5% of max health</b> each, up to 12 coats (at most 30%).</span></li>
+      <li><b>Golem</b><span>10 s. Each coat is <b>8% of your max health</b> in blood armor (12 coats: 96%) that takes every hit before your health does. Twice your size, 75% speed, can't be stunned or knocked back; taunts every enemy within 240 px once a second.</span></li>
+      <li><b>Fire</b><span><b>Golem Fist:</b> left, right, then <b>Slam</b>. Fists hit 45 in a 100° cone out to 90 px; the Slam hits 70 to everything within 120 px and stuns 0.5 s. Every hit adds a blood stack.</span></li>
+      <li><b>Alt</b><span><b>Hurl Clot</b> (2 s): tear off a coat and throw it up to 400 px. It splashes 60 within 80 px and leaves a 4 s pool slowing enemies 40%.</span></li>
+      <li><b>Shedding</b><span>Each 8% of armor lost falls off as a chunk. An enemy the golem kills regrows a coat (up to 12).</span></li>
+      <li><b>Collapse</b><span>At 10 s, at 0 coats, or press again. Each coat left bursts for <b>20</b> within 180 px and gives you back <b>2% of max health</b>; the splash heals allies in it 4 a second for 2.5 s.</span></li>
+    </ul>
+    <p class="cap"><b>Synergy</b>Blood Blast and Blood Lash put blood stacks on enemies, so a fight that's already bloody makes the golem nearly free.</p>
+  </div>
+</section>
+<p class="notes">Approximate HTML mock-up of the look and the timing; the in-game version would be drawn with the real draw code.</p>
+</main>
+
+<script>
+(()=>{
+const cv=document.getElementById('arena'),ctx=cv.getContext('2d');
+const W=960,H=540,LOOP=16,FPS=60,N=LOOP*FPS;
+ctx.setTransform(2,0,0,2,0,0);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,u)=>a+(b-a)*u;
+const ease=u=>u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2, easeOut=u=>1-Math.pow(1-u,3);
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function rng(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const R0=rng(7);
+const T={cast:0,gather:.5,form:2.6,golem:3.2,collapse:13.2,after:14};
+const PHASES=[['Cast',0,.5,'#c98a95'],['Gather',.5,2.6,'#d2475b'],['Form',2.6,3.2,'#f0bd54'],['Golem',3.2,13.2,'#8e1426'],['Collapse',13.2,14,'#e2455a'],['After',14,16,'#7b5a5f']];
+const K=0.75; // game px -> canvas px
+const G0={x:380,y:290};
+const EN=[
+  {x:520,y:240,k:'g',st:2},{x:300,y:175,k:'g',st:1},{x:262,y:392,k:'g',st:2},{x:610,y:430,k:'h',st:5},
+  {x:730,y:180,k:'s',st:0},{x:840,y:330,k:'g',st:0},{x:162,y:272,k:'g',st:1},{x:890,y:478,k:'s',st:0},{x:560,y:110,k:'g',st:0}];
+const MAXHP={g:130,h:380,s:110};
+
+// ---------- simulation, precomputed so the timeline scrubs ----------
+const F=[],TX=[],RG=[],CH=[],SPL=[],BU=[],PU=[],RIPS=[],SELF=[],KST=[],POOLS=[];let HURL=null;
+(function sim(){
+  const es=EN.map((e,i)=>({...e,i,px:e.x,py:e.y,kx:0,ky:0,alive:true,hp:MAXHP[e.k],pips:e.st,flash:-9}));
+  let j=0;
+  es.forEach(e=>{if(Math.hypot(e.x-G0.x,e.y-G0.y)<=300*K) for(let s=0;s<e.st;s++){RIPS.push({t:.6+j*.16,e:e.i});j++;}});
+  const nSelf=12-RIPS.length;
+  for(let k=0;k<nSelf;k++) SELF.push({t:1.62+k*.15,a:k/nSelf*Math.PI*2});
+  const LOSS=[4.8,5.9,6.6,8.7,9.6,10.5,11.3,11.9,12.5];
+  for(let tp=3.45,i=0;tp<13.05;tp+=.6){if(tp>7.3&&tp<8.2) continue;PU.push({t:+tp.toFixed(2),i,slam:i%3===2,side:i%2?1:-1});i++;}
+  const SHOTS=[];for(let s=3.7;s<13;s+=.85) SHOTS.push({t:s,loss:false});LOSS.forEach(l=>SHOTS.push({t:l-.45,loss:true}));
+  let g={...G0},ang=0,R=11,coats=0,hp=82,ally={x:G0.x-70,y:G0.y+60},kills=0,armorChip=0,shotK=0,burst=0,lastHeal=0,drip=3.4;
+  const cross=(et,t)=>et>t-1/FPS+1e-9&&et<=t+1e-9;
+  const target=(t)=>{let best=null,bd=1e9;for(const e of es){if(!e.alive)continue;const d=Math.hypot(e.px-g.x,e.py-g.y)+(e.k==='s'?120:0);if(d<bd){bd=d;best=e;}}return best;};
+  const hit=(e,d,t,big)=>{if(!e.alive)return;e.hp-=d;e.flash=t;e.pips=Math.min(10,e.pips+1);TX.push({t,x:e.px,y:e.py-16,s:''+d,c:big?'#ffd27a':'#fff1f2',big});
+    if(e.hp<=0){e.alive=false;kills++;SPL.push({t,x:e.px,y:e.py,r:e.k==='h'?22:14,seed:e.i*3.1});
+      if(t>=T.golem&&t<T.collapse){KST.push({t,x:e.px,y:e.py});if(coats<12){coats++;TX.push({t:t+.45,x:g.x,y:g.y-R-22,s:'+1 coat',c:'#ff6b7c'});}}}};
+  for(let f=0;f<=N;f++){
+    const t=f/FPS,dt=1/FPS;
+    const golem=t>=T.golem&&t<T.collapse;
+    // gather
+    RIPS.forEach(r=>{if(cross(r.t+.3,t)){const e=es[r.e];e.pips--;coats++;e.hp-=6;e.flash=t;TX.push({t,x:e.px,y:e.py-16,s:'6',c:'#fff1f2'});}});
+    SELF.forEach(s=>{if(cross(s.t,t)){coats++;hp-=2.5;TX.push({t,x:g.x+14,y:g.y-24,s:'−2.5%',c:'#ff9aa6'});}});
+    if(cross(T.form,t)){RG.push({t,x:g.x,y:g.y,r0:14,r1:150,dur:.55,c:'255,120,130',w:6});
+      es.forEach(e=>{const dx=e.px-g.x,dy=e.py-g.y,d=Math.hypot(dx,dy)||1;if(d<150){e.kx=dx/d*260;e.ky=dy/d*260;}});
+      for(let k=0;k<10;k++){const a=k/10*Math.PI*2+R0();CH.push({t,x:g.x,y:g.y,a,sp:60+R0()*40,dur:.5,size:3+R0()*2,seed:R0()*9});}}
+    // golem movement
+    const tg=target(t);
+    if(golem&&tg){const d=Math.hypot(tg.px-g.x,tg.py-g.y),want=Math.atan2(tg.py-g.y,tg.px-g.x);
+      let da=want-ang;while(da>Math.PI)da-=2*Math.PI;while(da<-Math.PI)da+=2*Math.PI;ang+=da*Math.min(1,dt*7);
+      if(d>R+46){g.x+=Math.cos(want)*52*dt;g.y+=Math.sin(want)*52*dt;}
+      g.x=clamp(g.x,60,W-60);g.y=clamp(g.y,60,H-60);}
+    else if(t<T.golem&&tg){ang=Math.atan2(tg.py-g.y,tg.px-g.x);}
+    const Rt=t<T.form?11:t<T.collapse?24+coats*1.9:11;
+    R+=(Rt-R)*Math.min(1,dt*(t<T.golem?7:t<T.collapse?5:14));
+    // enemies
+    es.forEach(e=>{if(!e.alive)return;e.px+=e.kx*dt;e.py+=e.ky*dt;e.kx*=.9;e.ky*=.9;
+      if(t>=3.0){const dx=g.x-e.px,dy=g.y-e.py,d=Math.hypot(dx,dy)||1;
+        const stop=e.k==='s'?175:R+(e.k==='h'?24:15);let sp=e.k==='h'?36:e.k==='s'?40:72;
+        POOLS.forEach(p=>{if(t>=p.t0&&t<p.t1&&p.slow&&Math.hypot(e.px-p.x,e.py-p.y)<p.r)sp*=.6;});
+        if(d>stop){e.px+=dx/d*sp*dt;e.py+=dy/d*sp*dt;}else if(e.k!=='s'&&d<stop-2){e.px-=dx/d*30*dt;e.py-=dy/d*30*dt;}}
+      es.forEach(o=>{if(o===e||!o.alive)return;const dx=e.px-o.px,dy=e.py-o.py,d=Math.hypot(dx,dy)||1;if(d<22){e.px+=dx/d*(22-d)*.5;e.py+=dy/d*(22-d)*.5;}});});
+    // punches
+    PU.forEach(p=>{if(!cross(p.t,t))return;p.ang=ang;p.x=g.x;p.y=g.y;
+      if(p.slam){RG.push({t,x:g.x+Math.cos(ang)*R*.5,y:g.y+Math.sin(ang)*R*.5,r0:R*.6,r1:R+120*K,dur:.4,c:'255,90,105',w:5});
+        es.forEach(e=>{if(e.alive&&Math.hypot(e.px-g.x,e.py-g.y)<R+120*K) hit(e,70,t,true);});}
+      else es.forEach(e=>{if(!e.alive)return;const dx=e.px-g.x,dy=e.py-g.y,d=Math.hypot(dx,dy);let da=Math.atan2(dy,dx)-ang;while(da>Math.PI)da-=2*Math.PI;while(da<-Math.PI)da+=2*Math.PI;
+        if(d<R+90*K&&Math.abs(da)<0.87) hit(e,45,t,false);});});
+    // shots at the golem
+    SHOTS.forEach(s=>{if(!cross(s.t,t)||!golem)return;const sh=es.filter(e=>e.alive&&e.k==='s');const pool=sh.length?sh:es.filter(e=>e.alive);if(!pool.length)return;
+      const e=pool[shotK++%pool.length];const a=Math.atan2(e.py-g.y,e.px-g.x);BU.push({t0:t,t1:t+.45,fx:e.px,fy:e.py,tx:g.x+Math.cos(a)*R*.8,ty:g.y+Math.sin(a)*R*.8,loss:s.loss,a});});
+    LOSS.forEach(l=>{if(!cross(l,t)||!golem||coats<=0)return;coats--;const b=BU.find(b=>Math.abs(b.t1-l)<.02);const a=b?b.a:R0()*6.28;
+      for(let k=0;k<4;k++)CH.push({t,x:g.x+Math.cos(a)*R*.8,y:g.y+Math.sin(a)*R*.8,a:a+(R0()-.5)*1.4,sp:40+R0()*45,dur:.55,size:3.5+R0()*3,seed:R0()*9,land:true});
+      TX.push({t,x:g.x+Math.cos(a)*(R+14),y:g.y+Math.sin(a)*(R+14),s:'−1 coat',c:'#c3a2a7'});});
+    // hurl clot
+    if(cross(7.55,t)&&coats>0){coats--;TX.push({t,x:g.x,y:g.y-R-18,s:'−1 coat',c:'#c3a2a7'});}
+    if(cross(7.85,t)){const far=es.filter(e=>e.alive).sort((a,b)=>Math.hypot(b.px-g.x,b.py-g.y)-Math.hypot(a.px-g.x,a.py-g.y))[0];
+      let tx=far?far.px:g.x+200,ty=far?far.py:g.y;const d=Math.hypot(tx-g.x,ty-g.y),mx=400*K;if(d>mx){tx=g.x+(tx-g.x)/d*mx;ty=g.y+(ty-g.y)/d*mx;}
+      HURL={t0:t,t1:t+.5,fx:g.x+Math.cos(ang)*R,fy:g.y+Math.sin(ang)*R,tx,ty,a:ang};}
+    if(HURL&&cross(HURL.t1,t)){RG.push({t,x:HURL.tx,y:HURL.ty,r0:6,r1:80*K,dur:.4,c:'255,110,120',w:5});POOLS.push({t0:t,t1:t+4,x:HURL.tx,y:HURL.ty,r:80*K,slow:true,seed:2});
+      es.forEach(e=>{if(e.alive&&Math.hypot(e.px-HURL.tx,e.py-HURL.ty)<80*K) hit(e,60,t,true);});}
+    // drips while walking
+    if(golem&&t>=drip){drip+=.3;const a=ang+Math.PI+(R0()-.5)*1.6;SPL.push({t,x:g.x+Math.cos(a)*R*.9,y:g.y+Math.sin(a)*R*.9,r:2+R0()*2.5,seed:R0()*9});}
+    // collapse
+    if(cross(T.collapse,t)){burst=coats;RG.push({t,x:g.x,y:g.y,r0:R,r1:180*K,dur:.6,c:'255,80,100',w:8});
+      for(let k=0;k<16;k++){const a=k/16*Math.PI*2+R0()*.3;CH.push({t,x:g.x,y:g.y,a,sp:90+R0()*60,dur:.6,size:4+R0()*4,seed:R0()*9,land:true});}
+      POOLS.push({t0:t,t1:t+2.5,x:g.x,y:g.y,r:180*K,heal:true,seed:5});
+      if(burst) es.forEach(e=>{if(e.alive&&Math.hypot(e.px-g.x,e.py-g.y)<180*K) hit(e,20*burst,t,true);});
+      if(burst){hp+=2*burst;TX.push({t:t+.15,x:g.x,y:g.y-30,s:'+'+(2*burst)+'% health',c:'#ffd27a',big:true});}
+      coats=0;}
+    // ally (Soldier) tags along, then stands in the splash
+    const hp0=POOLS.find(p=>p.heal&&t>=p.t0&&t<p.t1);
+    const at=hp0?{x:hp0.x-30,y:hp0.y+28}:t<T.golem?{x:G0.x-70,y:G0.y+60}:{x:g.x-Math.cos(ang)*(R+48),y:g.y-Math.sin(ang)*(R+48)+10};
+    const ad=Math.hypot(at.x-ally.x,at.y-ally.y);if(ad>2){const s=Math.min(ad,85*dt);ally.x+=(at.x-ally.x)/ad*s;ally.y+=(at.y-ally.y)/ad*s;}
+    if(hp0&&t-lastHeal>=.5&&Math.hypot(ally.x-hp0.x,ally.y-hp0.y)<hp0.r){lastHeal=t;TX.push({t,x:ally.x,y:ally.y-18,s:'+2',c:'#7fe08a'});}
+    F.push({g:{...g},ang,R,coats,hp,kills,burst,ally:{...ally},es:es.map(e=>({x:e.px,y:e.py,alive:e.alive,pips:e.pips,flash:e.flash,k:e.k,hp:e.hp,max:MAXHP[e.k]}))});
+  }
+})();
+
+// ---------- drawing ----------
+function blob(x,y,r,seed,t,amp=1,pts=30){ctx.beginPath();for(let i=0;i<=pts;i++){const a=i/pts*Math.PI*2;
+  const k=1+amp*(.07*Math.sin(3*a+seed)+.05*Math.sin(5*a+seed*2.3+t*2.2)+.035*Math.sin(9*a+seed*4.1-t*1.3));
+  const px=x+Math.cos(a)*r*k,py=y+Math.sin(a)*r*k;i?ctx.lineTo(px,py):ctx.moveTo(px,py);}ctx.closePath();}
+const COAT=['#4a0a12','#5e0c18','#6e0f1d','#7d1222','#8e1426','#9c1729','#a8192d','#b31c31','#bd2036','#c6263b','#cf2d42','#d73548'];
+function floor(){ctx.fillStyle='#0c0f14';ctx.fillRect(0,0,W,H);ctx.strokeStyle='rgba(120,140,170,.06)';ctx.lineWidth=1;
+  for(let x=0;x<=W;x+=40){ctx.beginPath();ctx.moveTo(x+.5,0);ctx.lineTo(x+.5,H);ctx.stroke();}
+  for(let y=0;y<=H;y+=40){ctx.beginPath();ctx.moveTo(0,y+.5);ctx.lineTo(W,y+.5);ctx.stroke();}
+  ctx.strokeStyle='rgba(120,150,200,.25)';ctx.lineWidth=3;ctx.strokeRect(18,18,W-36,H-36);}
+function pools(t){POOLS.forEach(p=>{if(t<p.t0||t>p.t1+.6)return;const u=clamp((t-p.t0)/.35,0,1),fade=t>p.t1?1-(t-p.t1)/.6:1;
+  ctx.globalAlpha=.75*fade;blob(p.x,p.y,p.r*easeOut(u),p.seed,t*.4,1.2,36);
+  const gr=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);gr.addColorStop(0,p.heal?'rgba(150,22,40,.85)':'rgba(90,10,20,.9)');gr.addColorStop(1,p.heal?'rgba(110,12,28,.55)':'rgba(60,6,14,.7)');
+  ctx.fillStyle=gr;ctx.fill();ctx.strokeStyle=p.heal?'rgba(255,120,140,.6)':'rgba(170,40,55,.7)';ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1;});}
+function splats(t){SPL.forEach(s=>{if(t<s.t)return;const u=clamp((t-s.t)/.15,0,1);ctx.fillStyle='rgba(95,10,22,.8)';blob(s.x,s.y,s.r*u,s.seed,0,2.2,16);ctx.fill();});}
+function ranges(t,f){if(!document.getElementById('tRange').checked)return;ctx.save();ctx.setLineDash([6,6]);ctx.lineWidth=1.5;ctx.font='600 11px IBM Plex Mono,monospace';
+  const ring=(x,y,r,c,l)=>{ctx.strokeStyle=c;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();ctx.fillStyle=c;ctx.fillText(l,x+r*.72+4,y-r*.72);};
+  if(t<T.form) ring(G0.x,G0.y,300*K,'rgba(255,130,145,.7)','gather 300');
+  else if(t<T.collapse){ring(f.g.x,f.g.y,240*K,'rgba(240,189,84,.6)','taunt 240');ring(f.g.x,f.g.y,180*K,'rgba(255,130,145,.45)','burst 180');}
+  ctx.restore();}
+function sigil(t,f){if(t>3.05)return;const a=clamp(t/.3,0,1)*(t>2.6?1-(t-2.6)/.45:1);ctx.save();ctx.globalAlpha=a;ctx.translate(f.g.x,f.g.y);
+  ctx.strokeStyle='rgba(220,50,70,.85)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,36,0,Math.PI*2);ctx.stroke();
+  ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.stroke();ctx.rotate(t*.9);
+  for(let i=0;i<12;i++){ctx.rotate(Math.PI/6);ctx.fillStyle=i<f.coats?'#ff5566':'rgba(220,50,70,.35)';ctx.beginPath();ctx.moveTo(29,-2.5);ctx.lineTo(35,0);ctx.lineTo(29,2.5);ctx.closePath();ctx.fill();}
+  ctx.restore();}
+function drops(t,f){
+  const bez=(a,c,b,u)=>({x:(1-u)*(1-u)*a.x+2*(1-u)*u*c.x+u*u*b.x,y:(1-u)*(1-u)*a.y+2*(1-u)*u*c.y+u*u*b.y});
+  ctx.fillStyle='#e0334a';
+  RIPS.forEach((r,j)=>{const t0=r.t-.05,t1=r.t+.4;if(t<t0||t>t1)return;const e=f.es[r.e],a={x:e.x,y:e.y-6},b=f.g;
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2,nx=-(b.y-a.y),ny=b.x-a.x,nl=Math.hypot(nx,ny)||1,s=(j%2?1:-1)*36,c={x:mx+nx/nl*s,y:my+ny/nl*s};
+    const u0=(t-t0)/(t1-t0);for(let k=0;k<9;k++){const u=u0*1.5-k*.06;if(u<0||u>1)continue;const p=bez(a,c,b,easeOut(u));ctx.globalAlpha=1-k*.08;ctx.beginPath();ctx.arc(p.x,p.y,3-k*.2,0,Math.PI*2);ctx.fill();}});
+  SELF.forEach(s=>{const t0=s.t-.4;if(t<t0||t>s.t)return;const u0=(t-t0)/.4;for(let k=0;k<5;k++){const u=clamp(u0-k*.07,0,1);const r=lerp(36,10,easeOut(u)),a=s.a+u*2.4;
+    ctx.globalAlpha=1-k*.15;ctx.beginPath();ctx.arc(f.g.x+Math.cos(a)*r,f.g.y+Math.sin(a)*r,2.6-k*.3,0,Math.PI*2);ctx.fill();}});
+  KST.forEach(k0=>{if(t<k0.t||t>k0.t+.5)return;const u0=(t-k0.t)/.5;for(let k=0;k<8;k++){const u=clamp(u0*1.4-k*.06,0,1);if(u<=0||u>=1)continue;
+    ctx.globalAlpha=1-k*.1;ctx.beginPath();ctx.arc(lerp(k0.x,f.g.x,easeOut(u)),lerp(k0.y,f.g.y,easeOut(u))-Math.sin(u*Math.PI)*20,2.8-k*.2,0,Math.PI*2);ctx.fill();}});
+  ctx.globalAlpha=1;}
+function enemies(t,f){f.es.forEach((e,i)=>{if(!e.alive)return;const a=Math.atan2(f.g.y-e.y,f.g.x-e.x),fl=t-e.flash<.09;ctx.save();ctx.translate(e.x,e.y);
+  ctx.fillStyle='rgba(0,0,0,.4)';ctx.beginPath();ctx.ellipse(2,4,e.k==='h'?17:11,e.k==='h'?13:8,0,0,Math.PI*2);ctx.fill();ctx.rotate(a);
+  ctx.fillStyle=fl?'#ffffff':e.k==='h'?'#6f7d58':e.k==='s'?'#c29a4a':'#8fa070';ctx.strokeStyle='#1b1f16';ctx.lineWidth=2;
+  if(e.k==='s'){ctx.beginPath();ctx.moveTo(13,0);ctx.lineTo(-9,-10);ctx.lineTo(-9,10);ctx.closePath();ctx.fill();ctx.stroke();}
+  else{const s=e.k==='h'?26:17;ctx.beginPath();ctx.roundRect(-s/2,-s/2,s,s,4);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#1b1f16';ctx.fillRect(s/2-6,-s/4-1.5,3,3);ctx.fillRect(s/2-6,s/4-1.5,3,3);}
+  ctx.restore();
+  if(e.hp<e.max){ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(e.x-12,e.y+(e.k==='h'?20:14),24,3);ctx.fillStyle='#d9e0c8';ctx.fillRect(e.x-12,e.y+(e.k==='h'?20:14),24*clamp(e.hp/e.max,0,1),3);}
+  if(e.pips>0){const n=e.pips,w=n*7;for(let p=0;p<n;p++){const px=e.x-w/2+p*7+3.5,py=e.y-(e.k==='h'?24:18);ctx.fillStyle='#e0334a';ctx.beginPath();ctx.moveTo(px,py-3.5);ctx.lineTo(px+3,py);ctx.lineTo(px,py+3.5);ctx.lineTo(px-3,py);ctx.closePath();ctx.fill();}}});}
+function bullets(t){BU.forEach(b=>{if(t<b.t0||t>b.t1)return;const u=(t-b.t0)/(b.t1-b.t0),x=lerp(b.fx,b.tx,u),y=lerp(b.fy,b.ty,u);
+  ctx.fillStyle='#ffcf6b';ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,207,107,.3)';ctx.beginPath();ctx.arc(x,y,8,0,Math.PI*2);ctx.fill();});}
+function hero(x,y,a,r,trim,inside){ctx.save();ctx.translate(x,y);if(!inside){ctx.fillStyle='rgba(0,0,0,.45)';ctx.beginPath();ctx.ellipse(2,4,r,r*.75,0,0,Math.PI*2);ctx.fill();}
+  ctx.rotate(a);ctx.fillStyle='#262b36';ctx.strokeStyle=trim;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle=trim;ctx.beginPath();ctx.arc(r*.55,0,r*.3,0,Math.PI*2);ctx.fill();ctx.restore();}
+function punchExt(t,side){for(const p of PU){if(t<p.t-.14||t>p.t+.26)continue;if(!p.slam&&p.side!==side)continue;
+  if(t<p.t) return {e:-.25*(t-(p.t-.14))/.14,slam:p.slam};const u=t-p.t;return {e:u<.06?u/.06:1-(u-.06)/.2,slam:p.slam};}return {e:0,slam:false};}
+function golem(t,f){const {g,R,ang}=f;let coats=f.coats,alpha=1,Rr=R;
+  if(t>=T.collapse){const u=(t-T.collapse)/.3;if(u>1)return false;coats=Math.max(f.burst,1);alpha=1-u;Rr=lerp(24+coats*1.9,8,easeOut(u));}
+  const form=clamp((t-T.form)/.6,0,1),n=Math.max(coats,1),cs=Math.cos(ang),sn=Math.sin(ang),px=-sn,py=cs;
+  ctx.save();ctx.globalAlpha=alpha;
+  ctx.fillStyle='rgba(0,0,0,.5)';ctx.beginPath();ctx.ellipse(g.x+4,g.y+7,Rr*1.25,Rr*1.0,0,0,Math.PI*2);ctx.fill();
+  // shoulders
+  [-1,1].forEach(s=>{blob(g.x+px*s*Rr*.95-cs*Rr*.12,g.y+py*s*Rr*.95-sn*Rr*.12,Rr*.5,s*3+1,t,1.3,20);ctx.fillStyle=COAT[1];ctx.fill();ctx.strokeStyle='#26040a';ctx.lineWidth=2;ctx.stroke();});
+  // strata: outer (oldest, dried) to inner (fresh)
+  for(let c=n-1;c>=0;c--){const r=Rr*(.38+.62*(c+1)/n);blob(g.x,g.y,r,c*1.7+.5,t*(1+c*.05),1.1,30);
+    ctx.fillStyle=COAT[Math.round((n-1-c)/(Math.max(n-1,1))*11)];ctx.fill();ctx.strokeStyle='rgba(30,2,8,.75)';ctx.lineWidth=1.4;ctx.stroke();}
+  // the Hemomancer inside, and its heart
+  ctx.globalAlpha=alpha*.35;hero(g.x,g.y,ang,9,'#4f8fe0',true);ctx.globalAlpha=alpha;
+  const hb=1+.18*Math.max(0,Math.sin(t*9)),hg=ctx.createRadialGradient(g.x,g.y,0,g.x,g.y,Rr*.42*hb);
+  hg.addColorStop(0,'rgba(255,170,180,.9)');hg.addColorStop(.35,'rgba(255,60,85,.55)');hg.addColorStop(1,'rgba(255,40,60,0)');ctx.fillStyle=hg;ctx.beginPath();ctx.arc(g.x,g.y,Rr*.42*hb,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(255,200,205,.35)';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(g.x,g.y,Rr*.82,Math.PI*1.05,Math.PI*1.45);ctx.stroke();
+  // fists
+  [-1,1].forEach(s=>{const pe=punchExt(t,s);let ext=pe.e,fr=Rr*.36;if(pe.slam){fr*=1+.25*Math.max(0,-pe.e*4);ext=pe.e*.6;}
+    const fx=g.x+cs*Rr*(.62+ext*.95)+px*s*Rr*(pe.slam?.55:.86),fy=g.y+sn*Rr*(.62+ext*.95)+py*s*Rr*(pe.slam?.55:.86);
+    blob(fx,fy,fr,s*5+2,t,1.4,18);ctx.fillStyle=COAT[3];ctx.fill();ctx.strokeStyle='#26040a';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='rgba(255,170,180,.35)';for(let k=-1;k<=1;k++){ctx.beginPath();ctx.arc(fx+cs*fr*.55+px*k*fr*.45,fy+sn*fr*.55+py*k*fr*.45,fr*.16,0,Math.PI*2);ctx.fill();}});
+  // coat ring
+  if(t<T.collapse){for(let i=0;i<12;i++){const a0=-Math.PI/2+i/12*Math.PI*2+.04,a1=a0+Math.PI*2/12-.08;ctx.strokeStyle=i<f.coats?'rgba(255,85,102,.9)':'rgba(255,85,102,.15)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(g.x,g.y,Rr+10,a0,a1);ctx.stroke();}}
+  if(form<1){ctx.globalAlpha=1-form;ctx.fillStyle='#ffe3e6';blob(g.x,g.y,Rr*1.05,1,t,1,30);ctx.fill();}
+  ctx.restore();return true;}
+function gathering(t,f){const {g}=f;const sh=f.coats>8?Math.sin(t*60)*.8:0;hero(g.x+sh,g.y,f.ang,11,'#4f8fe0');
+  for(let c=0;c<f.coats;c++){blob(g.x+sh,g.y,11+c*1.45,c*1.7,t*2,1.6,22);ctx.strokeStyle=COAT[11-c];ctx.lineWidth=2.6;ctx.stroke();}}
+function clot(t){if(!HURL||t<HURL.t0-.3||t>HURL.t1)return;if(t<HURL.t0)return;const u=(t-HURL.t0)/(HURL.t1-HURL.t0);
+  const x=lerp(HURL.fx,HURL.tx,u),y=lerp(HURL.fy,HURL.ty,u)-Math.sin(u*Math.PI)*70,s=1+Math.sin(u*Math.PI)*.4;
+  ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(lerp(HURL.fx,HURL.tx,u),lerp(HURL.fy,HURL.ty,u),9,6,0,0,Math.PI*2);ctx.fill();
+  blob(x,y,10*s,3,t*4,2,16);ctx.fillStyle=COAT[4];ctx.fill();ctx.strokeStyle='#26040a';ctx.lineWidth=2;ctx.stroke();}
+function rings(t){RG.forEach(r=>{if(t<r.t||t>r.t+r.dur)return;const u=(t-r.t)/r.dur;ctx.strokeStyle=`rgba(${r.c},${1-u})`;ctx.lineWidth=r.w*(1-u)+1;
+  ctx.beginPath();ctx.arc(r.x,r.y,lerp(r.r0,r.r1,easeOut(u)),0,Math.PI*2);ctx.stroke();});}
+function chunks(t){CH.forEach(c=>{if(t<c.t)return;const u=clamp((t-c.t)/c.dur,0,1);if(u>=1&&!c.land)return;
+  const d=c.sp*easeOut(u),x=c.x+Math.cos(c.a)*d,y=c.y+Math.sin(c.a)*d-Math.sin(u*Math.PI)*12;
+  if(u>=1){ctx.fillStyle='rgba(95,10,22,.85)';blob(x,y,c.size*.9,c.seed,0,2,12);ctx.fill();return;}
+  blob(x,y,c.size,c.seed,t*6,2,12);ctx.fillStyle=COAT[2];ctx.fill();ctx.strokeStyle='#26040a';ctx.lineWidth=1;ctx.stroke();});}
+function texts(t){ctx.textAlign='center';TX.forEach(x=>{if(t<x.t||t>x.t+.9)return;const u=(t-x.t)/.9;ctx.globalAlpha=1-u*u;
+  ctx.font=`700 ${x.big?17:14}px "Barlow Condensed",sans-serif`;ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.8)';ctx.strokeText(x.s,x.x,x.y-u*24);ctx.fillStyle=x.c;ctx.fillText(x.s,x.x,x.y-u*24);});ctx.globalAlpha=1;ctx.textAlign='left';}
+function frameAt(t){return F[clamp(Math.floor(t*FPS),0,N)];}
+function phaseOf(t){return PHASES.find(p=>t>=p[1]&&t<p[2])||PHASES[PHASES.length-1];}
+function draw(t){const f=frameAt(t);floor();pools(t);splats(t);ranges(t,f);sigil(t,f);enemies(t,f);bullets(t);
+  hero(f.ally.x,f.ally.y,Math.atan2(f.g.y-f.ally.y,f.g.x-f.ally.x),10,'#5fc46a');
+  drops(t,f);
+  if(t<T.form) gathering(t,f); else if(!golem(t,f)) hero(f.g.x,f.g.y,f.ang,11,'#4f8fe0');
+  clot(t);chunks(t);rings(t);texts(t);
+  const v=ctx.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,W*.62);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.45)');ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
+  ui(t,f);}
+
+// ---------- page ----------
+const $=id=>document.getElementById(id);
+$('bands').innerHTML=PHASES.map(p=>`<i style="width:${(p[2]-p[1])/LOOP*100}%;background:${p[3]}" title="${p[0]}"></i>`).join('');
+$('marks').innerHTML=[0,2.6,8,13.2,16].map((s,i,a)=>`<span style="left:${s/LOOP*100}%;transform:translateX(${i===0?'0':i===a.length-1?'-100%':'-50%'})">${s} s</span>`).join('');
+const MOMENTS=[[0,'Cast','A sigil opens under you; its 12 marks fill as coats land.'],
+  [.6,'Tear the stacks','Every blood stack within 300 px is ripped off its enemy and flies to you: one coat each.'],
+  [1.65,'Pay in blood','Coats the stacks didn\'t cover come from your own health, 2.5% each.'],
+  [2.6,'Form','Twelve coats harden into the golem; the shockwave shoves enemies back.'],
+  [3.45,'Golem Fist','Left, right, Slam. Every hit adds a blood stack, ready for the next golem.'],
+  [4.8,'Shedding','Each 8% of armor shot off falls away as a chunk. Kills grow a coat back.'],
+  [7.55,'Hurl Clot','Alt tears off a coat and lobs it; it splashes and leaves a slowing pool.'],
+  [13.2,'Collapse','The coats left burst outward and pay back 2% health each; allies heal in the splash.']];
+$('moments').innerHTML=MOMENTS.map((m,i)=>`<li data-i="${i}"><button type="button" data-t="${m[0]}"><time>${m[0].toFixed(2)} s</time><div><b>${m[1]}</b><span>${m[2]}</span></div></button></li>`).join('');
+$('moments').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;t=+b.dataset.t;playing=true;$('play').textContent='Pause';});
+function ui(t,f){const ph=phaseOf(t);$('phaseTag').textContent=ph[0];$('rPhase').textContent=ph[0];
+  $('rTime').textContent=t>=T.golem&&t<T.collapse?(T.collapse-t).toFixed(1)+' s':'–';
+  $('rCoats').textContent=f.coats+' / 12';$('rCoatBar').style.width=f.coats/12*100+'%';
+  $('rArmor').textContent=t>=T.form&&t<T.collapse?f.coats*8+'% max hp':'–';
+  $('rHp').textContent=f.hp.toFixed(1)+'%';$('rHpBar').style.width=f.hp+'%';$('rKills').textContent=f.kills;
+  $('scrub').value=t;$('clock').textContent=t.toFixed(2)+' s';
+  let on=-1;MOMENTS.forEach((m,i)=>{if(t>=m[0])on=i;});document.querySelectorAll('#moments li').forEach((li,i)=>li.classList.toggle('on',i===on));}
+let t=0,playing=!matchMedia('(prefers-reduced-motion: reduce)').matches,last=performance.now();
+if(!playing){t=6.2;$('play').textContent='Play';}
+$('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'Pause':'Play';};
+$('scrub').oninput=e=>{t=+e.target.value;};
+$('tRange').onchange=()=>{if(!playing)draw(t);};
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(playing){t+=dt*($('tSlow').checked?.35:1);if(t>=LOOP)t=0;}draw(t);requestAnimationFrame(loop);}
+requestAnimationFrame(loop);
+})();
+</script>
