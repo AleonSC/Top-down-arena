@@ -665,6 +665,7 @@ namespace Arena
                 s.Vec(ref p.ApPos);
             }
             s.Float(ref p.ApLinkT);
+            s.Float(ref p.HbT);  // Heartbeat (Heartbeat.cs)
             s.Float(ref p.BubT);  // Static Bubble (StaticBubble.cs)
             if (p.BubT > 0f)
             {

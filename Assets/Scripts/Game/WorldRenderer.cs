@@ -218,6 +218,7 @@ namespace Arena
             DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon (DragonsDogmaLook.cs)
             DrawRavagerDrops();  // Blood Ravager's drops (BloodRavagerLook.cs)
             DrawBoilOver();  // Blood Boil's bubbles and steam (BloodBoilLook.cs)
+            DrawHeartbeatOver();  // Heartbeat's flung drops and the heart on the chest (HeartbeatLook.cs)
             DrawRodentAfter(t);  // the Rodent Minigun's rodents scampering off and its cheese crumbs (RodentMinigunLook.cs)
         }
 
@@ -230,6 +231,7 @@ namespace Arena
             DrawRankTrails(t);  // a rank reward drawn under everyone (RankTrails.cs)
             DrawRavagerStains(t);  // Blood Ravager's footprints (BloodRavagerLook.cs)
             DrawBoilFloor(t);  // Blood Boil's boiling puddles (BloodBoilLook.cs)
+            DrawHeartbeatFloor(t);  // Heartbeat's stains (HeartbeatLook.cs)
             foreach (var p in game.Players.Values)
                 if (!FpHidesMe(p))  // (first person: your own auras would fill the screen, FirstPerson.cs)
                     DrawPlayerAuras(p, t);
@@ -519,6 +521,7 @@ namespace Arena
             DrawRavagerUnder(p, t);  // Blood Ravager's glow, reach ring and back legs (BloodRavagerLook.cs)
             DrawBoilUnder(p, t);  // Blood Boil's glow, heat rings and time arc (BloodBoilLook.cs)
             DrawForbiddenAura(p, t);  // Forbidden Path's time ring, lock chain, Spiral trail and Gate runes (ForbiddenPathLook.cs)
+            DrawHeartbeatUnder(p, t);  // Heartbeat's veins, waves, reach ring and pips (HeartbeatLook.cs)
             DrawStaticBubble(p, t);  // Static Bubble round its caster, Static Rush on anyone (StaticBubbleLook.cs)
             DrawAstralUnder(p, t);  // Astral Projection's ward, silver cord, tether ring and beam (AstralProjectionLook.cs)
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)

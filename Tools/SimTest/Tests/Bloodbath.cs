@@ -21,9 +21,9 @@ static partial class Program
         // The table: key 0 stays Vein Tithe, key 1 is Bloodbath; other classes have one.
         var def = Upgrades.Ability(AbilityId.Bloodbath);
         Check(Upgrades.Ultimate(Role.Tank, Kit.Hemomancer) == AbilityId.VeinTithe && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath
-            && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 2) == AbilityId.None && Upgrades.AltUltimate(Role.Healer, Kit.Hemomancer, 1) == AbilityId.None
+            && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 2) == AbilityId.None && Upgrades.AltUltimate(Role.Healer, Kit.Hemomancer, 1) == AbilityId.Heartbeat
             && Upgrades.AltUltimate(Role.Tank, Kit.Soldier, 1) == AbilityId.JuggernautSuit
-            && Upgrades.Ultimate(Role.Healer, Kit.Hemomancer, 1) == AbilityId.SanguineRain && Upgrades.Ultimate(Role.Wildcard, Kit.Hemomancer, 3) == AbilityId.CrimsonHarvest,  // (key 2 is the DPS Hemomancer's Blood Boil now: BloodBoil.cs)
+            && Upgrades.Ultimate(Role.Healer, Kit.Hemomancer, 2) == AbilityId.SanguineRain && Upgrades.Ultimate(Role.Wildcard, Kit.Hemomancer, 3) == AbilityId.CrimsonHarvest,  // (key 2 is the DPS Hemomancer's Blood Boil now: BloodBoil.cs; key 1 the Healer Hemomancer's Heartbeat: Heartbeat.cs)
             "the Tank Hemomancer has two ultimates (Vein Tithe the default, Bloodbath second); a pick a class lacks falls back to its default");
         Check(def.Name == "Bloodbath" && def.Cooldown == 75f && def.HealthCost == 0f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Kit == Kit.Hemomancer && def.Role == Role.Tank,
             "Bloodbath: a 75 s Tank Hemomancer ultimate channelled, with nothing up front");

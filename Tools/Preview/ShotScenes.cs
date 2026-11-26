@@ -1148,6 +1148,7 @@ static partial class Shot {
     RodentMinigunScene();  // RODENT=<s since the cast> [RODENTAIM=<deg>] (ShotRodentMinigun.cs)
     MammothFallScene();  // MAMMOTH=<s since the cast> (ShotMammothFall.cs)
     ForbiddenPathScene();  // FORBIDDEN=<s since the cast> (ShotForbiddenPath.cs)
+    HeartbeatScene();  // HEARTBEAT=<s since the cast>: the Healer Hemomancer's Heartbeat (ShotHeartbeat.cs)
     StaticBubbleScene();  // BUBBLE=<s since the cast> [BUBFILL=<0-1>] [BUBBURST=<s>]: the Healer Elementalist's Static Bubble (ShotStaticBubble.cs)
     AstralScene();  // ASTRAL=<s since the cast>: the Healer Ninja's Astral Projection, Fire held (ShotAstral.cs)
     SpiritAvatarScene();  // SPIRIT=<s since the cast>: the Tank Ninja's Spirit Avatar, Fire held (ShotSpiritAvatar.cs)
