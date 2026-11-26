@@ -1781,6 +1781,47 @@ static partial class Shot {
       GL.Tris.Clear(); GUI.Log.Clear();
       foreach (var q in gm.Players.Values) q.Disp = q.Pos;
     }
+    // HEARTFLAIL=<s>: the Healer Hemomancer's Heart Flail (Core/HeartFlail.cs, Game/HeartFlailLook.cs) that long in. HFMODE: swing (a click at 0:
+    // the swing lands about 0.15 s), spin (Fire held from 0; spinning from 0.22 s), throw (Alt at 0: rooted from 0.25 s, veins to the hurt
+    // teammate by the cursor), burst (the beat at 180: the Cardiac Burst on the next beat). Hurt teammates, dummy enemies round you.
+    if (Environment.GetEnvironmentVariable("HEARTFLAIL") != null) {
+      var ci = System.Globalization.CultureInfo.InvariantCulture;
+      var gm = host.Game; gm.Bot = false; gm.Bullets.Clear(); gm.Effects.Clear(); gm.Enemies.Clear();
+      me.Role = Role.Healer; me.Kit = Kit.Hemomancer; me.Def = Defs.Get(Role.Healer); me.Weapon = Defs.Weapon(Role.Healer, Kit.Hemomancer, 3); me.MaxHp = me.Hp = me.Def.Hp; foreach (var sl in me.Slots) sl.Id = AbilityId.None; foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
+      string mode = Environment.GetEnvironmentVariable("HFMODE") ?? "swing";
+      V2 home = new V2(500f, 420f); me.Pos = me.Disp = home; me.Aim = 0f;
+      var mates = new System.Collections.Generic.List<Player>();
+      foreach (var q in gm.Players.Values) if (q != me) mates.Add(q);
+      var mateAt = mode == "throw" ? new[] { new V2(250f, 110f), new V2(-90f, -120f) } : new[] { new V2(-40f, 110f), new V2(-110f, -90f) };
+      for (int i = 0; i < mates.Count && i < 2; i++) { mates[i].Pos = mates[i].Disp = home + mateAt[i]; mates[i].Firing = false; mates[i].Hp = mates[i].MaxHp * 0.4f; }
+      var spawnAt = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var foes = new System.Collections.Generic.List<Enemy>();
+      var spots = mode == "throw" ? new[] { new V2(290f, -20f), new V2(330f, 40f), new V2(150f, -120f) }
+                : new[] { new V2(100f, -30f), new V2(95f, 45f), new V2(-110f, 20f), new V2(20f, -118f), new V2(210f, 0f) };
+      foreach (var at0 in spots) {
+        var e = (Enemy)spawnAt.Invoke(gm, new object[] { EnemyType.Grunt, home + at0, 0f, 0, false }); e.Speed = 0f; e.FireT = 99f; e.SpawnT = 0f; e.MaxHp = e.Hp = 1e6f; e.Disp = e.Pos; foes.Add(e); }
+      if (mode == "burst") {
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = home + new V2(300f, 0f) });
+        var hf = (System.Collections.IDictionary)typeof(Game).GetField("hfHost", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(gm);
+        var h = hf[me.Id]; h.GetType().GetField("BpmF").SetValue(h, Game.HfBpmMax); h.GetType().GetField("Beat").SetValue(h, 0.55f);
+      }
+      var draw = typeof(ArenaApp).GetMethod("DrawWorld", f2);
+      int frames = Math.Max(1, (int)Math.Round(float.Parse(Environment.GetEnvironmentVariable("HEARTFLAIL"), ci) * 60f));
+      V2 cursor = mode == "throw" ? home + new V2(280f, 30f) : home + new V2(300f, 0f);
+      for (int f = 0; f < frames; f++) {
+        foreach (var e in foes) { e.Disp = e.Pos; e.FireT = 99f; }
+        Time.unscaledDeltaTime = 1f / 60f; Time.unscaledTime += 1f / 60f; Time.deltaTime = 1f / 60f;
+        bool fire = mode == "spin" || mode == "burst" ? true : mode == "swing" && f < 2;
+        gm.FixedStep(1f / 60f, new PlayerInput { AimAt = cursor, Fire = fire, WeaponAction = mode == "throw" && f < 2 });
+        gm.Update(1f / 60f);
+        me.Pos = home; me.Disp = me.Pos; me.Aim = 0f; me.AimAt = cursor; me.Hp = me.MaxHp;
+        for (int i = 0; i < mates.Count && i < 2; i++) { mates[i].Pos = mates[i].Disp = home + mateAt[i]; }
+        foreach (var e in foes) { e.Pos = e.Disp = home + spots[foes.IndexOf(e)]; }
+        draw.Invoke(app, null);
+      }
+      GL.Tris.Clear(); GUI.Log.Clear();
+      foreach (var q in gm.Players.Values) q.Disp = q.Pos;
+    }
     // WINDCLASH=<s>: the Tank Elementalist's Wind Clash (Core/WindClash.cs, Game/WindClashLook.cs) that long into the combo, Fire held from 0:
     // crescent at 0, back crescent at 0.34 s, gale lance at 0.68 s, clash ring at 1.12 s. WCALT=1: Alt (Tempest) at 0 instead, the
     // enemies shooting at you (their shots are caught and spin round you).

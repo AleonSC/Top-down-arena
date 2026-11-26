@@ -981,6 +981,15 @@ namespace Arena
             s.Float(ref p.TtGustCd);
             s.Float(ref p.TtTailT);
             s.Byte(ref p.TtBreeze);
+            s.Byte(ref p.HfMode);  // the Heart Flail (HeartFlail.cs)
+            s.Byte(ref p.HfBpm);
+            s.Byte(ref p.HfBeats);
+            s.Float(ref p.HfT);
+            s.Float(ref p.HfAng);
+            s.Float(ref p.HfCd);
+            s.SByte(ref p.HfSide);
+            s.Float(ref p.HfAim0);
+            s.Vec(ref p.HfPos);
             s.Float(ref p.ChitinHp);  // the Hive Censer (HiveCenser.cs)
             s.Bool(ref p.HiveOn);
             s.Vec(ref p.HivePour);

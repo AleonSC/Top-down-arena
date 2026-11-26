@@ -171,6 +171,8 @@ namespace Arena
         BumbleRemote,
         // the Healer Summoner's fourth (HiveCenser.cs): insects poured from the cursor that swarm enemies and shell allies, Hive Call on Alt
         HiveCenser,
+        // the Healer Hemomancer's fourth (HeartFlail.cs): a living heart on a chain of veins, Open Heart on Alt
+        HeartFlail,
     }
 
     public class WeaponDef

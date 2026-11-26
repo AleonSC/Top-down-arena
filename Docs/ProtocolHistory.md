@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
 - 530: Honey Raid (Healer Summoner second ultimate, key 1): `AbilityId.HoneyRaid` and `ZoneKind.HoneyRaid` (each at the end); the zone sync sends its `Origin` (where the bee came in).
+- 530: Heart Flail (Healer Hemomancer 4th weapon): `WeaponId.HeartFlail`, `FxKind.HeartDrops`/`HeartPulse`/`HeartBurst` (at the end), `Player.HfMode`/`HfBpm`/`HfBeats`/`HfT`/`HfAng`/`HfCd`/`HfSide`/`HfAim0`/`HfPos` in the player sync after `TtBreeze`, `Msg.WeaponDash` kind 71 (`WeaponAlt.HeartThrow`), the Rare card Pacemaker (card ids shift).
 - 529: Blood Golem (the Tank Hemomancer's third ultimate): `Player.GolT`, `GolAge`, `GolCoats`, `GolPunch` in the player snapshot; `AbilityId.BloodGolem`; `FxKind.GolemFx`; Msg.WeaponDash kind 70 (Hurl Clot).
 - 528: Siege Bell (Tank Knight 4th choice): `AbilityId.SiegeBell`, `FxKind.SiegeBell` and `Sfx.SiegeBell` (each at the end).
 - 527: Player gains Sanctum Glass (GlassT, and while it's up GlassPos, GlassAim, GlassWide, GlassHealed, GlassCap); AbilityId.SanctumGlass; FxKind.GlassMote, GlassShatter

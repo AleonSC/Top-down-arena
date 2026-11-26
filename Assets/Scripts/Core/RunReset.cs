@@ -19,6 +19,7 @@ namespace Arena
             coatings.Clear(); freezeWaves.Clear(); shockRuns.Clear(); harvestTargets.Clear(); harvests.Clear(); waves.Clear();
             Ink.Clear(); pens.Clear(); hands.Clear();
             ResetHive();  // HiveCenser.cs
+            heartDrops.Clear(); hfHost.Clear();  // HeartFlail.cs
             // enemies and bosses
             dives.Clear(); scytheCuts.Clear(); throwHits.Clear();
             steerMem.Clear();  // LayoutRules.cs: keyed by enemy id
