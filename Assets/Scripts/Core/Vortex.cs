@@ -152,6 +152,8 @@ namespace Arena
                     foreach (var e in AllFoes(by: p.Id))
                         if (e.Pos.CloserThan(p.Pos, R + e.Radius) && !DevourUnder(e) && !GutwormUnder(e))
                         {
+                            V2 off = e.Pos - p.Pos;
+                            WindHit(e, new V2(-off.Y, off.X));  // wind: the swirl's way round (Wind.cs: chills the wet, fans the burning)
                             HurtEnemy(e, dmg, p.Id);
                             p.VortexHits++;
                         }
