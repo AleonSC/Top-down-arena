@@ -107,7 +107,7 @@ static partial class Program
         step(Game.BoltChannel);
         Check(Game.BoltCharged(me) && Game.BoltSpeed(me) == 1f, "past the channel you're electrified and move freely");
         var onPath = make(home + new V2(150f, 12f), EnemyType.Grunt);
-        var heavyType = Enum.GetValues(typeof(EnemyType)).Cast<EnemyType>().First(t => (int)t < 250 && Defs.Get(t).Heavy && !Defs.Get(t).IsBoss && Defs.Get(t).Speed > 0f);
+        var heavyType = HeavyFoe(moving: true);
         var heavy = make(home + new V2(220f, -20f), heavyType);
         var offPath = make(home + new V2(150f, 120f), EnemyType.Grunt);
         foreach (var e in new[] { onPath, heavy, offPath }) e.FrozenT = 0f;

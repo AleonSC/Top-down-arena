@@ -769,6 +769,27 @@ namespace Arena
         public static RoleDef Get(Role r) => Roles[(int)r];
         public static EnemyDef Get(EnemyType t) => Enemies[(int)t];
 
+        /// The second halves of a boss fight: IsBoss enemies that aren't a boss of their own (the Twin Reapers are one
+        /// fight, named by the Reaper of Dusk).
+        public static readonly EnemyType[] BossParts = { EnemyType.ReaperOfDawn, EnemyType.DualReaper };
+        static EnemyType[] bosses;
+        /// Every boss fight, one entry each, in EnemyType order: each IsBoss enemy but the BossParts. A new boss (IsBoss)
+        /// joins it, so the tests that loop over it (stage tables, wiki phases, the Campaign's cycle) cover it.
+        public static EnemyType[] Bosses
+        {
+            get
+            {
+                if (bosses == null)
+                {
+                    var list = new List<EnemyType>();
+                    for (int i = 0; i < Enemies.Length; i++)
+                        if (Enemies[i].IsBoss && Array.IndexOf(BossParts, (EnemyType)i) < 0) list.Add((EnemyType)i);
+                    bosses = list.ToArray();
+                }
+                return bosses;
+            }
+        }
+
         // Bullet kinds. Kinds >= SmallShot belong to enemies.
         public const byte TankShot = 0, HealerShot = 1, DpsShot = 2, TurretShot = 3, NovaShot = 4, FlakShell = 5, RailShot = 6, WispShot = 7, GrenadeShot = 8, SwarmShot = 9, SmallShot = 10, BigShot = 11, FastShot = 12, MineShot = 13, PierceShot = 14, StunShot = 15, HoneyShot = 16, HollowShot = 17, BileShot = 18, ToothShot = 19,
             // more player kinds (enemy kinds are 10-19)

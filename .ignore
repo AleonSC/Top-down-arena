@@ -3,3 +3,4 @@
 Docs/Mockups/
 Docs/History.md
 *.Generated.cs
+Tools/SimTest/Golden/

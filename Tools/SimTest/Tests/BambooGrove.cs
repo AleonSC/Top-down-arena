@@ -63,8 +63,7 @@ static partial class Program
             me.Slots[0].Charges = 1; me.Slots[0].Timer = 0f; me.Pos = home; me.Downed = false; me.Hp = me.MaxHp;
             me.MasteryXp.Remove(AbilityId.BambooGrove); me.Stats.BgRadiusMult = 1f; me.Stats.BgBleedMult = 1f;
         };
-        EnemyType heavyType = EnemyType.Grunt;
-        foreach (EnemyType et in Enum.GetValues(typeof(EnemyType))) { if ((int)et >= Defs.Enemies.Length) continue; var d = Defs.Get(et); if (d != null && d.Heavy && !d.IsBoss) { heavyType = et; break; } }
+        var heavyType = HeavyFoe();
 
         // The real key path: a press casts it; nothing lands during the wind-up.
         reset();

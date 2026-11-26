@@ -290,8 +290,7 @@ static partial class Program
         g.Players[1] = new Player { Id = 1, Role = Role.Tank, FirstAbility = Upgrades.FirstAbility(Role.Tank, Kit.Soldier, 0) };
         g.Players[2] = new Player { Id = 2, Role = Role.Dps, FirstAbility = Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0) };
         Console.WriteLine("  boss          home  HP@home   after 10  after 20  after 30   (x of its home health)");
-        foreach (var b in new[] { EnemyType.Warden, EnemyType.HiveQueen, EnemyType.ReaperOfDusk, EnemyType.Singularity, EnemyType.Colossus,
-                                  EnemyType.Duelist, EnemyType.Lich, EnemyType.StormHerald, EnemyType.Devourer, EnemyType.Eclipse })
+        foreach (var b in Defs.Bosses)
         {
             int home = QuickPlay.HomeWave(b);
             float h0 = g.SpawnHp(b, home);

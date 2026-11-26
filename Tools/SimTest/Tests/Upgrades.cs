@@ -343,7 +343,8 @@ static partial class Program
     {
         var s = StartBuffed(dt, 6, 0);
         var offer = Upgrades.ModOffer(new OfferCtx(Role.Dps, Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0), new List<int>()));
-        Check(offer != null && offer.Length == 8, "the weapon mod offer lists all 8 mods");
+        int mods = Upgrades.All.Count(u => u.Rarity == Rarity.Mod);
+        Check(offer != null && offer.Length == mods, "the weapon mod offer lists all " + mods + " mods");
         foreach (int id in offer)
             for (int k = 0; k < 3; k++)
             {

@@ -227,7 +227,7 @@ static partial class Program
         var onLine = Dummy(EnemyType.Grunt, home + new V2(200f, 0f));
         var near = Dummy(EnemyType.Grunt, home + new V2(300f, 40f));
         var far = Dummy(EnemyType.Grunt, home + new V2(300f, 120f));
-        var heavyType = ((EnemyType[])Enum.GetValues(typeof(EnemyType))).First(t => Defs.Get(t) != null && Defs.Get(t).Heavy && !Defs.Get(t).IsBoss && !Defs.Get(t).Mini && Defs.Get(t).Speed > 0f);
+        var heavyType = FirstEnemy(d => d.Heavy && !d.IsBoss && !d.Mini && d.Speed > 0f);
         var heavy = Dummy(heavyType, home + new V2(400f, -40f));
         V2[] was = { onLine.Pos, near.Pos, far.Pos, heavy.Pos };
         typeof(Game).GetMethod("FocusArrow", flags).Invoke(g, new object[] { hp, home + new V2(hp.Def.BodyR, 0f), 0f, 1f });
