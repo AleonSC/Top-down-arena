@@ -414,6 +414,8 @@ namespace Arena
         /// One new effect's feel (hit-stops and shakes) for the weapon or ability that made it.
         void EffectFeel(Effect fx, Player me)
         {
+            if (fx.Kind == FxKind.RocketBlast && trauma < 0.4f && me != null && me.Pos.DistanceTo(fx.Pos) < 700f)
+                Shake(0.14f);  // a Rocket Drop rocket's blast (RocketDropLook.cs)
             if (fx.Kind == FxKind.Repulse && trauma < 0.3f && me != null && me.Pos.DistanceTo(fx.Pos) < 40f)
                 Shake(0.1f);  // your own cannon's kick: very small, and it never builds up (RepulseLook.cs)
             if (fx.Kind == FxKind.PerfectParry && (int)fx.Pos2.X == game.MyId)

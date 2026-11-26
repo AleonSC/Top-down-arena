@@ -804,6 +804,14 @@ namespace Arena
                     float od = o.Pos.DistanceTo(me.Pos) - 8f;
                     if (od < lureD) { lureD = od; ms.lurePos = o.Pos; ms.lureR = 8f; ms.lure = true; }
                 }
+            var pod = RocketPodFor(me);  // your own Rocket Drop pod: go and take the launcher (RocketDrop.cs)
+            if (pod != null)
+            {
+                lureD = 0f;
+                ms.lurePos = pod.Pos;
+                ms.lureR = RocketTakeR * 0.5f;
+                ms.lure = true;
+            }
         }
 
         /// The Warden's gates (Lockdown, Warden.cs): a wall of push bullets the width of the arena, with doors near the

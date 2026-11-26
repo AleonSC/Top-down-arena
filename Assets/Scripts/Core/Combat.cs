@@ -217,7 +217,7 @@ namespace Arena
         /// Shots thrown in an arc (grenades, boulders, Gore Mortar clots, medkits): they fly over what's below and land.
         static bool Lobbed(byte kind) => kind == Defs.GrenadeShot || kind == Defs.BoulderShot || kind == Defs.ClotShot || kind == Defs.MedkitShot || kind == Defs.HoneyGlob;
 
-        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop && kind != Defs.HoneyGlob && kind != Defs.TankShell && kind != Defs.HorseArrow && kind != Defs.RodentShot && kind != Defs.Senbon && kind != Defs.BallistaBolt;
+        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop && kind != Defs.HoneyGlob && kind != Defs.TankShell && kind != Defs.RocketShell && kind != Defs.HorseArrow && kind != Defs.RodentShot && kind != Defs.Senbon && kind != Defs.BallistaBolt;
 
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false, float homing = 0f)
         {
@@ -247,6 +247,8 @@ namespace Arena
                 return Sfx.ShotBow;  // a Trojan Horse's arrow (TrojanHorse.cs)
             if (kind == Defs.TankShell)
                 return Sfx.LitTankCannon;  // A Literal Tank's main gun (LiteralTank.cs, LitTankSoundBank.cs)
+            if (kind == Defs.RocketShell)
+                return Sfx.KnuckleRocket;  // a Rocket Drop rocket's thruster (RocketDrop.cs)
             if (kind == Defs.RodentShot)
                 return Sfx.RodentSqueak;  // a Rodent Minigun rodent (RodentMinigun.cs, RodentSoundBank.cs)
             if (kind == Defs.Senbon)
@@ -344,8 +346,8 @@ namespace Arena
                     scratchIds.Add(b.Id);
                     if (Walled && b.Life > 0f)
                         AddFx(FxKind.Ring, b.Pos.Clamp(lo, hi), Defs.BulletColor(b.Kind), 7f, 0.18f);  // a spark on the wall
-                    if (b.Burst > 0 && b.Life <= 0f)
-                        landed.Add(b);
+                    if (b.Burst > 0 && (b.Life <= 0f || b.Kind == Defs.RocketShell))
+                        landed.Add(b);  // (a rocket bursts at the arena's edge too: RocketDrop.cs)
                     if (b.ShadowKunai)
                         ShadowKunaiLanded(b, b.Pos);  // a shadow kunai that missed marks where it stopped (host only: clients don't know which it was)
                 }
@@ -376,6 +378,13 @@ namespace Arena
                 {
                     string landSrc = CreditTo(BulletSrc(b));
                     LandClot(b);  // Hemomancer.cs
+                    dmgSrc = landSrc;
+                    continue;
+                }
+                if (b.Kind == Defs.RocketShell)
+                {
+                    string landSrc = CreditTo(BulletSrc(b));
+                    RocketBurst(b);  // RocketDrop.cs
                     dmgSrc = landSrc;
                     continue;
                 }
@@ -542,7 +551,11 @@ namespace Arena
                 if (Lobbed(b.Kind) || b.Kind == Defs.FlakShell || b.Tossed)
                     continue;  // grenades, boulders, Gore Mortar clots, medkits, flak shells and tossed caltrops fly over enemies and land or burst where you aimed
                 if (WorldStops(b))
+                {
                     scratchIds.Add(b.Id);
+                    if (b.Kind == Defs.RocketShell && b.Burst > 0)
+                        RocketHits(b);  // a rocket bursts on the wall (RocketDrop.cs)
+                }
                 else if (!Defs.IsEnemyShot(b.Kind))
                     PlayerShotHits(b);
                 else
@@ -620,6 +633,12 @@ namespace Arena
         /// A player's shot touching enemy e: a shield or mirror sends it back, else it hurts and its on-hit effects run.
         void ShotHitsEnemy(Bullet b, Enemy e)
         {
+            if (b.Kind == Defs.RocketShell && b.Burst > 0)
+            {
+                RocketHits(b);  // a rocket bursts on the first enemy it touches, shield or not (RocketDrop.cs)
+                scratchIds.Add(b.Id);
+                return;
+            }
             if (BlocksShot(e, b.Pos))
             {
                 var guard = BrainOf(e.Type)?.Guard;

@@ -733,6 +733,16 @@ namespace Arena
                     TickHospital(z, dt);  // orbs, shrine, laser gate (FieldHospital.cs)
                     continue;
                 }
+                if (z.Kind == ZoneKind.RocketDrop)
+                {
+                    TickRocketDrop(z, dt);  // the slam, the launcher taken (RocketDrop.cs)
+                    continue;
+                }
+                if (z.Kind == ZoneKind.RocketFire)
+                {
+                    TickRocketFire(z, dt);  // the burn (RocketDrop.cs)
+                    continue;
+                }
                 if (z.Kind == ZoneKind.ArmorDrop)
                 {
                     TickArmorDrop(z, dt);  // the landing, the vests (ArmorDrop.cs)
