@@ -17,20 +17,19 @@ static partial class Program
         var masteredField = typeof(Game).GetField("castMastered", flags);
 
         var def = Upgrades.Ability(AbilityId.WarhornVolley);
-        Check(def.Name == "Warhorn Volley" && def.Cooldown == 70f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Kit == Kit.Knight && def.Role == Role.Dps && def.Capstone != null,
-            "Warhorn Volley is the DPS Knight's ultimate on key 1, 70 s");
-        Check(Upgrades.Ultimate(Role.Dps, Kit.Knight) == AbilityId.Drawbridge && Upgrades.Ultimate(Role.Dps, Kit.Knight, 1) == AbilityId.WarhornVolley
+        Check(def.Name == "Warhorn Volley" && def.Cooldown == 70f && def.Choice == AbilityDef.Ult && def.UltKey == 0 && def.Kit == Kit.Knight && def.Role == Role.Dps && def.Capstone != null,
+            "Warhorn Volley is the DPS Knight's default ultimate, 70 s");
+        Check(Upgrades.Ultimate(Role.Dps, Kit.Knight) == AbilityId.WarhornVolley && Upgrades.Ultimate(Role.Tank, Kit.Knight, 2) == AbilityId.Drawbridge
             && Upgrades.AbilityLimit(Role.Dps, Kit.Knight) == 4,
-            "the Drawbridge stays the default; key 1 is Warhorn Volley; the 1st ability has four choices (the 4th is Cannon Call)");
+            "Warhorn Volley is the default; the Drawbridge is the Tank Knight's key 2; the 1st ability has four choices (the 4th is Cannon Call)");
 
         int port = nextPort++;
         var host = HostAs(new Session { AutoStart = 9, StartWave = 3 }, port, false, "Knight", Role.Dps, 0, 0, Kit.Knight);
         var client = JoinAs(port, false, "Friend", Role.Tank, 0, 0, Kit.Knight);
         WaitForLobby(host, client);
         Action settle = () => { for (int i = 0; i < 40; i++) { host.Poll(); client.Poll(); Nap(1); } };
-        host.RequestUlt(1);
         settle();
-        Check(host.Lobby[1].Ult == 1 && client.Lobby[1].Ult == 1 && host.Lobby[1].UltId == AbilityId.WarhornVolley, "the pick reaches everyone");
+        Check(host.Lobby[1].Ult == 0 && client.Lobby[1].Ult == 0 && host.Lobby[1].UltId == AbilityId.WarhornVolley, "the default pick reaches everyone");
         host.StartMatch();
         var s = new[] { host, client };
         WaitForGame(host, client, dt);
