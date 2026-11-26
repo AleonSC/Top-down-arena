@@ -113,6 +113,7 @@ namespace Arena
             { "Sacred Ground", "sacredground" },
             { "Bulwark", "bulwark" },
             { "Miracle", "miracle" },
+            { "Rose Window", "sanctumglass" },
             { "Coup de Grace", "bladeddive" },
             { "Iron Grip", "gauntlet" },
             { "Forged Edge", "caughtsteel" },
@@ -2317,6 +2318,21 @@ namespace Arena
                 ".......kk...",
                 "............",
                 "............",
+            },
+            ["sanctumglass"] = new[]  // Sanctum Glass: a pane of stained glass in a lead frame, a healing cross in light below
+            {
+                "............",
+                ".kkkkkkkkkk.",
+                ".krrkbbkyyk.",
+                ".krrkbbkyyk.",
+                ".kkkkkkkkkk.",
+                ".knnkvvkrrk.",
+                ".knnkvvkrrk.",
+                ".kkkkkkkkkk.",
+                "............",
+                ".....nn.....",
+                "....nwwn....",
+                ".....nn.....",
             },
             ["galewall"] = new[]  // Gale Wall: gusts of wind curling back on themselves
             {

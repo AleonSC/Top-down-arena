@@ -57,6 +57,7 @@ static partial class Shot {
     ClaymoreScene();  // CLAYMORE=<s into the scene> [CLAYTRIP=<s>] [CLAYCAP=1] (ShotClaymore.cs)
     DecoyScene();  // DECOY=<s into the scene> [DECOYWEAR=1] [DECOYPOP=<s>] (ShotDecoy.cs)
     GrazeScene();  // GRAZE=<s into the scene> (ShotGraze.cs)
+    SanctumGlassScene();  // SANCTUM=<s into the scene> [SANCTUMCAP=1] (ShotSanctumGlass.cs)
     GaleWallScene();  // GALEWALL=<s into the scene> [GALEBLAST=<s>] [GALECAP=1] (ShotGaleWall.cs)
     WaterWardScene();  // WWARD=<s into the scene> [WWENEMY=<s>] [WWSHOOT=1] (ShotWaterWard.cs)
     GustGateScene();  // GUSTGATE=<s into the scene> (ShotGustGate.cs)

@@ -725,6 +725,8 @@ namespace Arena
                 Apply = s => { s.HolyRangeMult += 0.4f; s.HolySwiftBonus += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.GuardiansOath, MaxStacks = 2, Name = "Bulwark", Desc = "Guardian's Oath ward cuts 15% more damage", Apply = s => s.OathCut += 0.15f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LayOnHands, MaxStacks = 2, Name = "Miracle", Desc = "Lay on Hands heals 60% more and reaches 30% further", Apply = s => s.LayMult += 0.6f },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SanctumGlass, MaxStacks = 2, Name = "Rose Window", Desc = "Sanctum Glass can heal 40% more before it shatters",
+                Apply = s => s.GlassCapMult += 0.4f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BladedDive, MaxStacks = 2, Name = "Coup de Grace", Desc = "Bladed Dive's cuts deal 25% more damage and it rushes 40 px further",
                 Apply = s => { s.BladedDamage += 0.25f; s.BladedReach += 40f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Gauntlet, MaxStacks = 2, Name = "Iron Grip", Desc = "The Gauntlet flies 40% further and its charge hits 50% harder",
@@ -805,6 +807,13 @@ namespace Arena
                 Name = "Lay on Hands", Icon = "miracle", Cooldown = 18f, Desc = "Heal the most hurt ally, or revive a downed one.",
                 Capstone = "Also heals everyone else near them for half as much.",
                 Bot = b => b.AllyHurt,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.SanctumGlass, Kit = Kit.Knight, Role = Role.Healer, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (SanctumGlass.cs)
+                Name = "Sanctum Glass", Icon = "sanctumglass", Cooldown = 16f, Desc = "Raise a pane of stained glass ahead that turns enemy shots passing through into healing.",
+                Capstone = "The pane is 40% wider and its motes heal 50% more.",
+                Bot = b => b.Danger || b.AllyHurt,
             },
             new AbilityDef
             {
@@ -921,6 +930,9 @@ namespace Arena
                     }
                     return true;
                 }
+                case AbilityId.SanctumGlass:
+                    CastSanctumGlass(p, cap);  // SanctumGlass.cs
+                    return true;
                 case AbilityId.BladedDive:
                     CastBladedDive(p, target, pw, cap);  // BladedDive.cs
                     return true;

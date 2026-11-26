@@ -26,7 +26,7 @@ static partial class Program
         bool othersThree = true;
         foreach (Role r in new[] { Role.Tank, Role.Healer, Role.Dps })
             for (int k = 0; k < Defs.KitCount; k++)
-                if ((Kit)k != Kit.Elementalist && !((Kit)k == Kit.Soldier || r == Role.Tank && (Kit)k == Kit.Summoner || r == Role.Dps && (Kit)k == Kit.Hemomancer || (Kit)k == Kit.Ninja && r != Role.Healer || r == Role.Dps && (Kit)k == Kit.Summoner))  // (every Elementalist role has a 4th: Flood, Water Ward, Gale Wall; the Soldier: Deployable Cover, Decoy Dummy, Deployable Turret; the DPS Hemomancer: Thorn Bloom; the Tank and DPS Ninja: Bamboo Grove, Senbon Seekers; the Summoner: Stampede, Land Shark)
+                if ((Kit)k != Kit.Elementalist && !((Kit)k == Kit.Soldier || r == Role.Tank && (Kit)k == Kit.Summoner || r == Role.Dps && (Kit)k == Kit.Hemomancer || (Kit)k == Kit.Ninja && r != Role.Healer || r == Role.Dps && (Kit)k == Kit.Summoner || r == Role.Healer && (Kit)k == Kit.Knight))  // (every Elementalist role has a 4th: Flood, Water Ward, Gale Wall; the Soldier: Deployable Cover, Decoy Dummy, Deployable Turret; the DPS Hemomancer: Thorn Bloom; the Tank and DPS Ninja: Bamboo Grove, Senbon Seekers; the Summoner: Stampede, Land Shark; the Healer Knight: Sanctum Glass)
                     othersThree &= Upgrades.AbilityLimit(r, (Kit)k) == 3 && Upgrades.FirstAbility(r, (Kit)k, 3) == Upgrades.FirstAbility(r, (Kit)k, 0);
         Check(othersThree && Upgrades.AbilityLimit(Role.Wildcard, Kit.Soldier) == 3, "every non-Elementalist class has three (a 4th pick falls back to the first)");
         Check(Upgrades.All.Any(u => u.ClassAbility && u.Grants == AbilityId.Flood), "Flood is a very rare card for Tank Elementalists who picked another");

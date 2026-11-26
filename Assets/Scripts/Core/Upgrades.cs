@@ -70,6 +70,7 @@ namespace Arena
         ArmorDrop,      // the Tank Soldier's fourth ultimate (ArmorDrop.cs), key 3 of the lobby's Ultimate row
         TrojanHorse,    // the Tank Knight's second ultimate (TrojanHorse.cs), key 1 of the lobby's Ultimate row
         Ballista,       // the DPS Knight's third ultimate (Ballista.cs), key 2 of the lobby's Ultimate row
+        SanctumGlass,   // the Healer Knight's 4th choice (SanctumGlass.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -149,6 +150,7 @@ namespace Arena
         public float MeteorDmgMult = 1f, MeteorRadiusMult = 1f;            // Meteor: Cataclysm
         public float BlizzardRadiusMult = 1f, BlizzardBonusTime;           // Blizzard: Whiteout
         public float GaleChargeMult = 1f;                                    // Gale Wall: Momentum Bank
+        public float GlassCapMult = 1f;                                      // Sanctum Glass: Rose Window
         public float TsunamiWidthMult = 1f, WetBonusTime;                  // Tsunami: Riptide
         public float FloodRadiusMult = 1f, FloodBonusTime;                 // Flood: High Tide
         public float CoverHpMult = 1f; public int CoverExtra;              // Deployable Cover: Reinforced Plating
