@@ -215,6 +215,7 @@ namespace Arena
             DrawHelis(t);      // the Attack Helicopter, flying over the arena's contents (AttackHelicopterLook.cs)
             DrawDeployTurrets(t);  // the DPS Soldier's Deployable Turret and its rounds (DeployTurretLook.cs)
             DrawLandSharks(t);  // the DPS Summoner's Land Shark mid-leap (LandSharkLook.cs)
+            DrawHoneyRaids(t);  // the Healer Summoner's Honey Raid: the giant bee and its falling glob (HoneyRaidLook.cs)
             DrawMammoths(t);  // the DPS Summoner's Mammoth Fall: forming, diving, rampaging, leaving (MammothFallLook.cs)
             DrawWarhornSky();  // Warhorn Volley's horn and the arrows in the air (WarhornVolleyLook.cs)
             DrawOrbitalSky();  // Orbital Laser's lock-on, beam, shockwave and flash (OrbitalLaserLook.cs)
@@ -658,6 +659,8 @@ namespace Arena
             DrawVanishSmoke(p, t);  // Vanish (NinjaLooks.cs)
             DrawCeremonialFloor(p, t);  // Ceremonial Armor's aura, rings and sigil (CeremonialArmorLook.cs)
             DrawSpiritBack(p, t);  // Spirit Avatar's ink body, seal, mask and the cleave's floor arc, under the model (SpiritAvatarLook.cs)
+            if (p.CrSurgeT > 0f)  // a Chakra Surge: its ring and jade wake (ChakraReservesLook.cs)
+                DrawChakraSurge(p, t);
             if (p.DashT > 0f)  // Healing Dash's sprint: speed lines and a mint wake (NinjaLooks.cs)
                 DrawDashWake(p, t);
             else if (p.Id == game.MyId ? game.SprintT > 0f : p.Sprint > 0)  // the Dodge's held sprint (NinjaLooks.cs)

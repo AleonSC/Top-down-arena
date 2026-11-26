@@ -1697,6 +1697,7 @@ namespace Arena
                 p.OverdriveT = Math.Max(0f, p.OverdriveT - dt);
                 p.AdrenalineT = Math.Max(0f, p.AdrenalineT - dt);
                 p.OverchargeT = Math.Max(0f, p.OverchargeT - dt);  // StaticShock.cs
+                p.CrSurgeT = Math.Max(0f, p.CrSurgeT - dt);  // a Chakra Surge (ChakraReserves.cs)
                 p.RushT = Math.Max(0f, p.RushT - dt);  // Static Rush (StaticBubble.cs)
                 p.SupplyT = Math.Max(0f, p.SupplyT - dt);  // SupplyDrop.cs
                 TickGustTimers(p, dt);  // GustGate.cs

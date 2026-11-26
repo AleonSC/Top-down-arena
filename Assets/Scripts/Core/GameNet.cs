@@ -241,7 +241,7 @@ namespace Arena
                 case Msg.Sound:
                     Sounds.Add((Sfx)r.ReadUInt16());
                     break;
-                case Msg.CooldownCut:  // a caught Scythe Throw: that player's own game takes the share off (ReaperLoot.cs)
+                case Msg.CooldownCut:  // a caught Scythe Throw, Chakra Reserves' refresh: that player's own game takes the share off (ReaperLoot.cs)
                 {
                     int id = r.ReadInt32();
                     var ab = (AbilityId)r.ReadByte();
@@ -1036,6 +1036,8 @@ namespace Arena
                 s.Vec(ref z.Origin);
                 s.Int(ref z.Side);
             }
+            if (z.Kind == ZoneKind.HoneyRaid)  // where the bee came in (HoneyRaid.cs)
+                s.Vec(ref z.Origin);
             if (z.Kind == ZoneKind.FieldHospital || z.Kind == ZoneKind.BlastOfuda)  // who has used its shrine (FieldHospital.cs); the enemy a Blast Ofuda rides, 0 on the ground (Ofuda.cs)
                 s.Int(ref z.Side);
             if (s.Reading)

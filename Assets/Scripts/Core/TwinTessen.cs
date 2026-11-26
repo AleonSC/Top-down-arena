@@ -362,6 +362,9 @@ namespace Arena
             s.Float(ref p.TtCharge);
             s.Float(ref p.TtGustCd);
             s.Float(ref p.TtTailT);
+            s.Float(ref p.CrSurgeT);  // a Chakra Surge (ChakraReserves.cs; synced here to keep the snapshot's order)
+            if (p.CrSurgeT > 0f)
+                s.Float(ref p.CrSurgeMax);
             s.Byte(ref p.TtBreeze);
         }
 
