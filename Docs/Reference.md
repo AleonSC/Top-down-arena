@@ -262,17 +262,20 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Last Stand | Tank | ultimate | 70 s | - | You take 5% of the damage instead of 10%. | Plant yourself behind a wall of steel plates that blocks every bullet in front. |
 | Trojan Horse | Tank | ultimate | 75 s | - | 40% more health, and the arrows pierce one more enemy. | A wooden horse rolls out to the arena's edge. Players press Interact to climb in: safe inside, they shoot arrows out of it. When everyone's in, enemies go for the horse. |
 | Drawbridge | Tank | ultimate | 75 s | - | The bridge stands for 8 s. | A drawbridge crushes the lane ahead, then blocks enemies and shots. |
+| Aegis Standard | Tank | ultimate | 75 s | - | A 120-point shield that starts regenerating after 0.75 s. | Plant a standard for 60 s: allies inside wear an 80-point shield that regenerates. Press again to lift it. |
 | Siege Bell | Tank | 1st, choice 5 | 22 s | - | The stun lasts 3.5 s and the shockwave erases enemy bullets. | Ring a ghostly bell three times; the last toll's shockwave stuns enemies around it. |
 | Consecrate | Healer | 1st, choice 1 | 14 s | - | Two more crosses fly out at 22 degrees either side (each target is hit once). | Throw a Holy Cross that heals and speeds allies and hurts enemies. |
 | Guardian's Oath | Healer | 1st, choice 2 | 15 s | - | Charges up to 800 px. The ward is wider, follows you, and stands a downed ally back up at 25% health. | Haul an ally to safety and protect everyone in a ward of light. |
 | Lay on Hands | Healer | 1st, choice 3 | 18 s | - | Also heals everyone else near them for half as much. | Heal the most hurt ally, or revive a downed one. |
 | Hallowed Blade | Healer | ultimate | 80 s | - | Three swords fall: one at your cursor and one either side. | A giant holy sword lands, healing allies and burning enemies for a while. |
+| Pilgrim's Standard | Healer | ultimate | 80 s | - | Allies inside heal 5% a second. | Plant a standard for 60 s: allies inside heal 4% of their max health a second. Press again to lift it. |
 | Sanctum Glass | Healer | 1st, choice 5 | 16 s | - | The pane is 40% wider and its motes heal 50% more. | Raise a pane of stained glass ahead that turns enemy shots passing through into healing. |
 | Bladed Dive | Dps | 1st, choice 1 | 10 s | - | Each kill heals you 5% of your health. | Rush forward untouchable with a spinning blade; a kill resets the cooldown. |
 | The Gauntlet | Dps | 1st, choice 2 | 9 s | - | The Challenge lasts 8 s, and the charge's impact stuns for 1 s. | Challenge an enemy and charge it; kill it in time to reset the cooldown. |
 | Caltrop Run | Dps | 1st, choice 3 | 12 s | - | Caltrops last 9 s and each catches 3 enemies. | Sprint and scatter caltrops behind you that cut, bleed and slow enemies. |
 | Warhorn Volley | Dps | ultimate | 70 s | - | The volley is 40% wider and the fire burns for 8 s. | A volley of fire arrows sweeps the field, burning and pinning enemies. |
 | Ballista | Dps | ultimate | 75 s | - | 10 bolts, and each one pins what it hits. | A giant ballista drops in front of you. Anyone can mount it (Interact) and fire 8 giant bolts that go through everything. |
+| War Standard | Dps | ultimate | 70 s | - | +55% attack speed and +35% damage. | Plant a standard for 60 s: allies inside attack 40% faster and hit 25% harder. Press again to lift it. |
 | Cannon Call | Dps | 1st, choice 5 | 12 s | - | Two smaller balls land either side of the mark along your aim. | Flare a spot and a cannonball slams into it, blasting and stunning the pack; 3 kills give back half the cooldown. |
 
 ### Ninja

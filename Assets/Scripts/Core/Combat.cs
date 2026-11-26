@@ -73,6 +73,7 @@ namespace Arena
             amount = BallistaSoak(p, amount);  // the Ballista you ride takes a share (Ballista.cs)
             amount = ArmorSoak(p, amount);  // then an Armor Drop vest's ballistic armor (ArmorDrop.cs)
             amount = ChitinSoak(p, amount);  // Hive Censer chitin takes it before any shield (HiveCenser.cs)
+            amount = StdShieldSoak(p, amount);  // an Aegis Standard's shield (KnightBanners.cs)
             if (p.ShieldHp > 0f)  // shields soak damage next (Guardian's Oath, Substitution, Blood Shell)
             {
                 float soak = Math.Min(p.ShieldHp, amount);
@@ -1164,6 +1165,7 @@ namespace Arena
             if (attacker > 0 && Has(RunMod.GlassCannon))
                 dmg *= Modifiers.GlassCannonDealt;
             dmg *= SallyMult(attacker);  // Sally Forth, out of a Trojan Horse (TrojanHorse.cs)
+            dmg *= WarDmgMult(attacker);  // standing at a War Standard (KnightBanners.cs)
             if (casting)
             {
                 dmg *= castPower;
