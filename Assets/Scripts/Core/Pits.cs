@@ -8,17 +8,22 @@ namespace Arena
     /// - An enemy (host): dies at once, the kill going to whoever hit it last; it is put on the rim first, so its coins land there.
     ///   Bosses, mini-bosses and spawn portals hover. Walking never takes an enemy in (`KeepEnemyOffPits`, and steering routes
     ///   round pits: `PitSteerLayout`); a push does (knockback, charges, pulls).
-    /// - A player (their own game, which owns their movement): climbs straight out onto the rim beside the spot (`PitRim`), and
-    ///   the host takes `PitHurt` of their max health, never below 1 HP, with `PitShield` seconds of invulnerability
+    /// - A player (their own game, which owns their movement): drops in (a step past the lip, controls held and the body hidden for
+    ///   `PitDrop` s: `PitFallT`), then climbs out onto the rim beside the spot (`PitRim`), and the host takes `PitHurt` of their max health, never below 1 HP, with `PitShield` seconds of invulnerability
     ///   (`Msg.PitFall`, `HostPitFall`). A dash flies over; one that ends over the void falls. Bots keep off them.
     /// Every screen draws the fall from `FxKind.PitFall` (Game/PitLook.cs).
     public partial class Game
     {
         public const float PitHurt = 0.15f;    // a player's fall: this share of max health
-        public const float PitShield = 1f;     // then this long invulnerable
+        public const float PitShield = 1.5f;   // invulnerable this long from the drop (1 s once out on the rim)
         public const float PitFxDur = 0.9f;    // the fall's look
         public const float PitGrace = 0.6f;    // an enemy this new (just spawned) is put on the rim, not killed
         public const float PitRimGap = 6f;     // how far past the edge a body comes back out
+        public const float PitDrop = 0.5f;     // a player's time down in the pit before climbing out (the fall's look ends then)
+
+        /// Your own game: seconds left down in a pit (controls held, body hidden), where you are down there, and where you climb out.
+        public float PitFallT;
+        V2 pitFallAt, pitFallOut;
 
         static readonly Solid[] noPits = new Solid[0];
         public int PitKills, PlayerFalls;      // counters (tests, session reports)
@@ -144,28 +149,51 @@ namespace Arena
         }
 
         /// Your own game, at the end of your step (LocalControl): a bot keeps off pits; anyone else whose middle is over one
-        /// (and not dashing) falls, climbs out on the rim, and the host takes the health.
-        void PitLocal(Player me, V2 before)
+        /// (and not dashing) drops in: a step past the lip toward the middle, held there `PitDrop` s, then out on the rim. The host
+        /// takes the health as you go in.
+        void PitLocal(Player me, V2 before, float dt)
         {
+            if (PitFallT > 0f)
+            {
+                PitFallT -= dt;
+                bool lost = me.Downed || PitAt(pitFallAt) < 0 || !me.Pos.CloserThan(pitFallAt, 40f);  // (downed, or moved away: a reset)
+                if (!lost)
+                    me.Pos = pitFallAt;
+                if (PitFallT <= 0f || lost)
+                {
+                    PitFallT = 0f;
+                    if (!lost)
+                        me.Pos = PitRim(pitFallAt, me.Def.HitR, pitFallOut);
+                }
+                DashT = 0f;
+                knockLeft = 0f;
+                shoveT = 0f;
+                return;
+            }
             if (ActivePits.Length == 0 || me.Downed)
                 return;
             if (Bot && BotLevel != BotSkill.Off && DashT <= 0f)
                 me.Pos = OffPits(before, me.Pos, 2f);
-            if (DashT > 0f || PitAt(me.Pos) < 0)
+            int pit = PitAt(me.Pos);
+            if (DashT > 0f || pit < 0)
                 return;
-            V2 from = me.Pos;
-            me.Pos = PitRim(from, me.Def.HitR, PitAt(before) < 0 ? before : from);
+            var s = ActivePits[pit];
+            V2 from = ClampInto(s, me.Pos + (s.Pos - me.Pos).LimitLength(me.Def.HitR));  // (in past the lip, toward the middle)
+            pitFallOut = PitRim(me.Pos, me.Def.HitR, PitAt(before) < 0 ? before : me.Pos);
+            pitFallAt = from;
+            PitFallT = PitDrop;
+            me.Pos = from;
             DashT = 0f;
             knockLeft = 0f;
             shoveT = 0f;
             if (IsHost)
             {
-                HostPitFall(me.Id, from, me.Pos);
+                HostPitFall(me.Id, from, pitFallOut);
                 return;
             }
             var w = Proto.Begin(Msg.PitFall);
             w.Write(from);
-            w.Write(me.Pos);
+            w.Write(pitFallOut);
             session.SendToHost(Proto.End(w));
         }
 

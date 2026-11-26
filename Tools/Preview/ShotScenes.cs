@@ -3064,7 +3064,7 @@ static partial class Shot {
       }
       string xnode = Environment.GetEnvironmentVariable("EXPANDNODE");  // EXPANDNODE=kind:x,y[:spent];...: nodes at world points (kind chest|relic|shrine; a third part "spent" or "hidden" (fogged)), e.g. inside an EXPANDROOMS room
       if (xnode != null) foreach (var part in xnode.Split(';')) { var np = part.Split(':'); var nc = Array.ConvertAll(np[1].Split(','), int.Parse); { var nk = np[0].Split('.'); xg.Nodes.Add(new MapNode { Kind = (NodeKind)Enum.Parse(typeof(NodeKind), nk[0], true), X = (short)nc[0], Y = (short)nc[1], Spent = np.Length > 2 && np[2] == "spent", Hidden = np.Length > 2 && np[2] == "hidden" }); } }
-      string pitCell = Environment.GetEnvironmentVariable("PITCELL");  // PITCELL=<variant name, e.g. Four Wells>: a one-cell Combat room with that pit variant (CellVariants.cs), everyone 150 px left of its middle; PITFALL=<s>: a player's and an enemy's fall that long ago (PitLook.cs)
+      string pitCell = Environment.GetEnvironmentVariable("PITCELL");  // PITCELL=<variant name, e.g. Four Wells>: a one-cell Combat room with that pit variant (CellVariants.cs), everyone 150 px left of its middle; PITFALL=<s>: a player's and an enemy's fall that long ago, player 1 down in the pit or out on the rim (PitLook.cs)
       if (pitCell != null) {
         CellLayouts.Forced = pitCell; ExpansionRoom? pcRoom = null;
         foreach (var po in Expansion.PlacementsFor(xg.Expanded, PieceShape.Mono)) {
@@ -3078,6 +3078,7 @@ static partial class Shot {
           if (pf != null && xg.ActivePits.Length > 0) { float age = float.Parse(pf, System.Globalization.CultureInfo.InvariantCulture); var pit = xg.ActivePits[0]; Player me1 = null; foreach (var pl in xg.Players.Values) { me1 = pl; break; }
             var rim = xg.PitRim(pit.Pos, me1.Def.HitR, pit.Pos);
             xg.Effects.Add(new Effect { Kind = FxKind.PitFall, Pos = pit.Pos + new V2(-8f, 0f), Pos2 = rim, Color = new Rgba(me1.Def.Color.R, me1.Def.Color.G, me1.Def.Color.B, 1f), Radius = me1.Def.HitR, Dur = Game.PitFxDur, T = age });
+            me1.Pos = me1.Disp = age < Game.PitDrop ? pit.Pos + new V2(-8f, 0f) : rim; if (age < Game.PitDrop) xg.PitFallT = Game.PitDrop - age;  // (down in the pit, then out on the rim)
             if (xg.ActivePits.Length > 1) { var p2 = xg.ActivePits[1]; xg.Effects.Add(new Effect { Kind = FxKind.PitFall, Pos = p2.Pos, Pos2 = p2.Pos, Color = new Rgba(1f, 0.3f, 0.34f, 0.5f), Radius = 16f, Dur = Game.PitFxDur, T = age }); } }
         }
         else Console.Error.WriteLine("PITCELL: no one-cell spot rolls " + pitCell);

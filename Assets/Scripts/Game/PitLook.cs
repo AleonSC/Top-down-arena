@@ -104,6 +104,20 @@ namespace Arena
             FillRect(x + w - lw, y + lw, lw, h - 2f * lw, c);
         }
 
+        /// A player down in a pit isn't drawn (the fall's look stands in): your own while `PitFallT` runs; a teammate while a player's
+        /// fall (Color.A 1) at their spot is still falling.
+        bool PitHides(Player p)
+        {
+            if (!ReferenceEquals(game, session.Game))
+                return false;
+            if (p.Id == game.MyId)
+                return game.PitFallT > 0f;
+            foreach (var fx in FxOf(FxKind.PitFall))
+                if (fx.Kind == FxKind.PitFall && fx.Color.A > 0.75f && fx.T < Game.PitDrop && p.Disp.CloserThan(fx.Pos, 30f))
+                    return true;
+            return false;
+        }
+
         /// FxKind.PitFall: the body shrinks and turns into the dark where it fell; a player (Color.A 1) then rises on the rim in a
         /// gold ring with chevrons; an enemy (0.5) leaves a red puff over the void.
         void DrawPitFall(Effect fx, float f)

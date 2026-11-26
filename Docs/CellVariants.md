@@ -22,7 +22,7 @@ Status: **all four steps built** (protocol 456, Nov 21, 2026; decided with the o
 - The chest always stands in the cell's middle, so every variant keeps it clear and the door lanes open: Sinkhole became
   **Sinkholes** (two round pits off the middle), **The Chasm** two chasms where the bars were, **Corner Drops** a pit in each
   corner, **Crossfire Gap** two pits off the S-lane. Slots were moved off the pits.
-- A player's fall is instant: they climb out on the rim at once and the fall plays as an effect (no frozen fall to sync).
+- A player drops in: held down in the pit 0.5 s (body hidden, controls held, your own game only: no wire change), then climbs out on the rim. (It was instant at first, which read as bumping the lip.)
 
 ## Steps (all built)
 
