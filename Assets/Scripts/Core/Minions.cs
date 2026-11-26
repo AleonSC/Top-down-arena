@@ -702,6 +702,7 @@ namespace Arena
         void TickZones(float dt)
         {
             TickFlashFires(dt);  // FlashFire.cs: the ring and the pyre
+            HoneyRaidDrips();  // HoneyRaid.cs: the puddles the bee drips on its way (added here, outside the loop below)
             var expired = scratchZonesExpired;
             expired.Clear();
             foreach (var z in Zones.Values)
@@ -806,6 +807,11 @@ namespace Arena
                 {
                     TickStampede(z);  // Stampede.cs
                     continue;  // (not a circle: nothing below applies)
+                }
+                if (z.Kind == ZoneKind.HoneyRaid)
+                {
+                    TickHoneyRaid(z, dt);  // HoneyRaid.cs
+                    continue;  // (its own tick: nothing below applies)
                 }
                 if (z.Kind == ZoneKind.Mammoth)
                 {
