@@ -238,7 +238,7 @@ static partial class Program
         var me = g.Players[1];
         g.DevSetGod(1, true); g.DevSetGod(2, true);
         var def = Upgrades.Ability(AbilityId.PoisonDart);
-        Check(def.Name == "Poison Dart" && def.Kit == Kit.Soldier && def.Role == Role.Dps && def.Choice == 0 && (int)AbilityId.PoisonDart == 2,
+        Check(def.Name == "Poison Dart" && def.Kit == Kit.Soldier && def.Role == Role.Dps && def.Choice == 0,
             "Poison Dart is the Soldier DPS's first ability, in Dash's place");
         Check(me.Slots[0].Id == AbilityId.PoisonDart, "a Soldier DPS who picks it has it as the 1st ability");
         var queue = (List<EnemyType>)typeof(Game).GetField("spawnQueue", flags).GetValue(g);

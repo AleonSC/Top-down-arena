@@ -94,8 +94,9 @@ notes (function names, message flow) are in `Docs/CodeNotes.md`, kept as a refer
   (20 Hz) of players/enemies/minions/orbs; bullets are sent as spawn/remove events and simulated on both
   sides with periodic `BulletSync`. Coins go as changes (`SyncCoins`, Coins.cs: dropped/moved/taken since the last snapshot, a full list every 60): they
   pile up all wave, and sending every one 20 times a second swamped the link. Effects and sounds are broadcast (`Msg.Fx`, `Msg.Sound`).
-  **`Session.ProtocolVersion` (see `Core/Session.cs`) must be bumped whenever any message format changes**; mismatched
-  players are turned away with a clear message. New `Msg` values go at the end of the enum.
+  **`Session.ProtocolVersion` (see `Core/Session.cs`) must be bumped whenever any message layout changes** (a field read
+  or written); `Session.IdsHash` (every enum and card, sent with Hello) catches builds with different ids, so new ids
+  need no bump. Mismatched players are turned away with a clear message. New `Msg` values go at the end of the enum.
 - **Rendering:** no sprites. The world is drawn with **GL immediate-mode triangles** in `OnPostRender`
   (arena 1600×900 scaled to the screen). The UI is **IMGUI** on a 1280×720 virtual canvas (`W`, `H`), scaled.
   Menus can draw game models on top of panels: `BeginUiGl()` / `UiModelAt(pos, zoom)` / `EndUiGl()` issue GL
@@ -175,10 +176,10 @@ A class is mostly two new files plus a line in each registry. Templates: `Docs/C
 `Docs/ClassTemplate/MyClassLook.cs` (drawing); both compile once copied in and renamed (checked as a 7th class in Oct
 2026).
 
-1. **Ids** (always at the end of each enum, before `None`, so the network and saves keep the old numbers): a `Kit`
+1. **Ids** (the growing lists, `WeaponId`, `AbilityId`, ..., in name order: `python3 Tools/Ids/ids.py --fix`; `Kit` at the end): a `Kit`
    value (`Defs.cs`) and `Defs.KitCount` + 1; 9 `WeaponId`s (`Defs.cs`); 9 1st-ability and 3 ultimate `AbilityId`s
    (`Upgrades.cs`). New player bullet kinds, if any: a `Defs` byte constant with a row in `Defs.BuildBulletTable` (radius,
-   colour, and damage for enemy shots) and its drawing in `WorldShots.DrawSmallShot`. **Bump `Session.ProtocolVersion`.**
+   colour, and damage for enemy shots) and its drawing in `WorldShots.DrawSmallShot`. (No protocol bump for ids alone.)
 2. **`Core/<Class>.cs`** from the template: its `KitDef` (name, blurb, icon, `HpMult`/`SpeedMult`, hooks), its 9
    `WeaponDef`s (each with `Kit`, `Role`, `Choice` 0-2; `Sound`; `AreaDesc` if its damage lands in an area), its 12
    `AbilityDef`s (1st ability `Choice` 0-2, ultimates `AbilityDef.Ult`; a `Bot` rule each), the fire method (one `case` per
@@ -388,8 +389,8 @@ The October 2026 audit and its work plan are done; the full notes (and the Novem
   enemies (a Hive bee was 4-5x a Warden enemy's triangles): `HiveLook.cs` sizes its ellipses by screen size and drops
   the glow strokes past `HiveCrowd` enemies; do the same for another faction look if a flood of it lags. Bandwidth is fine for 3 players
   (full state at 20 Hz, no bullets); delta compression only if player counts grow.
-- `Kits.Zones` and `Kits.Minions` are read by kind number, so removing a kind means removing its entry too (the `core`
-  suite checks the counts) and bumping the protocol. The **simple test bot** in
+- `Kits.Zones`, `Kits.Minions` and `Defs.Enemies` are keyed by id (`[ZoneKind.X] = ...`, `IdTable.Of`), so removing a
+  kind means removing its entry too (`IdTable.Of` throws on an id with no entry). The **simple test bot** in
   `LocalControl` (`Bot` without a `BotLevel`) is *not* dead: most sim tests and `--bot` rely on it.
 - **Paths** are built but untuned (Frozen Lake's grip, Fogbound's 350 px sight, Narrow Pass's 1120 x 720, fire
   damage); planned but not built: a route strip in the Tab menu, the route in the run summary. Open: should waves 1-4 get a path choice? See [`Docs/Paths.md`](Docs/Paths.md).

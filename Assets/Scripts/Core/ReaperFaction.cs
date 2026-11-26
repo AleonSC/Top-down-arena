@@ -17,7 +17,8 @@ namespace Arena
     ///   Mourner: keeps its distance and weeps a twin spiral (Phase 1, MournBurst s: one arm each way), then rests MournRest s.
     public partial class Game
     {
-        public static bool IsReaperCult(EnemyType t) => t >= EnemyType.Wisp && t <= EnemyType.Shade;
+        static readonly bool[] isReaperCultSet = IdTable.Set(EnemyType.Wisp, EnemyType.Acolyte, EnemyType.BoundWraith, EnemyType.ScytheWraith, EnemyType.Lamplighter, EnemyType.Mourner, EnemyType.Gravedigger, EnemyType.Shade);  // (a list, not a range: ids are in name order)
+        public static bool IsReaperCult(EnemyType t) => (int)t < isReaperCultSet.Length && isReaperCultSet[(int)t];
 
         // --- Scythe Wraith ---------------------------------------------------------------------------------------------
         public const float ScytheStart = 280f, ScytheMark = 0.8f, ScytheTrack = 0.25f, ScytheDash = 0.38f, ScytheSpeed = 700f,

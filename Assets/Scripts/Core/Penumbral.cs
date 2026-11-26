@@ -109,7 +109,8 @@ namespace Arena
             return GoalVel(e, ClampToArena(LastLightPoint(sq.Center, sq.Spin0 + LastLightSpin * t, LastLightU(e.SquadSlot), half), 30f));
         }
 
-        public static bool IsPenumbral(EnemyType t) => t >= EnemyType.Ember && t <= EnemyType.Heliograph || t >= EnemyType.Moonward && t <= EnemyType.Nova;
+        static readonly bool[] isPenumbralSet = IdTable.Set(EnemyType.Ember, EnemyType.CoronaPriest, EnemyType.Heliograph, EnemyType.Moonward, EnemyType.Gnomon, EnemyType.DuskLobber, EnemyType.Sickle, EnemyType.Nova);  // (a list, not a range: ids are in name order)
+        public static bool IsPenumbral(EnemyType t) => (int)t < isPenumbralSet.Length && isPenumbralSet[(int)t];
 
         /// A Nova with its fuse lit: it takes NovaLitMult damage (Combat.cs).
         public static bool NovaLit(Enemy e) => e.Type == EnemyType.Nova && e.Phase == 1;

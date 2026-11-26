@@ -102,10 +102,6 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.RetiredArtillery, Kit = Kit.Soldier, Role = Role.Dps, Retired = true,  // retired (no name: in no lobby place, card or list); the Deployable Turret is the DPS Soldier's default ultimate now
-            },
-            new AbilityDef
-            {
                 Id = AbilityId.AttackHelicopter, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Ult, UltKey = 1,
                 Name = "Attack Helicopter", Cooldown = 70f, Desc = "A gunship locks enemies one at a time and can't be hit.",
                 Capstone = "A second gun on the wing: two targets at once.",

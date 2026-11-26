@@ -30,8 +30,8 @@ static partial class Program
     {
         var ids = Upgrades.Abilities.Select(a => a.Id).ToList();  // (the registry; that it holds every AbilityId is checked just below)
         bool everyId = Enum.GetValues(typeof(AbilityId)).Cast<AbilityId>().All(a => a == AbilityId.None || ids.Contains(a));
-        bool complete = ids.All(a => Upgrades.Ability(a).Id == a && (Upgrades.Ability(a).Retired  // (a retired id: no name, place or card, Artillery Assault)
-            || !string.IsNullOrEmpty(Upgrades.Ability(a).Name) && !string.IsNullOrEmpty(Upgrades.Ability(a).Desc) && !string.IsNullOrEmpty(Upgrades.Ability(a).Capstone)));
+        bool complete = ids.All(a => Upgrades.Ability(a).Id == a && !string.IsNullOrEmpty(Upgrades.Ability(a).Name)
+            && !string.IsNullOrEmpty(Upgrades.Ability(a).Desc) && !string.IsNullOrEmpty(Upgrades.Ability(a).Capstone));
         var placed = new List<AbilityId>();
         foreach (Role role in new[] { Role.Tank, Role.Healer, Role.Dps })
             for (int k = 0; k < Defs.KitCount; k++)

@@ -24,7 +24,8 @@ namespace Arena
     /// (a hit, the end of its range, cover), it leaves a lava pool, which hurts like the Colossus's (TickQuarryHost).
     public static class QuarryKin
     {
-        public static bool Is(EnemyType t) => t >= EnemyType.Rubble && t <= EnemyType.Stomper || t >= EnemyType.SlabBearer && t <= EnemyType.CinderPriest;
+        static readonly bool[] members = IdTable.Set(EnemyType.Rubble, EnemyType.Quarryman, EnemyType.Stomper, EnemyType.SlabBearer, EnemyType.RockHurler, EnemyType.Driller, EnemyType.Geomancer, EnemyType.CinderPriest);  // (a list, not a range: ids are in name order)
+        public static bool Is(EnemyType t) => (int)t < members.Length && members[(int)t];
     }
 
     public partial class Enemy

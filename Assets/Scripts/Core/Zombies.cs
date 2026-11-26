@@ -37,7 +37,8 @@ namespace Arena
         public const byte PhFrenzy = 1, PhGrab = 2, PhAct = 4;  // PhAct: spitting, screaming, pulsing or calling just now
         public const byte PhCalled = 8;  // a Shambler a Grave Caller raised (its eyes turn cyan; it crumbles with its Caller)
 
-        public static bool Is(EnemyType t) => t >= EnemyType.Shambler && t <= EnemyType.Mender || t == EnemyType.GraveCaller;
+        static readonly bool[] members = IdTable.Set(EnemyType.Shambler, EnemyType.Runner, EnemyType.Spitter, EnemyType.Crawler, EnemyType.Bloater, EnemyType.Shrieker, EnemyType.Mender, EnemyType.GraveCaller);  // (a list, not a range: ids are in name order)
+        public static bool Is(EnemyType t) => (int)t < members.Length && members[(int)t];
 
         /// How many more enemies a wave has.
         public static float CountMult(int wave) => CountStart + (CountMax - CountStart) * Math.Max(0f, Math.Min(1f, (wave - 1f) / (CountFullWave - 1f)));
