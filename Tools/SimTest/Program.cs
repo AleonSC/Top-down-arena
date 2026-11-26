@@ -647,30 +647,9 @@ static partial class Program
         Report("laserdebug", "the Singularity's lasers, step by step", args => LaserDebug()),
     };
 
-    /// The pass/fail suites that neither `core` nor `features` runs: CI runs them in its own job (Tools/SimTest/extras.sh),
-    /// alongside the other two. A new suite whose tests aren't in FeatureTests goes here. (`singularity` is here for its cage
-    /// test; its other test is also in features.)
-    static readonly string[] CiExtras =
-    {
-        "snapshot", "turnkey", "holdingcell", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
-        "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
-        "exploit", "doublebarrel", "railgun", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "vowguard", "embolus", "needleswarm", "bloodbrawler", "arclock", "twinauto", "caltroprun", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
-        "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "hangoutmode", "training", "foequery", "pvp", "three", "wrap", "ready", "wavekinds", "landmarks",
-        "arcanist", "caltroprun", "protocol", "everyenemy", "lists", "stages", "bossrules", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
-        // (these were missing until Nov 2026, so nothing caught them breaking; ci_coverage.py now fails CI on a suite left out)
-        "abilitycards", "armordrop", "astral", "ballista", "bamboo", "boil", "bosses", "botdodge", "botgate", "botweapon", "bulwark",
-        "bumbleremote", "cannoncall", "cardfilters", "cardids", "celllayouts", "chests", "classcardlists", "claymore", "corelayouts",
-        "cover", "decoy", "elementstatus", "deployturret", "dogma", "engbots", "factionrelics", "flashfire", "forbidden", "galewall", "graze",
-        "grenadelauncher", "gridrooms", "helicopter", "hivecenser", "hospital", "huntmap", "huntsave", "ironarmadillo", "ironhide",
-        "landshark", "late", "latewaves", "layouttest", "lighting", "literaltank", "livingbolt", "mammoth", "needles", "offers", "ofuda",
-        "oneway", "orbital", "pickheld", "pits", "portals", "ravager", "refdoc", "rodent", "roomfog", "scratch", "senbon", "shrines",
-        "stampede", "staticbubble", "staticshock", "stayin", "supplydrop", "survival", "thornbloom", "trojanhorse", "twintessen",
-        "ultimates", "waterward", "wiki", "windclash", "wyvernstaff",
-        "heartflail", "sanctumglass", "siegebell", "chakra", "honeyraid", "heartbeat", "tusker",
-        "contentfuzz", "caltroprun", "rocketdrop", "banners", "shadowgong", "octopus",
-        "shoppedestals", "hazardfoam", "bloodtotem",
-    };
-
+    // The pass/fail suites that neither `core` nor `features` runs are worked out from this file by
+    // Tools/SimTest/ci_coverage.py (`--extras`): every Test(...) whose tests aren't all in FeatureTests. CI runs them in
+    // its own job (extras.sh), so a new suite needs no list: declaring it with Test(...) is enough.
     static int Main(string[] args)
     {
         if (Environment.GetEnvironmentVariable("CONTENTFUZZ") == "1" || (args.Length > 2 && args[2] == "contentfuzz"))
@@ -680,12 +659,6 @@ static partial class Program
         NetPeer.Loopback = Environment.GetEnvironmentVariable("SIMTEST_TCP") == null;  // hosts and joins meet in memory: every message is there on the next Poll, however busy the machine (SIMTEST_TCP=1: real localhost TCP)
         if (NetPeer.Loopback)
             Session.TestClock = () => napClock;
-        if (args.Length == 1 && args[0] == "extras-list")
-        {
-            foreach (var n in CiExtras)
-                Console.WriteLine(n);
-            return 0;
-        }
         string name = args.Length > 2 ? args[2] : args.Length == 1 && args[0] == "list" ? "list" : "core";
         if (name == "music")
             name = "features";  // its old name (it began as the music test)

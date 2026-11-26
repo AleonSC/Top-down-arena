@@ -73,8 +73,8 @@ no Unity in the cloud container: check changes with the tools below.
 
 **Run only the relevant suites** before committing: the single-system suites for what you changed (`run.sh list`),
 plus core/features only when shared `Core/` code changed. The merge queue runs every suite, so leave the full run to it.
-A **new suite** goes in `FeatureTests` or `CiExtras` (`Tools/SimTest/Program.cs`); `Tools/SimTest/ci_coverage.py`
-(run by CI) fails on one CI wouldn't run. Tests talk over an in-memory network (`NetPeer.Loopback`): a message is there
+A **new suite** only needs its `Test(...)` line in `Tools/SimTest/Program.cs`: CI runs every suite `FeatureTests` doesn't
+cover in its extras job (`Tools/SimTest/ci_coverage.py --extras` works the list out), so there's no list to edit. Tests talk over an in-memory network (`NetPeer.Loopback`): a message is there
 on the receiver's next `Poll`, so don't add `Thread.Sleep` waits for the network (`SIMTEST_TCP=1` runs real TCP).
 
 Mono may be missing: `apt-get update && apt-get install -y mono-mcs mono-runtime libmono-system-core4.0-cil`.
