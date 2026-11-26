@@ -147,7 +147,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Stampede, Kit = Kit.Summoner, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (Stampede.cs)
-                Name = "Stampede", Cooldown = StampedeCooldown, Desc = "A line of spirit beasts tramples everything ahead.",
+                Name = "Stampede", Icon = "stampede", Cooldown = StampedeCooldown, Desc = "A line of spirit beasts tramples everything ahead.",
                 Capstone = "9 beasts, and the herd turns and charges back.",
                 Bot = b => b.HaveTarget && b.TargetD < 380f,
             },
@@ -194,7 +194,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.LandShark, Kit = Kit.Summoner, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (LandShark.cs)
-                Name = "Land Shark", Cooldown = LandSharkCooldown, Desc = "A puddle opens at your cursor and a shark leaps out, biting everything in it.",
+                Name = "Land Shark", Icon = "landshark", Cooldown = LandSharkCooldown, Desc = "A puddle opens at your cursor and a shark leaps out, biting everything in it.",
                 Capstone = "A 30% wider puddle, and the bite hits for 160.",
                 Bot = b => b.HaveTarget && b.TargetD < LandSharkRange,
             },

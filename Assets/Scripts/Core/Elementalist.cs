@@ -159,7 +159,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Flood, Kit = Kit.Elementalist, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (Flood.cs)
-                Name = "Flood", Cooldown = FloodCooldown, Desc = "Flood the ground around you: it throws enemies back, slows them and soaks them.",
+                Name = "Flood", Icon = "flood", Cooldown = FloodCooldown, Desc = "Flood the ground around you: it throws enemies back, slows them and soaks them.",
                 Capstone = "Deluge: the flood is 30% wider and lasts 9 s.",
                 Bot = b => b.NearEnemies >= 3 || b.Danger && b.HaveTarget && b.TargetD < 260f,
             },
@@ -187,7 +187,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.WaterWard, Kit = Kit.Elementalist, Role = Role.Healer, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (WaterWard.cs)
-                Name = "Water Ward", Cooldown = WwCooldown,
+                Name = "Water Ward", Icon = "waterward", Cooldown = WwCooldown,
                 Desc = "Water drops orbit you and splash enemies and eat shots.",
                 Capstone = "Splashes and bursts reach 40% farther.",
                 Bot = b => b.HaveTarget && b.TargetD < 300f || b.Danger,

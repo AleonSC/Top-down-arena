@@ -856,7 +856,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ThornBloom, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (ThornBloom.cs)
-                Name = "Thorn Bloom", Cooldown = TbCooldown, HealthCost = TbCost, Desc = "Burst blood needles all round that chain between enemies.",
+                Name = "Thorn Bloom", Icon = "thornbloom", Cooldown = TbCooldown, HealthCost = TbCost, Desc = "Burst blood needles all round that chain between enemies.",
                 Capstone = "Tendrils jump 5 times.",
                 Bot = b => b.NearEnemies >= 3 && b.TargetD < 240f && b.Me.Hp > b.Me.MaxHp * 0.4f,
             },

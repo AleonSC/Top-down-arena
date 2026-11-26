@@ -402,7 +402,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.BambooGrove, Kit = Kit.Ninja, Role = Role.Tank, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (BambooGrove.cs)
-                Name = "Bamboo Grove", Cooldown = BgCooldown, Desc = "Bamboo bursts from the ground around you, stunning enemies, then bleeding them.",
+                Name = "Bamboo Grove", Icon = "bamboogrove", Cooldown = BgCooldown, Desc = "Bamboo bursts from the ground around you, stunning enemies, then bleeding them.",
                 Capstone = "The bamboo fence lasts 6 s.",
                 Bot = b => b.NearEnemies >= 3 && b.TargetD < BgRadius,
             },
@@ -430,7 +430,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.ChakraReserves, Kit = Kit.Ninja, Role = Role.Healer, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (ChakraReserves.cs)
-                Name = "Chakra Reserves", Cooldown = CrCooldown, Desc = "Pour chakra into an ally: it heals them, speeds up their moving and attacks, and refreshes their cooldowns.",
+                Name = "Chakra Reserves", Icon = "chakra", Cooldown = CrCooldown, Desc = "Pour chakra into an ally: it heals them, speeds up their moving and attacks, and refreshes their cooldowns.",
                 Capstone = "A second thread reaches the next ally: half the heal and the full Surge.",
                 Bot = b => b.AllyHurt || b.AllyDown,
             },
@@ -458,7 +458,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.SenbonSeekers, Kit = Kit.Ninja, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (SenbonSeekers.cs)
-                Name = "Senbon Seekers", Cooldown = SbCooldown, Desc = "Three poisoned needles circle you and fly at enemies that come close. Stacks to 9.",
+                Name = "Senbon Seekers", Icon = "senbon", Cooldown = SbCooldown, Desc = "Three poisoned needles circle you and fly at enemies that come close. Stacks to 9.",
                 Capstone = "Holds up to 12 needles.",
                 Bot = b => !SbFull(b.Me),
             },

@@ -165,7 +165,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.Starburst, Instant = true,
-                Name = "Starburst", Cooldown = 9f, Desc = "Fire a ring of heavy shots.",
+                Name = "Starburst", Icon = "starburst", Cooldown = 9f, Desc = "Fire a ring of heavy shots.",
                 Capstone = "Fires 48 shots instead of 24.",
                 Bot = b => b.Danger || b.HaveTarget && b.TargetD < 230f,
             },
@@ -232,7 +232,7 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.DeployableTurret, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (DeployableTurret.cs)
-                Name = "Deployable Turret", Cooldown = DtCooldown, Desc = "Climb into a heavy turret that spools up to a fast piercing fire.",
+                Name = "Deployable Turret", Icon = "deployturret", Cooldown = DtCooldown, Desc = "Climb into a heavy turret that spools up to a fast piercing fire.",
                 Capstone = "Fires 14 s, rounds pierce 4, and the blast does double.",
                 Bot = b => b.HaveTarget && b.NearEnemies >= 3 && b.TargetD < 480f,
             },
