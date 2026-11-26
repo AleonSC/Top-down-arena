@@ -296,7 +296,6 @@ static partial class Program
         // it), drains 1% of max health a second doubling every 4 s, and ends at the blood floor; the cooldown starts when it ends.
         {
             var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
-            var revive = typeof(Game).GetMethod("RevivePlayer", flags);
             hp.Hp = hp.MaxHp;
             place(1, 400f); place(2, 1400f); run(0.2f);  // (the healer well away: a healer's aura is what stretches the wall)
             float w0 = hp.Hp;
