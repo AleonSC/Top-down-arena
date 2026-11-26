@@ -222,6 +222,9 @@ namespace Arena
                 case AbilityId.Heartbeat:  // Healer: Hemomancer, the second ultimate (Heartbeat.cs)
                     CastHeartbeat(p, cap);
                     break;
+                case AbilityId.FiveShadowGong:  // Tank: Ninja, the fourth ultimate (FiveShadowGong.cs)
+                    CastShadowGong(p, cap);
+                    break;
                 case AbilityId.AstralProjection:  // Healer: Ninja, the second ultimate (AstralProjection.cs)
                     CastAstral(p, cap);
                     break;
