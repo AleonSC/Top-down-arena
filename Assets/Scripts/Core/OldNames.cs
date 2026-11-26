@@ -15,7 +15,7 @@ namespace Arena
         static readonly Dictionary<string, string> Abilities = new Dictionary<string, string>
         {
             { "Grenade", "Airstrike" }, { "Nova", "Starburst" },  // (the Cluster Grenade became Airstrike)
-            { "BattleFury", "CaughtSteel" }, { "BladeTempest", "Drawbridge" }, { "Lunge", "Gauntlet" }, { "Whirlwind", "BladedDive" },
+            { "BattleFury", "CaltropRun" }, { "CaughtSteel", "CaltropRun" }, { "BladeTempest", "Drawbridge" }, { "Lunge", "Gauntlet" }, { "Whirlwind", "BladedDive" },
             { "IronBody", "CeremonialArmor" }, { "ArcaneAegis", "Aeroaegis" }, { "Sanctify", "LumenWard" }, { "GuardianSpirit", "ForcePact" },
             { "BulletStorm", "ArtilleryAssault" }, { "BloodBoil", "ArterialSpray" }, { "BloodRite", "VeinTithe" }, { "CrimsonPact", "BloodWall" },
             { "KineticWall", "GaleWall" }, { "FrenzyPact", "BloodDebt" }, { "HemoNova", "VeinRush" }, { "SiphonField", "BloodFreeze" }, { "CrimsonApotheosis", "CrimsonHarvest" },
@@ -27,7 +27,7 @@ namespace Arena
             { "Extra Use: Space", "Extra Use: 1st Ability" }, { "Extra Use: Q", "Extra Use: 2nd Ability" },  // (before the abilities were called 1st-4th)
             { "Extra Use: E", "Extra Use: 3rd Ability" }, { "Extra Use: Shift", "Extra Use: 4th Ability" },
             { "Nova", "Starburst" }, { "Lifeline", "Red Thread" },  // (the Vein Tether card; the Healer ultimate kept Lifeline)
-            { "Stormcaller", "Forked Thunder" },
+            { "Stormcaller", "Forked Thunder" }, { "Forged Edge", "Barbed Iron" },  // (Caught Steel's card; Caltrop Run took its place)
         };
 
         /// An upgrade card's name as it is called now (run saves keep taken cards by name).

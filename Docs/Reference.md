@@ -236,6 +236,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Titan | Tank | ultimate | 80 s | - | The titan is 30% bigger and stays for 27 s. | Summon a huge stone titan that stomps enemies and blocks bullets. |
 | Bone Phalanx | Tank | ultimate | 75 s | - | 10 skeletons with 180 health each. | Skeletons with tower shields march ahead, blocking shots and spearing enemies. |
 | Iron Armadillo | Tank | ultimate | 75 s | - | Rolls 13 s and the uncurl slam hits for 130. | Curl into a giant armoured ball for 10 s: roll over enemies, bounce their shots back, slam down as you uncurl. |
+| Tidal Tusker | Tank | ultimate | 75 s | - | Stays 16 s, and sprays two streams at once. | A spirit elephant rises beside you and follows you for 12 s. Enemies near it go for it instead of you, and its trunk hoses them with a steady stream that soaks and pushes them back. It ends with a splashing stomp. |
 | Stampede | Tank | 1st, choice 5 | 14 s | - | 9 beasts, and the herd turns and charges back. | A line of spirit beasts tramples everything ahead. |
 | Spirit Swarm | Healer | 1st, choice 1 | 14 s | - | Releases 8 sprites. | Release healing sprites. |
 | Phoenix | Healer | 1st, choice 2 | 22 s | - | Revives at full health, and the phoenix keeps fighting. | A phoenix follows your cursor, shooting and healing, and revives anyone who goes down. |
@@ -267,7 +268,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Sanctum Glass | Healer | 1st, choice 5 | 16 s | - | The pane is 40% wider and its motes heal 50% more. | Raise a pane of stained glass ahead that turns enemy shots passing through into healing. |
 | Bladed Dive | Dps | 1st, choice 1 | 10 s | - | Each kill heals you 5% of your health. | Rush forward untouchable with a spinning blade; a kill resets the cooldown. |
 | The Gauntlet | Dps | 1st, choice 2 | 9 s | - | The Challenge lasts 8 s, and the charge's impact stuns for 1 s. | Challenge an enemy and charge it; kill it in time to reset the cooldown. |
-| Caught Steel | Dps | 1st, choice 3 | 16 s | - | Holds up to 18 shards. | Catch passing bullets as steel, then hurl them back. |
+| Caltrop Run | Dps | 1st, choice 3 | 12 s | - | Caltrops last 9 s and each catches 3 enemies. | Sprint and scatter caltrops behind you that cut, bleed and slow enemies. |
 | Drawbridge | Dps | ultimate | 75 s | - | The bridge stands for 8 s. | A drawbridge crushes the lane ahead, then blocks enemies and shots. |
 | Warhorn Volley | Dps | ultimate | 70 s | - | The volley is 40% wider and the fire burns for 8 s. | A volley of fire arrows sweeps the field, burning and pinning enemies. |
 | Ballista | Dps | ultimate | 75 s | - | 10 bolts, and each one pins what it hits. | A giant ballista drops in front of you. Anyone can mount it (Interact) and fire 8 giant bolts that go through everything. |
