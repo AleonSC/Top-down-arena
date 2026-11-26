@@ -1218,7 +1218,7 @@ namespace Arena
                 DashT -= dt;
                 me.Pos += DashDir * dashSpeed * dt;
                 bool iceDash = OnPathOf(PathId.FrozenLake) || FloorAt(me.Pos) == PathId.FrozenLake;
-                iceVel = DashDir * me.Speed * (iceDash ? Paths.IceTopSpeed : 1f);  // you come out of a dash moving (on ice, sliding)
+                iceVel = iceDash ? DashDir * me.Speed * Paths.IceTopSpeed : V2.Zero;  // on ice you slide out of a dash; elsewhere a dash ends where it lands
             }
             else if (ArmOn(me))
                 LocalArmRoll(me, move, aimAt, firing && !HoldControls, dt);  // Iron Armadillo: rolling, not walking (IronArmadillo.cs)
