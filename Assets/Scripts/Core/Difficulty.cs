@@ -40,9 +40,15 @@ namespace Arena
         Lives,          // count: retries from the last boss's checkpoint when everyone goes down (Checkpoints.cs)
         RoomCards,   // retired (Nov 18): was Room cards; ignored, kept so the knob order stays the same
         GridRooms,      // retired (Nov 18): was Grid rooms (now always on); ignored, kept so the knob order stays the same
+        Mechanics,      // tier: which mechanics the run uses (MechTier: Easy..Nightmare; Docs/DifficultyTiers.md)
     }
 
-    public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond, OnOff, Count }
+    /// The mechanics tier: which fights, enemies and rules a run uses (Docs/DifficultyTiers.md). A preset sets it to its own
+    /// name; Custom lets the host pick it (DiffKnob.Mechanics). Normal plays as the game is balanced; Hard and Nightmare can add
+    /// mechanics and Easy can take some away. Read it with `Game.MechTier`, `MechAtLeast`, `MechOk`.
+    public enum MechTier : byte { Easy, Normal, Hard, Nightmare }
+
+    public enum KnobUnit { Times, Percent, PercentPerWave, Seconds, HpPerSecond, OnOff, Count, Tier }
 
     public class KnobDef
     {
@@ -67,6 +73,7 @@ namespace Arena
                 case KnobUnit.Seconds: return v.ToString("0.##", CultureInfo.InvariantCulture) + " s";
                 case KnobUnit.OnOff: return v >= 0.5f ? "On" : "Off";
                 case KnobUnit.Count: return Math.Round(v).ToString(CultureInfo.InvariantCulture);
+                case KnobUnit.Tier: return Difficulty.TierName(v);
                 default: return v.ToString("0.##", CultureInfo.InvariantCulture) + " HP/s";
             }
         }
@@ -78,6 +85,8 @@ namespace Arena
                 return v >= 0.5f ? "on" : "off";
             if (Unit == KnobUnit.Count)
                 return Math.Round(v).ToString(CultureInfo.InvariantCulture);
+            if (Unit == KnobUnit.Tier)
+                return Difficulty.TierName(v);
             bool pct = Unit == KnobUnit.Percent || Unit == KnobUnit.PercentPerWave;
             return (pct ? v * 100f : v).ToString(Unit == KnobUnit.PercentPerWave ? "0.0" : "0.##", CultureInfo.InvariantCulture);
         }
@@ -93,6 +102,16 @@ namespace Arena
                 if (o == "off" || o == "0" || o == "no") { v = 0f; return true; }
                 return false;
             }
+            if (Unit == KnobUnit.Tier)
+            {
+                string o = (text ?? "").Trim();
+                for (int i = 0; i < TierCount; i++)
+                    if (string.Equals(o, Difficulty.Names[i], StringComparison.OrdinalIgnoreCase))
+                    {
+                        v = i;
+                        return true;
+                    }
+            }
             string t = (text ?? "").Trim().TrimEnd('x', 'X', '%', 's', ' ').Replace(',', '.');
             if (t.StartsWith("+", StringComparison.Ordinal))
                 t = t.Substring(1);
@@ -103,7 +122,13 @@ namespace Arena
             return true;
         }
 
-        public float Clamp(float v) => Math.Max(Min, Math.Min(Max, v));
+        public float Clamp(float v)
+        {
+            v = Math.Max(Min, Math.Min(Max, v));
+            return Unit == KnobUnit.Tier ? (float)Math.Round(v) : v;  // a tier is a whole step
+        }
+
+        const int TierCount = 4;  // MechTier's values
 
         /// Where v sits between Min and Max (the slider), and back (snapped to Step).
         public float ToSlider(float v) => (Clamp(v) - Min) / (Max - Min);
@@ -170,6 +195,12 @@ namespace Arena
 
         public string Name => Names[(int)Level];
 
+        /// The mechanics tier (DiffKnob.Mechanics).
+        public MechTier Tier => (MechTier)Math.Max(0, Math.Min(3, (int)Math.Round(this[DiffKnob.Mechanics])));
+
+        /// A tier's name ("Hard"), for the Mechanics knob.
+        public static string TierName(float v) => Names[Math.Max(0, Math.Min(3, (int)Math.Round(v)))];
+
         /// The knobs that differ from Normal, for summaries ("Enemy damage 1.5x, Revive time 6 s").
         public List<string> Changes()
         {
@@ -194,6 +225,10 @@ namespace Arena
         {
             var d = new Difficulty { Level = (DifficultyLevel)r.ReadByte() };
             int n = r.ReadByte();
+            if (d.Level != DifficultyLevel.Custom && (int)d.Level < Names.Length)
+                for (int i = n; i < d.Values.Length; i++)
+                    if (!Knobs[i].Flavour)
+                        d.Values[i] = Knobs[i].Presets[(int)d.Level];  // older data without a knob (Mechanics): the preset's own (Custom: Normal)
             for (int i = 0; i < n; i++)
             {
                 float v = r.ReadSingle();
@@ -242,7 +277,7 @@ namespace Arena
 
         public static readonly string[] Blurbs =
         {
-            "Softer hits, more healing, fewer enemies. For learning a class or a relaxed run.",
+            "Softer hits, more healing, fewer enemies, no boss last stands. For a relaxed run.",
             "The game as it's balanced: enemy damage grows each wave, healing is scarce.",
             "Tougher, faster, harder-hitting enemies, more elites, slower revives.",
             "Everything turned up and no regeneration. Bring a plan.",
@@ -325,6 +360,10 @@ namespace Arena
             new KnobDef { Knob = DiffKnob.GridRooms, Name = "Grid rooms (retired)", Flavour = true,
                 Desc = "Retired (Nov 18): ignored; the Expanding arena always builds on the grid.",
                 Unit = KnobUnit.OnOff, Min = 0f, Max = 1f, Step = 1f, Presets = new[] { 0f, 0f, 0f, 0f } },
+            // The mechanics tier (Docs/DifficultyTiers.md): not a number but which fights and enemies a run uses.
+            new KnobDef { Knob = DiffKnob.Mechanics, Name = "Mechanics",
+                Desc = "Hard and Nightmare add boss stages, attacks and enemy variants; Easy takes some away.",
+                Unit = KnobUnit.Tier, Min = 0f, Max = 3f, Step = 1f, Presets = new[] { 0f, 1f, 2f, 3f } },
         };
     }
 
@@ -342,5 +381,14 @@ namespace Arena
         float ClueDamage => HuntRoute != null && Hunt != null && BossNow ? HuntRoute.ClueDamageScale : 1f;
 
         public float PassiveRegen => D(DiffKnob.Regen);
+
+        /// The run's mechanics tier (Docs/DifficultyTiers.md): Normal plays as balanced, Hard and Nightmare add, Easy takes away.
+        public MechTier MechTier => Diff.Tier;
+
+        /// True on this tier or a harder one ("from Hard on").
+        public bool MechAtLeast(MechTier t) => MechTier >= t;
+
+        /// True when the run's tier is between min and max (both included): the filter every tier-gated row uses.
+        public bool MechOk(MechTier min, MechTier max) => MechTier >= min && MechTier <= max;
     }
 }

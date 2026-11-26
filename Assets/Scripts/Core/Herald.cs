@@ -114,10 +114,12 @@ namespace Arena
                 }
                 return;
             }
-            if (s.Stage == HeraldStage.Gathering && frac <= HeraldGaleAt) { StartHeraldTransition(e, HeraldStage.Gale); return; }
-            if (s.Stage == HeraldStage.Gale && frac <= HeraldSupercellAt) { StartHeraldTransition(e, HeraldStage.Supercell); return; }
-            if (s.Stage == HeraldStage.Supercell && frac <= HeraldLastAt)
-                EnterHeraldStage(e, HeraldStage.LastStand);  // straight away, as the others do
+            BossStage to;  // its stage table (BossStages.cs)
+            if (NextStage(e.Type, (byte)s.Stage, frac, out to))
+            {
+                if (to.How != StageEntry.Instant) { StartHeraldTransition(e, (HeraldStage)to.Stage); return; }
+                EnterHeraldStage(e, (HeraldStage)to.Stage);  // straight away, as the others' last stands do
+            }
 
             s.TurnT += dt;
             if (s.BoomT > 0f)
@@ -467,7 +469,7 @@ namespace Arena
             var turns = HeraldTurns[(int)s.Stage];
             s.Step = (s.Step + 1) % turns.Length;
             s.Turn = turns[s.Step];
-            s.TurnLen = HeraldTimes[(int)s.Stage][s.Step];
+            s.TurnLen = BossTurnLen((byte)s.Turn, HeraldTimes[(int)s.Stage][s.Step]);  // (the tier's rest pace: BossRules.cs)
             s.TurnT = 0f;
             s.ActT = 0.3f;
             s.Fired = 0;

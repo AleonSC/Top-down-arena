@@ -115,7 +115,7 @@ namespace Arena
             int n = plan.N;
             if (!(Bosses.Slotted ? BossSlot : IsBossWave(n)))
                 return false;
-            spawnQueue.AddRange(BossWaves.Queue(BossAt(n), n));  // (a hunt's boss on its last wave; Hunts.cs)
+            spawnQueue.AddRange(BossWaves.Queue(BossAt(n), n, EscortMult));  // (a hunt's boss on its last wave; Hunts.cs)
             return true;
         }
 

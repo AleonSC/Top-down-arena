@@ -132,10 +132,12 @@ namespace Arena
                 e.Phase = LichPhaseOf(s, false);
                 return;
             }
-            if (s.Stage == LichStage.Crypt && frac <= LichHarvestAt) { StartLichTransition(e, LichStage.Harvest); return; }
-            if (s.Stage == LichStage.Harvest && frac <= LichUndeathAt) { StartLichTransition(e, LichStage.Undeath); return; }
-            if (s.Stage == LichStage.Undeath && frac <= LichLastAt)
-                EnterLichStage(e, LichStage.LastStand);  // straight away, as the others do
+            BossStage to;  // its stage table (BossStages.cs)
+            if (NextStage(e.Type, (byte)s.Stage, frac, out to))
+            {
+                if (to.How != StageEntry.Instant) { StartLichTransition(e, (LichStage)to.Stage); return; }
+                EnterLichStage(e, (LichStage)to.Stage);  // straight away, as the others' last stands do
+            }
 
             s.TurnT += dt;
 
@@ -302,7 +304,7 @@ namespace Arena
             var turns = LichTurns[(int)s.Stage];
             s.Step = (s.Step + 1) % turns.Length;
             s.Turn = turns[s.Step];
-            s.TurnLen = LichTimes[(int)s.Stage][s.Step];
+            s.TurnLen = BossTurnLen((byte)s.Turn, LichTimes[(int)s.Stage][s.Step]);  // (the tier's rest pace: BossRules.cs)
             s.TurnT = 0f;
             s.Fired = 0;
             s.SweepOn = 0;
@@ -312,20 +314,22 @@ namespace Arena
             if (s.Turn == LichTurn.Raise)
             {
                 BroadcastSound(Sfx.BossGong);
-                // Three graves at random raise two of the dead each (at most 6 up).
+                // Three graves at random raise two of the dead each (at most 6 up; the tier's summons change both: BossRules.cs).
                 var order = new List<int> { 0, 1, 2, 3, 4, 5 };
+                int each = BossAdds(2);
                 for (int k = 0; k < 3; k++)
                 {
                     int pick = (int)Rand(0f, order.Count - 0.001f);
-                    RaiseDead(e, order[pick], 2, 6);
+                    RaiseDead(e, order[pick], each, 3 * each);
                     order.RemoveAt(pick);
                 }
             }
             if (s.Turn == LichTurn.Spirits)
             {
                 BroadcastSound(Sfx.BossWarp);  // the spirits gather
-                for (int k = 0; k < 6; k++)
-                    s.Spirits.Add(new LichSpirit { Pos = e.Pos, A = MathX.Tau * k / 6f, Delay = 1.3f + 0.4f * k });
+                int spirits = BossAdds(6);  // (the tier's summons: BossRules.cs)
+                for (int k = 0; k < spirits; k++)
+                    s.Spirits.Add(new LichSpirit { Pos = e.Pos, A = MathX.Tau * k / spirits, Delay = 1.3f + 0.4f * k });
             }
         }
 

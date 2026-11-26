@@ -190,10 +190,12 @@ namespace Arena
             }
             if (!s.Lunging && s.BurrowT <= 0f)
             {
-                if (s.Stage == DevourStage.Appetite && frac <= DevourGorgeAt) { StartDevourTransition(e, DevourStage.Gorging); return; }
-                if (s.Stage == DevourStage.Gorging && frac <= DevourRavenAt) { StartDevourTransition(e, DevourStage.Ravenous); return; }
-                if (s.Stage == DevourStage.Ravenous && frac <= DevourLastAt)
-                    EnterDevourStage(e, DevourStage.LastStand);  // straight away, as the others do
+                BossStage to;  // its stage table (BossStages.cs)
+                if (NextStage(e.Type, (byte)s.Stage, frac, out to))
+                {
+                    if (to.How != StageEntry.Instant) { StartDevourTransition(e, (DevourStage)to.Stage); return; }
+                    EnterDevourStage(e, (DevourStage)to.Stage);  // straight away, as the others' last stands do
+                }
             }
 
             s.TurnT += dt;
@@ -457,7 +459,8 @@ namespace Arena
 
         void SpitMorsels(Enemy e)
         {
-            for (int k = 0; k < 4; k++)
+            int morsels = BossAdds(4);  // (the tier's summons: BossRules.cs)
+            for (int k = 0; k < morsels; k++)
             {
                 V2 at = ClampToArena(e.Pos + RandDir() * Rand(220f, 440f), 60f);
                 var m = SpawnEnemyAt(EnemyType.Morsel, at, 0.3f, e.Id);
@@ -699,7 +702,7 @@ namespace Arena
             var turns = DevourTurns[(int)s.Stage];
             s.Step = (s.Step + 1) % turns.Length;
             s.Turn = turns[s.Step];
-            s.TurnLen = DevourTimes[(int)s.Stage][s.Step];
+            s.TurnLen = BossTurnLen((byte)s.Turn, DevourTimes[(int)s.Stage][s.Step]);  // (the tier's rest pace: BossRules.cs)
             s.TurnT = 0f;
             s.ActT = 0.3f;
             s.Fired = 0;

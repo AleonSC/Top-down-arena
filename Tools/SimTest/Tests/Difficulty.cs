@@ -31,6 +31,32 @@ static partial class Program
         Check(custom.Level == DifficultyLevel.Custom && back.SameAs(custom) && Difficulty.Parse(Difficulty.Of(DifficultyLevel.Nightmare).ToText()).SameAs(Difficulty.Of(DifficultyLevel.Nightmare))  // (a preset's text names its building mode since Grid became the default: a bare "Nightmare" is an old save, read as room cards)
               && Difficulty.Parse("nonsense").Level == DifficultyLevel.Normal,
             "changing a number makes it Custom, and a difficulty writes to text and reads back the same");
+
+        // The mechanics tier (Docs/DifficultyTiers.md step 1): each preset sets its own; Custom keeps the one it had and can pick another.
+        Check(new Difficulty().Tier == MechTier.Normal && Difficulty.Of(DifficultyLevel.Easy).Tier == MechTier.Easy
+              && Difficulty.Of(DifficultyLevel.Hard).Tier == MechTier.Hard && Difficulty.Of(DifficultyLevel.Nightmare).Tier == MechTier.Nightmare,
+            "each preset sets its own mechanics tier");
+        var mech = Difficulty.Knobs[(int)DiffKnob.Mechanics];
+        var tiered = Difficulty.Of(DifficultyLevel.Hard);
+        tiered.Set(DiffKnob.EnemyHp, 2f);
+        bool keeps = tiered.Tier == MechTier.Hard;
+        tiered.Set(DiffKnob.Mechanics, 3f);
+        Check(keeps && tiered.Level == DifficultyLevel.Custom && tiered.Tier == MechTier.Nightmare && Difficulty.Parse(tiered.ToText()).Tier == MechTier.Nightmare,
+            "Custom keeps the preset's tier, the host can pick another, and it reads back from text");
+        Check(mech.Format(2f) == "Hard" && mech.TryParse("nightmare", out typed) && typed == 3f && mech.TryParse("1", out typed) && typed == 1f
+              && !mech.TryParse("lots", out typed) && mech.Clamp(2.4f) == 2f && mech.Clamp(9f) == 3f && mech.FromSlider(0.7f) == 2f,
+            "the Mechanics knob shows and reads tier names, and only whole tiers");
+        Check(Difficulty.Parse("Custom EnemyHp=2").Tier == MechTier.Normal && Difficulty.Parse("Hard").Tier == MechTier.Hard,
+            "older text without the knob: a preset's own tier, Custom's Normal");
+        var oldMs = new System.IO.MemoryStream();
+        var ow = new System.IO.BinaryWriter(oldMs);
+        ow.Write((byte)DifficultyLevel.Nightmare);
+        ow.Write((byte)(Difficulty.Knobs.Length - 1));  // the 27 knobs before Mechanics
+        for (int i = 0; i < Difficulty.Knobs.Length - 1; i++)
+            ow.Write(Difficulty.Of(DifficultyLevel.Nightmare).Values[i]);
+        oldMs.Position = 0;
+        var oldD = Difficulty.Read(new System.IO.BinaryReader(oldMs));
+        Check(oldD.Tier == MechTier.Nightmare && oldD.SameAs(Difficulty.Of(DifficultyLevel.Nightmare)), "older saved data (27 knobs) reads the preset's own tier");
         var save = new RunSave { Diff = custom };
         save.Seats.Add(new SeatSave { Name = "Host" });
         Check(RunSave.Parse(save.ToText()).Diff.SameAs(custom) && RunSave.Parse("arena-run 1\nwave 3\nseat\nname Host\n").Diff.Level == DifficultyLevel.Normal,
@@ -110,6 +136,10 @@ static partial class Program
             "the bullet budget scales with the difficulty, and other enemies get 60% of it while a boss is up");
         Check(Math.Abs(g.EliteChance(20) - 0.35) < 1e-6 && Math.Abs(WithDifficulty(g, DifficultyLevel.Nightmare).EliteChance(20) - 0.7) < 1e-6 && g.EliteChance(11) == 0.0,
             "elites: up to 35% on Normal, twice that on Nightmare, none before wave 12");
+        var tierGame = WithDifficulty(g, DifficultyLevel.Hard);
+        Check(tierGame.MechTier == MechTier.Hard && tierGame.MechAtLeast(MechTier.Normal) && tierGame.MechAtLeast(MechTier.Hard) && !tierGame.MechAtLeast(MechTier.Nightmare)
+              && tierGame.MechOk(MechTier.Hard, MechTier.Nightmare) && !tierGame.MechOk(MechTier.Easy, MechTier.Normal),
+            "MechAtLeast and MechOk check the run's tier");
         host.Leave(""); client.Leave("");
     }
 

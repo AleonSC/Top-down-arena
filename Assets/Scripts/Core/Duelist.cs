@@ -164,10 +164,12 @@ namespace Arena
                 return;
             }
             bool busy = s.Dash != DuelDash.None || s.SaluteT > 0f;
-            if (s.Stage == DuelStage.EnGarde && frac <= DuelMasqueradeAt && !busy) { StartDuelTransition(e, DuelStage.Masquerade); return; }
-            if (s.Stage == DuelStage.Masquerade && frac <= DuelDeathAt && !busy) { StartDuelTransition(e, DuelStage.ToTheDeath); return; }
-            if (s.Stage == DuelStage.ToTheDeath && frac <= DuelLastAt && !busy)
-                EnterDuelStage(e, DuelStage.LastStand);  // straight away, as the others do
+            BossStage to;  // its stage table (BossStages.cs)
+            if (!busy && NextStage(e.Type, (byte)s.Stage, frac, out to))
+            {
+                if (to.How != StageEntry.Instant) { StartDuelTransition(e, (DuelStage)to.Stage); return; }
+                EnterDuelStage(e, (DuelStage)to.Stage);  // straight away, as the others' last stands do
+            }
 
             s.TurnT += dt;
             if (s.StaggerT > 0f)
@@ -465,7 +467,7 @@ namespace Arena
             var turns = DuelTurns[(int)s.Stage];
             s.Step = (s.Step + 1) % turns.Length;
             s.Turn = turns[s.Step];
-            s.TurnLen = DuelTimes[(int)s.Stage][s.Step];
+            s.TurnLen = BossTurnLen((byte)s.Turn, DuelTimes[(int)s.Stage][s.Step]);  // (the tier's rest pace: BossRules.cs)
             s.TurnT = 0f;
             s.Done = 0;
             e.FireT = 0.4f;
