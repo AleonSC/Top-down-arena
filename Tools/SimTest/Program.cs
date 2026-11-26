@@ -557,6 +557,7 @@ static partial class Program
         Test("celllayouts", "cell layouts (Docs/Mockups/cell-layouts.html): hand-made walls per grid cell, open door lanes and middle, clear sleeper slots, the same on every build", () => CellLayoutsTest()),
         Test("pits", "cell variants and pits (Docs/CellVariants.md): the pit variants keep the middle and doors clear, rolled per cell; an enemy shoved in dies, a player climbs out with 15% less health", () => PitsTest(Dt)),
         Test("layouttest", "the Cell Editor's hub edits and TEST LAYOUT (HubLayoutEdits.cs, LayoutTest.cs): a hub plan's walls and crates change and revert, a tested piece is built with the layouts asked for", () => LayoutTestTest(Dt)),
+        Test("shoppedestals", "the pedestal shop (ShopPedestals.cs): two doors, pedestals on the other walls, nothing built or linked through them, no cover", () => ShopPedestalsTest()),
         Test("gridrooms", "grid rooms (Docs/GridRooms.md): the core, door spots on the lattice, nodes and chests at a cell's middle; pieces, cards and mini-boss rooms", () => GridRoomsTest(), () => GridRoomsGameTest(Dt), () => PieceShapesTest(), () => PieceCardsTest(), () => GridMiniTest(), () => GridSurpriseTest(), () => PieceShapesGameTest(Dt)),
         Test("lighting", "dynamic lighting's shadows (Core/LightCast.cs): walls and bodies stop a light, sharp corners, a light's own body ignored, casters out of reach skipped", () => LightingTest()),
         Test("turret", "the Black Market's Turret (Turret.cs): placed from the stash, it shoots enemies in range for 5 waves, 3 each", () => TurretTest(Dt)),
@@ -661,7 +662,7 @@ static partial class Program
         "stampede", "staticbubble", "staticshock", "stayin", "supplydrop", "survival", "thornbloom", "trojanhorse", "twintessen",
         "ultimates", "waterward", "wiki", "windclash", "wyvernstaff",
         "heartflail", "sanctumglass", "siegebell", "chakra", "honeyraid", "heartbeat", "tusker",
-        "contentfuzz", "caltroprun", "rocketdrop",
+        "contentfuzz", "caltroprun", "rocketdrop", "shoppedestals",
     };
 
     static int Main(string[] args)

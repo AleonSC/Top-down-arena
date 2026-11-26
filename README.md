@@ -1710,9 +1710,12 @@ instead; Boss Hunts and runs saved before the Campaign use the open arena). Desi
   gritty fifths).
 - **Shop and Black Market rooms**: with one connected, kills drop gold and the shop opens every intermission without holding the countdown. Buy
   upgrades and add stock in the **shop room**, buildables at the **Black Market** (one Buildables category, like the Arms Dealer and the Medic; it sells nothing else); selling, the Floor kit and the Vector pack are the shop room's only. Heals and revive tokens are only sold at the **Medic** (below). Gold and your shelf carry over between waves
-  (the shelf is new each boss cycle). The shop room's stall: a rug and a warm pool of light, posts with swinging lanterns, a striped awning
-  with a scalloped edge and a gem crest, a planked counter with a coin stack, an upgrade card, a potion and a coin sack, a big coin turning over it and sparkles drifting up.
-  Walking into any of these rooms opens its screen; after **Done shopping** (or Esc) a gold **F  OPEN THE SHOP** tag over you opens it again,
+  (the shelf is new each boss cycle). The **shop room** has no screen: its wares stand on **pedestals** along two facing walls, your shelf's
+  unsold cards on one (up to 4) and Add stock, Sell upgrade, Vector pack and Floor kit on the other, each floating over a stone plinth lit in its colour,
+  with a coin price beside it. Stand at one: a panel names it, says what it does and **F  BUY** buys it (Sell opens the sell list); sold-out spots
+  stand empty until you add stock. The room is bare (no cover) with a gold runner from door to door, and a shop cell has **only two doors**, on the
+  walls facing the room it was built from: nothing is built off, or opens through, its pedestal walls.
+  Walking into the other rooms opens its screen; after **Done shopping** (or Esc) a gold **F  OPEN THE ...** tag over you opens it again,
   any time between waves (the room shops stay open until the wave starts, even once everyone is done).
 - **Arms Dealer** ([`Docs/ArmsDealer.md`](Docs/ArmsDealer.md)): a tiny green room with a gun rack and a rifle on its counter, from its service card or a
   mystery door. While the shop is open, stand in it to buy **any weapon mod** for gold: **150** for your first stack of a mod, **250** the second,

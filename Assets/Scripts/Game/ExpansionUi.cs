@@ -65,10 +65,10 @@ namespace Arena
         // --- The shop room ------------------------------------------------------------------------------------
 
         /// The shop covers your screen: in the Expanding arena, only while you stand in a shop room (and haven't clicked Done).
-        bool ShopScreenUp(Player me) => game.ShopOpen && me != null && (!game.ServiceRooms || game.InServiceRoom(me) && !me.ShopDone) && !BeamShowing;  // (not over the boss beam-in: BossBeamLook.cs)
+        bool ShopScreenUp(Player me) => game.ShopOpen && me != null && (!game.ServiceRooms || game.InServiceRoom(me) && !me.ShopDone && !InPedestalShop(me)) && !BeamShowing;  // (the shop room has no screen: its pedestals, ShopPedestalLook.cs)  // (not over the boss beam-in: BossBeamLook.cs)
 
         /// Standing in a room shop (shop room, Black Market, Arms Dealer, Medic) between waves after Done shopping: Interact (F) opens it again.
-        bool ShopReopenable(Player me) => me != null && !me.Downed && game.ShopOpen && game.ServiceRooms && me.ShopDone && game.InServiceRoom(me);
+        bool ShopReopenable(Player me) => me != null && !me.Downed && game.ShopOpen && game.ServiceRooms && me.ShopDone && game.InServiceRoom(me) && !InPedestalShop(me);
 
         /// The shop is open but you're not in a shop room: a banner and a way to skip it. In a room shop you're done with: the key that opens it again.
         void DrawShopRoomHint(Player me)

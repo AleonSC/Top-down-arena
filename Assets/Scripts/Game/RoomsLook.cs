@@ -34,9 +34,9 @@ namespace Arena
                 DrawMedicBay(a.Mid);
                 return;
             }
-            if (!a.Sealed && (a.Kind == RoomKind.Shop || a.Kind == RoomKind.BlackMarket))  // an opened shop or Black Market room: its stall or pedestal
+            if (!a.Sealed && (a.Kind == RoomKind.Shop || a.Kind == RoomKind.BlackMarket))  // an opened shop or Black Market room: its pedestals or pedestal
             {
-                if (a.Kind == RoomKind.Shop) { if (ShopPedestalsMock) DrawShopPedestals(a.Mid); else DrawShopStall(a.Mid); } else DrawMarketPedestal(a.Mid);
+                if (a.Kind == RoomKind.Shop) DrawShopPedestals(a); else DrawMarketPedestal(a.Mid);  // (the shop's wares on pedestals: ShopPedestalLook.cs)
                 return;
             }
             var ink = KindInk(a.Kind, a.Floor);

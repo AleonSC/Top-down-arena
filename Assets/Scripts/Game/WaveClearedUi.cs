@@ -38,7 +38,7 @@ namespace Arena
             }
             TickWcSteps();
             if (game.State == MatchState.Intermission)  // the host shows your status chip from this (Core/WaveReady.cs)
-                game.SetMyBreakUi(ExpandWindowUp ? Game.BreakUiBuild : ShopScreenUp(me) ? Game.BreakUiShop : wcMin ? Game.BreakUiOut : Game.BreakUiBox);
+                game.SetMyBreakUi(ExpandWindowUp ? Game.BreakUiBuild : ShopScreenUp(me) || game.ShopOpen && InPedestalShop(me) ? Game.BreakUiShop : wcMin ? Game.BreakUiOut : Game.BreakUiBox);
             int pref = (AutoReadyPref || game.Bot) && !WcHoldsAuto(me) ? 1 : 0;  // (a bot playing for you readies itself)  // Auto-ready only counts once you reach the Ready step
             if (autoReadySent != pref)
             {

@@ -3005,13 +3005,12 @@ static partial class Shot {
           foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = RelicGauntlet.ToWorld(gr, gu, 300f);
         } else Console.Error.WriteLine("GAUNTLET: no spot fits");
       }
-      ArenaApp.ShopPedestalsMock = Expansion.ShopBare = Environment.GetEnvironmentVariable("PEDESTALS") != null;  // PEDESTALS=1: the shop room with its wares on pedestals (mockup, ShopPedestalLook.cs)
       string xcard = Environment.GetEnvironmentVariable("CARDROOM");  // CARDROOM=buildershop|shop|market|arms|medic: that card's one-cell room built on the lattice, everyone in it; CARDSPOT=<n> picks its nth door spot
       if (xcard != null) {
         var xc = (PieceCard)Enum.Parse(typeof(PieceCard), xcard, true);
         var xco = Expansion.PlacementsFor(xg.Expanded, PieceShape.Mono);
         int xci = Math.Min(xco.Count - 1, int.Parse(Environment.GetEnvironmentVariable("CARDSPOT") ?? "0"));
-        if (xci >= 0) { var r2 = xco[xci].Rooms[0]; r2.Owner = 1; r2.Kind = Expansion.CardRoomKind(xc); xg.Expanded.Add(r2); foreach (var pl in xg.Players.Values) { if (ArenaApp.ShopPedestalsMock) pl.Gold = 90; } foreach (var pl in xg.Players.Values) pl.Pos = pl.Disp = xco[xci].Mid + new V2(0f, float.Parse(Environment.GetEnvironmentVariable("CARDDY") ?? "0")); }  // (CARDDY=<px>: stand that far below the room's middle)
+        if (xci >= 0) { var r2 = xco[xci].Rooms[0]; r2.Owner = 1; r2.Kind = Expansion.CardRoomKind(xc); xg.Expanded.Add(r2); foreach (var pl in xg.Players.Values) { if (Environment.GetEnvironmentVariable("SHOPGOLD") != null) pl.Gold = int.Parse(Environment.GetEnvironmentVariable("SHOPGOLD")); if (Environment.GetEnvironmentVariable("SHOPGOLD") != null && !xg.ShopOpen) typeof(Game).GetMethod("OpenShop", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(xg, null); pl.Pos = pl.Disp = xco[xci].Mid + new V2(float.Parse(Environment.GetEnvironmentVariable("CARDDX") ?? "0"), float.Parse(Environment.GetEnvironmentVariable("CARDDY") ?? "0")); } }  // (CARDDX/CARDDY=<px>: stand that far right of / below the room's middle; SHOPGOLD=<n>: your gold, the shop open with a shelf)
         else Console.Error.WriteLine("CARDROOM: no spot fits");
         if (xci >= 0 && Environment.GetEnvironmentVariable("CARDABOVE") != null) {  // CARDABOVE=1: a plain room built on the card room's far side (a second door)
           var mid = xco[xci].Mid; var ups = Expansion.PlacementsFor(xg.Expanded, PieceShape.Mono).FindAll(o => Math.Abs(o.Mid.X - mid.X) < 1f && o.Mid.Y < mid.Y);
