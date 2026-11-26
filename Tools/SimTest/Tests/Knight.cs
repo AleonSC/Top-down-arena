@@ -36,7 +36,7 @@ static partial class Program
         Run(s, dt, 6, () => g.State == MatchState.Fighting);
         var me = g.Players[1];
         g.DevSetGod(1, true); g.DevSetGod(2, true);
-        Check(me.Kit == Kit.Knight && me.Weapon.Name == "Warhammer" && client.Game.Players[2].Weapon.Name == "Twin Blades" && me.MaxHp > Defs.Get(Role.Tank).Hp * 1.1f,
+        Check(me.Kit == Kit.Knight && me.Weapon.Name == "Warhammer" && client.Game.Players[2].Weapon.Name == "Twin Blades" && me.MaxHp > Defs.Get(Role.Tank).Hp * 1.04f,
             "a Knight Tank and Knight DPS start with their weapons and armoured health");
 
         Enemy dummy = null;

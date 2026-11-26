@@ -670,8 +670,8 @@ namespace Arena
         /// The Knight: swings in FireKnightWeapon, abilities in KnightAbility. See KitDef (Classes.cs) for what each hook does.
         internal static readonly KitDef KnightKit = new KitDef
         {
-            Id = Kit.Knight, Name = "Knight", Icon = "class_knight", HpMult = 1.15f,
-            Blurb = "Melee. Holding fire swings instead of shooting, hitting every enemy in the arc and cutting small bullets out of the air in front of you (big orbs, mines and red aimed shots still get through). Armoured for the thick of it: 115% health.",
+            Id = Kit.Knight, Name = "Knight", Icon = "class_knight", HpMult = 1.05f,
+            Blurb = "Melee. Holding fire swings instead of shooting, hitting every enemy in the arc and cutting small bullets out of the air in front of you (big orbs, mines and red aimed shots still get through). Armoured for the thick of it: 105% health plus Chainmail, a 15-point shield that takes half of every hit and refills 3 s after the last one (on a Tank it adds to Ironhide). A bigger parry shield: 30% wider and reaching further out.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireKnightWeapon(p, aim, dmg, extra),
             Ability = (g, p, id, target) => g.KnightAbility(p, id, target),
             OnKill = (g, e) => g.GauntletKill(e),  // a Challenged enemy's death sends the gauntlet back (Gauntlet.cs)
