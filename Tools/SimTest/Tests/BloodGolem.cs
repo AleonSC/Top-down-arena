@@ -22,8 +22,8 @@ static partial class Program
         Check(def.Name == "Blood Golem" && def.Cooldown == 80f && def.Choice == AbilityDef.Ult && def.UltKey == 2 && def.Role == Role.Tank && def.Kit == Kit.Hemomancer,
             "Blood Golem is the Tank Hemomancer's ultimate on key 2, 80 s");
         Check(Upgrades.Ultimate(Role.Tank, Kit.Hemomancer) == AbilityId.VeinTithe && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath
-            && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer, 2) == AbilityId.BloodGolem && Upgrades.ClampUlt(Role.Tank, Kit.Hemomancer, 2) == 2 && Upgrades.ClampUlt(Role.Tank, Kit.Hemomancer, 3) == 0,
-            "Vein Tithe stays the default, Bloodbath key 1, Blood Golem key 2; key 3 falls back");
+            && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer, 2) == AbilityId.BloodGolem && Upgrades.ClampUlt(Role.Tank, Kit.Hemomancer, 2) == 2 && Content.UltFallsBack(3),
+            "Vein Tithe stays the default, Bloodbath key 1, Blood Golem key 2; a class without a key 3 falls back");
 
         int port = nextPort++;
         var host = new Session { AutoStart = 3, StartWave = 3 };

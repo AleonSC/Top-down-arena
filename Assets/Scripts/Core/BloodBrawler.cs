@@ -10,7 +10,7 @@ namespace Arena
     ///     four-step string: Pulse, Reel, Heart Lift, Marrow Burst. A press on the same enemy within BsWindow of the last step
     ///     ending moves the string on; another enemy, or a wait, starts over at Pulse. The step shares Player.Combo with the
     ///     Twin Blades and the Blood Lash (low 3 bits: the step, 1-4; a count of steps above).
-    ///   - Each move costs BsMoveCost health (Marrow Burst BsBurstCost) and lands after a short wind-up (`bsHits`):
+    ///   - Each move costs BsMoveCost of your max health (Marrow Burst BsBurstCost) and lands after a short wind-up (`bsHits`):
     ///     Pulse shoves BsPulseShove px away, Reel pulls BsReelPull px in, Heart Lift throws it in the air for BsLiftAir s
     ///     (stunned; `Enemy.BsLiftT`), and every Blood Brawler hit on an airborne enemy deals BsAirMult. Marrow Burst hits for
     ///     BsBurstBase + BsBurstPer a hit landed earlier in the string, and bursts into BsShards bone shards (Defs.BloodBrawlerShot,
@@ -27,7 +27,7 @@ namespace Arena
         public const float BsPulseShove = 24f, BsReelPull = 110f, BsLiftAir = 0.7f, BsAirMult = 1.25f;
         public const int BsShards = 8;
         public const float BsShardSpeed = 600f, BsShardReach = 120f;
-        public const float BsMoveCost = 1f, BsBurstCost = 3f;
+        public const float BsMoveCost = 0.01f, BsBurstCost = 0.025f;  // shares of your max health
         public const float SympRange = 170f, SympTime = 4f, SympCooldown = 8f, SympMult = 0.5f;
         public const int SympMax = 4;
         static readonly Rgba BsRed = new Rgba(0.9f, 0.16f, 0.24f);
@@ -70,7 +70,7 @@ namespace Arena
             p.BsTarget = e.Id;
             p.BsT = BsThread;
             if (!casting)
-                PayHealth(p, step == 4 ? BsBurstCost : BsMoveCost, p.Weapon.Name);
+                PayHealth(p, p.MaxHp * (step == 4 ? BsBurstCost : BsMoveCost), p.Weapon.Name);
             float d = p.Weapon.Damage * dmg;
             QueueBsMove(p, e, step, d, false);
             BroadcastFx(FxKind.BsBlow, e.Pos, new V2(e.Id, p.Id), BsRed, step, BsFxDur(step), step == 4 ? Sfx.SpellArcane : Sfx.SwingLight);

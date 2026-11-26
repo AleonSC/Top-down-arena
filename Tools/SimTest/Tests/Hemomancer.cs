@@ -213,9 +213,23 @@ static partial class Program
         float paid = h0 - hp.Hp;
         Console.WriteLine("  exsanguinate: paid {0:0.0} of {1:0} max", paid, hp.MaxHp);
         Check(Math.Abs(paid - hp.MaxHp * 0.1f) < 0.5f, "a Hemomancer ability costs its share of max health");
-        hp.Hp = 1f;
+        // The blood floor: a cost stops at 20% of max health, and what it can't pay goes on the cooldown (use() casts
+        // without spending the charge, so the Timer holds only what the floor added).
+        float floorHp = hp.MaxHp * Game.HemoFloor, cdBase = g.Cooldown(hp, 0);
+        hp.Hp = floorHp; hp.Slots[0].Timer = 0f;
         use(AbilityId.Exsanguinate, hp.Pos);
-        Check(hp.Hp == 1f && !hp.Downed, "a health cost stops at 1 HP (the ability still casts, for nothing)");
+        float cdFloor = hp.Slots[0].Timer;
+        Check(Math.Abs(hp.Hp - floorHp) < 0.01f && !hp.Downed, "a health cost stops at the blood floor (20% of max health)");
+        Check(Math.Abs(cdFloor - cdBase) < 0.05f, "cast at the floor (nothing paid), the cooldown doubles (+" + cdFloor + " on " + cdBase + ")");
+        hp.Hp = floorHp + hp.MaxHp * 0.05f; hp.Slots[0].Timer = 0f;
+        use(AbilityId.Exsanguinate, hp.Pos);
+        float cdHalf = hp.Slots[0].Timer;
+        Console.WriteLine("  blood floor: cooldown {0:0.0} s, +{1:0.0} half paid, +{2:0.0} at the floor", cdBase, cdHalf, cdFloor);
+        Check(Math.Abs(hp.Hp - floorHp) < 0.01f && Math.Abs(cdHalf - 0.5f * cdBase) < 0.05f, "half paid, the cooldown is half again as long");
+        hp.Hp = hp.MaxHp; hp.Slots[0].Timer = 0f;
+        use(AbilityId.Exsanguinate, hp.Pos);
+        Check(hp.Slots[0].Timer == 0f, "paid in full, nothing is added to the cooldown");
+        hp.Slots[0].Timer = 0f;
 
         // Blood Shell: a toggle, free to raise; stops bullets and enemies at its skin; each bullet costs you and heals allies inside.
         place(1, 500f); place(2, 540f); run(0.3f);
@@ -232,7 +246,7 @@ static partial class Program
         float prevHp = hp.Hp, maxDrop = 0f;
         Run(s, dt, 1f, null, () => { clear(); foreach (var e in keep) e.FrozenT = 5f; maxDrop = Math.Max(maxDrop, prevHp - hp.Hp); prevHp = hp.Hp; });
         Console.WriteLine("  blood shell: one bullet cost {0:0.0}, ally gained {1:0.0}", maxDrop, cp.Hp - cAlly0);
-        Check(!g.Bullets.ContainsKey(900001) && Math.Abs(maxDrop - 7f) < 0.6f, "a bullet stops at the skin and costs 7 health");
+        Check(!g.Bullets.ContainsKey(900001) && Math.Abs(maxDrop - hp.MaxHp * 0.04f) < 0.6f, "a bullet stops at the skin and costs 4% of your max health");
         Check(cp.Hp - cAlly0 >= 3.5f && cp.Hp - cAlly0 < 20f && hp.ShellOn, "an ally inside heals when it stops a bullet, and the shell stays up");
         float d0 = hp.Hp;
         Run(s, dt, 2f, null, () => { clear(); foreach (var e in keep) e.FrozenT = 5f; });
@@ -258,31 +272,30 @@ static partial class Program
         keep.Remove(inside); keep.Remove(near); inside.Hp = near.Hp = 0f;
         run(0.2f);
 
-        // Blood Price: up to +40% at 10% health.
+        // Blood Price: up to +40% at the blood floor (20% health).
         hp.Hp = hp.MaxHp;
         float full = (float)price.Invoke(g, new object[] { hp });
-        hp.Hp = hp.MaxHp * 0.1f;
+        hp.Hp = hp.MaxHp * Game.HemoFloor;
         float low = (float)price.Invoke(g, new object[] { hp });
-        hp.Hp = hp.MaxHp * 0.55f;
+        hp.Hp = hp.MaxHp * 0.6f;
         float mid = (float)price.Invoke(g, new object[] { hp });
-        Console.WriteLine("  blood price: x{0:0.00} full, x{1:0.00} at 55%, x{2:0.00} at 10%", full, mid, low);
-        Check(Math.Abs(full - 1f) < 0.01f && Math.Abs(mid - 1.2f) < 0.01f && Math.Abs(low - 1.4f) < 0.01f, "Blood Price: up to 40% more damage the lower your health");
+        Console.WriteLine("  blood price: x{0:0.00} full, x{1:0.00} at 60%, x{2:0.00} at 20%", full, mid, low);
+        Check(Math.Abs(full - 1f) < 0.01f && Math.Abs(mid - 1.2f) < 0.01f && Math.Abs(low - 1.4f) < 0.01f, "Blood Price: up to 40% more damage the lower your health, all of it at the blood floor");
 
-        // Lifesteal: 3% of damage dealt.
+        // No lifesteal (owner Nov 26): hits don't heal; the class's kills drop its own health orbs instead.
         place(1, 500f); run(0.2f);
         var d1 = dummy(new V2(900f, 450f));
         hp.Hp = hp.MaxHp * 0.5f;
         float hBefore = hp.Hp, eBefore = d1.Hp;
         hurt.Invoke(g, new object[] { d1, 100f, 1 });
         float dealt = eBefore - d1.Hp, healed = hp.Hp - hBefore;
-        Console.WriteLine("  lifesteal: dealt {0:0.0} (Blood Price at half health), healed {1:0.00}", dealt, healed);
-        Check(dealt > 120f && Math.Abs(healed - dealt * 0.03f) < 0.05f, "Hemomancer hits heal it for 3% of the damage dealt");
+        Console.WriteLine("  no lifesteal: dealt {0:0.0} (Blood Price at half health), healed {1:0.00}", dealt, healed);
+        Check(dealt > 120f && Math.Abs(healed) < 0.01f, "Hemomancer hits don't heal it (no lifesteal)");
 
         // Blood Wall: a toggle that lays a wall behind you as you walk. It stops enemy shots and enemies (who bleed against
-        // it), drains 1% of max health a second doubling every 4 s, and can take you down; the cooldown starts when it ends.
+        // it), drains 1% of max health a second doubling every 4 s, and ends at the blood floor; the cooldown starts when it ends.
         {
             var shoot = typeof(Game).GetMethod("SpawnBullet", flags);
-            var revive = typeof(Game).GetMethod("RevivePlayer", flags);
             hp.Hp = hp.MaxHp;
             place(1, 400f); place(2, 1400f); run(0.2f);  // (the healer well away: a healer's aura is what stretches the wall)
             float w0 = hp.Hp;
@@ -341,15 +354,15 @@ static partial class Program
             run(6.2f);
             Check(!g.Zones.Values.Any(z => z.Kind == ZoneKind.BloodWall), "the wall crumbles after 6 s");
 
-            // Ride the ramp too long and it takes you down; the wall ends with you.
+            // Ride the ramp too long and it ends at the blood floor instead of downing you.
             hp.Hp = hp.MaxHp;
             use(AbilityId.BloodWall, hp.Pos);
             hp.Slots[0].Charges = 0;  // (the charge the cast spent)
             hp.DevGod = false;
             hp.BloodWallClock = 28f;  // 128%/s
             run(1f);
-            Check(hp.Downed && !hp.BloodWallOn && hp.Slots[0].Timer > 7f, "the ramp can take you down, and the wall ends when it does");
-            revive.Invoke(g, new object[] { hp, 1f, null });
+            Check(!hp.Downed && !hp.BloodWallOn && Math.Abs(hp.Hp - hp.MaxHp * Game.HemoFloor) < 0.5f && hp.Slots[0].Timer > 7f, "the ramp stops at the blood floor (20%), never downing you, and the wall ends there");
+            hp.Hp = hp.MaxHp;
             hp.DevGod = true;
             hp.Slots[0].Timer = 0f;
             place(2, 540f);  // (the healer back where the tests after this expect them)

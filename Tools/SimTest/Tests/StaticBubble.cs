@@ -26,8 +26,8 @@ static partial class Program
             "Static Bubble is the Healer Elementalist's ultimate on key 1, 80 s");
         Check(Upgrades.Ultimate(Role.Healer, Kit.Elementalist, 1) == AbilityId.StaticBubble && Upgrades.Ultimate(Role.Healer, Kit.Elementalist) == AbilityId.Sanctum,
             "key 1 is Static Bubble; Sanctum stays the default");
-        Check(Upgrades.ClampUlt(Role.Healer, Kit.Elementalist, 1) == 1 && Upgrades.ClampUlt(Role.Healer, Kit.Elementalist, 2) == 0,
-            "key 1 is the Healer's; key 2 falls back to the default");
+        Check(Upgrades.ClampUlt(Role.Healer, Kit.Elementalist, 1) == 1 && Content.UltFallsBack(2),
+            "key 1 is the Healer's; a class without a key 2 falls back to the default");
 
         int port = nextPort++;
         var host = new Session { AutoStart = 3, StartWave = 3 };

@@ -11,7 +11,7 @@ shard=${1:-1/1}; k=${shard%/*}; n=${shard#*/}
 jobs=${2:-$(nproc 2>/dev/null || echo 2)}
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
-mcs -langversion:7.2 -nologo -out:"$tmp/SimTest.exe" Program.cs Tests/*.cs ../../Assets/Scripts/Core/*.cs ../../Assets/Scripts/Game/MenuMusic.cs ../../Assets/Scripts/Game/GameMusic.cs ../../Assets/Scripts/Game/MusicLibrary.cs ../../Assets/Scripts/Game/CustomMusic.cs \
+mcs -langversion:7.2 -nologo -out:"$tmp/SimTest.exe" Program.cs Content.cs Tests/*.cs ../../Assets/Scripts/Core/*.cs ../../Assets/Scripts/Game/MenuMusic.cs ../../Assets/Scripts/Game/GameMusic.cs ../../Assets/Scripts/Game/MusicLibrary.cs ../../Assets/Scripts/Game/CustomMusic.cs \
     | grep -v "warning CS" || true
 [ -f "$tmp/SimTest.exe" ] || { echo "FAILED: the tests don't compile"; exit 1; }
 start=$(date +%s); i=0; mine=()

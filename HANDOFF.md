@@ -240,6 +240,18 @@ The lobby fits about 8 class cards in a row before they get too small.
     no ports (they can run in parallel). Over real localhost TCP a busy CI machine sometimes hadn't delivered a message
     by the next `Poll`, which was the main cause of checks failing once and passing on a re-run. `SIMTEST_TCP=1` runs
     the old real-TCP way. Don't add `Thread.Sleep` waits for the network in new tests (`Nap` in Program.cs sleeps only over TCP).
+  - **Writing tests that survive new content:** never name a class as the example of a content property ("the Healer
+    Knight has one ultimate", "the Tank Hemomancer has three 1st abilities"): it breaks the day that class gets new
+    content, which happened over and over in Nov 2026. Ask `Tools/SimTest/Content.cs` instead: `Content.RoleWithoutUlt(key)`,
+    `RoleWithUlt`, `RoleWithWeapons(n)`, `RoleWithAbilityChoices(n)`, `RoleWithMore...Than(n)` (the first match in a fixed
+    order, a failed check with a clear message when none), `Content.UltFallsBack(key)` / `WildUltFallsBack` /
+    `ThreeAbilitiesFallBack()` for "a pick the class lacks falls back", and counts read from the data (`WeaponCount`,
+    `AbilityCount`, `UltCount`, `TotalWeaponKeys`, `DpsFourthWeapons`, ...) instead of literal numbers or hand-kept
+    exception lists. Checking a named weapon or ability's own place (the Twin Tessen is the Healer Ninja's 4th key) is fine.
+    The `contentfuzz` suite (or `CONTENTFUZZ=1` before any suite) adds a fake 4th weapon, 4th 1st ability and an
+    ultimate on a free key to every role and class (`Content.Fuzz`, keeping one free place of each kind) and runs the
+    content tests: add a new table or lobby test to its list. Sweeps that fire every weapon or cast every ability
+    (completeness, aim line, DPS table, `Docs/Reference.md`) fail under `CONTENTFUZZ=1` by design: the fakes have no code.
   - Single systems: `snapshot` (run snapshots, F6 / F7), `parry`, `aim`, `extra`, `knight`, `ninja`, `blood`, `bloodlash`, `paths`, `bazaar`, `bosses`,
     `warden`, `singularity`, `mastery`, `longrun` (the 100-wave Campaign), `bossschedule` (the boss schedules match the old formulas), `quickfights` (Quick Play boss fights with bots: each boss's fight length after waves 10/20/30), `quick` (Quick Play: its waves, boss, records, endless, room building with two bots, the tutorial; prints each boss's health after waves 10/20/30), `bossgate` (the boss gate before a boss: holds the wave until everyone is in, bots walk in; the only suite with `Game.GatesOn`), `wardencycle` (its Warden wave lessons), `reapercult` (the Twin Reapers' faction: Bound Wraiths, Scythe Wraith, Lamplighter, Mourner), `checkpoints` (lives and retries), `classcards`, `showcase`, `ultimates`, `mods`, `cardids` (card ids over the network as 2 bytes), `offers` (every card offer reads the weapon), `cardfilters` (class and weapon-list cards), `classcardlists` (each class's card list), `hitfx` (hit flash and blast thinning), `nonshooters` (Fuse Runner, Hookman, Sapper), `turnkey` (the Warden faction's Turnkey: wave-3 debut, running, traps, Cell Doors), `aitrace` (every non-boss enemy alone for 12 s vs `Golden/aitrace.txt`, the enemy behaviour refactor's safety net, Docs/EnemyBehaviours.md; `AITRACE=update` rewrites it), ... Reports (numbers, no pass/fail):
     `ttk`, `lab`, `levels`, `bulletcount`, `perf` (sim ms a frame, host and friend, through a Quick Play breach wave: `run.sh 1 1 perf [secs] [boss] [wave]`), `survperf` (the same for Survival at the 60-enemy cap: `run.sh 1 1 survperf [secs] [start min]`), `wavemix` (each wave's share of shooters, melee and support), `dps`, `ultdps`, `balance` (each damage upgrade's worth per pick and full

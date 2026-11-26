@@ -16,7 +16,7 @@ namespace Arena
     /// Drawn by Game/BloodBoilLook.cs.
     public partial class Game
     {
-        public const float BoilTime = 10f, BoilDrain = 0.07f, BoilFloor = 0.05f, BoilFull = 0.1f;
+        public const float BoilTime = 10f, BoilDrain = 0.07f, BoilFloor = HemoFloor, BoilFull = HemoFloor;
         public const float BoilSpeed = 0.7f, BoilFire = 1f, BoilDmg = 0.6f, BoilDmgMastered = 0.9f;
         public static readonly Rgba BoilHot = new Rgba(1f, 0.42f, 0.17f), BoilBlood = new Rgba(0.76f, 0.08f, 0.17f), BoilSteam = new Rgba(0.95f, 0.9f, 0.87f);
 

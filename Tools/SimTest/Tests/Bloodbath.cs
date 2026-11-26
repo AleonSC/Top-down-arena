@@ -21,10 +21,10 @@ static partial class Program
         // The table: key 0 stays Vein Tithe, key 1 is Bloodbath; other classes have one.
         var def = Upgrades.Ability(AbilityId.Bloodbath);
         Check(Upgrades.Ultimate(Role.Tank, Kit.Hemomancer) == AbilityId.VeinTithe && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath
-            && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 2) == AbilityId.BloodGolem && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 3) == AbilityId.None && Upgrades.AltUltimate(Role.Healer, Kit.Hemomancer, 1) == AbilityId.Heartbeat
+            && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath && Upgrades.AltUltimate(Role.Tank, Kit.Hemomancer, 2) == AbilityId.BloodGolem && Upgrades.AltUltimate(Role.Healer, Kit.Hemomancer, 1) == AbilityId.Heartbeat && Content.UltFallsBack(3)
             && Upgrades.AltUltimate(Role.Tank, Kit.Soldier, 1) == AbilityId.JuggernautSuit
-            && Upgrades.Ultimate(Role.Healer, Kit.Hemomancer, 2) == AbilityId.SanguineRain && Upgrades.Ultimate(Role.Wildcard, Kit.Hemomancer, 3) == AbilityId.CrimsonHarvest,  // (key 2 is the DPS Hemomancer's Blood Boil now: BloodBoil.cs)
-            "the Tank Hemomancer has three ultimates (Vein Tithe the default, Bloodbath second, Blood Golem third: BloodGolem.cs); a pick a class lacks falls back to its default");
+            && Content.UltFallsBack(2) && Content.WildUltFallsBack(3),
+            "the Tank Hemomancer's Ultimate row: Vein Tithe the default, Bloodbath second, Blood Golem third (BloodGolem.cs); a pick a class lacks falls back to its default");
         Check(def.Name == "Bloodbath" && def.Cooldown == 75f && def.HealthCost == 0f && def.Choice == AbilityDef.Ult && def.UltKey == 1 && def.Kit == Kit.Hemomancer && def.Role == Role.Tank,
             "Bloodbath: a 75 s Tank Hemomancer ultimate channelled, with nothing up front");
 
@@ -111,13 +111,13 @@ static partial class Program
         step(Game.BathDry);
         Check(!g.Zones.Values.Any(z => z.Kind == ZoneKind.Bloodbath), "and it's gone 1.2 s later");
 
-        // The drain stops it at 15% health.
+        // The drain stops it at the blood floor (20% health).
         reset();
         cast();
-        me.Hp = me.MaxHp * 0.17f;
+        me.Hp = me.MaxHp * 0.22f;
         step(1f);
         Console.WriteLine("  bloodbath: stopped at {0:0.0}% health", me.Hp / me.MaxHp * 100f);
-        Check(bath() == null && drying() != null && me.Hp >= me.MaxHp * 0.14f && me.Hp <= me.MaxHp * 0.155f, "the channel stops when the drain brings you to 15% health");
+        Check(bath() == null && drying() != null && me.Hp >= me.MaxHp * 0.195f && me.Hp <= me.MaxHp * 0.205f, "the channel stops when the drain brings you to the blood floor (20%)");
 
         // The slow: 50%, Heavy enemies 35%, bosses 20%; nothing outside it.
         reset();
@@ -157,19 +157,19 @@ static partial class Program
 
         // Blood Price scales it.
         reset();
-        pinHp = me.MaxHp * 0.2f;
+        pinHp = me.MaxHp * 0.3f;
         grunt = make(EnemyType.Grunt, mePos + new V2(60f, 0f));
         cast();
-        pinHp = me.MaxHp * 0.2f;
+        pinHp = me.MaxHp * 0.3f;
         step(Game.BathGrow);
         gh = grunt.Hp;
         step(2f);
         float priced = gh - grunt.Hp;
-        float price = 1f + 0.4f * (0.8f / 0.9f);  // Blood Price at 20% health (the channel stops at 15%)
-        Console.WriteLine("  bloodbath: at 20% health it bled {0:0.0} ({1:0.00}x, expect {2:0.00}x)", priced, priced / bled, price);
-        Check(Math.Abs(priced / bled - price) < 0.02f, "Blood Price scales the bleed (36% more at 20% health)");
+        float price = 1f + 0.4f * (0.7f / 0.8f);  // Blood Price at 30% health (the channel stops at 20%)
+        Console.WriteLine("  bloodbath: at 30% health it bled {0:0.0} ({1:0.00}x, expect {2:0.00}x)", priced, priced / bled, price);
+        Check(Math.Abs(priced / bled - price) < 0.02f, "Blood Price scales the bleed (35% more at 30% health)");
 
-        // The heal: 25% of what it dealt, wherever you are; not the class's 3% on top.
+        // The heal: 25% of what it dealt, wherever you are (the class has no other lifesteal).
         reset();
         grunt = make(EnemyType.Grunt, mePos + new V2(60f, 0f));
         var grunt2 = make(EnemyType.Grunt, mePos + new V2(-50f, 50f));
@@ -278,8 +278,9 @@ static partial class Program
         Check(settle(0) && client.Lobby[cid].UltId == AbilityId.VeinTithe, "picking key 0 goes back to Vein Tithe");
         client.RequestUlt(1);
         Check(settle(1), "and key 1 to Bloodbath again");
-        client.RequestUlt(3);
-        Check(settle(0), "a key with nothing on it is clamped to the default");
+        int free = Content.FreeUltKey(Role.Tank, Kit.Hemomancer);  // (a key with nothing on it, if the row has one left)
+        client.RequestUlt(free > 0 ? free : Upgrades.UltKeys);
+        Check(settle(0), "a key with nothing on it (" + (free > 0 ? "key " + free : "past the row") + ") is clamped to the default");
         client.RequestUlt(1);
         settle(1);
         host.RequestUlt(1);

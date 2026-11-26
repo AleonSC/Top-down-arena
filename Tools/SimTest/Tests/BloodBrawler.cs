@@ -57,7 +57,7 @@ static partial class Program
         V2 a0 = a.Pos;
         Press(a);
         Check(Game.BsStepOf(me.Combo) == 1 && me.BsTarget == a.Id, "Fire on an enemy marks it and lands step 1 (step " + Game.BsStepOf(me.Combo) + ")");
-        Check(Math.Abs(hpBefore - me.Hp - Game.BsMoveCost) < 0.2f, "a move costs 1 health (" + Cost() + ")");
+        Check(Math.Abs(hpBefore - me.Hp - me.MaxHp * Game.BsMoveCost) < 0.2f, "a move costs 1% of max health (" + Cost() + ")");
         Settle(a);
         float pulse = a.MaxHp - a.Hp;
         Check(pulse >= me.Weapon.Damage - 1f && pulse < me.Weapon.Damage * 1.6f && a.Pos.X - a0.X > 15f, "Pulse hits (" + pulse.ToString("0") + ") and shoves it away (" + (a.Pos.X - a0.X).ToString("0") + " px)");
@@ -80,7 +80,7 @@ static partial class Program
         by.Pos = a.Pos + new V2(0f, 70f);  // (in the shards' reach, wherever the Reel left it)
         float aBefore = a.Hp, byBefore = by.Hp;
         Press(a);
-        Check(Math.Abs(hpBefore - me.Hp - Game.BsBurstCost) < 0.2f, "Marrow Burst costs 3 health (" + Cost() + ")");
+        Check(Math.Abs(hpBefore - me.Hp - me.MaxHp * Game.BsBurstCost) < 0.2f, "Marrow Burst costs 2.5% of max health (" + Cost() + ")");
         bool airborne = a.BsLiftT > 0f;
         Step(0.25f, On(a), false, false);
         float burst = aBefore - a.Hp;

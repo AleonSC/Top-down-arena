@@ -281,6 +281,11 @@ static partial class Program
         // Single systems.
         Test("audit", "Nov 2026 audit fixes: slows end on time, piercing shots hit overlapping enemies once, boss coins carry all their gold, Stop clears per-run lists, bad client input and resent dodges are ignored, cut-short run saves are refused", () => AuditFixesTest(Dt)),
         Test("showcasealts", "the lobby preview presses every weapon's Alt (ShowcaseAlt.cs): a run with it shows something a run without never does", () => ShowcaseAltsTest(Dt)),
+        Test("contentfuzz", "fake content for every class and role (Content.Fuzz: a 4th weapon and 1st ability wherever there is room, an ultimate on a free key), then the tests that read content counts or pick classes", ContentFuzzCheck,
+            CheckAbilityRegistry, () => ClassAbilityTest(Dt), () => WildcardTest(Dt), () => ArcKnucklesTest(Dt), () => FloodTest(Dt), () => GaleWallTest(Dt),
+            () => WaterWardTest(Dt), () => StampedeTest(Dt), () => FlashFireTest(Dt), () => RodTest(Dt), () => JuggernautTest(Dt), () => PhalanxTest(Dt),
+            () => BloodbathTest(Dt), () => BloodGolemTest(Dt), () => StoneColossusTest(Dt), () => VortexTest(Dt), () => BloodBoilTest(Dt), () => BallistaTest(Dt),
+            () => LivingBoltTest(Dt), () => HeartbeatTest(Dt), () => StaticBubbleTest(Dt), () => HoneyRaidTest(Dt), () => ArmorDropTest(Dt), () => OrbitalLaserTest(Dt)),
         Test("classes", "every class is complete: name, blurb, icon, look, weapons that fire, abilities that cast (run first when adding a class)", ClassCompletenessTest),
         Test("approaches", "boss approaches: the themed share, waves built with it, the Riot Shield (bash, knockback, shield), the Gas Grenadier, the Warden's pair", () => ApproachesTest(Dt)),
         Test("campaign", "the campaign buildup: every wave themed, the last boss fading out, an older pool, the next boss building up", CampaignTest),
@@ -629,7 +634,7 @@ static partial class Program
     {
         "snapshot", "turnkey", "holdingcell", "hitfx", "greatsword", "knuckles", "milestone", "mods", "knightdps", "twinblades", "melee", "brute",
         "trickle", "meleesounds", "recentruns", "pacman", "longrun", "wardencycle", "checkpoints", "coredrops", "variants",
-        "exploit", "doublebarrel", "railgun", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "vowguard", "embolus", "needleswarm", "bloodbrawler", "arclock", "twinauto", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
+        "exploit", "doublebarrel", "railgun", "twinpistols", "pistolwhip", "stonespear", "honeybee", "nunchaku", "nodachi", "vowguard", "embolus", "needleswarm", "bloodbrawler", "arclock", "twinauto", "caltroprun", "outofammo", "elementballs", "adrenaline", "paths", "bazaar", "timed", "layouts",
         "expand", "recycle", "armsdealer", "turret", "mysterydoor", "mapreset", "quick", "bossgate", "bossschedule", "rank", "pings", "hangout", "hangoutmode", "training", "foequery", "pvp", "three", "wrap", "ready", "wavekinds", "landmarks",
         "arcanist", "stages", "bossrules", "newenemies", "guardrally", "riotercrowd", "rioterbottle", "wildcard", "stacking", "singularity", "security", "guardswing", "thugpunch", "captain", "wavedump", "spawndump", "aitrace", "hive", "reapercult", "infall", "quarry", "court", "larder", "basicfaction", "penumbral", "squall",
         // (these were missing until Nov 2026, so nothing caught them breaking; ci_coverage.py now fails CI on a suite left out)
@@ -642,10 +647,13 @@ static partial class Program
         "stampede", "staticbubble", "staticshock", "stayin", "supplydrop", "survival", "thornbloom", "trojanhorse", "twintessen",
         "ultimates", "waterward", "wiki", "windclash", "wyvernstaff",
         "heartflail", "sanctumglass", "siegebell", "chakra", "honeyraid", "heartbeat", "tusker",
+        "contentfuzz", "caltroprun",
     };
 
     static int Main(string[] args)
     {
+        if (Environment.GetEnvironmentVariable("CONTENTFUZZ") == "1" || (args.Length > 2 && args[2] == "contentfuzz"))
+            Content.Fuzz();  // fake content for every class and role (Content.cs), before anything reads the tables
         NetPeer.PeerTimeout = 1e9;  // the games here are stepped slower than real time: a 30 s silence isn't a dropped link
         Game.IronhideOff = true;  // tests read a Tank's health loss exactly; IronhideTest turns it on (Ironhide.cs)
         NetPeer.Loopback = Environment.GetEnvironmentVariable("SIMTEST_TCP") == null;  // hosts and joins meet in memory: every message is there on the next Poll, however busy the machine (SIMTEST_TCP=1: real localhost TCP)

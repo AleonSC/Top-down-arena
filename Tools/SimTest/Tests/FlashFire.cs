@@ -21,8 +21,8 @@ static partial class Program
             "Flash Fire is the DPS Elementalist's ultimate on key 2, 80 s");
         Check(Upgrades.Ultimate(Role.Dps, Kit.Elementalist, 2) == AbilityId.FlashFire && Upgrades.Ultimate(Role.Dps, Kit.Elementalist, 1) == AbilityId.LivingBolt
             && Upgrades.Ultimate(Role.Dps, Kit.Elementalist) == AbilityId.BulletRain && Upgrades.ClampUlt(Role.Dps, Kit.Elementalist, 2) == 2
-            && Upgrades.AbilityLimit(Role.Healer, Kit.Summoner) == 3,
-            "key 2 is Flash Fire; Bullet Rain and Living Bolt keep keys 0 and 1; the Healer Summoner keeps three abilities");
+            && Content.ThreeAbilitiesFallBack(),
+            "key 2 is Flash Fire; Bullet Rain and Living Bolt keep keys 0 and 1; a class without a 4th 1st ability keeps three");
         Check(Upgrades.All.Any(u => u.Name == "Backdraft" && u.RequiresAbility == AbilityId.FlashFire && u.Rarity == Rarity.Rare),
             "Backdraft is a Rare card for it");
 

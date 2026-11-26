@@ -3,7 +3,7 @@ using System;
 namespace Arena
 {
     /// The DPS Hemomancer's Blood Debt (was Frenzy Pact). Your health drops to a quarter and
-    /// what it took becomes a debt; for 8 s kills pay it back (and your hits heal 15% instead of 3%). Pay it all and the
+    /// what it took becomes a debt; for 8 s kills pay it back (and your hits heal 15% of their damage). Pay it all and the
     /// 15% stays 2 s longer; what's still owed when the time runs out is gone.
     /// Player.DebtT, Debt and DebtOwed are replicated so everyone can draw the ledger: Game/BloodDebtLook.cs (look A
     /// "Ledger" of Docs/Mockups/blood-debt.html).
@@ -13,7 +13,7 @@ namespace Arena
         public const float DebtMinCost = 0.05f;      // ...or costs this share, if you're already at or below the floor
         public const float DebtTime = 8f;            // seconds to pay it back
         public const float DebtPaidBonus = 2f;       // paid in full: the lifesteal lasts this much longer
-        const float DebtSteal = 0.12f;               // on top of the class's 3%: 15% while the debt runs
+        const float DebtSteal = 0.15f;               // your hits heal this share of their damage while the debt runs
         const float DebtGrunt = 0.04f, DebtHeavy = 0.10f;  // a kill repays this share of your max health (Heavy, elite or boss: the second)
         const float DebtBossShare = 0.10f;           // hurting a boss repays this share of the damage
         const float DebtMastered = 1.5f;             // mastered: kills repay this much more

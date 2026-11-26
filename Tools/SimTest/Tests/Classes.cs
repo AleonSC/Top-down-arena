@@ -78,7 +78,8 @@ static partial class Program
 
         foreach (var p in problems)
             Console.WriteLine("  missing: " + p);
-        Check(problems.Count == 0, "every class is complete: " + kits + " classes, each with a name, blurb, icon, look, 9 weapons that fire, 9 1st abilities and 3 ultimates that cast");
+        Check(problems.Count == 0, "every class is complete: " + kits + " classes, each with a name, blurb, icon, look; " + Content.TotalWeaponKeys + " weapon keys that fire, "
+            + Content.TotalAbilityChoices + " 1st abilities and " + Content.TotalUlts + " ultimates that cast");
 
         AbilityIconsTest(pixelArt);
         WeaponAltIdsTest();
