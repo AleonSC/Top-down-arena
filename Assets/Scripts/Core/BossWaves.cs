@@ -50,12 +50,14 @@ namespace Arena
             return l;
         }
 
-        /// A boss wave's queue on wave n: the boss, its partner, then the escort.
-        public static List<EnemyType> Queue(EnemyType boss, int n)
+        /// A boss wave's queue on wave n: the boss, its partner, then the escort (times the tier's escort share: BossRules.cs).
+        public static List<EnemyType> Queue(EnemyType boss, int n, float escortMult = 1f)
         {
             var r = Get(boss);
             var l = Own(boss);
             int escorts = r.EscortEvery > 0 ? n / r.EscortEvery : 0;
+            if (escortMult != 1f)
+                escorts = (int)Math.Round(escorts * escortMult);
             for (int i = 0; i < escorts; i++)
                 l.Add(i % 2 == 0 ? r.Escort : r.EscortAlt);
             return l;

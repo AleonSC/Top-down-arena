@@ -159,11 +159,11 @@ namespace Arena
                 e.Radius = SingRadius(e);
                 return;
             }
-            if (s.Stage == SingStage.EventHorizon && frac <= SingLockdownAt) { StartSingTransition(e, SingStage.Accretion); return; }
-            if (s.Stage == SingStage.Accretion && frac <= SingSpaghettiAt) { StartSingTransition(e, SingStage.Spaghettify); return; }
-            if (s.Stage == SingStage.Spaghettify && frac <= SingLastAt && s.Turn != SingTurn.Split)
+            BossStage to;  // its stage table (BossStages.cs)
+            if (NextStage(e.Type, (byte)s.Stage, frac, out to) && (to.Stage != (byte)SingStage.LastStand || s.Turn != SingTurn.Split))
             {
-                EnterSingStage(e, SingStage.LastStand);  // straight away, as the others do
+                if (to.How != StageEntry.Instant) { StartSingTransition(e, (SingStage)to.Stage); return; }
+                EnterSingStage(e, (SingStage)to.Stage);  // straight away, as the others' last stands do
                 BroadcastSound(Sfx.BossWarp);  // the horizon swells
             }
 
@@ -292,7 +292,7 @@ namespace Arena
                 ClearShards();
             s.Step = (s.Step + 1) % turns.Length;
             s.Turn = turns[s.Step];
-            s.TurnLen = SingTimes[(int)s.Stage][s.Step];
+            s.TurnLen = BossTurnLen((byte)s.Turn, SingTimes[(int)s.Stage][s.Step]);  // (the tier's rest pace: BossRules.cs)
             s.TurnT = 0f;
             s.RingT = 0f;
             s.Reversed = false;

@@ -200,12 +200,12 @@ namespace Arena
                 }
                 return;
             }
-            if (s.Stage == EclipseStage.Corona && frac <= EclipsePenumbraAt) { StartEclipseTransition(e, EclipseStage.Penumbra); return; }
-            if (s.Stage == EclipseStage.Penumbra && frac <= EclipseUmbraAt) { StartEclipseTransition(e, EclipseStage.Umbra); return; }
-            if (s.Stage == EclipseStage.Umbra && frac <= EclipseEchoesAt) { StartEclipseTransition(e, EclipseStage.Echoes); return; }
-            if (s.Stage == EclipseStage.Echoes && frac <= EclipseLastLightAt) { StartEclipseTransition(e, EclipseStage.LastLight); return; }
-            if (s.Stage == EclipseStage.LastLight && frac <= EclipseTotalityAt)
-                EnterEclipseStage(e, EclipseStage.Totality);  // straight away, as the others' last stands do
+            BossStage to;  // its stage table (BossStages.cs)
+            if (NextStage(e.Type, (byte)s.Stage, frac, out to))
+            {
+                if (to.How != StageEntry.Instant) { StartEclipseTransition(e, (EclipseStage)to.Stage); return; }
+                EnterEclipseStage(e, (EclipseStage)to.Stage);  // straight away, as the others' last stands do
+            }
 
             s.TurnT += dt;
             if (s.FlashT <= 0f && s.Stage != EclipseStage.Totality)
@@ -651,14 +651,16 @@ namespace Arena
                 s.MoonD = 0f;
             if (stage == EclipseStage.Penumbra)
             {
-                for (int i = 0; i < 2; i++)
-                    SpawnEnemyAt(EnemyType.Ember, e.Pos + V2.FromAngle(MathX.Pi * i) * 200f, 0.8f, e.Id);  // its own court (Penumbral.cs)
+                int court = BossAdds(2);  // (the tier's summons: BossRules.cs)
+                for (int i = 0; i < court; i++)
+                    SpawnEnemyAt(EnemyType.Ember, e.Pos + V2.FromAngle(MathX.Tau * i / court) * 200f, 0.8f, e.Id);  // its own court (Penumbral.cs)
                 BroadcastSound(Sfx.Summon);
             }
             if (stage == EclipseStage.Umbra)
             {
-                for (int i = 0; i < 2; i++)
-                    SpawnEnemyAt(EnemyType.CoronaPriest, e.Pos + V2.FromAngle(MathX.Pi * i + MathX.Pi / 2f) * 200f, 0.8f, e.Id);
+                int court = BossAdds(2);
+                for (int i = 0; i < court; i++)
+                    SpawnEnemyAt(EnemyType.CoronaPriest, e.Pos + V2.FromAngle(MathX.Tau * i / court + MathX.Pi / 2f) * 200f, 0.8f, e.Id);
                 BroadcastSound(Sfx.Summon);
                 for (int i = 0; i < 3; i++)
                     s.Spots.Add(new Sunspot { Pos = new V2(300f + i * 500f, i == 1 ? 250f : Height - 220f), Dir = RandAngle() });
@@ -697,7 +699,7 @@ namespace Arena
             var turns = EclipseTurns[(int)s.Stage];
             s.Step = (s.Step + 1) % turns.Length;
             s.Turn = turns[s.Step];
-            s.TurnLen = EclipseTimes[(int)s.Stage][s.Step];
+            s.TurnLen = BossTurnLen((byte)s.Turn, EclipseTimes[(int)s.Stage][s.Step]);  // (the tier's rest pace: BossRules.cs)
             s.TurnT = 0f;
             s.ActT = 0.3f;
             s.Fired = 0;
