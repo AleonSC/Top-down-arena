@@ -13,7 +13,10 @@ namespace Arena
     {
         public NetEventType Type;
         public int Peer;
+        /// The message is Data[0..Length). Data is a pooled buffer, longer than the message and valid only until the
+        /// next Poll: read it there and then, never keep it.
         public byte[] Data;
+        public int Length;
     }
 
     /// Minimal TCP transport polled from the main thread. Messages are framed
@@ -68,6 +71,23 @@ namespace Arena
         public int PeerCount => conns.Count;  // connected guests (a run snapshot loads only with none, RunSnapshot.cs)
         readonly List<NetEvent> events = new List<NetEvent>();
         int nextId = 2;
+        /// The received messages' buffers, reused every Poll (a Data event's bytes live until the next Poll).
+        readonly List<byte[]> msgPool = new List<byte[]>();
+        int msgPoolUsed;
+        const int PooledMaxFrame = 1 << 18;  // a bigger message (a rare large snapshot) gets its own array, so the pool stays small
+
+        byte[] MsgBuffer(int size)
+        {
+            if (size > PooledMaxFrame)
+                return new byte[size];
+            if (msgPoolUsed == msgPool.Count)
+                msgPool.Add(new byte[Math.Max(size, 1024)]);
+            var buf = msgPool[msgPoolUsed];
+            if (buf.Length < size)
+                msgPool[msgPoolUsed] = buf = new byte[Math.Max(size, buf.Length * 2)];
+            msgPoolUsed++;
+            return buf;
+        }
 
         public static NetPeer Host(int port)
         {
@@ -92,6 +112,7 @@ namespace Arena
         public List<NetEvent> Poll()
         {
             events.Clear();
+            msgPoolUsed = 0;  // the last Poll's messages have been handled
             if (listener != null)
             {
                 while (listener.Pending())
@@ -219,9 +240,9 @@ namespace Arena
                     offset += 4;  // a keepalive: nothing to hand on
                     continue;
                 }
-                var msg = new byte[size];
+                var msg = MsgBuffer(size);
                 Buffer.BlockCopy(c.Buf, offset + 4, msg, 0, size);
-                events.Add(new NetEvent { Type = NetEventType.Data, Peer = c.Id, Data = msg });
+                events.Add(new NetEvent { Type = NetEventType.Data, Peer = c.Id, Data = msg, Length = size });
                 offset += 4 + size;
             }
             if (offset > 0)

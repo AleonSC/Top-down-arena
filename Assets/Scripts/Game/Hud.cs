@@ -12,9 +12,45 @@ namespace Arena
         /// The ability bar's key labels: your Keybinds (Settings), upper case.
         static string[] SlotKeys => Keybinds.SlotLabels;
 
+        // The HUD's groups as stored delegates (a method group or a lambda made a new one every OnGUI pass).
+        Action hudConsoleBackFn, hudWaveCornerFn, hudTopRowFn, hudPlayerCornerFn, hudAbilityBarFn, hudConsoleGlassFn, hudTabHintFn;
+        Player hudBarMe;  // the player DrawAbilityBar's stored delegate draws
+
+        // The HUD's numbers as text, rebuilt only when the numbers change (HudText below).
+        readonly Dictionary<int, HudText> teammateLv = new Dictionary<int, HudText>(), teammateHp = new Dictionary<int, HudText>();
+        readonly HudText plateNum = new HudText(), plateOf = new HudText(), plateLeft = new HudText(), plateScore = new HudText(), barLv = new HudText(), ultCap = new HudText();
+        readonly HudText[] tileTimer = HudText.Array(Upgrades.SlotCount), tileCount = HudText.Array(Upgrades.SlotCount), tileShots = HudText.Array(Upgrades.SlotCount);
+
+        static HudText TextOf(Dictionary<int, HudText> d, int id)
+        {
+            HudText t;
+            if (!d.TryGetValue(id, out t))
+                d[id] = t = new HudText();
+            return t;
+        }
+
         void DrawHud()
         {
             var me = game.Me;
+            if (hudConsoleBackFn == null)
+            {
+                hudConsoleBackFn = DrawConsoleBack;
+                hudWaveCornerFn = DrawWaveCorner;
+                hudTopRowFn = () =>
+                {
+                    DrawBossBars();
+                    DrawObjectiveLine();  // the hunt/approach objective and layout tag (ApproachUi.cs), under the boss bars (bossBarsBottom)
+                };
+                hudPlayerCornerFn = DrawPlayerCorner;
+                hudAbilityBarFn = () => DrawAbilityBar(hudBarMe);
+                hudConsoleGlassFn = DrawConsoleGlass;
+                hudTabHintFn = () =>
+                {
+                    var hint = HudHintPill;
+                    Ui.Pill(hint, new Color(0f, 0f, 0f, 0.35f * tabHintA));
+                    Ui.Label(hint, "Hold TAB  ·  run stats & build      H  ·  HUD mode", 11, new Color(1f, 1f, 1f, 0.55f * tabHintA), TextAnchor.MiddleCenter, true);
+                };
+            }
             DrawJuiceHud();  // damage numbers and a boss's entrance card, under the rest of the HUD (Juice.cs)
             DrawAbilityCallouts();  // what each player just cast, over their head (AbilityLooks.cs)
             DrawHoneyCallouts();  // the Honeybee Staff's SWARM and HARVEST pops (HoneybeeLook.cs)
@@ -28,13 +64,9 @@ namespace Arena
             DrawMatchEmotes();      // their emotes, above that (EmoteBar.cs)
             DrawMatchPings();       // the party's pings (PingLooks.cs)
             if (me != null)
-                HudGroup(0, new Vector2(0f, 110f), ConsoleR, DrawConsoleBack);  // the CRT screen under the wave plate, keys and card (below)
-            HudGroup(1, new Vector2(-150f, 30f), HudWavePlate, DrawWaveCorner);  // (the layout: HudLayout.cs)
-            HudGroup(3, new Vector2(0f, -80f), HudTopRow, () =>
-            {
-                DrawBossBars();
-                DrawObjectiveLine();  // the hunt/approach objective and layout tag (ApproachUi.cs), under the boss bars (bossBarsBottom)
-            });
+                HudGroup(0, new Vector2(0f, 110f), ConsoleR, hudConsoleBackFn);  // the CRT screen under the wave plate, keys and card (below)
+            HudGroup(1, new Vector2(-150f, 30f), HudWavePlate, hudWaveCornerFn);  // (the layout: HudLayout.cs)
+            HudGroup(3, new Vector2(0f, -80f), HudTopRow, hudTopRowFn);  // the boss bars and the objective line
             DrawStageBanner();  // a boss changing phase (StageShiftLook.cs)
             DrawFreezeBanner();  // Blood Freeze's count and timer (BloodFreezeLook.cs)
             DrawChallengeHud(me);  // a challenge room's portal, title, objective and result (ChallengeLook.cs)
@@ -89,11 +121,13 @@ namespace Arena
             DrawEnemyTags();  // an enemy type's name and job for its first few sightings (EnemyTagLook.cs)
             DrawHoverName();  // the name of the enemy under the cursor, if Settings has it on (EnemyTagLook.cs)
 
-            HudGroup(2, new Vector2(150f, 30f), HudMyCard, DrawPlayerCorner);
+            HudGroup(2, new Vector2(150f, 30f), HudMyCard, hudPlayerCornerFn);
             if (me != null)
             {
-                HudGroup(0, new Vector2(0f, 110f), HudBarPivot, () => DrawAbilityBar(me));
-                HudGroup(0, new Vector2(0f, 110f), ConsoleR, DrawConsoleGlass);  // scanlines and glass over all of it
+                hudBarMe = me;
+                HudGroup(0, new Vector2(0f, 110f), HudBarPivot, hudAbilityBarFn);
+                hudBarMe = null;
+                HudGroup(0, new Vector2(0f, 110f), ConsoleR, hudConsoleGlassFn);  // scanlines and glass over all of it
             }
             DrawMiniHud(me);  // corner text / on the player (HudModes.cs)
             DrawMyLedger();  // Blood Debt's ledger card beside you, over the enemy tags (BloodDebtLook.cs)
@@ -232,12 +266,7 @@ namespace Arena
                     tabHintA = Mathf.MoveTowards(tabHintA, hintWanted ? 1f : 0f, Time.unscaledDeltaTime > 0f ? Time.unscaledDeltaTime / 0.8f : 1f);
                 }
                 if (!pauseMenuOpen && tabHintA > 0.01f)  // (the pause menu carries this hint at the foot of its drawer)
-                HudGroup(3, new Vector2(0f, -60f), HudHintPill, () =>
-                {
-                    var hint = HudHintPill;
-                    Ui.Pill(hint, new Color(0f, 0f, 0f, 0.35f * tabHintA));
-                    Ui.Label(hint, "Hold TAB  ·  run stats & build      H  ·  HUD mode", 11, new Color(1f, 1f, 1f, 0.55f * tabHintA), TextAnchor.MiddleCenter, true);
-                });
+                HudGroup(3, new Vector2(0f, -60f), HudHintPill, hudTabHintFn);  // the "Hold TAB" pill
                 // With the HUD hidden, a quiet reminder of how to get it back, so nobody's locked out of it.
                 float back = hudMode == HudHidden ? Mathf.Clamp01((0.35f - hudT) / 0.35f) : 0f;  // (only when fully hidden: the partial HUDs are their own reminder)
                 if (back > 0f && !LaunchActive && !RecallActive)  // (not while a run launches, the HUD on its way in, or beams out: Recall.cs)
@@ -357,7 +386,8 @@ namespace Arena
             Ui.Pill(new Rect(r.x + 5f, r.y + 6f, 3f, r.height - 12f), p.Downed ? new Color(0.5f, 0.5f, 0.55f) : role);
             Ui.Label(new Rect(r.x + 14f, r.y + 2f, 82f, 14f), p.Name, 11, Color.white, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.x + 14f, r.y + 15f, 82f, 12f), Defs.KitName(p.Kit) + " " + p.Def.Name, 8, role, TextAnchor.MiddleLeft, true);
-            Ui.Label(new Rect(r.xMax - 40f, r.y + 2f, 34f, 14f), "LV " + p.Level, 9, CrtStyle.Gold, TextAnchor.MiddleRight, true);
+            var lv = TextOf(teammateLv, p.Id);
+            Ui.Label(new Rect(r.xMax - 40f, r.y + 2f, 34f, 14f), lv.Cached(p.Level) ?? lv.Set("LV " + p.Level), 9, CrtStyle.Gold, TextAnchor.MiddleRight, true);
             var hp = new Rect(r.x + 98f, r.y + 17f, r.width - 106f, 7f);
             float frac = Mathf.Clamp01(p.Hp / Mathf.Max(1f, p.MaxHp));
             if (p.Downed)
@@ -376,7 +406,9 @@ namespace Arena
                 Ui.Bar(new Rect(hp.x, hp.y - 3f, hp.width * Mathf.Clamp01(p.Armor / Game.ArmorCap), 2f), 1f, CrtStyle.Steel, new Color(0f, 0f, 0f, 0f));
             if (p.OverHp > 0f)  // a health shrine's health past max: a gold stripe along the top (Shrines.cs)
                 Ui.Bar(new Rect(hp.x + 1f, hp.y, (hp.width - 2f) * Mathf.Clamp01(p.OverHp / Mathf.Max(1f, p.MaxHp)), 2f), 1f, CrtStyle.Gold, new Color(0f, 0f, 0f, 0f));
-            Ui.Label(new Rect(hp.x, r.y + 2f, hp.width - 36f, 14f), Mathf.CeilToInt(p.Hp) + " / " + Mathf.CeilToInt(p.MaxHp), 9, Ui.Muted, TextAnchor.MiddleLeft, true);
+            int hpNow = Mathf.CeilToInt(p.Hp), hpMax = Mathf.CeilToInt(p.MaxHp);
+            var hpText = TextOf(teammateHp, p.Id);
+            Ui.Label(new Rect(hp.x, r.y + 2f, hp.width - 36f, 14f), hpText.Cached(hpNow, hpMax) ?? hpText.Set(hpNow + " / " + hpMax), 9, Ui.Muted, TextAnchor.MiddleLeft, true);
         }
 
         /// Green when healthy, through yellow, to red when low.
@@ -442,14 +474,16 @@ namespace Arena
             Color ink = bossWave ? CrtStyle.Gold : CrtStyle.Ink, dim = bossWave ? new Color(CrtStyle.Gold.r * 0.7f, CrtStyle.Gold.g * 0.7f, CrtStyle.Gold.b * 0.5f) : CrtStyle.Dim;
             string head = game.Hunt != null ? (bossWave ? "HUNT  ·  BOSS" : "HUNT  ·  WAVE") : bossWave ? "BOSS FIGHT" : "WAVE";
             HudCrt(new Rect(r.x + 14f, r.y + 5f, 150f, 16f), head, 17, dim);
-            string num = game.Hunt != null ? game.HuntWave.ToString() : game.ShownWave.ToString();
+            int numV = game.Hunt != null ? game.HuntWave : game.ShownWave;
+            string num = plateNum.Cached(numV) ?? plateNum.Set(numV.ToString());
             HudCrt(new Rect(r.x + 12f, r.y + 14f, 120f, 46f), num, 54, ink);
             float nw = CrtUi.TitleWidth(num, 54);
-            string of = game.Endless ? "ENDLESS" : game.Hunt != null ? "/ " + game.HuntLength : "/ " + game.ShownLastWave;
+            int ofV = game.Hunt != null ? game.HuntLength : game.ShownLastWave;
+            string of = game.Endless ? "ENDLESS" : plateOf.Cached(ofV) ?? plateOf.Set("/ " + ofV);
             HudCrt(new Rect(r.x + 18f + nw, r.y + 28f, 100f, 24f), of, 22, game.Endless ? CrtStyle.Gold : dim);
             HudCrt(new Rect(r.xMax - 110f, r.y + 5f, 100f, 16f), "LEFT", 17, dim, TextAnchor.MiddleRight);
-            HudCrt(new Rect(r.xMax - 110f, r.y + 16f, 100f, 30f), game.Remaining.ToString(), 32, ink, TextAnchor.MiddleRight);
-            HudCrt(new Rect(r.xMax - 130f, r.y + 44f, 120f, 14f), "SCORE " + game.Score.ToString("N0"), 17, CrtStyle.Gold, TextAnchor.MiddleRight);
+            HudCrt(new Rect(r.xMax - 110f, r.y + 16f, 100f, 30f), plateLeft.Cached(game.Remaining) ?? plateLeft.Set(game.Remaining.ToString()), 32, ink, TextAnchor.MiddleRight);
+            HudCrt(new Rect(r.xMax - 130f, r.y + 44f, 120f, 14f), plateScore.Cached(game.Score) ?? plateScore.Set("SCORE " + game.Score.ToString("N0")), 17, CrtStyle.Gold, TextAnchor.MiddleRight);
             float progress = game.State == MatchState.Fighting ? 1f - (float)game.Remaining / Math.Max(1, plateMax) : 1f;
             var bar = new Rect(r.x + 14f, r.yMax - 9f, r.width - 28f, 5f);
             Ui.Fill(bar, new Color(1f, 1f, 1f, 0.1f));
@@ -555,7 +589,8 @@ namespace Arena
             Color gold = CrtStyle.Gold.WithAlpha(0.95f);
             Ui.Fill(new Rect(xp.x - 1f, xp.y - 1f, xp.width + 2f, xp.height + 2f), CrtStyle.Ink.WithAlpha(0.3f));
             Ui.Fill(xp, new Color(0.01f, 0.03f, 0.08f, 0.88f));
-            string lvText = "LV " + me.Level + "  ·  " + Mathf.RoundToInt(xpFrac * 100f) + "%";
+            int xpPct = Mathf.RoundToInt(xpFrac * 100f);
+            string lvText = barLv.Cached(me.Level, xpPct) ?? barLv.Set("LV " + me.Level + "  ·  " + xpPct + "%");
             float plateW = Ui.TextWidth(lvText, 10, true) + 12f;
             var plate = new Rect(xp.x, xp.y, plateW, xp.height);
             Ui.Fill(plate, new Color(0.02f, 0.03f, 0.07f, 1f));
@@ -635,19 +670,19 @@ namespace Arena
                 Ui.Fill(new Rect(0f, 0f, r.width, r.height), new Color(0f, 0f, 0f, 0.35f));
                 GUI.EndGroup();
             }
-            DrawCrtCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), ultimate ? "ULT · " + SlotKeys[4] : SlotKeys[i], keyCol);
+            DrawCrtCap(new Rect(r.x + 8f, r.y + 7f, 0f, 16f), ultimate ? ultCap.CachedFor(SlotKeys[4]) ?? ultCap.Set("ULT · " + SlotKeys[4]) : SlotKeys[i], keyCol);
             // Name: bright when ready, dimmer while recharging.
             Ui.Label(new Rect(r.x + 8f, r.y + 22f, r.width - 16f, 22f), Upgrades.Ability(slot.Id).Name, Upgrades.Ability(slot.Id).Name.Length > 12 ? 18 : 22, ready ? keyCol : new Color(0.62f, 0.7f, 0.9f), TextAnchor.MiddleLeft, false);
             if (slot.Id == AbilityId.WaterWard)  // the drops circling you, out of 10 (WaterWard.cs)
             {
                 bool full = Game.WwFull(me);
-                DkTitle(new Rect(r.x + 64f, r.y + 4f, r.width - 120f, 20f), full ? "FULL" : me.WwOff.Count + "/" + Game.WwMax, 15,
+                DkTitle(new Rect(r.x + 64f, r.y + 4f, r.width - 120f, 20f), full ? "FULL" : tileCount[i].Cached(me.WwOff.Count, Game.WwMax) ?? tileCount[i].Set(me.WwOff.Count + "/" + Game.WwMax), 15,
                     full ? new Color(0.95f, 0.78f, 0.42f) : new Color(0.45f, 0.86f, 0.95f), TextAnchor.MiddleLeft);
             }
             if (slot.Id == AbilityId.SenbonSeekers)  // the needles held, out of 9 (12 mastered; SenbonSeekers.cs)
             {
                 bool full = Game.SbFull(me);
-                DkTitle(new Rect(r.x + 64f, r.y + 4f, r.width - 120f, 20f), full ? "FULL" : me.SbN + "/" + Game.SbMaxOf(me), 15,
+                DkTitle(new Rect(r.x + 64f, r.y + 4f, r.width - 120f, 20f), full ? "FULL" : tileCount[i].Cached(me.SbN, Game.SbMaxOf(me)) ?? tileCount[i].Set(me.SbN + "/" + Game.SbMaxOf(me)), 15,
                     full ? new Color(0.95f, 0.78f, 0.42f) : new Color(0.56f, 0.82f, 0.31f), TextAnchor.MiddleLeft);
             }
             if (ready)
@@ -662,12 +697,29 @@ namespace Arena
             else if (slot.Id == AbilityId.BloodWall && me.BloodWallOn)  // the wall is up (press it again to stop; its cooldown starts then; BloodWall.cs)
                 DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "ON", 19, new Color(1f, 0.33f, 0.41f), TextAnchor.MiddleRight);
             else if (slot.Id == AbilityId.StunGun && me.StunShots > 0)  // the gun is out: its cooldown waits for the last shot
-                DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), me.StunShots + (me.StunShots == 1 ? " SHOT" : " SHOTS"), 16, new Color(0.45f, 0.88f, 1f), TextAnchor.MiddleRight);
+                DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), tileShots[i].Cached(me.StunShots) ?? tileShots[i].Set(me.StunShots + (me.StunShots == 1 ? " SHOT" : " SHOTS")), 16, new Color(0.45f, 0.88f, 1f), TextAnchor.MiddleRight);
             else
             {
                 // Pressed too early: the timer flashes red.
                 float red = look.Red;
-                DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), ultimate ? Mathf.FloorToInt(fill * 100f) + "%" : slot.Timer.ToString(slot.Timer < 10f ? "0.0" : "0") + "s", 19, Color.Lerp(new Color(0.7f, 0.8f, 1f), new Color(1f, 0.3f, 0.3f), red), TextAnchor.MiddleRight);
+                // Keyed on the shown number: the percent, or the timer rounded as its format rounds it (to 7 digits, then
+                // to tenths under 10 s, else whole seconds), so the text is rebuilt only when it changes.
+                string timer;
+                var tt = tileTimer[i];
+                if (ultimate)
+                {
+                    int pct = Mathf.FloorToInt(fill * 100f);
+                    timer = tt.Cached(0, pct) ?? tt.Set(pct + "%");
+                }
+                else if (float.IsNaN(slot.Timer) || float.IsInfinity(slot.Timer))
+                    timer = slot.Timer.ToString("0") + "s";  // (never in play; decimal can't hold it)
+                else
+                {
+                    bool tenths = slot.Timer < 10f;
+                    long shown = (long)Math.Round((decimal)slot.Timer * (tenths ? 10m : 1m), MidpointRounding.AwayFromZero);
+                    timer = tt.Cached(tenths ? 1 : 2, shown) ?? tt.Set(slot.Timer.ToString(tenths ? "0.0" : "0") + "s");
+                }
+                DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), timer, 19, Color.Lerp(new Color(0.7f, 0.8f, 1f), new Color(1f, 0.3f, 0.3f), red), TextAnchor.MiddleRight);
             }
             // Along the bottom: the mastery XP line (green, full once mastered) sitting right on top of the
             // recharge line, the pair one strip.
@@ -742,6 +794,45 @@ namespace Arena
             var cap = new Rect(r.x, r.y, w, r.height);
             Ui.Pill(cap, color.WithAlpha(0.2f * color.a + 0.05f));
             DkTitle(cap, key, 9, new Color((color.r + 1f) / 2f, (color.g + 1f) / 2f, (color.b + 1f) / 2f, 0.5f + 0.5f * color.a), TextAnchor.MiddleCenter);
+        }
+    }
+
+    /// A HUD string rebuilt only when the numbers it shows change: `t.Cached(a, b) ?? t.Set(a + " / " + b)` (the
+    /// HUD draws the same text every OnGUI pass, and building it each time made garbage).
+    public sealed class HudText
+    {
+        long ka, kb;
+        object kr;
+        string text;
+
+        /// The text last Set for these numbers, or null (then Set it).
+        public string Cached(long a, long b = 0)
+        {
+            if (text != null && a == ka && b == kb && kr == null)
+                return text;
+            ka = a;
+            kb = b;
+            kr = null;
+            return text = null;
+        }
+
+        /// The same, keyed on one object (a key label string).
+        public string CachedFor(object key)
+        {
+            if (text != null && ReferenceEquals(key, kr))
+                return text;
+            kr = key;
+            return text = null;
+        }
+
+        public string Set(string s) => text = s;
+
+        public static HudText[] Array(int n)
+        {
+            var a = new HudText[n];
+            for (int i = 0; i < n; i++)
+                a[i] = new HudText();
+            return a;
         }
     }
 }
