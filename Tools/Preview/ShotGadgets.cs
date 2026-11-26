@@ -2,10 +2,10 @@ using System;
 using System.Reflection;
 using Arena;
 
-// GADGETS=wheel|wheel2|bag|floor|clouds|cloak|overclock|recall|energy|shield (mode hud): wheel2 = the wheel with the newer kinds (a Grenade in hand, x2); bag = the same, wheel shut (the chip's bag row);
+// GADGETS=wheel|wheel2|bag|floor|vest|clouds|cloak|overclock|recall|energy|shield (mode hud): wheel2 = the wheel with the newer kinds (a Grenade in hand, x2); bag = the same, wheel shut (the chip's bag row);
 // cloak / overclock = yours switched on; clouds = a Smoke Bomb's, a Gas Grenade's and an Incendiary's ground; shield = your Shield Generator's dome; wheel = the gadget wheel open at the cursor (a Magnet in hand, a Recall, an Energy Drink and a Magnet in the
 // bag) with the chip beside the keys; floor = every kind lying on the floor (plus a part-used Energy Drink and a Grenade with one charge); recall = you channelling a Recall (rings rising,
-// the progress arc); energy = you running on an Energy Drink (speed lines, the time ring). Use ZOOM=2 CAMAT=<x,y> for the close views.
+// the progress arc); vest = Tactical Vest just popped (TacticalVest.cs): three drops round you on their gold fizzle arcs, one still in the air; energy = you running on an Energy Drink (speed lines, the time ring). Use ZOOM=2 CAMAT=<x,y> for the close views.
 static partial class Shot {
   static void GadgetsScene() {
     string mode = Environment.GetEnvironmentVariable("GADGETS");
@@ -21,6 +21,19 @@ static partial class Shot {
       var gas = gm.AddZone(ZoneKind.ToxicGas, me, new V2(700f, 450f), Game.GadgetGasRadius, Game.TearGasFlight + Game.GadgetGasLife); gas.T = Game.GadgetGasLife - 1.5f;
       var fire = gm.AddZone(ZoneKind.FlameWall, me, new V2(920f, 450f), Game.GadgetFireRadius, Game.GadgetFireLife); fire.T = Game.GadgetFireLife - 1f; fire.BlockHp = 0f;
       me.Pos = me.Disp = new V2(150f, 900f);
+      return;
+    }
+    if (mode == "vest") {  // Tactical Vest a moment after a press: two landed on their fizzle arcs, one landing, one long down
+      me.Pos = me.Disp = new V2(600f, 450f);
+      me.Slots[0].Id = AbilityId.TacticalVest; me.Slots[0].Timer = 17f;
+      var kinds = new[] { GadgetId.Grenade, GadgetId.Incendiary, GadgetId.Emp, GadgetId.LandMine };
+      var spots = new[] { new V2(670f, 420f), new V2(540f, 500f), new V2(600f, 375f), new V2(760f, 520f) };
+      var left = new[] { 11f, 11f, 11.8f, 4f };
+      for (int i = 0; i < 4; i++) {
+        var g = gm.SpawnGadget(kinds[i], spots[i], Game.GadgetTime(kinds[i]));
+        g.Owner = me.Id; g.Fizzle = left[i]; g.From = me.Pos;
+        if (i == 2) { g.To = spots[i]; g.FlyT = 0.25f; g.Pos = g.Disp = V2.Lerp(me.Pos, g.To, 0.5f); }
+      }
       return;
     }
     if (mode == "floor") {

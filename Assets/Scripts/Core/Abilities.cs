@@ -184,6 +184,9 @@ namespace Arena
                 case AbilityId.Claymore:
                     CastClaymore(p, target, cap);  // Claymore.cs
                     break;
+                case AbilityId.TacticalVest:
+                    CastTacticalVest(p, cap);  // TacticalVest.cs
+                    break;
                 case AbilityId.PoisonDart:
                     CastPoisonDart(p, target, cap, pw);  // PoisonDart.cs
                     break;

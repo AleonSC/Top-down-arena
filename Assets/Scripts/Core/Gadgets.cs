@@ -19,6 +19,7 @@ namespace Arena
         public float FlyT = Game.GadgetFlyTime;  // seconds since thrown (>= GadgetFlyTime: on the floor)
         public float Left;                       // seconds of use left
         public byte Uses;                        // uses left (the Lodestone, the Medkit, the throwables; GadgetUses)
+        public float Fizzle;                     // a Tactical Vest drop: seconds left on the floor before it fizzles out (0: never; TacticalVest.cs)
         public bool Flying => FlyT < Game.GadgetFlyTime;
     }
 
@@ -337,6 +338,7 @@ namespace Arena
             }
             TickShieldGens();
             TickToxicGas(dt);
+            TickVestFizzle(dt);  // TacticalVest.cs
             foreach (var p in Players.Values)
                 if (CloakOn(p))
                     p.VanishT = Math.Max(p.VanishT, 0.2f);  // (the Ninja's tick runs it down; it lapses 0.2 s after the Cloak goes off)
@@ -667,7 +669,7 @@ namespace Arena
             int id = g != null ? g.Id : 0, thrower = g != null ? g.Thrower : -1, owner = g != null ? g.Owner : 0;
             byte kind = g != null ? (byte)g.Kind : (byte)0;
             V2 pos = g != null ? g.Pos : default(V2), from = g != null ? g.From : default(V2), to = g != null ? g.To : default(V2);
-            float fly = g != null ? g.FlyT : 0f, left = g != null ? g.Left : 0f;
+            float fly = g != null ? g.FlyT : 0f, left = g != null ? g.Left : 0f, fizzle = g != null ? g.Fizzle : 0f;
             byte uses = g != null ? g.Uses : (byte)0;
             s.Int(ref id);
             s.Byte(ref kind);
@@ -679,6 +681,7 @@ namespace Arena
             s.Float(ref fly);
             s.Float(ref left);
             s.Byte(ref uses);
+            s.Float(ref fizzle);  // a Tactical Vest drop's time left (TacticalVest.cs)
             if (s.Reading)
             {
                 if (!Gadgets.TryGetValue(id, out g))
@@ -695,6 +698,7 @@ namespace Arena
                 g.FlyT = fly;
                 g.Left = left;
                 g.Uses = uses;
+                g.Fizzle = fizzle;
             }
             return id;
         }

@@ -231,6 +231,13 @@ namespace Arena
             },
             new AbilityDef
             {
+                Id = AbilityId.TacticalVest, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (TacticalVest.cs)
+                Name = "Tactical Vest", Icon = "tacticalvest", Cooldown = VestCooldown, Desc = "Pop 3 random gadgets off your vest onto the floor to grab and use.",
+                Capstone = "Pops 4 gadgets, and they stay on the floor until you grab them.",
+                Bot = b => b.HaveTarget && b.TargetD < 600f,
+            },
+            new AbilityDef
+            {
                 Id = AbilityId.DeployableTurret, Kit = Kit.Soldier, Role = Role.Dps, Choice = AbilityDef.Ult,  // the default ultimate, key 0 of the lobby's Ultimate row (DeployableTurret.cs)
                 Name = "Deployable Turret", Icon = "deployturret", Cooldown = DtCooldown, Desc = "Climb into a heavy turret that spools up to a fast piercing fire.",
                 Capstone = "Fires 26 s, rounds pierce 4, and the blast does double.",
