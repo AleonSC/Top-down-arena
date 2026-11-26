@@ -20,6 +20,9 @@ namespace Arena
         public string Icon;           // its PixelArt icon (the lobby's class card)
         public float HpMult = 1f;     // share of the role's health
         public float SpeedMult = 1f;  // share of the role's speed
+        public float DodgeCdMult = 1f;     // share of the Dodge's cooldown (Game.DodgeCd; Dodge.cs)
+        public float SprintBoostMult = 1f; // share of the sprint's speed boost (Game.SprintBoost)
+        public float SprintTimeMult = 1f;  // share of the sprint's length (Game.SprintTime)
 
         // --- Host hooks (the host runs the run; clients only draw) ---
         /// Fires the class's weapons that have no case of their own in FireVolley (Weapons.cs).

@@ -272,7 +272,8 @@ namespace Arena
         internal static readonly KitDef NinjaKit = new KitDef
         {
             Id = Kit.Ninja, Name = "Ninja", Icon = "class_ninja", HpMult = 0.85f, SpeedMult = 1.12f,
-            Blurb = "Thrown blades and quick melee with tricks and misdirection: stars that come back, stances, smoke and shadow clones. Fast (+12% move speed) but lightly protected (85% health): hit, slip away, hit again.",
+            DodgeCdMult = 0.7f, SprintBoostMult = 1.4f, SprintTimeMult = 1.4f,  // Dodge 0.77 s; sprint +70% over 3.1 s
+            Blurb = "Thrown blades and quick melee with tricks and misdirection: stars that come back, stances, smoke and shadow clones. Fast (+12% move speed), with a quicker Dodge (30% shorter cooldown) and a faster, longer sprint (+70% for 3.1 s), but lightly protected (85% health): hit, slip away, hit again.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireNinjaWeapon(p, aim, dir, muzzle, dmg, extra),
             Ability = (g, p, id, target) => g.NinjaAbility(p, id, target),
             Tick = (g, dt) => g.TickNinjas(dt),

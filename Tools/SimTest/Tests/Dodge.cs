@@ -137,6 +137,23 @@ static partial class Program
         Console.WriteLine("  kick reach: from {0:0} px off the crate, {1} kick(s), kicked back {2:0} px", face - start, client.Game.WallKicks - kicks2, peak2 - cliMe.Pos.X);
         Check(client.Game.WallKicks == kicks2 + 1, "a dodge ending just short of a crate reaches on and kicks");
         Check(peak2 - cliMe.Pos.X > Game.DodgeDist * 1.2f, "and the kickoff carries further than a dodge");
+        // The Ninja: a shorter dodge cooldown, and a faster, longer sprint.
+        hostMe.Kit = Kit.Ninja;
+        play(Game.DodgeCd, idle, idle);
+        hostMe.Pos = new V2(300f, 450f); play(0.05f, idle, idle);
+        play(0.3f, f => new PlayerInput { Move = new V2(1f, 0f), Dodge = f == 0, DodgeHeld = true, AimAt = new V2(800f, 450f) }, idle);
+        float nCd = Defs.KitDodgeCd(Kit.Ninja), nLen = Defs.KitSprintTime(Kit.Ninja);
+        Console.WriteLine("  ninja: dodge cooldown {0:0.00} s, sprint x{1:0.00} for {2:0.0} s", nCd, g.SprintMult, nLen);
+        Check(nCd < Game.DodgeCd && nLen > Game.SprintTime && g.SprintMult > 1f + Game.SprintBoost + 0.1f, "a Ninja's dodge comes back sooner and its sprint is faster");
+        play(Game.SprintTime + 0.2f - 0.3f, idle, idle);
+        Check(g.SprintT > 0f, "and lasts longer");
+        play(nLen - Game.SprintTime + 0.1f, idle, idle);
+        Check(g.SprintT <= 0f, "and still ends");
+        hostMe.Pos = new V2(300f, 450f); play(0.05f, idle, idle);
+        int d0 = g.Dodges;
+        play(nCd + 0.05f, f => new PlayerInput { Move = new V2(1f, 0f), Dodge = f == 0 || f == (int)((nCd + 0.02f) / dt), AimAt = new V2(800f, 450f) }, idle);
+        Check(g.Dodges == d0 + 2, "a Ninja dodges again after " + nCd.ToString("0.00") + " s");
+        hostMe.Kit = Kit.Soldier;
         s[0].Leave(""); s[1].Leave("");
     }
 }
