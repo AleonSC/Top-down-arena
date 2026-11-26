@@ -180,7 +180,8 @@ namespace Arena
             return GoalVel(e, ClampToArena(AccretionPoint(ring.Center, ring.Spin0 + AccretionSpin * t, AccretionSlot(e.SquadSlot), radius), 30f));
         }
 
-        public static bool IsInfall(EnemyType t) => t >= EnemyType.Debris && t <= EnemyType.WhiteDwarf;
+        static readonly bool[] isInfallSet = IdTable.Set(EnemyType.Debris, EnemyType.VoidAcolyte, EnemyType.Pulsar, EnemyType.Graviton, EnemyType.Orbiter, EnemyType.Collapsar, EnemyType.SmallWell, EnemyType.Implosion, EnemyType.Lens, EnemyType.WhiteDwarf);  // (a list, not a range: ids are in name order)
+        public static bool IsInfall(EnemyType t) => (int)t < isInfallSet.Length && isInfallSet[(int)t];
 
         /// A Lens's face is toward `from`: shots from there bend away, and a hit from there lands on the lens.
         public static bool LensFaces(Enemy e, V2 from) =>

@@ -35,7 +35,8 @@ namespace Arena
     ///     it dies (MummerDied). Clients can't tell them apart: they look the same.
     public static class CourtKin
     {
-        public static bool Is(EnemyType t) => t >= EnemyType.Fencer && t <= EnemyType.MummerCopy;
+        static readonly bool[] members = IdTable.Set(EnemyType.Fencer, EnemyType.BladeDancer, EnemyType.Parrier, EnemyType.Second, EnemyType.Marshal, EnemyType.Gallant, EnemyType.Harlequin, EnemyType.Mummer, EnemyType.MummerCopy);  // (a list, not a range: ids are in name order)
+        public static bool Is(EnemyType t) => (int)t < members.Length && members[(int)t];
     }
 
     public partial class Enemy
