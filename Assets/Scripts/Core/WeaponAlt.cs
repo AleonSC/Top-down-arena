@@ -72,5 +72,6 @@ namespace Arena
         public const byte BumbleBurst = 67;       // Bumble Remote: burst
         public const byte HiveCall = 68;          // Hive Censer: call
         public const byte Bloodlet = 69;          // Acupuncture Needles: bloodletting
+        public const byte Clot = 70;              // Blood Golem: Hurl Clot (BloodGolem.cs)
     }
 }

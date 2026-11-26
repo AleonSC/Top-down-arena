@@ -1542,6 +1542,7 @@ namespace Arena
             TickHorseRiders(dt);  // TrojanHorse.cs: riders of a horse that's gone, Sally Forth's time
             TickArmadillo(dt);  // IronArmadillo.cs: the ball's time, its speed and hits, the uncurl slam
             TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders
+            TickGolem(dt);      // BloodGolem.cs: the gather, the golem's swings, shedding, clots and collapse
             TickSpirit(dt);     // SpiritAvatar.cs: the spirit's time, Moon Cleaves and swallowed shots
             TickGaleWalls(dt);  // GaleWall.cs: lenses run down and unleash
             TickSanctumGlass(dt);  // SanctumGlass.cs: panes run down and shatter, motes land and heal
@@ -1807,6 +1808,8 @@ namespace Arena
                 }
                 else if (ColOn(p))
                     ColossusTrigger(p);  // the golem: Fire slams, the weapon is put away (StoneColossus.cs)
+                else if (GolOn(p))
+                    GolemTrigger(p);  // Blood Golem: Fire punches, the weapon is put away (BloodGolem.cs)
                 else if (SpOn(p))
                     SpiritTrigger(p);  // Spirit Avatar: Fire is the Moon Cleave, the weapon is put away (SpiritAvatar.cs)
                 else if (p.StunShots > 0)

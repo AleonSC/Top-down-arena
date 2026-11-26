@@ -4,6 +4,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 (`NNN: what changed on the wire`). The code keeps only the number, so parallel sessions don't conflict on a long comment.
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 
+- 528: Blood Golem (the Tank Hemomancer's third ultimate): `Player.GolT`, `GolAge`, `GolCoats`, `GolPunch` in the player snapshot; `AbilityId.BloodGolem`; `FxKind.GolemFx`; Msg.WeaponDash kind 70 (Hurl Clot).
 - 527: Player gains Sanctum Glass (GlassT, and while it's up GlassPos, GlassAim, GlassWide, GlassHealed, GlassCap); AbilityId.SanctumGlass; FxKind.GlassMote, GlassShatter
 - 526: Audit fixes: the snapshot's minion and zone counts are 2 bytes (were 1); a Gauntlet Challenge's `ChallengeBy`, a Blood Blast's owner and ink dot / ink tip owners are 2-byte player ids; `Msg.BulletSync` adds each shot's `Radius` (float) and `Look` (byte); the transport sends empty keepalive frames (length 0) every 2 s and drops a peer silent for 30 s.
 - 525: Difficulty gets a 28th value, `DiffKnob.Mechanics` (the mechanics tier, Docs/DifficultyTiers.md step 1), in the lobby message, run saves and recordings; older data with 27 reads the preset's own tier (Custom: Normal).

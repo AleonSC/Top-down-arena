@@ -94,6 +94,7 @@ namespace Arena
                 var shown = ultimate ? Upgrades.Ultimate(role, Upgrades.UltKitOf(role, kit, ultPick), ultPick) : ability;
                 ultEvery = shown == AbilityId.Titan ? Game.TitanTime + Game.TitanCrumble + 2f : shown == AbilityId.JuggernautSuit ? Game.JuggTime + 2f
                     : shown == AbilityId.StoneColossus ? Game.ColRise + Game.ColTime + Game.ColRollTime + 1.5f  // (it crumbles before the next)
+                    : shown == AbilityId.BloodGolem ? Game.GolGather + Game.GolTime + Game.GolCollapseDur + 1f  // (it bursts before the next)
                     : shown == AbilityId.LivingBolt ? Game.BoltChannel + Game.BoltTime + 1.5f  // (the trails fade before the next)
                     : shown == AbilityId.BloodRavager ? Game.RvTime + 1.5f  // (the legs fold away before the next)
                     : shown == AbilityId.BloodBoil ? Game.BoilTime + 2f  // (the steam clears before the next)
