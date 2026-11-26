@@ -5,7 +5,9 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 New ids and cards need no bump (Session.IdsHash covers them): only a change to what is read or written does.
 
-- 545: the id lists (AbilityId, EnemyType, FxKind, MinionKind, Sfx, WeaponId, ZoneKind) are in name order, so every id has a new number; Hello sends `Session.IdsHash` (an int) after the version. From here on, new ids and cards need no bump (IdsHash covers them).
+- 547: the id lists (AbilityId, EnemyType, FxKind, MinionKind, Sfx, WeaponId, ZoneKind) are in name order, so every id has a new number; Hello sends `Session.IdsHash` (an int) after the version. From here on, new ids and cards need no bump (IdsHash covers them).
+- 546: Blood Ritual (Tank Hemomancer fourth ultimate): `AbilityId.BloodRitual`, `MinionKind.BloodImp`, `ZoneKind.BloodRitual` (all at the end); no new snapshot fields (the imps ride the minion sync, the sigil the zone sync).
+- 545: Twin Rifle grenade sounds: `Sfx.TwinNadeLoad`, `TwinNadeLaunch`, `TwinNadeBoom` (at the end); no player or snapshot fields.
 - 544: starting piece pick: `Player.OfferStart` (a bool after `OfferWave` in the player snapshot); the first build round offers two pieces instead of dealing one.
 - 543: Blood Totem (Tank Hemomancer 4th choice): `AbilityId.BloodTotem`, `ZoneKind.BloodTotem` (each at the end); no player or snapshot fields.
 - 542: Hazard Foam (Healer Soldier fourth ultimate): `AbilityId.HazardFoam`, `ZoneKind.HazardFoam` (both at the end), bullet kind `Defs.FoamGlob` = 88; the player sync adds `FoamT`, `FoamTank` after `RocketT`.

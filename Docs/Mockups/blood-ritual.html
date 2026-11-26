@@ -1,0 +1,449 @@
+<title>Blood Ritual</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: title block, then the arena loop (the hero) beside a live readout and toggles, a phase strip under it,
+   then the beats and the proposed rules side by side. House mockup palette (as blood-golem.html). */
+:root{
+  --bg:#ebe8e1; --fg:#1c1e22; --muted:#5d6168; --panel:#f7f5f0; --line:#d2cec3; --chip:#e0dcd1;
+  --gold:#9a6608; --tank:#2f6fb3; --blood:#a3172a; --blood-soft:#f3dadd; --arena:#0c0f14;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101215; --fg:#e7e8ea; --muted:#979ca4; --panel:#171a1f; --line:#2b3037; --chip:#22262d;
+  --gold:#f0bd54; --tank:#76b2f2; --blood:#ff7d8c; --blood-soft:#3a1a20; --arena:#0a0c10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101215; --fg:#e7e8ea; --muted:#979ca4; --panel:#171a1f; --line:#2b3037; --chip:#22262d;
+  --gold:#f0bd54; --tank:#76b2f2; --blood:#ff7d8c; --blood-soft:#3a1a20; --arena:#0a0c10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 var(--body);margin:0;padding-block:28px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1140px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.eyebrow .tank{color:var(--tank)} .eyebrow .gold{color:var(--gold)}
+h1{font:800 clamp(52px,10vw,104px)/.88 var(--display);letter-spacing:.005em;text-transform:uppercase;margin:6px 0 10px;text-wrap:balance}
+h1 span{color:var(--blood)}
+.lede{margin:0;max-width:66ch;color:var(--muted);font-size:17px}
+.lede b{color:var(--fg);font-weight:600}
+h2{font:700 26px/1 var(--display);letter-spacing:.04em;text-transform:uppercase;margin:0}
+h2 small{font:500 12px var(--mono);letter-spacing:.04em;text-transform:none;color:var(--muted);margin-left:8px}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;align-items:start}
+@media (max-width:860px){.stage{grid-template-columns:minmax(0,1fr)}}
+.left{display:flex;flex-direction:column;gap:10px;min-width:0}
+.frame{position:relative;border-radius:8px;overflow:hidden;background:var(--arena);border:1px solid var(--line);box-shadow:0 18px 40px -24px rgba(60,0,10,.55)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;max-width:100%}
+.phase-tag{position:absolute;left:12px;top:10px;font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#f4c9cf;
+  background:rgba(40,4,10,.7);border:1px solid rgba(220,60,80,.45);padding:3px 8px;border-radius:3px;pointer-events:none}
+.side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.readout{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;font:500 13px var(--mono);margin:0}
+.readout dt{color:var(--muted)} .readout dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.readout .bar{grid-column:1/-1;height:8px;background:var(--chip);border-radius:2px;overflow:hidden;margin:-2px 0 4px}
+.readout .bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--blood),#e2455a)}
+.readout .t{grid-column:1/-1;font:700 15px var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--fg);margin-bottom:2px}
+.toggles{display:flex;flex-direction:column;gap:8px}
+.tog{display:flex;align-items:center;gap:10px;font:500 14px var(--body);cursor:pointer;user-select:none}
+.tog input{appearance:none;width:34px;height:20px;border-radius:10px;background:var(--chip);border:1px solid var(--line);position:relative;cursor:pointer;flex:none;margin:0}
+.tog input::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .15s,background .15s}
+.tog input:checked{background:var(--blood-soft);border-color:var(--blood)} .tog input:checked::after{transform:translateX(14px);background:var(--blood)}
+.tog small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+input:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.transport{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:700 15px var(--display);letter-spacing:.05em;text-transform:uppercase;padding:7px 14px;border:1px solid var(--line);border-radius:5px;background:var(--chip);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--muted)}
+button[aria-pressed="true"]{background:var(--blood-soft);border-color:var(--blood);color:var(--blood)}
+.track{display:flex;flex-direction:column;gap:4px}
+.bands{height:6px;border-radius:3px;overflow:hidden;display:flex;position:relative;background:var(--chip)}
+.bands i{display:block;height:100%}
+.bands b{position:absolute;top:-3px;width:2px;height:12px;background:var(--fg);left:0}
+.marks{position:relative;height:16px;font:500 11px var(--mono);color:var(--muted)}
+.marks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.marks span:first-child{transform:none}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px}
+@media (max-width:860px){.two{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.moments{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.moments li{border-bottom:1px solid var(--line);display:grid;grid-template-columns:62px minmax(0,1fr);gap:12px;padding:11px 4px}
+.moments time{font:600 12px var(--mono);color:var(--muted);padding-top:3px;font-variant-numeric:tabular-nums}
+.moments b{font:700 18px/1.1 var(--display);letter-spacing:.03em;text-transform:uppercase;display:block}
+.moments span{color:var(--muted);font-size:14.5px;line-height:1.45}
+.moments li.on b{color:var(--blood)}
+.rules{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.rules li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;font-size:15px;line-height:1.45}
+.rules li>b{font:600 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:3px}
+@media (max-width:480px){.rules li{grid-template-columns:minmax(0,1fr)}}
+.notes{margin:0;color:var(--muted);font-size:14px;max-width:86ch}
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow"><span class="tank">Tank</span>·<span>Hemomancer</span>·<span class="gold">Ultimate · key 3</span>·<span>mockup</span></div>
+    <h1>Blood <span>Ritual</span></h1>
+    <p class="lede">You bleed a <b>pentagram</b> onto the floor at your cursor. It tears open into a portal and a <b>flood of blood imps</b> pours out for 8 s, swarming enemies, clawing them and pulling their fire off you. When it shuts, the imps that lived dive home and give your blood back.</p>
+  </header>
+
+  <section class="stage" aria-label="Arena loop">
+    <div class="left">
+      <div class="frame">
+        <canvas id="cv" width="960" height="540" aria-label="Animated arena: the Hemomancer draws a blood pentagram and imps pour out to attack enemies"></canvas>
+        <div class="phase-tag" id="tag">Inscribe</div>
+      </div>
+      <div class="track">
+        <div class="bands" id="bands"><b id="head"></b></div>
+        <div class="marks" id="marks"></div>
+      </div>
+    </div>
+    <div class="side">
+      <dl class="readout">
+        <div class="t">Hemomancer</div>
+        <dt>Health</dt><dd id="r-hp">1000</dd>
+        <div class="bar"><i id="r-hpbar"></i></div>
+        <dt>Paid to the sigil</dt><dd id="r-paid">0</dd>
+        <dt>Imps alive</dt><dd id="r-alive">0 / 24</dd>
+        <dt>Imps summoned</dt><dd id="r-sum">0</dd>
+        <dt>Damage dealt</dt><dd id="r-dmg">0</dd>
+        <dt>Blood returned</dt><dd id="r-back">0</dd>
+      </dl>
+      <div class="transport">
+        <button id="b-replay">Replay</button>
+        <button data-sp="0.4" aria-pressed="false">Slow</button>
+        <button data-sp="1" aria-pressed="true">1×</button>
+      </div>
+      <div class="toggles">
+        <label class="tog"><input type="checkbox" id="t-range"><span>Show ranges<small>Cast reach 320 px, sigil 90 px</small></span></label>
+        <label class="tog"><input type="checkbox" id="t-taunt" checked><span>Taunt links<small>Clawed enemies turn on the imp</small></span></label>
+      </div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="col">
+      <h2>The beats <small>one cast, 11 s</small></h2>
+      <ol class="moments" id="beats">
+        <li data-p="0"><time>0.0 s</time><div><b>Inscribe</b><span>A rope of blood runs from your hand to the cursor and draws the circle, then the five strokes of the star, then runes between the rings. You can walk and shoot.</span></div></li>
+        <li data-p="1"><time>1.2 s</time><div><b>Open</b><span>The sigil flares and the floor inside it caves into a red pit. Enemies on it are slowed 40%.</span></div></li>
+        <li data-p="2"><time>1.6 s</time><div><b>Flood</b><span>8 imps burst out at once, then 4 a second for 8 s. Each climbs out, flaps up and dives at the nearest enemy that has the fewest imps on it.</span></div></li>
+        <li data-p="3"><time>9.6 s</time><div><b>Close</b><span>The portal shuts. Every imp still alive dives back into it, and the sigil sends their blood to you as a stream.</span></div></li>
+      </ol>
+    </div>
+    <div class="col">
+      <h2>Proposed rules <small>numbers to tune</small></h2>
+      <ul class="rules">
+        <li><b>Slot</b><span>Tank Hemomancer ultimate, key 3 (after Bloodbath and Blood Golem), 80 s cooldown.</span></li>
+        <li><b>Cost</b><span>15% of your max health, paid over the 1.2 s inscribe. Can't be cast under the blood floor (20%).</span></li>
+        <li><b>Sigil</b><span>At the cursor, up to 320 px away; 90 px radius; slows enemies on it 40% while open.</span></li>
+        <li><b>Imps</b><span>40 over 8 s, at most 24 alive. 30 health, 260 px/s. Claw 6 every 0.4 s, each claw adds a bleed stack.</span></li>
+        <li><b>Tank part</b><span>A clawed enemy is taunted onto that imp for 1 s, so shots go at the swarm instead of you and your team.</span></li>
+        <li><b>Imp death</b><span>Pops in a splash: 10 to enemies within 40 px.</span></li>
+        <li><b>Payback</b><span>Each imp alive at the close heals you 1% of your max health (up to 24%, more than the cost if the swarm survives).</span></li>
+      </ul>
+      <p class="notes">Approximate: the glow and soft trails are browser effects; in Unity they'd be layered strokes and additive sprites.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+(()=>{
+const cv=document.getElementById('cv'),cx=cv.getContext('2d');
+const W=960,H=540;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function fit(){const d=Math.min(2,devicePixelRatio||1);cv.width=W*d;cv.height=H*d;cx.setTransform(d,0,0,d,0,0)}
+fit();
+
+// Timeline (s)
+const T_INS=0.5,T_OPEN=1.7,T_FLOOD=2.1,T_CLOSE=10.1,T_END=11.1,T_LOOP=12.6;
+const PH=[{n:'Inscribe',a:T_INS,b:T_OPEN,c:'#7a1020'},{n:'Open',a:T_OPEN,b:T_FLOOD,c:'#c0283a'},{n:'Flood',a:T_FLOOD,b:T_CLOSE,c:'#e2455a'},{n:'Close',a:T_CLOSE,b:T_END,c:'#9a6608'}];
+const bands=document.getElementById('bands'),marks=document.getElementById('marks');
+{let prev=0;for(const p of PH){if(p.a>prev){const g=document.createElement('i');g.style.width=((p.a-prev)/T_LOOP*100)+'%';bands.insertBefore(g,bands.lastElementChild)}
+ const i=document.createElement('i');i.style.width=((p.b-p.a)/T_LOOP*100)+'%';i.style.background=p.c;bands.insertBefore(i,bands.lastElementChild);prev=p.b}
+ [['0 s',0],['cast',T_INS],['portal',T_FLOOD],['close',T_CLOSE],[T_LOOP.toFixed(1)+' s',T_LOOP]].forEach(([s,t],k)=>{const e=document.createElement('span');e.textContent=s;e.style.left=(t/T_LOOP*100)+'%';if(k===4)e.style.transform='translateX(-100%)';marks.appendChild(e)})}
+
+const P={x:250,y:300};            // Hemomancer
+const S={x:560,y:270,r:90};       // sigil
+const MAXHP=1000;
+let rng,t,st;
+function seed(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let x=Math.imul(s^s>>>15,1|s);x=x+Math.imul(x^x>>>7,61|x)^x;return((x^x>>>14)>>>0)/4294967296}}
+const R=(a,b)=>a+(b-a)*rng();
+
+function reset(){
+  rng=seed(7);t=0;
+  st={hp:MAXHP,paid:0,back:0,dmg:0,sum:0,enemies:[],imps:[],parts:[],drops:[],spawnAcc:0,impAcc:0,burst:false,eid:0,flash:0};
+  for(let i=0;i<16;i++)spawnEnemy(true);
+}
+function spawnEnemy(init){
+  const brute=rng()<0.22;
+  let x,y;
+  if(init){const a=R(-1.2,1.2);const d=R(170,330);x=S.x+60+Math.cos(a)*d;y=S.y+Math.sin(a)*d*0.9}
+  else{const side=rng();if(side<0.5){x=W+20;y=R(40,H-40)}else if(side<0.75){x=R(450,W);y=-20}else{x=R(450,W);y=H+20}}
+  x=Math.max(-20,Math.min(W+20,x));y=Math.max(-20,Math.min(H+20,y));
+  st.enemies.push({id:st.eid++,x,y,r:brute?16:11,hp:brute?170:60,max:brute?170:60,brute,hit:0,taunt:null,tt:0,atk:R(0,1.2),dead:false,fire:R(0.5,2)});
+}
+function phase(){if(t<T_INS)return-1;if(t<T_OPEN)return 0;if(t<T_FLOOD)return 1;if(t<T_CLOSE)return 2;if(t<T_END)return 3;return 4}
+
+// Pentagram geometry
+const pts=[...Array(5)].map((_,k)=>{const a=-Math.PI/2+k*2*Math.PI/5;return{x:S.x+Math.cos(a)*S.r*0.86,y:S.y+Math.sin(a)*S.r*0.86}});
+const star=[0,2,4,1,3,0].map(i=>pts[i]);
+function penAt(p){ // p 0..1 over: circle (0..0.35), star (0.35..0.9), runes (0.9..1)
+  if(p<0.35){const a=-Math.PI/2+p/0.35*Math.PI*2;return{x:S.x+Math.cos(a)*S.r,y:S.y+Math.sin(a)*S.r}}
+  const q=Math.min(1,(p-0.35)/0.55)*5;const i=Math.min(4,Math.floor(q)),f=q-i;
+  return{x:star[i].x+(star[i+1].x-star[i].x)*f,y:star[i].y+(star[i+1].y-star[i].y)*f};
+}
+
+function nearestTarget(x,y){
+  let best=null,bs=1e9;
+  for(const e of st.enemies){if(e.dead)continue;const n=st.imps.filter(m=>m.tgt===e&&m.state!=='dead').length;
+    const d=Math.hypot(e.x-x,e.y-y)+n*90;if(d<bs){bs=d;best=e}}
+  return best;
+}
+function addImp(){
+  const a=R(0,Math.PI*2),d=R(0,S.r*0.55);
+  st.imps.push({x:S.x+Math.cos(a)*d,y:S.y+Math.sin(a)*d,vx:0,vy:0,state:'emerge',age:0,hp:30,tgt:null,claw:R(0,0.4),orb:R(0,6.28),flap:R(0,6.28),hit:0,face:1});
+  st.sum++;
+  for(let i=0;i<8;i++)st.parts.push({x:S.x+Math.cos(a)*d,y:S.y+Math.sin(a)*d,vx:R(-60,60),vy:R(-120,-30),life:R(.3,.6),max:.6,k:'drop',s:R(1.5,3)});
+}
+function hurtEnemy(e,dmg){
+  if(e.dead)return;e.hp-=dmg;e.hit=0.12;st.dmg+=dmg;
+  if(e.hp<=0){e.dead=true;
+    for(let i=0;i<16;i++){const a=R(0,6.28),v=R(40,180);st.parts.push({x:e.x,y:e.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:R(.4,.8),max:.8,k:'drop',s:R(1.5,3.5)})}
+    st.parts.push({x:e.x,y:e.y,life:4,max:4,k:'stain',s:e.r*1.3,a:R(0,6.28)});
+  }
+}
+function killImp(m){
+  m.state='dead';
+  for(let i=0;i<10;i++){const a=R(0,6.28),v=R(40,140);st.parts.push({x:m.x,y:m.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:R(.3,.6),max:.6,k:'drop',s:R(1.5,3)})}
+  st.parts.push({x:m.x,y:m.y,life:.35,max:.35,k:'ring',s:40});
+  for(const e of st.enemies)if(!e.dead&&Math.hypot(e.x-m.x,e.y-m.y)<40+e.r)hurtEnemy(e,10);
+}
+
+function step(dt){
+  t+=dt;const ph=phase();
+  if(t>=T_LOOP){reset();return}
+  // pay
+  if(ph===0){const pay=MAXHP*0.15*dt/(T_OPEN-T_INS);st.paid+=pay;st.hp-=pay}
+  // flood spawning
+  if(ph===2){
+    if(!st.burst){st.burst=true;st.flash=1;for(let i=0;i<8;i++)addImp()}
+    st.impAcc+=dt*4;
+    while(st.impAcc>=1){st.impAcc-=1;if(st.sum<40&&st.imps.filter(m=>m.state!=='dead'&&m.state!=='gone').length<24)addImp()}
+  }
+  // enemy trickle
+  st.spawnAcc+=dt;if(st.spawnAcc>0.45){st.spawnAcc=0;if(st.enemies.filter(e=>!e.dead).length<22)spawnEnemy(false)}
+  const open=ph===1||ph===2;
+  // enemies
+  for(const e of st.enemies){if(e.dead)continue;
+    e.hit=Math.max(0,e.hit-dt);e.tt=Math.max(0,e.tt-dt);if(e.tt<=0)e.taunt=null;
+    if(e.taunt&&e.taunt.state==='dead')e.taunt=null;
+    const tg=e.taunt||P;let dx=tg.x-e.x,dy=tg.y-e.y,d=Math.hypot(dx,dy)||1;
+    let sp=(e.brute?34:52)*(open&&Math.hypot(e.x-S.x,e.y-S.y)<S.r?0.6:1);
+    if(d>(e.taunt?e.r+8:60)){e.x+=dx/d*sp*dt;e.y+=dy/d*sp*dt}
+    // separation
+    for(const o of st.enemies){if(o===e||o.dead)continue;const ox=e.x-o.x,oy=e.y-o.y,od=Math.hypot(ox,oy);const m=e.r+o.r+2;if(od>0&&od<m){e.x+=ox/od*(m-od)*0.5;e.y+=oy/od*(m-od)*0.5}}
+    // enemies swat imps on them
+    e.atk-=dt;if(e.atk<=0){e.atk=R(0.9,1.4);const on=st.imps.filter(m=>m.tgt===e&&m.state==='claw');if(on.length){const m=on[Math.floor(rng()*on.length)];m.hp-=10;m.hit=.12;if(m.hp<=0)killImp(m)}}
+    // enemy shots at its taunt target or player (visual)
+    e.fire-=dt;if(e.fire<=0){e.fire=R(1.4,2.6);const tg2=e.taunt||P;const a=Math.atan2(tg2.y-e.y,tg2.x-e.x);st.parts.push({x:e.x,y:e.y,vx:Math.cos(a)*220,vy:Math.sin(a)*220,life:Math.min(1.6,Math.hypot(tg2.x-e.x,tg2.y-e.y)/220),max:1.6,k:'shot',s:3.5})}
+  }
+  // imps
+  for(const m of st.imps){if(m.state==='dead')continue;
+    m.age+=dt;m.flap+=dt*22;m.hit=Math.max(0,m.hit-dt);
+    if(ph>=3&&m.state!=='home'&&m.state!=='gone'){m.state='home'}
+    if(m.state==='emerge'){m.y-=18*dt;if(m.age>0.45){m.state='fly';const a=R(0,6.28);m.vx=Math.cos(a)*120;m.vy=-140}}
+    else if(m.state==='fly'){
+      if(!m.tgt||m.tgt.dead)m.tgt=nearestTarget(m.x,m.y);
+      if(!m.tgt){m.vx*=0.95;m.vy*=0.95}
+      else{const tx=m.tgt.x+Math.cos(m.orb)*(m.tgt.r+13),ty=m.tgt.y+Math.sin(m.orb)*(m.tgt.r+13);
+        const dx=tx-m.x,dy=ty-m.y,d=Math.hypot(dx,dy)||1;
+        m.vx+=(dx/d*260-m.vx)*Math.min(1,dt*5);m.vy+=(dy/d*260-m.vy)*Math.min(1,dt*5);
+        if(d<10)m.state='claw'}
+      m.x+=m.vx*dt;m.y+=m.vy*dt;if(Math.abs(m.vx)>5)m.face=Math.sign(m.vx);
+      if(rng()<dt*14)st.parts.push({x:m.x,y:m.y+3,vx:0,vy:20,life:.35,max:.35,k:'drop',s:1.4});
+    }
+    else if(m.state==='claw'){
+      if(!m.tgt||m.tgt.dead){m.state='fly';m.tgt=null;continue}
+      m.orb+=dt*1.6;m.x=m.tgt.x+Math.cos(m.orb)*(m.tgt.r+13);m.y=m.tgt.y+Math.sin(m.orb)*(m.tgt.r+13);m.face=m.tgt.x>m.x?1:-1;
+      m.claw-=dt;if(m.claw<=0){m.claw=0.4;m.tgt.taunt=m;m.tgt.tt=1;
+        const a=Math.atan2(m.tgt.y-m.y,m.tgt.x-m.x);st.parts.push({x:(m.x+m.tgt.x)/2,y:(m.y+m.tgt.y)/2,life:.18,max:.18,k:'slash',a,s:m.tgt.r});
+        hurtEnemy(m.tgt,6)}
+    }
+    else if(m.state==='home'){
+      const dx=S.x-m.x,dy=S.y-m.y,d=Math.hypot(dx,dy)||1;
+      m.vx+=(dx/d*380-m.vx)*Math.min(1,dt*6);m.vy+=(dy/d*380-m.vy)*Math.min(1,dt*6);m.x+=m.vx*dt;m.y+=m.vy*dt;m.face=Math.sign(m.vx)||1;
+      if(d<14){m.state='gone';st.drops.push({p:0,d:R(0,0.25),heal:MAXHP*0.01,off:R(-14,14)})}
+    }
+  }
+  // blood returning to the Hemomancer
+  for(const d of st.drops){if(d.done)continue;if(d.d>0){d.d-=dt;continue}d.p+=dt*1.3;if(d.p>=1){d.done=true;st.hp=Math.min(MAXHP,st.hp+d.heal);st.back+=d.heal;
+    for(let i=0;i<5;i++){const a=R(0,6.28);st.parts.push({x:P.x,y:P.y,vx:Math.cos(a)*60,vy:Math.sin(a)*60,life:.3,max:.3,k:'drop',s:2})}}}
+  // particles
+  for(const p of st.parts){p.life-=dt;if(p.vx!==undefined){p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.k==='drop'){p.vx*=0.94;p.vy=p.vy*0.94+40*dt}}}
+  st.parts=st.parts.filter(p=>p.life>0);
+  st.enemies=st.enemies.filter(e=>!e.dead||false);
+  st.flash=Math.max(0,st.flash-dt*2.5);
+  // portal embers
+  if(open&&rng()<dt*30){const a=R(0,6.28),d=R(0,S.r*0.8);st.parts.push({x:S.x+Math.cos(a)*d,y:S.y+Math.sin(a)*d*0.95,vx:R(-8,8),vy:R(-60,-25),life:R(.6,1.2),max:1.2,k:'ember',s:R(1,2.2)})}
+}
+
+// ---------- drawing
+const BLOOD='#b3122b',BLOOD_D='#4a0612',BLOOD_L='#ff4d63';
+function floor(){
+  cx.fillStyle='#0d1016';cx.fillRect(0,0,W,H);
+  cx.strokeStyle='rgba(255,255,255,0.035)';cx.lineWidth=1;cx.beginPath();
+  for(let x=0;x<=W;x+=48){cx.moveTo(x+.5,0);cx.lineTo(x+.5,H)}for(let y=0;y<=H;y+=48){cx.moveTo(0,y+.5);cx.lineTo(W,y+.5)}cx.stroke();
+}
+function bloodStroke(draw,w,alpha=1){
+  cx.save();cx.globalAlpha=alpha;cx.lineCap='round';cx.lineJoin='round';
+  cx.strokeStyle=BLOOD_D;cx.lineWidth=w+3;draw();cx.stroke();
+  cx.strokeStyle=BLOOD;cx.lineWidth=w;draw();cx.stroke();
+  cx.strokeStyle='rgba(255,110,125,0.55)';cx.lineWidth=Math.max(1,w*0.3);draw();cx.stroke();
+  cx.restore();
+}
+function sigil(prog,glow){
+  // prog 0..1 drawing progress; glow 0..1
+  const cP=Math.min(1,prog/0.35),sP=Math.max(0,Math.min(1,(prog-0.35)/0.55)),rP=Math.max(0,(prog-0.9)/0.1);
+  if(glow>0){cx.save();cx.shadowColor='rgba(255,40,70,0.9)';cx.shadowBlur=24*glow;}
+  // outer circle
+  bloodStroke(()=>{cx.beginPath();cx.arc(S.x,S.y,S.r,-Math.PI/2,-Math.PI/2+cP*Math.PI*2)},5);
+  // inner ring
+  if(rP>0)bloodStroke(()=>{cx.beginPath();cx.arc(S.x,S.y,S.r*0.86,-Math.PI/2,-Math.PI/2+rP*Math.PI*2)},2.2);
+  // star
+  if(sP>0)bloodStroke(()=>{cx.beginPath();cx.moveTo(star[0].x,star[0].y);const q=sP*5;for(let i=0;i<5;i++){const f=Math.min(1,q-i);if(f<=0)break;cx.lineTo(star[i].x+(star[i+1].x-star[i].x)*f,star[i].y+(star[i+1].y-star[i].y)*f)}},4);
+  // runes between the rings
+  if(rP>0){cx.save();cx.strokeStyle=BLOOD;cx.lineWidth=1.6;cx.lineCap='round';
+    for(let k=0;k<15;k++){if(k/15>rP)break;const a=-Math.PI/2+(k+0.5)*Math.PI*2/15,r=S.r*0.93;const x=S.x+Math.cos(a)*r,y=S.y+Math.sin(a)*r;
+      cx.save();cx.translate(x,y);cx.rotate(a+Math.PI/2);cx.beginPath();const v=k%3;
+      if(v===0){cx.moveTo(-3,-3);cx.lineTo(0,3);cx.lineTo(3,-3)}else if(v===1){cx.moveTo(0,-3.5);cx.lineTo(0,3.5);cx.moveTo(-3,0);cx.lineTo(3,-2)}else{cx.moveTo(-3,3);cx.lineTo(0,-3);cx.lineTo(3,3);cx.moveTo(-1.5,0.5);cx.lineTo(1.5,0.5)}
+      cx.stroke();cx.restore()}
+    cx.restore()}
+  // star points: drips
+  if(sP>0.2){cx.fillStyle=BLOOD;for(const p of pts){cx.beginPath();cx.arc(p.x,p.y,3.2,0,7);cx.fill()}}
+  if(glow>0)cx.restore();
+}
+function portal(o,tm){
+  // o 0..1 openness
+  if(o<=0)return;
+  const r=S.r*0.78*o;
+  const g=cx.createRadialGradient(S.x,S.y,0,S.x,S.y,r);
+  g.addColorStop(0,'rgba(0,0,0,0.98)');g.addColorStop(0.55,'rgba(40,0,8,0.95)');g.addColorStop(0.85,'rgba(150,10,35,0.85)');g.addColorStop(1,'rgba(255,60,80,0)');
+  cx.fillStyle=g;cx.beginPath();cx.arc(S.x,S.y,r,0,7);cx.fill();
+  // swirl arms
+  cx.save();cx.translate(S.x,S.y);cx.rotate(tm*1.4);cx.strokeStyle='rgba(255,70,95,0.35)';cx.lineWidth=2;
+  for(let k=0;k<4;k++){cx.beginPath();for(let s=0;s<=20;s++){const f=s/20;const a=k*Math.PI/2+f*2.4;const rr=r*(0.15+0.75*f);s?cx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr):cx.moveTo(Math.cos(a)*rr,Math.sin(a)*rr)}cx.stroke()}
+  cx.restore();
+  // pulse ring
+  const pr=(tm*1.6)%1;cx.strokeStyle=`rgba(255,80,100,${0.45*(1-pr)*o})`;cx.lineWidth=2;cx.beginPath();cx.arc(S.x,S.y,r*(0.4+0.6*pr),0,7);cx.stroke();
+}
+function hemomancer(){
+  const {x,y}=P;
+  cx.fillStyle='rgba(0,0,0,0.35)';cx.beginPath();cx.ellipse(x,y+16,18,6,0,0,7);cx.fill();
+  // tank ring
+  cx.strokeStyle='rgba(118,178,242,0.55)';cx.lineWidth=2;cx.beginPath();cx.arc(x,y,24,0,7);cx.stroke();
+  // cloak
+  cx.fillStyle='#5a0d19';cx.beginPath();cx.arc(x,y,16,0,7);cx.fill();
+  cx.fillStyle='#8e1528';cx.beginPath();cx.arc(x,y-2,11,0,7);cx.fill();
+  cx.fillStyle='#e8d6c8';cx.beginPath();cx.arc(x+3,y-4,5,0,7);cx.fill();
+  // hp bar
+  const f=st.hp/MAXHP;cx.fillStyle='rgba(0,0,0,.6)';cx.fillRect(x-22,y-34,44,5);cx.fillStyle=f<0.2?'#ff9a3d':BLOOD_L;cx.fillRect(x-22,y-34,44*f,5);
+  cx.fillStyle='rgba(255,255,255,.9)';cx.fillRect(x-22+44*0.2,y-35,1,7);
+}
+function enemy(e){
+  cx.fillStyle='rgba(0,0,0,0.35)';cx.beginPath();cx.ellipse(e.x,e.y+e.r*0.9,e.r,e.r*0.35,0,0,7);cx.fill();
+  cx.fillStyle=e.hit>0?'#fff':(e.brute?'#5d4a7a':'#3f5c4e');cx.beginPath();cx.arc(e.x,e.y,e.r,0,7);cx.fill();
+  cx.strokeStyle=e.brute?'#a48bd0':'#7fb59a';cx.lineWidth=2;cx.stroke();
+  const tg=e.taunt||P;const a=Math.atan2(tg.y-e.y,tg.x-e.x);
+  cx.fillStyle='#ffdf8a';cx.beginPath();cx.arc(e.x+Math.cos(a)*e.r*0.5,e.y+Math.sin(a)*e.r*0.5,2.2,0,7);cx.fill();
+  if(e.hp<e.max){cx.fillStyle='rgba(0,0,0,.6)';cx.fillRect(e.x-e.r,e.y-e.r-8,e.r*2,3);cx.fillStyle='#e9e2d0';cx.fillRect(e.x-e.r,e.y-e.r-8,e.r*2*e.hp/e.max,3)}
+}
+function imp(m){
+  let s=1,al=1;
+  if(m.state==='emerge'){s=Math.min(1,m.age/0.45);al=s}
+  if(m.state==='home'){const d=Math.hypot(S.x-m.x,S.y-m.y);s=Math.min(1,d/60)}
+  cx.save();cx.translate(m.x,m.y);cx.scale(m.face*s*1.6,s*1.6);cx.globalAlpha=al;
+  const fl=Math.sin(m.flap);
+  // wings
+  cx.fillStyle='#5a0a16';
+  for(const sd of[-1,1]){cx.beginPath();cx.moveTo(sd*2,-2);cx.quadraticCurveTo(sd*12,-10-fl*5,sd*15,-2-fl*6);cx.lineTo(sd*11,0);cx.lineTo(sd*13,3-fl*3);cx.lineTo(sd*7,2);cx.closePath();cx.fill()}
+  // tail
+  cx.strokeStyle='#8e1528';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(-4,4);cx.quadraticCurveTo(-11,9,-12,3);cx.stroke();
+  cx.fillStyle='#8e1528';cx.beginPath();cx.moveTo(-12,1);cx.lineTo(-14.5,4);cx.lineTo(-10.5,4.5);cx.fill();
+  // body
+  cx.fillStyle=m.hit>0?'#fff':'#c4182f';cx.beginPath();cx.ellipse(0,1,5.5,6.5,0,0,7);cx.fill();
+  // horns
+  cx.fillStyle='#2a0308';cx.beginPath();cx.moveTo(-3,-4);cx.lineTo(-5,-10);cx.lineTo(-1,-5);cx.fill();cx.beginPath();cx.moveTo(3,-4);cx.lineTo(5,-10);cx.lineTo(1,-5);cx.fill();
+  // eyes
+  cx.fillStyle='#ffd34d';cx.fillRect(0.5,-2,2,1.6);cx.fillRect(3.2,-2,1.6,1.6);
+  // claws when attacking
+  if(m.state==='claw'){cx.strokeStyle='#ffd0d6';cx.lineWidth=1;cx.beginPath();cx.moveTo(5,2);cx.lineTo(9,0);cx.moveTo(5,4);cx.lineTo(9,4);cx.stroke()}
+  cx.restore();
+}
+function parts(layer){
+  for(const p of st.parts){const f=p.life/p.max;
+    if(layer===0&&p.k==='stain'){cx.save();cx.globalAlpha=Math.min(1,p.life)*0.75;cx.fillStyle='#4a0612';cx.translate(p.x,p.y);cx.rotate(p.a);cx.beginPath();cx.ellipse(0,0,p.s,p.s*0.7,0,0,7);cx.fill();cx.restore()}
+    if(layer!==1)continue;
+    if(p.k==='drop'){cx.fillStyle=`rgba(200,20,45,${f})`;cx.beginPath();cx.arc(p.x,p.y,p.s,0,7);cx.fill()}
+    else if(p.k==='ember'){cx.fillStyle=`rgba(255,90,110,${f})`;cx.beginPath();cx.arc(p.x,p.y,p.s,0,7);cx.fill()}
+    else if(p.k==='ring'){cx.strokeStyle=`rgba(255,80,100,${f})`;cx.lineWidth=2;cx.beginPath();cx.arc(p.x,p.y,p.s*(1-f*0.6),0,7);cx.stroke()}
+    else if(p.k==='slash'){cx.strokeStyle=`rgba(255,225,230,${f})`;cx.lineWidth=1.6;cx.beginPath();cx.arc(p.x,p.y,p.s*0.6,p.a-1.6,p.a-0.3);cx.stroke()}
+    else if(p.k==='shot'){cx.fillStyle='#ff9a3d';cx.beginPath();cx.arc(p.x,p.y,p.s,0,7);cx.fill()}
+  }
+}
+function draw(){
+  const ph=phase();floor();
+  const showR=document.getElementById('t-range').checked,showT=document.getElementById('t-taunt').checked;
+  if(showR){cx.setLineDash([6,6]);cx.strokeStyle='rgba(118,178,242,0.35)';cx.lineWidth=1;cx.beginPath();cx.arc(P.x,P.y,320,0,7);cx.stroke();cx.setLineDash([])}
+  parts(0);
+  // sigil + portal
+  let prog=0,glow=0,open=0,fade=1;
+  if(ph>=0){prog=Math.min(1,(t-T_INS)/(T_OPEN-T_INS))}
+  if(ph===1){const k=(t-T_OPEN)/(T_FLOOD-T_OPEN);glow=k;open=k}
+  if(ph===2){glow=0.55+0.25*Math.sin(t*6)+st.flash*0.6;open=1}
+  if(ph===3){const k=(t-T_CLOSE)/(T_END-T_CLOSE);glow=0.5*(1-k);open=Math.max(0,1-k*1.4)}
+  if(ph===4){fade=Math.max(0,1-(t-T_END)/1.2);open=0}
+  if(prog>0){
+    if(open>0){cx.save();cx.globalAlpha=1;portal(open,t);cx.restore()}
+    cx.save();cx.globalAlpha=fade;sigil(prog,glow);cx.restore();
+    if(st.flash>0){cx.fillStyle=`rgba(255,60,80,${st.flash*0.35})`;cx.beginPath();cx.arc(S.x,S.y,S.r*1.6,0,7);cx.fill()}
+  }
+  if(showR&&prog>0){cx.setLineDash([4,5]);cx.strokeStyle='rgba(240,189,84,0.55)';cx.beginPath();cx.arc(S.x,S.y,S.r,0,7);cx.stroke();cx.setLineDash([])}
+  // blood rope while inscribing
+  if(ph===0){const pen=penAt(prog);cx.save();cx.lineCap='round';
+    const mx=(P.x+pen.x)/2,my=Math.min(P.y,pen.y)-50;
+    for(const [w,c] of [[5,BLOOD_D],[3,BLOOD],[1,'rgba(255,120,135,.7)']]){cx.strokeStyle=c;cx.lineWidth=w;cx.beginPath();cx.moveTo(P.x+10,P.y-4);cx.quadraticCurveTo(mx,my+Math.sin(t*14)*6,pen.x,pen.y);cx.stroke()}
+    cx.fillStyle=BLOOD_L;cx.beginPath();cx.arc(pen.x,pen.y,4,0,7);cx.fill();cx.restore();
+    if(rng()<0.6)st.parts.push({x:pen.x,y:pen.y,vx:R(-30,30),vy:R(-30,10),life:.4,max:.4,k:'drop',s:1.8});
+  }
+  // returning blood stream
+  for(const d of st.drops){if(d.done||d.d>0)continue;const p=d.p;const mx=(S.x+P.x)/2,my=Math.min(S.y,P.y)-70+d.off;
+    const x=(1-p)*(1-p)*S.x+2*(1-p)*p*mx+p*p*P.x,y=(1-p)*(1-p)*S.y+2*(1-p)*p*my+p*p*P.y;
+    cx.fillStyle=BLOOD_L;cx.beginPath();cx.arc(x,y,3.2,0,7);cx.fill();cx.fillStyle='rgba(200,20,45,.5)';cx.beginPath();cx.arc(x-(P.x-S.x)*0.01,y,2.2,0,7);cx.fill()}
+  // taunt links
+  if(showT){cx.strokeStyle='rgba(255,90,110,0.28)';cx.lineWidth=1;cx.beginPath();for(const e of st.enemies){if(e.taunt&&!e.dead){cx.moveTo(e.x,e.y);cx.lineTo(e.taunt.x,e.taunt.y)}}cx.stroke()}
+  for(const e of st.enemies)enemy(e);
+  hemomancer();
+  for(const m of st.imps)if(m.state!=='dead'&&m.state!=='gone')imp(m);
+  parts(1);
+  // UI
+  const names=['Inscribe','Open','Flood','Close','Done'];
+  document.getElementById('tag').textContent=ph<0?'Ready':names[ph];
+  document.getElementById('head').style.left=(t/T_LOOP*100)+'%';
+  const alive=st.imps.filter(m=>m.state!=='dead'&&m.state!=='gone').length;
+  document.getElementById('r-hp').textContent=Math.round(st.hp);
+  document.getElementById('r-hpbar').style.width=(st.hp/MAXHP*100)+'%';
+  document.getElementById('r-paid').textContent=Math.round(st.paid);
+  document.getElementById('r-alive').textContent=alive+' / 24';
+  document.getElementById('r-sum').textContent=st.sum+' / 40';
+  document.getElementById('r-dmg').textContent=Math.round(st.dmg);
+  document.getElementById('r-back').textContent=Math.round(st.back);
+  document.querySelectorAll('#beats li').forEach(li=>li.classList.toggle('on',+li.dataset.p===ph));
+}
+
+let speed=1,last=0;
+document.querySelectorAll('[data-sp]').forEach(b=>b.addEventListener('click',()=>{speed=+b.dataset.sp;document.querySelectorAll('[data-sp]').forEach(o=>o.setAttribute('aria-pressed',o===b))}));
+document.getElementById('b-replay').addEventListener('click',()=>reset());
+reset();
+if(reduce){ // jump to mid-flood still frame
+  for(let i=0;i<300;i++)step(1/60);draw();
+}else{
+  requestAnimationFrame(function f(now){const dt=Math.min(0.05,(now-(last||now))/1000)*speed;last=now;
+    let n=Math.ceil(dt/(1/120));for(let i=0;i<n;i++)step(dt/n);draw();requestAnimationFrame(f)});
+}
+})();
+</script>
