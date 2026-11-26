@@ -102,7 +102,7 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.RetiredArtillery, Kit = Kit.Soldier, Role = Role.Dps,  // retired (no name: in no lobby place, card or list); the Deployable Turret is the DPS Soldier's default ultimate now
+                Id = AbilityId.RetiredArtillery, Kit = Kit.Soldier, Role = Role.Dps, Retired = true,  // retired (no name: in no lobby place, card or list); the Deployable Turret is the DPS Soldier's default ultimate now
             },
             new AbilityDef
             {

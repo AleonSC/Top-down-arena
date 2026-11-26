@@ -112,6 +112,7 @@ namespace Arena
         public Func<BotSense, bool> Bot;  // when the smart bot uses it (BotBrain.cs); null: when a target is within 520 px
         public float HealthCost;   // the Hemomancer's abilities cost this much of your max health (it can't take you below 1)
         public bool CostsCurrent;  // ...or of your current health (Blood Gift)
+        public bool Retired;       // an id kept only so old numbers and saves stay valid (no name, lobby place, card or list)
     }
 
     /// Stats derived from the upgrades a player has picked (recomputed on every pick).
