@@ -53,6 +53,7 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 |---|---|---|
 | **upgrade card** | a card you choose in game | `UpgradeDef`, `Upgrades.All` |
 | **upgrade** | the effect or benefit an upgrade card gives | `Stats`, `Player.Taken` |
+| **Calling** | a card that commits a run to one path (Summoner: a new minion); the others leave the pool and its own cards join (planned, `Docs/Callings.md`) | `CallingId` (planned) |
 
 ## Rewards
 
