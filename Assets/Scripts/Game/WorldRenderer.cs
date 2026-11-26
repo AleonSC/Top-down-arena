@@ -667,8 +667,6 @@ namespace Arena
                 DrawParryGauge(p, t, 0.4f);
             if (p.DomeT > 0f)  // Fortress: the dome (DomeLook.cs)
                 DrawFortressDome(p, t);
-            if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.ArtilleryAssault)  // Artillery Assault (ArtilleryLook.cs)
-                DrawArtillery(p, t);
             DrawRiotGear(p, t);  // Riot Gear's plate (RiotGearLook.cs)
             DrawVanishSmoke(p, t);  // Vanish (NinjaLooks.cs)
             DrawCeremonialFloor(p, t);  // Ceremonial Armor's aura, rings and sigil (CeremonialArmorLook.cs)

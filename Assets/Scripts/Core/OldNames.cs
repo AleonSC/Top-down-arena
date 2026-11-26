@@ -17,7 +17,7 @@ namespace Arena
             { "Grenade", "Airstrike" }, { "Nova", "Starburst" },  // (the Cluster Grenade became Airstrike)
             { "BattleFury", "CaltropRun" }, { "CaughtSteel", "CaltropRun" }, { "BladeTempest", "Drawbridge" }, { "Lunge", "Gauntlet" }, { "Whirlwind", "BladedDive" },
             { "IronBody", "CeremonialArmor" }, { "ArcaneAegis", "Aeroaegis" }, { "Sanctify", "LumenWard" }, { "GuardianSpirit", "ForcePact" },
-            { "BulletStorm", "ArtilleryAssault" }, { "BloodBoil", "ArterialSpray" }, { "BloodRite", "VeinTithe" }, { "CrimsonPact", "BloodWall" },
+            { "BulletStorm", "DeployableTurret" }, { "ArtilleryAssault", "DeployableTurret" }, { "BloodBoil", "ArterialSpray" }, { "BloodRite", "VeinTithe" }, { "CrimsonPact", "BloodWall" },
             { "KineticWall", "GaleWall" }, { "FrenzyPact", "BloodDebt" }, { "HemoNova", "VeinRush" }, { "SiphonField", "BloodFreeze" }, { "CrimsonApotheosis", "CrimsonHarvest" },
         };
 

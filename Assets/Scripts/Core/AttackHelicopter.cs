@@ -3,7 +3,7 @@ using System;
 namespace Arena
 {
     /// The Attack Helicopter: the DPS Soldier's second ultimate (`AbilityId.AttackHelicopter`, key 1 of the lobby's Ultimate row;
-    /// Artillery Assault stays the default), the Orbit look of Docs/Mockups/attack-helicopter.html.
+    /// the Deployable Turret is the default), the Orbit look of Docs/Mockups/attack-helicopter.html.
     /// F calls in a gunship: it flies in over HeliArrive s, then for HeliStation s it circles its caller at HeliOrbitR px and each of
     /// its guns (1, 2 mastered) locks one enemy at a time, the one nearest the caller within HeliLeash px (another gun's target is
     /// skipped), and fires HeliRate rounds a second at it, HeliDamage each times the caller's damage multiplier, until it dies or

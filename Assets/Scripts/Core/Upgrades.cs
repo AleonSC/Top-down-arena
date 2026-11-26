@@ -17,7 +17,6 @@ namespace Arena
         ArcaneTether,
         ArmorDrop,  // the Tank Soldier's fourth ultimate (ArmorDrop.cs), key 3 of the lobby's Ultimate row
         ArterialSpray,
-        ArtilleryAssault,
         AstralProjection,  // the Healer Ninja's second ultimate (AstralProjection.cs), key 1 of the lobby's Ultimate row
         AttackHelicopter,  // the DPS Soldier's second ultimate (AttackHelicopter.cs), picked on the lobby's Ultimate row
         Ballista,  // the DPS Knight's third ultimate (Ballista.cs), key 2 of the lobby's Ultimate row
