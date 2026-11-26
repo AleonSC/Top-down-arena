@@ -1181,6 +1181,8 @@ namespace Arena
                 move = V2.Zero;  // the Katana's Momentum Burst: planted for a moment (Katana.cs)
                 firing = false;
             }
+            if (BellRooted(me))
+                move = V2.Zero;  // braced under your Siege Bell while it rings (SiegeBell.cs)
             if (Riding(me))
             {
                 move = V2.Zero;  // inside a Trojan Horse: it carries you (TrojanHorse.cs)

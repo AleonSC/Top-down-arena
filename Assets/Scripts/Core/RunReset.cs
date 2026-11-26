@@ -14,7 +14,7 @@ namespace Arena
             hammerThrows.Clear(); hammerSlams.Clear(); hammerSlamCd.Clear(); shieldThrows.Clear(); bashShards.Clear();
             ionTrails.Clear(); packBiters.Clear(); shocks.Clear(); rodCap.Clear(); splashSeen.Clear();
             // Ninja
-            stuckStars.Clear(); fangRuns.Clear(); katanaLater.Clear(); caltrops.Clear(); groves.Clear(); groveBleeds.Clear();
+            stuckStars.Clear(); fangRuns.Clear(); katanaLater.Clear(); caltrops.Clear(); groves.Clear(); groveBleeds.Clear(); bells.Clear();
             // Hemomancer and Elementalist
             coatings.Clear(); freezeWaves.Clear(); shockRuns.Clear(); harvestTargets.Clear(); harvests.Clear(); waves.Clear();
             Ink.Clear(); pens.Clear(); hands.Clear();

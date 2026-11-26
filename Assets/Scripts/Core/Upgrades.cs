@@ -70,6 +70,7 @@ namespace Arena
         ArmorDrop,      // the Tank Soldier's fourth ultimate (ArmorDrop.cs), key 3 of the lobby's Ultimate row
         TrojanHorse,    // the Tank Knight's second ultimate (TrojanHorse.cs), key 1 of the lobby's Ultimate row
         Ballista,       // the DPS Knight's third ultimate (Ballista.cs), key 2 of the lobby's Ultimate row
+        SiegeBell,      // the Tank Knight's 4th choice (SiegeBell.cs), the lobby's 4th choice
         None = 255,
     }
 
@@ -135,6 +136,7 @@ namespace Arena
         public float RushReach = 1f, RushRefund;               // Vein Rush: Crimson Tide
         public float TbDmgMult = 1f; public int TbExtraJumps;    // Thorn Bloom: Thornwork
         public float BgRadiusMult = 1f, BgBleedMult = 1f;        // Bamboo Grove: Rhizome
+        public float BellRadiusMult = 1f, BellStunBonus;         // Siege Bell: Great Bell
         public float SbDmgMult = 1f, SbStackBonus;               // Senbon Seekers: Hidden Needles
         public float FfRadiusMult = 1f, FfBurnMult = 1f;         // Flash Fire: Backdraft
         public bool ChalkWard;             // Warding Ink: Spirit Chalk blocks enemy bullets (at the cost of wearing the ink away)

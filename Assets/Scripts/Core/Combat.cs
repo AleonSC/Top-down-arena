@@ -58,6 +58,7 @@ namespace Arena
                 amount *= 1f - AdrenalineCut;  // Adrenaline Shot
             if (p.UnbreakT > 0f)
                 amount *= 1f - Math.Min(0.8f, CavGuard + p.Stats.UnbreakBonus);
+            amount *= 1f - BellCut(p);  // braced under your Siege Bell (SiegeBell.cs)
             amount *= 1f - CereCut(p);  // the Ninja's Ceremonial Armor at full regalia (CeremonialArmor.cs)
             amount *= 1f - VgCover(p);  // Cover Ally (Vowguard.cs)
             amount *= 1f - NodArmor(p);  // the Nodachi's Storm wind-ups (Nodachi.cs)
