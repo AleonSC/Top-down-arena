@@ -1580,6 +1580,7 @@ namespace Arena
             TickWindWaves(dt);  // WindClash.cs: Wind Clash's waves and Tempests
             TickArcBalls(dt);   // StaticShock.cs: Arc Cannon balls and bursts
             TickTessenPetals(dt);  // TwinTessen.cs: the Petal Spin's petals landing
+            TickHeartDrops(dt);  // HeartFlail.cs: the Heart Flail's blood drops landing
             TickHive(dt);       // HiveCenser.cs: the Hive Censer's insects settling, swarms hunting and wrapping, chitin
             TickBloodBlast(dt);  // BloodBlast.cs: Blood Blast's returning blood
             TickTide(dt);       // BloodBlast.cs: Crimson Tides gathering and rolling out
@@ -1759,6 +1760,7 @@ namespace Arena
                 TickNodachi(p, dt);  // the Nodachi's step clock and the Guard's cone (Nodachi.cs)
                 TickTwinPistols(p, dt);  // Laser Sights running down, its key cooling down (TwinPistols.cs)
                 TickTessen(p, dt);  // the Twin Tessen's gust charge and cooldown, Tailwind (TwinTessen.cs)
+                TickHeartFlail(p, dt);  // the Heart Flail's swing, spin, thrown heart and beat (HeartFlail.cs)
                 p.DumpCd = Math.Max(0f, p.DumpCd - dt);  // the Railgun's Heat Dump (RailBeam.cs)
                 if (p.Weapon.Id != WeaponId.StaticShock && p.StaticOn)
                     ClearStaticShock(p);  // (StaticShock.cs)
@@ -1821,6 +1823,8 @@ namespace Arena
                     RevolverTrigger(p, dt);  // a single-action gun, or the Fan stance's whip and fan (Weapons.cs, PistolWhip.cs)
                 else if (p.Weapon.Id == WeaponId.DoubleBarrel)
                     TickDoubleBarrel(p, dt);
+                else if (p.Weapon.Id == WeaponId.HeartFlail)
+                    HfTrigger(p, dt);  // a click swings, held spins; never a volley (HeartFlail.cs)
                 else if (p.Weapon.Id == WeaponId.GrenadeLauncher)
                     TickGrenadeLauncher(p, dt);  // the drums, the reload, the smoke (GrenadeLauncher.cs)  // two shells, a break-open reload (DoubleBarrel.cs)
                 else if (p.Weapon.Id == WeaponId.Stonespear)
