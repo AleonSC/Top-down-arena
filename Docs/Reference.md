@@ -241,6 +241,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Phoenix | Healer | 1st, choice 2 | 22 s | - | Revives at full health, and the phoenix keeps fighting. | A phoenix follows your cursor, shooting and healing, and revives anyone who goes down. |
 | Soul Lantern | Healer | 1st, choice 3 | 18 s | - | Lasts 9 s, and the linked player can't go down. | A lantern links to an ally, healing them and burning nearby enemies. |
 | World Tree | Healer | ultimate | 80 s | - | Lasts 16 s with 8 sprites. | Grow a tree that heals and slows around it and sends healing butterflies. |
+| Honey Raid | Healer | ultimate | 80 s | - | The pool is 25% wider. | A giant bee flies over your cursor and dumps its honey: a big pool that slows and hurts enemies and heals allies. |
 | Bat Swarm | Dps | 1st, choice 1 | 12 s | - | Releases 14 bats. | Release bats that hunt enemies. |
 | Hydra | Dps | 1st, choice 2 | 18 s | - | A fourth head. | A three-headed hydra spits venom at enemies. |
 | Alpha Call | Dps | 1st, choice 3 | 14 s | - | Also summons 3 wolves for 6 s. | Your minions bite faster, then lunge for triple damage. |
