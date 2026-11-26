@@ -286,6 +286,7 @@ namespace Arena
             DrawClotStains(t);       // the Gore Mortar's drops on the floor (GoreMortarLook.cs)
             foreach (var z in game.Zones.Values)
                 DrawZone(z, t);
+            DrawHazardFoam(t);  // Hazard Foam's lumps, all together so they merge (HazardFoamLook.cs)
             DrawInk(t);  // Spirit Chalk's lines and loops (ChalkLook.cs)
             DrawHiveFloor(t);  // the Hive Censer's refill rings and reach; its insects fly here (HiveCenserLook.cs)
             foreach (var h in game.Hazards.Values)
@@ -526,6 +527,7 @@ namespace Arena
             DrawBuffTimers(p, t);  // a shrinking arc under them for each timed buff (AbilityLooks.cs)
             DrawBannerAura(p, t);  // the Knight banners on the allies in them (KnightBannersLook.cs)
             DrawRocketAura(p, t);  // Rocket Drop's time ring, the ∞ chip and your blast reach (RocketDropLook.cs)
+            DrawFoamAura(p, t);    // Hazard Foam's time ring, tank bar and where your foam lands (HazardFoamLook.cs)
             DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
             DrawVortex(p, t);      // the Vortex ultimate's storm (VortexLook.cs)
             DrawLivingBoltAura(p, t);  // Living Bolt's channel, halo and time ring (LivingBoltLook.cs)

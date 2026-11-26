@@ -117,6 +117,7 @@ namespace Arena
                     : shown == AbilityId.SupplyDrop ? Game.SupplyCallIn + Game.SupplyOpen + Game.SupplyTime + Game.SupplyFold + 1f  // (the crate folds away before the next)
                     : shown == AbilityId.Ballista ? Game.BaFall + 9f  // (it climbs on and empties it, then the next)
                     : shown == AbilityId.RocketDrop ? Game.RocketCallIn + Game.RocketOpen + Game.RocketTime + 2f  // (it fires its rockets, then the next)
+                    : shown == AbilityId.HazardFoam ? Game.FoamTime + 2f  // (it sprays its tank out, then the next)
                     : shown == AbilityId.ArmorDrop ? Game.ArmorCallIn + Game.ArmorOpen + 4f  // (the vests lie out a while, then the next)
                     : shown == AbilityId.DragonsDogma ? Game.DogmaTime + 1.5f  // (it coils back in before the next)
                     : shown == AbilityId.Bloodbath ? Game.BathTime + 1.5f  // (a Bloodbath dries up before the next)

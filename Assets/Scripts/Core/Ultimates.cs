@@ -306,6 +306,10 @@ namespace Arena
                     CastRocketDrop(p, target, cap);
                     break;
 
+                case AbilityId.HazardFoam:  // Healer: Soldier, the fourth ultimate (HazardFoam.cs)
+                    CastHazardFoam(p, cap);
+                    break;
+
                 case AbilityId.OrbitalLaser:  // DPS: Soldier, the third ultimate (OrbitalLaser.cs)
                     CastOrbital(p, target, cap);
                     break;
