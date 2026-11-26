@@ -1485,16 +1485,20 @@ namespace Arena
         }
 
         /// Host: a Hemomancer's kill sometimes drops a blood orb, one orb shared by the team (Owner 0): whoever reaches it drinks it.
-        /// Not on a boss's own reward, and not where health orbs are off (Famine, Bloodlust, Blood Moon).
+        /// Not on a boss's own reward, and not where health orbs are off (Famine, Bloodlust, Blood Moon). A Heartbeat wave's
+        /// kill always drops one (Heartbeat.cs).
         void DropBloodOrb(Enemy e, bool bossReward)
         {
             var killer = PlayerOrNull(e.LastHitBy);
-            if (killer == null || killer.Kit != Kit.Hemomancer || bossReward)
+            bool heart = e.HeartKill;
+            if (killer == null || killer.Kit != Kit.Hemomancer && !heart || bossReward)
                 return;
             if (Has(RunMod.Famine) || Has(RunMod.Bloodlust) || OnPathOf(PathId.BloodMoon) || FloorAt(e.Pos) == PathId.BloodMoon)
                 return;
-            if (rng.NextDouble() >= BloodOrbChance)
+            if (!heart && rng.NextDouble() >= BloodOrbChance)
                 return;
+            if (heart)
+                killer.HbOrbs++;
             var o = SpawnOrb(e.Pos + new V2(0f, -10f), false);
             o.Blood = true;
             o.Life = BloodOrbLife;
