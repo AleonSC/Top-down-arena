@@ -839,6 +839,7 @@ namespace Arena
             AstralBolt = 83,   // Astral Projection's bolt, shot from the spirit (AstralProjection.cs)
             BloodNeedle = 84,  // the Acupuncture Needles' Bloodletting needle: long, red-beaded; sticks and bleeds (AcupunctureNeedles.cs, Game/AcupunctureLook.cs)
             HorseArrow = 85,   // an arrow shot out of a Trojan Horse's side slit (TrojanHorse.cs, Game/TrojanHorseLook.cs)
+            RocketShell = 87,  // a Rocket Drop rocket: bursts on what it touches, a wall, or at the cursor (RocketDrop.cs, Game/RocketDropLook.cs)
             BallistaBolt = 86, // a Ballista's giant bolt: through everything, knocking what it passes (Ballista.cs, Game/BallistaLook.cs)
             EarthballShot = 72; // the Earthball: stops on the first enemy, stuns it and breaks into rubble (ElementBalls.cs, Game/ElementBallLook.cs)
 
@@ -870,6 +871,7 @@ namespace Arena
             Row(table, NovaShot, radius: 6f, color: new Rgba(0.95f, 0.8f, 1f));
             Row(table, FlakShell, radius: 8f, color: new Rgba(0.7f, 0.85f, 1f));
             Row(table, TankShell, radius: 9f, color: new Rgba(1f, 0.62f, 0.25f));
+            Row(table, RocketShell, radius: 10f, color: new Rgba(1f, 0.54f, 0.11f));  // Rocket Drop (RocketDrop.cs)
             Row(table, HorseArrow, radius: 4.5f, color: Rgba.Gold);
             Row(table, BallistaBolt, radius: 12f, color: Rgba.Gold);  // the Ballista's giant bolt (Ballista.cs)
             Row(table, AstralBolt, radius: 5f, color: new Rgba(0.73f, 0.96f, 1f));  // the spirit's pale cyan (AstralProjection.cs)

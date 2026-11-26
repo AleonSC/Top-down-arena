@@ -571,6 +571,7 @@ namespace Arena
             SyncGrasp(s, p);  // Hemomancer.cs
             SyncJuggernaut(s, p);  // Juggernaut.cs
             SyncLiteralTank(s, p);  // LiteralTank.cs
+            SyncRocketDrop(s, p);  // RocketDrop.cs
             SyncStoneColossus(s, p);  // StoneColossus.cs
             SyncBloodGolem(s, p);  // BloodGolem.cs
             SyncSpiritAvatar(s, p);  // SpiritAvatar.cs

@@ -158,6 +158,14 @@ namespace Arena
                 return;
             }
 
+            if (Game.RocketOn(p))  // Rocket Drop: the launcher on the shoulder in place of the weapon (RocketDropLook.cs)
+            {
+                DrawRocketArms(p, K, ry);
+                ModelHead(p, kit, role, K, RC, r, sh, t);
+                DrawRocketTube(p);
+                return;
+            }
+
             // Arms and the weapon.
             float sway = Mathf.Sin(t * 2.4f) * 1.2f, u = mU, wk = (0.8f + 0.2f * u) / u;
             int hold; float offX;

@@ -286,6 +286,12 @@ namespace Arena
                 case ZoneKind.SupplyDrop:
                     DrawSupplyDrop(z, t);  // SupplyDropLook.cs (its own time arc)
                     return;
+                case ZoneKind.RocketDrop:
+                    DrawRocketDrop(z, t);  // RocketDropLook.cs (no timer ring: the pod waits, then folds)
+                    return;
+                case ZoneKind.RocketFire:
+                    DrawRocketFire(z, t);  // RocketDropLook.cs (it dies down instead of a timer ring)
+                    return;
                 case ZoneKind.ArmorDrop:
                     DrawArmorDrop(z, t);  // ArmorDropLook.cs (no timer ring: it folds once the vests are gone)
                     return;
