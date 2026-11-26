@@ -277,7 +277,7 @@ namespace Arena
 
         public static readonly string[] Blurbs =
         {
-            "Softer hits, more healing, fewer enemies. For learning a class or a relaxed run.",
+            "Softer hits, more healing, fewer enemies, no boss last stands. For a relaxed run.",
             "The game as it's balanced: enemy damage grows each wave, healing is scarce.",
             "Tougher, faster, harder-hitting enemies, more elites, slower revives.",
             "Everything turned up and no regeneration. Bring a plan.",

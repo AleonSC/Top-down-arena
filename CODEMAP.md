@@ -314,6 +314,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
   `Singularity.cs` 40 (20), `Colossus.cs` 50 (25), `Duelist.cs` 60 (30), `Lich.cs` 70 (35), `Herald.cs` 80 (40),
   `Devourer.cs` 90 (45), `Eclipse.cs` 100 (50); `LateGame.cs` is the shared
   late-boss logic
+- `BossStages.cs`: **every boss's stages in one table** (Docs/DifficultyTiers.md step 2): `BossStage` rows (stage, health share it starts at, `StageEntry` Timed/Instant/Stagger, the mechanics tiers it's in), `Game.StagesFor(boss, tier)`/`StagesOf`, `StageIndex`, `StageAt`, `NextStage` (each boss's tick asks it, then checks its own conditions); Easy has no last stands; the Warden's Cell Blocks bar and the Eclipse's "STAGE n / N" read it (`Game/HudBossBars.cs`); preview `MECH=Easy WARDENTRANS=2,-1 shot.sh x hud 3 1 1`; test suite `stages` (`Tools/SimTest/Tests/BossStages.cs`)
 - `Targets.cs`: shared targeting helpers: `FirstAlive`, `AlivePlayersList`, `NearestPlayer`, `RandomLivingPlayer`,
   `BossTarget(e)` (its target while up, else the first player up), `Targetable(e)` (host: spawned in and alive) and `Hittable(p)` (up and out of hit grace)
 - `FoeQuery.cs`: **what an attack hits** (Docs/Targeting.md): `FoesInCircle`, `FoesInBox`, `FoesInCone`, `AllFoes` (allocation-free struct queries over the Targetable enemies, optional `cover` = BlocksShot); every player attack loop uses them; test suite `foequery`

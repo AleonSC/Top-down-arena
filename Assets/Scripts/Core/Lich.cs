@@ -132,10 +132,12 @@ namespace Arena
                 e.Phase = LichPhaseOf(s, false);
                 return;
             }
-            if (s.Stage == LichStage.Crypt && frac <= LichHarvestAt) { StartLichTransition(e, LichStage.Harvest); return; }
-            if (s.Stage == LichStage.Harvest && frac <= LichUndeathAt) { StartLichTransition(e, LichStage.Undeath); return; }
-            if (s.Stage == LichStage.Undeath && frac <= LichLastAt)
-                EnterLichStage(e, LichStage.LastStand);  // straight away, as the others do
+            BossStage to;  // its stage table (BossStages.cs)
+            if (NextStage(e.Type, (byte)s.Stage, frac, out to))
+            {
+                if (to.How != StageEntry.Instant) { StartLichTransition(e, (LichStage)to.Stage); return; }
+                EnterLichStage(e, (LichStage)to.Stage);  // straight away, as the others' last stands do
+            }
 
             s.TurnT += dt;
 

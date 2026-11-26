@@ -272,6 +272,8 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("LICHAT") != null) { var la = Environment.GetEnvironmentVariable("LICHAT").Split(','); foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Lich) { e.Pos = new V2(float.Parse(la[0]), float.Parse(la[1])); e.Disp = e.Pos; } }
     foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Lich) Console.WriteLine("lich stage {0} turn {1} turnT {2:0.0} prisons {3} spirits {4} sweep {5}", e.Lich?.Stage, e.Lich?.Turn, e.Lich?.TurnT, e.Lich?.Prisons.Count, e.Lich?.Spirits.Count, e.Lich?.SweepOn);
     foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.HiveQueen) Console.WriteLine("queen stage {0} turn {1} turnT {2:0.0} trans {3:0.0} cells {4} cloud {5}", e.Queen?.Stage, e.Queen?.Turn, e.Queen?.TurnT, e.Queen?.TransT, e.Queen?.Cells.Count, e.Queen?.CloudOn);
+    // MECH=Easy|Normal|Hard|Nightmare: the run's mechanics tier (Docs/DifficultyTiers.md; e.g. the Warden's bar has no Last Stand cell on Easy).
+    if (Environment.GetEnvironmentVariable("MECH") != null) host.Game.Diff.Set(DiffKnob.Mechanics, (float)(MechTier)Enum.Parse(typeof(MechTier), Environment.GetEnvironmentVariable("MECH")));
     // WARDENSET=exposed|stun|fan: the Warden blinded by its own light (the light on it), stunned, or warning of a fan volley.
     var wset = Environment.GetEnvironmentVariable("WARDENSET");
     if (wset != null) foreach (var e in host.Game.Enemies.Values) if (e.Type == EnemyType.Warden && e.Warden != null)

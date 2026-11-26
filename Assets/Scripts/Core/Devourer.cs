@@ -190,10 +190,12 @@ namespace Arena
             }
             if (!s.Lunging && s.BurrowT <= 0f)
             {
-                if (s.Stage == DevourStage.Appetite && frac <= DevourGorgeAt) { StartDevourTransition(e, DevourStage.Gorging); return; }
-                if (s.Stage == DevourStage.Gorging && frac <= DevourRavenAt) { StartDevourTransition(e, DevourStage.Ravenous); return; }
-                if (s.Stage == DevourStage.Ravenous && frac <= DevourLastAt)
-                    EnterDevourStage(e, DevourStage.LastStand);  // straight away, as the others do
+                BossStage to;  // its stage table (BossStages.cs)
+                if (NextStage(e.Type, (byte)s.Stage, frac, out to))
+                {
+                    if (to.How != StageEntry.Instant) { StartDevourTransition(e, (DevourStage)to.Stage); return; }
+                    EnterDevourStage(e, (DevourStage)to.Stage);  // straight away, as the others' last stands do
+                }
             }
 
             s.TurnT += dt;

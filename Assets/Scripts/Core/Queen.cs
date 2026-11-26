@@ -275,18 +275,17 @@ namespace Arena
                 e.Phase = 0;
                 return;
             }
-            if (q.Stage == QueenStage.Swarm && frac <= HoneycombAt)
+            BossStage to;  // her stage table (BossStages.cs)
+            if (NextStage(e.Type, (byte)q.Stage, frac, out to) && (to.Stage != (byte)QueenStage.LastStand || q.Turn != QueenTurn.Dive))
             {
-                StartQueenTransition(e, QueenStage.Honeycomb);
-                return;
+                if (to.How == StageEntry.Instant)
+                    EnterQueenStage(e, (QueenStage)to.Stage);  // straight away (the Last Stand: a dive finishes first)
+                else
+                {
+                    StartQueenTransition(e, (QueenStage)to.Stage);
+                    return;
+                }
             }
-            if (q.Stage == QueenStage.Honeycomb && frac <= FrenzyAt)
-            {
-                StartQueenTransition(e, QueenStage.Frenzy);
-                return;
-            }
-            if (q.Stage == QueenStage.Frenzy && frac <= QueenLastStandAt && q.Turn != QueenTurn.Dive)
-                EnterQueenStage(e, QueenStage.LastStand);  // straight away (a dive finishes first)
 
             q.TurnT += dt;
             switch (q.Turn)

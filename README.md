@@ -1780,9 +1780,10 @@ make the difficulty Custom, and picking a preset keeps them. They're fixed at Bl
 Blend / Fully themed picker is gone (Nov 18).
 
 **Mechanics** is the run's tier: not a number but which fights and enemies it uses. Each preset sets its own; Custom keeps
-the one it had and the host can pick another (slider or type the name). Hard and Nightmare will add boss stages, attacks
-and enemy variants, and Easy will take some away; Normal plays as balanced. Nothing reads it yet (Docs/DifficultyTiers.md
-lists the steps).
+the one it had and the host can pick another (slider or type the name). Normal plays as balanced. **Easy**: bosses have no
+last stand (the Warden, Hive Queen, Singularity, Colossus, Duelist, Lich, Storm Herald and Devourer stay in their third stage
+until they die, the Eclipse never reaches Totality; the Twin Reapers have none to lose), and the Warden's bar shows three
+cells. Hard and Nightmare will add boss stages, attacks and enemy variants (Docs/DifficultyTiers.md lists the steps).
 The arena isn't picked here any more: the Campaign is the Expanding arena, the **Simple Arena** modifier keeps the open
 arena with its floor plans (always on). (The Rooms arena prototype was removed Nov 18.) A run saved before the
 Campaign keeps the arena it was saved with.

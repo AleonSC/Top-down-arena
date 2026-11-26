@@ -69,6 +69,7 @@
 # WILDCARD=1 (lobby: you as a Wildcard, Twin Blades, Shadow Step, Blade Fan on Q, Death Lotus; the class wheel).
 # NIMBUS=<s since a strike, -1 none> [NIMBUSSTORM=<s into the Eye of the Storm> NIMBUSBOLT=1] (the Nimbus, Anvil look; mode hud).
 # pacman (mode): PACKEYS=l1.7,u0.6 (steer left then up), PACFRIGHT=5 (ghosts blue), PACDIE=0.7, PACOVER=1, PACPAUSE=1 (PacmanUi.cs).
+# MECH=Easy|Normal|Hard|Nightmare (the run's mechanics tier, Docs/DifficultyTiers.md; e.g. the Warden's bar has no Last Stand cell on Easy).
 # WARDENTRANS=<to 1-3>,<s> (the Warden's 5 s phase change into Lockdown/Riot/Last Stand that far in; a negative s: in that phase; WARDENHP=<health>[,<armor>]; KNIGHT=1 ZOOM=2.6 CAMAT=800,470 shot.sh x hud 3 1 1).
 # RIOTERS=1 (a pack of Rioters with a Guard and a Thug; mode hud, ZOOM=3 for a close look).
 # THUGRAGE=1 (four Thugs at full, 2/3, 1/3 and 5% health: the red halo growing; NINJA=0 ZOOM=3).

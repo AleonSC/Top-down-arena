@@ -247,19 +247,10 @@ namespace Arena
                 e.Phase = (byte)w.Turn;
                 return;
             }
-            if (w.Stage == WardenStage.Count && frac <= LockdownAt)
+            BossStage to;  // its stage table (BossStages.cs)
+            if (NextStage(e.Type, (byte)w.Stage, frac, out to) && (to.Stage != (byte)WardenStage.LastStand || w.Turn != WardenTurn.Charge))
             {
-                StartWardenTransition(e, WardenStage.Lockdown);
-                return;
-            }
-            if (w.Stage == WardenStage.Lockdown && frac <= RiotAt)
-            {
-                StartWardenTransition(e, WardenStage.Riot);
-                return;
-            }
-            if (w.Stage == WardenStage.Riot && frac <= LastStandAt && w.Turn != WardenTurn.Charge)
-            {
-                StartWardenTransition(e, WardenStage.LastStand);  // it puts on its armor (a charge finishes first); the rioters scatter
+                StartWardenTransition(e, (WardenStage)to.Stage);  // (into the Last Stand it puts on its armor, a charge finishing first; the rioters scatter)
                 return;
             }
 

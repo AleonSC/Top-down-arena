@@ -1,6 +1,6 @@
 # Difficulty tiers: mechanics that change with difficulty
 
-**Status: step 1 built** (protocol 525): the Mechanics knob and `Game.MechTier`. Steps 2-6 planned; build one at a time ("start on step N").
+**Status: steps 1-2 built** (protocol 525): the Mechanics knob and `Game.MechTier`; every boss's stage table (`Core/BossStages.cs`), Easy without last stands. Steps 3-6 planned; build one at a time ("start on step N").
 
 Today a difficulty only changes numbers (`Core/Difficulty.cs`: 27 knobs, 5 retired). No gameplay code reads the level,
 so a harder mode can't add a boss phase, swap an enemy's behaviour or bring in an enemy type. This plan adds a
@@ -41,12 +41,12 @@ The boss phase number already goes over the network as one byte (`Enemy.Phase`) 
 - Old saves and recordings with no Mechanics value read as Normal. Protocol bump (the lobby message's difficulty gets one more value).
 - Tests: a preset sets the tier; Custom keeps it; parsing old text gives Normal.
 
-### Step 2: boss phase tables
-- `BossStageDef { byte Stage; float At; Transition How (Timed, Instant, Stagger); }`, and a per-boss `XStages(Tier)` that returns the list. Normal returns today's thresholds, so nothing changes on Normal.
-- One shared `TickBossStages(e, fight, defs)` replaces the chained ifs; `IBossFight` (Stage, Step, TransT, TransTo) for the 9 single-body bosses, an adapter for the Reapers' two-body health.
-- New stages go at the **end** of each `XStage` enum; turn tables are indexed through the def, not `(int)Stage`.
-- The HUD reads the same list: stage ticks, "n / N" and names for every boss. This also fixes Eclipse's "/ 5".
-- Tests: `Game.StageAt(type, stage, tier)` replaces the inline fractions; RenderCheck IDENTICAL on Normal; one test per boss that Easy skips its Last Stand and Hard reaches its extra stage, once one exists.
+### Step 2: boss phase tables (built)
+- As built: `BossStage { Stage, At, How (Timed, Instant, Stagger), Min, Max }` rows in one table (`Game.StageRows`, Core/BossStages.cs), filtered by tier (`StagesFor`). Normal is today's thresholds; Easy drops the last stand row (all but the Twin Reapers, who have none).
+- Each boss's tick asks `NextStage(type, stage, frac)` instead of its chained ifs, then checks its own conditions (a charge, dive or split finishes first; the Duelist not mid-dash; the Devourer not lunging or burrowed; the Reapers need both bodies to fuse) and goes in the row's way. The Reapers use one table for both bodies.
+- New stages go at the **end** of each `XStage` enum, with a row (Min = Hard for a Hard-only stage). Turn tables are still indexed by `(int)Stage`: a new stage needs its turn rows there too (step 3).
+- HUD: the Warden's Cell Blocks bar (one cell per row) and the Eclipse's "STAGE n / N" read the table. The Eclipse's "/ 5" was right (five stages, then Totality shown on its own), so it counts the rows without Totality. Other bosses' bars have no stage ticks; RenderCheck IDENTICAL on Normal.
+- Tests: suite `stages` (tables on every tier, Normal's thresholds unchanged, a Hive Queen fight on Normal and on Easy). The ~47 inline HP fractions in the older boss tests stay: they test Normal, which is unchanged.
 
 ### Step 3: per-tier boss rules
 - `BossRules` per boss, filled at spawn from the tier: named counts and beats that are inline now (Queen drones `3 + players`, Lich graves 3 / 2 each / cap 6 and Spirits 6, Colossus meteor every 3 s, ...), plus one shared enrage multiplier on turn times.

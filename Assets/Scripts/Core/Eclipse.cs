@@ -200,12 +200,12 @@ namespace Arena
                 }
                 return;
             }
-            if (s.Stage == EclipseStage.Corona && frac <= EclipsePenumbraAt) { StartEclipseTransition(e, EclipseStage.Penumbra); return; }
-            if (s.Stage == EclipseStage.Penumbra && frac <= EclipseUmbraAt) { StartEclipseTransition(e, EclipseStage.Umbra); return; }
-            if (s.Stage == EclipseStage.Umbra && frac <= EclipseEchoesAt) { StartEclipseTransition(e, EclipseStage.Echoes); return; }
-            if (s.Stage == EclipseStage.Echoes && frac <= EclipseLastLightAt) { StartEclipseTransition(e, EclipseStage.LastLight); return; }
-            if (s.Stage == EclipseStage.LastLight && frac <= EclipseTotalityAt)
-                EnterEclipseStage(e, EclipseStage.Totality);  // straight away, as the others' last stands do
+            BossStage to;  // its stage table (BossStages.cs)
+            if (NextStage(e.Type, (byte)s.Stage, frac, out to))
+            {
+                if (to.How != StageEntry.Instant) { StartEclipseTransition(e, (EclipseStage)to.Stage); return; }
+                EnterEclipseStage(e, (EclipseStage)to.Stage);  // straight away, as the others' last stands do
+            }
 
             s.TurnT += dt;
             if (s.FlashT <= 0f && s.Stage != EclipseStage.Totality)
