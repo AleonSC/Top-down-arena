@@ -220,6 +220,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Sanctum | Healer | ultimate | 80 s | - | The dome is half again as wide (300 px). | A dome of light that blocks bullets, keeps allies up and heals them. |
 | Static Bubble | Healer | ultimate | 80 s | - | The burst reaches 240 px, and Static Rush lasts 8 s. | A bubble of static round you shoves enemies out, eats their shots and shields allies inside. What it touches feeds it until it bursts: Static Rush for everyone in the blast. |
 | Eye of Calm | Healer | ultimate | 85 s | - | The wall reaches 335 px instead of 280, and the final gust hits for 80. | A hurricane round you for 10 s: its wall grinds enemies and sweeps their shots away, and allies in its calm eye heal 12 a second, safe from bullets. It ends in a gust that flings them out. |
+| Conduit Web | Healer | ultimate | 80 s | - | The field reaches 420 px and lasts 6 s. | A 330 px field of static round you for 4 s: three conduits from your hand chain through every enemy in it, holding them stunned and shocking them harder the longer they're wired. Teammates in it heal 5 every half second. |
 | Water Ward | Healer | 1st, choice 5 | 3 s | - | Splashes and bursts reach 40% farther. | Water drops orbit you and splash enemies and eat shots. |
 | Meteor | Dps | 1st, choice 1 | 10 s | - | Leaves burning ground for 3 s. | Call a meteor down at your cursor. |
 | Blizzard | Dps | 1st, choice 2 | 14 s | - | Lasts 10 s. | A storm at your cursor that slows and damages enemies. |
@@ -273,6 +274,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Lay on Hands | Healer | 1st, choice 3 | 18 s | - | Also heals everyone else near them for half as much. | Heal the most hurt ally, or revive a downed one. |
 | Hallowed Blade | Healer | ultimate | 80 s | - | Three swords fall: one at your cursor and one either side. | A giant holy sword lands, healing allies and burning enemies for a while. |
 | Pilgrim's Standard | Healer | ultimate | 80 s | - | Allies inside heal 5% a second. | Plant a standard for 60 s: allies inside heal 4% of their max health a second. Press again to lift it. |
+| Holy Lance Rain | Healer | ultimate | 80 s | - | 32 spears instead of 24, and the glows last 6 s. | Spears of light rain down all around you for 3 s: each hurts the enemies where it lands and leaves a small healing glow. |
 | Sanctum Glass | Healer | 1st, choice 5 | 16 s | - | The pane is 40% wider and its motes heal 50% more. | Raise a pane of stained glass ahead that turns enemy shots passing through into healing. |
 | Bladed Dive | Dps | 1st, choice 1 | 10 s | - | Each kill heals you 5% of your health. | Rush forward untouchable with a spinning blade; a kill resets the cooldown. |
 | The Gauntlet | Dps | 1st, choice 2 | 9 s | - | The Challenge lasts 8 s, and the charge's impact stuns for 1 s. | Challenge an enemy and charge it; kill it in time to reset the cooldown. |
