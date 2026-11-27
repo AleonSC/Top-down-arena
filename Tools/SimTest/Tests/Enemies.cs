@@ -259,12 +259,13 @@ static partial class Program
             // The Duelist's own test (duelist, in features) checks its phases; here the simple bots lose to it at wave 30 (a run on main showed a
             // game over in Nov 2026), so they can't be killed either: this checks its decoys reach the client and it can be beaten.
             // The Devourer too: the simple bots only won its damage race with Artillery Assault's triple fire rate (gone since the
-            // Deployable Turret took its place; a run on main showed a game over in Nov 2026). Its eating and healing still have to show.
+            // Deployable Turret took its place; a run on main showed a game over in Nov 2026). Its eating and healing still have to show, and
+            // without that burst it takes them about 520 s (it was at 22% after 400 s), so it gets the Lich's 700.
             if (Find(s[0], EnemyType.Duelist) != null || Find(s[0], EnemyType.Devourer) != null)
                 foreach (var p in s[0].Game.Players.Values)
                     s[0].Game.DevSetGod(p.Id, true);
             // (The Storm Herald gets longer: 475k health against a duo of Good bots doing about 1,000 a second on a slow seed.)
-            Run(s, dt, boss == EnemyType.Lich ? 700 : boss == EnemyType.StormHerald ? 600 : 400, () => !BossAlive(s[0]) && s[0].Game.State != MatchState.Fighting || s[0].Game.State == MatchState.GameOver, () =>
+            Run(s, dt, boss == EnemyType.Lich || boss == EnemyType.Devourer ? 700 : boss == EnemyType.StormHerald ? 600 : 400, () => !BossAlive(s[0]) && s[0].Game.State != MatchState.Fighting || s[0].Game.State == MatchState.GameOver, () =>
             {
                 var cb = Find(s[1], boss);
                 switch (boss)
@@ -315,6 +316,9 @@ static partial class Program
                 }
             });
             bool dead = !BossAlive(s[0]) && s[0].Game.State != MatchState.GameOver;
+            var left = s[0].Game.Enemies.Values.FirstOrDefault(e => e.Type == boss);
+            if (left != null)
+                Console.WriteLine("  wave {0}: {1} still at {2:0}% health", wave, Defs.Get(boss).Name, 100f * left.Hp / left.MaxHp);
             string name = Defs.Get(boss).Name;
             Console.WriteLine("  wave {0}: {1} defeated {2}, mechanic seen {3}, state {4}, ghost bullets {5}{6}", wave, name, dead, mechanic, s[0].Game.State, ghosts,
                 ghostKinds.Count > 0 ? " (" + string.Join("; ", ghostKinds.Take(6)) + ")" : "");
