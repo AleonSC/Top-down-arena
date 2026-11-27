@@ -155,7 +155,7 @@ namespace Arena
                     }
                     if (me != null && me.Offer != null)
                     {
-                        if (!tabHeld && !PickOutroPlaying && !pauseUp)
+                        if (!tabHeld && !PickOutroPlaying && !pauseUp && !LaunchHoldsPicker)
                             DrawUpgradePicker(me);  // holding Tab swaps the cards for the Tab menu; the next pick waits for the last one's outro (PickOutro.cs)
                         break;
                     }

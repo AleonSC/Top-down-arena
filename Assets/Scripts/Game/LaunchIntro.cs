@@ -16,7 +16,10 @@ namespace Arena
     public partial class ArenaApp
     {
         const float LaunchFightAt = 5f, LaunchLen = 6.6f, LobbyOutTime = 0.8f, LaunchRippleAt = 0.35f, PillarAt = 1.0f, PillarStep = 0.25f, PillarLife = 0.7f,
-            PillarLand = 0.3f, LaunchHudAt = 1.7f, LaunchBannerAt = 2.0f;
+            PillarLand = 0.3f, LaunchHudAt = 1.7f, LaunchBannerAt = 2.0f, LaunchPickAt = LaunchBannerAt - 0.05f;
+
+        /// The launch is still before its pick point: the picker waits for the beam-in and the HUD (Hud.cs).
+        bool LaunchHoldsPicker => LaunchActive && launchT < LaunchPickAt;
 
         float launchT = -1f;  // seconds since the run launched; below 0 when there's no launch going on
         bool launchFromLobby, launchRippled, uiGlBlocked;
@@ -50,6 +53,8 @@ namespace Arena
             }
             float before = launchT;
             launchT += dt;
+            if (launchT > LaunchPickAt && before <= LaunchPickAt && game.AnyonePicking())
+                launchT = LaunchPickAt;  // a pick at the start (the starting piece, Head Start's levels): wait for it before GET READY; the host's countdown waits too, then runs Game.OpeningCountdown
             game.HoldControls = game.State != MatchState.Fighting;  // no moving or shooting until WAVE 1 pops in
             LaunchSounds(before, launchT);
             if (!launchRippled && launchT >= LaunchRippleAt)
