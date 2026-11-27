@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// Blood Ritual (BloodRitual.cs): key 3 of the Tank Hemomancer's Ultimate row; the sigil at the cursor clamped to 320 px; the 15% price
+// Blood Ritual (BloodRitual.cs): key 3 of the DPS Hemomancer's Ultimate row; the sigil at the cursor clamped to 320 px; the 15% price
 // paid over the 1.2 s inscribe, no imps before the flood, broken by going down while drawn; the open sigil slowing what stands on it;
 // the burst of 8 then 4 a second, at most 24 out and 40 in all; the other screen seeing the sigil and the imps; an imp clawing (damage,
 // a bleed stack, the taunt drawing the enemy's aim, bosses not taunted), being swatted and popping in a splash; the close sending
@@ -20,17 +20,19 @@ static partial class Program
 
         // --- The lobby: key 3 of the Ultimate row ----------------------------------------------------------------------
         var def = Upgrades.Ability(AbilityId.BloodRitual);
-        Check(def.Name == "Blood Ritual" && def.Cooldown == 80f && def.Choice == AbilityDef.Ult && def.UltKey == 3 && def.Role == Role.Tank && def.Kit == Kit.Hemomancer && def.Bot != null,
-            "Blood Ritual is the Tank Hemomancer's ultimate on key 3, 80 s, with a bot rule");
-        Check(Upgrades.Ultimate(Role.Tank, Kit.Hemomancer) == AbilityId.VeinTithe && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer, 1) == AbilityId.Bloodbath
-            && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer, 2) == AbilityId.BloodGolem && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer, 3) == AbilityId.BloodRitual,
-            "Vein Tithe stays the default; Bloodbath key 1, Blood Golem key 2, Blood Ritual key 3");
+        Check(def.Name == "Blood Ritual" && def.Cooldown == 80f && def.Choice == AbilityDef.Ult && def.UltKey == 3 && def.Role == Role.Dps && def.Kit == Kit.Hemomancer && def.Bot != null,
+            "Blood Ritual is the DPS Hemomancer's ultimate on key 3, 80 s, with a bot rule");
+        Check(Upgrades.Ultimate(Role.Dps, Kit.Hemomancer) == AbilityId.CrimsonHarvest && Upgrades.Ultimate(Role.Dps, Kit.Hemomancer, 1) == AbilityId.BloodRavager
+            && Upgrades.Ultimate(Role.Dps, Kit.Hemomancer, 2) == AbilityId.BloodBoil && Upgrades.Ultimate(Role.Dps, Kit.Hemomancer, 3) == AbilityId.BloodRitual,
+            "Crimson Harvest stays the default; Blood Ravager key 1, Blood Boil key 2, Blood Ritual key 3");
+        Check(Upgrades.ClampUlt(Role.Tank, Kit.Hemomancer, 3) == 0 && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer, 3) == AbilityId.VeinTithe,
+            "the Tank Hemomancer's key 3 is empty now");
 
         int port = nextPort++;
         var host = new Session { AutoStart = 3, StartWave = 3 };
-        host.Host(port, "Ritual", Role.Tank, 0, 0, Kit.Hemomancer, 0, 3);
+        host.Host(port, "Ritual", Role.Dps, 0, 0, Kit.Hemomancer, 0, 3);
         var client = new Session();
-        client.Join("127.0.0.1", port, "Friend", Role.Tank, 0, 0, Kit.Hemomancer, 0, 3);
+        client.Join("127.0.0.1", port, "Friend", Role.Dps, 0, 0, Kit.Hemomancer, 0, 3);
         var s = new[] { host, client };
         Run(s, dt, 3, () => host.Lobby.Count == 2 && client.Lobby.Count == 2 && !host.Game.Running);
         int cid = host.Lobby.Values.First(e => e.Id != 1).Id;

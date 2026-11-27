@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using Arena;
 
-// RITUAL=<seconds since the cast, default 4> [RITUALCAP=1]: the Tank Hemomancer's Blood Ritual (Core/BloodRitual.cs,
-// Game/BloodRitualLook.cs) played through the real game: you as a Tank Hemomancer at (520, 470), the sigil cast 0.3 s into the
+// RITUAL=<seconds since the cast, default 4> [RITUALCAP=1]: the DPS Hemomancer's Blood Ritual (Core/BloodRitual.cs,
+// Game/BloodRitualLook.cs) played through the real game: you as a DPS Hemomancer at (520, 470), the sigil cast 0.3 s into the
 // scene onto (760, 440), and a ring of tough grunts round it for the imps to claw (they hold their fire). Try RITUAL=0.8 (the
 // pentagram half drawn), 1.5 (the portal opening), 2.2 (the first burst), 5 (the swarm), 9.9 (flying home).
 // Use with `ZOOM=1.4 CAMAT=700,440 shot.sh x hud 1 6 3`.
@@ -21,7 +21,7 @@ static partial class Shot {
     if (gm.Profile != null) foreach (EnemyType et in Enum.GetValues(typeof(EnemyType))) gm.Profile.TagSeen[et.ToString()] = 99;
     for (int i = 0; i < 3; i++) Step(host);
     gm.Bullets.Clear(); gm.Effects.Clear(); gm.Zones.Clear(); gm.Minions.Clear(); gm.Orbs.Clear();
-    me.Kit = Kit.Hemomancer; me.Role = Role.Tank; me.Def = Defs.Get(Role.Tank); me.Weapon = Defs.Weapon(Role.Tank, Kit.Hemomancer, 0);
+    me.Kit = Kit.Hemomancer; me.Role = Role.Dps; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Hemomancer, 0);
     V2 spot = new V2(760f, 440f), mine = new V2(520f, 470f);
     foreach (var q in gm.Players.Values) if (q != me) q.Pos = q.Disp = new V2(460f, 380f);
     var mobs = new List<Enemy>();

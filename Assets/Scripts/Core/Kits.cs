@@ -13,7 +13,7 @@ namespace Arena
         Bat,
         Bear,
         Bee,  // the Honeybee Staff's bee: hatches at the cursor, stings the nearest enemy once and dies (HoneybeeStaff.cs)
-        BloodImp,  // Blood Ritual (the Tank Hemomancer's fourth ultimate): pours out of the portal, circles an enemy clawing and taunting it, flies home at the close (BloodRitual.cs)
+        BloodImp,  // Blood Ritual (the DPS Hemomancer's fourth ultimate): pours out of the portal, circles an enemy clawing and taunting it, flies home at the close (BloodRitual.cs)
         BumbleBot,  // the Bumble Remote's robot bee: follows your cursor, shoots stingers, dives into a Swarm Burst; enemies ignore it (BumbleRemote.cs)
         Burrower,  // Earthquake's Burrower (the Tank Summoner's ability): breaks out at the cursor, tunnels through the pack hurting what it passes under (Burrower.cs)
         Butterfly,  // World Tree's healing butterfly: flutters to an ally (LinkTo) and heals them on arrival (WorldTree.cs)
@@ -83,7 +83,7 @@ namespace Arena
         Blizzard,
         Bloodbath,
         BloodPool,
-        BloodRitual,  // the Tank Hemomancer's fourth ultimate (BloodRitual.cs): see its ZoneDef
+        BloodRitual,  // the DPS Hemomancer's fourth ultimate (BloodRitual.cs): see its ZoneDef
         BloodTotem,
         BloodWall,
         BoneSpear,
@@ -306,7 +306,7 @@ namespace Arena
             [ZoneKind.GongSmoke] = new ZoneDef { Name = "Gong Smoke", Color = new Rgba(0.72f, 0.61f, 1f), Slow = Game.FsgSmokeSlow },  // a Five Shadow Gong shadow's smoke grenade (FiveShadowGong.cs): Pos, Radius; slows enemies in it, moving and shooting (Enemy.FsgSmokeT)
             [ZoneKind.HazardFoam] = new ZoneDef { Name = "Hazard Foam", Color = Game.FoamCream },  // a lump of the Healer Soldier's Hazard Foam (HazardFoam.cs): Pos, Radius; solid to everyone and every shot; Soak/SoakMax its health (GuardFrac replicated), Aim its bubbles' turn
             [ZoneKind.BloodTotem] = new ZoneDef { Name = "Blood Totem", Color = new Rgba(0.88f, 0.29f, 0.37f) },  // the Tank Hemomancer's totem (BloodTotem.cs): its veins slow by their own tick; Radius is the reach
-            [ZoneKind.BloodRitual] = new ZoneDef { Name = "Blood Ritual", Color = new Rgba(0.86f, 0.1f, 0.2f) },  // the Tank Hemomancer's fourth ultimate (BloodRitual.cs): Pos the sigil, Radius its size, its age the phase; Side (host) imps poured out, TickT the next one, Landed opened, Cap mastered
+            [ZoneKind.BloodRitual] = new ZoneDef { Name = "Blood Ritual", Color = new Rgba(0.86f, 0.1f, 0.2f) },  // the DPS Hemomancer's fourth ultimate (BloodRitual.cs): Pos the sigil, Radius its size, its age the phase; Side (host) imps poured out, TickT the next one, Landed opened, Cap mastered
         });
 
         public static MinionDef Get(MinionKind k) => Minions[(int)k];
