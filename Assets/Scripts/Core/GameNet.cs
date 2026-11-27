@@ -583,6 +583,7 @@ namespace Arena
             SyncVortex(s, p);  // Vortex.cs
             SyncEye(s, p);  // EyeOfCalm.cs
             SyncLivingBolt(s, p);  // LivingBolt.cs
+            SyncRockGloves(s, p);  // RockGloves.cs
             SyncArmadillo(s, p);  // IronArmadillo.cs
             SyncRavager(s, p);  // BloodRavager.cs
             SyncTrojanHorse(s, p);  // TrojanHorse.cs

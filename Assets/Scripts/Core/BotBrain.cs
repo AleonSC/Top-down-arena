@@ -469,7 +469,7 @@ namespace Arena
                 Me = me, Danger = danger, AllyHurt = allyHurt, AllyDown = allyDown, TargetD = targetD, HaveTarget = haveTarget,
                 Players = Players.Count, BotDanger = BotDanger,
                 AllyThreatened = allyThreatened, DownedD = downedD, TargetMarked = targetMarked, NearEnemies = EnemiesNear(me.Pos, BotNearReach),
-                Crowd = id == AbilityId.JuggernautSuit || id == AbilityId.StoneColossus || id == AbilityId.BloodGolem || id == AbilityId.SpiritAvatar || id == AbilityId.Vortex ? CrowdNear(me) : 0,
+                Crowd = id == AbilityId.JuggernautSuit || id == AbilityId.StoneColossus || id == AbilityId.BloodGolem || id == AbilityId.SpiritAvatar || id == AbilityId.Vortex || id == AbilityId.RockGloves ? CrowdNear(me) : 0,
                 Shooters = id == AbilityId.LightningRod ? ShootersAt(me) : 0,  // (only worked out for the one ability that asks)
             });
         }
