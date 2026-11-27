@@ -909,6 +909,7 @@ namespace Arena
             HorseArrow = 85,   // an arrow shot out of a Trojan Horse's side slit (TrojanHorse.cs, Game/TrojanHorseLook.cs)
             FoamGlob = 88,     // a Hazard Foam glob: flies over everything and lands as foam (HazardFoam.cs, Game/HazardFoamLook.cs)
             RocketShell = 87,  // a Rocket Drop rocket: bursts on what it touches, a wall, or at the cursor (RocketDrop.cs, Game/RocketDropLook.cs)
+            PaperCrane = 89,   // a Hundred Paper Cranes crane homing on an enemy (HundredPaperCranes.cs, Game/HundredPaperCranesLook.cs)
             BallistaBolt = 86, // a Ballista's giant bolt: through everything, knocking what it passes (Ballista.cs, Game/BallistaLook.cs)
             EarthballShot = 72; // the Earthball: stops on the first enemy, stuns it and breaks into rubble (ElementBalls.cs, Game/ElementBallLook.cs)
 
@@ -979,6 +980,7 @@ namespace Arena
             Row(table, GustShot, radius: 9f, color: new Rgba(0.7f, 1f, 0.85f));
             Row(table, FumaStar, radius: 20f, color: new Rgba(0.8f, 0.85f, 0.95f));  // giant
             Row(table, GreatStar, radius: 24f, color: new Rgba(0.8f, 0.85f, 0.95f));  // huger
+            Row(table, PaperCrane, radius: 7f, color: new Rgba(0.95f, 0.93f, 0.86f));
             Row(table, StoneSpear, radius: 8f, color: new Rgba(1f, 0.69f, 0.29f));  // basalt with amber seams (the colour is the seams' glow)
             Row(table, HoneyGlob, radius: 4f, color: new Rgba(1f, 0.71f, 0.18f));  // lobbed: it never collides
             Row(table, BloodShot, radius: 4f, color: new Rgba(0.9f, 0.12f, 0.2f));

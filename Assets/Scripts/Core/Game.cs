@@ -1666,6 +1666,7 @@ namespace Arena
             TickLivingBolt(dt);  // Living Bolt: its clock, the discharge and the residue's damage (LivingBolt.cs)
             TickRavager(dt);  // Blood Ravager: its clock, the legs' walk and stomps, the ram and the lashes (BloodRavager.cs)
             TickBoil(dt);  // Blood Boil: its clock and the drain (BloodBoil.cs)
+            TickCranes(dt);  // Hundred Paper Cranes: the ring's clock and the cranes peeling off it (HundredPaperCranes.cs)
             TickForbiddenPath(dt);  // Forbidden Path: the beast's clock, drain, lock-on and combo stages (ForbiddenPath.cs)
             TickPressurePoint(dt);  // Pressure Point Press: the presses and the Seal on each cast's clock (PressurePointPress.cs)
             TickShadowGong(dt);  // Five Shadow Gong: the strike, shadows, cuts, sheathe and smoke on each cast's clock (FiveShadowGong.cs)

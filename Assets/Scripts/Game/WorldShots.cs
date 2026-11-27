@@ -108,6 +108,11 @@ namespace Arena
                 DrawFoamGlob(b);  // HazardFoamLook.cs
                 return;
             }
+            if (b.Kind == Defs.PaperCrane)
+            {
+                DrawCraneShot(b, t);  // HundredPaperCranesLook.cs
+                return;
+            }
             if (b.Kind == Defs.Senbon)
             {
                 DrawSenbonShot(b, t);  // SenbonSeekersLook.cs

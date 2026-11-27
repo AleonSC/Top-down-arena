@@ -346,6 +346,8 @@ namespace Arena
                 Apply = s => { s.SpBonusTime += Game.SpVesselTime; s.SpWindCut += Game.SpVesselWind; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ForbiddenPath, MaxStacks = 2, Name = "Forbidden Hunger", Desc = "Forbidden Path's combo hits 20% harder, and each kill heals twice as much",
                 Apply = s => { s.FpDmgMult += Game.FpHungerDmg; s.FpKillHealMult += 1f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.HundredPaperCranes, MaxStacks = 2, Name = "Thousand Folds", Desc = "Hundred Paper Cranes folds 20 more cranes, and they hit 15% harder",
+                Apply = s => { s.HpcMore += Game.HpcFoldsMore; s.HpcDmgMult += Game.HpcFoldsDmg; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.AstralProjection, MaxStacks = 2, Name = "Astral Bond", Desc = "Astral Projection lasts 2 s longer, and its astral bolts hit 25% harder",
                 Apply = s => { s.ApBonusTime += Game.ApBondTime; s.ApDmgMult += Game.ApBondDmg; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.PressurePointPress, MaxStacks = 2, Name = "Hundred Meridians", Desc = "Pressure Point Press marks 2 more enemies, and its presses hit 20% harder",
