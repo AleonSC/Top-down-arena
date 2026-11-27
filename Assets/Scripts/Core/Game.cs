@@ -359,6 +359,7 @@ namespace Arena
             Zones.Clear();
             Effects.Clear();
             FsgRuns.Clear();  // FiveShadowGong.cs
+            PppRuns.Clear();  // PressurePointPress.cs
             Sounds.Clear();
             ResetMeleeSounds();  // MeleeSounds.cs
             spawnQueue.Clear();
@@ -1666,6 +1667,7 @@ namespace Arena
             TickRavager(dt);  // Blood Ravager: its clock, the legs' walk and stomps, the ram and the lashes (BloodRavager.cs)
             TickBoil(dt);  // Blood Boil: its clock and the drain (BloodBoil.cs)
             TickForbiddenPath(dt);  // Forbidden Path: the beast's clock, drain, lock-on and combo stages (ForbiddenPath.cs)
+            TickPressurePoint(dt);  // Pressure Point Press: the presses and the Seal on each cast's clock (PressurePointPress.cs)
             TickShadowGong(dt);  // Five Shadow Gong: the strike, shadows, cuts, sheathe and smoke on each cast's clock (FiveShadowGong.cs)
             TickAstral(dt);  // Astral Projection: the spirit's clock, its host, lean and heal (AstralProjection.cs)
             TickRodentMinigun(dt);  // Rodent Minigun: the portal's clock, its turn after the aim and the rodents it spits (RodentMinigun.cs)
