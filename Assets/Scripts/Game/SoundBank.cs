@@ -166,6 +166,18 @@ namespace Arena
         }
 
         public static string BossTrackId(EnemyType boss) => "boss:" + boss;
+        /// A faction's own wave battle track (only from a Music Pack, MusicPack.Factions; no generated version).
+        public static string FactionTrackId(EnemyType boss) => "faction:" + boss;
+
+        /// The faction's battle track when you gave it one (null otherwise), loaded and ready to switch to.
+        public string RequestFactionTrack(EnemyType boss)
+        {
+            string id = FactionTrackId(Game.IsReaper(boss) ? EnemyType.ReaperOfDusk : boss);
+            if (!Overrides.ContainsKey(id))
+                return null;
+            RequestTrack(id, null, 0.42f);
+            return id;
+        }
 
         /// Start rendering any track of the music player's library (MusicLibrary.cs) if it isn't already.
         public void RequestLibraryTrack(string id)
