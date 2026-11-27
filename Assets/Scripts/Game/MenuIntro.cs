@@ -67,7 +67,7 @@ namespace Arena
             }
         }
 
-        const string CrtTitleText = "VECTOR COLOSSEUM";
+        const string CrtTitleText = "VECTOR SECTOR: ARENA";
         int menuTypedSnd;  // letters whose typing sound has played
 
         /// Plays a key sound for each new letter of the title as it types (look B of Docs/Mockups/menu-typing-sounds.html): the space bar for

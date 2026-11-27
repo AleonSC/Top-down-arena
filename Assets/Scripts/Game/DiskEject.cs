@@ -9,7 +9,7 @@ namespace Arena
     ///   0.4 s   the case lifts back up under the monitor (to 0.85 s)
     ///   0.5 s   latch, slit flash: the disk kicks out of the slit about 40 % and bounces on a spring (TAKE DISK blinking), then comes
     ///           the rest of the way out, tipping upright (1.4 to 1.7 s)
-    ///   0.9 s   VECTOR COLOSSEUM backspaces away, WHO'S PLAYING? types on (1.5 to 2.1 s)
+    ///   0.9 s   VECTOR SECTOR: ARENA backspaces away, WHO'S PLAYING? types on (1.5 to 2.1 s)
     ///   1.7 s   the disk drops back to the middle of the carousel (2.4 s), the rest of the carousel fading in round it (1.9 to 2.6 s)
     /// It rides on the profile move's flags (`profTr` with `profEj`), so the menu takes no clicks and any key skips it.
     /// Reduced effects or Visual effects off: no animation, the picker just opens. Drawing and sound only, no protocol change.
@@ -169,7 +169,7 @@ namespace Arena
             return Mathf.Lerp(0.4f, 1f, EaseInOut(Seg(E, EjOutAt, EjFlyAt)));
         }
 
-        /// The monitor's title during the eject: VECTOR COLOSSEUM backspacing away, then WHO'S PLAYING? typed.
+        /// The monitor's title during the eject: VECTOR SECTOR: ARENA backspacing away, then WHO'S PLAYING? typed.
         static MonTitle EjectTitleAt(float E)
         {
             if (E < 0.9f)
