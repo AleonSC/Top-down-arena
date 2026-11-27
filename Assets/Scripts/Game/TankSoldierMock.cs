@@ -10,22 +10,7 @@ namespace Arena
     public partial class ArenaApp
     {
         internal static int tankLookMock = -1;  // Tools/Preview only
-        internal static int hitMarkMock = -1;   // Tools/Preview only (HITMARK=<0-3>): the hitbox mark's options, -1 the white ring
 
-        /// Hitbox mark options: 0 none, 1 a small bright core dot only, 2 a faint thin ring in the role colour + core dot,
-        /// 3 four corner ticks round the hitbox (a reticle) + core dot.
-        void DrawHitMarkMock(Player p, Rgba col, float t)
-        {
-            float h = p.Def.HitR;
-            Rgba rc = p.Def.Color;
-            if (hitMarkMock == 0) return;
-            if (hitMarkMock == 2) Arc(p.Disp, h - 0.5f, 1f, rc.WithAlpha(0.45f * col.A), 20);
-            if (hitMarkMock == 3)
-                for (int i = 0; i < 4; i++)
-                    Arc(p.Disp, h - 0.5f, 1.4f, rc.Mix(Rgba.White, 0.5f).WithAlpha(0.8f * col.A), 4, p.Aim + MathX.Pi * 0.25f + i * MathX.Pi * 0.5f - 0.3f, 0.6f);
-            Circle(p.Disp, h * 0.3f + 0.6f, new Rgba(0f, 0f, 0f, 0.5f * col.A), 10);
-            Circle(p.Disp, h * 0.3f, Rgba.White.WithAlpha(col.A), 10);
-        }
         int mTankLook = -1;                     // this model's concept, or -1 for the normal look
 
         static readonly Rgba TmSteel = Hx(0x9aa6b4), TmSteelHi = Hx(0xc9d3de), TmPlate = Hx(0x6f7d66), TmInk = Hx(0x161b14);

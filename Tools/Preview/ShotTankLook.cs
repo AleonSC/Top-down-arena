@@ -35,7 +35,6 @@ static partial class Shot {
     var p = (Player)typeof(ArenaApp).GetField("previewPlayer", F).GetValue(app);
     var begin = typeof(ArenaApp).GetMethod("BeginUiGl", F); var end = typeof(ArenaApp).GetMethod("EndUiGl", F);
     var at = typeof(ArenaApp).GetMethod("UiModelAt", F); var draw = typeof(ArenaApp).GetMethod("DrawPlayer", F);
-    if (Environment.GetEnvironmentVariable("HITMARK") != null) ArenaApp.hitMarkMock = int.Parse(Environment.GetEnvironmentVariable("HITMARK"));  // HITMARK=<0-3>: a hitbox mark option
     float big = float.Parse(Environment.GetEnvironmentVariable("TANKZOOM") ?? "5.2", System.Globalization.CultureInfo.InvariantCulture);
     int gun = int.Parse(Environment.GetEnvironmentVariable("TANKGUN") ?? "0");
     for (int i = 0; i < 4; i++) {
