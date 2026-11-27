@@ -144,7 +144,7 @@ static partial class Program
         step(2f);
         float bled = gh - grunt.Hp, bossBled = bh - boss.Hp;
         Console.WriteLine("  bloodbath: bled {0:0.0} in 2 s (boss {1:0.0}); expect 30 x {2:0.00}", bled, bossBled, me.Stats.DmgMult);
-        Check(Math.Abs(bled - 30f * me.Stats.DmgMult) < 0.5f, "enemies in it bleed 15 a second");
+        Check(Math.Abs(bled - 30f * me.Stats.DmgMult * Might) < 0.5f, "enemies in it bleed 15 a second");
         Check(bossBled > 0f, "bosses bleed too");
         pinned[grunt.Id] = mePos + new V2(400f, 0f);
         step(0.05f);

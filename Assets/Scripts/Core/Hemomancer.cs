@@ -610,6 +610,7 @@ namespace Arena
         /// The blood floor: no health cost, toggle or drain takes you under this share of your max health (only enemies
         /// can), so spending health never downs you. Shown as a line on the health bar.
         public const float HemoFloor = 0.2f;
+        public const float BloodMight = 0.15f;  // a Hemomancer's flat damage bonus (BloodDamageMult)
         public static float HealthFloor(Player p) => Math.Max(1f, p.MaxHp * HemoFloor);
         public static bool AtHealthFloor(Player p) => p.Hp <= HealthFloor(p) + 0.01f;
 
@@ -647,15 +648,19 @@ namespace Arena
                 BroadcastFx(FxKind.Bleed, p.Pos, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), castPaid, 0.55f, Sfx.None);
         }
 
-        /// Blood Price: a Hemomancer deals up to 40% more damage the more health it's missing (full bonus at the blood
-        /// floor, HemoFloor). Applied in HurtEnemy, with Blood Boil's share.
+        /// A real Hemomancer: its class, not a Wildcard with borrowed blood gear (class passives don't come with borrowed gear).
+        public static bool IsHemomancer(Player p) => p.Kit == Kit.Hemomancer && p.Role != Role.Wildcard;
+
+        /// Blood Price: a Hemomancer deals 15% more damage (BloodMight, owner Nov 26: pays for the risk of spending its own
+        /// health; class only, so a Wildcard with blood weapons doesn't get it), and up to 40% more
+        /// the more health it's missing (full bonus at the blood floor, HemoFloor). Applied in HurtEnemy, with Blood Boil's share.
         float BloodDamageMult(Player p)
         {
             float boil = BoilDmgMult(p);  // Blood Boil (BloodBoil.cs), whatever the class (a Wildcard can pick it)
-            if (p.Kit != Kit.Hemomancer || p.MaxHp <= 0f)
+            if (!IsHemomancer(p) || p.MaxHp <= 0f)
                 return boil;
             float missing = Math.Max(0f, Math.Min(1f, (1f - p.Hp / p.MaxHp) / (1f - HemoFloor)));
-            return (1f + BloodPriceMax * missing) * boil;
+            return (1f + BloodMight) * (1f + BloodPriceMax * missing) * boil;
         }
 
         /// Healing from damage dealt (HurtEnemy): Blood Debt's 15% while it runs, and a boss's blood paying the debt back
@@ -695,7 +700,7 @@ namespace Arena
         internal static readonly KitDef HemomancerKit = new KitDef
         {
             Id = Kit.Hemomancer, Name = "Hemomancer", Icon = "class_hemomancer",
-            Blurb = "Blood magic: health is your resource. Every 1st ability costs a share of your health (never below 20%: what you can't pay lengthens the cooldown), your kills drop health orbs only you can drink, and you hit harder the lower your health (up to +40%). Shorter cooldowns make up for it. Full health and normal speed: live on the edge.",
+            Blurb = "Blood magic: health is your resource. Every 1st ability costs a share of your health (never below 20%: what you can't pay lengthens the cooldown), your kills drop health orbs only you can drink, you deal 15% more damage and hit harder still the lower your health (up to +40% more), and you never take wounds. Shorter cooldowns make up for it. Full health and normal speed: live on the edge.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireBloodWeapon(p, aim, dir, muzzle, dmg, extra),
             Ability = (g, p, id, target) => g.BloodAbility(p, id, target),
             Tick = (g, dt) => g.TickHemomancers(dt),
@@ -713,9 +718,9 @@ namespace Arena
             new WeaponDef { Id = WeaponId.GoreMortar, Charge = true, Range = (g, p, w, x) => ClotDistance(g.LiveDraw(p)) * p.Stats.ShotSpeedMult, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Damage = 34f, BotRange = 380f, ExtraDesc = "+1 glob, fanned out", Name = "Gore Mortar", FireInterval = 0.75f,
                 Desc = "Primary Fire: Hold to charge, then lob a blood clot that leaves a slowing pool.",
                 Sound = Sfx.SpellArcane, AreaDesc = "splash and pool 25% wider" },
-            new WeaponDef { Id = WeaponId.LeechTendrils, Range = (g, p, w, x) => p.Def.BodyR + g.GraspReach(p), Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 80f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
+            new WeaponDef { Id = WeaponId.LeechTendrils, Cone = true, Range = (g, p, w, x) => p.Def.BodyR + g.GraspReach(p), Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 80f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
                 Desc = "Primary Fire: Hold to grab and stun nearby enemies; they burst when the blood builds up.",
-                Sound = Sfx.SpellArcane, AreaDesc = "the tendrils reach across a 25% wider arc", HomingDesc = "the tendrils reach across a 15% narrower arc and drain 10% harder per stack, instead of bending shots" },
+                Sound = Sfx.SpellArcane, AreaDesc = "the tendrils reach across a 25% wider arc", Mods = WeaponMods.Say(ModId.Homing, "the tendrils reach across a 15% narrower arc and drain 10% harder per stack, instead of bending shots") },
             new WeaponDef { Id = WeaponId.BloodBlast, Range = (g, p, w, x) => g.BlastNextReach(p), Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 3, Damage = 22f, Reach = 115f, Melee = true, BotRange = 100f, ExtraDesc = "+15% damage and reach", Name = "Blood Blast", FireInterval = 0.42f,
                 Desc = "Primary Fire: A six-step blood sword combo; every hit marks enemies, and their deaths heal you." },
             // Healer
@@ -727,7 +732,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.VeinTether, Range = (g, p, w, x) => p.Def.BodyR + w.Reach * (1f + w.Grow * x) * p.Stats.ShotSpeedMult, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 2, Damage = 4f, Reach = 350f, Grow = 0.25f, ExtraDesc = "+25% beam length and +25% damage", Name = "Vein Tether", FireInterval = 0.08f,
                 Desc = "Primary Fire: A draining beam that hurts enemies and heals you and the nearest ally.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the beam 25% wider" },
-            new WeaponDef { Id = WeaponId.HeartFlail, Range = (g, p, w, x) => g.HfSpinROf(p) + HfHeartR, BotAlt = HeartFlailBotAlt, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 3, Damage = 18f, Reach = 105f, Melee = true, BotRange = 110f, ExtraDesc = "+1 blood drop a hit and 10% more reach", Name = "Heart Flail", FireInterval = 0.45f,
+            new WeaponDef { Id = WeaponId.HeartFlail, Mods = WeaponMods.As(ModId.Homing, WeaponKind.Area), Range = (g, p, w, x) => g.HfSpinROf(p) + HfHeartR, BotAlt = HeartFlailBotAlt, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 3, Damage = 18f, Reach = 105f, Melee = true, BotRange = 110f, ExtraDesc = "+1 blood drop a hit and 10% more reach", Name = "Heart Flail", FireInterval = 0.45f,
                 Desc = "Primary Fire: Click to swing a living heart that makes enemies bleed and sprays healing blood; hold to spin it, healing allies near you with every heartbeat. Hits quicken the beat: at 180 the next beat is a Cardiac Burst.\n\nAlternative Fire: Open Heart: throw the heart to your cursor, where it roots and heals every ally near it through its veins.",
                 Sound = Sfx.SwingHeavy, AreaDesc = "the heartbeat pulses, the Cardiac Burst and Open Heart's veins reach 25% farther" },
             // DPS

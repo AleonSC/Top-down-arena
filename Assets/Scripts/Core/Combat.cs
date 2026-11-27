@@ -92,7 +92,8 @@ namespace Arena
             p.Run.DamageTaken += Math.Min(amount, Math.Max(0f, p.Hp));
             DamageEvent?.Invoke(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             lastTaken = Math.Max(0f, amount);
-            p.Wound = Math.Min(p.MaxHp * WoundCap, p.Wound + WoundShare * Math.Min(amount, Math.Max(0f, p.Hp)));  // a share no heal brings back until a boss falls or a shrine, Medic or Rest clears it (capped)
+            if (!IsHemomancer(p))  // a Hemomancer never takes wounds (owner Nov 26): its health is its resource
+                p.Wound = Math.Min(p.MaxHp * WoundCap, p.Wound + WoundShare * Math.Min(amount, Math.Max(0f, p.Hp)));  // a share no heal brings back until a boss falls or a shrine, Medic or Rest clears it (capped)
             p.Hp -= amount;
             p.InvulnT = D(DiffKnob.HitGrace);
             p.Flash = 0.1f;
@@ -456,7 +457,7 @@ namespace Arena
         /// Cone weapons (Chain Light, Leech Tendrils, the Repulsion Cannon): Homing Rounds condense the cone instead,
         /// 15% narrower and 10% stronger a stack, so a wide cone for crowds or a focused one is a choice.
         public const float HomingConeNarrow = 0.15f, HomingConeFocus = 0.1f;
-        public static bool ConeWeapon(WeaponId w) => w == WeaponId.ChainLight || w == WeaponId.LeechTendrils || w == WeaponId.RepulsionCannon;
+        public static bool ConeWeapon(WeaponId w) => Defs.WeaponOf(w).Cone;  // WeaponDef.Cone
         public static float ConeNarrow(Player p) => 1f - HomingConeNarrow * p.Stats.Homing / 2f;  // how wide the cone is, against its usual width
         public static float ConeFocus(Player p) => 1f + HomingConeFocus * p.Stats.Homing / 2f;    // how hard it hits, against usual
         static float HomingCost(Player p) => 1f - HomingDamageCost * p.Stats.Homing;

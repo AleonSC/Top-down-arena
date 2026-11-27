@@ -15,6 +15,8 @@ using Arena;
 static partial class Program
 {
     static int failures;
+    /// A Hemomancer's flat damage bonus (Blood Price, Hemomancer.cs): Hemomancer damage checks expect it on top.
+    static readonly float Might = 1f + Game.BloodMight;
 
     static void Check(bool ok, string what)
     {
@@ -565,7 +567,7 @@ static partial class Program
         Test("pits", "cell variants and pits (Docs/CellVariants.md): the pit variants keep the middle and doors clear, rolled per cell; an enemy shoved in dies, a player climbs out with 15% less health", () => PitsTest(Dt)),
         Test("layouttest", "the Cell Editor's hub edits and TEST LAYOUT (HubLayoutEdits.cs, LayoutTest.cs): a hub plan's walls and crates change and revert, a tested piece is built with the layouts asked for", () => LayoutTestTest(Dt)),
         Test("shoppedestals", "the pedestal shop (ShopPedestals.cs): two doors, pedestals on the other walls, nothing built or linked through them, no cover", () => ShopPedestalsTest()),
-        Test("gridrooms", "grid rooms (Docs/GridRooms.md): the core, door spots on the lattice, nodes and chests at a cell's middle; pieces, cards and mini-boss rooms", () => GridRoomsTest(), () => GridRoomsGameTest(Dt), () => PieceShapesTest(), () => PieceCardsTest(), () => GridMiniTest(), () => GridSurpriseTest(), () => PieceShapesGameTest(Dt)),
+        Test("gridrooms", "grid rooms (Docs/GridRooms.md): the core, door spots on the lattice, nodes and chests at a cell's middle; pieces, cards and mini-boss rooms", () => GridRoomsTest(), () => GridRoomsGameTest(Dt), () => PieceShapesTest(), () => PieceCardsTest(), () => GridMiniTest(), () => GridSurpriseTest(), () => PieceShapesGameTest(Dt), () => StartPickOpeningTest(Dt)),
         Test("lighting", "dynamic lighting's shadows (Core/LightCast.cs): walls and bodies stop a light, sharp corners, a light's own body ignored, casters out of reach skipped", () => LightingTest()),
         Test("turret", "the Black Market's Turret (Turret.cs): placed from the stash, it shoots enemies in range for 5 waves, 3 each", () => TurretTest(Dt)),
         Test("armsdealer", "the Arms Dealer and the Medic (Docs/ArmsDealer.md): service rooms selling every weapon mod for gold, priced by your stacks, and heals and revives; a boss's pick of 5 room cards and kits", () => ArmsDealerTest(Dt), () => BossCardsTest(Dt)),
@@ -618,6 +620,7 @@ static partial class Program
         Test("partybots", "bots in the lobby's open slots", () => { PartyBotsTest(Dt); PartyBotShelterTest(Dt); PartyBotCampaignTest(Dt); }),
         Test("wildcard", "Wildcard: DPS gear from any class, a Wildcard ability on a chosen key, the damage and cooldown price, the unlock", () => WildcardTest(Dt)),
         Test("lag", "the lag chart: LagStats (stalls, p95, 1% low, freeze, summary, CSV) and pings shared over the network", () => LagChartTest(Dt)),
+        Test("weaponmods", "weapon mods per weapon kind: card text and stats for shot, area, cone and melee weapons, per-weapon overrides, mods that do nothing aren't offered", () => WeaponModsTest(Dt)),
         Test("stacking", "power stacking: diminishing returns on unlimited cards, wounds (a share of each hit no heal brings back, carried across waves up to a cap)", () => StackingTest(Dt)),
         Test("dodge", "Dodge: the tiny dash with invulnerability (host and client), its cooldown, the step back, the hold-to-sprint", () => DodgeTest(Dt)),
         Test("f1bot", "F1 \"Bot plays for you\" (the smart bot) through waves and the Bazaar", () => F1BotTest(Dt)),
