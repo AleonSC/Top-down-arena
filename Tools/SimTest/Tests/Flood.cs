@@ -42,14 +42,20 @@ static partial class Program
             int cid = lc.MyId;
             Func<int, bool> settle = want => { for (int i = 0; i < 200; i++) { Step(lh, dt); Step(lc, dt); if (lh.Lobby[cid].Ability == want && lc.Lobby[cid].Ability == want) return true; Nap(1); } return false; };
             Check(lh.Lobby.ContainsKey(cid) && settle(3), "a Tank Elementalist can pick the 4th key, and everyone sees it");
-            var three = Content.RoleWithAbilityChoices(3);  // (a role and class with no 4th choice)
-            if (three.Role != Role.Tank)
-                lc.RequestRole(three.Role);
-            lc.RequestKit(three.Kit);
-            Check(settle(0), "changing to a class with three abilities goes back to the first (" + three + ")");
-            lc.RequestAbility(3);
-            for (int i = 0; i < 20; i++) { Step(lh, dt); Step(lc, dt); }
-            Check(lh.Lobby[cid].Ability == 0, "and the 4th key can't be picked there");
+            var found = Content.Find((r, k) => Content.AbilityCount(r, k) == 3);  // (a role and class with no 4th choice, if any is left)
+            if (found == null)
+                Console.WriteLine("  (Content: every class has a 4th 1st ability, so the fall-back to the first has nothing to check)");
+            else
+            {
+                var three = found.Value;
+                if (three.Role != Role.Tank)
+                    lc.RequestRole(three.Role);
+                lc.RequestKit(three.Kit);
+                Check(settle(0), "changing to a class with three abilities goes back to the first (" + three + ")");
+                lc.RequestAbility(3);
+                for (int i = 0; i < 20; i++) { Step(lh, dt); Step(lc, dt); }
+                Check(lh.Lobby[cid].Ability == 0, "and the 4th key can't be picked there");
+            }
 
         }
 
