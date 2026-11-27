@@ -123,6 +123,7 @@ namespace Arena
         RodentMinigun,  // the DPS Summoner's second ultimate (RodentMinigun.cs), key 1 of the lobby's Ultimate row
         RoyalDive,  // the Hive Queen's legendary: a 2nd, 3rd or 4th ability (QueenLoot.cs)
         RunicArray,  // the Arcanist's 1st abilities and ultimates (Arcanist.cs)
+        SacrificialRitual,  // the Tank Hemomancer's fourth ultimate (SacrificialRitual.cs), key 3 of the lobby's Ultimate row
         SafeRoom,  // the Tank and Healer Engineer's 1st abilities and ultimates (Engineer.cs, step 4)
         Sanctum,
         SanctumGlass,  // the Healer Knight's 4th choice (SanctumGlass.cs), the lobby's 4th choice
@@ -483,7 +484,7 @@ namespace Arena
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
             Game.ScmUltimates,  // (on its own line, as below)
             Game.OracleUltimates, Game.CatUltimates,  // (on its own line, so parallel sessions appending to the line below don't clash)
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.RocketUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.GloveUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.TuskerUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.CraneUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.EyeUltimates, Game.ConduitUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.HeartbeatUltimates, Game.SwarmHeartUltimates, Game.BannerUltimates, Game.LanceRainUltimates, Game.GongUltimates, Game.PressUltimates, Game.FoamUltimates, Game.RitualUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.RocketUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.GloveUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.TuskerUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.CraneUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.EyeUltimates, Game.ConduitUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.SacrificeUltimates, Game.HeartbeatUltimates, Game.SwarmHeartUltimates, Game.BannerUltimates, Game.LanceRainUltimates, Game.GongUltimates, Game.PressUltimates, Game.FoamUltimates, Game.RitualUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 

@@ -1,0 +1,414 @@
+<title>Sacrificial Ritual</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: title, the arena loop (hero) beside a live readout and toggles, a scrubbable timeline, then rules and numbers.
+   House mockup palette (as blood-golem.html); the blood lives in the arena. */
+:root{
+  --bg:#ebe8e1; --fg:#1c1e22; --muted:#5d6168; --panel:#f7f5f0; --line:#d2cec3; --chip:#e0dcd1;
+  --gold:#9a6608; --tank:#2f6fb3; --blood:#a3172a; --blood-soft:#f3dadd; --arena:#0c0f14;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101215; --fg:#e7e8ea; --muted:#979ca4; --panel:#171a1f; --line:#2b3037; --chip:#22262d;
+  --gold:#f0bd54; --tank:#76b2f2; --blood:#ff7d8c; --blood-soft:#3a1a20; --arena:#0a0c10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101215; --fg:#e7e8ea; --muted:#979ca4; --panel:#171a1f; --line:#2b3037; --chip:#22262d;
+  --gold:#f0bd54; --tank:#76b2f2; --blood:#ff7d8c; --blood-soft:#3a1a20; --arena:#0a0c10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 var(--body);margin:0;padding-block:28px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1140px;margin:0 auto;display:flex;flex-direction:column;gap:26px}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 10px}
+.eyebrow .tank{color:var(--tank)}
+h1{font:800 clamp(48px,9vw,96px)/.88 var(--display);text-transform:uppercase;margin:6px 0 10px;text-wrap:balance}
+h1 span{color:var(--blood)}
+.lede{margin:0;max-width:66ch;color:var(--muted);font-size:17px}
+.lede b{color:var(--fg);font-weight:600}
+h2{font:700 24px/1 var(--display);letter-spacing:.04em;text-transform:uppercase;margin:0 0 12px}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;align-items:start}
+@media (max-width:860px){.stage{grid-template-columns:minmax(0,1fr)}}
+.frame{position:relative;border-radius:8px;overflow:hidden;background:var(--arena);border:1px solid var(--line)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;max-width:100%}
+.tag{position:absolute;left:12px;top:10px;font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#f4c9cf;
+  background:rgba(40,4,10,.7);border:1px solid rgba(220,60,80,.45);padding:3px 8px;border-radius:3px;pointer-events:none}
+.side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.readout{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;font:500 13px var(--mono);margin:0}
+.readout dt{color:var(--muted)} .readout dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.bar{grid-column:1/-1;height:8px;background:var(--chip);border-radius:2px;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;width:0;background:var(--blood)}
+.group{display:flex;flex-direction:column;gap:6px}
+.group label{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button,.ctl button{font:600 13px var(--body);background:var(--chip);color:var(--fg);border:1px solid var(--line);border-radius:4px;padding:6px 10px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--blood);border-color:var(--blood);color:#fff}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{color:#1a0509}
+button:focus-visible,input:focus-visible{outline:2px solid var(--tank);outline-offset:2px}
+.ctl{display:flex;gap:10px;align-items:center}
+.ctl input{flex:1;min-width:0;accent-color:var(--blood)}
+.ctl span{font:500 12px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums;width:48px;text-align:right}
+.marks{display:flex;justify-content:space-between;font:500 11px var(--mono);color:var(--muted);margin-top:2px;gap:6px;flex-wrap:wrap}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
+@media (max-width:760px){.cols{grid-template-columns:minmax(0,1fr)}}
+ol,ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+li b{font-weight:600}
+table{border-collapse:collapse;width:100%;font-size:15px}
+td{padding:6px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:last-child{text-align:right;font:600 14px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:12px}
+.note{font-size:14px;color:var(--muted);margin:10px 0 0}
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow"><span>Hemomancer</span><span class="tank">Tank</span><span>Ultimate · key 3</span><span>Mockup, approximate</span></div>
+    <h1>Sacrificial <span>Ritual</span></h1>
+    <p class="lede">Kill yourself on a blood sigil. Your body stays behind and you rise as a <b>blood spirit enemies can't see</b> for 10 s. <b>Each kill stores health</b>, and when time runs out you return to your body with it. No kills: you come back with <b>1 HP</b>.</p>
+  </header>
+
+  <section class="stage">
+    <div class="frame"><canvas id="cv" width="960" height="540" aria-label="Animated mockup of the Sacrificial Ritual ultimate"></canvas><div class="tag" id="tag">Sacrifice</div></div>
+    <div class="side">
+      <dl class="readout">
+        <dt>Phase</dt><dd id="rPhase">Sacrifice</dd>
+        <dt>Spirit time</dt><dd id="rTime">10.0 s</dd>
+        <dt>Kills</dt><dd id="rKills">0</dd>
+        <dt>Health on return</dt><dd id="rHp">1 HP</dd>
+        <div class="bar"><i id="rBar"></i></div>
+      </dl>
+      <div class="group"><label>Spirit claws</label>
+        <div class="seg" id="claws">
+          <button aria-pressed="true" data-v="0">A Talons</button>
+          <button aria-pressed="false" data-v="1">B Scythe</button>
+          <button aria-pressed="false" data-v="2">C Rake</button>
+        </div></div>
+      <div class="group"><label>Spirit look</label>
+        <div class="seg" id="looks">
+          <button aria-pressed="false" data-v="0">Wraith</button>
+          <button aria-pressed="true" data-v="1">Bloodmist ✓</button>
+          <button aria-pressed="false" data-v="2">Hollow Saint</button>
+        </div></div>
+      <div class="group"><label>Outcome</label>
+        <div class="seg" id="outs">
+          <button aria-pressed="true" data-v="1">7 kills</button>
+          <button aria-pressed="false" data-v="0">No kills</button>
+        </div></div>
+      <div class="group"><label>Timeline</label>
+        <div class="ctl"><button id="play">Pause</button><input id="scrub" type="range" min="0" max="14.5" step="0.01" value="0"><span id="clock">0.0 s</span></div>
+        <div class="marks"><span>sacrifice</span><span>spirit 10 s</span><span>return</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cols">
+    <div>
+      <h2>How it plays</h2>
+      <ol>
+        <li><b>Sacrifice (1.4 s).</b> A pentagram bleeds under you, five spikes close in and you die. Bullets already in the air miss.</li>
+        <li><b>Spirit (10 s).</b> Your body stays on the sigil with a timer ring. Enemies lose you: they stop aiming and wander (a <b>?</b> over each).</li>
+        <li><b>Hunt.</b> The spirit moves faster and passes through enemies and shots. Fire slashes with spirit claws (pick a look on the right). Each kill sends a stream of blood to your body: <b>+10% max health</b> stored.</li>
+        <li><b>Return.</b> At 0 s the spirit flies back and you stand up with the stored health (up to 100%), or with 1 HP if you got no kills.</li>
+      </ol>
+    </div>
+    <div>
+      <h2>Proposed numbers</h2>
+      <table>
+        <tr><td>Cooldown</td><td>90 s</td></tr>
+        <tr><td>Spirit time</td><td>10 s</td></tr>
+        <tr><td>Health per kill</td><td>10% max</td></tr>
+        <tr><td>Health cap on return</td><td>100%</td></tr>
+        <tr><td>Spirit speed</td><td>+40%</td></tr>
+        <tr><td>Spirit claws</td><td>40 dmg, 3/s, 70 px</td></tr>
+        <tr><td>Boss kill (counts as)</td><td>5 kills</td></tr>
+        <tr><td>Mastered (capstone)</td><td>12 s, 15%/kill</td></tr>
+      </table>
+      <p class="note">Decided: Bloodmist look, spirit claws, you return at your body, and the body can't be hurt. Left: the claw look.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const W = 960, H = 540;
+const dpr = Math.min(2, window.devicePixelRatio || 1);
+cv.width = W * dpr; cv.height = H * dpr; ctx.scale(dpr, dpr);
+
+const T_SAC = 1.4, T_END = 11.4, T_MERGE = 12.0, LOOP = 14.5, SPIRIT = 10, PER_KILL = 10;
+const HUSK = {x: 470, y: 300};
+const BASE = [[250,160],[700,140],[780,330],[640,450],[300,420],[170,290],[520,120],[860,200],[380,250]];
+const KILLS = 7, killAt = i => 2.2 + i * 1.25;
+let look = 1, claw = 0, withKills = true, t = 0, playing = true;
+function standOff(i) { const e = epos(i, killAt(i)), dx = e.x - HUSK.x, dy = e.y - HUSK.y, n = Math.hypot(dx, dy) || 1; return {x: e.x - dx/n*34, y: e.y - dy/n*34}; }
+
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ease = x => x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x+2, 3)/2;
+const clamp = (x,a,b) => Math.max(a, Math.min(b, x));
+const lerp = (a,b,k) => a + (b-a)*k;
+const rnd = s => { const x = Math.sin(s*127.1)*43758.5453; return x - Math.floor(x); };
+
+function epos(i, tt) {
+  const b = BASE[i];
+  let x = b[0] + Math.sin(tt*0.7 + i)*18, y = b[1] + Math.cos(tt*0.9 + i*2)*14;
+  if (tt < T_SAC) { const k = 0.06 * tt; x = lerp(x, HUSK.x, k); y = lerp(y, HUSK.y, k); }
+  return {x, y};
+}
+const alive = (i, tt) => !(withKills && i < KILLS && tt >= killAt(i));
+const killsBy = tt => withKills ? Array.from({length: KILLS}, (_, i) => i).filter(i => tt >= killAt(i) + 0.8).length : 0;
+
+function spiritPos(tt) {
+  const rise = {x: HUSK.x, y: HUSK.y - 34};
+  if (tt < T_SAC) return {x: HUSK.x, y: lerp(HUSK.y, rise.y, clamp((tt - 1.0)/0.4, 0, 1))};
+  if (tt >= T_END) {
+    const from = spiritPos(T_END - 0.0001), k = ease(clamp((tt - T_END)/(T_MERGE - T_END), 0, 1));
+    return {x: lerp(from.x, HUSK.x, k), y: lerp(from.y, HUSK.y, k)};
+  }
+  if (!withKills) {
+    const u = (tt - T_SAC) / SPIRIT * Math.PI * 2, e = clamp((tt - T_SAC)/0.6, 0, 1);
+    return {x: lerp(rise.x, HUSK.x + Math.sin(u)*300, e), y: lerp(rise.y, HUSK.y - 20 + Math.sin(u*2)*130, e)};
+  }
+  let prev = rise, t0 = T_SAC;
+  for (let i = 0; i < KILLS; i++) {
+    const t1 = killAt(i) - 0.12, target = standOff(i);
+    if (tt < t1) {
+      const k = (tt - t0) / (t1 - t0), kk = k < .6 ? k*.25/.6 : .25 + ease((k-.6)/.4)*.75;
+      const nx = -(target.y - prev.y), ny = target.x - prev.x, n = Math.hypot(nx, ny) || 1, s = Math.sin(k*Math.PI)*40;
+      return {x: lerp(prev.x, target.x, kk) + nx/n*s, y: lerp(prev.y, target.y, kk) + ny/n*s};
+    }
+    prev = target; t0 = t1;
+  }
+  const k = ease(clamp((tt - t0)/(T_END - t0), 0, 1));
+  return {x: lerp(prev.x, HUSK.x + 60, k), y: lerp(prev.y, HUSK.y - 60, k)};
+}
+
+// ---------- drawing ----------
+function floor() {
+  ctx.fillStyle = '#0c0f14'; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(120,140,170,.06)'; ctx.lineWidth = 1;
+  for (let x = 0; x <= W; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+  for (let y = 0; y <= H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+  if (t >= T_SAC && t < T_MERGE) { const g = ctx.createRadialGradient(W/2, H/2, 100, W/2, H/2, 600); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(60,0,12,.55)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+}
+
+function sigil(alpha, draw) {
+  const r = 58; ctx.save(); ctx.translate(HUSK.x, HUSK.y); ctx.globalAlpha = alpha;
+  ctx.strokeStyle = '#d4243c'; ctx.lineWidth = 2.2; ctx.shadowColor = '#ff2244'; ctx.shadowBlur = 12;
+  ctx.beginPath(); ctx.arc(0, 0, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*clamp(draw*2, 0, 1)); ctx.stroke();
+  const pts = [0,2,4,1,3,0].map(j => { const a = -Math.PI/2 + j*Math.PI*2/5; return [Math.cos(a)*r, Math.sin(a)*r]; });
+  const seg = clamp(draw*2 - 1, 0, 1) * 5;
+  ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let j = 1; j <= 5; j++) { const k = clamp(seg - (j-1), 0, 1); if (k <= 0) break; ctx.lineTo(lerp(pts[j-1][0], pts[j][0], k), lerp(pts[j-1][1], pts[j][1], k)); }
+  ctx.stroke(); ctx.restore();
+}
+
+function body(x, y, a, husk, lift) {
+  ctx.save(); ctx.translate(x, y); ctx.globalAlpha = a;
+  if (husk) {
+    ctx.fillStyle = 'rgba(80,10,20,.6)'; ctx.beginPath(); ctx.ellipse(4, 6, 26, 12, .2, 0, Math.PI*2); ctx.fill();
+    ctx.scale(1, lerp(.55, 1, lift)); ctx.rotate(lerp(.5, 0, lift));
+  }
+  ctx.fillStyle = husk && lift < 1 ? '#3a2a2e' : '#4a1018';
+  ctx.strokeStyle = husk && lift < 1 ? '#6b5257' : '#e0405a'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = husk && lift < 1 ? '#2a1d20' : '#2a070c';
+  ctx.beginPath(); ctx.moveTo(-11, -6); ctx.quadraticCurveTo(0, -24, 11, -6); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#76b2f2'; ctx.globalAlpha = a * (husk && lift < 1 ? .25 : .9); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0, 0, 21, 0, Math.PI*2); ctx.stroke();
+  ctx.restore();
+}
+
+function enemy(i) {
+  const p = epos(i, t), blind = t >= T_SAC && t < T_MERGE;
+  ctx.save(); ctx.translate(p.x, p.y);
+  ctx.fillStyle = '#2b3138'; ctx.strokeStyle = '#8a96a6'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  const ang = blind ? Math.sin(t*1.3 + i*3)*2.5 : Math.atan2(HUSK.y - p.y, HUSK.x - p.x);
+  ctx.fillStyle = blind ? '#55606c' : '#ff5a4a';
+  for (const s of [-.45, .45]) { ctx.beginPath(); ctx.arc(Math.cos(ang+s)*8, Math.sin(ang+s)*8, 2.6, 0, Math.PI*2); ctx.fill(); }
+  if (blind) { ctx.fillStyle = 'rgba(220,226,235,' + (0.55 + 0.25*Math.sin(t*4+i)) + ')'; ctx.font = '700 15px "IBM Plex Mono",monospace'; ctx.textAlign = 'center'; ctx.fillText('?', 0, -22 + Math.sin(t*3+i)*2); }
+  ctx.restore();
+}
+
+function bullets() {
+  if (t > 1.05) return;
+  for (let i = 0; i < BASE.length; i++) for (let b = 0; b < 2; b++) {
+    const st = 0.05 + b*0.45 + rnd(i)*0.2, k = (t - st) / 0.9; if (k < 0 || k > 1) continue;
+    const p = epos(i, st), aim = t < 1.0 ? {x: HUSK.x, y: HUSK.y} : {x: HUSK.x + (rnd(i+b)-.5)*80, y: HUSK.y + (rnd(i*3+b)-.5)*80};
+    const x = lerp(p.x, aim.x, k*.92), y = lerp(p.y, aim.y, k*.92);
+    ctx.fillStyle = '#ffb347'; ctx.shadowColor = '#ff8a00'; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+  }
+}
+
+function spikes() {
+  const k = clamp((t - 0.6)/0.4, 0, 1); if (k <= 0 || t > 1.15) return;
+  ctx.save(); ctx.translate(HUSK.x, HUSK.y); ctx.fillStyle = '#c3132e'; ctx.shadowColor = '#ff2244'; ctx.shadowBlur = 10;
+  for (let j = 0; j < 5; j++) {
+    const a = -Math.PI/2 + j*Math.PI*2/5, r0 = 58, tip = lerp(r0, 6, ease(k));
+    ctx.beginPath(); ctx.moveTo(Math.cos(a)*tip, Math.sin(a)*tip);
+    ctx.lineTo(Math.cos(a+.12)*r0, Math.sin(a+.12)*r0); ctx.lineTo(Math.cos(a-.12)*r0, Math.sin(a-.12)*r0); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function flash(x, y, age, r, col) {
+  if (age < 0 || age > .5) return; const k = age/.5;
+  ctx.save(); ctx.globalAlpha = 1 - k; ctx.strokeStyle = col; ctx.lineWidth = 3*(1-k)+1;
+  ctx.beginPath(); ctx.arc(x, y, r*(.3 + k), 0, Math.PI*2); ctx.stroke(); ctx.restore();
+}
+
+function killFx() {
+  if (!withKills) return;
+  for (let i = 0; i < KILLS; i++) {
+    const age = t - killAt(i); if (age < 0 || age > 1.4) continue;
+    const p = epos(i, killAt(i));
+    if (age < .7) for (let d = 0; d < 14; d++) {
+      const a = rnd(i*31+d)*Math.PI*2, sp = 40 + rnd(d*7+i)*70, k = age/.7;
+      ctx.fillStyle = 'rgba(200,20,45,' + (1-k) + ')'; ctx.beginPath(); ctx.arc(p.x + Math.cos(a)*sp*k, p.y + Math.sin(a)*sp*k + 30*k*k, 3*(1-k)+1, 0, Math.PI*2); ctx.fill();
+    }
+    flash(p.x, p.y, age, 40, '#ff6680');
+    for (let d = 0; d < 10; d++) {
+      const k = clamp((age - .15 - d*.04)/.65, 0, 1); if (k <= 0 || k >= 1) continue;
+      const cx = (p.x + HUSK.x)/2 + (rnd(i)-.5)*120, cy = (p.y + HUSK.y)/2 - 60;
+      const x = (1-k)*(1-k)*p.x + 2*(1-k)*k*cx + k*k*HUSK.x, y = (1-k)*(1-k)*p.y + 2*(1-k)*k*cy + k*k*HUSK.y;
+      ctx.fillStyle = '#e01e3c'; ctx.shadowColor = '#ff2244'; ctx.shadowBlur = 6; ctx.beginPath(); ctx.arc(x, y, 3.2, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+    }
+  }
+}
+
+function clawFx() {
+  if (!withKills) return;
+  for (let i = 0; i < KILLS; i++) {
+    const age = t - killAt(i) + 0.12; if (age < 0 || age > 0.5) continue;
+    const s = standOff(i), e = epos(i, killAt(i)), dir = Math.atan2(e.y - s.y, e.x - s.x);
+    const k = clamp(age/0.16, 0, 1), fade = 1 - clamp((age - 0.16)/0.34, 0, 1);
+    ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(dir); ctx.globalAlpha = fade;
+    ctx.shadowColor = '#ff2244'; ctx.shadowBlur = 14; ctx.lineCap = 'round';
+    if (claw === 0) {          // A Talons: three curved swipes side by side
+      for (let j = -1; j <= 1; j++) {
+        ctx.strokeStyle = j ? '#ff5a74' : '#ffd0d8'; ctx.lineWidth = j ? 3 : 4;
+        ctx.beginPath(); ctx.arc(-8, j*9, 44, -0.8, -0.8 + 1.6*ease(k)); ctx.stroke();
+      }
+    } else if (claw === 1) {   // B Scythe: one wide crescent of blood
+      const a0 = -1.3, a1 = a0 + 2.6*ease(k);
+      const g = ctx.createRadialGradient(0, 0, 20, 0, 0, 62); g.addColorStop(0, 'rgba(255,90,110,0)'); g.addColorStop(.7, 'rgba(255,60,90,.9)'); g.addColorStop(1, 'rgba(255,210,220,.95)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 62, a0, a1); ctx.arc(8, 0, 40, a1, a0, true); ctx.closePath(); ctx.fill();
+    } else {                   // C Rake: four straight gashes torn across the enemy
+      for (let j = 0; j < 4; j++) {
+        const kk = clamp(k*1.6 - j*0.18, 0, 1); if (kk <= 0) continue;
+        const ox = 34 + (j - 1.5)*9, y0 = -26 + j*3;
+        ctx.strokeStyle = j % 3 ? '#ff5a74' : '#ffd0d8'; ctx.lineWidth = 3.5;
+        ctx.beginPath(); ctx.moveTo(ox - 14, y0); ctx.lineTo(ox - 14 + 28*kk, y0 + 52*kk); ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+}
+
+function timerRing() {
+  if (t < T_SAC || t >= T_END) return;
+  const left = 1 - (t - T_SAC)/SPIRIT, r = 74;
+  ctx.save(); ctx.translate(HUSK.x, HUSK.y);
+  ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI*2); ctx.stroke();
+  ctx.strokeStyle = left < .3 ? '#ffb347' : '#e0405a'; ctx.beginPath(); ctx.arc(0, 0, r, -Math.PI/2, -Math.PI/2 + Math.PI*2*left); ctx.stroke();
+  const stored = killsBy(t);
+  ctx.fillStyle = '#f4c9cf'; ctx.font = '600 13px "IBM Plex Mono",monospace'; ctx.textAlign = 'center';
+  ctx.fillText((left*SPIRIT).toFixed(1) + ' s', 0, r + 20);
+  if (withKills) { ctx.fillStyle = '#ff7d8c'; ctx.fillText('+' + Math.min(100, stored*PER_KILL) + '%', 0, -r - 10); }
+  ctx.restore();
+}
+
+function hpBar(x, y, frac, onehp) {
+  ctx.save(); ctx.translate(x - 30, y - 34);
+  ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(-1, -1, 62, 8);
+  ctx.fillStyle = onehp ? '#ff3b4f' : '#e0405a'; ctx.fillRect(0, 0, Math.max(onehp ? 1.5 : 0, 60*frac), 6);
+  if (onehp) { ctx.fillStyle = '#ffb347'; ctx.font = '700 13px "IBM Plex Mono",monospace'; ctx.textAlign = 'center'; ctx.globalAlpha = .6 + .4*Math.sin(t*12); ctx.fillText('1 HP', 30, -6); }
+  ctx.restore();
+}
+
+// ---------- the three spirit looks ----------
+function spirit(tt, a) {
+  const p = spiritPos(tt), q = spiritPos(tt - 0.06), dir = Math.atan2(p.y - q.y, p.x - q.x), sp = Math.hypot(p.x - q.x, p.y - q.y);
+  ctx.save(); ctx.globalAlpha = a;
+  if (look === 0) {             // A Wraith: a flame-shaped ghost with a wispy trail
+    for (let k = 10; k >= 1; k--) { const h = spiritPos(tt - k*0.035); ctx.fillStyle = 'rgba(200,20,50,' + (0.09*(11-k)/10) + ')'; ctx.beginPath(); ctx.arc(h.x, h.y, 14 - k*.8, 0, Math.PI*2); ctx.fill(); }
+    ctx.translate(p.x, p.y); ctx.rotate((sp > 1 ? dir : -Math.PI/2) + Math.PI);
+    const g = ctx.createLinearGradient(-18, 0, 38, 0); g.addColorStop(0, 'rgba(255,90,110,.95)'); g.addColorStop(1, 'rgba(120,0,25,0)');
+    ctx.fillStyle = g; ctx.shadowColor = '#ff2244'; ctx.shadowBlur = 22;
+    const w = Math.sin(tt*14)*3;
+    ctx.beginPath(); ctx.moveTo(-17, 0); ctx.bezierCurveTo(-17, -20, 12, -16 + w, 40, -3 + w); ctx.bezierCurveTo(14, 2, 14, 2, 40, 6 - w); ctx.bezierCurveTo(12, 16 - w, -17, 20, -17, 0); ctx.fill();
+    ctx.shadowBlur = 0; ctx.fillStyle = '#ffe3e7'; ctx.rotate(Math.PI);
+    ctx.beginPath(); ctx.ellipse(8, -5, 3, 2, 0, 0, Math.PI*2); ctx.ellipse(8, 5, 3, 2, 0, 0, Math.PI*2); ctx.fill();
+  } else if (look === 1) {      // B Bloodmist: a swirl of droplets round a beating heart
+    ctx.translate(p.x, p.y);
+    for (let d = 0; d < 30; d++) {
+      const r = 10 + rnd(d)*20, a2 = tt*(1.5 + rnd(d+9)*2)*(d%2 ? 1 : -1) + d, lag = sp*1.2*rnd(d+4);
+      const x = Math.cos(a2)*r - Math.cos(dir)*lag, y = Math.sin(a2)*r*.8 - Math.sin(dir)*lag;
+      ctx.fillStyle = 'rgba(' + (180 + rnd(d+2)*70|0) + ',20,45,' + (0.5 + rnd(d+1)*.5) + ')'; ctx.beginPath(); ctx.arc(x, y, 1.5 + rnd(d+3)*2.5, 0, Math.PI*2); ctx.fill();
+    }
+    const beat = 1 + .18*Math.max(0, Math.sin(tt*9))**8;
+    ctx.scale(beat, beat); ctx.fillStyle = '#ff3355'; ctx.shadowColor = '#ff2244'; ctx.shadowBlur = 18;
+    ctx.beginPath(); ctx.moveTo(0, 6); ctx.bezierCurveTo(-11, -2, -6, -11, 0, -5); ctx.bezierCurveTo(6, -11, 11, -2, 0, 6); ctx.fill();
+  } else {                      // C Hollow Saint: your outline in light, a thorn crown and a turning sigil
+    ctx.translate(p.x, p.y);
+    ctx.save(); ctx.scale(1, .4); ctx.translate(0, 70); ctx.rotate(tt*1.4); ctx.strokeStyle = 'rgba(255,60,90,.6)'; ctx.lineWidth = 2;
+    ctx.beginPath(); for (let j = 0; j <= 5; j++) { const a2 = -Math.PI/2 + (j*2%5)*Math.PI*2/5; ctx[j ? 'lineTo' : 'moveTo'](Math.cos(a2)*26, Math.sin(a2)*26); } ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, 26, 0, Math.PI*2); ctx.stroke(); ctx.restore();
+    ctx.translate(0, Math.sin(tt*3)*3);
+    ctx.strokeStyle = '#ff8094'; ctx.shadowColor = '#ff2244'; ctx.shadowBlur = 16; ctx.lineWidth = 2.5; ctx.setLineDash([5, 4]); ctx.lineDashOffset = -tt*30;
+    ctx.fillStyle = 'rgba(255,40,70,.12)'; ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI*2); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(-11, -6); ctx.quadraticCurveTo(0, -24, 11, -6); ctx.stroke();
+    ctx.fillStyle = '#ffb3c0';
+    for (let j = 0; j < 5; j++) { const a2 = -Math.PI*0.85 + j*Math.PI*0.7/4; ctx.beginPath(); ctx.moveTo(Math.cos(a2)*22, Math.sin(a2)*22 - 4); ctx.lineTo(Math.cos(a2-.08)*30, Math.sin(a2-.08)*30 - 8); ctx.lineTo(Math.cos(a2+.08)*22, Math.sin(a2+.08)*22 - 4); ctx.fill(); }
+  }
+  ctx.restore();
+}
+
+// ---------- frame ----------
+const $ = id => document.getElementById(id);
+function frame() {
+  floor();
+  const phase = t < T_SAC ? 'Sacrifice' : t < T_END ? 'Spirit' : 'Return';
+  // sigil: drawn in, held faintly while you're gone, gone after the return
+  if (t < T_MERGE + .6) sigil(t < T_SAC ? 1 : t < T_END ? .45 + .1*Math.sin(t*3) : clamp(1 - (t - T_MERGE)/.6, 0, 1) * .5, t < T_SAC ? clamp(t/0.6, 0, 1) : 1);
+  timerRing();
+  const lift = clamp((t - T_MERGE)/0.6, 0, 1);
+  if (t < 1.0) body(HUSK.x, HUSK.y, 1, false, 1);
+  else body(HUSK.x, HUSK.y, 1, true, t < T_MERGE ? 0 : lift);
+  for (let i = 0; i < BASE.length; i++) if (alive(i, t)) enemy(i);
+  bullets(); spikes(); killFx(); clawFx();
+  flash(HUSK.x, HUSK.y, t - 1.0, 70, '#ff2244');
+  if (t >= 1.0 && t < T_MERGE) spirit(t, clamp((t - 1.0)/0.4, 0, 1) * (t > T_END ? 1 - .5*clamp((t - T_END)/(T_MERGE - T_END), 0, 1) : 1));
+  flash(HUSK.x, HUSK.y, t - T_MERGE, 80, withKills ? '#ff6680' : '#ffb347');
+  const stored = killsBy(t), hp = withKills ? Math.min(100, stored*PER_KILL) : 0;
+  if (t < 1.0) hpBar(HUSK.x, HUSK.y, .62 - t*.05, false);
+  if (t >= T_MERGE) hpBar(HUSK.x, HUSK.y, withKills ? hp/100*ease(clamp((t - T_MERGE)/1.0, 0, 1)) : 0, !withKills);
+  if (t >= T_MERGE && withKills && t < T_MERGE + 1) for (let d = 0; d < 16; d++) { // stored blood swirls back in
+    const k = (t - T_MERGE), a2 = d*.39 + k*6, r = 60*(1-k);
+    ctx.fillStyle = 'rgba(224,30,60,' + (1-k) + ')'; ctx.beginPath(); ctx.arc(HUSK.x + Math.cos(a2)*r, HUSK.y + Math.sin(a2)*r, 3, 0, Math.PI*2); ctx.fill();
+  }
+  $('tag').textContent = phase;
+  $('rPhase').textContent = phase;
+  $('rTime').textContent = (t < T_SAC ? SPIRIT : Math.max(0, SPIRIT - (t - T_SAC))).toFixed(1) + ' s';
+  $('rKills').textContent = stored;
+  $('rHp').textContent = withKills && hp > 0 ? hp + '%' : '1 HP';
+  $('rBar').style.width = (withKills && hp > 0 ? hp : 1) + '%';
+  $('clock').textContent = t.toFixed(1) + ' s';
+  $('scrub').value = t;
+}
+
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(.05, (now - last)/1000); last = now;
+  if (playing) { t += dt; if (t >= LOOP) t = 0; }
+  frame(); requestAnimationFrame(loop);
+}
+if (reduce) { playing = false; t = 6; $('play').textContent = 'Play'; }
+requestAnimationFrame(loop);
+
+$('play').onclick = () => { playing = !playing; $('play').textContent = playing ? 'Pause' : 'Play'; };
+$('scrub').oninput = e => { t = +e.target.value; playing = false; $('play').textContent = 'Play'; };
+function seg(id, set) { const el = $(id); el.onclick = e => { const b = e.target.closest('button'); if (!b) return; el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); set(+b.dataset.v); }; }
+seg('looks', v => look = v);
+seg('claws', v => claw = v);
+seg('outs', v => withKills = !!v);
+})();
+</script>

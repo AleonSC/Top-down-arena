@@ -46,8 +46,11 @@ namespace Arena
             }
             else
             {
-                Circle(p.Disp, r, p.Flash > 0f ? Rgba.White.WithAlpha(0.25f * col.A) : role.WithAlpha(0.14f * col.A), 28);
-                Arc(p.Disp, r, 2.2f, p.Flash > 0f ? Rgba.White : role.WithAlpha(0.6f * col.A), 28);
+                if (!SacSpiritShown(p))  // (the blood spirit has no body to ring: SacrificialRitualLook.cs)
+                {
+                    Circle(p.Disp, r, p.Flash > 0f ? Rgba.White.WithAlpha(0.25f * col.A) : role.WithAlpha(0.14f * col.A), 28);
+                    Arc(p.Disp, r, 2.2f, p.Flash > 0f ? Rgba.White : role.WithAlpha(0.6f * col.A), 28);
+                }
                 V2 groundAt = p.Disp;
                 float modelR = r;
                 if (leaping)  // up in the air: bigger and higher, the shadow left on the floor
@@ -66,11 +69,15 @@ namespace Arena
                 bool golem = !inTank && rebuild < 0f && ColossusStanding(p);  // Stone Colossus: the golem stands in for the model (StoneColossusLook.cs)
                 bool bloodGolem = !inTank && !golem && rebuild < 0f && GolemStanding(p);  // Blood Golem: the same (BloodGolemLook.cs)
                 golem |= bloodGolem;
+                bool sacSpirit = !inTank && !golem && rebuild < 0f && SacSpiritShown(p);  // Sacrificial Ritual: the blood spirit stands in for the model (SacrificialRitualLook.cs)
+                golem |= sacSpirit;
                 if (inTank)
                 {
                 }
                 else if (bloodGolem)
                     DrawBloodGolem(p, t, col.A);
+                else if (sacSpirit)
+                    DrawSacSpirit(p, t, col.A);
                 else if (golem)
                     DrawColossus(p, t, col.A);
                 else if (rebuild >= 0f && !preview)

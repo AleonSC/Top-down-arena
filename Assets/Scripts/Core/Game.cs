@@ -1299,7 +1299,7 @@ namespace Arena
             if (!me.Downed && FoamUp())
                 me.Pos = PushOutOfFoam(me.Pos, me.Def.HitR + PropPad);  // Hazard Foam is solid to allies too (HazardFoam.cs)
             // Touching a boss shoves you back out (its body doesn't hurt: TickEnemies).
-            if (!me.Downed && shoveT <= 0f)
+            if (!me.Downed && shoveT <= 0f && !SacSpirit(me))  // (the blood spirit passes through: SacrificialRitual.cs)
                 foreach (var e in Enemies.Values)
                     if (e.Def.IsBoss && !IsSpawning(e) && !QueenAirborne(e) && !DevourUnder(e) && !DevourSwallowing(e) && me.Pos.CloserThan(e.Pos, e.Radius + me.Def.HitR + 2f))
                     {
@@ -1627,6 +1627,7 @@ namespace Arena
             TickArmadillo(dt);  // IronArmadillo.cs: the ball's time, its speed and hits, the uncurl slam
             TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders
             TickGolem(dt);      // BloodGolem.cs: the gather, the golem's swings, shedding, clots and collapse
+            TickSacrifice(dt);  // SacrificialRitual.cs: the rite, the death, the spirit's clock and the return
             TickSpirit(dt);     // SpiritAvatar.cs: the spirit's time, Moon Cleaves and swallowed shots
             TickGaleWalls(dt);  // GaleWall.cs: lenses run down and unleash
             TickSanctumGlass(dt);  // SanctumGlass.cs: panes run down and shatter, motes land and heal
@@ -1919,6 +1920,8 @@ namespace Arena
                     ColossusTrigger(p);  // the golem: Fire slams, the weapon is put away (StoneColossus.cs)
                 else if (GlvOn(p))
                     GloveTrigger(p);  // Rock Gloves: Fire punches, the weapon is put away (RockGloves.cs)
+                else if (SacOn(p))
+                    SacTrigger(p);  // Sacrificial Ritual: Fire swings the spirit's scythe, the weapon is put away (SacrificialRitual.cs)
                 else if (GolOn(p))
                     GolemTrigger(p);  // Blood Golem: Fire punches, the weapon is put away (BloodGolem.cs)
                 else if (SpOn(p))

@@ -552,6 +552,7 @@ namespace Arena
             DrawBoilUnder(p, t);  // Blood Boil's glow, heat rings and time arc (BloodBoilLook.cs)
             DrawForbiddenAura(p, t);  // Forbidden Path's time ring, lock chain, Spiral trail and Gate runes (ForbiddenPathLook.cs)
             DrawHeartbeatUnder(p, t);  // Heartbeat's veins, waves, reach ring and pips (HeartbeatLook.cs)
+            DrawSacrificeUnder(p, t);  // Sacrificial Ritual's sigil, spikes, body, cord, time ring and pips (SacrificialRitualLook.cs)
             DrawSwarmHeartUnder(p, t);  // Heart of the Swarm's reach, beat arc, tether, tendrils, rings and heal veins (HeartOfTheSwarmLook.cs)
             DrawStaticBubble(p, t);  // Static Bubble round its caster, Static Rush on anyone (StaticBubbleLook.cs)
             DrawAstralUnder(p, t);  // Astral Projection's ward, silver cord, tether ring and beam (AstralProjectionLook.cs)
