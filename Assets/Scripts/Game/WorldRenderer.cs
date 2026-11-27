@@ -413,6 +413,7 @@ namespace Arena
                 DrawStunned(p, t);  // WardenLook.cs
                 DrawRodSparks(p, t);  // Lightning Rod's arcs on the body (LightningRodLook.cs)
                 DrawLivingBoltSparks(p, t);  // Living Bolt's arcs on the body (LivingBoltLook.cs)
+                DrawRockGlovesOver(p, t);  // Rock Gloves' gathering shards and floating fists (RockGlovesLook.cs)
                 DrawRavagerOver(p, t);  // Blood Ravager's front legs and lash pips (BloodRavagerLook.cs)
                 DrawHeldStunGun(p, t);
                 FpFloor();
@@ -537,6 +538,7 @@ namespace Arena
             DrawEyeOfCalm(p, t);   // Eye of Calm's hurricane (EyeOfCalmLook.cs)
             DrawVortex(p, t);      // the Vortex ultimate's storm (VortexLook.cs)
             DrawLivingBoltAura(p, t);  // Living Bolt's channel, halo and time ring (LivingBoltLook.cs)
+            DrawRockGlovesUnder(p, t);  // Rock Gloves' cracks, fist shadows, time ring and Haymaker pips (RockGlovesLook.cs)
             DrawRodentPortal(p, t);  // the Rodent Minigun's portal (RodentMinigunLook.cs)
             DrawRavagerUnder(p, t);  // Blood Ravager's glow, reach ring and back legs (BloodRavagerLook.cs)
             DrawBoilUnder(p, t);  // Blood Boil's glow, heat rings and time arc (BloodBoilLook.cs)

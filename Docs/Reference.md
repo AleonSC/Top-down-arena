@@ -228,6 +228,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Bullet Rain | Dps | ultimate | 70 s | - | Lasts 9 s. | A downpour of needles that hurts and soaks everything in a big square. |
 | Living Bolt | Dps | ultimate | 80 s | - | Lasts 13 s and the trail stays 5 s. | Become lightning for 10 s: every click blinks you to the cursor, shocking all you pass and leaving a live trail. |
 | Flash Fire | Dps | ultimate | 80 s | - | The fire burns 11 s. | A ring of fire rolls out around you and the ground burns for 8 s, hurting and slowing enemies; when it goes out they're left burning. |
+| Rock Gloves | Dps | ultimate | 80 s | - | Lasts 13 s and the Haymaker hits 25% wider. | Earth builds two giant floating fists for 10 s: hold Fire for rapid punches, and every 8th is a both-fisted Haymaker. |
 | Gale Wall | Dps | 1st, choice 5 | 18 s | - | The wall is 40% wider and holds up to 60 charges. | A wind wall that traps enemy shots, then unleashes them as a blast. |
 
 ### Summoner
