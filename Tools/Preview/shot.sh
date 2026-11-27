@@ -132,6 +132,7 @@
 # JUGG=<s since cast> JUGGARMOR=<0-1> (the Tank Soldier's Juggernaut Suit: plates, armour bar, flak tracers; mode hud).
 # ARMORDROP=<s since the cast> [ARMORCAP=1] [ARMORHIT=<armor left>] (the Tank Soldier's Armor Drop: crate, vests, armor shell and bar; mode hud).
 # ROCKETDROP=<s since the cast> [ROCKETCAP=1] (the DPS Soldier's Rocket Drop: pod, launcher, rockets, blasts, fire; ShotRocketDrop.cs; ZOOM=1.1 CAMAT=780,480 shot.sh x hud 1 6 1).
+# FANG=<bites> [FANGAFTER=<s>] (the DPS Ninja's Dragon Fang Kunai: thrown through 13 grunts, stopped just after that many bites; ShotDragonFang.cs; ZOOM=1.25 CAMAT=760,450 shot.sh x hud 1 6 1).
 # FOAM=<s since the cast> [FOAMCAP=1] [FOAMFIZZ=1] (the Healer Soldier's Hazard Foam: sprayer, globs, a wall of foam soaking grunts' shots; ShotHazardFoam.cs; ZOOM=1.3 CAMAT=700,520 shot.sh x hud 1 6 3).
 # RITUAL=<s since the cast> [RITUALCAP=1] (the Tank Hemomancer's Blood Ritual: sigil, portal, imps; ShotBloodRitual.cs; ZOOM=1.4 CAMAT=700,440 shot.sh x hud 1 6 3).
 # BANNER=aegis|pilgrim|war [BANNERT=<s since the cast>] [BANNERCAP=1] (the Knight banner ultimates; ShotKnightBanners.cs; ZOOM=1.3 CAMAT=700,430 shot.sh x hud 1 6 3).

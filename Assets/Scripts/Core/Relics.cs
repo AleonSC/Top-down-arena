@@ -239,10 +239,11 @@ namespace Arena
         /// Returns true when it bounced (the shot flies on); false lets the wall stop it as usual.
         bool WallBounce(Bullet b)
         {
-            if (b.WallHops >= Relics.WallBounces || Defs.IsEnemyShot(b.Kind) || b.Sticks)
+            bool fang = FangBouncesOffWalls(b);  // a Dragon Fang on its chain always bounces (DragonFang.cs)
+            if (!fang && (b.WallHops >= Relics.WallBounces || Defs.IsEnemyShot(b.Kind) || b.Sticks))
                 return false;
             Player p;
-            if (!Players.TryGetValue(b.Owner, out p) || p.Relic != RelicId.WallBounce)
+            if (!fang && (!Players.TryGetValue(b.Owner, out p) || p.Relic != RelicId.WallBounce))
                 return false;
             var d = ActiveLayout;
             foreach (var s in d.Solids)
@@ -274,11 +275,16 @@ namespace Arena
                 float into = b.Vel.X * n.X + b.Vel.Y * n.Y;
                 if (into < 0f)
                     b.Vel -= n * (2f * into);  // mirror it off the face
-                b.WallHops++;
-                b.Dmg *= Relics.WallBounceDmg;
+                if (!fang)
+                {
+                    b.WallHops++;
+                    b.Dmg *= Relics.WallBounceDmg;
+                }
                 b.LastHit = 0;   // it may come back for what it just hit
                 b.Homing = 0f;   // (homing would steer it straight back into the wall)
                 b.Pulled = true; // the host sends its course from now on (GameNet.cs SendSteer)
+                if (fang)
+                    FangWalled(b);  // (it picks its next enemy)
                 bounced.Add(b);
                 AddFx(FxKind.Ring, b.Pos, Defs.BulletColor(b.Kind), 7f, 0.18f);  // a spark on the wall
                 return true;

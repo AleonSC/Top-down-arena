@@ -500,19 +500,19 @@ static partial class Program
         Check(!g.Bullets.ContainsKey(into.Id) && g.Bullets.ContainsKey(behind.Id), "a Greatsword sweep leaves a crescent of steel that stops bullets crossing it");
         reset();
 
-        // Kunai.
-        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Kunai);
-        me.KunaiCount = 0; me.AmbushT = 0f;
-        for (int k = 0; k < Game.KunaiShadowEvery; k++) volley.Invoke(g, new object[] { me, 0f, 0 });
-        play(1f, new PlayerInput());
+        // Dragon Fang Kunai (the full suite is "dragonfang").
+        me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.DragonFangKunai);
+        me.AmbushT = 0f;
+        volley.Invoke(g, new object[] { me, 0f, 0 });
+        play(1.2f, new PlayerInput());
         V2 mark = me.KunaiMark;
         bool marked = me.KunaiMarkT > 0f && mark.X > from.X + 300f;
         bool clientMark = client.Game.Players[1].KunaiMarkT > 0f;
         // The weapon-action key: blink.
         for (int f = 0; f < 3; f++) { host.Poll(); g.FixedStep(dt, new PlayerInput { WeaponAction = f == 0, AimAt = mark }); }
-        Console.WriteLine("  kunai: the shadow kunai marked {0} (at {1:0} px; client saw {2}); key blinked to {3:0} px of it; next hit primed {4}",
+        Console.WriteLine("  dragon fang: the kunai marked {0} (at {1:0} px; client saw {2}); key blinked to {3:0} px of it; next hit primed {4}",
             marked, mark.X - from.X, clientMark, me.Pos.DistanceTo(mark), me.AmbushT > 0f);
-        Check(marked && clientMark && me.Pos.DistanceTo(mark) < 2f && me.AmbushT > 0f && me.KunaiMarkT == 0f, "every 4th kunai leaves a mark; the weapon-action key blinks you there and primes a double hit");
+        Check(marked && clientMark && me.Pos.DistanceTo(mark) < 2f && me.AmbushT > 0f && me.KunaiMarkT == 0f, "the Dragon Fang leaves a mark where it stops; the weapon-action key blinks you there and primes a double hit");
         me.AmbushT = 0f;
         reset();
 

@@ -20,7 +20,7 @@ static partial class Program
         var hitMult = typeof(Game).GetMethod("NinjaHitMult", flags);
         var aimAt = typeof(Game).GetMethod("NinjaTarget", flags);
 
-        Check(Defs.Weapon(Role.Tank, Kit.Ninja, 0).Name == "Kusarigama" && Defs.Weapon(Role.Healer, Kit.Ninja, 1).Name == "Spirit Fan" && Defs.Weapon(Role.Dps, Kit.Ninja, 2).Name == "Kunai"
+        Check(Defs.Weapon(Role.Tank, Kit.Ninja, 0).Name == "Kusarigama" && Defs.Weapon(Role.Healer, Kit.Ninja, 1).Name == "Spirit Fan" && Defs.Weapon(Role.Dps, Kit.Ninja, 2).Name == "Dragon Fang Kunai"
             && Defs.Weapon(Role.Dps, Kit.Knight, 2).Name == "Rapier" && Defs.Weapon(Role.Healer, Kit.Soldier, 1).Name == "Revolver" && Defs.Weapon(Role.Tank, Kit.Knight, 1).Name == "Lance",
             "Ninja weapons sit in the role/class tables without shifting the others");
         Check(Upgrades.FirstAbility(Role.Healer, Kit.Ninja, 1) == AbilityId.Substitution && Upgrades.FirstAbility(Role.Dps, Kit.Knight, 0) == AbilityId.BladedDive

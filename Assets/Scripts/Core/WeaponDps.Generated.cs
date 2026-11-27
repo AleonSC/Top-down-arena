@@ -74,7 +74,7 @@ namespace Arena
             { WeaponId.TwinTessen, 54f },
             { WeaponId.Shuriken, 140f },
             { WeaponId.Katana, 65f },
-            { WeaponId.Kunai, 88f },
+            { WeaponId.DragonFangKunai, 56f },
             { WeaponId.BloodLash, 96f },
             { WeaponId.GoreMortar, 133f },
             { WeaponId.LeechTendrils, 31f },

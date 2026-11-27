@@ -515,7 +515,7 @@ static partial class Program
         var hitMult = typeof(Game).GetMethod("NinjaHitMult", flags);
         Func<int, float[]> kunai = n =>
         {
-            arm(WeaponId.Kunai, "Shadow Mark", n);
+            arm(WeaponId.DragonFangKunai, "Shadow Mark", n);
             landed.Invoke(g, new object[] { new Bullet { ShadowKunai = true, Owner = me.Id }, there });
             float markT = me.KunaiMarkT;
             var e = enemyAt(there);
