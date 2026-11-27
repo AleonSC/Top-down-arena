@@ -1587,7 +1587,7 @@ continuing a saved run (its seats are fixed); **< LOADOUT** or Esc closes the dr
 The **main menu** always shows the **Holo Floor**: a starry red sky over a glowing horizon and a red grid floor rolling toward
 you, light running down its lanes. It **moves to the music**: the playing track's spectrum rises as bars of light on the
 horizon (bass at the screen's edges), and each beat flares the horizon, brightens the grid and sends a line of light down the
-floor (any track, your own too; still with effects off or the background STILL, a quarter as strong on Reduced). The **lobby** and the space **behind runs** show your own pick from the Look window >
+floor (any track, your own too; still with effects off or the background STILL, half as strong on Reduced). The **lobby** and the space **behind runs** show your own pick from the Look window >
 Background. Turn on **Override menu background** there to show your pick on the main menu too.
 Bring the pointer to the main menu's **top right corner** and a hue key fades in: click it for a rainbow strip that turns the Holo
 Floor and the CRT colour to any hue (one setting with Settings > Visual effects > CRT colour; kept between sessions; **RESET** brings back the floor's red and the CRT's blue).
