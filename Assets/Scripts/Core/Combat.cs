@@ -303,6 +303,7 @@ namespace Arena
             V2 wind = HeraldWind(WindDrift);  // the Storm Herald's Gale bends every bullet (Herald.cs)
             PrepareNinjaBullets(dt);  // Smoke Bombs and Fuma Shuriken loops (Ninja.cs)
             PrepareWyvGales();  // the Wyvern Staff's gales slow enemy shots (WyvernStaff.cs)
+            PrepareOracles();  // a Tortoise Oracle's circle slows enemy shots (TortoiseOracle.cs)
             PrepareArcBullets();  // the Arcanist's Kinetic Field and Grand Sigil rims (Arcanist.cs)
             // Bullets leave a little past the arena's edges, or stop dead at Narrow Pass's walls.
             V2 lo = ArenaMin, hi = ArenaMax, margin = new V2(Walled ? 0f : 40f, Walled ? 0f : 40f);
@@ -333,11 +334,12 @@ namespace Arena
                 if (lensUp && b.Owner != 0 && !Lobbed(b.Kind) && !Defs.IsEnemyShot(b.Kind))
                     BendRoundLenses(b, dt);  // round a Lens's face (Infall.cs)
                 float arc = ArcShotSpeed(b);  // 0: frozen on a Grand Sigil's rim (it doesn't age either)
-                b.Pos += b.Vel * (dt * SmokeSpeed(b) * WyvGaleSpeed(b) * arc);
+                float oracle = OracleShotSpeed(b);  // (a slowed shot ages as slowly, so it keeps its reach)
+                b.Pos += b.Vel * (dt * SmokeSpeed(b) * WyvGaleSpeed(b) * oracle * arc);
                 if (!wind.IsZero && !Lobbed(b.Kind) && arc > 0f)
                     b.Pos += wind * dt;
                 if (arc > 0f)
-                    b.Life -= dt;
+                    b.Life -= dt * oracle;
                 if (domesUp && Defs.IsEnemyShot(b.Kind) && InDome(b.Pos))
                 {
                     scratchIds.Add(b.Id);  // an enemy shot touching a dome is gone

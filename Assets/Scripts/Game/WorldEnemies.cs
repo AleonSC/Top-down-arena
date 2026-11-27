@@ -334,6 +334,9 @@ namespace Arena
                     return;
                 case ZoneKind.DeployTurret:
                     return;  // drawn over the arena's contents by DrawDeployTurrets (DeployTurretLook.cs)
+                case ZoneKind.TortoiseOracle:
+                    DrawTortoiseOracle(z, t);  // TortoiseOracleLook.cs
+                    return;  // no timer ring: it draws its own
                 case ZoneKind.HoneyRaid:
                     DrawHoneyRaidFloor(z, t);  // HoneyRaidLook.cs (the bee and the falling glob are drawn over the enemies: DrawHoneyRaids)
                     return;  // no timer ring: it draws its own

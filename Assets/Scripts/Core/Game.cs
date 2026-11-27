@@ -517,7 +517,7 @@ namespace Arena
                     s.Timer = 0f;
                     continue;
                 }
-                s.Timer -= (OverclockOn(p) ? dt * OverclockMult : dt) * (i != Upgrades.UltSlot && Supplied(p) ? SupplyCdMult : 1f);  // (an Overclock Chip: Gadgets.cs; a Supply Drop, not the ultimate: SupplyDrop.cs)
+                s.Timer -= (OverclockOn(p) ? dt * OverclockMult : dt) * (i != Upgrades.UltSlot && Supplied(p) ? SupplyCdMult : 1f) * (i != Upgrades.UltSlot ? OracleTempo(p) : 1f);  // (a Tortoise Oracle's circle: TortoiseOracle.cs)  // (an Overclock Chip: Gadgets.cs; a Supply Drop, not the ultimate: SupplyDrop.cs)
                 if (s.Timer <= 0f)
                 {
                     s.Charges++;

@@ -566,7 +566,8 @@ namespace Arena
                     continue;
                 if (e.Type == EnemyType.SpawnPortal)
                     continue;  // a spawn portal stands still and never hurts (TickPortals: SpawnPortals.cs)
-                e.RetargetT -= dt;
+                float edt = dt * OracleEnemyTime(e);  // a Tortoise Oracle's circle: half time inside (TortoiseOracle.cs)
+                e.RetargetT -= edt;
                 Player target;
                 Players.TryGetValue(e.TargetId, out target);
                 int inCell = HoldingCells.Count > 0 ? CellSlotAt(e.Pos, CellZone) : -1;
@@ -593,9 +594,9 @@ namespace Arena
                 tpos = GnawlingTarget(e, tpos);  // a Gnawling smells a morsel (LarderFaction.cs)  // a challenge room: the crystal, or the zone (Challenges.cs)
                 bool held = RoomsLeash(e, ref tpos);  // a Gatekeeper room's mini-boss keeps to its room (Rooms.cs)
                 if (e.Type != EnemyType.Singularity && e.Type != EnemyType.Devourer && !(e.Type == EnemyType.Gatekeeper && e.Phase != 0))  // (the Gatekeeper's charge keeps its line)  // their Facing is the lasers' sweep, or the Devourer's mouth (Devourer.cs)
-                    Face(e, tpos, dt);
+                    Face(e, tpos, edt);
                 V2 stepFrom = e.Pos;
-                MoveEnemy(e, tpos, dt);
+                MoveEnemy(e, tpos, edt);
                 KeepEnemyOffPits(e, stepFrom);  // walking never takes it into a pit (Pits.cs)
                 RoomsKeepHome(e);  // a mini-boss can't charge out of its locked room (Rooms.cs)
                 if (Battle && (e.DazeT > 0f || e.SmokeT > 0f))
@@ -608,7 +609,7 @@ namespace Arena
                 }
                 else if (Battle)
                 {
-                    Special(e, tpos, dt);
+                    Special(e, tpos, edt);
                     if (e.Def.IsBoss)
                         BossCues(e);  // BossSounds.cs
                     float mult = rate * TraitFireMult(e) * (IsTwin(e.Type) && e.Phase == 1 ? 1.7f : 1f) * (Has(RunMod.Frenzy) ? Modifiers.FrenzyFire : 1f);
@@ -616,7 +617,7 @@ namespace Arena
                     if (guardFar)
                         e.FireT = Math.Max(e.FireT, SecurityEvery);  // it opens fire a full gap after it gets close, not at once
                     else
-                        e.FireT -= dt * mult * (1f - e.Suppress) * (e.FsgSmokeT > 0f ? 1f - FsgSmokeSlow : 1f);  // the Riot Repeater's suppression (Weapons.cs); Five Shadow Gong's smoke (FiveShadowGong.cs)
+                        e.FireT -= edt * mult * (1f - e.Suppress) * (e.FsgSmokeT > 0f ? 1f - FsgSmokeSlow : 1f);  // the Riot Repeater's suppression (Weapons.cs); Five Shadow Gong's smoke (FiveShadowGong.cs)
                     // A regular shooter glows just before it fires (Readability.cs).
                     float rateNow = mult * (1f - e.Suppress);
                     e.Winding = (IsSecurity(e.Type) ? e.Phase > 0 : TakesTurns(e) && (HasTurn(e))) && rateNow > 0f && e.FireT / rateNow <= WindUpOf(e.Type) && e.FireT > -0.5f;

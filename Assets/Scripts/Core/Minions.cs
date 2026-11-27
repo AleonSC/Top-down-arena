@@ -855,6 +855,8 @@ namespace Arena
                     TickStampede(z);  // Stampede.cs
                     continue;  // (not a circle: nothing below applies)
                 }
+                if (z.Kind == ZoneKind.TortoiseOracle)
+                    continue;  // every screen works its effects out from the zone (TortoiseOracle.cs): nothing below applies
                 if (z.Kind == ZoneKind.HoneyRaid)
                 {
                     TickHoneyRaid(z, dt);  // HoneyRaid.cs
