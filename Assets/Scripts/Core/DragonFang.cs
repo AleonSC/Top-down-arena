@@ -7,11 +7,12 @@ namespace Arena
     /// "Dragon Fang Kunai", look A Fire Serpent):
     ///   - Fire throws one huge kunai (bullet Defs.DragonFang) at the cursor. Only one is out at a time: Fire does nothing
     ///     until it's gone (DragonFangOut), then the next is ready after DragonFangReady.
-    ///   - Each enemy it bites sends it on to the nearest enemy it hasn't bitten within DragonFangReach, DragonFangGrow (10%)
-    ///     harder each bite, up to DragonFangHits bites (+DragonFangExtraHits an extra projectile). With nobody new in reach it
+    ///   - It bites one enemy (DragonFangBaseHits); each Dragon's Hunger card adds DragonFangHungerBites and each extra projectile
+    ///     DragonFangExtraHits, up to DragonFangHits (DragonFangMax). Each bite sends it on to the nearest enemy it hasn't bitten
+    ///     within DragonFangReach, DragonFangGrow (10%) harder each bite. With nobody new in reach it
     ///     flies on: off an arena edge or a wall it bounces (FangWalled) and may bite anyone again, so a lone boss still takes the
     ///     chain. It fades after DragonFangSeek with nothing to bite, or after DragonFangWalls bounces in a row.
-    ///   - The last bite bursts: DragonFangBurstShare of that bite to everything within DragonFangBurstR.
+    ///   - The 12th bite bursts: DragonFangBurstShare of that bite to everything within DragonFangBurstR.
     ///   - Every throw is a shadow kunai: it leaves the Kunai's mark where it bites last (or stops), and the weapon-action key
     ///     blinks you there for a double hit (Ninja.cs, WeaponAlt.Blink).
     ///   - Host only: the chain (FangFlight) lives here and the host steers the bullet (Pulled: Msg.Steer keeps every copy on
@@ -20,8 +21,8 @@ namespace Arena
     public partial class Game
     {
         public const float DragonFangSpeed = 950f, DragonFangReach = 300f, DragonFangWallReach = 2000f, DragonFangGrow = 0.1f;
-        public const int DragonFangHits = 12, DragonFangExtraHits = 2, DragonFangWalls = 2;
-        public const float DragonFangSeek = 2.2f, DragonFangReady = 0.4f, DragonFangBurstR = 120f, DragonFangBurstShare = 0.5f;
+        public const int DragonFangHits = 12, DragonFangBaseHits = 1, DragonFangHungerBites = 4, DragonFangExtraHits = 2, DragonFangWalls = 2;
+        public const float DragonFangSeek = 2.2f, DragonFangReady = 0.5f, DragonFangBurstR = 120f, DragonFangBurstShare = 0.5f;
         public static readonly Rgba DragonFire = new Rgba(1f, 0.55f, 0.15f);
 
         class FangFlight
@@ -43,8 +44,9 @@ namespace Arena
             return false;
         }
 
-        /// The most bites a throw of this player's gets.
-        public int DragonFangMax(Player p) => DragonFangHits + DragonFangExtraHits * ExtraShots(p);
+        /// The most bites a throw of this player's gets: one, +DragonFangHungerBites a Dragon's Hunger card, +DragonFangExtraHits an
+        /// extra projectile, never more than DragonFangHits.
+        public int DragonFangMax(Player p) => Math.Min(DragonFangHits, DragonFangBaseHits + p.Stats.FangBites + DragonFangExtraHits * ExtraShots(p));
 
         /// The n-th bite's damage against the first (n from 1): 1, 1.1, 1.21 ...
         public static float DragonFangBiteMult(int n) => (float)Math.Pow(1f + DragonFangGrow, Math.Max(0, n - 1));
@@ -192,8 +194,13 @@ namespace Arena
             b.Dmg *= 1f + DragonFangGrow;
             b.Life = DragonFangSeek;  // it flies on this long looking for the next
             b.Pierce = 99;
-            bool last = f.Hits >= f.Max;
-            BroadcastFx(FxKind.DragonFangBite, e.Pos, new V2(b.Id, f.Hits), DragonFire, 20f + 2.5f * f.Hits, 0.35f, last ? Sfx.Explode : Sfx.ShotFireballBurn);
+            bool last = f.Hits >= f.Max, burst = f.Hits >= DragonFangHits;  // (only the 12th bite bursts)
+            BroadcastFx(FxKind.DragonFangBite, e.Pos, new V2(b.Id, f.Hits), DragonFire, 20f + 2.5f * f.Hits, 0.35f, burst ? Sfx.Explode : Sfx.ShotFireballBurn);
+            if (last && !burst)
+            {
+                b.Life = 0f;  // the chain is done: gone at the next move, its mark where it bit
+                return;
+            }
             if (last)
             {
                 Player p;

@@ -20,7 +20,7 @@ static partial class Shot {
     if (gm.Profile != null) foreach (EnemyType et in Enum.GetValues(typeof(EnemyType))) gm.Profile.TagSeen[et.ToString()] = 99;
     for (int i = 0; i < 3; i++) Step(host);
     gm.Bullets.Clear(); gm.Effects.Clear(); gm.Zones.Clear(); gm.Minions.Clear(); gm.Orbs.Clear();
-    me.Kit = Kit.Ninja; me.Role = Role.Dps; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Ninja, 2);
+    me.Kit = Kit.Ninja; me.Role = Role.Dps; me.Def = Defs.Get(Role.Dps); me.Weapon = Defs.Weapon(Role.Dps, Kit.Ninja, 2); me.Stats.FangBites = 11;  // (three Dragon's Hunger cards: all 12 bites)
     V2 mine = new V2(300f, 450f);
     int n = 0;
     foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = new V2(200f, 300f + 300f * n++); }

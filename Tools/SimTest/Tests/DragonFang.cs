@@ -6,7 +6,7 @@ using Arena;
 // The DPS Ninja's Dragon Fang Kunai (DragonFang.cs).
 static partial class Program
 {
-    /// One huge kunai at a time; it bites 12 enemies in turn, 10% harder each bite, never one twice in a row of new ones; the other
+    /// One huge kunai at a time; one bite with no cards, Dragon's Hunger +4 a card up to 12; with them it bites 12 enemies in turn, 10% harder each bite, never one twice in a row of new ones; the other
     /// screen sees each bite (FxKind.DragonFangBite) and the bullet; a lone target is bitten again off the arena's edges; the last
     /// bite bursts; the chain leaves the Kunai's mark to blink to; an extra projectile adds two bites.
     static void DragonFangTest(float dt)
@@ -49,6 +49,20 @@ static partial class Program
         Func<int> fangs = () => g.Bullets.Values.Count(b => b.Owner == 1 && b.Kind == Defs.DragonFang);
         Action Clear = () => { foreach (var d in dummies) d.Hp = 0f; dummies.Clear(); pins.Clear(); Step(0.3f, from, false); g.Enemies.Clear(); g.Bullets.Clear(); Step(0.1f, from, false); client.Game.Bullets.Clear(); client.Game.Effects.Clear(); me.FireCd = 0f; };
         queue.Clear(); g.Enemies.Clear(); g.Bullets.Clear();
+
+        // By default it bites one: the first enemy, then it's gone.
+        V2 c0 = from + new V2(260f, 0f);
+        var one = Dummy(c0); pins[one] = c0;
+        var two = Dummy(c0 + new V2(150f, 0f)); pins[two] = c0 + new V2(150f, 0f);
+        Check(g.DragonFangMax(me) == 1, "with no cards it bites one enemy a throw (" + g.DragonFangMax(me) + ")");
+        Step(dt, c0, true);
+        Step(1f, c0, false);
+        Check(one.Hp < one.MaxHp && two.Hp == two.MaxHp && fangs() == 0, "one bite, then it's gone (the one beside it untouched)");
+        var hunger = Upgrades.All.First(u => u.Name == "Dragon's Hunger");
+        int[] maxes = new int[4];
+        for (int k = 0; k < 4; k++) { maxes[k] = g.DragonFangMax(me); if (k < 3) hunger.Apply(me.Stats); }
+        Check(maxes[0] == 1 && maxes[1] == 5 && maxes[2] == 9 && maxes[3] == 12 && hunger.MaxStacks == 3, "Dragon's Hunger: +4 bites a card, three cards to 12 (" + string.Join(",", maxes) + ")");
+        Clear();
 
         // A 4 x 4 grid 150 px apart (the burst's 120 px reaches none of the others): 12 bitten, each 10% harder than the last.
         V2 corner = from + new V2(260f, -225f);
@@ -125,11 +139,15 @@ static partial class Program
         Console.WriteLine("  burst: the two took {0:0} + {1:0} = {2:0}; 12 bites {3:0} + the burst {4:0}", da, db, da + db, sum, burst);
         Check(Math.Abs(da + db - sum - burst) < 2f, "the 12th bite bursts for half of it on what's beside it");
 
-        // An extra projectile: two more bites.
+        // An extra projectile: two more bites, still never past 12.
         Clear();
+        me.Stats.FangBites = 0;
         me.Stats.ExtraShots += 1;
-        Check(g.DragonFangMax(me) == Game.DragonFangHits + Game.DragonFangExtraHits, "an extra projectile adds two bites (" + g.DragonFangMax(me) + ")");
+        int withExtra = g.DragonFangMax(me);
+        me.Stats.FangBites = 11;
+        int capped = g.DragonFangMax(me);
         me.Stats.ExtraShots -= 1;
+        Check(withExtra == 1 + Game.DragonFangExtraHits && capped == Game.DragonFangHits, "an extra projectile adds two bites, up to 12 (" + withExtra + ", " + capped + ")");
 
     }
 }

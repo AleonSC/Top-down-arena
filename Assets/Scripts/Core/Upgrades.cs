@@ -310,6 +310,7 @@ namespace Arena
         public float StarStickCut, StarReturnMult = 1f;                    // Shuriken: Barbed Stars
         public float BurstPushMult = 1f, CaltropBonusTime;                 // Katana: Honed Edge
         public float KunaiBlinkMult = 1f, KunaiMarkBonus;                  // Kunai: Shadow Mark
+        public int FangBites;                                              // Dragon Fang Kunai: Dragon's Hunger (more bites a throw)
         // Hemomancer weapon cards (Docs/UpgradePools.md step 9)
         public float LashReachMult = 1f, ClotCutBonus;                     // Blood Lash: Crimson Whip (and LashLinkBonus)
         public int LashLinkBonus;
