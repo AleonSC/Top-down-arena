@@ -652,7 +652,7 @@ namespace Arena
             if (p.SwiftT > 0f)
                 DrawSwiftness(p, t);  // cyan ring and speed streaks (HolyCrossLook.cs)
             if (p.MomentumStacks > 0)
-                DrawMomentum(p, t);  // pips on a ring, one per stack (MomentumLook.cs)
+                DrawMomentum(p, t);  // a gold power-up aura under you, fiercer per stack (MomentumLook.cs)
             if (p.IronCap > 0f)
                 DrawIronhide(p, t);  // five steel plates on a ring (IronhideLook.cs; a Tank, or an ally with Shared Plating's gift)
             if (p.AdrenalineT > 0f)
