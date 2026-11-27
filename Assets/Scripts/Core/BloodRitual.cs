@@ -2,8 +2,8 @@ using System;
 
 namespace Arena
 {
-    /// Blood Ritual: the Tank Hemomancer's fourth ultimate (key 3 of the lobby's Ultimate row; Vein Tithe stays the default,
-    /// Bloodbath is key 1, Blood Golem key 2). Docs/Mockups/blood-ritual.html. A `ZoneKind.BloodRitual` zone at the cursor
+    /// Blood Ritual: the DPS Hemomancer's fourth ultimate (key 3 of the lobby's Ultimate row; Crimson Harvest stays the default,
+    /// Blood Ravager is key 1, Blood Boil key 2). Docs/Mockups/blood-ritual.html. A `ZoneKind.BloodRitual` zone at the cursor
     /// (clamped to RitReach), RitRadius across, that runs through its phases by age (Duration - T, replicated):
     ///   - Inscribe (RitInscribe s): a pentagram is bled onto the floor; RitCost of your max health is paid over it (never below
     ///     the blood floor). Going down, or the slot changing, while it's still being drawn breaks it (nothing more happens).
@@ -36,7 +36,7 @@ namespace Arena
         {
             new AbilityDef
             {
-                Id = AbilityId.BloodRitual, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = AbilityDef.Ult, UltKey = 3,
+                Id = AbilityId.BloodRitual, Kit = Kit.Hemomancer, Role = Role.Dps, Choice = AbilityDef.Ult, UltKey = 3,
                 Name = "Blood Ritual", Cooldown = RitCooldown,
                 Desc = "Bleed a pentagram onto the floor that tears open and floods out blood imps to claw and taunt enemies.",
                 Capstone = "The portal stays open 10 s and pours out 50 imps.",

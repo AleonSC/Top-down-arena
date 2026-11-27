@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Blood Ritual (the Tank Hemomancer's fourth ultimate, Core/BloodRitual.cs), from Docs/Mockups/blood-ritual.html.
+    /// Blood Ritual (the DPS Hemomancer's fourth ultimate, Core/BloodRitual.cs), from Docs/Mockups/blood-ritual.html.
     /// Everything comes from the replicated zone (`ZoneKind.BloodRitual`: Pos, Radius, its age the phase) and the imps (minion sync:
     /// Pos, Aim, Scale, Stacks the imp's state, Wind a claw's flash), so it costs nothing extra on the network:
     ///   the inscribe: a rope of blood from the Hemomancer to a pen point that draws the outer circle, then the five strokes of
