@@ -2467,7 +2467,7 @@ written on the disk's label in marker as you type; the drive says FORMAT NEW DIS
 at 50. Loading a disk plays the **disk boot sequence** (`Docs/Mockups/disk-boot-sequence.html`, 4.8 s): the disk lifts and the rest of
 the carousel fades, it rises to the drive shrinking to the slot's width, tips back and slides up into the slot (it flashes as it
 seats), the drive reads it (DISK DETECTED, READING <name>… with the light blinking amber and the cells filling, then <name> READY in
-green) while WHO'S PLAYING? backspaces away and VECTOR COLOSSEUM types on, then the main menu's case drops out from under the monitor
+green) while WHO'S PLAYING? backspaces away and VECTOR SECTOR: ARENA types on, then the main menu's case drops out from under the monitor
 and powers on (see The main menu). The **eject key** beside the drive plays it backwards: the case powers down and lifts back up
 under the monitor, the drive drains its cells, the latch clicks and your disk kicks out of the slot on a spring (TAKE DISK), comes the
 rest of the way out and drops back to the middle of the carousel as the title retypes WHO'S PLAYING?. Each step has its sound; any key

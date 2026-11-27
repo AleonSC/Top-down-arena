@@ -128,7 +128,7 @@ namespace Arena
             float cx = MathX.Lerp(W / 2f, to.X, tk), cy = MathX.Lerp(MenuTitleY, to.Y, tk), size = MathX.Lerp(MenuTitleSize, 18f, tk);
             float oldA = 1f - Seg(tk, 0.2f, 0.42f), newA = Seg(tk, 0.38f, 0.6f);
             if (oldA > 0f)
-                WithAlpha(oldA, () => Ui.Glitch(new Rect(cx - W / 2f, cy - size, W, size * 2f), "VECTOR COLOSSEUM", Mathf.RoundToInt(size), Color.white, TextAnchor.MiddleCenter, Ui.Accent));
+                WithAlpha(oldA, () => Ui.Glitch(new Rect(cx - W / 2f, cy - size, W, size * 2f), CrtTitleText, Mathf.RoundToInt(size), Color.white, TextAnchor.MiddleCenter, Ui.Accent));
             var titleR = new Rect(LobbyTitleRect.x + (cx - to.X), LobbyTitleRect.y + (cy - to.Y), LobbyTitleRect.width, LobbyTitleRect.height);
             if (newA > 0f && modeScreen)
                 WithAlpha(newA, () => DrawModeScreenTitle(titleR, 1f));

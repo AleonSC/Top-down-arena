@@ -49,7 +49,7 @@ namespace Arena
             }
         }
 
-        /// GAME MODE, where the lobby's title sits (the menu's entrance flies VECTOR COLOSSEUM into it, LobbyEnter.cs). `a` fades it.
+        /// GAME MODE, where the lobby's title sits (the menu's entrance flies VECTOR SECTOR: ARENA into it, LobbyEnter.cs). `a` fades it.
         void DrawModeScreenTitle(Rect r, float a) =>
             LobbyKit.Spaced(new Rect(r.x, r.y, 300f, r.height), "GAME MODE", 16, new Color(0.56f, 0.71f, 1f, a), TextAnchor.MiddleLeft, 4.8f);
 
