@@ -107,6 +107,7 @@ namespace Arena
                     : shown == AbilityId.ConduitWeb ? Game.CwTime + 1.5f  // (the web fades before the next)
                     : shown == AbilityId.EyeOfCalm ? Game.EyeTime + 1.5f  // (the gust settles before the next)
                     : shown == AbilityId.Heartbeat ? Game.HbTotal + 1.5f  // (the stains dry before the next)
+                    : shown == AbilityId.HeartOfTheSwarm ? Game.HsTotal + 1.5f  // (the heart fades before the next)
                     : shown == AbilityId.FiveShadowGong ? Game.FsgEndAt(Game.FsgPer) + Game.FsgSmokeLife + 0.5f  // (the smoke clears before the next)
                     : shown == AbilityId.PressurePointPress ? Game.PppEndAt(Game.PppMax) + 2f  // (the stuns wear off before the next)
                     : shown == AbilityId.AstralProjection ? Game.ApTime + 1.5f  // (the spirit snaps back before the next)
