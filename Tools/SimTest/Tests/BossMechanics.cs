@@ -147,16 +147,18 @@ static partial class Program
             var s = StartBuffed(dt, 10, 25);
             s[0].Game.ScaleBosses = false;  // 25 damage stacks: a quick kill, not the tougher Queen such a party would meet
             bool shielded = false, swarm = false, dead = false, seenQueen = false;
+            int rerolls = 0;  // as the Queen shows up (Field Training gives Soldiers one as each wave starts)
             Run(s, dt, 70, () => dead, () =>
             {
                 var q = Find(s[1], EnemyType.HiveQueen);
+                if (q != null && !seenQueen) rerolls = s[0].Game.Players[1].Rerolls;
                 seenQueen |= q != null;
                 shielded |= q != null && q.Phase == 1;
                 swarm |= Find(s[1], EnemyType.Shard) != null;
                 dead = seenQueen && Find(s[0], EnemyType.HiveQueen) == null;
             });
             Check(swarm && shielded, "Hive Queen summons a swarm and shields herself (seen on client)");
-            Check(dead && s[0].Game.Players[1].Rerolls == Game.StartingRerolls + 2, "Hive Queen can be killed and pays out rerolls");
+            Check(dead && s[0].Game.Players[1].Rerolls == rerolls + 2, "Hive Queen can be killed and pays out rerolls");
             s[0].Leave(""); s[1].Leave("");
         }
         // Her drones get their own turn: while any live she's shielded and waits (no bombers) for up to 10 s;

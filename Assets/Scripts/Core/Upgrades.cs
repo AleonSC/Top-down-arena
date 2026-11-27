@@ -50,6 +50,7 @@ namespace Arena
         CeremonialArmor,
         ChakraReserves,  // the Healer Ninja's 4th choice (ChakraReserves.cs), the lobby's 4th choice
         Claymore,  // Claymore (Claymore.cs) took Mark for Death's place (and number); Poison Dart (PoisonDart.cs) took Dash's place (and number); Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
+        ConduitWeb,  // the Healer Elementalist's fourth ultimate (ConduitWeb.cs), key 3 of the lobby's Ultimate row
         Consecrate,
         CrimsonHarvest,
         DeathLotus,
@@ -399,6 +400,7 @@ namespace Arena
         public readonly WeaponId? Weapon;  // null: no weapon (weapon cards are never offered)
         public readonly bool Expanding;    // the Expanding arena (the vector cards)
         public readonly AbilityId Ult;     // your ultimate (F): cards for it (RequiresAbility) are offered too
+        public bool FieldTraining;         // a Soldier's class passive (Soldier.cs): one more card in every level-up offer
 
         /// `kit` defaults to the class of the 1st ability. A Wildcard has no class of its own: it counts as the class
         /// of its 1st ability, of its weapon and of its second ability (`second`, on 2nd, 3rd or 4th), so any of those
@@ -427,7 +429,7 @@ namespace Arena
 
         /// A player's offers: their role, class (a Wildcard: its gear's classes), 1st ability, picks and weapon.
         public static OfferCtx Of(Player p, bool expanding) =>
-            new OfferCtx(p.Role, p.FirstAbility, p.Taken, p.Weapon != null ? p.Weapon.Id : (WeaponId?)null, expanding, p.Kit, p.WildcardAbility, p.Slots[Upgrades.UltSlot].Id);
+            new OfferCtx(p.Role, p.FirstAbility, p.Taken, p.Weapon != null ? p.Weapon.Id : (WeaponId?)null, expanding, p.Kit, p.WildcardAbility, p.Slots[Upgrades.UltSlot].Id) { FieldTraining = Game.IsSoldier(p) };
     }
 
     public class UpgradeDef
@@ -466,7 +468,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Elementalist, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// Hemomancer.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.RocketUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.TuskerUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.EyeUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.HeartbeatUltimates, Game.BannerUltimates, Game.LanceRainUltimates, Game.GongUltimates, Game.FoamUltimates, Game.RitualUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.RocketUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.TuskerUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.EyeUltimates, Game.ConduitUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.HeartbeatUltimates, Game.BannerUltimates, Game.LanceRainUltimates, Game.GongUltimates, Game.FoamUltimates, Game.RitualUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 
@@ -1009,7 +1011,7 @@ namespace Arena
             var st = Compute(c.Taken);  // Fortune (rarer cards) and Wide Choice (more cards) are milestone upgrades
             float veryRare = Math.Min(10f, 3f + level * 0.5f) * (1f + st.RarityLuck);
             float rare = Math.Min(22f, 11f + level * 0.8f) * (1f + st.RarityLuck);
-            var offer = RollWeighted(rng, c, new[] { 55f, 28f * (1f + st.RarityLuck), rare, veryRare }, 3 + Math.Min(2, st.OfferExtra));
+            var offer = RollWeighted(rng, c, new[] { 55f, 28f * (1f + st.RarityLuck), rare, veryRare }, 3 + Math.Min(2, st.OfferExtra + (c.FieldTraining ? Game.FieldTrainingCards : 0)));  // (Field Training: Soldier.cs)
             return level == Game.CallingGuaranteeLevel ? WithCalling(rng, c, offer) : offer;
         }
 
