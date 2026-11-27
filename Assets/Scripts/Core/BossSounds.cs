@@ -120,6 +120,8 @@ namespace Arena
         void BroadcastSound(Sfx sound)
         {
             Sounds.Add(sound);
+            if (!session.HasPeers)
+                return;  // (alone: nobody to tell)
             var w = Proto.Begin(Msg.Sound);
             w.Write((ushort)sound);
             session.Broadcast(Proto.End(w));

@@ -110,8 +110,8 @@ namespace Arena
         void SendNetPings()
         {
             Lag.PlayerPing.Clear();
-            var w = Proto.Begin(Msg.NetPings);
-            w.Write((byte)Players.Count);
+            var w = session.HasPeers ? Proto.Begin(Msg.NetPings) : null;  // (alone: only the local chart's numbers, nothing to send)
+            w?.Write((byte)Players.Count);
             float worst = -1f;
             foreach (var p in Players.Values)
             {
@@ -119,12 +119,15 @@ namespace Arena
                 Lag.PlayerPing[p.Id] = ms;
                 if (p.Id != MyId)
                     worst = Math.Max(worst, ms);
+                if (w == null)
+                    continue;
                 w.Write(p.Id);
                 w.Write((ushort)Math.Min(65535, Math.Max(0, (int)Math.Round(ms))));
             }
             if (worst >= 0f)
                 Lag.AddPing(LagNow, worst);  // the host's ping line is the worst guest's (it has no round trip of its own)
-            session.Net?.Broadcast(Proto.End(w));  // (straight to the network: live numbers)
+            if (w != null)
+                session.Net.Broadcast(Proto.End(w));  // (straight to the network: live numbers)
         }
 
         void ReadNetPings(BinaryReader r)

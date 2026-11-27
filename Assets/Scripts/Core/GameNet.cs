@@ -133,6 +133,8 @@ namespace Arena
             session.Broadcast(Proto.End(w));
         }
 
+        readonly List<int> upgradesRead = new List<int>();  // reused by Msg.Upgrades: the cards read, checked before any is applied
+
         MemoryStream snapBuf;  // reused by SendSnapshot: no new stream 20 times a second (not kept in a run save: RunSnapshot.Skip)
         BinaryWriter snapWriter;
 
@@ -149,7 +151,7 @@ namespace Arena
             SyncSnapshot(new NetSync(w));  // (written even alone: a few fields the host draws from are worked out here, BarrierFrac and the like)
             w.Flush();
             if (session.HasPeers)
-                session.Broadcast(snapBuf.ToArray());
+                session.Broadcast(snapBuf.GetBuffer(), (int)snapBuf.Length);  // (no copy: the transport frames it from the buffer)
         }
 
         // --- Client-side replication ------------------------------------------
@@ -315,9 +317,16 @@ namespace Arena
                     Player p;
                     if (!Players.TryGetValue(id, out p))
                         break;
-                    p.Taken.Clear();
+                    upgradesRead.Clear();
                     for (int i = 0; i < n; i++)
-                        p.Taken.Add(r.ReadInt16());
+                    {
+                        int t = r.ReadInt16();
+                        if (t < 0 || t >= Upgrades.All.Length)
+                            throw new InvalidDataException("card " + t + " out of range");  // (garbled: Session drops the link before any of it is applied)
+                        upgradesRead.Add(t);
+                    }
+                    p.Taken.Clear();
+                    p.Taken.AddRange(upgradesRead);
                     for (int k = 0; k < p.CardAbilities.Length; k++)
                         p.CardAbilities[k] = (AbilityId)r.ReadByte();
                     Recalc(p);
@@ -454,9 +463,10 @@ namespace Arena
             s.Short(ref count);
             if (s.Reading)
             {
-                Zones.Clear();
+                snapSeen.Clear();
                 for (int i = 0; i < count; i++)
-                    SyncZone(s, null);
+                    snapSeen.Add(SyncZone(s, null));
+                RemoveUnseen(Zones);
             }
             else
                 foreach (var z in Zones.Values)
@@ -696,7 +706,7 @@ namespace Arena
             s.Bool(ref p.OfferStart);
             int offers = p.Offer != null ? p.Offer.Length : 0;
             s.Byte(ref offers);
-            var offer = s.Reading ? (offers > 0 ? new int[offers] : null) : p.Offer;
+            var offer = !s.Reading ? p.Offer : offers == 0 ? null : p.Offer != null && p.Offer.Length == offers ? p.Offer : new int[offers];  // (reading: the same cards' array refilled, not a new one every snapshot)
             for (int k = 0; k < offers; k++)
                 s.Short(ref offer[k]);  // card ids are 2 bytes; -1 (no card) survives the trip
             for (int k = 0; k < Upgrades.SlotCount; k++)
@@ -799,6 +809,8 @@ namespace Arena
             }
             s.Int(ref id);
             s.Byte(ref type);
+            if (s.Reading && type >= Defs.Enemies.Length)
+                throw new InvalidDataException("enemy type " + type + " out of range");  // (a garbled snapshot: Session drops the link)
             s.Vec(ref pos);
             s.Float(ref hp);
             s.Float(ref maxHp);
@@ -966,6 +978,8 @@ namespace Arena
             }
             s.Int(ref id);
             s.Byte(ref kind);
+            if (s.Reading && kind >= Kits.Minions.Length)
+                throw new InvalidDataException("minion kind " + kind + " out of range");  // (a garbled snapshot: Session drops the link)
             s.Int(ref owner);
             s.Vec(ref pos);
             s.Float(ref aim);
@@ -998,19 +1012,22 @@ namespace Arena
             return id;
         }
 
-        /// A ground zone (clients rebuild the list from each snapshot).
-        void SyncZone(NetSync s, Zone z)
+        /// A ground zone; returns its id. Reading, a new id brings a new zone (one already known is refilled in place).
+        int SyncZone(NetSync s, Zone z)
         {
-            if (s.Reading)
-                z = new Zone();
-            else
+            if (!s.Reading)
                 z.GuardFrac = z.Kind == ZoneKind.BloodWall || z.Kind == ZoneKind.SmokeShell || z.Kind == ZoneKind.Cover || z.Kind == ZoneKind.DecoyDummy || z.Kind == ZoneKind.DeployTurret || z.Kind == ZoneKind.Ballista || z.Kind == ZoneKind.Claymore || z.Kind == ZoneKind.TrojanHorse || z.Kind == ZoneKind.Caltrop || z.Kind == ZoneKind.Tusker || z.Kind == ZoneKind.HazardFoam ? z.GuardFrac  // (a cover's health left: DeployableCover.cs)  // (a smoke canister's flight distance: GrenadeLauncher.cs)
                       // a Blood Wall node's place along its wall (BloodWall.cs)
                     : z.Kind == ZoneKind.Smoke ? (z.ExtraSlow > 0f ? 1f : 0f)  // a mastered Smoke Bomb (its slow on enemies), for drawing
                     : z.Kind == ZoneKind.Ward ? (z.SoakMax > 0f ? z.Soak / z.SoakMax : 0f) : z.Def.BlockCapacity > 0f ? z.BlockHp / z.Def.BlockCapacity : 0f;
-            int kind = (int)z.Kind;
-            s.Int(ref z.Id);
+            int id = z != null ? z.Id : 0, kind = z != null ? (int)z.Kind : 0;
+            s.Int(ref id);
             s.Byte(ref kind);
+            if (s.Reading && (!Zones.TryGetValue(id, out z) || (int)z.Kind != kind))  // (ids restart each run: a new kind is a new zone)
+            {
+                z = new Zone { Id = id };
+                Zones[id] = z;
+            }
             z.Kind = (ZoneKind)kind;
             s.Int(ref z.Owner);
             s.Vec(ref z.Pos);
@@ -1034,8 +1051,8 @@ namespace Arena
                 s.Float(ref z.Marched);
                 int n = z.Bones != null ? z.Bones.Length : 0;
                 s.Byte(ref n);
-                if (s.Reading)
-                    z.Bones = new byte[n];
+                if (s.Reading && (z.Bones == null || z.Bones.Length != n))
+                    z.Bones = new byte[n];  // (the same line's array is refilled, not a new one every snapshot)
                 for (int i = 0; i < n; i++)
                     s.Byte(ref z.Bones[i]);
             }
@@ -1062,8 +1079,7 @@ namespace Arena
                 s.Vec(ref z.Origin);
             if (z.Kind == ZoneKind.FieldHospital || z.Kind == ZoneKind.BlastOfuda)  // who has used its shrine (FieldHospital.cs); the enemy a Blast Ofuda rides, 0 on the ground (Ofuda.cs)
                 s.Int(ref z.Side);
-            if (s.Reading)
-                Zones[z.Id] = z;
+            return id;
         }
 
         /// A health orb; returns its id.

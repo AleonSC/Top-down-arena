@@ -666,24 +666,6 @@ namespace Arena
             }
         }
 
-        /// A chain of links from `a` to `b`, with the sickle's blade at `b`.
-        void DrawChain(V2 a, V2 b, float alpha)
-        {
-            V2 to = b - a;
-            float len = to.Length;
-            if (len < 1f)
-                return;
-            V2 dir = to / len, side = dir.Orthogonal();
-            int n = Math.Max(2, (int)(len / 9f));
-            for (int i = 0; i <= n; i++)
-            {
-                V2 at = a + to * ((float)i / n);
-                Circle(at, i % 2 == 0 ? 2.2f : 1.6f, Steel.WithAlpha((i % 2 == 0 ? 0.95f : 0.7f) * alpha), 6);
-            }
-            Arc(b - dir * 4f, 7f, 2.5f, Rgba.White.WithAlpha(0.9f * alpha), 8, dir.Angle - MathX.Pi / 2f, MathX.Pi);  // the blade, curving round
-            Line(b - dir * 6f, b - dir * 1f + side * 6f, 2f, Steel.WithAlpha(alpha));
-        }
-
         /// Chain Light's cone: a flash of light fanning out from the caster, brightest at its edges, with rays
         /// running out through it.
         void DrawLightConeFx(Effect fx, float f, float t)
