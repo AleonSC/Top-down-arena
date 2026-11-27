@@ -25,7 +25,7 @@ namespace Arena
         bool beatFrozen = false;  // previews (Tools/Preview, by reflection): keep the values set from outside
 
         /// How strong the reaction is: 0 with effects off or the background STILL, half on Reduced effects.
-        float BeatAmt => !fxOn || !menuBgAnimate ? 0f : fxReduced ? 0.5f : 1f;
+        float BeatAmt => !fxOn || !menuBgAnimate ? 0f : fxReduced ? 0.25f : 0.5f;  // (0.5 at full: a gentle backdrop, not a light show)
         float BeatPulse => beatPulse * BeatAmt;
         float BeatBand(int i) => beatBands[i] * BeatAmt;
 
@@ -35,10 +35,10 @@ namespace Arena
             if (beatFrozen)
                 return;
             float dt = Mathf.Min(Time.unscaledDeltaTime, 0.1f), now = Time.unscaledTime;
-            beatHit *= Mathf.Exp(-3f * dt);
-            beatPulse = Mathf.Lerp(beatPulse, beatHit, 1f - Mathf.Exp(-14f * dt));  // eased in and out (~70 ms), no one-frame flash
+            beatHit *= Mathf.Exp(-2f * dt);
+            beatPulse = Mathf.Lerp(beatPulse, beatHit, 1f - Mathf.Exp(-8f * dt));  // eased in and out (~125 ms), no one-frame flash
             bool live = sounds != null && BeatAmt > 0f && sounds.MusicSpectrum(beatSpec);
-            float fall = Mathf.Exp(-2.2f * dt), rise = 1f - Mathf.Exp(-9f * dt);  // bars glide up and settle slowly
+            float fall = Mathf.Exp(-1.5f * dt), rise = 1f - Mathf.Exp(-5f * dt);  // bars glide up and settle slowly
             if (!live)
             {
                 for (int i = 0; i < BeatBandCount; i++)
