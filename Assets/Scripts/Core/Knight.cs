@@ -104,7 +104,7 @@ namespace Arena
         public static float PierceReach(Player p) => 1f + PierceReachPerStack * p.Stats.Pierce;
 
         /// How far a melee weapon reaches (Piercing Rounds lengthen it 15% a stack).
-        public static float MeleeReach(Player p, float baseReach) => baseReach * PierceReach(p);
+        public static float MeleeReach(Player p, float baseReach) => baseReach * PierceReach(p) * (1f + p.Stats.HomingReach);  // Piercing Rounds and Homing Rounds reach farther
 
         /// A melee weapon's base swing reach (Defs; bots and tests use it).
         public static float MeleeRange(WeaponId w) => Defs.WeaponOf(w).Reach;

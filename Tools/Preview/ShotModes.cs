@@ -761,7 +761,10 @@ static partial class Shot {
         if (Environment.GetEnvironmentVariable("WAVECARDS") != null) { me.Offer = new[] { (int)Expansion.GridRoundCard(new DetRandom(3), 3), (int)Expansion.MakePieceCard(PieceShape.TetT) }; me.OfferWave = true; me.WavePicks = 1; }  // WAVECARDS=1: the wave card pick
         if (Environment.GetEnvironmentVariable("STARTCARDS") != null) { me.Hand[0] = me.Hand[1] = 0; me.Offer = Array.ConvertAll(Expansion.GridStartOffer(int.Parse(Environment.GetEnvironmentVariable("STARTCARDS"))), c => (int)c); me.OfferWave = me.OfferStart = true; me.WavePicks = 1; me.PendingCards = 2; } }  // STARTCARDS=<seed>: the starting piece pick (INTRO=<s> for its roll)
       else if (mode == "legendary") { me.Offer = new[] { U("Warden's Guard"), U("Stun Gun"), U("Searchlight") }; me.OfferLegendary = true; }
-      else { me.Offer = Upgrades.ModOffer(OfferCtx.Of(me, false)); me.OfferMod = true; }
+      else {  // the weapon mod pick; MODWEAPON=<WeaponId> picks your weapon, so the cards say what each mod does for it (WeaponMods.cs)
+        var mw = Environment.GetEnvironmentVariable("MODWEAPON");
+        if (mw != null) foreach (var w in Defs.Weapons) if (w.Id.ToString() == mw) { me.Weapon = w; me.Kit = w.Kit; me.Role = w.Role; me.Def = Defs.Get(w.Role); }
+        me.Offer = Upgrades.ModOffer(OfferCtx.Of(me, false)); me.OfferMod = true; }
       me.PendingPicks = 2;
       typeof(ArenaApp).GetField("selectedCard", f2).SetValue(app, 1);
       typeof(ArenaApp).GetField("shownOffer", f2).SetValue(app, string.Join(",", Array.ConvertAll(me.Offer, x => x.ToString())) + "/" + me.Taken.Count + "," + Game.HandCount(me) + "," + host.Game.RoomTokens.Count);
