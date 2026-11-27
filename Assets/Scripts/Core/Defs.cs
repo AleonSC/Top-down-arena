@@ -163,6 +163,7 @@ namespace Arena
         Censer,
         ChainLight,
         DancingBlades,
+        DefibCannon,
         DoubleBarrel,
         DragonFangKunai,  // the DPS Ninja's Dragon Fang Kunai (DragonFang.cs): one huge kunai bouncing through enemies, a fire dragon behind it
         Earthball,
@@ -192,6 +193,7 @@ namespace Arena
         LeechTendrils,
         Lightbringer,
         MendersBow,
+        NanoSprayer,
         NeedleSwarm,
         Nimbus,
         Nodachi,  // the Tank Ninja's fourth (Nodachi.cs): a katana as tall as you, two stances
@@ -202,13 +204,17 @@ namespace Arena
         Quarterstaff,
         RadiantOrb,
         Railgun,
+        Railspike,
         Rapier,
         RepulsionCannon,
         Revolver,
         RiotRepeater,
+        RocketPod,
         SanguineOrb,
         Scattergun,
         Shuriken,
+        SiegeCannon,  // the Soldier Callings' weapons (SoldierCallings.cs): no lobby place (WeaponDef.Calling)
+        SlugBreacher,
         SpiritChalk,
         SpiritFan,
         SpriteStaff,
@@ -275,6 +281,7 @@ namespace Arena
         public KitFireFn Fire;         // its own firing code (Game.FireVolley); null: its class's KitDef.Fire fires it
         public WeaponRangeFn Range;    // its reach right now (Game.WeaponRange, the aim line); null: a swing's reach (Melee) or Speed × Life
         public bool Charge;            // hold to charge, let go to fire (Game.ChargeWeapon)
+        public CallingId Calling;      // a Calling's own weapon (SoldierCallings.cs): never in a lobby place; the Calling puts it in your hands
     }
 
     /// WeaponDef.Range: how far the player's weapon `w` reaches from their centre right now, with `extra` extra projectiles.
@@ -727,9 +734,18 @@ namespace Arena
             var five = new WeaponDef[3 * KitCount];
             var six = new WeaponDef[3 * KitCount];
             var seen = new bool[Enum.GetValues(typeof(WeaponId)).Length];
+            var callingOnes = new List<WeaponDef>();
             foreach (var list in lists)
                 foreach (var w in list)
                 {
+                    if (w.Calling != CallingId.None)
+                    {
+                        if (seen[(int)w.Id])
+                            throw new InvalidOperationException("Two WeaponDefs for " + w.Id);
+                        callingOnes.Add(w);  // (no lobby place: a Calling's weapon)
+                        seen[(int)w.Id] = true;
+                        continue;
+                    }
                     if (w.Choice == WeaponsPerRole + 2 && (int)w.Kit < KitCount && w.Role != Role.Wildcard)
                     {
                         int f6 = (int)w.Role * KitCount + (int)w.Kit;
@@ -800,6 +816,7 @@ namespace Arena
             foreach (var w in six)
                 if (w != null)
                     withFourth.Add(w);
+            withFourth.AddRange(callingOnes);
             return withFourth.ToArray();
         }
 
@@ -911,6 +928,12 @@ namespace Arena
             FoamGlob = 88,     // a Hazard Foam glob: flies over everything and lands as foam (HazardFoam.cs, Game/HazardFoamLook.cs)
             RocketShell = 87,  // a Rocket Drop rocket: bursts on what it touches, a wall, or at the cursor (RocketDrop.cs, Game/RocketDropLook.cs)
             BallistaBolt = 86, // a Ballista's giant bolt: through everything, knocking what it passes (Ballista.cs, Game/BallistaLook.cs)
+            SiegeShell = 90,   // a Siege Cannon shell: bursts on what it hits or where its flight ends, knocking enemies back (SoldierCallings.cs, Game/SoldierCallingsLook.cs)
+            SlugRound = 91,    // a Slug Breacher slug: through enemies, stunning and shoving (SoldierCallings.cs)
+            DefibBolt = 92,    // a Defib Cannon shock: stuns enemies, heals allies it passes (SoldierCallings.cs)
+            RailSpikeShot = 93, // a Railspike spike: through everything (SoldierCallings.cs)
+            PodRocket = 94,    // a Rocket Pod rocket: homes in and bursts (SoldierCallings.cs)
+            MinigunRound = 95, // a Shoulder Minigun round (SoldierCallings.cs)
             EarthballShot = 72; // the Earthball: stops on the first enemy, stuns it and breaks into rubble (ElementBalls.cs, Game/ElementBallLook.cs)
 
         public static bool IsEnemyShot(byte kind) => kind >= 10 && kind < 20 || kind == CrescentShot || kind == TaserBolt || kind == TracerRound || kind == StingBolt || kind == MagmaBolt || kind == ThrownDagger || kind == EmberSpark || kind == BottleShot;
@@ -944,6 +967,12 @@ namespace Arena
             Row(table, RocketShell, radius: 10f, color: new Rgba(1f, 0.54f, 0.11f));  // Rocket Drop (RocketDrop.cs)
             Row(table, FoamGlob, radius: 4f, color: new Rgba(1f, 0.96f, 0.76f));  // Hazard Foam (HazardFoam.cs): lobbed, it never collides
             Row(table, HorseArrow, radius: 4.5f, color: Rgba.Gold);
+            Row(table, SiegeShell, radius: 11f, color: new Rgba(1f, 0.66f, 0.3f));      // the Soldier's Callings (SoldierCallings.cs)
+            Row(table, SlugRound, radius: 6f, color: new Rgba(0.55f, 0.75f, 1f));
+            Row(table, DefibBolt, radius: 6f, color: new Rgba(0.45f, 1f, 0.95f));
+            Row(table, RailSpikeShot, radius: 5f, color: new Rgba(0.85f, 0.92f, 1f));
+            Row(table, PodRocket, radius: 5f, color: new Rgba(1f, 0.55f, 0.2f));
+            Row(table, MinigunRound, radius: 3f, color: new Rgba(1f, 0.82f, 0.4f));
             Row(table, BallistaBolt, radius: 12f, color: Rgba.Gold);  // the Ballista's giant bolt (Ballista.cs)
             Row(table, AstralBolt, radius: 5f, color: new Rgba(0.73f, 0.96f, 1f));  // the spirit's pale cyan (AstralProjection.cs)
             Row(table, Senbon, radius: 4f, color: new Rgba(0.86f, 0.89f, 0.93f));  // steel (the venom tip and ink tail are drawn by SenbonSeekersLook.cs)

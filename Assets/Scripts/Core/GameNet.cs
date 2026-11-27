@@ -583,6 +583,7 @@ namespace Arena
             SyncLiteralTank(s, p);  // LiteralTank.cs
             SyncRocketDrop(s, p);  // RocketDrop.cs
             SyncHazardFoam(s, p);  // HazardFoam.cs
+            SyncSoldierCalling(s, p);  // SoldierCallings.cs
             SyncKnightBanners(s, p);  // KnightBanners.cs
             SyncStoneColossus(s, p);  // StoneColossus.cs
             SyncBloodGolem(s, p);  // BloodGolem.cs

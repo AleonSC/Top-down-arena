@@ -144,6 +144,7 @@ namespace Arena
         MarrowLink,
         MartyrCast,
         Meteor,
+        MountTracer,  // a Soldier Calling's shoulder mount firing (Pos = the mount, Pos2 = where; SoldierCallings.cs, Game/SoldierCallingsLook.cs)
         NeedleBurst,  // NeedleBurst: Acupuncture Needles coming out of a body at once (Pos = it, Pos2 = (0 Meridian Open on a player / 1 Pressure Point on an enemy, its id), Radius = its size, Color = jade or blood; Core/AcupunctureNeedles.cs, Game/AcupunctureLook.cs)
         NeedleSwarm,  // NeedleSwarm: a needle of the DPS Hemomancer's Needle Swarm leaving the ring (Pos = where, Pos2 = (the owner's id, 0 broken by a shot / 1 the Alt's burst), Radius = the shot's size / needles thrown, Color = the shot's colour; Core/NeedleSwarm.cs, Game/NeedleSwarmLook.cs)
         NimbusStorm,
@@ -1187,6 +1188,13 @@ namespace Arena
         public bool OfferPrize;      // the current offer is a challenge room's prize
         public int StunShots;        // Stun Gun: bolts left while it's out (replicated; Stun.cs)
         public float GuardCd;        // host: until the next Warden's Guard arrives
+        public WeaponDef LobbyWeapon;  // the weapon picked in the lobby, kept while a Soldier Calling's weapon is in your hands (SoldierCallings.cs; every game)
+        public bool SecondOut;         // replicated: a second-slot Calling's weapon is out (Swap weapon; SoldierCallings.cs)
+        public float MountAim;         // replicated: where a Calling's shoulder mount points (SoldierCallings.cs)
+        public byte MountSpin;         // replicated: the Shoulder Minigun's spin, 0-255
+        public byte TetherTo;          // replicated: the player the Lifeline Tether's beam is on (0 none)
+        public int CallingN;           // replicated (byte): shocks since the last full Defib charge; Siege shells towards Bombardment; Breach and Clear's loaded slugs
+        public float ChanceT;          // host: Second Chance's beam time on a downed ally; the Shoulder Minigun's non-stop fire (Bullet Storm)
         public float CallingCd, CallingT;  // host: until a fallen Calling spider comes back; the Calling capstone's timer (Callings.cs)
         public readonly EnemyType[] PactType = new EnemyType[2];  // host: Force Pact: the enemy type each pact slot holds (slot 1 is the mastered second thrall; ForcePact.cs)
         public readonly bool[] PactSet = new bool[2];
@@ -1411,6 +1419,8 @@ namespace Arena
         public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
         public bool WeaponDmg;    // host only: its hits are the weapon's in the session recording (FromWeapon, or launched later by it: Ice Shards, hammer throws)
         public float Splash;      // host only: explosion radius on impact
+        public byte CallShot;     // host only: a Soldier Calling weapon's shot, its CallingId (stuns, shoves, bursts: SoldierCallings.cs)
+        public bool Full;         // host only: a full-charge Defib shock or Railspike (SoldierCallings.cs)
         public int Hellfire;      // host only: a Calling demon's fireball with this many Hellfire cards: its burst leaves the ground burning (Callings.cs)
         public V2 FallOrigin;     // host only: a Double Barrel pellet: where it left the gun, for its damage falling off with distance (DoubleBarrel.cs)
         public bool PointBlank;   // host only: a Scattergun pellet (double damage and a shove up close)
@@ -1598,6 +1608,7 @@ namespace Arena
         public bool Dodge;         // pressed: dodge (Ctrl or a double tap of a movement key; Dodge.cs); this machine only
         public bool DodgeHeld;     // held: the key that started the dodge is still down (keep holding to sprint; Dodge.cs); this machine only
         public byte Steer;         // the Arc Knuckles' click wheel: the way the cursor points from its centre (0 none, else an angle code; ArcKnucklesBrawl.cs); sent in Msg.Input
+        public bool SwapWeapon;    // pressed: a second-slot Calling's Swap weapon key (SoldierCallings.cs); this machine only
         public bool WeaponAction;  // held: your weapon's secondary (Dragon Fang blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl); this machine only
     }
 }

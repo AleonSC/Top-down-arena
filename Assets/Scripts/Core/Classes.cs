@@ -66,6 +66,8 @@ namespace Arena
         {
             var all = new WeaponDef[Lists.Length][];
             for (int i = 0; i < all.Length; i++) all[i] = Lists[i].Weapons;
+            Array.Resize(ref all, all.Length + 1);
+            all[all.Length - 1] = Game.SoldierCallingWeapons;  // the Soldier's Calling weapons (no lobby place: SoldierCallings.cs)
             return all;
         }
 

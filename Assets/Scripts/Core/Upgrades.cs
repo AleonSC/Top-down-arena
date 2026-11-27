@@ -285,6 +285,16 @@ namespace Arena
         public float WebBonusTime, WebBonusSlow, SpiderHpMult = 1f, SpiderRespawnCut; public bool SpiderQueen;  // Spider: Silk Snare, Thick Carapace, Spider Queen
         public float FairyDust, FairyHealMult = 1f, FairyLowMult = 1f; public bool FairyRing;                    // Fairy: Pixie Dust, Second Wind, Fairy Ring
         public float FeastPer; public int Hellfire; public bool InfernalPact;                                    // Demon: Soul Feast, Hellfire, Infernal Pact
+        // The Soldier's Callings (SoldierCallings.cs)
+        public float SiegeBlastMult = 1f, SiegeDmgMult = 1f, SiegeStun; public bool Bombardment;               // Siege Cannon: Bigger Bore, Aftershock, Bombardment
+        public int SlugPierce; public float SlugDmgMult = 1f, SlugStun; public bool BreachClear;               // Slug Breacher: Door Kicker, Concussive, Breach and Clear
+        public float FlakMountRate = 1f, FlakMountReach; public bool ReturnFire;                               // Flak Mount: Quick Traverse, Wide Arc, Return Fire
+        public float DefibMult = 1f; public int DefibCut; public bool DefibClear;                              // Defib Cannon: Overvolt, Quick Paddles, Clear!
+        public float NanoReachMult = 1f, NanoMult = 1f; public bool GrayGoo;                                   // Nano Sprayer: Dense Mist, Nanite Boost, Gray Goo
+        public float TetherHealMult = 1f, TetherReach; public bool SecondChance;                               // Lifeline Tether: Strong Link, Long Line, Second Chance
+        public float SpikeChargeMult = 1f, SpikeDmgMult = 1f; public bool Skewer;                              // Railspike: Capacitors, Tungsten Core, Skewer
+        public int PodExtra; public float PodBlastMult = 1f, PodDmgMult = 1f; public bool PodCluster;          // Rocket Pod: Extra Tubes, Warheads, Cluster Payload
+        public float MinigunRate = 1f, MinigunDmgMult = 1f, MinigunReach; public bool BulletStorm;            // Shoulder Minigun: Belt Feed, Tracer Rounds, Bullet Storm
         public float CutReachMult = 1f;                                    // Knight: Plate Armour (how far out swings cut bullets)
         public float GhostCut, GhostTime;                                  // Ninja: Ghost Step (less damage for GhostTime after a dodge)
         public float HealthCostMult = 1f;                                  // Hemomancer: Bloodthirst (health paid for abilities)
@@ -752,7 +762,7 @@ namespace Arena
                 Apply = s => { s.Pierce += 1; s.DmgMult += 0.35f; } },
 
         }, WeaponMods.Cards(), ClassAbilityCards(), Milestones(), VectorCards(), Game.SoldierCards, Game.ElementalistCards, Game.SummonerCards,
-            Game.KnightCards, Game.NinjaCards, Game.HemomancerCards, Game.EngineerCards);
+            Game.KnightCards, Game.NinjaCards, Game.HemomancerCards, Game.EngineerCards, Game.SoldierCallingCards);
 
         /// After a boss: every weapon mod you can still take, to choose from.
         public static int[] ModOffer(OfferCtx c)
