@@ -11,8 +11,23 @@ namespace Arena
         internal static readonly KitDef SoldierKit = new KitDef
         {
             Id = Kit.Soldier, Name = "Soldier", Icon = "class_soldier",
-            Blurb = "Guns and gear. Straightforward firearms with an Alt trick each (a point-blank shell, a proximity mine, a grenade volley) and field kit for abilities. Full health and normal speed: the steady pick.",
+            Blurb = "Guns and gear. Straightforward firearms with an Alt trick each (a point-blank shell, a proximity mine, a grenade volley) and field kit for abilities. Field Training: every level-up offer shows 1 more card, and each wave gives a free reroll (up to 3 held). Full health and normal speed: the steady pick.",
         };
+
+        /// Field Training (owner Nov 27), the Soldier's class passive: +FieldTrainingCards in every level-up offer (Upgrades.RollOffer,
+        /// within Wide Choice's cap of 5) and +1 reroll as each wave starts while you hold fewer than FieldTrainingRerollCap (TickWaves).
+        public const int FieldTrainingCards = 1, FieldTrainingRerollCap = 3;
+
+        /// A real Soldier: its class, not a Wildcard (whose gear counts as Soldier when it has no class of its own).
+        public static bool IsSoldier(Player p) => p.Kit == Kit.Soldier && p.Role != Role.Wildcard;
+
+        /// Field Training's reroll: called by the host as each wave starts.
+        void FieldTrainingRerolls()
+        {
+            foreach (var p in Players.Values)
+                if (IsSoldier(p) && p.Rerolls < FieldTrainingRerollCap)
+                    p.Rerolls++;
+        }
 
         /// The Soldier's weapons (fired in FireVolley below).
         /// Each entry's Kit, Role and Choice place it in the lobby (Defs.Weapons gathers every class's list).
