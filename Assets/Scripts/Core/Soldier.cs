@@ -11,6 +11,7 @@ namespace Arena
         internal static readonly KitDef SoldierKit = new KitDef
         {
             Id = Kit.Soldier, Name = "Soldier", Icon = "class_soldier",
+            OnKill = (g, e) => g.SoldierCallingKill(e),  // Gray Goo (SoldierCallings.cs)
             Blurb = "Guns and gear. Straightforward firearms with an Alt trick each (a point-blank shell, a proximity mine, a grenade volley) and field kit for abilities. Field Training: every level-up offer shows 1 more card, and each wave gives a free reroll (up to 3 held). Full health and normal speed: the steady pick.",
         };
 

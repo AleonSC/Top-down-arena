@@ -187,7 +187,7 @@ namespace Arena
         public const float BowDrawSlow = 0.85f;  // move speed while drawing
 
         public float BowFull(Player p) => p.Weapon != null && p.Weapon.Id == WeaponId.ArcLightning ? ArcTagGap(p) * ArcTagMax(p) + 0.05f  // Arc Lightning: every tag in (ArcLock.cs)
-            : (p.Weapon != null && p.Weapon.Id == WeaponId.Railgun ? RailFullDraw : BowFullDraw) / FireRate(p) * (p.Weapon != null && p.Weapon.Id == WeaponId.MendersBow ? p.Stats.BowDrawMult : p.Weapon != null && p.Weapon.Id == WeaponId.ArcLightning ? p.Stats.ArcChargeMult : 1f);  // (Steady Draw, Static Field)  // (Steady Draw: sooner)
+            : (p.Weapon != null && (p.Weapon.Id == WeaponId.Railgun || p.Weapon.Id == WeaponId.Railspike) ? RailFullDraw : BowFullDraw) / FireRate(p) * (p.Weapon != null && p.Weapon.Id == WeaponId.MendersBow ? p.Stats.BowDrawMult : p.Weapon != null && p.Weapon.Id == WeaponId.ArcLightning ? p.Stats.ArcChargeMult : p.Weapon != null && p.Weapon.Id == WeaponId.Railspike ? p.Stats.SpikeChargeMult : 1f);  // (Capacitors: SoldierCallings.cs)  // (Steady Draw, Static Field)  // (Steady Draw: sooner)
 
         /// Weapons you hold to charge and let go to fire: the Mender's Bow, the Railgun, the Warhammer, the Golem Staff's boulder, Arc Lightning, the Imp Caller and the Gore Mortar.
         public static bool ChargeWeapon(WeaponId w) => Defs.WeaponOf(w).Charge;  // (WeaponDef.Charge)

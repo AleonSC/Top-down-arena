@@ -1071,6 +1071,20 @@ revives). Wounds **carry across waves** but never take more than **70% of your m
 
 Calling minions hit harder with your damage upgrades and Pack Bond, and fight in frenzies (Alpha Call) like your other minions.
 
+**Callings** (Soldier): the same rules, but each role has its own three, and each is a weapon that exists only for that Calling. One per role of each kind: **Replace** (a massive weapon takes your lobby weapon's place for the rest of the run), **Second slot** (you keep your weapon and **Swap weapon**, E by default, switches to the Calling's and back) and **Auto-fire** (a shoulder mount that works on its own beside your weapon).
+
+| Calling | The weapon | Its cards (Rare, 2 stacks) | Capstone (Very Rare) |
+|---|---|---|---|
+| **Call the Siege Cannon** (Tank, replace) | Huge shells (55, every 1.25 s) that burst 84 px wide and knock enemies back; you move 12% slower | **Bigger Bore** (blasts 25% wider, 15% harder) · **Aftershock** (blasts stun 0.5 s) | **Bombardment**: every 3rd shell scatters 4 bomblets |
+| **Call the Slug Breacher** (Tank, second slot) | One heavy slug (38, every 0.85 s) through 3 enemies, stunning 0.35 s and shoving them | **Door Kicker** (+1 enemy, 20% harder) · **Concussive** (0.4 s more stun) | **Breach and Clear**: swapping to it loads 3 slugs that explode where they stop |
+| **Call the Flak Mount** (Tank, auto-fire) | A shoulder flak gun shoots down the nearest enemy bullet within 170 px every 0.6 s | **Quick Traverse** (30% faster) · **Wide Arc** (60 px further) | **Return Fire**: each bullet shot down sends a flak round (18) at the nearest enemy |
+| **Call the Defib Cannon** (Healer, replace) | Shocks (26, every 0.9 s) through 2 enemies that stun them 0.6 s and heal allies they pass 10; every 5th is a full charge: twice as hard, a 1.2 s stun, and it stands up a downed ally it touches at 30% health | **Overvolt** (25% more damage and healing) · **Quick Paddles** (a full charge 1 shock sooner) | **Clear!**: a full charge arcs to 3 more enemies and heals every ally within 140 px of what it hits for 20 |
+| **Call the Nano Sprayer** (Healer, second slot) | A 170 px mist cone: allies in it heal about 13 a second, enemies take about 18 | **Dense Mist** (30% further) · **Nanite Boost** (heals and corrodes 30% more) | **Gray Goo**: enemies that die in the mist burst, healing allies within 90 px for 15 |
+| **Call the Lifeline Tether** (Healer, auto-fire) | A beam from your shoulder heals the most hurt ally within 320 px 6 a second (you, half that, when nobody is hurt) | **Strong Link** (40% more) · **Long Line** (120 px further) | **Second Chance**: the tether reaches for a downed ally first and stands them up after 3 s on the beam at 30% health; once every 30 s |
+| **Call the Railspike** (DPS, replace) | Hold to charge (1.1 s): a spike (50 to 180) through everything across the arena; a full charge pins what it passes 0.5 s | **Capacitors** (charges 25% faster) · **Tungsten Core** (25% harder) | **Skewer**: a full charge pins for 1 s and blasts each enemy it passes for 40% of the hit |
+| **Call the Rocket Pod** (DPS, second slot) | A fanned salvo of 6 homing rockets (14 each, 38 px bursts) every 1.8 s | **Extra Tubes** (+2 rockets) · **Warheads** (blasts 30% wider, 15% harder) | **Cluster Payload**: each rocket bursts into 2 bomblets |
+| **Call the Shoulder Minigun** (DPS, auto-fire) | Spins up (0.6 s) when an enemy is within 420 px and sprays the nearest one: 4 a round, 11 rounds a second | **Belt Feed** (25% faster) · **Tracer Rounds** (25% harder, 80 px further) | **Bullet Storm**: after 3 s of non-stop fire it fires two streams |
+
 **Weapon mods** change how your shots behave, and you can see them on your bullets:
 
 | Mod | Per stack |
@@ -2111,6 +2125,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 | 1st ability | 1 (changeable) |
 | Parry | Hold right click (changeable) |
 | Alternative fire (Dragon Fang blink, Twin Fang, Sunlance, Hook & Haul, Shuriken's Great Star stance, Bo Staff shove, Kusarigama whirl) | Left Alt |
+| Swap weapon (a Soldier's second-slot Calling: Slug Breacher, Nano Sprayer, Rocket Pod) | E |
 | Ultimate | Q |
 | Interact: take your chest item (standing on it; B discards it), open a mystery door, shut a gate, open a room shop again, climb into or out of a Trojan Horse | F |
 | Gadget: tap to switch on / off, hold and let go to throw it where you aim (right click while holding cancels) | X |

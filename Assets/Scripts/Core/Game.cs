@@ -409,6 +409,7 @@ namespace Arena
         /// every peer, so all derived values agree without being sent.
         void Recalc(Player p)
         {
+            PickCallingWeapon(p);  // a Soldier Calling's weapon in your hands (SoldierCallings.cs)
             p.Stats = Upgrades.Compute(p.Taken, p.Weapon);  // (each card as it works for your weapon: WeaponMods.cs)
             if (p.Role == Role.Wildcard)
             {
@@ -1159,6 +1160,8 @@ namespace Arena
                 for (int i = 0; i < held.Length; i++)
                     held[i] = MathX.Fmod(botT + i * 1.3f, 4f) < 0.1f;
             }
+            if (input.SwapWeapon || Bot && HasSecondSlot(me) && MathX.Fmod(botT, 9f) < dt)
+                LocalSwap(me);  // a second-slot Calling: the other weapon (SoldierCallings.cs; a bot swaps now and then)
             if (Bot && HoldingCells.Count > 0)
                 CellBot(me, ref move, ref aimAt, ref firing, held);  // in a Holding Cell, or a teammate in one (HoldingCell.cs)
             if (Bot)
@@ -1623,6 +1626,7 @@ namespace Arena
             TickTanks(dt);      // LiteralTank.cs: the tank's time, running enemies over, getting out
             TickRocketLaunchers(dt);  // RocketDrop.cs: the launcher's time, dropping the tube
             TickFoamSprayers(dt);  // HazardFoam.cs: the sprayer's time and tank, taking it off
+            TickSoldierCallings(dt);  // SoldierCallings.cs: the shoulder mounts, Defib revives
             TickHorseRiders(dt);  // TrojanHorse.cs: riders of a horse that's gone, Sally Forth's time
             TickArmadillo(dt);  // IronArmadillo.cs: the ball's time, its speed and hits, the uncurl slam
             TickColossus(dt);   // StoneColossus.cs: the golem's time, feet, slams and crumbling boulders

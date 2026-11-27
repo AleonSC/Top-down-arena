@@ -12,9 +12,9 @@ static partial class Program
     static void CallingsTest(float dt)
     {
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
-        var callings = Upgrades.All.Where(u => u.Calling != CallingId.None).ToList();
+        var callings = Upgrades.All.Where(u => u.Calling != CallingId.None && !Game.SoldierCalling(u.Calling)).ToList();  // (the Soldier's: SoldierCallings.cs)
         Check(callings.Count(u => u.CallingTier == 1) == 3 && callings.Count(u => u.CallingTier == 2) == 6 && callings.Count(u => u.CallingTier == 3) == 3,
-            "3 Callings, each with 2 cards and a capstone");
+            "3 Summoner Callings, each with 2 cards and a capstone");
         Check(callings.Where(u => u.CallingTier == 1).All(u => u.Kit == Kit.Summoner && u.Rarity == Rarity.Rare && u.MaxStacks == 1)
             && callings.Where(u => u.CallingTier == 3).All(u => u.Rarity == Rarity.VeryRare), "the Callings are Rare Summoner cards; the capstones Very Rare");
 
@@ -33,7 +33,7 @@ static partial class Program
             && Upgrades.Available(U("Spider Queen"), ctx(new List<int> { U("Call the Spider"), U("Silk Snare"), U("Thick Carapace") })),
             "Spider Queen is offered only once both Spider cards are held");
         AbilityId soldier = Upgrades.FirstAbility(Role.Tank, Kit.Soldier, 0);
-        Check(!Upgrades.Available(U("Call the Spider"), new OfferCtx(Role.Tank, soldier, none, WeaponId.Scattergun)), "other classes aren't offered Callings");
+        Check(!Upgrades.Available(U("Call the Spider"), new OfferCtx(Role.Tank, soldier, none, WeaponId.Scattergun)), "other classes aren't offered the Summoner's Callings");
 
         // The guarantee and the weighting.
         int at5 = 0, at4 = 0, spiders = 0, demons = 0;

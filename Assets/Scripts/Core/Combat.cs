@@ -445,7 +445,9 @@ namespace Arena
                     continue;
                 }
                 if (LandShell(b))
-                    continue;  // boulders, clots, rocket and tank shells, flak: a burst credited to the shot
+                    continue;
+                if (CallShotLanded(b))
+                    continue;  // a Soldier Calling weapon's shell, rocket or slug (SoldierCallings.cs)  // boulders, clots, rocket and tank shells, flak: a burst credited to the shot
                 if (b.Talisman)
                 {
                     TalismanBurst(b, null);  // a Healing Talisman bursts where its flight ends (Ofuda.cs)
@@ -1091,6 +1093,7 @@ namespace Arena
                 PropBlast(b.Pos, b.Splash, b.Owner);
                 if (b.Hellfire > 0)
                     HellfireGround(b);  // a Calling demon's fireball (Callings.cs)
+                CallShotBurst(b);  // a Siege Cannon shell's knockback (SoldierCallings.cs)
                 if (b.HealBurst > 0f)
                     CharmHeal(b);  // Ofuda (Ninja.cs)
             }
@@ -1352,6 +1355,7 @@ namespace Arena
             if (b.Chain > 0)
                 ChainLightning(e, b.Dmg * 0.6f, b.Chain, b.Owner, ChainReach * (b.Owner != 0 && Players.ContainsKey(b.Owner) ? AreaMult(Players[b.Owner]) : 1f));
             StunBoltHit(b, e);  // Stun.cs
+            CallShotHit(b, e);  // a Soldier Calling weapon's shot (SoldierCallings.cs)
             BoneDartHit(b, e);  // the Bone Guard's darts cage what they stick in (KitWeapons.cs)
             WolfDartHit(b, e);  // the Wolf Whistle's darts mark the pack's prey (KitWeapons.cs)
             SuppressHit(b, e);  // Riot Repeater rounds slow its shooting (Weapons.cs)

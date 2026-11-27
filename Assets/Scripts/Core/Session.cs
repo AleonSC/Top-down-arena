@@ -71,6 +71,7 @@ namespace Arena
         DrillKick,    // client -> host: your own game saw you wall-kick (Dodge.cs WallKick), for the Wall Kick drill (DrillGame.cs)
         HorseBoard,   // client -> host: Interact by or in a Trojan Horse (bool: true climb in, false drop out; TrojanHorse.cs)
         BallistaMount, // client -> host: Interact by a Ballista: get on it, or off the one you ride (Ballista.cs)
+        CallingSwap,  // client -> host: Swap weapon with a second-slot Soldier Calling (no body; SoldierCallings.cs)
 
         // Hello and Reject keep fixed values so every version can understand them, whatever else changes.
         Reject = 200,
@@ -136,7 +137,7 @@ namespace Arena
         /// Bump this whenever the layout of the messages the two games send each other changes (a field read or written).
         /// Players on different versions can't play together; the host turns them away with a message. New ids and cards
         /// need no bump: `IdsHash` tells two builds with different ones apart by itself.
-        public const int ProtocolVersion = 555;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 556;  // history: Docs/ProtocolHistory.md
 
         static int idsHash;
 
@@ -711,6 +712,9 @@ namespace Arena
                     break;
                 case Msg.Dodge:
                     Game.OnDodge(peer, r);
+                    break;
+                case Msg.CallingSwap:
+                    Game.OnCallingSwap(peer);  // SoldierCallings.cs
                     break;
                 case Msg.DrillKick:
                     Game.DrillKicked(peer);  // DrillGame.cs
