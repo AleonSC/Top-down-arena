@@ -30,7 +30,7 @@ runs:
         DEBS: ${{ steps.pkgs.outputs.dir }}
       run: |
         mkdir -p "$DEBS"
-        installed() { for p in $PKGS; do dpkg-query -W -f='${Status}' "$p" 2>/dev/null | grep -q 'install ok installed' || return 1; done; }
+        installed() { ok=0; for p in $PKGS; do dpkg-query -W -f='${Status}' "$p" 2>/dev/null | grep -q 'install ok installed' || { echo "not installed: $p"; ok=1; }; done; return $ok; }
         # 1. From the cache: dpkg installs the cached .debs straight away (no apt update, no mirror).
         if ls "$DEBS"/*.deb >/dev/null 2>&1; then
           if sudo dpkg -i "$DEBS"/*.deb >/dev/null && installed && command -v mcs >/dev/null && command -v mono >/dev/null; then
@@ -47,11 +47,11 @@ runs:
           echo "apt failed (try $i), retrying"; sleep 20
         done
         command -v mcs && command -v mono
-        installed
+        installed || echo "::warning::some packages don't report 'install ok installed' (mcs and mono are there)"
         # Keep what apt downloaded for the next run (saved below only when there's something new).
         rm -f "$DEBS"/*.deb
         if ls /var/cache/apt/archives/*.deb >/dev/null 2>&1; then
-          cp /var/cache/apt/archives/*.deb "$DEBS"/ && echo "fresh=1" >> "$GITHUB_OUTPUT"
+          cp /var/cache/apt/archives/*.deb "$DEBS"/ && echo "fresh=1" >> "$GITHUB_OUTPUT" || echo "couldn't keep the .debs (not cached this run)"
         fi
     - if: steps.install.outputs.fresh == '1'
       uses: actions/cache/save@v4
