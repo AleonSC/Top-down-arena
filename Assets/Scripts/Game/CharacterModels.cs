@@ -145,11 +145,16 @@ namespace Arena
             float rx = sh[0], ry = sh[1], w = Mathf.Sin(t * 3f) * 1.6f;
 
             MEll(1f, 2f, rx + 2f, ry + 1f, new Rgba(0f, 0f, 0f, 0.28f));
+            mTankLook = tankLookMock >= 0 && p.Kit == Kit.Soldier && role == 0 ? tankLookMock : -1;  // Tools/Preview only (TankSoldierMock.cs)
+            if (mTankLook >= 0) TankMockBody(K, RC, rx, ry, t);
+            else
+            {
             ModelBack(p, kit, role, K, RC, rx, ry, w, t);
             if (p.Weapon.Id == WeaponId.MendersBow)
                 DrawBowQuiver(p);  // the quiver on the back (BowFocusLook.cs)
             MEll(-1f, 0f, rx, ry, K.Dark); MEll(-1f, 0f, rx - 1.6f, ry - 1.6f, K.Base);
             ModelRoleTrim(role, K, RC, rx, ry, t, !LookDrawsPauldrons(p));
+            }
 
             if (p.Weapon.Id == WeaponId.BearTotem)  // a claw on each hand and the totem on the back, not a held weapon (BearLooks.cs)
             {
@@ -405,6 +410,7 @@ namespace Arena
             switch ((Kit)kit)
             {
                 case Kit.Soldier:  // a helmet with a glowing visor
+                    if (mTankLook >= 0) { TankMockHead(K, RC, x, r, t); break; }
                     MCirc(x, 0f, r, K.Dark, 14); MCirc(x, 0f, r - 1.2f, K.Base, 14);
                     MRect(x + r * 0.15f, -r * 0.55f, r * 0.75f, r * 1.1f, Hx(0x10161c)); MLine(x + r * 0.55f, -r * 0.4f, x + r * 0.55f, r * 0.4f, 1.2f, Hx(0x7bd0ff));
                     if (role == 0) { MRect(x - 4f, -r - 1.5f, 8f, 2.8f, K.Dark); MRect(x - 4f, r - 1.3f, 8f, 2.8f, K.Dark); MLine(x - r + 1f, 0f, x - 1f, 0f, 1.8f, RC); }
