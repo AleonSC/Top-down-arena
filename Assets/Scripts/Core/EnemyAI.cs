@@ -659,7 +659,7 @@ namespace Arena
                 {
                     if (!Hittable(p) || p.SwallowT > 0f || p.MeleeGraceT > 0f)
                         continue;
-                    if ((p.ParryActive || p.BbBrace) && p.Pos.CloserThan(e.Pos, e.Radius + p.Def.BodyR + ParryReach) && ParryContact(p, e, contact))
+                    if ((p.ParryActive || p.BbBrace) && p.Pos.CloserThan(e.Pos, e.Radius + p.Def.BodyR + ParryReachOf(p)) && ParryContact(p, e, contact))
                         continue;
                     if (p.Pos.CloserThan(e.Pos, e.Radius + p.Def.HitR))
                     {

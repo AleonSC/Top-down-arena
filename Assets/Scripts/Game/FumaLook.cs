@@ -117,7 +117,7 @@ namespace Arena
                 for (int i = 0; i < p.FumaMinis && i < Game.FumaStealCap; i++)  // stolen shots, circling as small hot stars
                 {
                     float k = Mathf.Clamp01((v.Clock - v.MiniBorn[i]) / 0.17f), e = 1f - (1f - k) * (1f - k) * (1f - k);
-                    V2 from = V2.FromAngle(p.Aim) * (p.Def.BodyR + Game.ParryReach);
+                    V2 from = V2.FromAngle(p.Aim) * (p.Def.BodyR + Game.ParryReachOf(p));
                     V2 at = from + (Game.FumaMiniPose(p, v.Clock, i) - from) * e;
                     DrawFumaBlades(p.Disp + at, 0.45f, -spin * 1.6f + i, 1f, 1f);
                 }

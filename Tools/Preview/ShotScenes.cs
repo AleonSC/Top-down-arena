@@ -2178,7 +2178,7 @@ static partial class Shot {
       float pt = float.Parse(Environment.GetEnvironmentVariable("PERFECTPARRY"), System.Globalization.CultureInfo.InvariantCulture);
       var gm = host.Game; gm.Bot = false; gm.Effects.Clear(); gm.Bullets.Clear();
       me.Pos = me.Disp = new V2(700f, 470f); me.Aim = -0.4f; me.Parrying = true; me.ParryHp = Game.ParryMax(me);
-      V2 hitAt = me.Pos + V2.FromAngle(me.Aim) * (me.Def.BodyR + Game.ParryReach * 0.55f);
+      V2 hitAt = me.Pos + V2.FromAngle(me.Aim) * (me.Def.BodyR + Game.ParryReachOf(me) * 0.55f);
       gm.Effects.Add(new Effect { Kind = FxKind.PerfectParry, Pos = hitAt, Pos2 = new V2(me.Id, me.Aim), Color = me.Def.Color, Radius = Game.ParryArc(me), T = pt, Dur = Game.PerfectFxTime });
       var needleShot = new Bullet { Id = 999999, Kind = Defs.ParryNeedle, Owner = me.Id, Pos = hitAt + V2.FromAngle(me.Aim) * (Game.NeedleSpeed * pt), Vel = V2.FromAngle(me.Aim) * Game.NeedleSpeed, Radius = 4f, Life0 = 1f, Life = 1f - pt };
       gm.Bullets[needleShot.Id] = needleShot;

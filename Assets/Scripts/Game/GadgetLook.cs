@@ -214,6 +214,12 @@ namespace Arena
                 }
                 else
                 {
+                    if (g.Fizzle > 0f)  // a Tactical Vest drop: its time on the floor drains as a gold arc, and it blinks before it fizzles (TacticalVest.cs)
+                    {
+                        if (Game.VestBlinkAlpha(g, t) < 1f)
+                            continue;
+                        Arc(ground, 22f, 1.6f, Game.VestInk.WithAlpha(0.6f), 24, -Mathf.PI / 2f, MathX.Tau * Mathf.Clamp01(g.Fizzle / Game.VestFizzle));
+                    }
                     lift = 3f + Mathf.Sin(t * 3f + g.Id) * 2f;
                     float pulse = Mathf.Repeat(t * 0.7f + g.Id * 0.3f, 1f);
                     Arc(ground, 18f + pulse * 18f, 1.6f, ring.WithAlpha(0.5f * (1f - pulse)), 20);

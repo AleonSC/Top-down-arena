@@ -117,6 +117,26 @@ static partial class Program
         for (int f = 0; f < 60; f++) { Step(sh, dt); Step(client, dt); Nap(2); }
         Check(Math.Abs(client.Game.Players[2].IronCap - Game.IronShareGift) < 0.01f, "the friend's game knows the shield (for the plates and the HUD)");
 
+        // The Knight's Chainmail: 15 on the same shield, stacking with a Tank Knight's Ironhide; 105% health.
+        Func<Role, Session> MakeKnight = role =>
+        {
+            var kh = new Session { AutoStart = 1 };
+            kh.Host(nextPort++, "Mail", role, 0, 0, Kit.Knight);
+            kh.Game.Bot = false;
+            kh.StartMatch();
+            for (int f = 0; f < 360 && kh.Game.State != MatchState.Fighting; f++) Step(kh, dt);
+            return kh;
+        };
+        var dk = MakeKnight(Role.Dps); var dkp = dk.Game.Players[1];
+        Check(Math.Abs(dkp.BaseHp - Defs.Get(Role.Dps).Hp * 1.05f) < 0.01f, "a Knight has 105% health");
+        Check(Math.Abs(dkp.IronCap - Game.KnightMail) < 0.01f && Math.Abs(Game.Ironhide(dkp) - Game.KnightMail) < 0.01f, "a DPS Knight's Chainmail holds " + Game.KnightMail + " and starts full");
+        float khp = dkp.Hp;
+        damage.Invoke(dk.Game, new object[] { dkp, 10f, "test" });
+        Check(Math.Abs(dkp.IronLost - 10f * Game.IronhideShare) < 0.01f && Math.Abs(khp - dkp.Hp - 10f * (1f - Game.IronhideShare)) < 0.01f, "Chainmail splits hits like Ironhide");
+        var tk = MakeKnight(Role.Tank); var tkp = tk.Game.Players[1];
+        Check(Math.Abs(tkp.IronCap - (Game.IronhideMax + Game.KnightMail)) < 0.01f, "a Tank Knight's Chainmail stacks with Ironhide (" + (Game.IronhideMax + Game.KnightMail) + ")");
+        Check(Game.StartShield(Role.Tank, Kit.Knight) == Game.IronhideMax + Game.KnightMail && Game.StartShield(Role.Healer, Kit.Soldier) == 0f, "the lobby's starting shield");
+
         // The Healer aura's falloff.
         var heal = Make(Role.Healer); var hp = heal.Game.Players[1];
         float mult = hp.Stats.AuraHealMult;

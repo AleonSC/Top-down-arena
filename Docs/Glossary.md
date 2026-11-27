@@ -18,6 +18,7 @@ Status: agreed with the owner (Nov 19 2026). One word per thing, in code comment
 |---|---|---|
 | **class** | Soldier, Elementalist, Summoner, Knight, Ninja, Hemomancer, Engineer, Arcanist (never "Mage" or "Blood Mage") | `Kit`, `KitDef` |
 | **role** | Tank, Healer, DPS | `Role` |
+| **Chainmail** | the Knight class's 15-point shield, on the same shield as Ironhide (stacks with it on a Tank Knight) | `Game.KnightMail`, `Player.IronCap` |
 | **alternative fire** | a weapon's secondary attack; "Alt" for short (the key label and weapon text) | `Alt` |
 | **level** | only your XP level in a run (level-ups bring upgrade cards); your profile's progress is **rank** | `Player.Level`, `Rank` |
 | **difficulty preset** | Normal, Hard, Nightmare... (never "difficulty level") | `DifficultyLevel` |

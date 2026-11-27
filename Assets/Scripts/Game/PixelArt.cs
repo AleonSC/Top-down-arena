@@ -1810,6 +1810,21 @@ namespace Arena
                 "...kkkkkk...",
                 "............",
             },
+            ["tacticalvest"] = new[]  // Tactical Vest: an olive vest with pouches, a grenade clipped in the middle
+            {
+                "..kk....kk..",
+                ".kNNk..kNNk.",
+                ".kNNNkkNNNk.",
+                "kNNNNNNNNNNk",
+                "kNMMNNNNMMNk",
+                "kNmmNkkNmmNk",
+                "kNmmkGGkmmNk",
+                "kNMMkGGkMMNk",
+                "kNmmNkkNmmNk",
+                "kNNNNNNNNNNk",
+                "kNNNNyyNNNNk",
+                ".kkkkkkkkkk.",
+            },
             ["claymore"] = new[]  // Claymore: the curved plate on its legs, its red light
             {
                 "............",

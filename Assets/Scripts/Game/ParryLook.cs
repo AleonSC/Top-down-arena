@@ -23,7 +23,7 @@ namespace Arena
             float age = fx.T, aim = fx.Pos2.Y, half = fx.Radius;
             Rgba col = fx.Color.WithAlpha(1f);
             V2 c = p != null ? p.Disp : fx.Pos - V2.FromAngle(aim) * 24f;
-            float rr = (p != null ? p.Def.BodyR : 14f) + Game.ParryReach * 0.55f;
+            float rr = (p != null ? p.Def.BodyR + Game.ParryReachOf(p) * 0.55f : 14f + Game.ParryReach * 0.55f);
             if (age < PerfectFlashTime)
             {
                 float k = 1f - age / PerfectFlashTime, grow = 0.15f * k;
