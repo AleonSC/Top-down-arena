@@ -664,6 +664,8 @@ namespace Arena
         public bool Downed;
         public int MomentumStacks;  // the DPS role passive (Momentum.cs)
         public float MomentumT;
+        public int MomentumKills;   // kills toward the next stack (synced)
+        public float MomentumShow;  // display only: the aura's eased level (MomentumLook.cs), not synced
         public float IronLost, IronWait;  // the Tank role passive (Ironhide.cs): shield taken off, seconds until it refills (replicated)
         public float IronCap;  // the most that shield holds now (Ironhide.cs: the host works it out each tick; replicated)
         public float Revive, FireCd, BarrierT, InvulnT, OverdriveT, AdrenalineT, SwiftT, Flash, LevelFlash;  // AdrenalineT: the Healer's Adrenaline Shot (Adrenaline.cs)

@@ -631,7 +631,7 @@ static partial class Shot {
       foreach (var q in gm.Players.Values) if (q != me) { var r = n == 0 ? Role.Tank : Role.Dps; q.Role = r; q.Kit = Kit.Soldier; q.Def = Defs.Get(r); q.Weapon = Defs.Weapon(r, Kit.Soldier, 0); q.MaxHp = q.Hp = q.Def.Hp; q.Pos = q.Disp = me.Pos + (n++ == 0 ? (Environment.GetEnvironmentVariable("HEALAURA") == "2" ? new V2(-130f, 95f) : new V2(-60f, 45f)) : new V2(230f, 40f)); }
     }
     if (Environment.GetEnvironmentVariable("MOMENTUM") != null) {
-      // Momentum (MomentumLook.cs): MOMENTUM=<stacks 0-5>, a DPS Soldier standing in the middle with that many stacks.
+      // Momentum (MomentumLook.cs): MOMENTUM=<level 0-5, fractions too (2.5 = 2 stacks and half the kills to the next)>, a DPS Soldier standing in the middle.
       var gm = host.Game; gm.Bot = false;
       foreach (var e in gm.Enemies.Values) e.Hp = 0f;
       gm.Bullets.Clear();
@@ -639,7 +639,8 @@ static partial class Shot {
       foreach (var sl in me.Slots) sl.Id = AbilityId.None;
       foreach (var q0 in gm.Players.Values) { q0.AegisT = 0f; q0.UltT = 0f; }
       me.Pos = me.Disp = new V2(800f, 450f); me.Aim = -0.4f; me.AimAt = me.Pos + V2.FromAngle(me.Aim) * 200f;
-      me.MomentumStacks = int.Parse(Environment.GetEnvironmentVariable("MOMENTUM")); me.MomentumT = 3f;
+      float mLv = float.Parse(Environment.GetEnvironmentVariable("MOMENTUM"), System.Globalization.CultureInfo.InvariantCulture);
+      me.MomentumStacks = (int)mLv; me.MomentumKills = (int)Math.Round((mLv - (int)mLv) * Game.MomentumKillsPer); me.MomentumShow = mLv; me.MomentumT = 3f;
       foreach (var q in gm.Players.Values) if (q != me) { q.Pos = q.Disp = me.Pos + new V2(-240f, 90f); }
     }
     if (Environment.GetEnvironmentVariable("SHADOWSTEP") != null) {
