@@ -267,6 +267,11 @@ namespace Arena
         public float OrbHealMult = 1f, BonusCdMult = 1f;                   // Soldier: Quartermaster (orbs you pick up; 2nd, 3rd or 4th cooldowns)
         public float SurgeRate;                                            // Elementalist: Arcane Surge (fire rate for SurgeTime after a 1st ability cast)
         public float MinionDmgMult = 1f, MinionToughMult = 1f;             // Summoner: Pack Bond
+        // Callings (Callings.cs, Docs/Callings.md)
+        public int Calling;                                                // the run's Calling (CallingId), 0: none yet
+        public float WebBonusTime, WebBonusSlow, SpiderHpMult = 1f, SpiderRespawnCut; public bool SpiderQueen;  // Spider: Silk Snare, Thick Carapace, Spider Queen
+        public float FairyDust, FairyHealMult = 1f, FairyLowMult = 1f; public bool FairyRing;                    // Fairy: Pixie Dust, Second Wind, Fairy Ring
+        public float FeastPer; public int Hellfire; public bool InfernalPact;                                    // Demon: Soul Feast, Hellfire, Infernal Pact
         public float CutReachMult = 1f;                                    // Knight: Plate Armour (how far out swings cut bullets)
         public float GhostCut, GhostTime;                                  // Ninja: Ghost Step (less damage for GhostTime after a dodge)
         public float HealthCostMult = 1f;                                  // Hemomancer: Bloodthirst (health paid for abilities)
@@ -442,6 +447,8 @@ namespace Arena
         public EnemyType? Boss;                     // legendary: the boss that awards it (ReaperOfDusk = the Twin Reapers)
         public bool Unoffered;                      // kept (old saves, dev tools) but never offered: the Queen's and the Twin Reapers' old cards (Swarm Rounds, Royal Jelly, Brood Mother; Executioner, Twin Fang, Soul Harvest)
         public bool PicksSlot;                      // the Extra Use card: you choose the ability (1st-4th) it goes on when you pick it
+        public CallingId Calling;                   // a Calling (CallingTier 1) or one of its cards (2; 3 the capstone) (Callings.cs)
+        public byte CallingTier;
         public Action<Stats> Apply;
         public ModId Mod;                           // the weapon mod it is (WeaponMods.cs); None for every other card
         public Dictionary<WeaponKind, KindEffect> ByKind;  // what it does instead for some kinds of weapon (WeaponMods.Kinds); a weapon's own Mods entry wins
@@ -947,6 +954,14 @@ namespace Arena
                 return false;
             if (u.RequiresAbility != AbilityId.None && u.RequiresAbility != c.Ult && !HasAbility(u.RequiresAbility, roleAbility, taken))
                 return false;
+            if (u.Calling != CallingId.None)
+            {
+                var have = CallingOf(taken);
+                if (u.CallingTier == 1 ? have != CallingId.None : have != u.Calling)
+                    return false;  // one Calling a run; its cards only once you have it
+                if (u.CallingTier == 3 && !CallingCardsHeld(u.Calling, taken))
+                    return false;  // the capstone: once both tier 2 cards are held
+            }
             if (u.ClassAbility && (u.Grants == roleAbility || SlotOf(u.Grants) != SlotOf(roleAbility)))
                 return false;  // only your own class's other two 1st abilities
             if (u.PicksSlot && UsesTaken(taken) >= UseSlots)
@@ -974,7 +989,7 @@ namespace Arena
                 candidates.Clear();
                 for (int id = 0; id < All.Length; id++)
                     if ((int)All[id].Rarity == r && Available(id, c))
-                        for (int k = 0; k < All[id].Weight; k++)
+                        for (int k = 0; k < WeightOf(id, c); k++)
                             candidates.Add(id);
                 if (candidates.Count > 0)
                     return candidates[rng.Next(candidates.Count)];
@@ -992,7 +1007,52 @@ namespace Arena
             var st = Compute(c.Taken);  // Fortune (rarer cards) and Wide Choice (more cards) are milestone upgrades
             float veryRare = Math.Min(10f, 3f + level * 0.5f) * (1f + st.RarityLuck);
             float rare = Math.Min(22f, 11f + level * 0.8f) * (1f + st.RarityLuck);
-            return RollWeighted(rng, c, new[] { 55f, 28f * (1f + st.RarityLuck), rare, veryRare }, 3 + Math.Min(2, st.OfferExtra));
+            var offer = RollWeighted(rng, c, new[] { 55f, 28f * (1f + st.RarityLuck), rare, veryRare }, 3 + Math.Min(2, st.OfferExtra));
+            return level == Game.CallingGuaranteeLevel ? WithCalling(rng, c, offer) : offer;
+        }
+
+        /// The Calling guarantee (Docs/Callings.md): a level-5 offer to someone with Summoner cards and no Calling yet
+        /// shows one, in place of its last card.
+        static int[] WithCalling(Random rng, OfferCtx c, int[] offer)
+        {
+            if (offer.Length == 0 || CallingOf(c.Taken) != CallingId.None)
+                return offer;
+            foreach (int id in offer)
+                if (All[id].CallingTier == 1)
+                    return offer;
+            var callings = new List<int>();
+            for (int id = 0; id < All.Length; id++)
+                if (All[id].CallingTier == 1 && Available(id, c))
+                    for (int k = 0; k < WeightOf(id, c); k++)
+                        callings.Add(id);
+            if (callings.Count > 0)
+                offer[offer.Length - 1] = callings[rng.Next(callings.Count)];
+            return offer;
+        }
+
+        /// How many times a card counts in its rarity's draw: its Weight, doubled for a Calling that suits your role.
+        static int WeightOf(int id, OfferCtx c)
+        {
+            var u = All[id];
+            return u.Weight * (u.CallingTier == 1 && Game.CallingRole(u.Calling) == c.Role ? 2 : 1);
+        }
+
+        /// The run's Calling, from the cards taken (None: not yet).
+        public static CallingId CallingOf(List<int> taken)
+        {
+            foreach (int t in taken)
+                if (All[t].CallingTier == 1)
+                    return All[t].Calling;
+            return CallingId.None;
+        }
+
+        /// Does this player hold every tier 2 card of this Calling (the capstone's condition)?
+        static bool CallingCardsHeld(CallingId calling, List<int> taken)
+        {
+            for (int id = 0; id < All.Length; id++)
+                if (All[id].Calling == calling && All[id].CallingTier == 2 && !taken.Contains(id))
+                    return false;
+            return true;
         }
 
         static int[] RollWeighted(Random rng, OfferCtx c, float[] weights, int count)
@@ -1016,7 +1076,7 @@ namespace Arena
                     var candidates = new List<int>();
                     for (int id = 0; id < All.Length; id++)
                         if ((int)All[id].Rarity == want && !used.Contains(id) && Available(id, c))
-                            for (int k = 0; k < All[id].Weight; k++)  // class ability cards count triple
+                            for (int k = 0; k < WeightOf(id, c); k++)  // class ability cards count triple
                                 candidates.Add(id);
                     if (candidates.Count > 0)
                         pick = candidates[rng.Next(candidates.Count)];

@@ -19,6 +19,8 @@ namespace Arena
         Butterfly,  // World Tree's healing butterfly: flutters to an ally (LinkTo) and heals them on arrival (WorldTree.cs)
         Clone,  // the Ninja's Shadow Clone: enemies target it; it bursts when it ends
         CloneWall,  // Shadow Clone: one of nine afterimages in a wall that soaks bullets and gets shoved by players; it does nothing else (CloneWall.cs)
+        Demon,  // the Demon Calling's demon: hovers at its owner's shoulder hurling fireballs (Callings.cs)
+        Fairy,  // the Fairy Calling's fairy: tends the most hurt ally, healing them; untargetable (Callings.cs)
         Golem,
         Guard,
         Guardian,
@@ -33,6 +35,7 @@ namespace Arena
         Phoenix,
         Scythe,  // Twin Scythes (the Twin Reapers' legendary): circles you, cutting enemies and small bullets (ReaperLoot.cs)
         SoulLantern,  // Soul Lantern: hovers by the player it is linked to, heals them and flames enemies near it (SoulLantern.cs)
+        Spider,  // the Spider Calling's spider (and Spider Queen's spiderlings): leaps on enemies near its owner, its bites web them (Callings.cs)
         Sprite,
         TankBot,
         Thrall,  // Force Pact (the Tank Summoner's ability): an enemy turned to your side; it fights near you, and comes back after it falls (ForcePact.cs)
@@ -188,6 +191,12 @@ namespace Arena
             [MinionKind.LightOrb] = new MinionDef { Name = "Light Orb", Radius = 8f, Sides = 6, Color = new Rgba(1f, 0.95f, 0.6f), Move = MinionMove.Orbit, Speed = 2.2f, OrbitRadius = 85f,
                 Attack = MinionAttack.Bite, Interval = 0.35f, Damage = 12f, HealRate = 6f, Range = 22f },
             [MinionKind.Clone] = new MinionDef { Name = "Shadow Clone", Radius = 14f, Sides = 8, Color = new Rgba(0.45f, 0.42f, 0.6f), Move = MinionMove.Static, BlockRadius = 16f, BlockCapacity = 100f },  // Thousand Clones: soaks enemy shots, bursts when it breaks
+            [MinionKind.Spider] = new MinionDef { Name = "Spider", Radius = 11f, Sides = 8, Color = new Rgba(0.55f, 0.35f, 0.75f), Move = MinionMove.Escort, Speed = 250f,
+                Attack = MinionAttack.Bite, Interval = 0.8f, Damage = 14f },  // moved by Callings.cs
+            [MinionKind.Fairy] = new MinionDef { Name = "Fairy", Radius = 6f, Sides = 5, Color = new Rgba(1f, 0.72f, 0.95f), Move = MinionMove.FollowHurt, Speed = 300f,
+                Attack = MinionAttack.Heal, HealRate = Game.FairyHeal, Range = Game.FairyReach },
+            [MinionKind.Demon] = new MinionDef { Name = "Demon", Radius = 12f, Sides = 5, Color = new Rgba(0.95f, 0.28f, 0.15f), Move = MinionMove.FollowOwner, Speed = 280f,
+                Attack = MinionAttack.Shoot, Interval = 1.2f, Damage = 20f, Range = Game.DemonRange },
             [MinionKind.WardenGuard] = new MinionDef { Name = "Warden's Guard", Radius = 13f, Sides = 8, Color = new Rgba(0.35f, 0.55f, 1f), Move = MinionMove.Escort, Speed = 240f,  // looks like the riot's guards
                 Attack = MinionAttack.Bite, Interval = 0.7f, Damage = 14f },
             [MinionKind.HiveDrone] = new MinionDef { Name = "Hive Drone", Radius = 7f, Sides = 3, Color = Rgba.Gold, Move = MinionMove.Orbit, Speed = 2.6f, OrbitRadius = 45f,

@@ -967,6 +967,16 @@ revives). Wounds **carry across waves** but never take more than **70% of your m
 | Twin Reapers | **Twin Scythes** (two of their scythes circle you in opposite directions, 60 and 100 px out, cutting what they pass for 16 and slicing small enemy bullets; every 1.6 s each reaps out at the nearest enemy within 240 px and flies back; 2nd stack every 1.1 s, 3rd a third scythe) · **Final Reap** (a hit that leaves a regular enemy below 25% reaps it and heals you 3; hits on a boss below 40% deal double; stacks: 30%, 35%; x2.5, x3) · **Scythe Throw** (new ability, 9 s: a giant scythe out to your cursor, up to 380 px, and back, cutting 45 each way and slicing small bullets; catch it to take 40% off the cooldown) |
 | The Singularity | **Collapse Rounds** (shots implode on impact; the enemy hit takes half) · **Graviton Rounds** (hits slow enemies 40%; slowed enemies take 15% more damage from you) · **Dark Matter** (+1 pierce, +35% damage) |
 
+**Callings** (Summoner): a Calling is a Rare card that commits your run to one minion. Take one and the other Callings are never offered again; that minion's own cards join your pool instead, and its Very Rare capstone once you hold both of them. All three are open to every Summoner; the one that suits your role turns up twice as often. If you reach level 5 without one, that level's offer always shows a Calling (you can still turn it down).
+
+| Calling | The minion | Its cards | Capstone (Very Rare) |
+|---|---|---|---|
+| **Call the Spider** (Tank) | A spider fights at your side for the rest of the run, leaping on enemies within 260 px of you: bites for 14 every 0.8 s that web the enemy (40% slower for 1.5 s). It has 120 health + 12 a wave and stops enemy bullets with its body; when it falls it comes back after 8 s | **Silk Snare** (webs hold 1 s longer and slow 15% more; 2 stacks) · **Thick Carapace** (+50% health, back 2 s sooner; 2 stacks) | **Spider Queen**: every 6 s it lays 3 spiderlings that leap on an enemy, bite it once (half damage, webbing it) and are gone |
+| **Call the Fairy** (Healer) | A fairy tends the most hurt ally (you when nobody is), healing them 4 a second within 120 px. Nothing can hit it | **Pixie Dust** (enemies within 90 px of the ally it tends burn for 10 a second; 2 stacks) · **Second Wind** (heals 30% more, and 50% more again an ally under 30% health; 2 stacks) | **Fairy Ring**: once every 45 s it flies to an ally who is down and stands them up at 40% health |
+| **Call the Demon** (DPS) | A demon hovers at your shoulder hurling fireballs at the nearest enemy within 460 px: 20 every 1.2 s, bursting 46 px wide. Nothing can hit it | **Soul Feast** (each kill within 300 px of it makes it 5% stronger, up to 40%; the hunger fades 6 s after its last kill; 2 stacks) · **Hellfire** (fireballs leave the ground burning for 2 s; 2 stacks: a wider fire) | **Infernal Pact**: every 12 s it goes berserk for 4 s, throwing twice as fast with fireballs that burst 50% wider |
+
+Calling minions hit harder with your damage upgrades and Pack Bond, and fight in frenzies (Alpha Call) like your other minions.
+
 **Weapon mods** change how your shots behave, and you can see them on your bullets:
 
 | Mod | Per stack |

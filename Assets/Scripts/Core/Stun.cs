@@ -119,7 +119,7 @@ namespace Arena
         }
 
         /// Minions with health that enemies can hurt: Warden's Guards and Force Pact thralls (ForcePact.cs).
-        static bool HasHealth(Minion m) => m.Kind == MinionKind.WardenGuard || m.Kind == MinionKind.Thrall || IsBot(m.Kind) || m.Kind == MinionKind.Octopus;  // (and the Engineer's robots, EngineerBots.cs, and Octopus Familiar's octopus, OctopusFamiliar.cs)
+        static bool HasHealth(Minion m) => m.Kind == MinionKind.WardenGuard || m.Kind == MinionKind.Thrall || IsBot(m.Kind) || m.Kind == MinionKind.Octopus || m.Kind == MinionKind.Spider && m.Companion;  // (the Calling spider, Callings.cs; and the Engineer's robots, EngineerBots.cs, and Octopus Familiar's octopus, OctopusFamiliar.cs)
 
         /// Damage to a guard (or a thrall); at zero it falls, and a guard's owner has the next one on the way.
         void HurtGuard(Minion m, float dmg)
@@ -138,6 +138,8 @@ namespace Arena
             Player owner;
             if (m.Kind == MinionKind.WardenGuard && Players.TryGetValue(m.Owner, out owner))
                 owner.GuardCd = GuardRespawn;
+            else if (m.Kind == MinionKind.Spider && Players.TryGetValue(m.Owner, out owner))
+                SpiderFallen(m, owner);  // Callings.cs
             else if (IsBot(m.Kind))
             {
                 BotFallen(m);  // EngineerBots.cs

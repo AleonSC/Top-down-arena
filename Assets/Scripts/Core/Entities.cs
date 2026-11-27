@@ -186,6 +186,7 @@ namespace Arena
         SiegeBell,  // SiegeBell: the Tank Knight's Siege Bell for its life (Pos = the bell, Pos2 = (the caster's id, the stun), Radius = the shockwave's reach; Core/SiegeBell.cs, Game/SiegeBellLook.cs)
         Slash,
         Spark,
+        SpiderWeb,  // a Calling spider's bite webs an enemy (Callings.cs, Game/CallingsLook.cs)
         SpiritInk,  // SpiritInk: Spirit Avatar's ink (Pos2.X = Game.SpFxStroke the cleave's stroke (Pos = the Ninja, Pos2.Y = its heading, Radius = its reach), SpFxRise, SpFxRelease (Radius = the burst), SpFxSwallow a shot swallowed (Pos = where, Radius = its size); Pos2.Y = the Ninja's id except for the stroke; Core/SpiritAvatar.cs, Game/SpiritAvatarLook.cs)
         Splinter,
         StaffShove,
@@ -1165,6 +1166,7 @@ namespace Arena
         public bool OfferPrize;      // the current offer is a challenge room's prize
         public int StunShots;        // Stun Gun: bolts left while it's out (replicated; Stun.cs)
         public float GuardCd;        // host: until the next Warden's Guard arrives
+        public float CallingCd, CallingT;  // host: until a fallen Calling spider comes back; the Calling capstone's timer (Callings.cs)
         public readonly EnemyType[] PactType = new EnemyType[2];  // host: Force Pact: the enemy type each pact slot holds (slot 1 is the mastered second thrall; ForcePact.cs)
         public readonly bool[] PactSet = new bool[2];
         public readonly float[] PactCd = new float[2];    // host: until the slot's thrall arrives
@@ -1385,6 +1387,7 @@ namespace Arena
         public bool FromWeapon;   // host only: fired by the player's gun (for accuracy)
         public bool WeaponDmg;    // host only: its hits are the weapon's in the session recording (FromWeapon, or launched later by it: Ice Shards, hammer throws)
         public float Splash;      // host only: explosion radius on impact
+        public int Hellfire;      // host only: a Calling demon's fireball with this many Hellfire cards: its burst leaves the ground burning (Callings.cs)
         public V2 FallOrigin;     // host only: a Double Barrel pellet: where it left the gun, for its damage falling off with distance (DoubleBarrel.cs)
         public bool PointBlank;   // host only: a Scattergun pellet (double damage and a shove up close)
         public ShotLook Look;     // its shape: a dart (aimed), a crescent (curving) or round (sent with its spawn; Readability.cs)
@@ -1541,6 +1544,7 @@ namespace Arena
         public float SeedCd;             // host: a Treant Rod Treant's time to its next seed (KitWeapons.cs)
         public int Alpha;                // host: a Wolf Whistle alpha's wolves merged into it, 0 a normal wolf (WolfPack.cs)
         public float Ring;               // host: a Twin Scythe's circle round its owner, signed by which way it spins (ReaperLoot.cs)
+        public float Feast, FeastT;      // host: a Calling demon's Soul Feast bonus and the time before it fades (Callings.cs)
     }
 
     public class Effect

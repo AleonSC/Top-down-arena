@@ -372,6 +372,11 @@ namespace Arena
 
         void DrawMinion(Minion m, float t)
         {
+            if (Game.IsCalling(m.Kind))
+            {
+                DrawCallingMinion(m, t);  // CallingsLook.cs
+                return;
+            }
             if (m.Kind == MinionKind.Wyvern)
             {
                 DrawWyvernMinion(m, t);  // WyvernStaffLook.cs
