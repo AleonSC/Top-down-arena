@@ -51,8 +51,8 @@ no hover tips.
 - **Knight**: melee weapons that cut small bullets out of the air, armoured: 115% health (see below).
 - **Ninja**: thrown blades and quick melee with tricks and misdirection; fast (+12% move speed), 85% health (see
   below).
-- **Hemomancer**: blood spells that drain and heal; every 1st ability costs health, and it hits harder the lower its
-  health; full health (see below).
+- **Hemomancer**: blood spells that drain and heal; every 1st ability costs health, it deals 15% more damage, hits harder the lower its
+  health and never takes wounds; full health (see below).
 - **Engineer** (a locked class: win a run to unlock it; open to everyone for now): a builder who works in vectors; one robot weapon, one 1st ability and one ultimate per role for now (its other keys
   are locked); full health, 95% speed (see below).
 - **Arcanist**: telekinesis, runes and enchantments; one weapon, one 1st ability and one ultimate per role for now (its other keys
@@ -142,7 +142,8 @@ Health is the Hemomancer's resource. It has full health and normal speed, and:
   enemies can. Spending health never downs you, and a crimson tick on your health bar marks the floor. At the
   floor an ability still goes off, but whatever cost it can't pay goes on its **cooldown** (nothing paid: double
   the cooldown; half paid: half again), and anything that scales with what you paid is worth less.
-- **Blood Price:** you deal more damage the more health you're missing, up to **+40%** at the blood floor.
+- **Blood Price:** you deal **15% more damage** always, and more still the more health you're missing, up to **+40%** more at the blood floor (a Wildcard with blood gear gets neither).
+- **No wounds:** hits never leave a wound on you, so every heal can bring you back to full.
 - **No lifesteal:** your hits don't heal you. Instead, 15% of your kills drop a crimson **blood orb** with a white
   drop on it: a small health orb (15 HP) that **only you** see and drink. It lasts 20 s and drifts to you from up to 600 px away. None from a boss's own drop or where health orbs are off (Famine, Bloodlust, Blood Moon).
 

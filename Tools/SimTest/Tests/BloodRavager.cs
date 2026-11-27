@@ -89,7 +89,7 @@ static partial class Program
             g.State = MatchState.Fighting;
         };
         Action cast = () => hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, me.Pos, false });
-        float dmg = me.Stats.DmgMult;
+        float dmg = me.Stats.DmgMult * Might;
         Action click = () => { step(Game.RvLashGap); fire = true; step(dt); fire = false; step(dt); };  // (after the gap: each click is taken)
 
         // The cast: 9 s, faster, the legs out round you.

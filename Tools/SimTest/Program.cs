@@ -15,6 +15,8 @@ using Arena;
 static partial class Program
 {
     static int failures;
+    /// A Hemomancer's flat damage bonus (Blood Price, Hemomancer.cs): Hemomancer damage checks expect it on top.
+    static readonly float Might = 1f + Game.BloodMight;
 
     static void Check(bool ok, string what)
     {
