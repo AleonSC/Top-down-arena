@@ -235,6 +235,9 @@ namespace Arena
                 case AbilityId.FlashFire:  // DPS: Elementalist, the third ultimate (FlashFire.cs)
                     CastFlashFire(p, cap);
                     break;
+                case AbilityId.RockGloves:  // DPS: Elementalist, the fourth ultimate (RockGloves.cs)
+                    CastRockGloves(p, cap);
+                    break;
 
                 case AbilityId.DragonsDogma:  // Tank: Ninja, the second ultimate (DragonsDogma.cs)
                     CastDogma(p, cap);

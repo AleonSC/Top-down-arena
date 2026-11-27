@@ -129,6 +129,8 @@ namespace Arena
                 Apply = s => { s.WcReachMult += 0.2f; s.WcShoveMult += 0.3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.FlashFire, MaxStacks = 2, Name = "Backdraft", Desc = "Flash Fire reaches 20% farther, and what it leaves burning burns 50% hotter",
                 Apply = s => { s.FfRadiusMult += 0.2f; s.FfBurnMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.RockGloves, MaxStacks = 2, Name = "Granite Knuckles", Desc = "Rock Gloves' punches hit 20% harder and reach 15% farther",
+                Apply = s => { s.GlvDmgMult += Game.GlvKnucklesDmg; s.GlvReachMult += Game.GlvKnucklesReach; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.StoneColossus, MaxStacks = 2, Name = "Bedrock", Desc = "Stone Colossus lasts 3 s longer, and its slams reach 25% wider",
                 Apply = s => { s.ColBonusTime += Game.ColBedrockTime; s.ColSlamWide += Game.ColBedrockWide; } },
         };
