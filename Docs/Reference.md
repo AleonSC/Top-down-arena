@@ -320,7 +320,6 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Vein Tithe | Tank | ultimate | 75 s | - | Lasts 40 s and costs 25% less. | Bind every enemy on screen at the cost of your health. |
 | Bloodbath | Tank | ultimate | 75 s | - | The pool spreads to 220 px and gives back 35% of the bleed. | Flood the floor with blood that slows and bleeds enemies and heals you. |
 | Blood Golem | Tank | ultimate | 80 s | - | Lasts 13 s and each coat left bursts for 30. | Tear the blood off enemies and your own veins into coats, then fight as a golem made of them. |
-| Blood Ritual | DPS | ultimate | 80 s | - | The portal stays open 10 s and pours out 50 imps. | Bleed a pentagram onto the floor that tears open and floods out blood imps to claw and taunt enemies. |
 | Blood Totem | Tank | 1st, choice 5 | 2 s | 6% of max health | The veins also drain 6 health a second. | Plant a totem at your cursor whose veins grip and slow nearby enemies; up to 3 at once. |
 | Blood Gift | Healer | 1st, choice 1 | 8 s | 25% of current health | Also heals everyone else within 200 px of them for half as much. | Pay health to heal the most hurt ally twice as much. |
 | Blood Freeze | Healer | 1st, choice 2 | 14 s | 25% of max health | Frozen enemies take 25% more damage. | Freeze every enemy near you at a cost of health; enemies that die frozen heal you. |
@@ -333,6 +332,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Crimson Harvest | Dps | ultimate | 65 s | - | Hold 8 s, and 25% more blood. | Rip blood from every enemy into a ball, then throw it as a huge blast. |
 | Blood Ravager | Dps | ultimate | 70 s | - | Lasts 12 s. | Eight blood legs burst out of you for 9 s: run fast and trample, and every click lashes a leg at an enemy nearby. |
 | Blood Boil | Dps | ultimate | 70 s | - | Up to +90% damage at full boil. | Your health drains for 10 s; the lower it gets, the faster you move and fire and the harder you hit. Press again to end it. |
+| Blood Ritual | Dps | ultimate | 80 s | - | The portal stays open 10 s and pours out 50 imps. | Bleed a pentagram onto the floor that tears open and floods out blood imps to claw and taunt enemies. |
 | Thorn Bloom | Dps | 1st, choice 5 | 8 s | 12% of max health | Tendrils jump 5 times. | Burst blood needles all round that chain between enemies; each needle that hits heals you. |
 
 ### Engineer
