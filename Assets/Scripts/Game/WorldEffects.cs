@@ -179,6 +179,7 @@ namespace Arena
             d[(int)FxKind.CaltropBreak] = (fx, f, t) => DrawCaltropBreakFx(fx);
             d[(int)FxKind.SteelHit] = (fx, f, t) => DrawSteelHitFx(fx);  // KnightDpsLook.cs
             d[(int)FxKind.VeinCut] = (fx, f, t) => DrawVeinCutFx(fx, t);  // VeinRushLook.cs
+            d[(int)FxKind.ClotShatter] = (fx, f, t) => DrawClotShatterFx(fx);  // ClotCrystalsLook.cs
             d[(int)FxKind.ThornBloom] = (fx, f, t) => DrawThornBloomFx(fx);  // ThornBloomLook.cs
             d[(int)FxKind.ThornNeedle] = (fx, f, t) => DrawThornNeedleFx(fx);
             d[(int)FxKind.ThornTendril] = (fx, f, t) => DrawThornTendrilFx(fx, t);

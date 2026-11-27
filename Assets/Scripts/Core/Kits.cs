@@ -20,6 +20,7 @@ namespace Arena
         Clone,  // the Ninja's Shadow Clone: enemies target it; it bursts when it ends
         CloneMedic,  // Shadow Clone Medics (the Healer Ninja's fourth ultimate): trails a player, heals them and stops the shots aimed at them (ShadowCloneMedics.cs)
         CloneWall,  // Shadow Clone: one of nine afterimages in a wall that soaks bullets and gets shoved by players; it does nothing else (CloneWall.cs)
+        ClotCrystal,  // Clot Crystals (the Healer Hemomancer's 4th choice): circles its owner and jerks at enemy bullets in reach to eat them (ClotCrystals.cs)
         Demon,  // the Demon Calling's demon: hovers at its owner's shoulder hurling fireballs (Callings.cs)
         Fairy,  // the Fairy Calling's fairy: tends the most hurt ally, healing them; untargetable (Callings.cs)
         Golem,
@@ -234,6 +235,8 @@ namespace Arena
             [MinionKind.ArcBlade] = new MinionDef { Name = "Dancing Blade", Radius = 8f, Sides = 3, Color = new Rgba(1f, 0.83f, 0.42f), Move = MinionMove.Static },  // flown by Arcanist.cs (MoveArcane)
             [MinionKind.BumbleBot] = new MinionDef { Name = "Bumble Bot", Radius = 22f, Sides = 6, Color = new Rgba(1f, 0.8f, 0.3f), Move = MinionMove.Static, Range = Game.BumbleRange },  // flown and fired by BumbleRemote.cs (MoveBumble)
             [MinionKind.Octopus] = new MinionDef { Name = "Octopus", Radius = 16f, Sides = 8, Color = Game.OctoColor, Move = MinionMove.Static },  // floated and its arms by OctopusFamiliar.cs; health in Minion.Hp (HasHealth, Stun.cs)
+            [MinionKind.ClotCrystal] = new MinionDef { Name = "Clot Crystal", Radius = 9f, Sides = 6, Color = new Rgba(0.88f, 0.16f, 0.29f), Move = MinionMove.Static,
+                BlockRadius = Game.CryCatch, BlockCapacity = Game.CryHp },  // moved by ClotCrystals.cs (TickClotCrystal); it eats any enemy shot it touches (ClotCatches); BlockCapacity its health
             [MinionKind.BloodImp] = new MinionDef { Name = "Blood Imp", Radius = 7f, Sides = 3, Color = new Rgba(0.86f, 0.1f, 0.2f), Move = MinionMove.Static, Speed = 260f,
                 Attack = MinionAttack.Bite, Interval = 0.4f, Damage = 6f, BlockRadius = 10f, BlockCapacity = 30f },  // flown, clawing and taunting by BloodRitual.cs (TickBloodImp); BlockCapacity its health
         });

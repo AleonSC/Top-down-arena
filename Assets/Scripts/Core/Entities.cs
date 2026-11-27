@@ -56,6 +56,7 @@ namespace Arena
         Claw,
         ClaymoreBlast,  // ClaymoreBlast: a Claymore going off (Pos = the mine, Pos2 = one px along its facing, Radius = the blast's reach; Core/Claymore.cs, Game/ClaymoreLook.cs)
         CloneMedicPuff,  // Shadow Clone Medics' smoke (ShadowCloneMedics.cs): Radius 0 a clone steps out, 1 it goes, 2 a shot it stopped
+        ClotShatter,  // a Clot Crystal breaking (Pos its spot, Pos2 (its owner's id, 0), Radius its size; Core/ClotCrystals.cs, Game/ClotCrystalsLook.cs)
         CoverBreak,
         CoverFold,
         CoverHit,
@@ -1562,6 +1563,9 @@ namespace Arena
         public int Alpha;                // host: a Wolf Whistle alpha's wolves merged into it, 0 a normal wolf (WolfPack.cs)
         public float Ring;               // host: a Twin Scythe's circle round its owner, signed by which way it spins (ReaperLoot.cs)
         public float Feast, FeastT;      // host: a Calling demon's Soul Feast bonus and the time before it fades (Callings.cs)
+        public int CrySlot, CryN, CryBullet;  // host, a Clot Crystal: its place round its owner of CryN, and the bullet it is going for (0: none) (ClotCrystals.cs)
+        public float CryT;                // host, a Clot Crystal: time in its state (Stacks)
+        public V2 CryFrom, CryTo;          // host, a Clot Crystal: where a jerk (or the melt) starts, and where the jerk ends
     }
 
     public class Effect

@@ -375,6 +375,11 @@ namespace Arena
 
         void DrawMinion(Minion m, float t)
         {
+            if (m.Kind == MinionKind.ClotCrystal)
+            {
+                DrawClotCrystal(m, t);  // ClotCrystalsLook.cs (first: it draws its own guard, no field ring)
+                return;
+            }
             if (Game.IsCalling(m.Kind))
             {
                 DrawCallingMinion(m, t);  // CallingsLook.cs
