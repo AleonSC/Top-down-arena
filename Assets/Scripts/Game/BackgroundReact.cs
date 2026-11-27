@@ -35,6 +35,7 @@ namespace Arena
             if (bgReactFrame == Time.frameCount)
                 return;
             bgReactFrame = Time.frameCount;
+            BeatTick();  // MenuBeat.cs: the music's spectrum and beats
             var m = Input.mousePosition;
             bgPointerUi = new V2((m.x - offX) / scale, (UnityEngine.Screen.height - m.y - offY) / scale);
             float speed = (bgPointerUi - bgPointerPrev).Length / Mathf.Max(0.001f, Time.unscaledDeltaTime) / 900f;
