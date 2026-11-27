@@ -1,0 +1,359 @@
+<title>Tortoise Oracle</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, live stage (canvas + controls), effect cards + numbers, open questions.
+   Colour: moss jade for the oracle's time field, amber for the slowed (enemy) side, leaf green for heals. */
+:root{
+  --bg:#eef1ee; --fg:#1a1f1c; --muted:#5a645e; --panel:#f8faf8; --line:#d0d7d2;
+  --jade:#1d8a6e; --amber:#b9731a; --heal:#3c9a2e; --warn:#b4412a; --chip:#e0e6e2; --chip-on:#1a1f1c; --chip-on-fg:#f1f5f2;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d110f; --fg:#e6ece8; --muted:#94a19a; --panel:#151b18; --line:#28322d;
+  --jade:#5fe0bb; --amber:#ffb35c; --heal:#8fe37a; --warn:#ff8466; --chip:#202924; --chip-on:#e6ece8; --chip-on-fg:#0d110f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d110f; --fg:#e6ece8; --muted:#94a19a; --panel:#151b18; --line:#28322d;
+  --jade:#5fe0bb; --amber:#ffb35c; --heal:#8fe37a; --warn:#ff8466; --chip:#202924; --chip-on:#e6ece8; --chip-on-fg:#0d110f; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:32px}
+h1{font:700 clamp(34px,6vw,54px)/1 var(--display);text-transform:uppercase;letter-spacing:.01em;margin:0 0 10px;text-wrap:balance}
+h2{font:700 24px/1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px}
+header p{margin:0;max-width:64ch;color:var(--muted)}
+.tag{font:500 12px var(--mono);letter-spacing:.04em;color:var(--muted)}
+.stage{display:flex;flex-direction:column;gap:12px;min-width:0}
+.controls{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.group>span{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+button{font:500 14px var(--body);background:var(--chip);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:7px 13px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-fg);border-color:var(--chip-on)}
+button:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+canvas{width:100%;max-width:100%;aspect-ratio:16/9;display:block;border-radius:8px;background:#07090c}
+.note{font-size:13px;color:var(--muted);margin:0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.card b{font:700 30px/1 var(--display);letter-spacing:.02em}
+.card .who{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.slow{color:var(--amber)} .fast{color:var(--jade)} .healc{color:var(--heal)}
+.card p{margin:0;font-size:14px;color:var(--muted)}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
+td,th{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td:first-child{white-space:nowrap;font-weight:500}
+ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;max-width:70ch}
+ol li span{color:var(--muted)}
+</style>
+
+<main>
+<header>
+  <div class="tag">HEALER SUMMONER · ULTIMATE · MOCKUP (APPROXIMATE LOOK, NOT THE UNITY DRAW CODE)</div>
+  <h1>Tortoise Oracle</h1>
+  <p>An ancient tortoise settles on the floor at your cursor and slows time in a wide circle around it.
+     Enemies and their bullets drag at half speed. Allies standing inside run at double tempo: twice the healing,
+     twice the fire rate, cooldowns ticking twice as fast.</p>
+</header>
+
+<section class="stage">
+  <canvas id="cv" width="1280" height="720" aria-label="Live simulation of the Tortoise Oracle ultimate"></canvas>
+  <div class="controls">
+    <div class="group"><span>Ult</span>
+      <button id="cast" aria-pressed="true">Oracle on</button>
+      <button id="recast">Cast again</button>
+    </div>
+    <div class="group"><span>View</span>
+      <button id="trails" aria-pressed="true">Bullet trails</button>
+      <button id="pause" aria-pressed="false">Pause</button>
+    </div>
+  </div>
+  <p class="note">Watch the enemy bullets crossing the rim: they halve speed as they enter and pick it back up when they leave.
+     Allies inside show a jade tempo ring and their cooldown pips refill twice as fast as the ally outside.</p>
+</section>
+
+<section>
+  <h2>What it does</h2>
+  <div class="cards">
+    <div class="card"><span class="who slow">Enemies inside</span><b class="slow">×0.5</b><p>Move, attack wind-ups and fire rate at half speed.</p></div>
+    <div class="card"><span class="who slow">Enemy bullets inside</span><b class="slow">×0.5</b><p>Travel at half speed while over the circle, normal again once out.</p></div>
+    <div class="card"><span class="who healc">Allies inside: healing</span><b class="healc">×2</b><p>Every heal they receive (regen, heals, lifesteal) counts double.</p></div>
+    <div class="card"><span class="who fast">Allies inside: fire rate</span><b class="fast">×2</b><p>Weapons fire twice as often; damage per shot unchanged.</p></div>
+    <div class="card"><span class="who fast">Allies inside: cooldowns</span><b class="fast">×2</b><p>Ability cooldowns recharge twice as fast. The ult's own cooldown is not sped up.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>Proposed numbers</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Stat</th><th>Value</th><th>Why</th></tr>
+    <tr><td>Key</td><td>Ultimate row, key 2 (after World Tree, Honey Raid)</td><td>A third choice for the Healer Summoner.</td></tr>
+    <tr><td>Cast</td><td>At the cursor, within 500 px</td><td>Same feel as Honey Raid's drop spot.</td></tr>
+    <tr><td>Radius</td><td>240 px</td><td>"Big circle": room for the whole party to fight inside.</td></tr>
+    <tr><td>Duration</td><td>10 s</td><td>A double-tempo window is strong; short and readable.</td></tr>
+    <tr><td>Cooldown</td><td>90 s</td><td>Above Honey Raid's 80 s since it buffs every ally's damage.</td></tr>
+    <tr><td>Bosses</td><td>×0.75 (not ×0.5)</td><td>Keeps boss patterns intact; their bullets still get ×0.5.</td></tr>
+    <tr><td>Tortoise</td><td>Untargetable, cannot move</td><td>It is the field's anchor, not a minion to protect.</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>Open questions</h2>
+  <ol>
+    <li>Bosses at ×0.75 or the full ×0.5? <span>Full slow can break timed boss attacks.</span></li>
+    <li>Should allied bullets also speed up inside, or only fire rate? <span>The mockup keeps bullet speed normal.</span></li>
+    <li>Does the field stay where cast, or follow the caster? <span>Mockup: stays put, the tortoise is planted.</span></li>
+    <li>Minions (the Summoner's own) inside: double tempo too? <span>Would make it a strong Summoner synergy.</span></li>
+  </ol>
+</section>
+</main>
+
+<script>
+(() => {
+const cv = document.getElementById('cv'), g = cv.getContext('2d');
+const W = 1280, H = 720;
+const R = 240, DUR = 10;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let on = true, trails = true, paused = false, t = 0, castT = 0;
+const C = {x: 560, y: 370};
+const rnd = (a,b) => a + Math.random()*(b-a);
+const inside = (x,y) => on && castT < DUR && Math.hypot(x-C.x, y-C.y) < R;
+
+const allies = [
+  {x: 500, y: 330, col:'#4fc3ff', name:'YOU', hp:.55, cd:[0,0,0], fire:0, ph:0},
+  {x: 640, y: 440, col:'#ffd54f', name:'P2', hp:.4, cd:[0,0,0], fire:0, ph:2},
+  {x: 1000, y: 230, col:'#ff7ad9', name:'P3', hp:.45, cd:[0,0,0], fire:0, ph:4},
+];
+let enemies = [], ebul = [], abul = [], fx = [];
+function spawnEnemy(){
+  const side = Math.random()*Math.PI*2;
+  enemies.push({x: C.x + Math.cos(side)*640, y: C.y + Math.sin(side)*420, hp:1, fire: rnd(0,1.4), wob: rnd(0,6)});
+}
+for (let i=0;i<9;i++) spawnEnemy();
+enemies.forEach(e => { e.x = C.x + (e.x-C.x)*rnd(.55,.9); e.y = C.y + (e.y-C.y)*rnd(.55,.9); });
+
+function nearest(list, x, y){ let b=null, bd=1e9; for(const o of list){const d=Math.hypot(o.x-x,o.y-y); if(d<bd){bd=d;b=o;}} return b; }
+
+function step(dt){
+  t += dt; castT += dt;
+  if (castT > DUR + 3) castT = 0;           // loop the cast in the mockup
+  if (enemies.length < 9 && Math.random() < dt*1.2) spawnEnemy();
+  // allies
+  for (const a of allies){
+    a.ph += dt;
+    const fast = inside(a.x,a.y) ? 2 : 1;
+    a.x += Math.cos(a.ph*.7)*14*dt; a.y += Math.sin(a.ph*.9)*10*dt;
+    a.hp = Math.min(1, a.hp + 0.025*fast*dt);
+    if (a.hp >= 1) a.hp = .35;
+    a.cd = a.cd.map((c,i) => { c += dt*fast/(4+i*3); return c>=1?0:c; });
+    a.fire -= dt*fast;
+    const tgt = nearest(enemies, a.x, a.y);
+    if (a.fire <= 0 && tgt){
+      a.fire = .45;
+      const ang = Math.atan2(tgt.y-a.y, tgt.x-a.x);
+      abul.push({x:a.x, y:a.y, vx:Math.cos(ang)*620, vy:Math.sin(ang)*620, col:a.col, life:1.2});
+    }
+  }
+  // enemies
+  for (const e of enemies){
+    const s = inside(e.x,e.y) ? .5 : 1;
+    const tgt = nearest(allies, e.x, e.y);
+    const d = Math.hypot(tgt.x-e.x, tgt.y-e.y), ang = Math.atan2(tgt.y-e.y, tgt.x-e.x);
+    e.wob += dt*s*6;
+    if (d > 170){ e.x += Math.cos(ang)*60*s*dt; e.y += Math.sin(ang)*60*s*dt; }
+    else { e.x += Math.cos(ang+Math.PI/2)*35*s*dt; e.y += Math.sin(ang+Math.PI/2)*35*s*dt; }
+    e.fire -= dt*s;
+    if (e.fire <= 0){
+      e.fire = 1.5;
+      for (let k=-1;k<=1;k++){ const a2 = ang + k*.22; ebul.push({x:e.x, y:e.y, vx:Math.cos(a2)*240, vy:Math.sin(a2)*240, trail:[]}); }
+    }
+  }
+  // enemy bullets
+  for (const b of ebul){
+    const s = inside(b.x,b.y) ? .5 : 1;
+    b.x += b.vx*s*dt; b.y += b.vy*s*dt;
+    b.trail.push(b.x, b.y); if (b.trail.length > 24) b.trail.splice(0,2);
+    b.slow = s < 1;
+    for (const a of allies) if (Math.hypot(a.x-b.x,a.y-b.y) < 14){ b.dead = true; a.hp = Math.max(.1, a.hp-.04); fx.push({x:b.x,y:b.y,t:0,col:'#ff5a4a'}); }
+  }
+  ebul = ebul.filter(b => !b.dead && b.x>-40 && b.x<W+40 && b.y>-40 && b.y<H+40);
+  // ally bullets
+  for (const b of abul){
+    b.x += b.vx*dt; b.y += b.vy*dt; b.life -= dt;
+    for (const e of enemies) if (Math.hypot(e.x-b.x,e.y-b.y) < 16){ b.dead = true; e.hp -= .18; fx.push({x:b.x,y:b.y,t:0,col:b.col}); }
+  }
+  abul = abul.filter(b => !b.dead && b.life > 0);
+  enemies = enemies.filter(e => { if (e.hp <= 0){ fx.push({x:e.x,y:e.y,t:0,col:'#ffb35c',big:1}); return false; } return true; });
+  for (const f of fx) f.t += dt;
+  fx = fx.filter(f => f.t < .4);
+}
+
+// ---------- drawing ----------
+function floor(){
+  g.fillStyle = '#0a0d10'; g.fillRect(0,0,W,H);
+  g.strokeStyle = 'rgba(80,140,160,.08)'; g.lineWidth = 1;
+  for (let x=0;x<=W;x+=48){ g.beginPath(); g.moveTo(x,0); g.lineTo(x,H); g.stroke(); }
+  for (let y=0;y<=H;y+=48){ g.beginPath(); g.moveTo(0,y); g.lineTo(W,y); g.stroke(); }
+}
+function field(){
+  if (!on) return;
+  const grow = Math.min(1, castT/0.6), fade = castT > DUR ? Math.max(0, 1-(castT-DUR)/0.6) : 1;
+  if (fade <= 0) return;
+  const r = R * (1 - Math.pow(1-grow,3));
+  g.save(); g.globalAlpha = fade;
+  // tinted pool
+  const grad = g.createRadialGradient(C.x,C.y,r*.2,C.x,C.y,r);
+  grad.addColorStop(0,'rgba(60,200,160,.10)'); grad.addColorStop(.85,'rgba(60,200,160,.16)'); grad.addColorStop(1,'rgba(60,200,160,.30)');
+  g.fillStyle = grad; g.beginPath(); g.arc(C.x,C.y,r,0,Math.PI*2); g.fill();
+  // slow ripples drifting outward
+  for (let i=0;i<3;i++){
+    const p = ((t*.12 + i/3) % 1);
+    g.strokeStyle = `rgba(110,230,190,${.18*(1-p)})`; g.lineWidth = 2;
+    g.beginPath(); g.arc(C.x,C.y,r*p,0,Math.PI*2); g.stroke();
+  }
+  // clock face ticks (60, every 5th long)
+  g.strokeStyle = 'rgba(140,240,205,.55)';
+  for (let i=0;i<60;i++){
+    const a = i/60*Math.PI*2 + t*.05, long = i%5===0;
+    g.lineWidth = long?3:1.5;
+    g.beginPath(); g.moveTo(C.x+Math.cos(a)*(r-(long?16:8)), C.y+Math.sin(a)*(r-(long?16:8)));
+    g.lineTo(C.x+Math.cos(a)*r, C.y+Math.sin(a)*r); g.stroke();
+  }
+  // rim
+  g.strokeStyle = 'rgba(120,240,200,.85)'; g.lineWidth = 3;
+  g.beginPath(); g.arc(C.x,C.y,r,0,Math.PI*2); g.stroke();
+  // time left arc (outer, gold), like Honey Raid's rim timer
+  const left = Math.max(0, 1 - castT/DUR);
+  g.strokeStyle = 'rgba(255,200,90,.9)'; g.lineWidth = 5;
+  g.beginPath(); g.arc(C.x,C.y,r+8,-Math.PI/2,-Math.PI/2+left*Math.PI*2); g.stroke();
+  // sweeping hand
+  const ha = -Math.PI/2 + (castT/DUR)*Math.PI*2;
+  g.strokeStyle = 'rgba(140,240,205,.25)'; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(C.x,C.y); g.lineTo(C.x+Math.cos(ha)*r, C.y+Math.sin(ha)*r); g.stroke();
+  g.restore();
+}
+function tortoise(){
+  if (!on) return;
+  const fade = castT > DUR ? Math.max(0, 1-(castT-DUR)/0.6) : Math.min(1, castT/0.4);
+  if (fade <= 0) return;
+  g.save(); g.globalAlpha = fade; g.translate(C.x, C.y);
+  const bob = Math.sin(t*.8)*1.5;
+  // glow
+  const gl = g.createRadialGradient(0,0,10,0,0,90); gl.addColorStop(0,'rgba(120,240,200,.35)'); gl.addColorStop(1,'rgba(120,240,200,0)');
+  g.fillStyle = gl; g.beginPath(); g.arc(0,0,90,0,Math.PI*2); g.fill();
+  // legs
+  g.fillStyle = '#6f8a6a';
+  for (const [lx,ly] of [[-34,-26],[34,-26],[-34,30],[34,30]]){ g.beginPath(); g.ellipse(lx,ly+bob*.3,12,9,0,0,Math.PI*2); g.fill(); }
+  // tail
+  g.beginPath(); g.moveTo(-6,44); g.lineTo(0,56); g.lineTo(6,44); g.fill();
+  // head, slow look around, with beard (old)
+  const hl = Math.sin(t*.35)*.35;
+  g.save(); g.translate(0,-44); g.rotate(hl);
+  g.fillStyle = '#7d9877'; g.beginPath(); g.ellipse(0,-10,13,16,0,0,Math.PI*2); g.fill();
+  const blink = (t % 4.2) < .18;
+  g.fillStyle = '#0c120f';
+  if (blink){ g.fillRect(-8,-15,5,1.5); g.fillRect(3,-15,5,1.5); }
+  else { g.beginPath(); g.arc(-5.5,-15,2.2,0,Math.PI*2); g.arc(5.5,-15,2.2,0,Math.PI*2); g.fill(); }
+  g.fillStyle = 'rgba(230,235,220,.85)'; g.beginPath(); g.moveTo(-5,-2); g.lineTo(0,10); g.lineTo(5,-2); g.fill();
+  g.restore();
+  // shell
+  g.fillStyle = '#3d5a46'; g.beginPath(); g.ellipse(0,bob,44,48,0,0,Math.PI*2); g.fill();
+  g.strokeStyle = '#a7c79a'; g.lineWidth = 2.5; g.stroke();
+  // hex scutes
+  g.strokeStyle = 'rgba(190,225,175,.55)'; g.lineWidth = 1.5;
+  const hex = (cx,cy,s) => { g.beginPath(); for(let i=0;i<6;i++){const a=i/6*Math.PI*2+Math.PI/6; g.lineTo(cx+Math.cos(a)*s, cy+Math.sin(a)*s);} g.closePath(); g.stroke(); };
+  hex(0,bob,14);
+  for (let i=0;i<6;i++){ const a = i/6*Math.PI*2; hex(Math.cos(a)*26, bob+Math.sin(a)*28, 11); }
+  // glowing clock on the centre scute
+  g.strokeStyle = 'rgba(140,250,210,.95)'; g.lineWidth = 2;
+  g.beginPath(); g.arc(0,bob,9,0,Math.PI*2); g.stroke();
+  const ma = t*.6, hr = t*.05;
+  g.beginPath(); g.moveTo(0,bob); g.lineTo(Math.cos(ma)*7, bob+Math.sin(ma)*7); g.stroke();
+  g.beginPath(); g.moveTo(0,bob); g.lineTo(Math.cos(hr)*4.5, bob+Math.sin(hr)*4.5); g.stroke();
+  g.restore();
+}
+function enemyDraw(e){
+  const s = inside(e.x,e.y);
+  g.save(); g.translate(e.x,e.y);
+  g.fillStyle = s ? '#c46a3a' : '#e5484d';
+  g.beginPath(); for(let i=0;i<5;i++){ const a = i/5*Math.PI*2 + e.wob*.2; g.lineTo(Math.cos(a)*15, Math.sin(a)*15);} g.closePath(); g.fill();
+  g.fillStyle = '#1b0b0b'; g.beginPath(); g.arc(0,0,5,0,Math.PI*2); g.fill();
+  if (s){ g.strokeStyle = 'rgba(255,179,92,.8)'; g.lineWidth = 1.5; g.setLineDash([3,4]); g.beginPath(); g.arc(0,0,21,0,Math.PI*2); g.stroke(); g.setLineDash([]); }
+  g.fillStyle = 'rgba(0,0,0,.5)'; g.fillRect(-14,-24,28,4); g.fillStyle = '#e5484d'; g.fillRect(-14,-24,28*e.hp,4);
+  g.restore();
+}
+function allyDraw(a){
+  const s = inside(a.x,a.y);
+  g.save(); g.translate(a.x,a.y);
+  if (s){
+    g.strokeStyle = 'rgba(95,224,187,.9)'; g.lineWidth = 2;
+    for (let i=0;i<2;i++){ const p = ((t*1.6 + i*.5)%1); g.globalAlpha = 1-p; g.beginPath(); g.arc(0,0,18+p*14,0,Math.PI*2); g.stroke(); }
+    g.globalAlpha = 1;
+  }
+  g.fillStyle = a.col; g.beginPath(); g.arc(0,0,14,0,Math.PI*2); g.fill();
+  g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 2; g.stroke();
+  // hp bar
+  g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(-20,-30,40,5);
+  g.fillStyle = s ? '#8fe37a' : '#55b04a'; g.fillRect(-20,-30,40*a.hp,5);
+  // cooldown pips
+  a.cd.forEach((c,i) => {
+    const px = -16 + i*16, py = 26;
+    g.fillStyle = 'rgba(0,0,0,.55)'; g.beginPath(); g.arc(px,py,6,0,Math.PI*2); g.fill();
+    g.fillStyle = s ? '#5fe0bb' : '#9aa7a1';
+    g.beginPath(); g.moveTo(px,py); g.arc(px,py,6,-Math.PI/2,-Math.PI/2+c*Math.PI*2); g.closePath(); g.fill();
+  });
+  g.font = '600 12px "IBM Plex Mono", monospace'; g.textAlign = 'center';
+  g.fillStyle = 'rgba(255,255,255,.8)'; g.fillText(a.name, 0, -36);
+  if (s){ g.fillStyle = '#5fe0bb'; g.fillText('×2', 26, 4); }
+  g.restore();
+}
+function bullets(){
+  for (const b of ebul){
+    if (trails && b.trail.length > 3){
+      g.strokeStyle = b.slow ? 'rgba(255,179,92,.35)' : 'rgba(255,90,74,.35)'; g.lineWidth = 3;
+      g.beginPath(); g.moveTo(b.trail[0], b.trail[1]); for (let i=2;i<b.trail.length;i+=2) g.lineTo(b.trail[i], b.trail[i+1]); g.stroke();
+    }
+    g.fillStyle = b.slow ? '#ffb35c' : '#ff5a4a';
+    g.beginPath(); g.arc(b.x,b.y,b.slow?6:5,0,Math.PI*2); g.fill();
+    if (b.slow){ g.strokeStyle='rgba(255,230,180,.7)'; g.lineWidth=1; g.beginPath(); g.arc(b.x,b.y,9,0,Math.PI*2); g.stroke(); }
+  }
+  for (const b of abul){ g.fillStyle = b.col; g.beginPath(); g.arc(b.x,b.y,3.5,0,Math.PI*2); g.fill(); }
+  for (const f of fx){ g.strokeStyle = f.col; g.globalAlpha = 1 - f.t/.4; g.lineWidth = 2; g.beginPath(); g.arc(f.x,f.y,(f.big?28:10)*f.t/.4+4,0,Math.PI*2); g.stroke(); }
+  g.globalAlpha = 1;
+}
+function hud(){
+  // ult key tile, bottom-left
+  const x = 28, y = H-96;
+  g.fillStyle = 'rgba(10,16,14,.85)'; g.fillRect(x,y,236,68);
+  g.strokeStyle = 'rgba(95,224,187,.7)'; g.lineWidth = 1.5; g.strokeRect(x+.5,y+.5,236,68);
+  g.font = '700 22px "Barlow Condensed", sans-serif'; g.fillStyle = '#e6ece8'; g.textAlign='left';
+  g.fillText('TORTOISE ORACLE', x+14, y+28);
+  g.font = '500 13px "IBM Plex Mono", monospace';
+  const active = on && castT < DUR;
+  g.fillStyle = active ? '#5fe0bb' : '#94a19a';
+  g.fillText(active ? `ACTIVE  ${(DUR-castT).toFixed(1)} s` : (on ? 'ENDING' : 'OFF'), x+14, y+52);
+  // legend top-right
+  g.textAlign = 'right'; g.font = '500 13px "IBM Plex Mono", monospace';
+  g.fillStyle = '#ffb35c'; g.fillText('● enemy bullet, slowed ×0.5', W-24, 32);
+  g.fillStyle = '#ff5a4a'; g.fillText('● enemy bullet, normal', W-24, 52);
+  g.fillStyle = '#5fe0bb'; g.fillText('◎ ally at double tempo', W-24, 72);
+}
+function draw(){ floor(); field(); bullets(); enemies.forEach(enemyDraw); tortoise(); allies.forEach(allyDraw); hud(); }
+
+let last = performance.now();
+function frame(now){
+  const dt = Math.min(.05, (now-last)/1000); last = now;
+  if (!paused) step(dt);
+  draw();
+  requestAnimationFrame(frame);
+}
+if (reduce){ for (let i=0;i<150;i++) step(1/60); castT = 3; paused = true; document.getElementById('pause').setAttribute('aria-pressed','true'); }
+requestAnimationFrame(frame);
+
+const btn = (id, fn) => document.getElementById(id).addEventListener('click', fn);
+btn('cast', e => { on = !on; castT = 0; e.currentTarget.setAttribute('aria-pressed', on); e.currentTarget.textContent = on ? 'Oracle on' : 'Oracle off'; });
+btn('recast', () => { on = true; castT = 0; const c = document.getElementById('cast'); c.setAttribute('aria-pressed', true); c.textContent = 'Oracle on'; });
+btn('trails', e => { trails = !trails; e.currentTarget.setAttribute('aria-pressed', trails); });
+btn('pause', e => { paused = !paused; e.currentTarget.setAttribute('aria-pressed', paused); });
+})();
+</script>

@@ -1201,6 +1201,7 @@ static partial class Shot {
     TuskerScene();  // TUSKER=<s since the cast> [TUSKERCAP=1]: the Tank Summoner's Tidal Tusker (ShotTusker.cs)
     ForbiddenPathScene();  // FORBIDDEN=<s since the cast> (ShotForbiddenPath.cs)
     HoneyRaidScene();  // HONEY=<s since the cast> [HONEYCAP=1]: the Healer Summoner's Honey Raid (ShotHoneyRaid.cs)
+    TortoiseOracleScene();  // ORACLE=<s since the cast> [ORACLECAP=1]: the Healer Summoner's Tortoise Oracle (ShotTortoiseOracle.cs)
     HeartbeatScene();  // HEARTBEAT=<s since the cast>: the Healer Hemomancer's Heartbeat (ShotHeartbeat.cs)
     ConduitWebScene();  // WEB=<s since the cast> [WEBMASTERED=1]: the Healer Elementalist's Conduit Web (ShotConduitWeb.cs)
     EyeOfCalmScene();  // EYE=<s since the cast> [EYEMASTERED=1] [EYEGUST=<s>]: the Healer Elementalist's Eye of Calm (ShotEyeOfCalm.cs)

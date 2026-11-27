@@ -208,6 +208,9 @@ namespace Arena
                 case AbilityId.HoneyRaid:  // Healer: Summoner, the second ultimate (HoneyRaid.cs)
                     CastHoneyRaid(p, target, cap);
                     break;
+                case AbilityId.TortoiseOracle:  // Healer: Summoner, the third ultimate (TortoiseOracle.cs)
+                    CastOracle(p, target, cap);
+                    break;
                 case AbilityId.StaticBubble:  // Healer: Elementalist, the second ultimate (StaticBubble.cs)
                     CastStaticBubble(p, cap);
                     break;

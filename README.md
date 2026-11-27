@@ -727,6 +727,14 @@ and take **12 a second**; **allies standing in it heal 10 a second**. In its **l
 wax: every enemy in it but bosses is **stuck for 1 s**. The bee flies on off the map. Mastered: the pool is **300 px**. Damage is
 times your damage.
 
+**Tortoise Oracle** (Healer Summoner, key 2 of the lobby's Ultimate row, picked instead of World Tree, 90 s): an **old
+tortoise** settles at your cursor (kept within **500 px**) and slows time in a **240 px circle** for **10 s** (a clock face
+of ticks round the rim, a hand sweeping once round, the time left as a gold arc). **Enemies inside act at half speed**
+(moving, turning, winding up and firing; **bosses at 0.75**), and **enemy shots over it fly at half speed** (keeping their
+reach). **Allies standing in it run at double tempo**: heals on them count **double**, they **fire twice as fast** and
+their **abilities recharge twice as fast** (not the ultimate). Summoned minions aren't sped up. Slowed enemies wear a
+dashed amber ring, sped-up allies a pulsing jade one. Casting again replaces your circle. Mastered: the circle is **300 px**.
+
 **Heartbeat** (Healer Hemomancer, key 1 of the lobby's Ultimate row, picked instead of Sanguine Rain, 80 s): your heart
 **beats three times**, 0.35 s after the cast and then every 0.9 s. Each beat costs **8% of your max health** (never
 below the blood floor, 20%, so it can't down you; Bloodthirst makes it cheaper) and sends a **wave of blood** out of you to **320 px**

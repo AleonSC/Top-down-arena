@@ -13,7 +13,8 @@ namespace Arena
             * (Supplied(p) ? SupplyFire : 1f)  // a Supply Drop (SupplyDrop.cs)
             * BoilFireMult(p)  // Blood Boil (BloodBoil.cs)
             * CrFireMult(p)  // a Chakra Surge (ChakraReserves.cs)
-            * WarFireMult(p);  // standing at a War Standard (KnightBanners.cs)
+            * WarFireMult(p)  // standing at a War Standard (KnightBanners.cs)
+            * OracleTempo(p);  // inside a Tortoise Oracle's circle (TortoiseOracle.cs)
 
         /// spread: each shot lands somewhere within this many radians of your aim.
         void FirePlayer(Player p, float spread = 0f)

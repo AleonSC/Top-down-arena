@@ -28,6 +28,7 @@ namespace Arena
                 return 0f;
             if (casting)
                 amount *= castPower;
+            amount *= OracleTempo(target);  // inside a Tortoise Oracle's circle heals count double (TortoiseOracle.cs)
             float applied = Math.Min(amount, target.HealCap - target.Hp);  // (not past the wound: Combat.cs)
             float past = amount - Math.Max(0f, target.MaxHp - target.Hp);  // (only what goes past full health: a wound's share doesn't turn into shield)
             if (past > 0f && source != null && source.Role == Role.Healer && what != AuraSource)
