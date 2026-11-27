@@ -302,6 +302,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Spirit Ward | Healer | 1st, choice 3 | 18 s | - | The ward follows you. | Plant a talisman that absorbs damage for allies, then heals them. |
 | Blossom Storm | Healer | ultimate | 80 s | - | Lasts 8 s. | Petals heal the whole party and erase enemy bullets. |
 | Astral Projection | Healer | ultimate | 70 s | - | Lasts 10 s and heals 40% more. | Leave your body safe and ignored for 8 s; your spirit rides a teammate, shoots astral bolts, and heals them and speeds them up. Right click: switch teammate. |
+| Shadow Clone Medics | Healer | ultimate | 80 s | - | Lasts 12 s and clones have 40% more health. | A shadow clone medic follows every player for 10 s, you included: it heals them and steps into the shots aimed at them. |
 | Chakra Reserves | Healer | 1st, choice 5 | 28 s | - | A second thread reaches the next ally: half the heal and the full Surge. | Pour chakra into an ally: it heals them, speeds up their moving and attacks, and refreshes their cooldowns. |
 | Shadow Step | Dps | 1st, choice 1 | 7 s | - | +1 charge. | Teleport behind an enemy and strike it hard. |
 | Vanish | Dps | 1st, choice 2 | 16 s | - | Erases enemy bullets around you when you vanish. | Enemies lose track of you and your next hit deals double. |
