@@ -1,0 +1,228 @@
+<title>Conduit Web</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one CRT screen (the arena) with a tuning panel beside it; stacks on phones. Single dark look, like the game. */
+:root{
+  --bg:#03081a; --screen:#050d24; --rim:#26385e; --ink:#66a3ff; --dim:#3b5683;
+  --bolt:#bfe4ff; --heal:#59f28a; --gold:#ffcc59; --body:#c2ccE8;
+  --display:"VT323",ui-monospace,monospace; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--body);font-family:var(--mono);font-size:13px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px}
+.wrap{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px}
+@media (max-width:820px){.wrap{grid-template-columns:minmax(0,1fr)}}
+header{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
+h1{font-family:var(--display);font-weight:400;font-size:46px;line-height:1;color:var(--ink);margin:0;letter-spacing:.04em;text-shadow:0 0 12px #3d7dff88}
+.tag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.screen{position:relative;border:1px solid var(--rim);background:var(--screen);aspect-ratio:16/10;max-width:100%;overflow:hidden}
+canvas{display:block;width:100%;height:100%;cursor:crosshair}
+.hint{position:absolute;left:10px;bottom:8px;font-size:11px;color:var(--dim);letter-spacing:.08em;pointer-events:none}
+.hud{position:absolute;right:10px;top:8px;font-family:var(--display);font-size:20px;color:var(--gold);pointer-events:none}
+aside{display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel{border:1px solid var(--rim);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.panel h2{font-family:var(--display);font-weight:400;font-size:24px;color:var(--ink);margin:0;letter-spacing:.05em}
+.row{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center}
+.row label{font-size:12px}
+.row output{font-variant-numeric:tabular-nums;color:var(--gold)}
+.row input{grid-column:1/-1;width:100%;accent-color:var(--ink)}
+p{margin:0;line-height:1.5}
+.k{color:var(--gold)} .h{color:var(--heal)} .b{color:var(--bolt)}
+button{font:inherit;font-family:var(--display);font-size:22px;letter-spacing:.08em;background:transparent;color:var(--ink);
+  border:1px solid var(--ink);padding:4px 10px;cursor:pointer}
+button:hover,button:focus-visible{background:var(--ink);color:var(--screen);outline:none}
+.toggle{display:flex;gap:8px;align-items:center;font-size:12px}
+.note{font-size:11px;color:var(--dim)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>CONDUIT WEB</h1>
+    <span class="tag">Healer · Elementalist · Ultimate key 3 · mockup</span>
+  </header>
+
+  <div class="screen">
+    <canvas id="c" width="960" height="600"></canvas>
+    <div class="hud" id="hud">ULT READY</div>
+    <div class="hint">CLICK / SPACE: CAST</div>
+  </div>
+
+  <aside>
+    <div class="panel">
+      <h2>WHAT IT DOES</h2>
+      <p>A <span class="b">big field</span> bursts out around you and moves with you. Every enemy inside, and any that walk in, is wired into the circuit: <span class="b">three conduits</span> leave your hand and branch from enemy to enemy, drawn like Static Shock's.</p>
+      <p>Wired enemies are <span class="k">held stunned</span> and <span class="k">shocked</span> each pulse; the bolts thicken and whiten as the shock grows. Teammates in the field get a gold bolt and a <span class="h">heal</span> each pulse.</p>
+    </div>
+    <div class="panel">
+      <h2>TUNING</h2>
+      <div class="row"><label for="count">Conduits</label><output id="countO"></output><input id="count" type="range" min="1" max="5" value="3"></div>
+      <div class="row"><label for="aoe">Field radius (px)</label><output id="aoeO"></output><input id="aoe" type="range" min="200" max="480" step="10" value="330"></div>
+      <div class="row"><label for="dur">Web lasts (s)</label><output id="durO"></output><input id="dur" type="range" min="2" max="8" step="0.5" value="4"></div>
+      <div class="row"><label for="stun">Stun after web (s)</label><output id="stunO"></output><input id="stun" type="range" min="0" max="3" step="0.25" value="1"></div>
+      <div class="row"><label for="dmg">Shock per pulse</label><output id="dmgO"></output><input id="dmg" type="range" min="2" max="20" value="8"></div>
+      <div class="row"><label for="heal">Heal per pulse</label><output id="healO"></output><input id="heal" type="range" min="0" max="12" value="5"></div>
+      <label class="toggle"><input id="auto" type="checkbox" checked> Auto-cast demo</label>
+      <button id="cast">CAST</button>
+      <p class="note">Pulse every 0.5 s. Bosses: shocked, not stunned. Approximate look: the bolts copy Static Shock's recipe (StaticShockLook.cs), but the game's draw code will differ a little.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+(()=>{
+const cv=document.getElementById('c'),g=cv.getContext('2d'),W=cv.width,H=cv.height;
+const $=id=>document.getElementById(id);
+const cfg={};
+['count','aoe','dur','stun','dmg','heal'].forEach(k=>{const i=$(k),o=$(k+'O');const u=()=>{cfg[k]=+i.value;o.textContent=i.value};i.addEventListener('input',u);u()});
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Static Shock's palette (StaticShockLook.cs), 0-255
+const LINK=[111,208,255],HOT=[209,242,255],WHITE=[255,255,255],EGLOW=[140,219,255],SPARK=[191,237,255],
+  FAN=[190,235,255],FANMID=[110,190,255],RIM=[161,219,255],CRACK=[125,199,255],CRACKC=[232,247,255],
+  GOLD=[255,201,77],GOLDC=[255,246,216],GSPARK=[255,215,116];
+const rgba=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${Math.max(0,Math.min(1,a))})`;
+const lerpC=(a,b,u)=>a.map((v,i)=>v+(b[i]-v)*u);
+const RAMP=3; // seconds for a wired enemy's bolt to reach full heat
+
+const me={x:480,y:300,r:13};
+const allies=[{id:1,x:400,y:200,r:11,hp:55,max:100,c:'#ffcc59'},{id:2,x:600,y:420,r:11,hp:40,max:100,c:'#b88cff'}];
+let enemies=[],nextId=10;
+function spawn(n){for(let i=0;i<n;i++){const a=Math.random()*6.283,d=170+Math.random()*380;
+  enemies.push({id:nextId++,x:Math.max(20,Math.min(W-20,me.x+Math.cos(a)*d*1.4)),y:Math.max(20,Math.min(H-20,me.y+Math.sin(a)*d)),r:9+Math.random()*5,
+  vx:0,vy:0,hp:40,stun:0,flash:0,heat:0,boss:false})}}
+spawn(24);
+enemies.push({id:nextId++,x:820,y:160,r:26,vx:0,vy:0,hp:400,stun:0,flash:0,heat:0,boss:true});
+
+let mouse={x:700,y:300},web=null,cool=0,floats=[],sparks=[],t=0,autoT=1.2;
+const busy=()=>!!web;
+const hand=()=>{const a=Math.atan2(mouse.y-me.y,mouse.x-me.x);return{x:me.x+Math.cos(a)*(me.r+4),y:me.y+Math.sin(a)*(me.r+4)}};
+function cast(){if(web||cool>0)return;web={left:cfg.dur,pulse:.5,grow:0,into:[],from:[],seen:new Set(),allies:[]};
+  for(let i=0;i<40;i++)spark(me.x,me.y,Math.random()*6.28,200+Math.random()*500,i%2?SPARK:FAN)}
+cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();mouse.x=(e.clientX-r.left)*W/r.width;mouse.y=(e.clientY-r.top)*H/r.height});
+cv.addEventListener('pointerdown',e=>{cv.dispatchEvent(new PointerEvent('pointermove',e));$('auto').checked=false;cast()});
+$('cast').onclick=()=>{$('auto').checked=false;cast()};
+addEventListener('keydown',e=>{if(e.code==='Space'&&e.target.tagName!=='INPUT'){e.preventDefault();cast()}});
+
+function hit(e,d){e.hp-=d;e.flash=1;floats.push({x:e.x+(Math.random()-.5)*10,y:e.y-e.r-4,s:Math.round(d),c:'#bfe4ff',a:1})}
+function spark(x,y,ang,sp,c){sparks.push({x,y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,a:Math.random()*.35+.25,m:.6,c})}
+const fieldR=()=>cfg.aoe*(web?1-Math.pow(1-web.grow,3):0);
+
+// The circuit, Static Shock's rule: each enemy joins the closest point already in it;
+// your hand can feed at most `count` conduits, so the web branches out in that many arms.
+function circuit(h){
+  const R=fieldR(),inside=enemies.filter(e=>e.hp>0&&Math.hypot(e.x-me.x,e.y-me.y)<R+e.r);
+  web.into=[];web.from=[];let roots=0;
+  while(inside.length){let bi=-1,bf=-1,bd=1e9;
+    inside.forEach((e,i)=>{let d;
+      if(roots<cfg.count){d=Math.hypot(e.x-h.x,e.y-h.y);if(d<bd){bd=d;bi=i;bf=-1}}
+      web.into.forEach((q,j)=>{d=Math.hypot(e.x-q.x,e.y-q.y);if(d<bd){bd=d;bi=i;bf=j}})});
+    if(bf<0)roots++;
+    web.into.push(inside[bi]);web.from.push(bf);inside.splice(bi,1)}
+}
+
+let last=performance.now();
+function step(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;
+  for(const e of enemies){if(e.hp<=0)continue;e.flash=Math.max(0,e.flash-dt*4);
+    if(e.stun>0){e.stun-=dt;continue}
+    const dx=me.x-e.x,dy=me.y-e.y,d=Math.hypot(dx,dy)||1,sp=e.boss?14:30;
+    e.vx+=(dx/d*sp-e.vx)*dt*.6;e.vy+=(dy/d*sp-e.vy)*dt*.6;e.x+=e.vx*dt;e.y+=e.vy*dt;
+    if(d<110){e.x-=dx/d*90*dt;e.y-=dy/d*90*dt}}
+  for(const e of enemies)if(e.hp<=0){if(e.dead===undefined)e.dead=.5;e.dead-=dt;if(e.dead<=0)e.gone=1}
+  enemies=enemies.filter(e=>!e.gone);
+  if(enemies.filter(e=>!e.boss&&e.hp>0).length<16)spawn(6);
+
+  const wired=new Set();
+  if(web){const h=hand();
+    web.left-=dt;web.pulse-=dt;web.grow=Math.min(1,web.grow+dt/.35);
+    circuit(h);
+    for(const e of web.into){wired.add(e.id);e.heat+=dt;if(!e.boss)e.stun=Math.max(e.stun,.05);
+      if(!web.seen.has(e.id)){web.seen.add(e.id);hit(e,cfg.dmg*1.5);for(let i=0;i<8;i++)spark(e.x,e.y,Math.random()*6.28,80+Math.random()*140,SPARK)}
+      const hh=Math.min(1,e.heat/RAMP);if(Math.random()<dt*(14+20*hh))spark(e.x+(Math.random()-.5)*2*e.r,e.y+(Math.random()-.5)*2*e.r,Math.random()*6.28,40+Math.random()*100,SPARK)}
+    web.allies=allies.filter(a=>Math.hypot(a.x-me.x,a.y-me.y)<fieldR()+a.r);
+    if(web.pulse<=0){web.pulse+=.5;
+      for(const e of web.into)hit(e,cfg.dmg*(1+Math.min(1,e.heat/RAMP)));
+      if(cfg.heal>0)for(const a of web.allies){a.hp=Math.min(a.max,a.hp+cfg.heal);floats.push({x:a.x,y:a.y-18,s:'+'+cfg.heal,c:'#59f28a',a:1});
+        for(let i=0;i<6;i++)spark(a.x,a.y,Math.random()*6.28,60+Math.random()*160,GSPARK)}}
+    if(web.left<=0){for(const e of web.into)if(!e.boss)e.stun=cfg.stun;web=null;cool=2.5}}
+  for(const e of enemies)if(!wired.has(e.id))e.heat=Math.max(0,e.heat-dt*3);
+  if(cool>0)cool-=dt;
+  allies.forEach((al,i)=>{al.x=me.x+Math.cos(t*.4+i*3)*(110+40*i);al.y=me.y+Math.sin(t*.4+i*3)*(90+30*i);al.hp=Math.max(10,al.hp-dt*2)});
+  me.x=480+Math.sin(t*.5)*60;me.y=300+Math.sin(t*.7)*30;
+  if($('auto').checked&&!busy()&&cool<=0){autoT-=dt;if(autoT<=0){autoT=1;cast()}}
+  if($('auto').checked){mouse.x=me.x+Math.cos(t*.8)*200;mouse.y=me.y+Math.sin(t*.8)*200}
+  sparks.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;s.vx*=1-dt*2.5;s.vy*=1-dt*2.5;s.a-=dt});sparks=sparks.filter(s=>s.a>0);
+  floats.forEach(f=>{f.y-=dt*30;f.a-=dt*1.4});floats=floats.filter(f=>f.a>0);
+  $('hud').textContent=web?`WEB ${web.left.toFixed(1)}s`:cool>0?'RECHARGING':'ULT READY';
+  draw();requestAnimationFrame(step);
+}
+
+// ---- Static Shock's lightning: midpoint displacement, five levels, seeded so a seed holds its shape
+function rng(s){return()=>{s=s+0x6D2B79F5|0;let q=Math.imul(s^s>>>15,1|s);q=q+Math.imul(q^q>>>7,61|q)^q;return((q^q>>>14)>>>0)/4294967296}}
+const seed=(a,b,c)=>(Math.imul(a,73856093)^Math.imul(b,19349663)^Math.imul(c,83492791))|1;
+function boltPts(a,b,disp,s){let pts=[a,b];const r=rng(s);
+  for(let k=0;k<5;k++){const nx=[];for(let i=0;i<pts.length-1;i++){const p=pts[i],q=pts[i+1],dx=q.x-p.x,dy=q.y-p.y,l=Math.hypot(dx,dy)||.001,o=(r()*2-1)*disp;
+    nx.push(p,{x:(p.x+q.x)/2-dy/l*o,y:(p.y+q.y)/2+dx/l*o})}nx.push(pts[pts.length-1]);pts=nx;disp*=.55}return pts}
+function path(pts){g.beginPath();g.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)g.lineTo(pts[i].x,pts[i].y)}
+// soft halo, glowing jagged band, hot core: the three strokes
+function bolt(a,b,disp,s,glow,core,w,alpha){if(alpha<=.01||Math.hypot(b.x-a.x,b.y-a.y)<1)return;const pts=boltPts(a,b,disp,s);
+  g.strokeStyle=rgba(glow,.16*alpha);g.lineWidth=w*9;g.beginPath();g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);g.stroke();
+  g.strokeStyle=rgba(glow,.28*alpha);g.lineWidth=w*3.5;path(pts);g.stroke();
+  g.strokeStyle=rgba(core,alpha);g.lineWidth=w;path(pts);g.stroke()}
+function glowDisc(x,y,r,c,a){const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,rgba(c,a));gr.addColorStop(1,rgba(c,0));g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,6.2832);g.fill()}
+function circle(x,y,r){g.beginPath();g.arc(x,y,r,0,Math.PI*2)}
+
+function draw(){
+  const fr=Math.floor(t*(reduce?3:18));
+  g.fillStyle='#050d24';g.fillRect(0,0,W,H);
+  g.strokeStyle='rgba(102,163,255,.06)';g.lineWidth=1;
+  for(let x=0;x<W;x+=40){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke()}
+  for(let y=0;y<H;y+=40){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke()}
+
+  for(const e of enemies){g.globalAlpha=e.hp>0?1:Math.max(0,e.dead*2);
+    g.fillStyle=e.boss?'#c74c57':'#a8424f';circle(e.x,e.y,e.r);g.fill();
+    g.strokeStyle=e.boss?'#ff8a94':'#e06a75';g.lineWidth=2;g.stroke();
+    if(e.flash>0){g.fillStyle=`rgba(200,230,255,${e.flash*.6})`;circle(e.x,e.y,e.r);g.fill()}
+    if(e.stun>0&&e.hp>0)for(let k=0;k<3;k++){const an=t*4+k*2.1;g.fillStyle='#ffcc59';g.fillRect(e.x+Math.cos(an)*(e.r+3)-1.5,e.y-e.r-6+Math.sin(an)*3-1.5,3,3)}
+    if(e.boss){g.fillStyle='#ffd7db';g.font='16px VT323, monospace';g.textAlign='center';g.fillText('BOSS',e.x,e.y+5)}
+    g.globalAlpha=1}
+  for(const al of allies){g.fillStyle=al.c;circle(al.x,al.y,al.r);g.fill();
+    g.fillStyle='#0b1530';g.fillRect(al.x-16,al.y+16,32,4);g.fillStyle='#59f28a';g.fillRect(al.x-16,al.y+16,32*al.hp/al.max,4)}
+  g.fillStyle='#66a3ff';circle(me.x,me.y,me.r);g.fill();
+  g.fillStyle='#050d24';g.font='15px VT323, monospace';g.textAlign='center';g.fillText('YOU',me.x,me.y+4);
+
+  // ---- the glow pass (additive), like Juice.DrawGlowPass
+  g.save();g.globalCompositeOperation='lighter';g.lineCap='round';g.lineJoin='round';
+  const h=hand();
+  if(web){
+    const R=fieldR(),fade=Math.min(1,web.left/.4),rs=rng(seed(fr,0,7)),fl=.75+.25*rs();
+    // the field: pale static round you, bright at your hand, a faint rim
+    const gr=g.createRadialGradient(me.x,me.y,6,me.x,me.y,R);
+    gr.addColorStop(0,rgba(FAN,.3*fl*fade));gr.addColorStop(.5,rgba(FANMID,.08*fl*fade));gr.addColorStop(.92,rgba(FANMID,.05*fade));gr.addColorStop(1,rgba(FANMID,0));
+    g.fillStyle=gr;circle(me.x,me.y,R);g.fill();
+    g.strokeStyle=rgba(RIM,(.22+.5*(1-web.grow))*fl*fade);g.lineWidth=1+3*(1-web.grow);circle(me.x,me.y,R);g.stroke();
+    // crackling filaments out across the field
+    for(let i=0;i<9;i++){const s=seed(fr,i,11),r=rng(s),a=r()*6.2832,L=(.25+.55*r())*R;
+      bolt(h,{x:me.x+Math.cos(a)*L,y:me.y+Math.sin(a)*L},L*.12,s,CRACK,CRACKC,1,.5*fade)}
+    // the circuit: three conduits from your hand, branching enemy to enemy
+    web.into.forEach((e,i)=>{const from=web.from[i]<0?h:web.into[web.from[i]],heat=Math.min(1,e.heat/RAMP);
+      const L=Math.hypot(e.x-from.x,e.y-from.y);
+      bolt(from,e,Math.min(28,L*.18),seed(fr,e.id,3),lerpC(LINK,HOT,heat),WHITE,(web.from[i]<0?2.4:1.8)+heat,fade);
+      const er=rng(seed(fr,e.id,5));glowDisc(e.x,e.y,e.r*(2.4+1.2*heat),EGLOW,(.4+.3*heat)*(.6+.4*er())*fade);
+      if(er()<.5){g.strokeStyle=rgba([189,240,255],.8*fade);g.lineWidth=2;circle(e.x,e.y,e.r);g.stroke()}});
+    // gold bolts to teammates in the field
+    web.allies.forEach(a=>{bolt(h,a,14,seed(fr,a.id,9),GOLD,GOLDC,1.8,fade);glowDisc(a.x,a.y,a.r*3,GOLD,.4*fade)});
+    glowDisc(h.x,h.y,30,FAN,.95*fl*fade);
+  }
+  sparks.forEach(s=>{g.fillStyle=rgba(s.c,s.a/s.m);g.fillRect(s.x-.9,s.y-.9,1.8,1.8)});
+  g.restore();
+
+  if(!web){g.setLineDash([4,6]);g.strokeStyle='rgba(102,163,255,.22)';g.lineWidth=1;circle(me.x,me.y,cfg.aoe);g.stroke();g.setLineDash([])}
+  g.textAlign='center';g.font='20px VT323, monospace';
+  floats.forEach(f=>{g.globalAlpha=Math.max(0,f.a);g.fillStyle=f.c;g.fillText(f.s,f.x,f.y)});g.globalAlpha=1;
+  g.fillStyle='rgba(0,0,0,.18)';for(let y=0;y<H;y+=3)g.fillRect(0,y,W,1);
+}
+requestAnimationFrame(step);
+})();
+</script>

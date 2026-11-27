@@ -922,6 +922,10 @@ namespace Arena
         public float RodT;                     // Lightning Rod: seconds of charge left (replicated; LightningRod.cs)
         public float EyeT, EyeAge, EyeWallR;  // Eye of Calm (EyeOfCalm.cs), replicated: time left (0 = off), seconds since the cast, the wall's full reach
         public float EyeTickT, EyeHumT, EyeHealed;  // host: the damage tick's clock, the hum's, HP healed this run (tests)
+        public float CwT, CwLen, CwR;  // Conduit Web (ConduitWeb.cs), replicated: time left (0 = off), its length, the field's full reach
+        public float CwPulseT, CwHealed;  // host: until the next pulse, HP healed this run (tests)
+        public bool CwUp, CwMastered;  // host
+        public int CwWired, CwPulses, CwMostWired;  // host: enemies wired, pulses, most wired at once this run (tests)
         public bool EyeUp, EyeMastered;  // host (EyeUp: it blows, so it gusts when it ends)
         public int EyeHits, EyeSwept, EyeFlung;  // host: damage hits landed, shots gone, enemies caught in the gust (tests)
         public float VortexT, VortexAge, VortexR;  // Vortex (Vortex.cs), replicated: time left (0 = off), seconds since the cast, its radius
