@@ -228,7 +228,12 @@ static partial class Program
                 h.Diff.Set(DiffKnob.Campaign, 0f);
                 h.SetMode(quick ? GameMode.Quick : GameMode.Campaign);
                 h.StartMatch();
-                for (int i = 0; i < 400 && h.Game.State != MatchState.Fighting; i++) Step(h, dt);
+                for (int i = 0; i < 400 && h.Game.State != MatchState.Fighting; i++)
+                {
+                    if (h.Game.Me != null && h.Game.Me.OfferStart)
+                        h.Game.PickUpgrade(0);  // (Quick Play opens with the starting piece pick: the countdown waits for it, Hand.cs)
+                    Step(h, dt);
+                }
                 return h;
             };
             var pf = new Profile();

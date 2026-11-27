@@ -161,7 +161,7 @@ static partial class Program
         for (int q = 0; q < 53; q++) { foreach (var e in g.Enemies.Values) if (e != a) e.Hp = 0f; Hold(true, 0.1f); }  // (nothing else joins in)
         float alone = alone0 - a.Hp;
         Console.WriteLine("  leech tendrils: {0:0} damage from a full burst on a lone enemy (all {1} tendrils on it)", alone, Game.TendrilsOn(3, 1, 0));
-        Check(Game.TendrilsOn(3, 1, 0) == 3 && alone > 3f * 80f * 0.9f && alone < 3f * 80f * 1.1f, "a full 5 s burst on a lone enemy hits with all three tendrils (3 x 80)");
+        Check(Game.TendrilsOn(3, 1, 0) == 3 && alone > 3f * 80f * Might * 0.9f && alone < 3f * 80f * Might * 1.1f, "a full 5 s burst on a lone enemy hits with all three tendrils (3 x 80)");
         Check(me.Grasp.Count == 0 && me.GraspCd > 0f, "the burst lets go and starts the cooldown");
         Check(Game.TendrilsOn(5, 2, 0) == 3 && Game.TendrilsOn(5, 2, 1) == 2 && Game.TendrilsOn(3, 3, 2) == 1, "spare tendrils are shared out, nearest first");
         host.Leave(""); client.Leave("");
@@ -280,7 +280,22 @@ static partial class Program
         hp.Hp = hp.MaxHp * 0.6f;
         float mid = (float)price.Invoke(g, new object[] { hp });
         Console.WriteLine("  blood price: x{0:0.00} full, x{1:0.00} at 60%, x{2:0.00} at 20%", full, mid, low);
-        Check(Math.Abs(full - 1f) < 0.01f && Math.Abs(mid - 1.2f) < 0.01f && Math.Abs(low - 1.4f) < 0.01f, "Blood Price: up to 40% more damage the lower your health, all of it at the blood floor");
+        Check(Math.Abs(full - Might) < 0.01f && Math.Abs(mid - 1.2f * Might) < 0.01f && Math.Abs(low - 1.4f * Might) < 0.01f, "Blood Price: 15% more damage, and up to 40% more again the lower your health");
+        hp.Hp = hp.MaxHp; hp.Role = Role.Wildcard;
+        float wild = (float)price.Invoke(g, new object[] { hp });
+        hp.Role = Role.Tank;
+        Check(Math.Abs(wild - 1f) < 0.01f, "a Wildcard gets no Blood Price, flat bonus included (x" + wild.ToString("0.00") + ")");
+
+        // No wounds (owner Nov 26): a Hemomancer's hits leave no wound, so heals can always bring it back to full.
+        var damage = typeof(Game).GetMethod("Damage", flags);
+        g.DevSetGod(1, false);
+        hp.Hp = hp.MaxHp; hp.Wound = 0f; hp.InvulnT = 0f;
+        float hitHp = hp.Hp;
+        damage.Invoke(g, new object[] { hp, 30f, "Test" });
+        Console.WriteLine("  no wounds: lost {0:0.0}, wound {1:0.0}", hitHp - hp.Hp, hp.Wound);
+        Check(hp.Hp < hitHp && hp.Wound == 0f && Math.Abs(hp.HealCap - hp.MaxHp) < 0.01f, "a Hemomancer takes no wounds");
+        hp.Hp = hp.MaxHp; hp.InvulnT = 0f;
+        g.DevSetGod(1, true);
 
         // No lifesteal (owner Nov 26): hits don't heal; the class's kills drop its own health orbs instead.
         place(1, 500f); run(0.2f);
@@ -431,7 +446,7 @@ static partial class Program
         float sprayDealt = sp0 - d1.Hp, drained = hp.MaxHp - hp.Hp;
         bool seenSpray = client.Game.Players[1].SprayOn;
         Console.WriteLine("  arterial spray: {0:0.0} to the enemy in front, {1:0.0} behind, you drained {2:0.0} in 1 s; the friend sees it {3}", sprayDealt, b0s - back.Hp, drained, seenSpray);
-        Check(sprayed && seenSpray && sprayDealt > 27f && sprayDealt < 40f && b0s - back.Hp < 0.01f, "Arterial Spray hurts what's in the jet (about 30 a second), not what's behind you");
+        Check(sprayed && seenSpray && sprayDealt > 27f * Might && sprayDealt < 40f * Might && b0s - back.Hp < 0.01f, "Arterial Spray hurts what's in the jet (about 30 a second), not what's behind you");
         Check(drained > hp.MaxHp * 0.03f && drained < hp.MaxHp * 0.05f, "Arterial Spray drains about 4% of your max health a second");
         hp.Slots[0].Charges = 0;  // (the charge the cast spent)
         cast.Invoke(g, new object[] { 1, 0, new V2(700f, 450f), false });
@@ -518,7 +533,7 @@ static partial class Program
         run(0.1f);
         float t1 = a1 - d1.Hp, t2 = a2 - i2.Hp, t3 = a3 - i3.Hp;
         Console.WriteLine("  implosion: target {0:0.0}, touching {1:0.0} (pulled {2:0.0} px), chained {3:0.0}", t1, t2, gap0 - i2.Pos.DistanceTo(d1.Pos), t3);
-        Check(Math.Abs(t1 - 34f) < 0.5f && Math.Abs(t2 - 15f) < 0.5f && Math.Abs(t3 - 34f * 0.6f) < 0.5f && i2.Pos.DistanceTo(d1.Pos) < gap0 - 10f,
+        Check(Math.Abs(t1 - 34f * Might) < 0.5f && Math.Abs(t2 - 15f * Might) < 0.5f && Math.Abs(t3 - 34f * 0.6f * Might) < 0.5f && i2.Pos.DistanceTo(d1.Pos) < gap0 - 10f,
             "Implosion: 34 to the target, 15 to an enemy against it (pulled in), and an extra collapses another enemy for 60%");
         keep.Remove(i2); keep.Remove(i3); i2.Hp = i3.Hp = 0f;
         hp.Weapon = Defs.Weapon(Role.Tank, Kit.Hemomancer, 0);

@@ -1151,6 +1151,8 @@ static partial class Program
         // you leave keeps its place. Hayate: Kiri, Kaeshi, Tsumuji, Momentum Burst. Senbon: Agari, Kaeshi, Engetsu, Senbon, Caltrops.
         // The Burst flings lying caltrops at the nearest enemies; caltrops thrown after a Burst seek what it marked.
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.Katana);
+        var katanaKit = me.Kit;
+        me.Kit = Kit.Ninja;  // the Katana's own class: no Hemomancer Blood Price on the numbers below
         me.Hp = me.MaxHp;  // (Blood Price would change the damage as health moves)
         var hostDash = typeof(Game).GetMethod("HostWeaponDash", flags);
         float kw = me.Weapon.Damage * me.Stats.DmgMult;
@@ -1301,6 +1303,7 @@ static partial class Program
         play(0.05f, new PlayerInput { Parry = true });
         Check(me.FireCd <= 0f && me.KatanaHay == 0 && me.KatanaSen == 0, "raising the parry clears the Katana's wait and both combos' buildups");
         play(0.6f, new PlayerInput());
+        me.Kit = katanaKit;
         // The same for the Bo Staff: back to the slash with no wait, and a shove still drawing back never lands (no cooldown spent).
         reset();
         me.Weapon = Defs.Weapons.First(w => w.Id == WeaponId.BoStaff);
