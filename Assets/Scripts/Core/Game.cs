@@ -1670,6 +1670,7 @@ namespace Arena
             TickAstral(dt);  // Astral Projection: the spirit's clock, its host, lean and heal (AstralProjection.cs)
             TickRodentMinigun(dt);  // Rodent Minigun: the portal's clock, its turn after the aim and the rodents it spits (RodentMinigun.cs)
             TickHeartbeat(dt);  // Heartbeat: its clock, the beats' health and the waves' hits (Heartbeat.cs)
+            TickSwarmHeart(dt);  // Heart of the Swarm: its clock, the heart after the cursor, the beats' heals and pulls (HeartOfTheSwarm.cs)
             TickStaticBubble(dt);  // Static Bubble: its clock, growth, enemies put out, shots eaten, the burst (StaticBubble.cs)
             TickConduitWeb(dt);  // Conduit Web: its clock, the circuit, the stun, the shocks and the heal (ConduitWeb.cs)
             TickEye(dt);  // Eye of Calm: its clock, the heal, the wall, the shots and the gust (EyeOfCalm.cs)

@@ -235,6 +235,7 @@ namespace Arena
             DrawRavagerDrops();  // Blood Ravager's drops (BloodRavagerLook.cs)
             DrawBoilOver();  // Blood Boil's bubbles and steam (BloodBoilLook.cs)
             DrawHeartbeatOver();  // Heartbeat's flung drops and the heart on the chest (HeartbeatLook.cs)
+            DrawSwarmHeartOver(t);  // Heart of the Swarm's giant heart (HeartOfTheSwarmLook.cs)
             DrawRodentAfter(t);  // the Rodent Minigun's rodents scampering off and its cheese crumbs (RodentMinigunLook.cs)
         }
 
@@ -550,6 +551,7 @@ namespace Arena
             DrawBoilUnder(p, t);  // Blood Boil's glow, heat rings and time arc (BloodBoilLook.cs)
             DrawForbiddenAura(p, t);  // Forbidden Path's time ring, lock chain, Spiral trail and Gate runes (ForbiddenPathLook.cs)
             DrawHeartbeatUnder(p, t);  // Heartbeat's veins, waves, reach ring and pips (HeartbeatLook.cs)
+            DrawSwarmHeartUnder(p, t);  // Heart of the Swarm's reach, beat arc, tether, tendrils, rings and heal veins (HeartOfTheSwarmLook.cs)
             DrawStaticBubble(p, t);  // Static Bubble round its caster, Static Rush on anyone (StaticBubbleLook.cs)
             DrawAstralUnder(p, t);  // Astral Projection's ward, silver cord, tether ring and beam (AstralProjectionLook.cs)
             DrawStonespearUnder(p, t);  // the hovering spears' shadows (StonespearLook.cs)

@@ -977,6 +977,11 @@ namespace Arena
         public bool HbMastered;                 // host
         public int HbBeatCount, HbHits, HbOrbs; // host: beats, wave hits and blood orbs from its kills this run (tests)
         public float HbPaid;                    // host: health the beats have cost this run (tests)
+        public float HsT;                       // Heart of the Swarm (HeartOfTheSwarm.cs), replicated: seconds since the cast (0 = off)
+        public V2 HsPos;                        // ...the heart, following the cursor (replicated while on)
+        public bool HsMastered;                 // host
+        public int HsBeatCount, HsPulls;        // host: beats and enemy pulls this run (tests)
+        public float HsHealed;                  // host: health the beats have healed this run (tests)
         public float BubT, BubR, BubCharge;      // Static Bubble (StaticBubble.cs), replicated: time left (0 = off), its size, its charge
         public float RushT, RushLen;           // ...Static Rush from its burst, replicated: time left, how long it was
         public float BubZapT;                   // host: until the next feed crackle
