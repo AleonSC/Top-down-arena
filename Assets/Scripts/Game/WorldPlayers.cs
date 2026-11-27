@@ -103,7 +103,7 @@ namespace Arena
                 EndBodyFeel();
                 p.Disp = groundAt;
             }
-            // The real hitbox, drawn as a bright ring round a coloured core dot (a solid disc would hide the head).
+            // The real hitbox: a small coloured core dot (a downed player's husk keeps its white ring).
             if (p.Downed)
             {
                 Circle(p.Disp, p.Def.HitR, new Rgba(1f, 1f, 1f, 0.85f), 16);
@@ -113,8 +113,7 @@ namespace Arena
             }
             else
             {
-                Arc(p.Disp, p.Def.HitR - 0.75f, 2.2f, new Rgba(1f, 1f, 1f, 0.9f), 20);
-                Circle(p.Disp, p.Def.HitR * 0.3f, col, 10);
+                Circle(p.Disp, p.Def.HitR * 0.3f, col, 10);  // (the white hitbox ring round it was removed: it hid the heads)
             }
 
             if (!preview)  // menu previews (LobbyUi.cs) leave out the health bar

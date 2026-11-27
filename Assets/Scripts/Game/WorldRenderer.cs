@@ -223,6 +223,7 @@ namespace Arena
             DrawWarhornSky();  // Warhorn Volley's horn and the arrows in the air (WarhornVolleyLook.cs)
             DrawCannonSky();  // Cannon Call's flare and the iron balls dropping in (CannonCallLook.cs)
             DrawOrbitalSky();  // Orbital Laser's lock-on, beam, shockwave and flash (OrbitalLaserLook.cs)
+            DrawLanceRainSky();  // Holy Lance Rain's spears dropping in and their flash (HolyLanceRainLook.cs)
             DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon (DragonsDogmaLook.cs)
             DrawShadowGongs(t);  // Five Shadow Gong: the gong, the shadows, their cuts and the splits (FiveShadowGongLook.cs)
             DrawRavagerDrops();  // Blood Ravager's drops (BloodRavagerLook.cs)
@@ -412,6 +413,7 @@ namespace Arena
                 DrawStunned(p, t);  // WardenLook.cs
                 DrawRodSparks(p, t);  // Lightning Rod's arcs on the body (LightningRodLook.cs)
                 DrawLivingBoltSparks(p, t);  // Living Bolt's arcs on the body (LivingBoltLook.cs)
+                DrawRockGlovesOver(p, t);  // Rock Gloves' gathering shards and floating fists (RockGlovesLook.cs)
                 DrawRavagerOver(p, t);  // Blood Ravager's front legs and lash pips (BloodRavagerLook.cs)
                 DrawHeldStunGun(p, t);
                 FpFloor();
@@ -532,9 +534,11 @@ namespace Arena
             DrawRocketAura(p, t);  // Rocket Drop's time ring, the ∞ chip and your blast reach (RocketDropLook.cs)
             DrawFoamAura(p, t);    // Hazard Foam's time ring, tank bar and where your foam lands (HazardFoamLook.cs)
             DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
+            DrawConduitWeb(p, t);  // Conduit Web's time ring, and the plain web with Visual effects off (ConduitWebLook.cs)
             DrawEyeOfCalm(p, t);   // Eye of Calm's hurricane (EyeOfCalmLook.cs)
             DrawVortex(p, t);      // the Vortex ultimate's storm (VortexLook.cs)
             DrawLivingBoltAura(p, t);  // Living Bolt's channel, halo and time ring (LivingBoltLook.cs)
+            DrawRockGlovesUnder(p, t);  // Rock Gloves' cracks, fist shadows, time ring and Haymaker pips (RockGlovesLook.cs)
             DrawRodentPortal(p, t);  // the Rodent Minigun's portal (RodentMinigunLook.cs)
             DrawRavagerUnder(p, t);  // Blood Ravager's glow, reach ring and back legs (BloodRavagerLook.cs)
             DrawBoilUnder(p, t);  // Blood Boil's glow, heat rings and time arc (BloodBoilLook.cs)

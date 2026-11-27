@@ -1589,6 +1589,7 @@ namespace Arena
             TickVolleys(dt);    // WarhornVolley.cs: the arrows' front crossing the field
             TickCannons(dt);    // CannonCall.cs: the iron balls dropping on their marks
             TickOrbitals(dt);   // OrbitalLaser.cs: the beam's kills and the scorch
+            TickLanceRain(dt);  // HolyLanceRain.cs: the spears falling, landing and their glows healing
             TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickTanks(dt);      // LiteralTank.cs: the tank's time, running enemies over, getting out
@@ -1662,6 +1663,7 @@ namespace Arena
             }
             KeepOutOfDomes();  // Fortress's dome (Dome.cs)
             KeepOutOfAegis(dt);  // Aeroaegis's vortex (Aegis.cs)
+            TickRockGloves(dt);  // Rock Gloves: its clock, the punches' swing and the crumble (RockGloves.cs)
             TickLivingBolt(dt);  // Living Bolt: its clock, the discharge and the residue's damage (LivingBolt.cs)
             TickRavager(dt);  // Blood Ravager: its clock, the legs' walk and stomps, the ram and the lashes (BloodRavager.cs)
             TickBoil(dt);  // Blood Boil: its clock and the drain (BloodBoil.cs)
@@ -1671,6 +1673,7 @@ namespace Arena
             TickRodentMinigun(dt);  // Rodent Minigun: the portal's clock, its turn after the aim and the rodents it spits (RodentMinigun.cs)
             TickHeartbeat(dt);  // Heartbeat: its clock, the beats' health and the waves' hits (Heartbeat.cs)
             TickStaticBubble(dt);  // Static Bubble: its clock, growth, enemies put out, shots eaten, the burst (StaticBubble.cs)
+            TickConduitWeb(dt);  // Conduit Web: its clock, the circuit, the stun, the shocks and the heal (ConduitWeb.cs)
             TickEye(dt);  // Eye of Calm: its clock, the heal, the wall, the shots and the gust (EyeOfCalm.cs)
             TickVortex(dt);  // the Vortex ultimate: its clock, swirl, damage, swept shots and fling (Vortex.cs)
             KeepOutOfShell(dt);  // Blood Shell (BloodShell.cs)
@@ -1874,6 +1877,8 @@ namespace Arena
                 }
                 else if (ColOn(p))
                     ColossusTrigger(p);  // the golem: Fire slams, the weapon is put away (StoneColossus.cs)
+                else if (GlvOn(p))
+                    GloveTrigger(p);  // Rock Gloves: Fire punches, the weapon is put away (RockGloves.cs)
                 else if (GolOn(p))
                     GolemTrigger(p);  // Blood Golem: Fire punches, the weapon is put away (BloodGolem.cs)
                 else if (SpOn(p))
