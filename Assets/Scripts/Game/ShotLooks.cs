@@ -80,7 +80,7 @@ namespace Arena
                 return;  // it carries its own glow (KnightDpsLook.cs)
             if (b.Kind == Defs.Caltrop)
                 return;  // a caltrop has no glow (KatanaLook.cs)
-            if (b.Kind == Defs.RodentShot || b.Kind == Defs.Senbon)
+            if (b.Kind == Defs.RodentShot || b.Kind == Defs.Senbon || b.Kind == Defs.PaperCrane)
                 return;  // a rodent is fur, not light (RodentMinigunLook.cs); a senbon carries its own glint (SenbonSeekersLook.cs)
             if (b.Kind == Defs.ParryNeedle)
             {

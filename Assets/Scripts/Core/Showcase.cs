@@ -100,6 +100,7 @@ namespace Arena
                     : shown == AbilityId.LivingBolt ? Game.BoltChannel + Game.BoltTime + 1.5f  // (the trails fade before the next)
                     : shown == AbilityId.BloodRavager ? Game.RvTime + 1.5f  // (the legs fold away before the next)
                     : shown == AbilityId.BloodBoil ? Game.BoilTime + 2f  // (the steam clears before the next)
+                    : shown == AbilityId.HundredPaperCranes ? Game.HpcEnd + 1.5f  // (the last cranes land before the next)
                     : shown == AbilityId.ForbiddenPath ? Game.FpShed + Game.FpTime + 1.5f  // (the beast sheds back before the next)
                     : shown == AbilityId.HoneyRaid ? Game.HrTotal + 1.5f  // (the pool dries up before the next)
                     : shown == AbilityId.SleepyCat ? Game.ScProwl + Game.ScNap + 1.5f  // (the cat wakes and goes before the next)

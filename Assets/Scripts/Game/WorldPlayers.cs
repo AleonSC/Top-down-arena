@@ -166,6 +166,7 @@ namespace Arena
             // Abilities
             if (p.PlateN > 0)  // Ceremonial Armor's plates (CeremonialArmorLook.cs; the rings and sigil are under the model)
                 DrawCeremonialArmor(p, t);
+            DrawCraneRing(p, t);  // Hundred Paper Cranes: the ring swirling round you (HundredPaperCranesLook.cs)
             DrawSenbonRing(p, t);  // Senbon Seekers' needles schooling round you (SenbonSeekersLook.cs)
             DrawSpiritFront(p, t);  // Spirit Avatar's arms and brush over the model (SpiritAvatarLook.cs)
             if (p.UltT > 0f && p.Slots[Upgrades.UltSlot].Id == AbilityId.BlossomStorm)  // petals swirling round

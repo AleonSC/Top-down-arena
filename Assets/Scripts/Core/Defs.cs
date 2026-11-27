@@ -927,6 +927,7 @@ namespace Arena
             DragonFang = 89,   // the Dragon Fang Kunai: one huge kunai bouncing from enemy to enemy (DragonFang.cs, Game/DragonFangLook.cs)
             FoamGlob = 88,     // a Hazard Foam glob: flies over everything and lands as foam (HazardFoam.cs, Game/HazardFoamLook.cs)
             RocketShell = 87,  // a Rocket Drop rocket: bursts on what it touches, a wall, or at the cursor (RocketDrop.cs, Game/RocketDropLook.cs)
+            PaperCrane = 89,   // a Hundred Paper Cranes crane homing on an enemy (HundredPaperCranes.cs, Game/HundredPaperCranesLook.cs)
             BallistaBolt = 86, // a Ballista's giant bolt: through everything, knocking what it passes (Ballista.cs, Game/BallistaLook.cs)
             SiegeShell = 90,   // a Siege Cannon shell: bursts on what it hits or where its flight ends, knocking enemies back (SoldierCallings.cs, Game/SoldierCallingsLook.cs)
             SlugRound = 91,    // a Slug Breacher slug: through enemies, stunning and shoving (SoldierCallings.cs)
@@ -1010,6 +1011,7 @@ namespace Arena
             Row(table, GustShot, radius: 9f, color: new Rgba(0.7f, 1f, 0.85f));
             Row(table, FumaStar, radius: 20f, color: new Rgba(0.8f, 0.85f, 0.95f));  // giant
             Row(table, GreatStar, radius: 24f, color: new Rgba(0.8f, 0.85f, 0.95f));  // huger
+            Row(table, PaperCrane, radius: 7f, color: new Rgba(0.95f, 0.93f, 0.86f));
             Row(table, StoneSpear, radius: 8f, color: new Rgba(1f, 0.69f, 0.29f));  // basalt with amber seams (the colour is the seams' glow)
             Row(table, HoneyGlob, radius: 4f, color: new Rgba(1f, 0.71f, 0.18f));  // lobbed: it never collides
             Row(table, BloodShot, radius: 4f, color: new Rgba(0.9f, 0.12f, 0.2f));

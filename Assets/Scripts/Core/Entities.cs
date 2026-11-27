@@ -161,6 +161,7 @@ namespace Arena
         PactDissolve,
         PactRise,
         PactSnap,
+        PaperCrane,  // PaperCrane: a Hundred Paper Cranes moment (Radius = Game.HpcFx*; Core/HundredPaperCranes.cs, Game/HundredPaperCranesLook.cs)
         PerfectParry,
         PhalanxBreak,
         PhalanxJab,
@@ -958,6 +959,10 @@ namespace Arena
         public int RvLashCount, RvLashHits, RvStomps, RvTrampled, RvRams;  // host: lashes, lash hits, steps landed, enemies stomped, rams (tests)
         public float RmT, RmAng, RmLen;  // Rodent Minigun (RodentMinigun.cs), replicated: seconds since the cast (0 = off), the portal's heading, its full-fire time
         public float RmAcc, RmPw;        // host: rodents owed to the next tick, the cast's mastery power
+        public float HpcT;                     // Hundred Paper Cranes (HundredPaperCranes.cs), replicated: seconds since the cast (0 = off)
+        public int HpcN;                       // ...cranes still in the ring (replicated while on)
+        public int HpcGone, HpcHits;           // host: cranes released this cast; cranes that hit this run (tests)
+        public float HpcDealt;                 // host: crane damage this run (tests)
         public float FpT, FpAge, FpStageT;  // Forbidden Path (ForbiddenPath.cs), replicated: beast time left (0 = off), seconds since the cast, seconds into the stage
         public byte FpStage;                // ...the combo stage running (0: none, 1 Pounce .. 5 Gate; replicated)
         public int FpTarget = -1;           // ...the locked enemy's id (-1: none; replicated)
@@ -1471,7 +1476,8 @@ namespace Arena
         public V2 ShooterPos;     // host only: where that enemy stood when it fired (the bolt still lands there if it has died)
         public HashSet<int> Gusted; // host only: a Focus arrow: the enemies its wind has shoved (BowFocus.cs)
         public bool Senbon, SbHome;  // host only: a Senbon Seekers needle (SteerSenbon, poisons on a hit), flying back into the ring
-        public float SbAge;       // host only: how long the needle has steered (it turns harder)
+        public float SbAge;       // host only: how long the needle (or paper crane) has steered (it turns harder)
+        public bool Crane;        // host only: a Hundred Paper Cranes crane homing on HomeOn (SteerCrane; HundredPaperCranes.cs)
         public int HomeOn;        // host only: a Stonespear volley spear: the enemy it curves in on (SteerSpear; Pulled sends its course)
     }
 

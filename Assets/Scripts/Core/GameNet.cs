@@ -601,6 +601,7 @@ namespace Arena
             SyncTrojanHorse(s, p);  // TrojanHorse.cs
             SyncBloodBoil(s, p);  // BloodBoil.cs
             SyncForbiddenPath(s, p);  // ForbiddenPath.cs
+            SyncCranes(s, p);  // HundredPaperCranes.cs
             SyncAstralProjection(s, p);  // AstralProjection.cs
             SyncHeartbeat(s, p);  // Heartbeat.cs
             SyncSwarmHeart(s, p);  // HeartOfTheSwarm.cs
