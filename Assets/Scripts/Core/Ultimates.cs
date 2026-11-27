@@ -235,6 +235,9 @@ namespace Arena
                 case AbilityId.AstralProjection:  // Healer: Ninja, the second ultimate (AstralProjection.cs)
                     CastAstral(p, cap);
                     break;
+                case AbilityId.ShadowCloneMedics:  // Healer: Ninja, the fourth ultimate (ShadowCloneMedics.cs)
+                    CastCloneMedics(p, cap);
+                    break;
                 case AbilityId.LivingBolt:  // DPS: Elementalist, the second ultimate (LivingBolt.cs)
                     CastLivingBolt(p, cap);
                     break;

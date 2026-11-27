@@ -1204,6 +1204,7 @@ static partial class Shot {
     ForbiddenPathScene();  // FORBIDDEN=<s since the cast> (ShotForbiddenPath.cs)
     HoneyRaidScene();  // HONEY=<s since the cast> [HONEYCAP=1]: the Healer Summoner's Honey Raid (ShotHoneyRaid.cs)
     TortoiseOracleScene();  // ORACLE=<s since the cast> [ORACLECAP=1]: the Healer Summoner's Tortoise Oracle (ShotTortoiseOracle.cs)
+    CloneMedicsScene();  // CLONEMEDICS=<s since the cast> [CMHP=<0-1>]: the Healer Ninja's Shadow Clone Medics (ShotCloneMedics.cs)
     HeartbeatScene();  // HEARTBEAT=<s since the cast>: the Healer Hemomancer's Heartbeat (ShotHeartbeat.cs)
     SwarmHeartScene();  // SWARMHEART=<s since the cast>: the Healer Hemomancer's Heart of the Swarm (ShotSwarmHeart.cs)
     ConduitWebScene();  // WEB=<s since the cast> [WEBMASTERED=1]: the Healer Elementalist's Conduit Web (ShotConduitWeb.cs)
