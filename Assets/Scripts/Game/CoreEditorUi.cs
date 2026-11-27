@@ -13,7 +13,7 @@ namespace Arena
         enum CoreTool { Wall, Pillar, Crate, Heavy, Erase }
 
         static readonly string[] CoreToolNames = { "WALL", "PILLAR", "CRATE", "HEAVY CRATE", "ERASE" };
-        const int CoreSnap = 10, CoreCrateSnap = 22, CoreMinWall = 16;
+        const int CoreSnap = 50, CoreMinWall = 50;  // the floor grid (RoomTraps.Tile): wall corners on its lines, a wall at least a square thick
 
         int coreIndex;
         CoreTool coreTool = CoreTool.Wall;
@@ -234,8 +234,10 @@ namespace Arena
             float lx = (m.x - cv.x) / k, ly = (m.y - cv.y) / k;
             bool over = cv.Contains(m) && area.Contains(new Vector2(lx, ly));
             bool crate = coreTool == CoreTool.Crate || coreTool == CoreTool.Heavy;
-            int snap = crate ? CoreCrateSnap : CoreSnap;
-            float sx = Mathf.Clamp(Mathf.Round(lx / snap) * snap, area.x, area.xMax), sy = Mathf.Clamp(Mathf.Round(ly / snap) * snap, area.y, area.yMax);
+            bool middle = crate || coreTool == CoreTool.Pillar;  // (crates and pillars sit on a square's middle, walls' corners on lines)
+            float sx = middle ? Mathf.Floor(lx / CoreSnap) * CoreSnap + CoreSnap / 2 : Mathf.Round(lx / CoreSnap) * CoreSnap;
+            float sy = middle ? Mathf.Floor(ly / CoreSnap) * CoreSnap + CoreSnap / 2 : Mathf.Round(ly / CoreSnap) * CoreSnap;
+            sx = Mathf.Clamp(sx, area.x, area.xMax); sy = Mathf.Clamp(sy, area.y, area.yMax);
 
             if (e.type == EventType.MouseDown && over && GUI.enabled)
             {
@@ -267,7 +269,7 @@ namespace Arena
                     else
                     {
                         CorePush();
-                        int[] np = coreTool == CoreTool.Pillar ? new[] { 1, (int)sx, (int)sy, 32 } : new[] { coreTool == CoreTool.Heavy ? 3 : 2, (int)sx, (int)sy };
+                        int[] np = coreTool == CoreTool.Pillar ? new[] { 1, (int)sx, (int)sy, CoreSnap / 2 } : new[] { coreTool == CoreTool.Heavy ? 3 : 2, (int)sx, (int)sy };
                         var l = new List<int[]>(pieces) { np };
                         coreWork[coreIndex] = l.ToArray();
                     }

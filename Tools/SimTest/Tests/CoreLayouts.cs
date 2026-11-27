@@ -58,6 +58,26 @@ static partial class Program
         Check(CoreLayouts.All.Length == 10 && names.Count == 10 && CoreLayouts.All.Select((l, i) => (int)l.Id == i).All(x => x) && bad == 0,
             "ten core layouts of 40+ pieces each: inside the core, the 14 door lanes and the gate's floor clear, no slot too narrow to walk, no walled-off pocket (" + bad + " bad)");
 
+        // On the 50 px floor grid (the core's corner is on it): wall edges on grid lines, crates one to a square on its middle.
+        {
+            const int T = (int)RoomTraps.Tile;
+            int off = 0, twice = 0;
+            foreach (var l in CoreLayouts.All)
+            {
+                var seen = new HashSet<string>();
+                foreach (var p in CoreLayouts.Expanded(l.Id))
+                {
+                    bool on = p[0] == 0 ? p[1] % T == 0 && p[2] % T == 0 && p[3] % T == 0 && p[4] % T == 0
+                        : p[0] == 1 ? (p[3] * 2) % T == 0 && ((p[3] * 2 / T) % 2 == 1 ? (p[1] - T / 2) % T == 0 && (p[2] - T / 2) % T == 0 : p[1] % T == 0 && p[2] % T == 0)
+                        : (p[1] - T / 2) % T == 0 && (p[2] - T / 2) % T == 0;
+                    if (!on) { off++; Console.WriteLine("  " + l.Name + ": off the grid at " + p[1] + "," + p[2]); }
+                    if (p[0] >= 2 && !seen.Add(p[1] + "," + p[2])) twice++;
+                }
+            }
+            Check(Expansion.GridX0 % T == 0 && Expansion.GridY0 % T == 0 && off == 0 && twice == 0,
+                "every core plan is on the floor grid: wall edges on its lines, crates on square middles, one a square (" + off + " off, " + twice + " doubled)");
+        }
+
         // The world: a layout's walls and pillars stand in the core in place of its rooms' random cover, the same on every build.
         var core = Expansion.GridCore();
         var plain = Expansion.Build(core, Expansion.GridCoreCuts());
