@@ -258,7 +258,9 @@ static partial class Program
             }
             // The Duelist's own test (duelist, in features) checks its phases; here the simple bots lose to it at wave 30 (a run on main showed a
             // game over in Nov 2026), so they can't be killed either: this checks its decoys reach the client and it can be beaten.
-            if (Find(s[0], EnemyType.Duelist) != null)
+            // The Devourer too: the simple bots only won its damage race with Artillery Assault's triple fire rate (gone since the
+            // Deployable Turret took its place; a run on main showed a game over in Nov 2026). Its eating and healing still have to show.
+            if (Find(s[0], EnemyType.Duelist) != null || Find(s[0], EnemyType.Devourer) != null)
                 foreach (var p in s[0].Game.Players.Values)
                     s[0].Game.DevSetGod(p.Id, true);
             // (The Storm Herald gets longer: 475k health against a duo of Good bots doing about 1,000 a second on a slow seed.)
