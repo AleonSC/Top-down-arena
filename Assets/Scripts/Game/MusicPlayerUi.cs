@@ -29,7 +29,7 @@ namespace Arena
             {
                 foreach (var t in pack.Tracks)
                     if (t != null)
-                        AddProjectClip(entries, ids, used, t.Title, t.Clip, t.Mood.ToString(), t.Volume);
+                        AddProjectClip(entries, ids, used, t.Title, t.Clip, t.Mood.ToString(), VolumeOf(t.Volume));
                 ReplaceTrack(MusicLibrary.Menu, pack.MainMenu);
                 ReplaceTrack(MusicLibrary.Lobby, pack.Lobby);
                 ReplaceTrack(MusicLibrary.Battle, pack.WaveBattle);
@@ -59,11 +59,15 @@ namespace Arena
             });
         }
 
+        /// A slot added to an Inspector list (Factions, Bosses, Tracks) comes in at volume 0, not the 0.6 default, which
+        /// would play the clip silently: 0 means "not set" (leave the slot out, or the clip empty, to have no music).
+        static float VolumeOf(float v) => v > 0.001f ? v : 0.6f;
+
         void ReplaceTrack(string id, MusicPack.Slot slot)
         {
             if (slot == null || slot.Clip == null)
                 return;
-            sounds.Overrides[id] = new KeyValuePair<AudioClip, float>(slot.Clip, slot.Volume);
+            sounds.Overrides[id] = new KeyValuePair<AudioClip, float>(slot.Clip, VolumeOf(slot.Volume));
             var e = MusicLibrary.Find(id);
             if (e != null)
                 e.Blurb = "Your clip: " + slot.Clip.name;

@@ -19,7 +19,7 @@ namespace Arena
         public class Slot
         {
             public AudioClip Clip;
-            [Range(0f, 1f)] public float Volume = 0.6f;
+            [Range(0f, 1f), Tooltip("0 counts as not set: plays at 0.6.")] public float Volume = 0.6f;
         }
 
         [Serializable]
