@@ -1589,6 +1589,7 @@ namespace Arena
             TickVolleys(dt);    // WarhornVolley.cs: the arrows' front crossing the field
             TickCannons(dt);    // CannonCall.cs: the iron balls dropping on their marks
             TickOrbitals(dt);   // OrbitalLaser.cs: the beam's kills and the scorch
+            TickLanceRain(dt);  // HolyLanceRain.cs: the spears falling, landing and their glows healing
             TickAirstrikes(dt);  // Airstrike.cs: jets bombing their lanes, the lanes burning
             TickJugg(dt);       // Juggernaut.cs: the suit's time, and taking it off
             TickTanks(dt);      // LiteralTank.cs: the tank's time, running enemies over, getting out

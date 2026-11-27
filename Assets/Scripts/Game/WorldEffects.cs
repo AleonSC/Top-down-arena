@@ -64,6 +64,8 @@ namespace Arena
             d[(int)FxKind.WarhornVolley] = (fx, f, t) => DrawWarhornGround(fx);  // WarhornVolleyLook.cs
             d[(int)FxKind.CannonCall] = (fx, f, t) => DrawCannonGround(fx);  // CannonCallLook.cs
             d[(int)FxKind.OrbitalLaser] = (fx, f, t) => DrawOrbitalGround(fx);  // OrbitalLaserLook.cs
+            d[(int)FxKind.HolyLanceRain] = (fx, f, t) => DrawLanceRainGround(fx);  // HolyLanceRainLook.cs
+            d[(int)FxKind.HolyLanceSpear] = (fx, f, t) => DrawLanceRainGround(fx);
             d[(int)FxKind.Airstrike] = (fx, f, t) => DrawAirstrikeFx(fx);  // AirstrikeLook.cs
             d[(int)FxKind.BsBlow] = (fx, f, t) => DrawBsBlowFx(fx);  // BloodBrawlerLook.cs
             d[(int)FxKind.EmbolusBlast] = (fx, f, t) => DrawEmbolusBlastFx(fx);  // EmbolusLook.cs
