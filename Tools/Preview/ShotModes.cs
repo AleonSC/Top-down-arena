@@ -3,6 +3,7 @@ using System; using System.IO; using System.Reflection; using System.Threading; 
 // lobby, kitgrid, tab, shop, picker, ...).
 static partial class Shot {
   static void DrawMode() {
+    if (TankSheet()) return;  // TANKSHEET=1 (ShotTankLook.cs)
     if (mode == "hud") {
       // TILEFX=moment,seconds: every ability tile that long into a reaction (HudTiles.cs): ready, charge, use or deny
       // (deny also puts the 1st ability on cooldown, so its timer shows). The stub ignores GUI.matrix: no pop or shake, the rest shows.

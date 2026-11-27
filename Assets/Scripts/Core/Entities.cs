@@ -109,6 +109,8 @@ namespace Arena
         HeatDump,
         HiveCall,  // HiveCall: the Hive Censer's Alt calling every swarm of a player to a spot (Pos = the spot, Pos2.X = their id, Radius = the ring's size, Dur = Game.HiveCallTime; Core/HiveCenser.cs, Game/HiveCenserLook.cs)
         HolyCross,
+        HolyLanceRain,  // Holy Lance Rain's circle round the caster (HolyLanceRain.cs, HolyLanceRainLook.cs)
+        HolyLanceSpear,  // one spear of Holy Lance Rain: its warning, fall, impact and healing glow
         HoneyHarvest,
         Icicle,
         Implode,
