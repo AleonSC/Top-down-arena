@@ -214,6 +214,9 @@ namespace Arena
                 case AbilityId.StaticBubble:  // Healer: Elementalist, the second ultimate (StaticBubble.cs)
                     CastStaticBubble(p, cap);
                     break;
+                case AbilityId.EyeOfCalm:  // Healer: Elementalist, the third ultimate (EyeOfCalm.cs)
+                    CastEye(p, cap);
+                    break;
                 case AbilityId.Heartbeat:  // Healer: Hemomancer, the second ultimate (Heartbeat.cs)
                     CastHeartbeat(p, cap);
                     break;

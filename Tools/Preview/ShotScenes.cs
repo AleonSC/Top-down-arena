@@ -1200,6 +1200,7 @@ static partial class Shot {
     HoneyRaidScene();  // HONEY=<s since the cast> [HONEYCAP=1]: the Healer Summoner's Honey Raid (ShotHoneyRaid.cs)
     TortoiseOracleScene();  // ORACLE=<s since the cast> [ORACLECAP=1]: the Healer Summoner's Tortoise Oracle (ShotTortoiseOracle.cs)
     HeartbeatScene();  // HEARTBEAT=<s since the cast>: the Healer Hemomancer's Heartbeat (ShotHeartbeat.cs)
+    EyeOfCalmScene();  // EYE=<s since the cast> [EYEMASTERED=1] [EYEGUST=<s>]: the Healer Elementalist's Eye of Calm (ShotEyeOfCalm.cs)
     StaticBubbleScene();  // BUBBLE=<s since the cast> [BUBFILL=<0-1>] [BUBBURST=<s>]: the Healer Elementalist's Static Bubble (ShotStaticBubble.cs)
     ShadowGongScene();  // GONG=<s since the cast>: the Tank Ninja's Five Shadow Gong (ShotShadowGong.cs)
     AstralScene();  // ASTRAL=<s since the cast>: the Healer Ninja's Astral Projection, Fire held (ShotAstral.cs)
