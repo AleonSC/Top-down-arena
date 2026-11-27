@@ -1,0 +1,360 @@
+<title>Shadow Clone Medics</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: title block, then the live arena loop (the hero) beside a readout and toggles, a scrubbable 10 s timeline,
+   then the four moments and the proposed numbers. House mockup palette (as blood-golem.html); the jade and ink live in the arena. */
+:root{
+  --bg:#ebe8e1; --fg:#1c1e22; --muted:#5d6168; --panel:#f7f5f0; --line:#d2cec3; --chip:#e0dcd1;
+  --gold:#9a6608; --heal:#1f8a5b; --heal-soft:#d7eee2; --ink:#5b3f99; --danger:#b3263a; --arena:#0c0f14;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101215; --fg:#e7e8ea; --muted:#979ca4; --panel:#171a1f; --line:#2b3037; --chip:#22262d;
+  --gold:#f0bd54; --heal:#5fe0a0; --heal-soft:#173327; --ink:#b39cf5; --danger:#ff7d8c; --arena:#0a0c10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101215; --fg:#e7e8ea; --muted:#979ca4; --panel:#171a1f; --line:#2b3037; --chip:#22262d;
+  --gold:#f0bd54; --heal:#5fe0a0; --heal-soft:#173327; --ink:#b39cf5; --danger:#ff7d8c; --arena:#0a0c10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 var(--body);margin:0;padding-block:28px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1140px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.eyebrow{font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 10px}
+.eyebrow .heal{color:var(--heal)} .eyebrow .gold{color:var(--gold)}
+h1{font:800 clamp(48px,9vw,96px)/.88 var(--display);text-transform:uppercase;margin:6px 0 10px;text-wrap:balance}
+h1 span{color:var(--ink)}
+.lede{margin:0;max-width:66ch;color:var(--muted);font-size:17px}
+.lede b{color:var(--fg);font-weight:600}
+h2{font:700 26px/1 var(--display);letter-spacing:.04em;text-transform:uppercase;margin:0}
+h2 small{font:500 12px var(--mono);letter-spacing:.04em;text-transform:none;color:var(--muted);margin-left:8px}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;align-items:start}
+@media (max-width:860px){.stage{grid-template-columns:1fr}}
+.arena{background:var(--arena);border-radius:6px;overflow:hidden;aspect-ratio:16/10;max-width:100%}
+canvas{display:block;width:100%;height:100%}
+.side{display:flex;flex-direction:column;gap:12px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.lbl{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.big{font:700 40px/1 var(--display);font-variant-numeric:tabular-nums}
+.row{display:flex;gap:6px;flex-wrap:wrap}
+button{font:600 12px var(--mono);letter-spacing:.04em;text-transform:uppercase;background:var(--chip);color:var(--fg);border:1px solid var(--line);
+  border-radius:4px;padding:7px 10px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.clone{display:grid;grid-template-columns:62px 1fr 44px;gap:8px;align-items:center;font:500 12px var(--mono)}
+.bar{height:8px;background:var(--chip);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ink);transition:width .1s}
+.stat{display:flex;justify-content:space-between;font:500 13px var(--mono);font-variant-numeric:tabular-nums}
+.stat b{color:var(--heal)} .stat .blk{color:var(--ink)}
+.timeline{display:flex;flex-direction:column;gap:8px}
+.track{position:relative;height:34px;background:var(--panel);border:1px solid var(--line);border-radius:6px}
+.track .seg{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding-left:8px;font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-right:1px dashed var(--line)}
+.track .head{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--ink)}
+.moments{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:860px){.moments{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.moments{grid-template-columns:1fr}}
+.m{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.m .t{font:600 12px var(--mono);color:var(--ink)}
+.m h3{font:700 20px/1 var(--display);text-transform:uppercase;margin:0}
+.m p{margin:0;font-size:14px;color:var(--muted)}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px}
+@media (max-width:860px){.cols{grid-template-columns:1fr}}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td,th{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.n{font:600 13px var(--mono);white-space:nowrap;font-variant-numeric:tabular-nums}
+ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+ul b{font-weight:600}
+.note{font-size:13px;color:var(--muted);margin:0}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow"><span class="heal">Healer</span><span>·</span><span>Ninja</span><span>·</span><span class="gold">Ultimate · key 2</span><span>·</span><span>Mockup</span></div>
+    <h1>Shadow Clone <span>Medics</span></h1>
+    <p class="lede">A hand seal, three puffs of smoke, and every player gets a <b>shadow clone medic</b> of the Healer for <b>10 s</b>.
+      Each clone sticks to its player, <b>heals them</b> and <b>steps into the shots aimed at them</b>. Shown with a party of three: you, a Tank and a DPS.</p>
+  </header>
+
+  <section class="stage">
+    <div class="arena"><canvas id="cv" width="960" height="600" aria-label="Arena loop: three players, three shadow clones blocking enemy shots"></canvas></div>
+    <div class="side">
+      <div class="box">
+        <span class="lbl">Clones left</span>
+        <span class="big" id="tl">10.0 s</span>
+        <div id="clones" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+      <div class="box">
+        <div class="stat"><span>Shots blocked</span><span class="blk" id="sb">0</span></div>
+        <div class="stat"><span>Damage soaked</span><span class="blk" id="ds">0</span></div>
+        <div class="stat"><span>Healing done</span><b id="hd">0</b></div>
+      </div>
+      <div class="box">
+        <span class="lbl">Party</span>
+        <div class="row" id="party">
+          <button id="p1" aria-pressed="false">Solo</button><button id="p2" aria-pressed="false">2</button><button id="p3" aria-pressed="true">3</button>
+        </div>
+        <span class="lbl">Playback</span>
+        <div class="row">
+          <button id="pause" aria-pressed="false">Pause</button><button id="slow" aria-pressed="false">Slow ×0.4</button><button id="off" aria-pressed="false">No ult</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="timeline">
+    <h2>The 10 seconds <small>drag to scrub</small></h2>
+    <div class="track" id="track">
+      <div class="seg" style="left:0;width:6%">Seal</div>
+      <div class="seg" style="left:6%;width:84%">Follow · heal · intercept</div>
+      <div class="seg" style="left:90%;width:10%;border-right:0">Fade</div>
+      <div class="head" id="head"></div>
+    </div>
+    <input type="range" id="scrub" min="0" max="1060" value="0" aria-label="Time in the ultimate">
+  </section>
+
+  <section class="moments">
+    <div class="m"><span class="t">0.0 – 0.6 s</span><h3>Seal</h3><p>The Healer flashes a cross-shaped hand seal. A puff of ink smoke bursts beside each player and a clone steps out of it, kneeling.</p></div>
+    <div class="m"><span class="t">0.6 – 9.0 s</span><h3>Follow</h3><p>Each clone trails its player at 26 px, a jade chakra thread between them, healing a pulse every 0.5 s.</p></div>
+    <div class="m"><span class="t">any time</span><h3>Intercept</h3><p>When a shot is heading for its player, the clone dashes onto its line and takes it. A hit leaves a dark ripple; the clone fades as its health drops.</p></div>
+    <div class="m"><span class="t">9.0 – 10.0 s</span><h3>Fade</h3><p>Clones flicker, then vanish in smoke with a falling leaf. Each gives its player a last heal of 20% of what it soaked.</p></div>
+  </section>
+
+  <section class="cols">
+    <div class="tbl">
+      <h2 style="margin-bottom:10px">Proposed numbers</h2>
+      <table>
+        <tr><th>What</th><th>Value</th></tr>
+        <tr><td>Cooldown</td><td class="n">80 s</td></tr>
+        <tr><td>Lasts</td><td class="n">10 s</td></tr>
+        <tr><td>Clones</td><td class="n">1 per player, you included</td></tr>
+        <tr><td>Heal</td><td class="n">4 HP / 0.5 s (8 HP/s)</td></tr>
+        <tr><td>Clone health</td><td class="n">120 + 6 a wave</td></tr>
+        <tr><td>Intercept reach</td><td class="n">90 px from its player</td></tr>
+        <tr><td>Fade heal</td><td class="n">20% of damage soaked</td></tr>
+        <tr><td>Downed player</td><td class="n">clone revives at 2× speed</td></tr>
+      </table>
+    </div>
+    <div>
+      <h2 style="margin-bottom:10px">Rules</h2>
+      <ul>
+        <li><b>Blocks</b> every enemy shot aimed at its player, red aimed shots included; shots at other players pass through it.</li>
+        <li><b>Broken</b> at 0 health: it pops in smoke and its player keeps the fade heal.</li>
+        <li><b>Melee</b> enemies ignore clones: they guard against shots only.</li>
+        <li><b>Solo:</b> one clone on you, with 50% more health.</li>
+        <li><b>Ends</b> at 10 s, when its player leaves the run, or between waves.</li>
+        <li><b>Your own shots</b> and allies' pass through clones.</li>
+      </ul>
+      <p class="note" style="margin-top:12px">Approximate HTML mockup: the in-game look is drawn by the real draw code once built.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+const cv = document.getElementById('cv'), g = cv.getContext('2d');
+const W = 960, H = 600, DUR = 10, LOOP = 10.6;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const ROLE = { heal: '#5fe0a0', tank: '#76b2f2', dps: '#ff9a5c' };
+const INK = '#b39cf5', JADE = '#5fe0a0', RED = '#ff5b6b', GOLD = '#f0bd54';
+let party = 3, paused = false, slow = false, noUlt = false, t = 0, last = 0, seed = 1;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+let players, enemies, bullets, fx, stats, clones;
+function reset() {
+  seed = 7; t = 0;
+  const all = [
+    { name: 'You', role: 'heal', x: 470, y: 330, ph: 0 },
+    { name: 'Tank', role: 'tank', x: 380, y: 280, ph: 2 },
+    { name: 'DPS', role: 'dps', x: 560, y: 360, ph: 4 },
+  ];
+  players = all.slice(0, party).map(p => ({ ...p, hp: 100, max: 140, dmg: 0, flash: 0 }));
+  enemies = [
+    { x: 90, y: 110, cd: .3 }, { x: 870, y: 90, cd: .7 }, { x: 890, y: 500, cd: .1 },
+    { x: 110, y: 520, cd: .9 }, { x: 480, y: 50, cd: .5 }, { x: 480, y: 560, cd: 1.1 },
+  ];
+  bullets = []; fx = [];
+  stats = { blocked: 0, soaked: 0, healed: 0 };
+  const hpMax = party === 1 ? 180 : 120;
+  clones = players.map((p, i) => ({ p, x: p.x + 26, y: p.y + 10, hp: hpMax, max: hpMax, soaked: 0, alive: true, hit: 0, healT: 0, spawned: false, gone: false }));
+}
+reset();
+
+function step(dt) {
+  t += dt;
+  if (t >= LOOP) reset();
+  const T = t;
+  // players wander on Lissajous paths
+  for (const p of players) {
+    const k = T * .55 + p.ph;
+    const bx = p.role === 'heal' ? 470 : p.role === 'tank' ? 370 : 590, by = p.role === 'heal' ? 330 : p.role === 'tank' ? 270 : 360;
+    p.x = bx + Math.sin(k) * 70; p.y = by + Math.cos(k * 1.3) * 45;
+    p.flash = Math.max(0, p.flash - dt * 4);
+  }
+  const ultOn = !noUlt && T < DUR;
+  // spawn clones at 0.25 s
+  for (const c of clones) {
+    if (!noUlt && !c.spawned && T > .25) { c.spawned = true; c.x = c.p.x + 26; c.y = c.p.y; puff(c.x, c.y, 26); }
+    if (c.spawned && c.alive && T >= DUR && !c.gone) { c.gone = true; c.alive = false; puff(c.x, c.y, 22); leaf(c.x, c.y); heal(c.p, c.soaked * .2); }
+  }
+  // enemies fire at players
+  for (const e of enemies) {
+    e.cd -= dt;
+    if (e.cd <= 0) {
+      e.cd = .55 + rnd() * .5;
+      const tgt = players[Math.floor(rnd() * players.length)];
+      const a = Math.atan2(tgt.y - e.y, tgt.x - e.x) + (rnd() - .5) * .05;
+      const red = rnd() < .18;
+      bullets.push({ x: e.x, y: e.y, vx: Math.cos(a) * 260, vy: Math.sin(a) * 260, tgt, red, dmg: red ? 14 : 7 });
+    }
+  }
+  // clones: pick the nearest shot heading for their player, else trail toward the nearest enemy side
+  for (const c of clones) {
+    if (!c.alive || !c.spawned) continue;
+    const p = c.p; let gx, gy, best = 1e9;
+    for (const b of bullets) {
+      if (b.tgt !== p) continue;
+      const d = Math.hypot(b.x - p.x, b.y - p.y);
+      if (d < best && d < 260) { best = d; const ux = (b.x - p.x) / d, uy = (b.y - p.y) / d; gx = p.x + ux * 28; gy = p.y + uy * 28; }
+    }
+    if (gx === undefined) {
+      let ne = enemies[0], nd = 1e9;
+      for (const e of enemies) { const d = Math.hypot(e.x - p.x, e.y - p.y); if (d < nd) { nd = d; ne = e; } }
+      const a = Math.atan2(ne.y - p.y, ne.x - p.x); gx = p.x + Math.cos(a) * 26; gy = p.y + Math.sin(a) * 26;
+    }
+    const k = Math.min(1, dt * 14); c.x += (gx - c.x) * k; c.y += (gy - c.y) * k;
+    c.hit = Math.max(0, c.hit - dt * 5);
+    c.healT += dt;
+    if (c.healT >= .5) { c.healT -= .5; heal(p, 4); fx.push({ k: 'pulse', x: p.x, y: p.y, t: 0 }); }
+  }
+  // bullets
+  for (const b of bullets) {
+    b.x += b.vx * dt; b.y += b.vy * dt;
+    const c = clones.find(c => c.p === b.tgt && c.alive && c.spawned);
+    if (ultOn && c && Math.hypot(b.x - c.x, b.y - c.y) < 15) {
+      b.dead = true; c.hp -= b.dmg; c.soaked += b.dmg; c.hit = 1;
+      stats.blocked++; stats.soaked += b.dmg;
+      fx.push({ k: 'ripple', x: b.x, y: b.y, t: 0 });
+      if (c.hp <= 0) { c.alive = false; puff(c.x, c.y, 22); heal(c.p, c.soaked * .2); }
+      continue;
+    }
+    if (Math.hypot(b.x - b.tgt.x, b.y - b.tgt.y) < 13) { b.dead = true; b.tgt.flash = 1; b.tgt.hp = Math.max(10, b.tgt.hp - b.dmg); fx.push({ k: 'spark', x: b.x, y: b.y, t: 0 }); }
+    if (b.x < -20 || b.x > W + 20 || b.y < -20 || b.y > H + 20) b.dead = true;
+  }
+  bullets = bullets.filter(b => !b.dead);
+  for (const f of fx) f.t += dt;
+  fx = fx.filter(f => f.t < (f.k === 'smoke' ? 1 : f.k === 'leaf' ? 1.6 : .6));
+}
+function heal(p, n) { const h = Math.min(n, p.max - p.hp); p.hp += h; stats.healed += n; if (n > 1) fx.push({ k: 'num', x: p.x, y: p.y - 22, t: 0, n: Math.round(n) }); }
+function puff(x, y, n) { for (let i = 0; i < n; i++) { const a = rnd() * 6.28, s = 20 + rnd() * 60; fx.push({ k: 'smoke', x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: 6 + rnd() * 10, t: rnd() * .2 }); } }
+function leaf(x, y) { fx.push({ k: 'leaf', x, y, t: 0 }); }
+
+function drawBody(x, y, col, alpha, kneel) {
+  g.save(); g.globalAlpha = alpha; g.translate(x, y);
+  g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(0, 12, 12, 4, 0, 0, 6.28); g.fill();
+  g.fillStyle = col; g.beginPath(); g.arc(0, kneel ? 3 : 0, 12, 0, 6.28); g.fill();
+  g.restore();
+}
+function draw() {
+  const T = t;
+  g.fillStyle = '#0a0c10'; g.fillRect(0, 0, W, H);
+  g.strokeStyle = 'rgba(120,140,170,.07)'; g.lineWidth = 1;
+  for (let x = 0; x < W; x += 40) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+  for (let y = 0; y < H; y += 40) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+  // enemies
+  for (const e of enemies) {
+    g.fillStyle = '#c23a4a'; g.beginPath(); g.moveTo(e.x, e.y - 14); g.lineTo(e.x + 13, e.y + 10); g.lineTo(e.x - 13, e.y + 10); g.closePath(); g.fill();
+  }
+  // chakra threads + clones
+  for (const c of clones) {
+    if (!c.spawned || !c.alive) continue;
+    const fade = T > DUR - 1 ? (Math.sin(T * 40) > 0 ? .35 : .8) : 1;
+    const life = .45 + .55 * (c.hp / c.max);
+    const p = c.p;
+    g.save(); g.globalAlpha = .55 * fade; g.strokeStyle = JADE; g.lineWidth = 1.5; g.setLineDash([4, 5]); g.lineDashOffset = -T * 30;
+    g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(c.x, c.y); g.stroke(); g.restore();
+    // clone: ink silhouette, jade rim, headband
+    const appear = Math.min(1, (T - .25) / .35);
+    g.save(); g.globalAlpha = fade * life * appear;
+    g.shadowColor = INK; g.shadowBlur = 14;
+    g.fillStyle = 'rgba(40,24,72,.92)'; g.beginPath(); g.arc(c.x, c.y, 11, 0, 6.28); g.fill();
+    g.shadowBlur = 0;
+    g.strokeStyle = c.hit > 0 ? '#fff' : JADE; g.lineWidth = 2; g.stroke();
+    g.fillStyle = JADE; g.fillRect(c.x - 7, c.y - 4, 14, 3);  // headband
+    g.fillStyle = '#fff'; g.fillRect(c.x - 1.5, c.y + 2, 3, 6); g.fillRect(c.x - 3, c.y + 3.5, 6, 3); // red-cross-less medic mark (white)
+    if (c.hit > 0) { g.strokeStyle = `rgba(179,156,245,${c.hit})`; g.lineWidth = 2; g.beginPath(); g.arc(c.x, c.y, 14 + (1 - c.hit) * 10, 0, 6.28); g.stroke(); }
+    g.restore();
+    // clone health arc
+    g.strokeStyle = 'rgba(179,156,245,.85)'; g.lineWidth = 2.5;
+    g.beginPath(); g.arc(c.x, c.y, 16, -Math.PI / 2, -Math.PI / 2 + 6.28 * (c.hp / c.max)); g.stroke();
+  }
+  // players
+  for (const p of players) {
+    drawBody(p.x, p.y, ROLE[p.role], 1);
+    if (p.flash > 0) { g.fillStyle = `rgba(255,255,255,${p.flash * .7})`; g.beginPath(); g.arc(p.x, p.y, 12, 0, 6.28); g.fill(); }
+    g.fillStyle = 'rgba(255,255,255,.15)'; g.fillRect(p.x - 16, p.y - 22, 32, 4);
+    g.fillStyle = '#5fe0a0'; g.fillRect(p.x - 16, p.y - 22, 32 * (p.hp / p.max), 4);
+    g.font = '600 11px IBM Plex Mono, monospace'; g.textAlign = 'center'; g.fillStyle = 'rgba(231,232,234,.75)'; g.fillText(p.name, p.x, p.y + 28);
+  }
+  // seal on caster
+  if (!noUlt && T < .7) {
+    const you = players[0], k = T / .7;
+    g.save(); g.globalAlpha = 1 - k; g.strokeStyle = GOLD; g.lineWidth = 3;
+    g.beginPath(); g.moveTo(you.x - 10, you.y - 34); g.lineTo(you.x + 10, you.y - 34); g.moveTo(you.x, you.y - 44); g.lineTo(you.x, you.y - 24); g.stroke();
+    g.beginPath(); g.arc(you.x, you.y, 20 + k * 60, 0, 6.28); g.stroke(); g.restore();
+  }
+  // bullets
+  for (const b of bullets) {
+    g.fillStyle = b.red ? RED : '#ffd27a';
+    g.beginPath(); g.arc(b.x, b.y, b.red ? 5 : 3.5, 0, 6.28); g.fill();
+    if (b.red) { g.strokeStyle = 'rgba(255,91,107,.35)'; g.lineWidth = 2; g.beginPath(); g.arc(b.x, b.y, 8, 0, 6.28); g.stroke(); }
+  }
+  // fx
+  for (const f of fx) {
+    if (f.k === 'smoke') { const k = f.t; g.fillStyle = `rgba(150,130,190,${.45 * (1 - k)})`; g.beginPath(); g.arc(f.x + f.vx * k, f.y + f.vy * k, f.r * (1 + k), 0, 6.28); g.fill(); }
+    else if (f.k === 'ripple') { const k = f.t / .6; g.strokeStyle = `rgba(179,156,245,${1 - k})`; g.lineWidth = 2; g.beginPath(); g.arc(f.x, f.y, 4 + k * 16, 0, 6.28); g.stroke(); }
+    else if (f.k === 'spark') { const k = f.t / .6; g.fillStyle = `rgba(255,120,120,${1 - k})`; g.beginPath(); g.arc(f.x, f.y, 3 + k * 8, 0, 6.28); g.fill(); }
+    else if (f.k === 'pulse') { const k = f.t / .6; g.strokeStyle = `rgba(95,224,160,${.5 * (1 - k)})`; g.lineWidth = 1.5; g.beginPath(); g.arc(f.x, f.y, 12 + k * 14, 0, 6.28); g.stroke(); }
+    else if (f.k === 'num') { const k = f.t / .6; g.fillStyle = `rgba(95,224,160,${1 - k})`; g.font = '600 12px IBM Plex Mono, monospace'; g.textAlign = 'center'; g.fillText('+' + f.n, f.x + 14, f.y - k * 14); }
+    else if (f.k === 'leaf') { const k = f.t / 1.6; g.save(); g.globalAlpha = 1 - k; g.translate(f.x + Math.sin(k * 9) * 12, f.y + k * 40); g.rotate(Math.sin(k * 7)); g.fillStyle = JADE; g.beginPath(); g.ellipse(0, 0, 7, 3, 0, 0, 6.28); g.fill(); g.restore(); }
+  }
+  // HUD tag
+  g.font = '600 13px IBM Plex Mono, monospace'; g.textAlign = 'left';
+  g.fillStyle = noUlt ? 'rgba(231,232,234,.5)' : INK;
+  g.fillText(noUlt ? 'NO ULTIMATE · same shots' : (T < DUR ? `SHADOW CLONE MEDICS  ${(DUR - T).toFixed(1)} s` : 'CLONES GONE'), 16, 24);
+}
+function ui() {
+  const left = noUlt ? 0 : Math.max(0, DUR - t);
+  document.getElementById('tl').textContent = left.toFixed(1) + ' s';
+  document.getElementById('clones').innerHTML = clones.map(c => {
+    const pct = noUlt ? 0 : Math.max(0, c.hp / c.max * 100);
+    return `<div class="clone"><span>${c.p.name}</span><span class="bar"><i style="width:${pct}%"></i></span><span>${noUlt ? '–' : Math.max(0, Math.round(c.hp))}</span></div>`;
+  }).join('');
+  document.getElementById('sb').textContent = stats.blocked;
+  document.getElementById('ds').textContent = stats.soaked;
+  document.getElementById('hd').textContent = Math.round(stats.healed);
+  document.getElementById('head').style.left = Math.min(100, t / DUR * 100) + '%';
+  document.getElementById('scrub').value = Math.round(t * 100);
+}
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000 || 0); last = now;
+  if (!paused) { const s = (slow ? .4 : 1) * dt, n = 3; for (let i = 0; i < n; i++) step(s / n); }
+  draw(); ui();
+  requestAnimationFrame(frame);
+}
+function seek(target) { reset(); const dt = 1 / 120; while (t < target) step(dt); }
+if (reduce) { paused = true; document.getElementById('pause').setAttribute('aria-pressed', 'true'); seek(4.2); }
+else seek(1.2);
+requestAnimationFrame(frame);
+
+const press = (id, v) => document.getElementById(id).setAttribute('aria-pressed', v);
+document.getElementById('pause').onclick = () => { paused = !paused; press('pause', paused); };
+document.getElementById('slow').onclick = () => { slow = !slow; press('slow', slow); };
+document.getElementById('off').onclick = () => { noUlt = !noUlt; press('off', noUlt); reset(); };
+for (const n of [1, 2, 3]) document.getElementById('p' + n).onclick = () => { party = n; [1, 2, 3].forEach(m => press('p' + m, m === n)); reset(); };
+document.getElementById('scrub').oninput = e => { seek(e.target.value / 100); };
+})();
+</script>
