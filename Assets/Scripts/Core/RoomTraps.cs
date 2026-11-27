@@ -22,7 +22,8 @@ namespace Arena
     {
         public const float EmptyChance = 0.35f;
         public const float SpikeTick = 0.6f, SlowMult = 0.55f;
-        public static readonly float[] SpikeSizes = { 24f, 32f, 42f }, SlowSizes = { 32f, 48f, 64f, 84f }, SpikeLongs = { 64f, 84f, 110f }, SlowLongs = { 84f, 110f, 140f };  // (the plates are squares: half a side; a slot takes the biggest that fits, or one smaller)
+        public const float Tile = 50f;  // the floor grid (FloorGridLook.cs): world-anchored lines this far apart (the lattice's origin and cell are on it); plates sit on whole squares of it
+        public static readonly float[] SpikeSizes = { 25f, 50f }, SlowSizes = { 25f, 50f, 75f }, SpikeLongs = { 75f, 100f, 125f }, SlowLongs = { 100f, 125f, 150f };  // (half a side, whole grid squares; a slot takes the biggest that fits, or one smaller)
         public const float SizeGap = 10f;  // (a plate keeps this far from walls and the cell's edge)
         public const float TurretRange = 520f, TurretInterval = 1.5f, TurretShotSpeed = 330f, TurretLife = 1.8f;
 
@@ -105,10 +106,35 @@ namespace Arena
             return sizes[k];
         }
 
-        /// True when a rectangle (half sides hx, hy) at cell-local (x, y) stays inside the cell and clear of every wall, with the gap.
-        public static bool RectFree(int[][] walls, float x, float y, float hx, float hy)
+        /// A plate's middle on one axis so its edges lie on grid lines: a square's middle for an odd number of squares, a line for an even one.
+        public static float SnapCentre(float v, float half)
         {
-            float g = SizeGap;
+            bool odd = ((int)Math.Round(2f * half / Tile) & 1) == 1;
+            return odd ? (float)Math.Floor(v / Tile) * Tile + Tile / 2f : (float)Math.Round(v / Tile) * Tile;
+        }
+
+        /// A plate moved onto the grid: the spot nearest the slot (at most a square away) that stays clear of walls; false if none.
+        public static bool SnapPlate(int[][] walls, ref float x, ref float y, float hx, float hy)
+        {
+            float cx = SnapCentre(x, hx), cy = SnapCentre(y, hy), best = float.MaxValue, bx = 0f, by = 0f;
+            for (int i = -1; i <= 1; i++)
+                for (int j = -1; j <= 1; j++)
+                {
+                    float px = cx + i * Tile, py = cy + j * Tile, d = (px - x) * (px - x) + (py - y) * (py - y);
+                    if (d < best && RectFree(walls, px, py, hx, hy, SnapGap))
+                    { best = d; bx = px; by = py; }
+                }
+            if (best == float.MaxValue)
+                return false;
+            x = bx; y = by;
+            return true;
+        }
+
+        public const float SnapGap = 2f;  // (a snapped plate may come this close to a wall: grid lines don't follow the walls)
+
+        /// True when a rectangle (half sides hx, hy) at cell-local (x, y) stays inside the cell and clear of every wall, with the gap.
+        public static bool RectFree(int[][] walls, float x, float y, float hx, float hy, float g = SizeGap)
+        {
             if (x - hx < g || y - hy < g || x + hx > CellLayouts.Cell - g || y + hy > CellLayouts.Cell - g)
                 return false;
             foreach (var w in walls)
@@ -187,7 +213,18 @@ namespace Arena
                         if (kind.Value != TrapKind.Turret)
                         {
                             bool spike = kind.Value == TrapKind.Spike;
-                            PickSize(turned.Walls, s[0], s[1], spike ? SpikeSizes : SlowSizes, spike ? SpikeLongs : SlowLongs, sizeRng, out hx, out hy);
+                            var sizes = spike ? SpikeSizes : SlowSizes;
+                            PickSize(turned.Walls, s[0], s[1], sizes, spike ? SpikeLongs : SlowLongs, sizeRng, out hx, out hy);
+                            float x = s[0], y = s[1];
+                            if (!SnapPlate(turned.Walls, ref x, ref y, hx, hy))  // (onto the floor grid; too tight there: the smallest square, or none)
+                            {
+                                hx = hy = sizes[0];
+                                x = s[0]; y = s[1];
+                                if (!SnapPlate(turned.Walls, ref x, ref y, hx, hy))
+                                    continue;
+                            }
+                            list.Add(new RoomTrap { Pos = new V2(o.X + x, o.Y + y), Kind = kind.Value, HalfX = hx, HalfY = hy });
+                            continue;
                         }
                         list.Add(new RoomTrap { Pos = new V2(o.X + s[0], o.Y + s[1]), Kind = kind.Value, HalfX = hx, HalfY = hy });
                     }

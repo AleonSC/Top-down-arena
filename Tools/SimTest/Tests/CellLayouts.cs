@@ -121,6 +121,8 @@ static partial class Program
         Check(RoomTraps.For(shop).Count == 0, "a shop gets none");
         var plates = t1.Where(t => t.Kind != TrapKind.Turret).ToList();
         Check(plates.Count > 0 && plates.All(t => t.HalfX >= 24f && t.HalfY >= 24f) && plates.Select(t => t.HalfX + t.HalfY * 1000f).Distinct().Count() > 1, "spike plates and slow fields come in different sizes (" + string.Join("/", plates.Select(t => t.HalfX + "x" + t.HalfY).Distinct()) + ")");
+        Func<float, bool> onLine = v => Math.Abs(v / RoomTraps.Tile - Math.Round(v / RoomTraps.Tile)) < 0.001f;
+        Check(plates.All(t => onLine(t.Pos.X - t.HalfX) && onLine(t.Pos.X + t.HalfX) && onLine(t.Pos.Y - t.HalfY) && onLine(t.Pos.Y + t.HalfY)), "every plate's edges lie on the floor grid");
         bool fits = true;
         foreach (var l in CellLayouts.All)
             foreach (var s in l.Traps)
