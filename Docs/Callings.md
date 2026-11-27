@@ -1,7 +1,8 @@
 # Callings: design plan
 
 Status: **Summoner Callings built** (Nov 2026: steps 1-4, `Core/Callings.cs`, `Game/CallingsLook.cs`, `callings` test suite).
-Not built: step 5, Callings for the other classes. Numbers are first guesses to tune in play-testing.
+**Soldier Callings built** (Nov 27: step 5 for the Soldier, `Core/SoldierCallings.cs`, `Game/SoldierCallingsLook.cs`, `soldiercallings`
+test suite; see "Soldier" below). Not built: the other six classes. Numbers are first guesses to tune in play-testing.
 
 ## The idea
 
@@ -71,4 +72,21 @@ draw code, with previews for the owner to choose from.
 2. **Spider** (built): the minion, its 3 cards, look and preview.
 3. **Fairy** (built): the same.
 4. **Demon** (built): the same, and README entries for all three.
-5. **Other classes**: a Calling plan per class, each needing the owner's decisions first.
+5. **Other classes**: a Calling plan per class, each needing the owner's decisions first. Soldier built (below).
+
+## Soldier (built, Nov 27)
+
+Owner's decisions: 3 Callings per role and class (other classes never summon); for the Soldier each Calling is a weapon
+only that Calling has, and each role gets one of each kind: **Replace** (a massive weapon in place of yours), **Second slot**
+(keep yours, Swap weapon switches) and **Auto-fire** (a shoulder mount).
+
+| Role | Replace | Second slot | Auto-fire |
+|---|---|---|---|
+| Tank | Siege Cannon | Slug Breacher | Flak Mount |
+| Healer | Defib Cannon | Nano Sprayer | Lifeline Tether |
+| DPS | Railspike | Rocket Pod | Shoulder Minigun |
+
+- Each role sees only its own three (`UpgradeDef.Role`); the same lock-in, tier gating and level-5 guarantee as the Summoner's.
+- The weapons have `WeaponDef.Calling` set (no lobby place). Recalc picks the weapon in your hands from your cards, so Replace
+  sends nothing new; the swap is `Msg.CallingSwap` and `Player.SecondOut` (protocol 556). Cards and numbers: README "Callings (Soldier)".
+- "Breacher" was taken by a Lance card, so the Tank's second-slot weapon is the **Slug Breacher**.

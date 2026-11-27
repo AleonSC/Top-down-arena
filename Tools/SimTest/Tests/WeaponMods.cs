@@ -44,8 +44,8 @@ static partial class Program
         var flail = Defs.Weapons.First(w => w.Id == WeaponId.HeartFlail);
         var light = Defs.Weapons.First(w => w.Id == WeaponId.ChainLight);
         Check(katana.Kind == WeaponKind.Melee && light.Kind == WeaponKind.Cone && Defs.Weapons.Any(w => w.Kind == WeaponKind.Area)
-              && Defs.Weapons.Where(w => w.Cone).Select(w => w.Id).OrderBy(i => i).SequenceEqual(new[] { WeaponId.ChainLight, WeaponId.LeechTendrils, WeaponId.RepulsionCannon }.OrderBy(i => i)),
-            "weapons sort into shot, area, cone and melee kinds (the cones: Chain Light, Leech Tendrils, Repulsion Cannon)");
+              && Defs.Weapons.Where(w => w.Cone).Select(w => w.Id).OrderBy(i => i).SequenceEqual(new[] { WeaponId.ChainLight, WeaponId.LeechTendrils, WeaponId.RepulsionCannon, WeaponId.NanoSprayer }.OrderBy(i => i)),
+            "weapons sort into shot, area, cone and melee kinds (the cones: Chain Light, Leech Tendrils, Repulsion Cannon, Nano Sprayer)");
 
         // Homing Rounds on a melee weapon: swings reach farther (it used to only bend Barrage's sword waves).
         int homing = mods.First(x => x.u.Mod == ModId.Homing).id;

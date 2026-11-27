@@ -5,7 +5,8 @@ namespace Arena
 {
     /// A Calling (Docs/Callings.md): an upgrade card that commits the run to one path. Taking one takes the other
     /// Callings out of the pool and puts its own cards in. The Summoner's three each bring a new minion for the run.
-    public enum CallingId : byte { None, Spider, Fairy, Demon }
+    /// New ones go at the end (the Soldier's nine: SoldierCallings.cs).
+    public enum CallingId : byte { None, Spider, Fairy, Demon, SiegeCannon, SlugBreacher, FlakMount, DefibCannon, NanoSprayer, LifelineTether, Railspike, RocketPod, ShoulderMinigun }
 
     public partial class Game
     {
@@ -36,7 +37,9 @@ namespace Arena
             c == CallingId.Spider ? MinionKind.Spider : c == CallingId.Fairy ? MinionKind.Fairy : c == CallingId.Demon ? MinionKind.Demon : MinionKind.None;
 
         /// The role a Calling suits: its card is twice as likely for that role.
-        public static Role CallingRole(CallingId c) => c == CallingId.Spider ? Role.Tank : c == CallingId.Fairy ? Role.Healer : Role.Dps;
+        public static Role CallingRole(CallingId c) =>
+            c == CallingId.Spider || c == CallingId.SiegeCannon || c == CallingId.SlugBreacher || c == CallingId.FlakMount ? Role.Tank
+            : c == CallingId.Fairy || c == CallingId.DefibCannon || c == CallingId.NanoSprayer || c == CallingId.LifelineTether ? Role.Healer : Role.Dps;
 
         public static bool IsCalling(MinionKind k) => k == MinionKind.Spider || k == MinionKind.Fairy || k == MinionKind.Demon;
 

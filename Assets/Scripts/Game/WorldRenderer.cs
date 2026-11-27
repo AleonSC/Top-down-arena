@@ -229,6 +229,7 @@ namespace Arena
             DrawTuskers(t);  // the Tank Summoner's Tidal Tusker: the elephant and its streams (TidalTuskerLook.cs)
             DrawWarhornSky();  // Warhorn Volley's horn and the arrows in the air (WarhornVolleyLook.cs)
             DrawCannonSky();  // Cannon Call's flare and the iron balls dropping in (CannonCallLook.cs)
+            DrawMountTracers();  // the Flak Mount's tracers (SoldierCallingsLook.cs)
             DrawOrbitalSky();  // Orbital Laser's lock-on, beam, shockwave and flash (OrbitalLaserLook.cs)
             DrawLanceRainSky();  // Holy Lance Rain's spears dropping in and their flash (HolyLanceRainLook.cs)
             DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon (DragonsDogmaLook.cs)
@@ -540,6 +541,7 @@ namespace Arena
             DrawBuffTimers(p, t);  // a shrinking arc under them for each timed buff (AbilityLooks.cs)
             DrawBannerAura(p, t);  // the Knight banners on the allies in them (KnightBannersLook.cs)
             DrawRocketAura(p, t);  // Rocket Drop's time ring, the ∞ chip and your blast reach (RocketDropLook.cs)
+            DrawSoldierCallingUnder(p, t);  // the Nano Sprayer's mist, the Lifeline Tether's beam, Defib pips (SoldierCallingsLook.cs)
             DrawFoamAura(p, t);    // Hazard Foam's time ring, tank bar and where your foam lands (HazardFoamLook.cs)
             DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
             DrawConduitWeb(p, t);  // Conduit Web's time ring, and the plain web with Visual effects off (ConduitWebLook.cs)
@@ -858,6 +860,7 @@ namespace Arena
             DrawNeedleSwarm(p, t);  // the Needle Swarm's ring and tendrils, under the player (NeedleSwarmLook.cs)
             DrawMoveGhosts(p, t);  // a dash's fading copies (MoveFeel.cs)
             DrawPlayer(p, t);
+            DrawSoldierMount(p, t);  // a Soldier Calling's shoulder mount (SoldierCallingsLook.cs)
             if (!p.Downed)
                 DrawStonespears(p, t);  // the hovering spears (StonespearLook.cs)
             DrawEmbolus(p, t);  // the Embolus Spears out of the hands (EmbolusLook.cs)

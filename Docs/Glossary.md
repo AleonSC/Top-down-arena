@@ -54,7 +54,7 @@ Abilities are named by slot, not by key (keys are rebindable; the old defaults w
 |---|---|---|
 | **upgrade card** | a card you choose in game | `UpgradeDef`, `Upgrades.All` |
 | **upgrade** | the effect or benefit an upgrade card gives | `Stats`, `Player.Taken` |
-| **Calling** | a card that commits a run to one path (Summoner: a new minion); the others leave the pool and its own cards join (`Docs/Callings.md`) | `CallingId`, `UpgradeDef.Calling` |
+| **Calling** | a card that commits a run to one path (Summoner: a new minion; Soldier: a weapon of its own, replacing yours, on a second slot (Swap weapon) or a shoulder mount); the others leave the pool and its own cards join (`Docs/Callings.md`) | `CallingId`, `UpgradeDef.Calling` |
 
 ## Rewards
 

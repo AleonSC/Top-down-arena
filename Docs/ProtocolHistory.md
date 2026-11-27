@@ -6,6 +6,7 @@ Before bumping, `git fetch origin main` and take main's number + 1, so two sessi
 New ids and cards need no bump (Session.IdsHash covers them): only a change to what is read or written does.
 
 - 556: Sacrificial Ritual (Tank Hemomancer fourth ultimate, key 3): the player sync adds `SacT` after Blood Golem's fields, then `SacAge`, `SacBody`, `SacKills` while it is on.
+- 556: Soldier Callings (SoldierCallings.cs): a player's snapshot adds `SecondOut` (bool), `MountAim` (float), `MountSpin`, `TetherTo` and `CallingN` (bytes); new client -> host `Msg.CallingSwap` (no body).
 - 555: Hundred Paper Cranes (DPS Ninja ultimate, key 2): a player's snapshot adds `HpcT` (a float), then `HpcN` (a byte) while it is above 0.
 - 554: Sleepy Cat (Healer Summoner ultimate, key 3): an enemy's snapshot adds `CatNap` (a byte: marked, or tenths left asleep); a `SleepyCat` zone adds `Quiet`, the meows left (a byte), `GunCd` and `Marched`.
 - 553: Heart of the Swarm (Healer Hemomancer ultimate, key 2): a player's snapshot adds `HsT` (a float), then `HsPos` while it is above 0.

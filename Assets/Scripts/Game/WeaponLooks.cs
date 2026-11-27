@@ -237,6 +237,13 @@ namespace Arena
             L(WeaponId.DancingBlades, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldArcGlyph(p, t, hold),  // the Arcanist casts from an open palm (ArcanistLook.cs)
                                                        Hold = 3 });
             L(WeaponId.GlyphStylus, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldGlyphStylus(p, t, hold) });  // ArcanistLook.cs
+            // ---- The Soldier's Calling weapons (SoldierCallingsLook.cs)
+            L(WeaponId.SiegeCannon, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldSiegeCannon(p, t, hold), Hold = 1, HoldOffX = 16f });
+            L(WeaponId.SlugBreacher, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldSlugBreacher(p, t, hold), Hold = 1, HoldOffX = 12f });
+            L(WeaponId.DefibCannon, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldDefibCannon(p, t, hold), Hold = 1, HoldOffX = 12f });
+            L(WeaponId.NanoSprayer, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldNanoSprayer(p, t, hold) });
+            L(WeaponId.Railspike, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldRailspike(p, t, hold), Hold = 1, HoldOffX = 18f });
+            L(WeaponId.RocketPod, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldRocketPod(p, t, hold), Hold = 1, HoldOffX = 10f });
             // ---- No held model of their own (their looks draw the weapon)
             L(WeaponId.ArcKnuckles, new WeaponLook { Arms = (a, p) => true });  // ArcKnucklesLook.cs
             L(WeaponId.Nunchaku, new WeaponLook { Arms = (a, p) => !p.Downed });  // NunchakuLook.cs
