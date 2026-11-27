@@ -214,6 +214,9 @@ namespace Arena
                 case AbilityId.EyeOfCalm:  // Healer: Elementalist, the third ultimate (EyeOfCalm.cs)
                     CastEye(p, cap);
                     break;
+                case AbilityId.ConduitWeb:  // Healer: Elementalist, the fourth ultimate (ConduitWeb.cs)
+                    CastConduitWeb(p, cap);
+                    break;
                 case AbilityId.Heartbeat:  // Healer: Hemomancer, the second ultimate (Heartbeat.cs)
                     CastHeartbeat(p, cap);
                     break;

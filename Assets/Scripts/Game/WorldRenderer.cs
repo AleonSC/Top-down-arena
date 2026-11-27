@@ -532,6 +532,7 @@ namespace Arena
             DrawRocketAura(p, t);  // Rocket Drop's time ring, the ∞ chip and your blast reach (RocketDropLook.cs)
             DrawFoamAura(p, t);    // Hazard Foam's time ring, tank bar and where your foam lands (HazardFoamLook.cs)
             DrawRodAura(p, t);     // Lightning Rod's charge (LightningRodLook.cs)
+            DrawConduitWeb(p, t);  // Conduit Web's time ring, and the plain web with Visual effects off (ConduitWebLook.cs)
             DrawEyeOfCalm(p, t);   // Eye of Calm's hurricane (EyeOfCalmLook.cs)
             DrawVortex(p, t);      // the Vortex ultimate's storm (VortexLook.cs)
             DrawLivingBoltAura(p, t);  // Living Bolt's channel, halo and time ring (LivingBoltLook.cs)
