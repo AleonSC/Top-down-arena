@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The arena floor's grid, the "Pressure grid" (mockup https://claude.ai/artifact/4N3zygv8yPS7mpCG8X4cQM): the 64 px
+    /// The arena floor's grid, the "Pressure grid" (mockup https://claude.ai/artifact/4N3zygv8yPS7mpCG8X4cQM): the 50 px (RoomTraps.Tile, world-anchored: traps snap to it)
     /// lines bow away from each player like a stretched sheet and trail a little behind them while they move, and
     /// light up in the player's class colour near them; a kill's ripple runs through it (Juice.cs `Warp`). Your Dodge sends a
     /// small burst ripple from where it started (`FloorDashBurst`).
@@ -17,7 +17,7 @@ namespace Arena
         public static float PreviewDashBurst = -1f;  // the preview's DASHBURST=<s>: a dash burst that old
 
         const float FloorViewPad = 96f;  // DrawFloorGrid's cut round the view: more than a line ever bends
-        const float FloorStep = 64f, FloorSeg = 16f, FloorR = 120f, FloorPush = 9f, FloorDrag = 0.035f;
+        const float FloorStep = RoomTraps.Tile, FloorSeg = 16f, FloorR = 120f, FloorPush = 9f, FloorDrag = 0.035f;
 
         struct FloorPull { public V2 Pos, Vel; public Rgba Col; }
         readonly List<FloorPull> floorPulls = new List<FloorPull>();

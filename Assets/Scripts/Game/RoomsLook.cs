@@ -135,10 +135,10 @@ namespace Arena
             {
                 // The Expanding map isn't a full box: the grid runs inside each room only.
                 foreach (var a in wd.Areas)  // (the Pressure grid, FloorGridLook.cs)
-                    DrawFloorGrid(a.Min, a.Max, new V2(Mathf.Ceil(a.Min.X / 64f) * 64f, Mathf.Ceil(a.Min.Y / 64f) * 64f), grid);
+                    DrawFloorGrid(a.Min, a.Max, new V2(Mathf.Ceil(a.Min.X / FloorStep) * FloorStep, Mathf.Ceil(a.Min.Y / FloorStep) * FloorStep), grid);
             }
             else
-                DrawFloorGrid(lo, hi, new V2(lo.X, Mathf.Ceil(lo.Y / 64f) * 64f), grid);
+                DrawFloorGrid(lo, hi, new V2(Mathf.Ceil(lo.X / FloorStep) * FloorStep, Mathf.Ceil(lo.Y / FloorStep) * FloorStep), grid);
             float a2 = Mathf.Clamp01(game.LayoutAge / 0.35f);
             for (int i = 0; i < wd.Portals.Length; i++)  // the wraparound portals, each pair in its own colour
             {

@@ -9,7 +9,7 @@ namespace Arena
     public partial class Game
     {
         public const int DevTrapMax = 40;
-        public static readonly float[] DevTrapSizes = { 32f, 48f, 84f };  // half a side: small, medium, big
+        public static readonly float[] DevTrapSizes = { 25f, 50f, 75f };  // half a side, whole floor-grid squares: small, medium, big
 
         readonly List<RoomTrap> devTraps = new List<RoomTrap>();
         int devTrapVer;
@@ -20,6 +20,8 @@ namespace Arena
         {
             if (!IsHost || devTraps.Count >= DevTrapMax)
                 return false;
+            if (kind != TrapKind.Turret)  // (a plate sits on the floor grid, RoomTraps.Tile)
+                at = new V2(RoomTraps.SnapCentre(at.X, half), RoomTraps.SnapCentre(at.Y, half));
             devTraps.Add(new RoomTrap { Pos = at, Kind = kind, HalfX = kind == TrapKind.Turret ? 0f : half, HalfY = kind == TrapKind.Turret ? 0f : half });
             DevTrapsChanged();
             return true;
