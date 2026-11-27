@@ -809,7 +809,8 @@ namespace Arena
                 needlesIn = e.NeedlesIn;
                 e.Suppressed = e.Suppress >= SuppressShown;
                 e.Poisoned = e.PoisonT > 0f;
-                e.Dazed = e.DazeT > 0f || e.StunT > 0f;  // (a Stun shows the same stars)
+                e.CatNap = CatNapByte(e);  // a Sleepy Cat's mark or sleep (SleepyCat.cs)
+                e.Dazed = (e.DazeT > 0f || e.StunT > 0f) && e.CatNap < 2;  // (a Stun shows the same stars; a sleeper shows its Zs instead)
             }
             s.Int(ref id);
             s.Byte(ref type);
@@ -867,6 +868,8 @@ namespace Arena
                 elem = (e.Brittle ? 1 : 0) | (e.Dazzled ? 2 : 0);
             }
             s.Byte(ref elem);  // Brittle (Brittle.cs) and Dazzled (Dazzled.cs)
+            int catNap = !s.Reading ? e.CatNap : 0;
+            s.Byte(ref catNap);  // a Sleepy Cat's mark, or its sleep's tenths left (SleepyCat.cs)
             var kind = (EnemyType)type;
             if (s.Reading && !Enemies.TryGetValue(id, out e))
             {
@@ -889,6 +892,7 @@ namespace Arena
                 e.FpBrands = (byte)fpBrands;
                 e.Brittle = (elem & 1) != 0;
                 e.Dazzled = (elem & 2) != 0;
+                e.CatNap = (byte)catNap;
                 e.BlastOwner = blastStacks > 0 ? blastOwner : 0;
                 e.Spawning = spawning;
                 e.Facing = facing;
@@ -1078,6 +1082,15 @@ namespace Arena
                 s.Vec(ref z.Origin2);
                 s.Int(ref z.Side);
                 s.Int(ref z.Rider);
+            }
+            if (z.Kind == ZoneKind.SleepyCat)  // napping, the meows left, the seconds since the last one (SleepyCat.cs)
+            {
+                s.Bool(ref z.Quiet);
+                int meows = z.BoltsLeft;
+                s.Byte(ref meows);
+                z.BoltsLeft = meows;
+                s.Float(ref z.GunCd);
+                s.Float(ref z.Marched);
             }
             if (z.Kind == ZoneKind.HoneyRaid)  // where the bee came in (HoneyRaid.cs)
                 s.Vec(ref z.Origin);

@@ -134,6 +134,7 @@ namespace Arena
         ShieldWall,
         Shockwave,
         SiegeBell,  // the Tank Knight's 4th choice (SiegeBell.cs), the lobby's 4th choice
+        SleepyCat,  // the Healer Summoner's fourth ultimate (SleepyCat.cs), key 3 of the lobby's Ultimate row
         SmokeBomb,
         SoulLantern,
         SpiritAvatar,  // the Tank Ninja's third ultimate (SpiritAvatar.cs), key 2 of the lobby's Ultimate row
@@ -478,7 +479,7 @@ namespace Arena
         /// Hemomancer.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
             Game.ScmUltimates,  // (on its own line, as below)
-            Game.OracleUltimates,  // (on its own line, so parallel sessions appending to the line below don't clash)
+            Game.OracleUltimates, Game.CatUltimates,  // (on its own line, so parallel sessions appending to the line below don't clash)
             Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.RocketUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.GloveUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.TuskerUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.EyeUltimates, Game.ConduitUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.HeartbeatUltimates, Game.SwarmHeartUltimates, Game.BannerUltimates, Game.LanceRainUltimates, Game.GongUltimates, Game.PressUltimates, Game.FoamUltimates, Game.RitualUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
