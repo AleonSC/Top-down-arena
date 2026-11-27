@@ -223,6 +223,7 @@ namespace Arena
             DrawWarhornSky();  // Warhorn Volley's horn and the arrows in the air (WarhornVolleyLook.cs)
             DrawCannonSky();  // Cannon Call's flare and the iron balls dropping in (CannonCallLook.cs)
             DrawOrbitalSky();  // Orbital Laser's lock-on, beam, shockwave and flash (OrbitalLaserLook.cs)
+            DrawLanceRainSky();  // Holy Lance Rain's spears dropping in and their flash (HolyLanceRainLook.cs)
             DrawDragonsDogma();  // Dragon's Dogma, the Tank Ninja's spirit dragon (DragonsDogmaLook.cs)
             DrawShadowGongs(t);  // Five Shadow Gong: the gong, the shadows, their cuts and the splits (FiveShadowGongLook.cs)
             DrawRavagerDrops();  // Blood Ravager's drops (BloodRavagerLook.cs)

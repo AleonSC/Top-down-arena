@@ -1,0 +1,239 @@
+<title>Holy Lance Rain</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one animated stage (pattern toggle, transport, scrubber), a numbers table, then build notes.
+   Colour: steel and parchment neutrals; holy gold accent, mint only for healing, red for damage numbers.
+   Type: Barlow Condensed display, Barlow body, Plex Mono for timings. Same system as the other Docs/Mockups pages. */
+:root{
+  --bg:#eceae4; --fg:#1d1f22; --muted:#5f636a; --panel:#f8f7f3; --line:#d3d0c6;
+  --acc:#8a6200; --chip:#e1ded4; --chip-on:#1d1f22; --chip-on-fg:#f6f4ee;
+  --heal:#0f7a4a; --smite:#b03a2e; --arena:#14161a;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif; --body:'Barlow',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101215; --fg:#e8e9ea; --muted:#979ca4; --panel:#181b20; --line:#2c3138;
+  --acc:#ffd36b; --chip:#23272e; --chip-on:#e8e9ea; --chip-on-fg:#101215;
+  --heal:#7dffb0; --smite:#ff8a7a; --arena:#0b0c0f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101215; --fg:#e8e9ea; --muted:#979ca4; --panel:#181b20; --line:#2c3138;
+  --acc:#ffd36b; --chip:#23272e; --chip-on:#e8e9ea; --chip-on-fg:#101215;
+  --heal:#7dffb0; --smite:#ff8a7a; --arena:#0b0c0f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;margin:0;
+  padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+header h1{font:700 clamp(34px,6vw,56px)/1 var(--display);letter-spacing:.01em;text-transform:uppercase;margin:0 0 10px;text-wrap:balance}
+header p{margin:0;max-width:66ch;color:var(--muted)}
+h2{font:700 28px/1.05 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 12px;text-wrap:balance}
+.stage{display:flex;flex-direction:column;gap:14px;min-width:0}
+.frame{position:relative;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--arena)}
+canvas{display:block;width:100%;height:auto;aspect-ratio:720/440}
+.hud{position:absolute;left:10px;top:8px;right:10px;display:flex;justify-content:space-between;gap:10px;font:500 12px var(--mono);color:#d3d6da;opacity:.9;pointer-events:none;text-shadow:0 1px 2px #000}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{padding:8px 14px;font:600 15px var(--display);letter-spacing:.04em;text-transform:uppercase;background:var(--chip);cursor:pointer;border-right:1px solid var(--line)}
+.seg label:last-of-type{border-right:0}
+.seg input:checked+label{background:var(--chip-on);color:var(--chip-on-fg)}
+.seg input:focus-visible+label{outline:2px solid var(--acc);outline-offset:-2px}
+button{font:600 15px var(--display);letter-spacing:.04em;text-transform:uppercase;padding:8px 14px;border:1px solid var(--line);border-radius:6px;background:var(--chip);color:var(--fg);cursor:pointer}
+button:focus-visible,input[type=range]:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.scrub{display:flex;gap:10px;align-items:center;flex:1 1 260px;min-width:0}
+.scrub input{flex:1;min-width:0;accent-color:var(--acc)}
+.scrub span{font:500 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--muted);min-width:5ch;text-align:right}
+.note{font-size:14px;color:var(--muted);margin:0}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 14px var(--display);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.heal{color:var(--heal)} .smite{color:var(--smite)} .gold{color:var(--acc)}
+ul{margin:0;padding-left:20px;max-width:70ch;display:flex;flex-direction:column;gap:6px}
+code{font-family:var(--mono);font-size:.88em}
+</style>
+
+<main>
+  <header>
+    <h1>Holy Lance Rain</h1>
+    <p>A Healer Knight ultimate. Spears of light fall all around you. Each one hurts the enemies near where it lands and leaves a small healing glow on the ground. It's a third option beside Hallowed Blade and Pilgrim's Standard. This mockup is approximate: the browser's glow and blur are softer than <code>Ui.cs</code> can draw.</p>
+  </header>
+
+  <section class="stage" aria-label="Animated preview">
+    <div class="frame">
+      <canvas id="cv" width="1440" height="880"></canvas>
+      <div class="hud"><span id="hudL">HOLY LANCE RAIN</span><span id="hudR">0.00 s</span></div>
+    </div>
+    <div class="controls">
+      <div class="seg" role="radiogroup" aria-label="Fall pattern">
+        <input type="radio" name="pat" id="p-scatter" value="scatter" checked><label for="p-scatter">Scatter</label>
+        <input type="radio" name="pat" id="p-spiral" value="spiral"><label for="p-spiral">Spiral out</label>
+        <input type="radio" name="pat" id="p-hunt" value="hunt"><label for="p-hunt">Seek enemies</label>
+      </div>
+      <button id="play" type="button">Pause</button>
+      <button id="again" type="button">Recast</button>
+      <div class="scrub"><input id="t" type="range" min="0" max="900" value="0" aria-label="Time"><span id="tl">0.0 s</span></div>
+    </div>
+    <p class="note"><b>Scatter</b>: random spots, kept spread out. <b>Spiral out</b>: spears land from your feet to the rim. <b>Seek enemies</b>: half the spears go to the nearest enemies, the rest scatter. The knight walks during the rain, and the circle follows them.</p>
+  </section>
+
+  <section>
+    <h2>Proposed numbers</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>What</th><th>Value</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Cooldown</td><td class="n">80 s</td><td>Same as Hallowed Blade.</td></tr>
+        <tr><td>Rain</td><td class="n">24 spears / 3 s</td><td>One every 0.125 s, inside a 340 px circle that follows you.</td></tr>
+        <tr><td>Fall warning</td><td class="n">0.35 s</td><td>A gold ring shrinks on the spot before the spear hits.</td></tr>
+        <tr><td>Impact</td><td class="n smite">30 dmg · 55 px</td><td>0.3 s stun and a small shove. 720 in total if every spear hits.</td></tr>
+        <tr><td>Healing glow</td><td class="n heal">5 HP/s · 40 px · 4 s</td><td>Glows that overlap don't stack (one tick per ally). About 20 HP per glow you stand in.</td></tr>
+        <tr><td>Mastered</td><td class="n gold">+8 spears</td><td>32 spears, and the glows last 6 s.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Build notes</h2>
+    <ul>
+      <li>Built with the Scatter pattern, on key 2 of the Healer Knight's Ultimate row (<code>Core/HolyLanceRain.cs</code>).</li>
+      <li>The host picks each spot. Clients draw from two effects: <code>FxKind.HolyLanceRain</code> (the circle round the caster) and one <code>FxKind.HolyLanceSpear</code> per spear (warning, fall, impact, glow).</li>
+      <li>Look: <code>Game/HolyLanceRainLook.cs</code>. Landing sound: <code>Sfx.LanceImpactSfx</code>.</li>
+      <li>No protocol bump: it uses the existing effect messages.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+(()=>{
+const cv=document.getElementById('cv'),g=cv.getContext('2d');
+const W=720,H=440;g.scale(2,2);
+const RAIN=3.0,N=24,WARN=0.35,FALL=0.22,GLOW=4.0,R=170,HIT=27,GR=20,END=RAIN+WARN+GLOW+1.2;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let pat='scatter',t=0,playing=!reduce,seed=7,last=performance.now();
+const tIn=document.getElementById('t'),tl=document.getElementById('tl'),hudR=document.getElementById('hudR'),playB=document.getElementById('play');
+playB.textContent=playing?'Pause':'Play';
+
+function rng(s){return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+let enemies=[],spears=[],floor=[];
+function knightAt(tt){const k=Math.min(tt,RAIN+1)/ (RAIN+1);return{x:300+110*k,y:230-25*Math.sin(k*Math.PI)}}
+function build(){
+  const r=rng(seed);enemies=[];
+  for(let i=0;i<11;i++){const a=r()*Math.PI*2,d=70+r()*200;enemies.push({x:360+Math.cos(a)*d*1.2,y:220+Math.sin(a)*d*.75,hp:1,flash:0,stun:0,hitT:-9,vx:0,vy:0,ox:0,oy:0})}
+  spears=[];
+  for(let i=0;i<N;i++){
+    const tt=i*(RAIN/N),c=knightAt(tt+WARN);let x,y;
+    if(pat==='spiral'){const a=i*2.4,d=25+(R-30)*(i/(N-1));x=c.x+Math.cos(a)*d;y=c.y+Math.sin(a)*d*.62}
+    else if(pat==='hunt'&&i%2===0){const e=enemies[(i/2)%enemies.length];x=e.x+(r()-.5)*14;y=e.y+(r()-.5)*10}
+    else{let best=null,bd=-1;for(let k=0;k<6;k++){const a=r()*Math.PI*2,d=Math.sqrt(r())*R,px=c.x+Math.cos(a)*d,py=c.y+Math.sin(a)*d*.62;let md=1e9;for(const s of spears){md=Math.min(md,Math.hypot(s.x-px,s.y-py))}if(md>bd){bd=md;best=[px,py]}}x=best[0];y=best[1]}
+    spears.push({x,y,t0:tt,tilt:(r()-.5)*.25});
+  }
+  floor=[];const fr=rng(99);for(let i=0;i<90;i++)floor.push({x:fr()*W,y:fr()*H,s:1+fr()*2});
+}
+build();
+
+function enemyState(e,tt){ // replay hits up to time tt
+  let hits=0,last=-9,ox=0,oy=0;
+  for(const s of spears){const land=s.t0+WARN;if(land>tt)continue;const d=Math.hypot(e.x-s.x,e.y-s.y);if(d<HIT+8){hits++;last=land;const k=Math.min(1,(tt-land)/.15);const n=d||1;ox+=(e.x-s.x)/n*8*k;oy+=(e.y-s.y)/n*8*k}}
+  return{hits,last,ox,oy,dead:hits>=3};
+}
+
+function draw(tt){
+  g.clearRect(0,0,W,H);
+  // floor
+  g.fillStyle='#16191e';g.fillRect(0,0,W,H);
+  g.strokeStyle='rgba(255,255,255,.035)';g.lineWidth=1;
+  for(let x=0;x<W;x+=40){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke()}
+  for(let y=0;y<H;y+=40){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke()}
+  for(const f of floor){g.fillStyle='rgba(255,255,255,.04)';g.fillRect(f.x,f.y,f.s,f.s)}
+  const kn=knightAt(tt),active=tt<RAIN+WARN;
+  // sky dim + rain circle
+  if(active){const a=Math.min(1,tt/.3)*Math.min(1,(RAIN+WARN+.4-tt)/.4);
+    g.fillStyle=`rgba(4,6,14,${.35*a})`;g.fillRect(0,0,W,H);
+    g.save();g.translate(kn.x,kn.y);g.scale(1,.62);
+    const rg=g.createRadialGradient(0,0,R*.2,0,0,R);rg.addColorStop(0,`rgba(255,214,107,${.0*a})`);rg.addColorStop(1,`rgba(255,214,107,${.10*a})`);
+    g.fillStyle=rg;g.beginPath();g.arc(0,0,R,0,7);g.fill();
+    g.setLineDash([6,8]);g.lineDashOffset=-tt*30;g.strokeStyle=`rgba(255,214,107,${.55*a})`;g.lineWidth=2;g.beginPath();g.arc(0,0,R,0,7);g.stroke();g.setLineDash([]);
+    g.restore();
+  }
+  // glows
+  for(const s of spears){const land=s.t0+WARN,age=tt-land;if(age<0||age>GLOW)continue;
+    const fadeIn=Math.min(1,age/.25),fade=Math.min(1,(GLOW-age)/.6),a=fadeIn*fade,p=1+.08*Math.sin(age*5+s.x);
+    g.save();g.translate(s.x,s.y);g.scale(1,.62);
+    const gr=g.createRadialGradient(0,0,0,0,0,GR*1.6*p);gr.addColorStop(0,`rgba(125,255,176,${.55*a})`);gr.addColorStop(.6,`rgba(125,255,176,${.22*a})`);gr.addColorStop(1,'rgba(125,255,176,0)');
+    g.fillStyle=gr;g.beginPath();g.arc(0,0,GR*1.6*p,0,7);g.fill();
+    g.strokeStyle=`rgba(190,255,215,${.5*a})`;g.lineWidth=1.2;g.beginPath();g.arc(0,0,GR*p,0,7);g.stroke();
+    g.restore();
+    // rising motes
+    for(let m=0;m<3;m++){const ph=((age*.7+m/3+s.x*.01)%1);g.fillStyle=`rgba(200,255,220,${a*(1-ph)*.9})`;g.fillRect(s.x+Math.sin(m*2+s.y)*GR*.6,s.y-ph*26,2,2)}
+    // the spear stays stuck in the ground, fading
+    const sa=Math.max(0,1-age/1.4);if(sa>0)spear(s.x,s.y,0,s.tilt,sa,.75);
+  }
+  // knight standing in glow? heal numbers
+  // enemies
+  for(const e of enemies){const st=enemyState(e,tt);if(st.dead&&tt-st.last>.4)continue;
+    const x=e.x+st.ox,y=e.y+st.oy,fl=Math.max(0,1-(tt-st.last)/.15),dk=st.dead?1-(tt-st.last)/.4:1;
+    g.globalAlpha=Math.max(0,dk);
+    g.fillStyle='rgba(0,0,0,.35)';g.beginPath();g.ellipse(x,y+9,10,4,0,0,7);g.fill();
+    g.fillStyle=fl>0?'#fff':'#c4473e';g.beginPath();g.arc(x,y,9,0,7);g.fill();
+    g.strokeStyle='#5c1a16';g.lineWidth=2;g.stroke();
+    if(tt-st.last<.3&&tt-st.last>=0){for(let k=0;k<3;k++){const a=tt*9+k*2.1;g.fillStyle='#ffd36b';g.fillRect(x+Math.cos(a)*12-1,y-14+Math.sin(a)*3,2,2)}}
+    // hp
+    const hp=1-st.hits/3;g.fillStyle='rgba(0,0,0,.5)';g.fillRect(x-10,y-16,20,3);g.fillStyle='#e0574c';g.fillRect(x-10,y-16,20*hp,3);
+    g.globalAlpha=1;
+  }
+  // knight
+  const inGlow=spears.some(s=>{const age=tt-s.t0-WARN;return age>=0&&age<GLOW&&Math.hypot(kn.x-s.x,(kn.y-s.y)/.62)<GR+8});
+  g.fillStyle='rgba(0,0,0,.35)';g.beginPath();g.ellipse(kn.x,kn.y+11,12,5,0,0,7);g.fill();
+  if(inGlow){g.strokeStyle='rgba(125,255,176,.8)';g.lineWidth=2;g.beginPath();g.arc(kn.x,kn.y,15+Math.sin(tt*8)*1.5,0,7);g.stroke()}
+  g.fillStyle='#d9dde3';g.beginPath();g.arc(kn.x,kn.y,10,0,7);g.fill();
+  g.fillStyle='#ffd36b';g.fillRect(kn.x-6,kn.y-2,12,3);g.fillRect(kn.x-1.5,kn.y-7,3,11);
+  g.strokeStyle='#5b6470';g.lineWidth=2;g.beginPath();g.arc(kn.x,kn.y,10,0,7);g.stroke();
+  // ally
+  const al={x:430,y:300};const allyGlow=spears.some(s=>{const age=tt-s.t0-WARN;return age>=0&&age<GLOW&&Math.hypot(al.x-s.x,(al.y-s.y)/.62)<GR+8});
+  g.fillStyle='rgba(0,0,0,.35)';g.beginPath();g.ellipse(al.x,al.y+11,12,5,0,0,7);g.fill();
+  if(allyGlow){g.strokeStyle='rgba(125,255,176,.8)';g.lineWidth=2;g.beginPath();g.arc(al.x,al.y,15+Math.sin(tt*8)*1.5,0,7);g.stroke()}
+  g.fillStyle='#6fa8ff';g.beginPath();g.arc(al.x,al.y,10,0,7);g.fill();g.strokeStyle='#2c4f86';g.stroke();
+  if(allyGlow&&Math.floor(tt*2)%2===0){g.font='600 13px "IBM Plex Mono",monospace';g.fillStyle='#7dffb0';g.fillText('+5',al.x+14,al.y-12-(tt*2%1)*10)}
+  // warnings, falling spears, impacts (on top)
+  for(const s of spears){const land=s.t0+WARN,w=tt-s.t0;
+    if(w>=0&&w<WARN){const k=w/WARN;g.save();g.translate(s.x,s.y);g.scale(1,.62);
+      g.strokeStyle=`rgba(255,214,107,${.3+.6*k})`;g.lineWidth=1.5;g.beginPath();g.arc(0,0,HIT*(1.6-.6*k),0,7);g.stroke();
+      g.fillStyle=`rgba(255,214,107,${.12*k})`;g.beginPath();g.arc(0,0,HIT,0,7);g.fill();g.restore();
+      const fk=Math.max(0,(w-(WARN-FALL))/FALL);if(fk>0)spear(s.x,s.y,(1-fk)*260,s.tilt,1,1,true)}
+    const age=tt-land;
+    if(age>=0&&age<.45){const k=age/.45;
+      g.save();g.translate(s.x,s.y);g.scale(1,.62);
+      g.strokeStyle=`rgba(255,240,200,${1-k})`;g.lineWidth=3*(1-k)+1;g.beginPath();g.arc(0,0,HIT*(.4+1.1*k),0,7);g.stroke();
+      g.restore();
+      if(age<.08){g.fillStyle=`rgba(255,250,230,${1-age/.08})`;g.beginPath();g.arc(s.x,s.y,HIT*.7,0,7);g.fill()}
+      for(let r=0;r<6;r++){const a=r*1.05+s.x;g.strokeStyle=`rgba(255,214,107,${.8*(1-k)})`;g.lineWidth=1.2;g.beginPath();g.moveTo(s.x,s.y);g.lineTo(s.x+Math.cos(a)*HIT*.9*Math.min(1,k*3),s.y+Math.sin(a)*HIT*.55*Math.min(1,k*3));g.stroke()}
+      if(age<.4)for(const e of enemies){if(Math.hypot(e.x-s.x,e.y-s.y)<HIT+8){g.font='600 13px "IBM Plex Mono",monospace';g.fillStyle='#ff8a7a';g.fillText('30',e.x+10,e.y-18-age*30)}}
+    }
+  }
+  // labels
+  g.font='500 11px "IBM Plex Mono",monospace';g.fillStyle='rgba(211,214,218,.75)';
+  g.fillText(active?`spears ${Math.min(N,Math.floor(tt/(RAIN/N))+1)}/${N}`:'rain over, glows fading',12,H-12);
+}
+
+function spear(x,y,lift,tilt,a,scale=1,trail=false){
+  g.save();g.translate(x,y-lift);g.rotate(tilt);g.globalAlpha=a;
+  const L=46*scale;
+  if(trail){const tg=g.createLinearGradient(0,-L-90,0,-L);tg.addColorStop(0,'rgba(255,214,107,0)');tg.addColorStop(1,'rgba(255,236,180,.7)');g.fillStyle=tg;g.fillRect(-3,-L-90,6,90)}
+  g.shadowColor='rgba(255,214,107,.9)';g.shadowBlur=12;
+  g.fillStyle='#fff6dc';g.fillRect(-1.6,-L,3.2,L-8);
+  g.fillStyle='#ffe7a3';g.beginPath();g.moveTo(0,2);g.lineTo(-5,-9);g.lineTo(0,-13);g.lineTo(5,-9);g.closePath();g.fill();
+  g.fillStyle='#ffd36b';g.fillRect(-6,-L*.62,12,2.5);
+  g.shadowBlur=0;g.restore();g.globalAlpha=1;
+}
+
+function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(playing){t+=dt;if(t>END){t=0;seed++;build()}tIn.value=Math.round(t/END*900)}
+  draw(t);tl.textContent=t.toFixed(1)+' s';hudR.textContent=t.toFixed(2)+' s';requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+if(reduce)t=1.6;
+tIn.addEventListener('input',()=>{t=tIn.value/900*END;playing=false;playB.textContent='Play'});
+playB.addEventListener('click',()=>{playing=!playing;playB.textContent=playing?'Pause':'Play'});
+document.getElementById('again').addEventListener('click',()=>{t=0;seed++;build();playing=true;playB.textContent='Pause'});
+document.querySelectorAll('input[name=pat]').forEach(r=>r.addEventListener('change',()=>{pat=r.value;t=0;build()}));
+})();
+</script>
