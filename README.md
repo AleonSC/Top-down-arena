@@ -45,7 +45,7 @@ arrow on that side greys out, and the picked class slides into view. The Weapon,
 class's description with its health and speed; a weapon, ability or ultimate key shows that as before. Role and class keys have
 no hover tips.
 
-- **Soldier**: guns and gear, full health.
+- **Soldier**: guns and gear, full health. **Field Training**: every level-up offer shows 1 more card (4, or 5 with Wide Choice; 5 is the most), and each wave start gives a free reroll while you hold fewer than 3 (a Wildcard with Soldier gear gets neither).
 - **Elementalist**: spells (fire, frost, lightning, water, wind, earth and light), 85% health.
 - **Summoner**: minions that come with your weapon (they stay between waves), 90% health.
 - **Knight**: melee weapons that cut small bullets out of the air, armoured: 105% health plus a 15-point Chainmail shield, and a bigger parry shield (see below).
