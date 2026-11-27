@@ -166,6 +166,18 @@ namespace Arena
         }
 
         public static string BossTrackId(EnemyType boss) => "boss:" + boss;
+        /// A faction's own wave battle track (only from a Music Pack, MusicPack.Factions; no generated version).
+        public static string FactionTrackId(EnemyType boss) => "faction:" + boss;
+
+        /// The faction's battle track when you gave it one (null otherwise), loaded and ready to switch to.
+        public string RequestFactionTrack(EnemyType boss)
+        {
+            string id = FactionTrackId(Game.IsReaper(boss) ? EnemyType.ReaperOfDusk : boss);
+            if (!Overrides.ContainsKey(id))
+                return null;
+            RequestTrack(id, null, 0.42f);
+            return id;
+        }
 
         /// Start rendering any track of the music player's library (MusicLibrary.cs) if it isn't already.
         public void RequestLibraryTrack(string id)
@@ -185,6 +197,17 @@ namespace Arena
         public string PlayingId => voiceTrack[activeVoice] == null ? null : voiceTrack[activeVoice].Id;
         public float PlayingTime => voiceTrack[activeVoice] == null ? 0f : musicVoices[activeVoice].time;
         public float PlayingLength => voiceTrack[activeVoice] == null || !Loaded(voiceTrack[activeVoice]) ? 0f : voiceTrack[activeVoice].Length;
+
+        /// The music's spectrum right now (MenuBeat.cs): the active voice's FFT into `into` (a power of two, 64..8192 long).
+        /// False when nothing is audible (no track, paused, muted or the volume at 0), so the visuals rest.
+        public bool MusicSpectrum(float[] into)
+        {
+            var v = musicVoices[activeVoice];
+            if (v == null || voiceTrack[activeVoice] == null || !v.isPlaying || MusicPaused || Muted || v.volume < 0.01f)
+                return false;
+            v.GetSpectrumData(into, 0, FFTWindow.BlackmanHarris);
+            return true;
+        }
 
         /// True once the track has been synthesised (a few seconds for the first play of a track).
         public bool IsTrackReady(string id) => id != null && tracks.TryGetValue(id, out var t) && Loaded(t);
@@ -810,10 +833,11 @@ namespace Arena
             Tone(0.07f, Osc.Triangle, 950f, 560f, 0.16f, noise: 0.08f, lowpass: 0.35f, attack: 0.001f, decay: 4f);
         }
 
-        /// The menus' click (the main menu's two-step chirp), at the Effects volume.
-        public void PlayUiClick(float now)
+        /// The menus' click (the main menu's two-step chirp), at the Effects volume. lobby: the lobby's buttons, which play the main
+        /// menu Settings tiles' light tick (BayTick) instead.
+        public void PlayUiClick(float now, bool lobby = false)
         {
-            if (Play(Sfx.UiClick, MenuSoundVolume, now, -1))
+            if (lobby ? Play(Sfx.BayTick, 0.5f, now, -1) : Play(Sfx.UiClick, MenuSoundVolume, now, -1))
                 table[(int)Sfx.UiHover].Last = now;  // no hover tick right on top of the click
         }
 

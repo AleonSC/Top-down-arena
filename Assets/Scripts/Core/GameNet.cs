@@ -587,6 +587,7 @@ namespace Arena
             SyncKnightBanners(s, p);  // KnightBanners.cs
             SyncStoneColossus(s, p);  // StoneColossus.cs
             SyncBloodGolem(s, p);  // BloodGolem.cs
+            SyncSacrifice(s, p);  // SacrificialRitual.cs
             SyncSpiritAvatar(s, p);  // SpiritAvatar.cs
             SyncVeinTithe(s, p);  // VeinTithe.cs
             SyncKnight(s, p);  // Knight.cs

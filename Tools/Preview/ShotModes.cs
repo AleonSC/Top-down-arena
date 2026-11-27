@@ -2,6 +2,23 @@ using System; using System.IO; using System.Reflection; using System.Threading; 
 // Shot.cs screens: DrawMode draws the screen named by the mode argument (hud, gameover, dev, pause, guide, bg,
 // lobby, kitgrid, tab, shop, picker, ...).
 static partial class Shot {
+  /// BEAT=<pulse 0-1>: the Holo Floor's music reaction frozen mid-song (MenuBeat.cs): a made-up spectrum (strong bass, a
+  /// mid bump, falling highs) and beat lines 0.15, 0.5 and 0.85 s old.
+  static void FakeBeat(ArenaApp app) {
+    var e = Environment.GetEnvironmentVariable("BEAT");
+    if (e == null) return;
+    var f = BindingFlags.NonPublic | BindingFlags.Instance;
+    float pulse = float.Parse(e, System.Globalization.CultureInfo.InvariantCulture);
+    typeof(ArenaApp).GetField("beatFrozen", f).SetValue(app, true);
+    typeof(ArenaApp).GetField("beatPulse", f).SetValue(app, pulse);
+    var bands = (float[])typeof(ArenaApp).GetField("beatBands", f).GetValue(app);
+    for (int i = 0; i < bands.Length; i++)
+      bands[i] = Math.Min(1f, (0.55f + 0.45f * pulse) * (float)(0.95 * Math.Exp(-i / 6.0) + 0.45 * Math.Exp(-Math.Pow((i - 11) / 3.5, 2)) + 0.18 + 0.12 * Math.Sin(i * 2.3)));
+    var waves = (float[])typeof(ArenaApp).GetField("beatWaves", f).GetValue(app);
+    float now = UnityEngine.Time.unscaledTime;
+    waves[0] = now - 0.15f; waves[1] = now - 0.5f; waves[2] = now - 0.85f;
+  }
+
   static void DrawMode() {
     if (TankSheet()) return;  // TANKSHEET=1 (ShotTankLook.cs)
     if (mode == "hud") {
@@ -160,6 +177,7 @@ static partial class Shot {
       set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG")));
       set("menuBgOverride", true);  // (the main menu would show the Holo Floor otherwise)
       if (Environment.GetEnvironmentVariable("MENUHUE") != null) { set("menuBgHueLoaded", true); set("menuBgHue", float.Parse(Environment.GetEnvironmentVariable("MENUHUE"))); }  // MENUHUE=0-1: the Holo Floor turned to that hue (MenuBgHue.cs)
+      FakeBeat(app);  // BEAT=<pulse 0-1>: the Holo Floor mid-song (MenuBeat.cs)
       // POINTER=x,y (the pointer, in 1280x720 canvas coordinates), PCLICK=x,y,age (a click that long ago), PENERGY=0-1: for the reactive ones.
       var ptr = Environment.GetEnvironmentVariable("POINTER");
       if (ptr != null)
@@ -498,6 +516,8 @@ static partial class Shot {
       }
       GL.Tris.Clear();
       set("drawScale", 1f);
+      if ((mode == "menu" || mode == "who" || mode == "whotr") && Environment.GetEnvironmentVariable("BG") != null) { set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG"))); set("menuBgOverride", true); set("bgProfile", Profile.Current); }  // (before the background is drawn)
+      if (mode == "menu") FakeBeat(app);
       typeof(ArenaApp).GetMethod("DrawMenuBackground", f2).Invoke(app, new object[] { 7.3f });
       var hv = Environment.GetEnvironmentVariable("MOUSE");
       if (hv != null) { var xy = hv.Split(','); Event.current.mousePosition = new Vector2(float.Parse(xy[0]), float.Parse(xy[1])); }

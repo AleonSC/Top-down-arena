@@ -13,7 +13,7 @@ namespace Arena
         // DiskEject.cs), and under it the case (MenuMachine.cs): Play, Join game, Settings and Quit as keycaps, the bay whose shutter rolls up
         // onto your saved runs (DrawPlayPicker, SavesUi.cs) or the Join address, and your profile on a small screen. Its entrance is the end
         // of the disk boot sequence (MenuIntro.cs, ProfileTransition.cs).
-        const float MenuTitleY = 96f, MenuTitleSize = 74f;
+        const float MenuTitleY = 96f, MenuTitleSize = 60f;
         /// The bay's screen behind the shutter (the saved runs, Join): also where New run's CRT grows from and the lobby's panel grows
         /// out of (LobbyCrt.cs, LobbyEnter.cs).
         static Rect MenuCard => new Rect(BayRect.x + 10f, BayRect.y + 10f, BayRect.width - 20f, BayRect.height - 20f);
@@ -45,7 +45,7 @@ namespace Arena
             monShakeX = monShakeY = 0f;
         }
 
-        /// The title on the monitor at boot time T: WHO'S PLAYING? erased once the disk is in (from the picker), then VECTOR COLOSSEUM typed.
+        /// The title on the monitor at boot time T: WHO'S PLAYING? erased once the disk is in (from the picker), then VECTOR SECTOR: ARENA typed.
         MonTitle MenuTitleAt(float T)
         {
             if (T >= MachEnd || !(MenuIntroPlaying && MenuIntroFull) && !profTr)

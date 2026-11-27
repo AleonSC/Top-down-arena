@@ -240,9 +240,12 @@ namespace Arena
             float hz = HoloHorizon;
             GradQuad(new V2(0, 0), new V2(W, 0), new V2(W, hz), new V2(0, hz), HoloHue(new Rgba(0.043f, 0.016f, 0.02f)), HoloHue(new Rgba(0.19f, 0.047f, 0.067f)));
             Stars(110, t, 0.55f, 4100);
+            float pulse = BeatPulse;  // the music (MenuBeat.cs); 0 with no music, so the floor is as it was
+            HoloSkyline(hz, false);
             GradQuad(new V2(0, hz), new V2(W, hz), new V2(W, H), new V2(0, H), HoloHue(new Rgba(0.25f, 0.075f, 0.09f)), HoloHue(new Rgba(0.043f, 0.016f, 0.02f)));
-            SoftGlow(new V2(W / 2f, hz), 560f, HoloHue(new Rgba(1f, 0.37f, 0.45f, 0.3f + 0.08f * Mathf.Sin(t * 0.9f))));
-            var grid = HoloHue(new Rgba(0.91f, 0.36f, 0.42f, 0.5f));
+            HoloSkyline(hz, true);
+            SoftGlow(new V2(W / 2f, hz), 560f + 140f * pulse, HoloHue(new Rgba(1f, 0.37f, 0.45f, 0.3f + 0.08f * Mathf.Sin(t * 0.9f) + 0.22f * pulse)));
+            var grid = HoloHue(new Rgba(0.91f, 0.36f, 0.42f, 0.5f + 0.3f * pulse));
             for (int i = -24; i <= 24; i++)  // lanes to the vanishing point
                 Line(new V2(W / 2f + i * 8f, hz), new V2(W / 2f + i * 150f, H), 1.2f, grid);
             float off = MathX.Fmod(t * 0.75f, 1f);
@@ -269,7 +272,10 @@ namespace Arena
                     Line(p0, p1, 1f + e1 * 3f, pc.WithAlpha(0.95f * (j + 1) / 6f));
                 }
             }
-            FillRect(0, hz - 1f, W, 2f, HoloHue(new Rgba(1f, 0.55f, 0.6f, 0.75f)));
+            HoloBeatLines(hz);
+            if (pulse > 0.01f)  // the horizon flaring on the beat
+                FillRect(0, hz - 3f, W, 6f, HoloHue(new Rgba(1f, 0.55f, 0.6f, 0.35f * pulse)));
+            FillRect(0, hz - 1f, W, 2f, HoloHue(new Rgba(1f, 0.55f + 0.3f * pulse, 0.6f + 0.3f * pulse, 0.75f + 0.25f * pulse)));
             GradQuad(new V2(0, hz), new V2(W, hz), new V2(W, hz + 60f), new V2(0, hz + 60f), HoloHue(new Rgba(0.25f, 0.075f, 0.09f, 0.8f)), HoloHue(new Rgba(0.25f, 0.075f, 0.09f, 0f)));
             var mote = HoloHue(new Rgba(1f, 0.59f, 0.63f));  // (every colour turned to the picked hue, MenuBgHue.cs)
             for (int i = 0; i < 40; i++)  // motes drifting up off the floor
@@ -278,6 +284,49 @@ namespace Arena
                 float y = H - MathX.Fmod(t * 12f * sp + Hash(i * 5 + 3) * span, span);
                 float x = Hash(i * 5 + 4) * W + Mathf.Sin(t + i) * 4f;
                 FillRect(x, y, 2f, 2f, mote.WithAlpha(0.25f + 0.25f * Mathf.Sin(t * 2f + i)));
+            }
+        }
+
+        /// The music's spectrum as a city of light on the horizon (MenuBeat.cs): bars mirrored from the screen's edges, bass at the
+        /// edges (beside the menu's case, where it shows) and highs toward the middle; `mirror` draws their faint reflection on the floor.
+        void HoloSkyline(float hz, bool mirror)
+        {
+            const int n = BeatBandCount;
+            float bw = W / (n * 2f), gap = Mathf.Max(2f, bw * 0.22f);
+            var body = HoloHue(new Rgba(1f, 0.42f, 0.5f));
+            var cap = HoloHue(new Rgba(1f, 0.8f, 0.82f));
+            for (int i = 0; i < n; i++)
+            {
+                float v = BeatBand(i);
+                if (v < 0.02f)
+                    continue;
+                float h = v * (230f - i * 5f) * (mirror ? 0.35f : 1f), edge = 1f - 0.5f * i / n;  // tall in the bass, lower and fainter toward the middle
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    float x = (side < 0 ? i * bw : W - (i + 1) * bw) + gap / 2f, w = bw - gap;
+                    if (mirror)
+                        GradQuad(new V2(x, hz), new V2(x + w, hz), new V2(x + w, hz + h), new V2(x, hz + h), body.WithAlpha(0.22f * edge), body.WithAlpha(0f));
+                    else
+                    {
+                        GradQuad(new V2(x, hz - h), new V2(x + w, hz - h), new V2(x + w, hz), new V2(x, hz), body.WithAlpha(0.3f * edge), body.WithAlpha(0.06f * edge));
+                        FillRect(x, hz - h - 2f, w, 2f, cap.WithAlpha(0.85f * edge));
+                    }
+                }
+            }
+        }
+
+        /// Each beat sends a bright line from the horizon down the floor toward you.
+        void HoloBeatLines(float hz)
+        {
+            float now = Time.unscaledTime;
+            var c = HoloHue(new Rgba(1f, 0.75f, 0.78f));
+            for (int k = 0; k < beatWaves.Length; k++)
+            {
+                if (!BeatWave(k, now, out float age))
+                    continue;
+                float u = age / BeatWaveLife, e = u * u, y = hz + (H - hz) * e, a = (1f - u) * BeatAmt;
+                Line(new V2(0, y), new V2(W, y), 10f + 26f * e, c.WithAlpha(0.13f * a));
+                Line(new V2(0, y), new V2(W, y), 1.5f + 3f * e, c.WithAlpha(0.8f * a));
             }
         }
 

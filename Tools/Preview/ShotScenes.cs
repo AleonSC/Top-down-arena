@@ -1235,6 +1235,7 @@ static partial class Shot {
     CranesScene();  // CRANES=<s since the cast>: the DPS Ninja's Hundred Paper Cranes (ShotCranes.cs)
     PressurePointScene();  // PRESS=<s since the cast>: the Healer Ninja's Pressure Point Press (ShotPressurePoint.cs)
     AstralScene();  // ASTRAL=<s since the cast>: the Healer Ninja's Astral Projection, Fire held (ShotAstral.cs)
+    SacrificialRitualScene();  // SACRITUAL=<s since the cast> [SACKILLS=0]: the Tank Hemomancer's Sacrificial Ritual (ShotSacrificialRitual.cs)
     SpiritAvatarScene();  // SPIRIT=<s since the cast>: the Tank Ninja's Spirit Avatar, Fire held (ShotSpiritAvatar.cs)
     DragonsDogmaScene();  // DOGMA=<s since the cast>: MOCKUP of the Tank Ninja's Dragon's Dogma (ShotDragonsDogma.cs)
     RedShotScene();  // REDSHOT=1: the red boss shots, barbed spears (ShotRedShot.cs)

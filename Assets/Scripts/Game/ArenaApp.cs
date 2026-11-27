@@ -649,7 +649,8 @@ namespace Arena
 
         static readonly KeyCode[] CardKeys = { KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4, KeyCode.Alpha5, KeyCode.Alpha6, KeyCode.Alpha7, KeyCode.Alpha8 };
 
-        /// Menu theme on the main menu, the lobby theme in the lobby; the soft battle track in a run; each boss's own track while
+        /// Menu theme on the main menu, the lobby theme in the lobby; the soft battle track in a run (or the coming boss's
+        /// faction's track from the Music Pack); each boss's own track while
         /// it's on the field. The next boss's track is rendered ahead of time.
         void UpdateMusic()
         {
@@ -678,6 +679,8 @@ namespace Arena
                         }
                 int next = game.NextBossWave(game.Wave, game.State == MatchState.Fighting);
                 var upcoming = game.BossAt(next);
+                if (wanted == "battle")  // regular waves: the coming boss's faction's own track, if the Music Pack has one
+                    wanted = sounds.RequestFactionTrack(upcoming) ?? wanted;
                 sounds.RequestBossTrack(upcoming);
                 keep = SoundBank.BossTrackId(upcoming);
             }
@@ -916,7 +919,7 @@ namespace Arena
             if (Ui.EndHoverFrame() && sounds != null && !clicked)
                 sounds.PlayUiHover(Time.unscaledTime, fxReduced);  // the glassy tick when the mouse moves onto a button
             if (clicked && sounds != null)
-                sounds.PlayUiClick(Time.unscaledTime);  // and the chirp when one is pressed
+                sounds.PlayUiClick(Time.unscaledTime, session.Screen == AppScreen.Lobby);  // and the click when one is pressed (the lobby's: the settings tiles' light tick)
         }
     }
 }

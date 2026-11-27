@@ -74,6 +74,7 @@ namespace Arena
             d[(int)FxKind.BoilEnd] = (fx, f, t) => DrawBoilEndFx(fx, f);  // BloodBoilLook.cs
             d[(int)FxKind.TrojanEnd] = (fx, f, t) => DrawTrojanEndFx(fx, f);  // TrojanHorseLook.cs
             d[(int)FxKind.GolemFx] = (fx, f, t) => DrawGolemFx(fx, f);  // BloodGolemLook.cs
+            d[(int)FxKind.SacScythe] = (fx, f, t) => DrawSacScytheFx(fx);  // SacrificialRitualLook.cs
             d[(int)FxKind.PistolWhip] = (fx, f, t) => DrawPistolWhipFx(fx);  // PistolWhipLook.cs
             d[(int)FxKind.StoneSlam] = (fx, f, t) => DrawStoneSlamFx(fx);  // StonespearLook.cs
             d[(int)FxKind.DragonFangBite] = (fx, f, t) => DrawDragonFangFx(fx, f);  // DragonFangLook.cs

@@ -20,7 +20,7 @@ namespace Arena
         static Rect LobbyBackKey => new Rect(PartyX, LobbyHeadY, LobbyHeadKey, LobbyHeadKey);
         /// The LOBBY_ title, right of Back.
         static Rect LobbyTitleRect => new Rect(PartyX + 54f, LobbyHeadY, 250f, LobbyHeadKey);
-        /// Where the title's text sits in LobbyTitleRect: the menu's entrance flies VECTOR COLOSSEUM here as it turns into LOBBY.
+        /// Where the title's text sits in LobbyTitleRect: the menu's entrance flies VECTOR SECTOR: ARENA here as it turns into LOBBY.
         static V2 LobbyTitleAnchor => new V2(LobbyTitleRect.x + 34f, LobbyTitleRect.center.y);
         /// The "!" connection key, at the column's right end (shown while the mouse is over it).
         static Rect LobbyInfoKey => new Rect(PartyX + PartyW - LobbyHeadKey, LobbyHeadY, LobbyHeadKey, LobbyHeadKey);
