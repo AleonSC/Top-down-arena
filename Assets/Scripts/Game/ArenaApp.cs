@@ -468,6 +468,7 @@ namespace Arena
                 SetHudMode(hudMode + 1);  // H: corner > on the player > hidden (HudModes.cs)
             TickMapView(Time.unscaledDeltaTime);  // M: minimap > full map > off (MapView.cs)
             TickLaunch(Time.unscaledDeltaTime);  // a run starting: the drop-in (LaunchIntro.cs)
+            TickWhoBoot(Time.unscaledDeltaTime);  // Who's playing? booting up as the game opens (WhoBoot.cs)
             TickMenuIntro(Time.unscaledDeltaTime);  // the main menu drawing itself in, the first time (MenuIntro.cs)
             TickMenuSounds(Time.unscaledDeltaTime);  // the menu's hum, and quitting after Quit's sound (MenuHolo.cs)
             TickLobbyEnter(Time.unscaledDeltaTime);  // the menu turning into the lobby (LobbyEnter.cs)
@@ -832,7 +833,10 @@ namespace Arena
                     else if (profTr)
                         DrawProfTr();  // the picker and the menu trading places (ProfileTransition.cs)
                     else if (whoOpen)
+                    {
                         DrawWho();  // ProfilesUi.cs
+                        DrawWhoBootFade();  // the fade from black as the game opens (WhoBoot.cs)
+                    }
                     else if (settingsOpen)
                     {
                         DrawerIn("settings", true);  // clock first, as for the profile below

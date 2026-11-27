@@ -102,37 +102,49 @@ namespace Arena
                 if (Mathf.Abs(whoCarTarget - whoCarPos) < 0.001f)
                     whoCarPos = whoCarTarget;
             }
-            bool live = !editing;
+            if (WhoBootEatsEvent(e))  // the boot is playing, or a key or click just skipped it (WhoBoot.cs)
+                e.Use();
+            bool live = !editing && !WhoBootPlaying;
             if (live)
                 WhoInput();
-            DrawMonitor(TitleAll(WhoTitleText), WhoDrive(), false, false);
+            DrawMonitor(WhoBootTitle(TitleAll(WhoTitleText)), WhoBootDrive(WhoDrive()), false, false);
+            DrawWhoBootGlass();  // the glass powering on, the boot lines and the title's flash (WhoBoot.cs)
             DrawCarousel(live && !whoManage, t);
             if (editing)
             {
-                DrawWhoEditor(new Rect(W / 2f - 250f, 556f, 500f, 118f));
+                WhoBootRise(0.1f, () => DrawWhoEditor(new Rect(W / 2f - 250f, 556f, 500f, 118f)));
                 return;
             }
-            if (RoundKey(CarLeftKey, "‹", true))
-                CarStep(-1);
-            if (RoundKey(CarRightKey, "›", true))
-                CarStep(1);
-            DrawCarCount();
+            WhoBootRise(0f, () =>
+            {
+                if (RoundKey(CarLeftKey, "‹", true))
+                    CarStep(-1);
+                if (RoundKey(CarRightKey, "›", true))
+                    CarStep(1);
+            });
+            WhoBootRise(0.06f, DrawCarCount);
             if (whoError.Length > 0)
                 Ui.Label(new Rect(W / 2f - 250f, 604f, 500f, 20f), whoError, 13, Ui.Warn, TextAnchor.MiddleCenter);
-            if (MachKey(WhoManageKey, whoManage ? "DONE" : "MANAGE PROFILES", 15, true, -1, PixelArt.Get(whoManage ? "ui_check" : "ui_gear")))
+            WhoBootRise(0.14f, () =>
             {
-                MenuSound(Sfx.MenuKey);
-                whoManage = !whoManage;
-                whoArmed = null;
-                whoError = "";
-            }
-            GUI.enabled = !WhoFull;
-            if (MachKey(WhoNewKey, "+  NEW PROFILE", 15, !WhoFull, -1, null, false, WhoFull ? 0.45f : 1f))
+                if (MachKey(WhoManageKey, whoManage ? "DONE" : "MANAGE PROFILES", 15, true, -1, PixelArt.Get(whoManage ? "ui_check" : "ui_gear")))
+                {
+                    MenuSound(Sfx.MenuKey);
+                    whoManage = !whoManage;
+                    whoArmed = null;
+                    whoError = "";
+                }
+            });
+            WhoBootRise(0.2f, () =>
             {
-                MenuSound(Sfx.MenuKey);
-                StartNewProfile();
-            }
-            GUI.enabled = true;
+                GUI.enabled = !WhoFull;
+                if (MachKey(WhoNewKey, "+  NEW PROFILE", 15, !WhoFull, -1, null, false, WhoFull ? 0.45f : 1f))
+                {
+                    MenuSound(Sfx.MenuKey);
+                    StartNewProfile();
+                }
+                GUI.enabled = true;
+            });
         }
 
         /// The drive's readout on this screen: which disk would go in.
@@ -224,6 +236,8 @@ namespace Arena
                 int i = (int)o.x;
                 float off = o.y;
                 var r = CarRect(off, out float a);
+                r.y += WhoBootDiskRise(off, out float ra);  // rising in as the game opens (WhoBoot.cs)
+                a *= ra;
                 if (a <= 0.01f)
                     continue;
                 DrawCarFaded(r, a, rr => DrawCarDisk(rr, i));
@@ -234,6 +248,7 @@ namespace Arena
                 }
             }
             var mr = CarRect(CarOffset(mid), out _);
+            DrawWhoBootGlint(mr);
             var p = WhoAt(mid);
             if (p == null || Mathf.Abs(CarOffset(mid)) > 0.3f)
                 return;
