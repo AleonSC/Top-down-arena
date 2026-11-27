@@ -433,8 +433,13 @@ static partial class Program
 
         var rng = new Random(7);
         int veryRare = 0, cls = 0;
-        var tri = Content.RoleWithAbilityChoices(Upgrades.FirstAbilityChoices);  // a class with exactly three 1st abilities and no gaps: two cards (a 4th, like the Decoy Dummy, makes three)
+        // A class with no gaps, three 1st abilities if any is left (two cards), else four (three cards): each counts triple
+        // among the other five very rare cards, so 3n in 3n + 5 (6 in 11, or 9 in 14).
+        var tri = Content.Find((r, k) => Content.AbilityCount(r, k) == Upgrades.FirstAbilityChoices)
+            ?? Content.RoleWithAbilityChoices(Upgrades.FirstAbilityChoices + 1);
         Role triRole = tri.Role; Kit triKit = tri.Kit;
+        int triCards = Content.AbilityCount(triRole, triKit) - 1;
+        float triOdds = 3f * triCards / (3f * triCards + 5f);
         var triAbility = Upgrades.FirstAbility(triRole, triKit, 0);
         Console.WriteLine("  odds measured on " + triRole + " " + triKit + " (" + triAbility + ")");
         for (int n = 0; n < 4000; n++)
@@ -446,8 +451,8 @@ static partial class Program
                         cls++;
                 }
         float frac = cls / (float)Math.Max(1, veryRare);
-        Console.WriteLine("  very rare cards rolled: {0}, class abilities {1:0%} (6 in 11 = 55%)", veryRare, frac);
-        Check(frac > 0.49f && frac < 0.61f, "class ability cards count triple among very rare cards");
+        Console.WriteLine("  very rare cards rolled: {0}, class abilities {1:0%} ({2} in {3} = {4:0%})", veryRare, frac, 3 * triCards, 3 * triCards + 5, triOdds);
+        Check(frac > triOdds - 0.06f && frac < triOdds + 0.06f, "class ability cards count triple among very rare cards");
 
         var taken = new List<int> { U("Barrier") };  // a Tank Soldier who picked Roar, then found Barrier
         Check(!Upgrades.Available(U("Barrier"), new OfferCtx(Role.Tank, AbilityId.Roar, taken)) && Upgrades.Available(U("Bastion"), new OfferCtx(Role.Tank, AbilityId.Roar, taken))

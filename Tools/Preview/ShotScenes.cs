@@ -1186,6 +1186,7 @@ static partial class Shot {
     CannonCallScene();  // CANNON=<s since the cast> [CANNONCAP=1] (ShotCannonCall.cs)
     BambooGroveScene();  // BAMBOO=<s since the cast> [BAMBOOCAP=1] (ShotBambooGrove.cs)
     SiegeBellScene();  // BELL=<s since the cast> [BELLCAP=1] (ShotSiegeBell.cs)
+    ClotCrystalsScene();  // CLOTCRYSTALS=<s since the cast> [CRYCAP=1] [CRYHURT=<0-1>] (ShotClotCrystals.cs)
     BloodTotemScene();  // TOTEM=<s since the last plant> [TOTEMCAP=1] (ShotBloodTotem.cs)
     ChakraScene();  // CHAKRA=<s since the cast> [CHAKRACAP=1] (ShotChakra.cs)
     OctopusScene();  // OCTO=<s since the cast> [OCTOHP=<0-1>] or OCTOPICK=1 (ShotOctopus.cs)

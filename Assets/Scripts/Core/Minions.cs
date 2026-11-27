@@ -321,11 +321,18 @@ namespace Arena
                             OctoBurst(m);  // its time is up: it bursts into ink (OctopusFamiliar.cs)
                         else if (m.Kind == MinionKind.BloodImp && m.BlockHp <= 0f)
                             RitImpPop(m);  // shot down: it pops (BloodRitual.cs)
+                        else if (m.Kind == MinionKind.ClotCrystal)
+                            ClotMelted(m, owner);  // its time is up: it melts back into you (ClotCrystals.cs)
                         expired.Add(m);
                         continue;
                     }
                 }
                 var d = m.Def;
+                if (m.Kind == MinionKind.ClotCrystal)
+                {
+                    TickClotCrystal(m, owner, dt);  // ClotCrystals.cs
+                    continue;
+                }
                 if (m.Kind == MinionKind.BloodImp)
                 {
                     if (TickBloodImp(m, owner, dt))  // home, popped, or its portal gone (BloodRitual.cs)
@@ -667,16 +674,20 @@ namespace Arena
         {
             foreach (var m in Minions.Values)
             {
-                if (m.Def.BlockRadius <= 0f || m.StaggerT > 0f || m.BlockHp <= 0f || (IsTitanLike(m.Kind) && !TitanBlocking(m)) || !Enters(b, m.Pos, m.Def.BlockRadius * m.Scale))
+                if (m.Kind == MinionKind.ClotCrystal ? !ClotCatches(m, b)  // a crystal jerks onto shots, so it eats what it touches, not just what flies in (ClotCrystals.cs)
+                    : m.Def.BlockRadius <= 0f || m.StaggerT > 0f || m.BlockHp <= 0f || (IsTitanLike(m.Kind) && !TitanBlocking(m)) || !Enters(b, m.Pos, m.Def.BlockRadius * m.Scale))
                     continue;
-                m.BlockHp -= m.Kind == MinionKind.CloneWall || m.Kind == MinionKind.Clone || m.Kind == MinionKind.Wall || m.Kind == MinionKind.VectorBlock || m.Kind == MinionKind.BloodImp ? b.Dmg * EnemyDamageScale(Wave) : BlockerWear(b);  // a wall clone or a golem wears from every shot, not just a boss's
+                m.BlockHp -= m.Kind == MinionKind.CloneWall || m.Kind == MinionKind.Clone || m.Kind == MinionKind.Wall || m.Kind == MinionKind.VectorBlock || m.Kind == MinionKind.BloodImp || m.Kind == MinionKind.ClotCrystal ? b.Dmg * EnemyDamageScale(Wave) : BlockerWear(b);  // a wall clone or a golem wears from every shot, not just a boss's
                 if (m.BlockHp <= 0f)
                 {
                     if (m.Companion)
                         m.StaggerT = 4f;
                     else
                         m.T = 0.01f;  // breaks at the end of this tick
-                    BroadcastFx(FxKind.Boom, m.Pos, m.Def.Color, m.Def.BlockRadius * m.Scale, 0.3f, Sfx.Hit);
+                    if (m.Kind == MinionKind.ClotCrystal)
+                        ClotShatter(m);  // ClotCrystals.cs
+                    else
+                        BroadcastFx(FxKind.Boom, m.Pos, m.Def.Color, m.Def.BlockRadius * m.Scale, 0.3f, Sfx.Hit);
                 }
                 return true;
             }

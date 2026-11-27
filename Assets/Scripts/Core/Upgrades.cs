@@ -50,6 +50,7 @@ namespace Arena
         CeremonialArmor,
         ChakraReserves,  // the Healer Ninja's 4th choice (ChakraReserves.cs), the lobby's 4th choice
         Claymore,  // Claymore (Claymore.cs) took Mark for Death's place (and number); Poison Dart (PoisonDart.cs) took Dash's place (and number); Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
+        ClotCrystals,  // the Healer Hemomancer's 4th choice (ClotCrystals.cs), the lobby's 4th choice
         ConduitWeb,  // the Healer Elementalist's fourth ultimate (ConduitWeb.cs), key 3 of the lobby's Ultimate row
         Consecrate,
         CrimsonHarvest,
@@ -232,6 +233,7 @@ namespace Arena
         public float RushReach = 1f, RushRefund;               // Vein Rush: Crimson Tide
         public float TbDmgMult = 1f; public int TbExtraJumps;    // Thorn Bloom: Thornwork
         public float BtReachMult = 1f, BtBonusTime;             // Blood Totem: Bloodroot
+        public float CryHpMult = 1f, CryBonusTime;                // Clot Crystals: Hard Clot
         public float BgRadiusMult = 1f, BgBleedMult = 1f;        // Bamboo Grove: Rhizome
         public float BellRadiusMult = 1f, BellStunBonus;         // Siege Bell: Great Bell
         public float CrBonusTime, CrBonusHeal;                    // Chakra Reserves: Deep Reserves

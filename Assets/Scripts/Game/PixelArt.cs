@@ -2576,6 +2576,21 @@ namespace Arena
                 "..kRrRRRRk..",
                 ".kkkkkkkkkk.",
             },
+            ["clotcrystals"] = new[]  // Clot Crystals: three garnets of clot round a heart, one jerking out at a shot (ClotCrystals.cs)
+            {
+                ".....p....o.",
+                "....pRr..o..",
+                "...pRRrr....",
+                "...rRRrr.r..",
+                "....rrr..r..",
+                ".r.........r",
+                "pRr..rr...pR",
+                "RRrr.rr..pRr",
+                "rRRr....rRRr",
+                ".rr......rr.",
+                "............",
+                "............",
+            },
             ["thornbloom"] = new[]  // Thorn Bloom: blood needles bursting out all round (Hemomancer.cs)
             {
                 "p....p.....p",
