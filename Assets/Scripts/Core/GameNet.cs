@@ -969,7 +969,7 @@ namespace Arena
                 aim = m.Aim;
                 t = m.T;
                 duration = m.Duration;
-                m.GuardFrac = m.Kind == MinionKind.CloneWall || (m.Kind == MinionKind.Wall && m.MaxHp > 0f) ? MathX.Clamp01(m.BlockHp / Math.Max(1f, m.MaxHp))  // a wall clone: what is left of its health
+                m.GuardFrac = m.Kind == MinionKind.CloneWall || m.Kind == MinionKind.ClotCrystal || (m.Kind == MinionKind.Wall && m.MaxHp > 0f) ? MathX.Clamp01(m.BlockHp / Math.Max(1f, m.MaxHp))  // a wall clone: what is left of its health
                     : HasHealth(m) || m.Kind == MinionKind.Wolf && m.Companion && m.MaxHp > 0f ? m.Hp / Math.Max(1f, m.MaxHp)  // a Warden's Guard, Force Pact thrall or Wolf Whistle wolf: its health
                     : m.Def.BlockCapacity > 0f && m.StaggerT <= 0f ? MathX.Clamp01(m.BlockHp / (m.Def.BlockCapacity * m.Scale)) : 0f;
                 guard = m.GuardFrac;

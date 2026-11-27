@@ -780,6 +780,8 @@ namespace Arena
                 Apply = s => { s.TbDmgMult += 0.2f; s.TbExtraJumps++; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BloodTotem, MaxStacks = 2, Name = "Bloodroot", Desc = "Blood Totem's veins reach 20% farther, and each totem stands 3 s longer",
                 Apply = s => { s.BtReachMult += 0.2f; s.BtBonusTime += 3f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.ClotCrystals, MaxStacks = 2, Name = "Hard Clot", Desc = "Clot Crystals have 30% more health and last 3 s longer",
+                Apply = s => { s.CryHpMult += 0.3f; s.CryBonusTime += 3f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Hemomancer, MaxStacks = 2, Name = "Bloodthirst", Desc = "Your abilities cost 20% less health, and each kill heals you 2",
                 Apply = s => { s.HealthCostMult *= 0.8f; s.KillHeal += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.BloodLash }, MaxStacks = 2, Name = "Crimson Whip", Desc = "The Blood Lash reaches 20% farther, each enemy holds one more link, and each Clot stack cuts 1% more damage",
@@ -848,6 +850,13 @@ namespace Arena
                 Name = "Martyr", Icon = "martyr", Cooldown = 16f, HealthCost = 0.4f, Desc = "Pay health to revive a downed ally, or ward the most hurt one.",
                 Capstone = "You're invulnerable for 2 s after the sacrifice.",
                 Bot = b => b.AllyDown || b.Players == 1 && b.Danger && b.Me.WardT <= 0f && b.Me.Hp > b.Me.MaxHp * 0.5f,
+            },
+            new AbilityDef
+            {
+                Id = AbilityId.ClotCrystals, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = AbilityDef.Fourth,  // the lobby's 4th choice (ClotCrystals.cs)
+                Name = "Clot Crystals", Icon = "clotcrystals", Cooldown = CryCooldown, HealthCost = CryCost, Desc = "Grow three blood crystals round you that jerk at enemy bullets and eat them.",
+                Capstone = "A 4th crystal.",
+                Bot = b => b.Danger && b.Me.Hp > b.Me.MaxHp * 0.45f,
             },
             new AbilityDef
             {
@@ -1009,6 +1018,9 @@ namespace Arena
                     return true;
                 case AbilityId.BloodTotem:
                     CastBloodTotem(p, target, pw, cap);  // BloodTotem.cs
+                    return true;
+                case AbilityId.ClotCrystals:
+                    CastClotCrystals(p, cap);  // ClotCrystals.cs
                     return true;
 
                 // Ultimates
