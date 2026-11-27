@@ -251,7 +251,7 @@ namespace Arena
                 if (draw || aimTicks == 0)  // (the cursor goes to a teammate for a cast only between strokes)
                     input.AimAt = aim;
             }
-            if (Game.OathPickSlot >= 0 || Game.OctoPickSlot >= 0)
+            if (Game.OathPickSlot >= 0 || Game.OctoPickSlot >= 0)  // (Mending Web skips its pick in the lobby: MendingWeb.cs)
             {
                 // Guardian's Oath waits for a click on a teammate (GuardiansOath.cs): the cursor on one, Fire let go a tick, then pressed.
                 input.AimAt = Game.ShowcaseAllyPos(castCount % 2);

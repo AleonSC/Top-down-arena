@@ -20,7 +20,7 @@ static partial class Program
         Check(def.Name == "Octopus Familiar" && def.Choice == AbilityDef.Fourth && def.Kit == Kit.Summoner && def.Role == Role.Healer && def.Cooldown == 40f && def.Icon == "octopus",
             "Octopus Familiar: a 40 s Healer Summoner 1st ability on the 4th key");
         Check(Upgrades.AbilityLimit(Role.Healer, Kit.Summoner) == 4 && Upgrades.FirstAbility(Role.Healer, Kit.Summoner, 3) == AbilityId.OctopusFamiliar
-            && Upgrades.FirstAbility(Role.Healer, Kit.Summoner, 0) == AbilityId.SpiritSwarm && Upgrades.FirstAbility(Role.Healer, Kit.Summoner, 2) == AbilityId.SoulLantern,
+            && Upgrades.FirstAbility(Role.Healer, Kit.Summoner, 0) == AbilityId.MendingWeb && Upgrades.FirstAbility(Role.Healer, Kit.Summoner, 2) == AbilityId.SoulLantern,
             "the Healer Summoner's 4th key is Octopus Familiar; its first three are unchanged");
         Check(Upgrades.All.Any(u => u.ClassAbility && u.Grants == AbilityId.OctopusFamiliar) && Upgrades.All.Any(u => u.Name == "Three Hearts" && u.RequiresAbility == AbilityId.OctopusFamiliar && u.Rarity == Rarity.Rare),
             "Octopus Familiar is a very rare card for Healer Summoners who picked another, and Three Hearts a Rare card for it");
