@@ -36,7 +36,7 @@ namespace Arena
             "A tiny dash with a moment of invulnerability; double tap a movement key does it too",
             "Picked in the lobby", "Picked in the lobby, one per role and class", "Filled by a very rare upgrade card", "Filled by a very rare upgrade card",
             "Filled by a very rare upgrade card", "Hold to shoot (left click by default)", "Hold for the shield toward your cursor (right click by default)",
-            "Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl",
+            "Dragon Fang blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl",
             "Take a chest item, open a mystery door, shut a gate, open the shop again in a shop room", "While standing on it", "Tap: use your gadget (switch it on or off, cast it, lob a charge). Hold and let go: throw it to a teammate where you aim", "Between waves, by a wall (Expanding arena): push it out a tile at a time", "In the upgrade picker", "A line from you toward the cursor", "A clean screen; a slim boss bar stays", "Everything off at once (no key until you give it one)", "Hold to open the emote bar: scroll or click to pick one", "Tap to ping your cursor, hold for the wheel (middle mouse by default)", "Between waves: say you are ready (the wave starts once everyone is)", "Between waves (Expanding arena): open the door picker",
             "Cycles the minimap, the full map and no map",
             "Hold to open the gadget wheel: let go on a gadget to swap it into your hand, in the middle to cancel",

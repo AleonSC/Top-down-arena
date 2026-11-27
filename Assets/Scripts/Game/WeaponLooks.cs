@@ -212,7 +212,7 @@ namespace Arena
                                                 Arms = (a, p) => a.fxOn && !p.Downed,  // KatanaLook.cs, MeleeLooks.cs
                                                 MeleeColor = new Rgba(0.745f, 0.87f, 1f),  // Moon Steel (Docs/Mockups/katana-reach.html)
                                                 Rest = (Player p, ref float ang, ref float reach, ref float bend) => { ang -= p.KatanaStance == 0 ? 1.15f : 0.12f; reach *= p.KatanaStance == 0 ? 0.72f : 0.78f; bend = 0.4f; return true; } });  // Hayate: low and out to the side; Senbon: forward (KatanaLook.cs)
-            L(WeaponId.Kunai, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldKunai(p, t, hold) });
+            L(WeaponId.DragonFangKunai, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldKunai(p, t, hold) });
             // ---- Hemomancer
             L(WeaponId.BloodLash, new WeaponLook { Held = (a, p, t, hold) => a.DrawHeldBloodLash(p, t, hold),
                                                    Arms = (a, p) => a.fxOn && !p.Downed,  // MeleeLooks.cs

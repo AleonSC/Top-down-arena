@@ -164,17 +164,9 @@ namespace Arena
                 case WeaponId.Katana:
                     FireKatana(p, aim, dmg, extra);  // Hayate's dash-cut or Senbon's swipe (Katana.cs)
                     break;
-                case WeaponId.Kunai:
-                {
-                    int n = 1 + extra;
-                    for (int i = 0; i < n; i++)
-                    {
-                        float a = aim + (i == 0 ? 0f : (i % 2 == 1 ? 1f : -1f) * 0.07f * ((i + 1) / 2));
-                        var b = SpawnBullet(Defs.KunaiShot, muzzle, V2.FromAngle(a) * w.Speed, 0f, w.Life, (i == 0 ? w.Damage : w.Damage * 0.5f) * dmg, p.Id);
-                        b.ShadowKunai = i == 0 && ++p.KunaiCount % KunaiShadowEvery == 0;  // every throw: one leaves a mark to blink to
-                    }
+                case WeaponId.DragonFangKunai:
+                    ThrowDragonFang(p, dir, muzzle, dmg);  // one huge kunai at a time, bouncing from enemy to enemy (DragonFang.cs)
                     break;
-                }
             }
         }
 
@@ -308,8 +300,8 @@ namespace Arena
                 Desc = "Primary Fire: Tight fans of stars that stick, then rip out and fly back.\n\nAlternative Fire: Switch to a huge star thrown along a route you draw." },
             new WeaponDef { Id = WeaponId.Katana, Range = (g, p, w, x) => p.KatanaStance == 0 ? MeleeReach(p, KatanaDashLen) : MeleeReach(p, w.Reach), BotAlt = KatanaBotAlt, Kit = Kit.Ninja, Role = Role.Dps, Choice = 1, Damage = 20f, Reach = 120f, Melee = true, ExtraDesc = "+1: each dash strikes once more (60%), two more caltrops and a wider Momentum Burst", Name = "Katana", FireInterval = 0.3f,
                 Desc = "Primary Fire: Two stance combos: dashing slices, or cuts that end in caltrops.\n\nAlternative Fire: Switch stance." },
-            new WeaponDef { Id = WeaponId.Kunai, BotAlt = KunaiBotAlt, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = 1400f, Life = 0.5f, Damage = 42f, ExtraDesc = "+1 knife, fanned out (half damage)", Name = "Kunai", FireInterval = 0.7f, Sound = Sfx.ShotKunai,
-                Desc = "Primary Fire: Slow, heavy throwing knives that leave a mark where they land.\n\nAlternative Fire: Blink to the mark, and your next hit lands double." },
+            new WeaponDef { Id = WeaponId.DragonFangKunai, BotAlt = KunaiBotAlt, Kit = Kit.Ninja, Role = Role.Dps, Choice = 2, Speed = DragonFangSpeed, Life = 0.8f, Damage = 60f, BotRange = 420f, ExtraDesc = "+2 bites a throw (up to 12)", Name = "Dragon Fang Kunai", FireInterval = 0.5f, Sound = Sfx.ShotKunai,
+                Desc = "Primary Fire: One huge kunai with a fire dragon behind it. Dragon's Hunger cards let it bite up to 12 enemies in turn, 10% harder each bite, bouncing off walls to bite again; the 12th bite bursts.\n\nAlternative Fire: Blink to where it bit last, and your next hit lands double." },
             new WeaponDef { Id = WeaponId.Nunchaku, BotAlt = NunchakuBotAlt, Kit = Kit.Ninja, Role = Role.Dps, Choice = 3, Damage = 20f, Reach = 95f, Melee = true, ExtraDesc = "+1 aftershock ring after the Twin Crush, 40 px farther out (60%)", Name = "Nunchaku", FireInterval = 0.3f,
                 Desc = "Primary Fire: A four-step twin-nunchaku combo that ends in a stunning slam.\n\nAlternative Fire: Guard with spinning discs that swat shots back." },
         };
@@ -370,7 +362,9 @@ namespace Arena
                 Apply = s => { s.StarStickCut += 1.5f; s.StarReturnMult += 0.4f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Katana }, MaxStacks = 2, Name = "Honed Edge", Desc = "The Momentum Burst shoves 30% farther, and caltrops last 2 s longer",
                 Apply = s => { s.BurstPushMult += 0.3f; s.CaltropBonusTime += 2f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Kunai }, MaxStacks = 2, Name = "Shadow Mark", Desc = "The hit after a Kunai blink deals 40% more, and marks last 2 s longer",
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.DragonFangKunai }, MaxStacks = 3, Name = "Dragon's Hunger", Desc = "The Dragon Fang Kunai bites 4 more enemies a throw (up to 12)",
+                Apply = s => s.FangBites += Game.DragonFangHungerBites },
+            new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.DragonFangKunai }, MaxStacks = 2, Name = "Shadow Mark", Desc = "The hit after a Dragon Fang blink deals 40% more, and marks last 2 s longer",
                 Apply = s => { s.KunaiBlinkMult += 0.4f; s.KunaiMarkBonus += 2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.Nunchaku }, MaxStacks = 2, Name = "Iron Links", Desc = "The Twin Windmill's discs are 25% wider, and each shot they swat adds 2 more to the Twin Counter",
                 Apply = s => { s.NunDiscMult += 0.25f; s.NunSwatBonus += 2f; } },
@@ -1091,7 +1085,7 @@ namespace Arena
                 }
                 return;
             }
-            if (me.Weapon.Id == WeaponId.Kunai && pressed && me.KunaiMarkT > 0f)
+            if (me.Weapon.Id == WeaponId.DragonFangKunai && pressed && me.KunaiMarkT > 0f)
             {
                 // Blink to the shadow kunai's mark (like Blink, at once); the host readies a double-damage hit.
                 V2 mark = me.KunaiMark;
@@ -1519,7 +1513,7 @@ namespace Arena
             }
             if (kind == WeaponAlt.Blink)
             {
-                if (w.Id != WeaponId.Kunai || p.KunaiMarkT <= 0f || p.KunaiMark.FartherThan(target, 40f))
+                if (w.Id != WeaponId.DragonFangKunai || p.KunaiMarkT <= 0f || p.KunaiMark.FartherThan(target, 40f))
                     return;
                 p.KunaiMarkT = 0f;
                 p.AmbushT = Math.Max(p.AmbushT, KunaiAmbush);  // the next hit lands double (NinjaHitMult)
@@ -1541,6 +1535,7 @@ namespace Arena
                 if (b.Kind == Defs.FumaStar)
                     FumaTurn(b, dt);
             TickGreatStars(dt);  // the Great Star along its drawn route and home (GreatStar.cs)
+            TickDragonFangs(dt);  // the Dragon Fang Kunai's chain (DragonFang.cs)
         }
 
         /// A Fuma Shuriken's loop is an oval through where it was thrown: at a time t into the lap (angle a = Tau t / lap)

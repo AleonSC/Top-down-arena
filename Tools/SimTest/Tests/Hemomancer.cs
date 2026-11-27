@@ -176,7 +176,7 @@ static partial class Program
         var hurt = typeof(Game).GetMethod("HurtEnemy", flags);
 
         Check(Defs.Weapon(Role.Tank, Kit.Hemomancer, 0).Name == "Blood Lash" && Defs.Weapon(Role.Healer, Kit.Hemomancer, 0).Name == "Transfusion Darts"
-            && Defs.Weapon(Role.Dps, Kit.Hemomancer, 2).Name == "Blood Brawler" && Defs.Weapon(Role.Dps, Kit.Ninja, 2).Name == "Kunai"
+            && Defs.Weapon(Role.Dps, Kit.Hemomancer, 2).Name == "Blood Brawler" && Defs.Weapon(Role.Dps, Kit.Ninja, 2).Name == "Dragon Fang Kunai"
             && Defs.Weapon(Role.Healer, Kit.Soldier, 1).Name == "Revolver" && Defs.Weapon(Role.Tank, Kit.Knight, 1).Name == "Lance",
             "Hemomancer weapons sit in the role/class tables without shifting the others");
         Check(Upgrades.FirstAbility(Role.Healer, Kit.Hemomancer, 2) == AbilityId.Martyr && Upgrades.FirstAbility(Role.Dps, Kit.Ninja, 0) == AbilityId.ShadowStep

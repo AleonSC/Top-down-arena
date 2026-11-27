@@ -164,6 +164,7 @@ namespace Arena
         ChainLight,
         DancingBlades,
         DoubleBarrel,
+        DragonFangKunai,  // the DPS Ninja's Dragon Fang Kunai (DragonFang.cs): one huge kunai bouncing through enemies, a fire dragon behind it
         Earthball,
         EmbolusSpears,  // the Hemomancer DPS's fourth (EmbolusSpears.cs): a blood spear in each hand
         Fireball,
@@ -186,7 +187,6 @@ namespace Arena
         Implosion,
         IronFist,  // the Engineer's second weapons (EngineerBots.cs): Fire summons a robot Engineer of the role, then is a basic attack
         Katana,
-        Kunai,
         Kusarigama,  // Ninja (Ninja.cs): thrown blades and quick melee
         Lance,
         LeechTendrils,
@@ -907,6 +907,7 @@ namespace Arena
             AstralBolt = 83,   // Astral Projection's bolt, shot from the spirit (AstralProjection.cs)
             BloodNeedle = 84,  // the Acupuncture Needles' Bloodletting needle: long, red-beaded; sticks and bleeds (AcupunctureNeedles.cs, Game/AcupunctureLook.cs)
             HorseArrow = 85,   // an arrow shot out of a Trojan Horse's side slit (TrojanHorse.cs, Game/TrojanHorseLook.cs)
+            DragonFang = 89,   // the Dragon Fang Kunai: one huge kunai bouncing from enemy to enemy (DragonFang.cs, Game/DragonFangLook.cs)
             FoamGlob = 88,     // a Hazard Foam glob: flies over everything and lands as foam (HazardFoam.cs, Game/HazardFoamLook.cs)
             RocketShell = 87,  // a Rocket Drop rocket: bursts on what it touches, a wall, or at the cursor (RocketDrop.cs, Game/RocketDropLook.cs)
             BallistaBolt = 86, // a Ballista's giant bolt: through everything, knocking what it passes (Ballista.cs, Game/BallistaLook.cs)
@@ -974,6 +975,7 @@ namespace Arena
             Row(table, NeedleShot, radius: 3f, color: new Rgba(0.55f, 1f, 0.75f));
             Row(table, BloodNeedle, radius: 3.5f, color: new Rgba(1f, 0.3f, 0.38f));
             Row(table, KunaiShot, radius: 4f, color: new Rgba(0.8f, 0.85f, 0.95f));
+            Row(table, DragonFang, radius: 10f, color: new Rgba(1f, 0.55f, 0.15f));  // huge, burning
             Row(table, OfudaShot, radius: 6f, color: new Rgba(1f, 0.92f, 0.75f));  // the Ofuda's Healing Talisman
             Row(table, BlastOfudaShot, radius: 6f, color: new Rgba(1f, 0.9f, 0.78f));
             Row(table, GustShot, radius: 9f, color: new Rgba(0.7f, 1f, 0.85f));

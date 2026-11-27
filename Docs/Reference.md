@@ -115,7 +115,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Twin Tessen | Healer | 0.2 s | 10 | - | 105 | 54 | Primary Fire: A five-step dance of two war fans that heals the allies it brushes and ends in a petal wave.  Alternative Fire: Hold to pull the fans back, let go for a massive gust that throws enemies back and heals allies. |
 | Shuriken | Dps | 0.35 s | 9 | 700 x 0.75 s | - | 140 | Primary Fire: Tight fans of stars that stick, then rip out and fly back.  Alternative Fire: Switch to a huge star thrown along a route you draw. |
 | Katana | Dps | 0.3 s | 20 | - | 120 | 65 | Primary Fire: Two stance combos: dashing slices, or cuts that end in caltrops.  Alternative Fire: Switch stance. |
-| Kunai | Dps | 0.7 s | 42 | 1400 x 0.5 s | - | 88 | Primary Fire: Slow, heavy throwing knives that leave a mark where they land.  Alternative Fire: Blink to the mark, and your next hit lands double. |
+| Dragon Fang Kunai | Dps | 0.5 s | 60 | 950 x 0.8 s | - | 84 | Primary Fire: One huge kunai with a fire dragon behind it. Dragon's Hunger cards let it bite up to 12 enemies in turn, 10% harder each bite, bouncing off walls to bite again; the 12th bite bursts.  Alternative Fire: Blink to where it bit last, and your next hit lands double. |
 | Nunchaku | Dps | 0.3 s | 20 | - | 95 | 95 | Primary Fire: A four-step twin-nunchaku combo that ends in a stunning slam.  Alternative Fire: Guard with spinning discs that swat shots back. |
 
 ### Hemomancer
