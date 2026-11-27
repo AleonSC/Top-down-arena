@@ -114,7 +114,7 @@ namespace Arena
                 if ((m.Life -= dt) <= 0f)
                     nsMotes.RemoveAt(i);
             }
-            var gone = new List<int>();
+            var gone = DrawScratch.FreshIds();
             foreach (var id in nsPlayers.Keys)
                 if (!game.Players.ContainsKey(id))
                     gone.Add(id);

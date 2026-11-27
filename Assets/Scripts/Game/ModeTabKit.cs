@@ -21,23 +21,6 @@ namespace Arena
                 CrtUi.Text(new Rect(c.x - rad + 5f, c.y - 11f, rad * 2f - 10f, 22f), text, textSize, Color.white, TextAnchor.MiddleCenter, true, false);
         }
 
-        /// The mode's facts as outlined chips in `c`, left to right from x (`tags` split on "·"). Returns the x after the last one.
-        static float ModeChips(float x, float y, string tags, Color c)
-        {
-            foreach (var part in tags.Split('·'))
-            {
-                string f = part.Trim();
-                if (f.Length == 0) continue;
-                float fw = LobbyKit.SpacedWidth(f, 10, 1f) + 12f;
-                var fr = new Rect(x, y, fw, 18f);
-                Ui.Fill(fr, c.WithAlpha(0.06f));
-                HuntBox(fr, c.WithAlpha(0.4f));
-                LobbyKit.Spaced(fr, f, 10, c.WithAlpha(0.85f), TextAnchor.MiddleCenter, 1f);
-                x += fw + 6f;
-            }
-            return x;
-        }
-
         /// A list row: a soft key (glowing in `acc` on `top`), or dashed and dim when not `lit`. Number, a "?" when not `known`
         /// (the portrait goes at x + 30..66; with `portrait` it shows even then), the name and a chip on the right.
         void ModeRow(Rect c, string num, string name, bool known, bool lit, bool top, bool hover, Color acc, string chip, Color chipCol, bool portrait = false)

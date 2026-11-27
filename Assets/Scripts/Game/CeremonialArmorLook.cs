@@ -142,7 +142,8 @@ namespace Arena
             order.Clear();
             for (int i = 0; i < n; i++)
                 order.Add(i);
-            order.Sort((x, y) => Mathf.Sin(v.A[x]).CompareTo(Mathf.Sin(v.A[y])));
+            cereBackFirst.A = v.A;
+            order.Sort(cereBackFirst);
             foreach (int i in order)
             {
                 float spawn = i == n - 1 && p.PlateNewT > 0f ? 1f - p.PlateNewT / Game.CereSummonTime : 1f;
@@ -171,6 +172,14 @@ namespace Arena
         }
 
         readonly List<int> cereOrder = new List<int>();
+        readonly PlatesBackFirst cereBackFirst = new PlatesBackFirst();
+
+        /// Orders plate indices back ones first (by the sine of their angle), set to one player's angles before a sort.
+        sealed class PlatesBackFirst : IComparer<int>
+        {
+            public float[] A;
+            public int Compare(int x, int y) => Mathf.Sin(A[x]).CompareTo(Mathf.Sin(A[y]));
+        }
 
         /// One plate at `slot`, its crown facing out along `ang`. spawn < 1: still dropping in.
         void DrawCerePlate(V2 slot, float ang, float spawn, float hpFrac, float flash, float seed, float t)

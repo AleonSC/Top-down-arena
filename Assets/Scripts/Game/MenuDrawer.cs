@@ -49,26 +49,6 @@ namespace Arena
             return 1f;
         }
 
-        /// A one-line player card: class icon, name, class and weapon, level, and a thin health bar along the bottom.
-        void PartyCompact(Rect r, Player p)
-        {
-            var col = p.Def.Color.ToColor();
-            DkBox(r, col, p.Id == game.MyId ? 0.4f : 0.15f);
-            var art = new Rect(r.x + 2f, r.y + 2f, r.height - 4f, r.height - 4f);
-            Ui.Pill(art, new Color(col.r * 0.15f, col.g * 0.15f, col.b * 0.15f, 0.95f));
-            Ui.Icon(new Rect(art.center.x - 15f, art.center.y - 15f, 30f, 30f), PixelArt.Get("class_" + Defs.KitName(p.Kit).ToLowerInvariant()));
-            float x = art.xMax + 10f;
-            string name = p.Name + (p.Id == game.MyId ? "  (you)" : "");
-            Ui.Label(new Rect(x, r.y + 4f, 200f, 22f), name, 15, Color.white, TextAnchor.MiddleLeft, true);
-            float cx = x + Ui.TextWidth(name, 15, true) + 10f, room = r.xMax - 64f - cx;
-            string cls = Defs.KitName(p.Kit) + " " + p.Def.Name, full = cls + "  ·  " + p.Weapon.Name;
-            Ui.Label(new Rect(cx, r.y + 4f, room, 22f), Ui.TextWidth(full, 12, true) <= room ? full : cls, 12, col, TextAnchor.MiddleLeft, true);  // the weapon only when it fits
-            var lvl = new Rect(r.xMax - 54f, r.y + 7f, 44f, 17f);
-            Ui.Pill(lvl, CrtStyle.Gold.WithAlpha(0.9f));
-            Ui.Label(lvl, "LV " + p.Level, 10, new Color(0.08f, 0.06f, 0.02f), TextAnchor.MiddleCenter, true);
-            Ui.Bar(new Rect(x, r.yMax - 12f, r.xMax - 10f - x, 5f), p.Downed ? 0f : p.Hp / Mathf.Max(1f, p.MaxHp), p.Downed ? CrtStyle.Danger : new Color(0.31f, 0.82f, 0.4f), new Color(0f, 0f, 0f, 0.5f));
-        }
-
         /// A coloured chip with a label (path, modifiers, difficulty).
         float Chip(float x, float y, string text, Color col)
         {

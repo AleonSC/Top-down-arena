@@ -48,6 +48,7 @@ namespace Arena
         }
 
         public static readonly Color Danger = new Color(0.78f, 0.3f, 0.34f);  // Quit, delete, leave (the one danger red; was also CrtStyle.Danger)
+        public static readonly Color HudDanger = new Color(1f, 0.3f, 0.3f);  // the HUD's brighter red over the arena: downed players, low health, warning tags
         public static readonly Color Body = new Color(0.76f, 0.80f, 0.91f);  // body text on a screen (the lobby)
         public static readonly Color Desc = new Color(0.55f, 0.7f, 0.97f);   // small descriptions on a screen (the drawer menus)
         public static readonly Color Head = new Color(0.35f, 0.85f, 0.91f);  // section headings (the mockup's teal)

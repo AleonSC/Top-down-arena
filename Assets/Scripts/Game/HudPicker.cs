@@ -584,7 +584,7 @@ namespace Arena
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < w; x++)
                     px[y * w + x] = (x + y) % 6 < 2 ? Color.white : new Color(1f, 1f, 1f, 0f);
-            hatchTex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point };
+            hatchTex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, hideFlags = HideFlags.HideAndDontSave };
             hatchTex.SetPixels(px);
             hatchTex.Apply();
             return hatchTex;

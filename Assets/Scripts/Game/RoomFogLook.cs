@@ -61,13 +61,19 @@ namespace Arena
 
         /// An unseen room's box under the cone (Docs/FogOfWar.md): cells nobody has looked at are dark and hatched, cells explored but
         /// out of sight are dim (the layout is remembered, what moves in it isn't shown), cells in somebody's cone are clear.
+        // DrawFogCells' scratch, reused for every fogged room each frame (cleared at the start).
+        readonly Dictionary<long, int> fogOpen = new Dictionary<long, int>();
+        readonly List<long> fogPrev = new List<long>(), fogCur = new List<long>();
+
         void DrawFogCells(int area, RoomArea a, float t)
         {
             int cols, rows;
             RoomFog.Grid(a, out cols, out rows);
-            var open = new Dictionary<long, int>();   // (first cell, end cell, state) -> the row the block started on
-            var prev = new List<long>();
-            var cur = new List<long>();
+            var open = fogOpen;   // (first cell, end cell, state) -> the row the block started on
+            var prev = fogPrev;
+            var cur = fogCur;
+            open.Clear();
+            prev.Clear();
             for (int r = 0; r <= rows; r++)
             {
                 cur.Clear();

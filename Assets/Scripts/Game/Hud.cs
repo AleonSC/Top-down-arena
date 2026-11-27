@@ -101,7 +101,7 @@ namespace Arena
                 if (p.Downed)
                 {
                     var tag = new Rect(at.X - 92f, at.Y + r + 10f, 184f, 34f);
-                    DkHud(tag, new Color(1f, 0.35f, 0.35f));
+                    DkHud(tag, CrtStyle.HudDanger);
                     Ui.Label(new Rect(tag.x, tag.y + 3f, tag.width, 14f), "DOWNED — stand close to revive", 10, new Color(1f, 0.7f, 0.7f), TextAnchor.MiddleCenter, true);
                     Ui.Bar(new Rect(tag.x + 10f, tag.y + 21f, tag.width - 20f, 6f), p.Revive, Ui.Good);
                 }
@@ -389,7 +389,7 @@ namespace Arena
         void DrawTeammateRow(Player p, Rect r)
         {
             var role = p.Def.Color.ToColor();
-            DkHud(r, p.Downed ? new Color(1f, 0.3f, 0.3f) : (Color?)null);
+            DkHud(r, p.Downed ? CrtStyle.HudDanger : (Color?)null);
             Ui.Pill(new Rect(r.x + 5f, r.y + 6f, 3f, r.height - 12f), p.Downed ? new Color(0.5f, 0.5f, 0.55f) : role);
             Ui.Label(new Rect(r.x + 14f, r.y + 2f, 82f, 14f), p.Name, 11, Color.white, TextAnchor.MiddleLeft, true);
             Ui.Label(new Rect(r.x + 14f, r.y + 15f, 82f, 12f), Defs.KitName(p.Kit) + " " + p.Def.Name, 8, role, TextAnchor.MiddleLeft, true);
@@ -422,7 +422,7 @@ namespace Arena
         /// Green when healthy, through yellow, to red when low.
         static Color HealthColor(float frac) =>
             frac > 0.5f ? Color.Lerp(new Color(1f, 0.85f, 0.3f), new Color(0.35f, 0.95f, 0.45f), (frac - 0.5f) * 2f)
-                : Color.Lerp(new Color(1f, 0.3f, 0.3f), new Color(1f, 0.85f, 0.3f), frac * 2f);
+                : Color.Lerp(CrtStyle.HudDanger, new Color(1f, 0.85f, 0.3f), frac * 2f);
 
         // --- HUD pieces -----------------------------------------------------------
 
@@ -513,14 +513,14 @@ namespace Arena
             var role = p.Def.Color.ToColor();
             if (mine)  // on the console: a full-colour island, like the lobby's party cards
             {
-                Color edge = p.Downed ? new Color(1f, 0.3f, 0.3f) : role;
+                Color edge = p.Downed ? CrtStyle.HudDanger : role;
                 Ui.Fill(r, new Color(0.03f + edge.r * 0.1f, 0.05f + edge.g * 0.1f, 0.07f + edge.b * 0.1f, 1f));
                 CrtKit.Frame(r, 1f, edge.WithAlpha(0.85f));
                 Ui.Fill(new Rect(r.x, r.y, 6f, r.height), p.Downed ? new Color(0.5f, 0.5f, 0.55f) : role);
             }
             else
             {
-                DkHud(r, p.Downed ? new Color(1f, 0.3f, 0.3f) : (Color?)null);
+                DkHud(r, p.Downed ? CrtStyle.HudDanger : (Color?)null);
                 Ui.Pill(new Rect(r.x + 6f, r.y + 9f, 4f, r.height - 18f), p.Downed ? new Color(0.5f, 0.5f, 0.55f) : role);
             }
             Ui.Label(new Rect(r.x + 18f, r.y + 6f, r.width - 70f, 18f), p.Name, 13, Color.white, TextAnchor.MiddleLeft, true);
@@ -728,7 +728,7 @@ namespace Arena
                     long shown = (long)Math.Round((decimal)slot.Timer * (tenths ? 10m : 1m), MidpointRounding.AwayFromZero);
                     timer = tt.Cached(tenths ? 1 : 2, shown) ?? tt.Set(slot.Timer.ToString(tenths ? "0.0" : "0") + "s");
                 }
-                DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), timer, 19, Color.Lerp(new Color(0.7f, 0.8f, 1f), new Color(1f, 0.3f, 0.3f), red), TextAnchor.MiddleRight);
+                DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), timer, 19, Color.Lerp(new Color(0.7f, 0.8f, 1f), CrtStyle.HudDanger, red), TextAnchor.MiddleRight);
             }
             // Along the bottom: the mastery XP line (green, full once mastered) sitting right on top of the
             // recharge line, the pair one strip.

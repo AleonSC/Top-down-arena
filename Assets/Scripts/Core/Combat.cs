@@ -149,10 +149,20 @@ namespace Arena
             p.InvulnT = 1.5f;
         }
 
-        /// secondary: a shot spawned from another one (ricochets, fragments, bounce bolts), whose speed, life and damage
-        /// already carry the owner's Velocity Rounds, Overcharge and Homing Rounds' cost, so they aren't applied again.
-        Bullet SpawnBullet(byte kind, V2 pos, V2 vel, float angVel, float life, float dmg, int owner, bool fromBoss = false, float homingTurn = 0f, bool secondary = false)
+        /// A shot spawned from another one (ricochets, fragments, bounce bolts): its speed, life and damage already carry
+        /// the owner's Velocity Rounds, Overcharge and Homing Rounds' cost, so SpawnBullet doesn't apply them again.
+        Bullet SpawnSecondary(byte kind, V2 pos, V2 vel, float life, float dmg, int owner, float homingTurn = 0f)
         {
+            spawningSecondary = true;
+            try { return SpawnBullet(kind, pos, vel, 0f, life, dmg, owner, false, homingTurn); }
+            finally { spawningSecondary = false; }
+        }
+
+        bool spawningSecondary;  // (SpawnSecondary; a flag, not a parameter: tests call SpawnBullet by reflection with its exact arguments)
+
+        Bullet SpawnBullet(byte kind, V2 pos, V2 vel, float angVel, float life, float dmg, int owner, bool fromBoss = false, float homingTurn = 0f)
+        {
+            bool secondary = spawningSecondary;
             Player p;
             float homing = homingTurn;
             bool stamp = false;
@@ -983,7 +993,7 @@ namespace Arena
                     continue;
                 float speed = Math.Max(400f, rb.Vel.Length);
                 V2 dir = (next.Pos - rb.Pos).Normalized();
-                var nb = SpawnBullet(rb.Kind, rb.Pos, dir * speed, 0f, 0.8f, rb.Dmg * RicochetMult, rb.Owner, homingTurn: rb.Homing, secondary: true);
+                var nb = SpawnSecondary(rb.Kind, rb.Pos, dir * speed, 0.8f, rb.Dmg * RicochetMult, rb.Owner, rb.Homing);
                 nb.LastHit = rb.LastHit;
                 nb.Pierce = 0;
                 nb.Bounces = rb.Bounces - 1;
@@ -1006,7 +1016,7 @@ namespace Arena
                         ? baseAng + (i % 2 == 0 ? 1f : -1f) * (MathX.Pi / 2f - 0.25f * (i / 2))  // pairs out to either side, fanning forward
                         : offset + MathX.Tau * i / f.Frags;
                     V2 d = V2.FromAngle(a);
-                    var nb = SpawnBullet(f.FragKind, f.Pos + d * 6f, d * f.FragSpeed, 0f, f.FragLife, f.FragDmg, f.Owner, secondary: true);
+                    var nb = SpawnSecondary(f.FragKind, f.Pos + d * 6f, d * f.FragSpeed, f.FragLife, f.FragDmg, f.Owner);
                     nb.LastHit = f.LastHit;
                     nb.Splash = f.FragSplash;
                     if (f.FragKind == Defs.GrenadeShot)  // lobbed bomblets: they fly over enemies and pop where they land
@@ -1036,7 +1046,7 @@ namespace Arena
                         life /= OverchargeShot;
                     }
                 }
-                var nb = SpawnBullet(Defs.BoltShot, bb.Pos, dir * speed, 0f, life, bb.Dmg, bb.Owner, secondary: true);
+                var nb = SpawnSecondary(Defs.BoltShot, bb.Pos, dir * speed, life, bb.Dmg, bb.Owner);
                 nb.LastHit = bb.LastHit;
                 nb.Pierce = 0;
                 nb.Bounces = bb.Bounces;  // more stacks: it bounces on as an ordinary ricochet

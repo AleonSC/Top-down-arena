@@ -36,8 +36,6 @@ namespace Arena
 
         float RvRand => (float)rvRng.NextDouble();
 
-        static float RvHash(int n) { float s = Mathf.Sin(n * 91.7f + 47.3f) * 43758.5453f; return s - Mathf.Floor(s); }
-
         /// The lash a leg of `p`'s is making now, if any.
         Effect RavagerLashOf(Player p, int leg)
         {

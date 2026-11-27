@@ -117,10 +117,13 @@ namespace Arena
             return a != KeyAction.Emote && Time.frameCount - emoteFrame <= 1 && n <= emoteNumbers;  // (the Emote key itself keeps the bar open)
         }
 
+        // Cached so Down/Held/MoveHeld (many calls a frame) don't allocate a delegate each call.
+        static readonly Func<KeyCode, bool> KeyDownTest = Input.GetKeyDown, KeyHeldTest = Input.GetKey;
+
         /// Pressed this frame (never while rebinding).
-        public static bool Down(KeyAction a) => !Busy && (Slot(a, keys[(int)a], Input.GetKeyDown) || Slot(a, keys2[(int)a], Input.GetKeyDown));
+        public static bool Down(KeyAction a) => !Busy && (Slot(a, keys[(int)a], KeyDownTest) || Slot(a, keys2[(int)a], KeyDownTest));
         /// Held now (never while rebinding).
-        public static bool Held(KeyAction a) => !Busy && (Slot(a, keys[(int)a], Input.GetKey) || Slot(a, keys2[(int)a], Input.GetKey));
+        public static bool Held(KeyAction a) => !Busy && (Slot(a, keys[(int)a], KeyHeldTest) || Slot(a, keys2[(int)a], KeyHeldTest));
 
         static bool Same(KeyCode bound, KeyCode k) => bound != KeyCode.None && Either(bound, c => c == k);
 
@@ -130,7 +133,7 @@ namespace Arena
         public static bool MoveHeld(KeyAction a)
         {
             KeyCode arrow = a == KeyAction.MoveUp ? KeyCode.UpArrow : a == KeyAction.MoveDown ? KeyCode.DownArrow : a == KeyAction.MoveLeft ? KeyCode.LeftArrow : KeyCode.RightArrow;
-            return !Busy && (Slot(a, keys[(int)a], Input.GetKey) || Slot(a, keys2[(int)a], Input.GetKey) || Input.GetKey(arrow));
+            return !Busy && (Slot(a, keys[(int)a], KeyHeldTest) || Slot(a, keys2[(int)a], KeyHeldTest) || Input.GetKey(arrow));
         }
 
         static bool Mouse01(KeyCode k) => k == KeyCode.Mouse0 || k == KeyCode.Mouse1;

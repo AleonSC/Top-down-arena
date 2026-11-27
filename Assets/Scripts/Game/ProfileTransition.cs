@@ -107,17 +107,28 @@ namespace Arena
             DrawProfTrWho(profTrT);
         }
 
+        readonly System.Collections.Generic.List<int> whoOrder = new System.Collections.Generic.List<int>();
+        readonly CarFarFirst whoFarFirst = new CarFarFirst();
+        /// DrawWhoStill's draw order: the disks farthest from the middle first.
+        sealed class CarFarFirst : System.Collections.Generic.IComparer<int>
+        {
+            public ArenaApp App;
+            public int Compare(int x, int y) => Mathf.Abs(App.CarOffset(y)).CompareTo(Mathf.Abs(App.CarOffset(x)));
+        }
+
         /// The carousel without its middle disk, and its keys and count, drawn only (for the moves).
         void DrawWhoStill(float a)
         {
             if (a <= 0f)
                 return;
             int n = CarCount, mid = CarMiddle;
-            var order = new System.Collections.Generic.List<int>();
+            var order = whoOrder;  // (its own list: the disks' drawing may use DrawScratch)
+            order.Clear();
             for (int i = 0; i < n; i++)
                 if (i != mid && Mathf.Abs(CarOffset(i)) < 3.2f)
                     order.Add(i);
-            order.Sort((x, y) => Mathf.Abs(CarOffset(y)).CompareTo(Mathf.Abs(CarOffset(x))));
+            whoFarFirst.App = this;
+            order.Sort(whoFarFirst);
             foreach (int i in order)
             {
                 var r = CarRect(CarOffset(i), out float da);

@@ -74,7 +74,7 @@ namespace Arena
             }
             Ui.CrtFont = was;
             if (sub.Length > 0)
-                Ui.Label(new Rect(0f, r.y + 118f, W, 20f), sub, 15, inverse ? dark : tint ?? CrtUi.T(new Color(0.35f, 0.85f, 0.91f)), TextAnchor.MiddleCenter, true);
+                Ui.Label(new Rect(0f, r.y + 118f, W, 20f), sub, 15, inverse ? dark : tint ?? CrtUi.T(CrtStyle.Head), TextAnchor.MiddleCenter, true);
             if (bar >= 0f)
             {
                 var tk = new Rect(side, r.yMax - 16f, W - 2f * side, 8f);

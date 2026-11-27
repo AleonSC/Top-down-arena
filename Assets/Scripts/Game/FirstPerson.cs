@@ -73,7 +73,7 @@ namespace Arena
             FpLoad();
             fpSensV = Mathf.Clamp(v, 0.05f, 1f);
             PlayerPrefs.SetFloat("fp_sens", fpSensV);
-            PlayerPrefs.Save();
+            SavePrefsSoon();  // (a slider: Menus.cs)
         }
 
         /// The drawer's compact First-person mouse bar (MenuDrawer.cs): − and + keys, twenty cells, the speed as a multiplier.

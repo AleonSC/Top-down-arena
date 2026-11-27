@@ -112,7 +112,7 @@ namespace Arena
             PlayerPrefs.SetString("player_name", nameText);
             PlayerPrefs.SetString("net_port", portText);
             PlayerPrefs.SetString("join_address", addressText);
-            PlayerPrefs.Save();
+            SavePrefsSoon();  // (typed a key at a time: written once the typing stops)
             SyncProfileName();  // your name is the profile's name (ProfilesUi.cs)
         }
 
@@ -353,6 +353,26 @@ namespace Arena
             PlayerPrefs.SetFloat("vol_effects", sounds.Effects);
             PlayerPrefs.SetFloat("vol_music", sounds.Music);
             PlayerPrefs.SetInt("muted", sounds.Muted ? 1 : 0);
+            SavePrefsSoon();  // (changed every frame of a slider drag: written once it's let go)
+        }
+
+        bool prefsDirty;     // PlayerPrefs set by a slider or a text field, not yet written to disk
+        float prefsDirtyAt;  // when (unscaled time) the last of them was set
+
+        /// For settings changed every frame of a drag or at every keystroke: the values are set now, the disk write
+        /// (PlayerPrefs.Save) waits until the mouse is let go and nothing has changed for half a second (FlushPrefs).
+        void SavePrefsSoon()
+        {
+            prefsDirty = true;
+            prefsDirtyAt = Time.unscaledTime;
+        }
+
+        /// Called each frame by Update (and with now on quit): writes the settings SavePrefsSoon held back.
+        void FlushPrefs(bool now)
+        {
+            if (!prefsDirty || !now && (Input.GetMouseButton(0) || Time.unscaledTime - prefsDirtyAt < 0.5f))
+                return;
+            prefsDirty = false;
             PlayerPrefs.Save();
         }
 

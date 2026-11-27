@@ -100,14 +100,28 @@ namespace Arena
             }
         }
 
-        /// The wares on this room's pedestals for this player.
+        // ShopWares' lists and the lantern pass's spots, reused every frame (each ShopWares call refills its list: use it before the next call).
+        readonly List<ShopWare> waresRes = new List<ShopWare>(), waresItems = new List<ShopWare>();
+        readonly List<V2> wallSpots = new List<V2>();
+        static readonly V2[] NoSpots = new V2[0];
+
+        /// Orders pedestal spots along their wall (down a west or east wall, across a north or south one).
+        sealed class AlongWall : IComparer<V2>
+        {
+            public bool Ew;
+            public int Compare(V2 p, V2 q) => (Ew ? p.Y : p.X).CompareTo(Ew ? q.Y : q.X);
+        }
+        readonly AlongWall alongWall = new AlongWall();
+
+        /// The wares on this room's pedestals for this player (a reused list, refilled by the next call).
         List<ShopWare> ShopWares(Player me, RoomArea a)
         {
-            var res = new List<ShopWare>();
+            var res = waresRes;
+            res.Clear();
             if (a.Kind == RoomKind.Shop)
             {
                 var walls = ShopPedestals.Walls(a);
-                var cards = walls.Count > 0 ? ShopPedestals.Spots(a, walls[0]) : new V2[0];
+                var cards = walls.Count > 0 ? ShopPedestals.Spots(a, walls[0]) : NoSpots;
                 int slot = 0, shelf = me != null ? Game.ShelfCount(me) : 0;
                 for (int i = 0; i < cards.Length; i++)
                 {
@@ -128,12 +142,13 @@ namespace Arena
                     res.Add(w);
                     slot++;
                 }
-                var svc = walls.Count > 1 ? ShopPedestals.Spots(a, walls[1]) : new V2[0];
+                var svc = walls.Count > 1 ? ShopPedestals.Spots(a, walls[1]) : NoSpots;
                 for (int i = 0; i < svc.Length && i < PedestalServices.Length; i++)
                     res.Add(ServiceWare(me, PedestalServices[i], svc[i], walls[1]));
                 return res;
             }
-            var items = new List<ShopWare>();
+            var items = waresItems;
+            items.Clear();
             if (a.Kind == RoomKind.BlackMarket)
                 for (int k = 0; k < Market.Count; k++)
                 {
@@ -240,7 +255,8 @@ namespace Arena
             // The lit strip along each pedestal wall and a lantern on the wall between each pair of its pedestals.
             foreach (var wall in ShopPedestals.Walls(a))
             {
-                var spots = new List<V2>();
+                var spots = wallSpots;
+                spots.Clear();
                 foreach (var w in wares)
                     if (w.Wall == wall)
                         spots.Add(w.At);
@@ -254,7 +270,8 @@ namespace Arena
                 FillRect(x0, y0, ww, hh, deep.WithAlpha(0.12f));
                 NodeFrame(x0, y0, ww, hh, 1.5f, ink.WithAlpha(0.3f));
                 float wallAt = wall == ShopPedestals.West ? a.Min.X + 16f : wall == ShopPedestals.East ? a.Max.X - 16f : wall == ShopPedestals.North ? a.Min.Y + 16f : a.Max.Y - 16f;
-                spots.Sort((p, q) => (ew ? p.Y : p.X).CompareTo(ew ? q.Y : q.X));
+                alongWall.Ew = ew;
+                spots.Sort(alongWall);
                 for (int j = 0; j + 1 < spots.Count; j++)
                 {
                     var mid = (spots[j] + spots[j + 1]) * 0.5f;

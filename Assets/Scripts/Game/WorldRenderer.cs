@@ -12,17 +12,23 @@ namespace Arena
     {
         // --- World drawing (GL immediate mode, arena coordinates) -------------
 
+        /// An unlit vertex-colour material for GL drawing (Unity's Hidden/Internal-Colored): alpha-blended over `dst`, no culling,
+        /// no depth. The world uses OneMinusSrcAlpha; the glow pass One, which adds light (Juice.cs `GlowMaterial`).
+        static Material ColoredMaterial(BlendMode dst)
+        {
+            var m = new Material(Shader.Find("Hidden/Internal-Colored")) { hideFlags = HideFlags.HideAndDontSave };
+            m.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);  // (the shader's blend and depth properties are floats)
+            m.SetFloat("_DstBlend", (float)dst);
+            m.SetFloat("_Cull", (float)CullMode.Off);
+            m.SetFloat("_ZWrite", 0f);
+            m.SetFloat("_ZTest", (float)CompareFunction.Always);
+            return m;
+        }
+
         void OnPostRender()
         {
             if (glMaterial == null)
-            {
-                glMaterial = new Material(Shader.Find("Hidden/Internal-Colored")) { hideFlags = HideFlags.HideAndDontSave };
-                glMaterial.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
-                glMaterial.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
-                glMaterial.SetInt("_Cull", (int)CullMode.Off);
-                glMaterial.SetInt("_ZWrite", 0);
-                glMaterial.SetInt("_ZTest", (int)CompareFunction.Always);
-            }
+                glMaterial = ColoredMaterial(BlendMode.OneMinusSrcAlpha);
             UpdateLayout();
             glMaterial.SetPass(0);
             GL.PushMatrix();
