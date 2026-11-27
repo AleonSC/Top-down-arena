@@ -554,7 +554,7 @@ namespace Arena
             }
             if (e.type == EventType.MouseUp && sliderDrag == id)
                 sliderDrag = 0;
-            const int blocks = 16;
+            int blocks = bar.width >= 160f ? 16 : 10;  // (fewer on a short slider, so each block stays readable)
             float gap = 3f, bw = (bar.width - gap * (blocks - 1)) / blocks;
             int lit = Mathf.RoundToInt(v * blocks);
             Color ink = CrtStyle.Ink;
