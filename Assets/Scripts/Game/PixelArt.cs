@@ -2456,6 +2456,21 @@ namespace Arena
                 "G..G........",
                 "............",
             },
+            ["spiderweb"] = new[]  // Mending Web: a violet spider with a green cross hanging in a white web (MendingWeb.cs)
+            {
+                "w....w....w.",
+                ".w...w...w..",
+                "..wwwwwwww..",
+                "..w.vvvv.w..",
+                "wwwvVnnVvwww",
+                "..vvnnnnvv..",
+                ".v.wVnnVw.v.",
+                "v..vvvvvv..v",
+                "..v.w..w.v..",
+                ".w..wwww..w.",
+                "w....w....w.",
+                ".....w......",
+            },
             ["octopus"] = new[]  // Octopus Familiar: a violet octopus with big eyes and curling arms (Summoner.cs)
             {
                 "....vvvv....",

@@ -573,6 +573,8 @@ namespace Arena
                 DrawOathPick(p, t);  // Guardian's Oath waiting for you to click the ally to grab (GuardiansOathLook.cs)
             if (p.Id == game.MyId && game.OctoPickSlot >= 0)
                 DrawOctoPick(p, t);  // Octopus Familiar waiting for you to click a player (OctopusFamiliarLook.cs)
+            if (p.Id == game.MyId && game.WebPickSlot >= 0)
+                DrawWebPick(p, t);  // Mending Web waiting for you to click two walls (MendingWebLook.cs)
             if (p.Weapon.Id == WeaponId.Kunai && p.KunaiMarkT > 0f)  // the shadow kunai's mark: blink there with a double-tap
             {
                 var shade = new Rgba(0.55f, 0.45f, 0.85f);

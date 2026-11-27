@@ -118,6 +118,7 @@ namespace Arena
         LumenWard,
         Mammoth,
         MedPylon,
+        MendingWeb,
         Meteor,
         Mist,
         OathWard,
@@ -284,6 +285,7 @@ namespace Arena
             [ZoneKind.DecoyDummy] = new ZoneDef { Name = "Decoy Dummy", Color = new Rgba(0.95f, 0.85f, 0.71f) },  // the Healer Soldier's 4th choice (DecoyDummy.cs): Pos where it stands, Aim and Marched its throw, GuardFrac its health left
             [ZoneKind.DeployTurret] = new ZoneDef { Name = "Deployable Turret", Color = new Rgba(1f, 0.78f, 0.29f) },  // the DPS Soldier's 4th choice (DeployableTurret.cs): Pos where it stands (you sit in it), Aim the way the guns point, Radius the seat
             [ZoneKind.ToxicGas] = new ZoneDef { Name = "Gas Grenade", Color = new Rgba(0.72f, 0.42f, 1f) },  // a Gas Grenade gadget's cloud (Gadgets.cs): lobbed in like Tear Gas, Aim the way it flew; hurts and slows by its own tick
+            [ZoneKind.MendingWeb] = new ZoneDef { Name = "Mending Web", Color = new Rgba(0.87f, 0.91f, 1f) },  // the Healer Summoner's 1st choice (MendingWeb.cs): a band between two walls that heals allies, slows and poisons enemies (its own tick)
             [ZoneKind.GustGate] = new ZoneDef { Name = "Gust Gate", Color = new Rgba(0.78f, 0.96f, 1f) },  // the Healer Elementalist's 2nd choice (GustGate.cs): boosts players crossing its edge and pushes enemies out by its own tick
             [ZoneKind.GrandSigil] = new ZoneDef { Name = "Grand Sigil", Color = new Rgba(0.72f, 0.55f, 1f) },     // the Tank Arcanist's ultimate (Arcanist.cs): binds and taunts enemies inside, freezes enemy shots at its rim, sends them back as it ends
             [ZoneKind.SanctumSigil] = new ZoneDef { Name = "Sanctum Sigil", Color = new Rgba(1f, 0.85f, 0.45f), HealRate = 25f },  // the Healer Arcanist's ultimate (Arcanist.cs): follows its caster; Aim = the six runes left (a bit mask)

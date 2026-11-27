@@ -273,6 +273,9 @@ namespace Arena
                 case ZoneKind.TrojanHorse:
                     DrawTrojanHorse(z, t);  // TrojanHorseLook.cs (its own time arc)
                     return;
+                case ZoneKind.MendingWeb:
+                    DrawMendingWeb(z, t);  // MendingWebLook.cs (its own time line)
+                    return;
                 case ZoneKind.GustGate:
                     DrawGustGateZone(z, t);  // GustGateLook.cs (its own timer arc)
                     return;
