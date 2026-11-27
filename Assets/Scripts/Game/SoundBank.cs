@@ -198,6 +198,17 @@ namespace Arena
         public float PlayingTime => voiceTrack[activeVoice] == null ? 0f : musicVoices[activeVoice].time;
         public float PlayingLength => voiceTrack[activeVoice] == null || !Loaded(voiceTrack[activeVoice]) ? 0f : voiceTrack[activeVoice].Length;
 
+        /// The music's spectrum right now (MenuBeat.cs): the active voice's FFT into `into` (a power of two, 64..8192 long).
+        /// False when nothing is audible (no track, paused, muted or the volume at 0), so the visuals rest.
+        public bool MusicSpectrum(float[] into)
+        {
+            var v = musicVoices[activeVoice];
+            if (v == null || voiceTrack[activeVoice] == null || !v.isPlaying || MusicPaused || Muted || v.volume < 0.01f)
+                return false;
+            v.GetSpectrumData(into, 0, FFTWindow.BlackmanHarris);
+            return true;
+        }
+
         /// True once the track has been synthesised (a few seconds for the first play of a track).
         public bool IsTrackReady(string id) => id != null && tracks.TryGetValue(id, out var t) && Loaded(t);
 
