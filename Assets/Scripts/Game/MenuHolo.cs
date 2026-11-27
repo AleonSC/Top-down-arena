@@ -244,8 +244,8 @@ namespace Arena
             HoloSkyline(hz, false);
             GradQuad(new V2(0, hz), new V2(W, hz), new V2(W, H), new V2(0, H), HoloHue(new Rgba(0.25f, 0.075f, 0.09f)), HoloHue(new Rgba(0.043f, 0.016f, 0.02f)));
             HoloSkyline(hz, true);
-            SoftGlow(new V2(W / 2f, hz), 560f + 140f * pulse, HoloHue(new Rgba(1f, 0.37f, 0.45f, 0.3f + 0.08f * Mathf.Sin(t * 0.9f) + 0.22f * pulse)));
-            var grid = HoloHue(new Rgba(0.91f, 0.36f, 0.42f, 0.5f + 0.3f * pulse));
+            SoftGlow(new V2(W / 2f, hz), 560f + 60f * pulse, HoloHue(new Rgba(1f, 0.37f, 0.45f, 0.3f + 0.08f * Mathf.Sin(t * 0.9f) + 0.09f * pulse)));
+            var grid = HoloHue(new Rgba(0.91f, 0.36f, 0.42f, 0.5f + 0.12f * pulse));
             for (int i = -24; i <= 24; i++)  // lanes to the vanishing point
                 Line(new V2(W / 2f + i * 8f, hz), new V2(W / 2f + i * 150f, H), 1.2f, grid);
             float off = MathX.Fmod(t * 0.75f, 1f);
@@ -274,8 +274,8 @@ namespace Arena
             }
             HoloBeatLines(hz);
             if (pulse > 0.01f)  // the horizon flaring on the beat
-                FillRect(0, hz - 3f, W, 6f, HoloHue(new Rgba(1f, 0.55f, 0.6f, 0.35f * pulse)));
-            FillRect(0, hz - 1f, W, 2f, HoloHue(new Rgba(1f, 0.55f + 0.3f * pulse, 0.6f + 0.3f * pulse, 0.75f + 0.25f * pulse)));
+                FillRect(0, hz - 3f, W, 6f, HoloHue(new Rgba(1f, 0.55f, 0.6f, 0.14f * pulse)));
+            FillRect(0, hz - 1f, W, 2f, HoloHue(new Rgba(1f, 0.55f + 0.12f * pulse, 0.6f + 0.12f * pulse, 0.75f + 0.12f * pulse)));
             GradQuad(new V2(0, hz), new V2(W, hz), new V2(W, hz + 60f), new V2(0, hz + 60f), HoloHue(new Rgba(0.25f, 0.075f, 0.09f, 0.8f)), HoloHue(new Rgba(0.25f, 0.075f, 0.09f, 0f)));
             var mote = HoloHue(new Rgba(1f, 0.59f, 0.63f));  // (every colour turned to the picked hue, MenuBgHue.cs)
             for (int i = 0; i < 40; i++)  // motes drifting up off the floor
@@ -325,8 +325,8 @@ namespace Arena
                 if (!BeatWave(k, now, out float age))
                     continue;
                 float u = age / BeatWaveLife, e = u * u, y = hz + (H - hz) * e, a = (1f - u) * BeatAmt;
-                Line(new V2(0, y), new V2(W, y), 10f + 26f * e, c.WithAlpha(0.13f * a));
-                Line(new V2(0, y), new V2(W, y), 1.5f + 3f * e, c.WithAlpha(0.8f * a));
+                Line(new V2(0, y), new V2(W, y), 10f + 26f * e, c.WithAlpha(0.07f * a));
+                Line(new V2(0, y), new V2(W, y), 1.5f + 3f * e, c.WithAlpha(0.45f * a));
             }
         }
 
