@@ -18,6 +18,7 @@ namespace Arena
         Burrower,  // Earthquake's Burrower (the Tank Summoner's ability): breaks out at the cursor, tunnels through the pack hurting what it passes under (Burrower.cs)
         Butterfly,  // World Tree's healing butterfly: flutters to an ally (LinkTo) and heals them on arrival (WorldTree.cs)
         Clone,  // the Ninja's Shadow Clone: enemies target it; it bursts when it ends
+        CloneMedic,  // Shadow Clone Medics (the Healer Ninja's third ultimate): trails a player, heals them and stops the shots aimed at them (ShadowCloneMedics.cs)
         CloneWall,  // Shadow Clone: one of nine afterimages in a wall that soaks bullets and gets shoved by players; it does nothing else (CloneWall.cs)
         Demon,  // the Demon Calling's demon: hovers at its owner's shoulder hurling fireballs (Callings.cs)
         Fairy,  // the Fairy Calling's fairy: tends the most hurt ally, healing them; untargetable (Callings.cs)
@@ -191,6 +192,7 @@ namespace Arena
                 Attack = MinionAttack.Slam, Interval = 1.4f, Damage = 90f, Range = 190f, BlockRadius = 140f, BlockCapacity = 1000f },  // the Colossus: Titan.cs does its walking and slamming
             [MinionKind.LightOrb] = new MinionDef { Name = "Light Orb", Radius = 8f, Sides = 6, Color = new Rgba(1f, 0.95f, 0.6f), Move = MinionMove.Orbit, Speed = 2.2f, OrbitRadius = 85f,
                 Attack = MinionAttack.Bite, Interval = 0.35f, Damage = 12f, HealRate = 6f, Range = 22f },
+            [MinionKind.CloneMedic] = new MinionDef { Name = "Clone Medic", Radius = 13f, Sides = 8, Color = Game.ScmInk, Move = MinionMove.Static },  // moved, healed and its shots by ShadowCloneMedics.cs; health in Minion.Hp
             [MinionKind.Clone] = new MinionDef { Name = "Shadow Clone", Radius = 14f, Sides = 8, Color = new Rgba(0.45f, 0.42f, 0.6f), Move = MinionMove.Static, BlockRadius = 16f, BlockCapacity = 100f },  // Thousand Clones: soaks enemy shots, bursts when it breaks
             [MinionKind.Spider] = new MinionDef { Name = "Spider", Radius = 11f, Sides = 8, Color = new Rgba(0.55f, 0.35f, 0.75f), Move = MinionMove.Escort, Speed = 250f,
                 Attack = MinionAttack.Bite, Interval = 0.8f, Damage = 14f },  // moved by Callings.cs

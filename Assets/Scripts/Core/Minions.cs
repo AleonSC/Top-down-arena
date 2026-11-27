@@ -319,6 +319,8 @@ namespace Arena
                             SentryFolds(m);  // SentryNova.cs
                         else if (m.Kind == MinionKind.Octopus)
                             OctoBurst(m);  // its time is up: it bursts into ink (OctopusFamiliar.cs)
+                        else if (m.Kind == MinionKind.CloneMedic)
+                            CloneMedicGone(m, false);  // its time is up: it vanishes in smoke (ShadowCloneMedics.cs)
                         else if (m.Kind == MinionKind.BloodImp && m.BlockHp <= 0f)
                             RitImpPop(m);  // shot down: it pops (BloodRitual.cs)
                         expired.Add(m);
@@ -383,6 +385,12 @@ namespace Arena
                 if (m.Kind == MinionKind.SoulLantern)
                 {
                     if (!TickSoulLantern(m, owner, dt))  // its player is gone (SoulLantern.cs)
+                        expired.Add(m);
+                    continue;
+                }
+                if (m.Kind == MinionKind.CloneMedic)
+                {
+                    if (!TickCloneMedic(m, owner, dt))  // its player is gone, or the wave is over (ShadowCloneMedics.cs)
                         expired.Add(m);
                     continue;
                 }
