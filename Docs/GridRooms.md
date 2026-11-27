@@ -1,6 +1,6 @@
 # Grid rooms: build the Expanding arena on a grid of door spots
 
-**Nov 18: the size palette (Room, Gauntlet, Hall, Arena) and its code are gone; rooms are Grid pieces from your hand ([`PieceShapes.md`](PieceShapes.md)).**
+**Nov 18: the size palette (Room, Gauntlet, Hall, Arena) and its code are gone; rooms are Grid pieces from your hand ([`GridPieces.md`](GridPieces.md)).**
 
 Status: **built** (protocol 402; one lattice and a 4 x 3 cell core since the mockup pass): the lobby's **Building: Grid** switch, door spots, four sizes, host rule, bots, nodes and room chests on cells, preview `GRID=`, suite `gridrooms`. Decided with the owner on Nov 18, 2026 after a mockup
 (free place / uniform grid / grid + big rooms): "the grid, with unique rooms bigger", as a new lobby switch beside Room cards, Free draw and Team vote.

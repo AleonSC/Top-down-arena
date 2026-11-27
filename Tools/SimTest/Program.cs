@@ -287,7 +287,7 @@ static partial class Program
 
     static readonly Suite[] Suites =
     {
-        new Suite { Name = "core", What = "the core match over TCP (sync, joining, restarts) and the core sweeps; the default", Run = RunCore },
+        new Suite { Name = "core", What = "the core match over the in-memory network (SIMTEST_TCP=1: real TCP; sync, joining, restarts) and the core sweeps; the default", Run = RunCore },
         new Suite { Name = "features", What = "every feature test (parry, aim, classes, bosses, paths...); run with core before committing", Run = args => RunFeatures() },
         new Suite { Name = "all", What = "core, then features", Run = args => { RunCore(args); RunFeatures(); } },
         // Single systems.

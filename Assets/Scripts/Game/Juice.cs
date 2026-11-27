@@ -50,7 +50,7 @@ namespace Arena
         {
             mateShotAlpha = Mathf.Clamp(a, 0.25f, 1f);
             PlayerPrefs.SetFloat("mate_shot_alpha", mateShotAlpha);
-            PlayerPrefs.Save();
+            SavePrefsSoon();  // (a slider: Menus.cs)
         }
 
         void SaveFxSettings()
@@ -1398,14 +1398,7 @@ namespace Arena
         Material GlowMaterial()
         {
             if (glowMaterial == null)
-            {
-                glowMaterial = new Material(Shader.Find("Hidden/Internal-Colored")) { hideFlags = HideFlags.HideAndDontSave };
-                glowMaterial.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
-                glowMaterial.SetInt("_DstBlend", (int)BlendMode.One);  // adds light
-                glowMaterial.SetInt("_Cull", (int)CullMode.Off);
-                glowMaterial.SetInt("_ZWrite", 0);
-                glowMaterial.SetInt("_ZTest", (int)CompareFunction.Always);
-            }
+                glowMaterial = ColoredMaterial(BlendMode.One);  // adds light (WorldRenderer.cs)
             return glowMaterial;
         }
 

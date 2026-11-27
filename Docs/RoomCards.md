@@ -1,6 +1,6 @@
 # Room cards: build the Expanding arena from a hand of preset rooms
 
-**REMOVED (Nov 18, protocol 407):** room cards are gone from the game; the Expanding arena builds only from grid pieces ([`PieceShapes.md`](PieceShapes.md)). The hand, the service cards and the Builder Shop live on as grid cards. Kept as history.
+**REMOVED (Nov 18, protocol 407):** room cards are gone from the game; the Expanding arena builds only from grid pieces ([`GridPieces.md`](GridPieces.md)). The hand, the service cards and the Builder Shop live on as grid cards. Kept as history.
 
 Status: **steps 1-3 built** (protocol 389), plus designed obstacles inside each card's room (protocol 391) and the Builder Shop utility card (protocol 393): cards, hand, play, sources, the Black Market's card shelf, bots, the lobby switch, the build screen's hand and ghost.
 Service cards (Shop, Black Market, Arms Dealer: tiny rooms) added by [`ArmsDealer.md`](ArmsDealer.md) step 1 (protocol 394). Step 4 (balance pass, themed cards) open. Decided with the owner on Nov 17, 2026. Builds on [`SurpriseRooms.md`](SurpriseRooms.md) (the shapes and
@@ -75,7 +75,7 @@ Each card's room has a designed set of obstacles (`Core/RoomCardLayouts.cs`) ins
 - Lane pieces hug a wall and leave at least 220 px to pass. The layout turns and mirrors with the room; a symmetric shape tries every matching turn and keeps
   the one with the most pieces clear of its doors; anything within a door's mouth (its width + 60 px along, 110 px in) is left out.
 - `ExpansionRoom.Card` (the Piece, on each box) carries it over the wire and in saves (the `room` line's 15th number).
-- Preview: `EXPANDMAP=0 CARDROOM=<card> [CARDSPOT=n] ZOOM=0.5 Tools/Preview/shot.sh x hud`. Test: suite `roomcards`.
+- Preview: `EXPANDMAP=0 CARDROOM=<card> [CARDSPOT=n] ZOOM=0.5 Tools/Preview/shot.sh x hud`. Test: suite `roomcards`, since removed.
 
 ## Utility cards (built, protocol 393)
 
@@ -98,7 +98,7 @@ Cards whose room has a job rather than a fight shape: the **Mini-boss** (above) 
 
 ## Steps
 
-1. (built) Cards, hand, sources, `Msg.PlayCard`, the lobby switch, bots (play a Hall toward the nearest shop, Black Market or node, else the best spot), saves; tests (suite `roomcards`).
+1. (built) Cards, hand, sources, `Msg.PlayCard`, the lobby switch, bots (play a Hall toward the nearest shop, Black Market or node, else the best spot), saves; tests (suite `roomcards`, since removed).
 2. (built) Build screen: the Cards tool, the hand panel, the ghost and R; previews `CARDS=box,hall,ring,miniboss [CARDSEL=n] [MOUSE=x,y]` with `EXPANDVOTE=<n> EXPANDFREE=1 EXPANDDRAW=0,0,0,0`.
 3. (built, retired Nov 18) The Black Market's card shelf (three offers a boss cycle, vector prices): the Black Market sells no cards now.
 4. Balance pass with `vecbal` (card rates, prices, hand size); themed cards (a card with a path floor) if wanted.

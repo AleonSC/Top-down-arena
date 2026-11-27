@@ -64,7 +64,6 @@ namespace Arena
         float glZoom = 1f;             // menu previews (LobbyUi.cs): a model drawn around (0, 0), scaled by glZoom
         V2 glShift;                    //   and moved to glShift on the UI canvas
         bool menuPreview;              // drawing an enemy for a menu tile (keeps it easy to see)
-        GUIStyle labelStyle;  // base for the HUD's labels; menus use Ui
         string addressList;
 
         // Reset statics in case "Enter Play Mode Options" skips domain reloads.
@@ -215,6 +214,7 @@ namespace Arena
         {
             game.Stop("quit");
             session.Leave("");
+            FlushPrefs(true);  // settings a slider or text field changed last (Menus.cs)
         }
 
         void OnDestroy()
@@ -246,6 +246,7 @@ namespace Arena
         void TickFrameSystems()
         {
             Keybinds.Tick();  // Settings → Keybinds waiting for a key (Keybinds.cs)
+            FlushPrefs(false);  // settings held back during a slider drag or typing (Menus.cs)
             session.Poll();
             PacmanUpdate();  // the Pac-Man game, when a Pac profile's Play opened it (PacmanUi.cs)
             game.Update(Time.deltaTime * EndSpeed);  // slowed as a run ends (RunEnding.cs)
@@ -785,14 +786,6 @@ namespace Arena
 
         // --- Menus and HUD (IMGUI, arena coordinates) --------------------------
 
-        void InitStyles()
-        {
-            if (labelStyle != null)
-                return;
-            labelStyle = new GUIStyle(GUI.skin.label) { fontSize = 16, wordWrap = true };
-            labelStyle.normal.textColor = new Color(0.9f, 0.92f, 1f);
-        }
-
         /// The main menu under a side drawer (Settings, Profile, How to play): the box fades and drifts out as the drawer
         /// slides in, and back in as it slides out. Draw-only (Repaint), so it takes no clicks. `hidden` skips it.
         void DrawMenuUnderDrawer(bool hidden)
@@ -808,7 +801,6 @@ namespace Arena
         void OnGUI()
         {
             UpdateLayout();
-            InitStyles();
             Ui.Init();
             Ui.Alpha = 1f;  // a fade that was left unrestored (an early return or an error mid-draw) must not carry into this frame: it left the round windows' dark layer and the path cards invisible
             GUI.color = Color.white;
@@ -917,13 +909,5 @@ namespace Arena
             if (clicked && sounds != null)
                 sounds.PlayUiClick(Time.unscaledTime);  // and the chirp when one is pressed
         }
-
-        void Label(Rect r, string text, int size, Color color, TextAnchor align, bool bold = false)
-        {
-            var style = new GUIStyle(labelStyle) { fontSize = size, alignment = align, wordWrap = false, fontStyle = bold ? FontStyle.Bold : FontStyle.Normal };
-            style.normal.textColor = color;
-            GUI.Label(r, Ui.Shown(r, text), style);
-        }
-
     }
 }

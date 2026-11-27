@@ -136,8 +136,6 @@ namespace Arena
             }
         }
 
-        static readonly Rgba Steel = new Rgba(0.82f, 0.88f, 1f);
-
         /// A knight's buffs and abilities over the model (the body and weapon are in CharacterModels.cs).
         void DrawKnight(Player p, float r, float t)
         {

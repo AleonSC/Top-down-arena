@@ -515,7 +515,18 @@ namespace Arena
                 partyBots.Add(session);  // a bot takes the slot and plays with you
         }
 
-        string[] InviteAddresses() => (addressList ?? "").Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
+        string[] InviteAddresses()
+        {
+            if (inviteSplit == null || !ReferenceEquals(inviteSplitOf, addressList))  // (split again only when the list changes)
+            {
+                inviteSplitOf = addressList;
+                inviteSplit = (addressList ?? "").Split(InviteSep, StringSplitOptions.RemoveEmptyEntries);
+            }
+            return inviteSplit;
+        }
+        static readonly string[] InviteSep = { ", " };
+        string[] inviteSplit;
+        string inviteSplitOf;
 
         static float AddressWidth(string addr) => 18f + addr.Length * 9f;
 
@@ -1552,7 +1563,29 @@ namespace Arena
         }
 
         /// The text cut at a word and ended with "…" so it fits in height h (empty if not even a line does).
+        /// Shorten's answers, kept since the same texts are measured every repaint (cleared when it grows past 256).
+        static readonly System.Collections.Generic.Dictionary<ShortenKey, string> shortened = new System.Collections.Generic.Dictionary<ShortenKey, string>();
+
+        struct ShortenKey : IEquatable<ShortenKey>
+        {
+            public string Text; public int Size; public float W, H;
+            public bool Equals(ShortenKey o) => Size == o.Size && W == o.W && H == o.H && Text == o.Text;
+            public override bool Equals(object o) => o is ShortenKey && Equals((ShortenKey)o);
+            public override int GetHashCode() => ((Text.GetHashCode() * 31 + Size) * 31 + W.GetHashCode()) * 31 + H.GetHashCode();
+        }
+
         static string Shorten(string text, int size, float width, float h)
+        {
+            var key = new ShortenKey { Text = text, Size = size, W = width, H = h };
+            string got;
+            if (shortened.TryGetValue(key, out got))
+                return got;
+            if (shortened.Count >= 256)
+                shortened.Clear();
+            return shortened[key] = ShortenNow(text, size, width, h);
+        }
+
+        static string ShortenNow(string text, int size, float width, float h)
         {
             var words = text.Split(' ');
             for (int n = words.Length - 1; n > 0; n--)

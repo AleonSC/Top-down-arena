@@ -160,7 +160,7 @@ namespace Arena
         {
             int key = tier * 2 + (detail ? 1 : 0);
             Texture2D tex;
-            if (cache.TryGetValue(key, out tex))
+            if (cache.TryGetValue(key, out tex) && tex != null)  // (a texture Unity destroyed, e.g. on a scene reload, is made again)
                 return tex;
             var layers = Layers(tier, detail);
             int w = (int)Math.Round(VW * PxPerUnit), h = (int)Math.Round(VH * PxPerUnit);
@@ -192,7 +192,7 @@ namespace Arena
                     float ia = sa > 0f ? 1f / sa : 0f, alpha = sa / 4f;
                     px[(h - 1 - py) * w + pxl] = new Color32((byte)Math.Round(Math.Min(1f, sr * ia) * 255f), (byte)Math.Round(Math.Min(1f, sg * ia) * 255f), (byte)Math.Round(Math.Min(1f, sb * ia) * 255f), (byte)Math.Round(Math.Min(1f, alpha) * 255f));
                 }
-            tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp };
+            tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
             tex.SetPixels32(px);
             tex.Apply();
             cache[key] = tex;

@@ -157,7 +157,7 @@ namespace Arena
                     continue;
                 if ((p.ParryActive || p.BbBrace) && ParryContact(p, e, NovaBlastDamage))
                     continue;  // a raised guard facing it takes it
-                Damage(p, NovaBlastDamage, e.Def.Name + " (nova)");
+                Damage(p, NovaBlastDamage, HitBy(e.Def, "nova"));
             }
             BroadcastFx(FxKind.Boom, e.Pos, e.Def.Color, NovaBlastR, 0.4f, Sfx.Explode);
             e.LastHitBy = 0;  // no kill credit for going nova
@@ -185,7 +185,7 @@ namespace Arena
                     {
                         foreach (var p in Players.Values)
                             if (Hittable(p) && p.Pos.CloserThan(e.Pos, GnomonReach) && !InGnomonShadow(e, p.Pos))
-                                Damage(p, GnomonDamage, e.Def.Name + " (flash)");
+                                Damage(p, GnomonDamage, HitBy(e.Def, "flash"));
                         BroadcastFx(FxKind.Ring, e.Pos - V2.FromAngle(e.Facing) * e.Radius, new Rgba(1f, 0.95f, 0.8f), GnomonReach, 0.35f, Sfx.Shockwave);
                         e.Phase = 2;
                         e.PhaseT = GnomonRecover;
@@ -291,7 +291,7 @@ namespace Arena
                 case 2:
                     foreach (var p in Players.Values)
                         if (Hittable(p) && HelioLaneDistance(e, p.Pos) < HelioWidth / 2f + p.Def.HitR)
-                            Damage(p, HelioDamage, e.Def.Name + " (flare)");
+                            Damage(p, HelioDamage, HitBy(e.Def, "flare"));
                     if (e.PhaseT <= 0f)
                     {
                         e.Phase = 3;

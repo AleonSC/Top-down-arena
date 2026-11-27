@@ -15,7 +15,6 @@ namespace Arena
         Airstrike,
         ArcBall,  // ArcBall: the Arc Cannon's ball rolling from Pos to Pos2 (Radius = the owner's id, Dur = its flight); ArcBurst: its burst (Radius = the burst's size); Overcharge: a teammate charged up (Pos2 = (their id, the giver's id), Radius = their size; Core/StaticShock.cs, Game/StaticShockLook.cs)
         ArcBurst,
-        ArcField,
         ArcFork,
         ArcLink,
         ArcTag,
@@ -53,7 +52,6 @@ namespace Arena
         CenserStep,
         CereBlock,
         CereBreak,
-        ChainThrow,
         ChakraThread,  // ChakraThread: Chakra Reserves' thread and lotus (Pos = the caster, Pos2 = the teammate, Radius = their id + 0.5 when it refreshed their cooldowns, Dur = Game.CrFxDur; Core/ChakraReserves.cs, Game/ChakraReservesLook.cs)
         Claw,
         ClaymoreBlast,  // ClaymoreBlast: a Claymore going off (Pos = the mine, Pos2 = one px along its facing, Radius = the blast's reach; Core/Claymore.cs, Game/ClaymoreLook.cs)
@@ -112,7 +110,6 @@ namespace Arena
         HolyLanceRain,  // Holy Lance Rain's circle round the caster (HolyLanceRain.cs, HolyLanceRainLook.cs)
         HolyLanceSpear,  // one spear of Holy Lance Rain: its warning, fall, impact and healing glow
         HoneyHarvest,
-        Icicle,
         Implode,
         IonTrail,
         Jab,
@@ -121,10 +118,8 @@ namespace Arena
         KatanaCut,
         KatanaDash,
         KatanaHitCue,
-        KatanaHop,
         KatanaSlash,
         KatanaStanceFx,
-        KatanaStrike,
         KatanaSweep,
         Knock,
         KnuckleChain,
@@ -191,7 +186,6 @@ namespace Arena
         Spark,
         SpiderWeb,  // a Calling spider's bite webs an enemy (Callings.cs, Game/CallingsLook.cs)
         SpiritInk,  // SpiritInk: Spirit Avatar's ink (Pos2.X = Game.SpFxStroke the cleave's stroke (Pos = the Ninja, Pos2.Y = its heading, Radius = its reach), SpFxRise, SpFxRelease (Radius = the burst), SpFxSwallow a shot swallowed (Pos = where, Radius = its size); Pos2.Y = the Ninja's id except for the stroke; Core/SpiritAvatar.cs, Game/SpiritAvatarLook.cs)
-        Splinter,
         StaffShove,
         StandHit,
         StaticBurst,  // StaticBurst: a Static Bubble going off (Pos = the caster, Pos2 = (their id, 1 full / 0 a smaller pop), Radius = the blast's reach; Core/StaticBubble.cs, Game/StaticBubbleLook.cs)
@@ -963,7 +957,7 @@ namespace Arena
         public V2 FpAt, FpFrom;             // ...the stage's anchor (the target where it started) and where you stood (replicated)
         public byte FpNext = 1;             // host: the stage the next Fire starts
         public float FpIdle;                // host: seconds since the last stage ended (the combo starts over after FpReset)
-        public bool FpUp, FpMastered;       // host
+        public bool FpUp;                   // host
         public readonly int[] FpShades = new int[3];  // host: Shadow Rend's three targets (ids; -1: none)
         public int FpHits, FpKills, FpStages;  // host: combo hits, kills and stages this run (tests)
         public int RodentsFired;         // host: rodents fired this run (tests, stats)

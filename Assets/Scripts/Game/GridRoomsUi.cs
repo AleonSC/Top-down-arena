@@ -42,10 +42,20 @@ namespace Arena
             return gridOpts;
         }
 
+        readonly List<Placement> gridHits = new List<Placement>();  // GridFitsAt's result, refilled each call
+        readonly NearestMidFirst gridNearFirst = new NearestMidFirst();
+        /// Orders places by how far their middle is from a point (To), nearest first.
+        sealed class NearestMidFirst : IComparer<Placement>
+        {
+            public V2 To;
+            public int Compare(Placement a, Placement b) => a.Mid.DistanceTo(To).CompareTo(b.Mid.DistanceTo(To));
+        }
+
         /// The places under the mouse (world point `wm`): every one whose room covers it, else the nearest within 5 tiles; nearest middle first.
         List<Placement> GridFitsAt(V2 wm)
         {
-            var hits = new List<Placement>();
+            var hits = gridHits;
+            hits.Clear();
             foreach (var o in PlacementsNow())
                 foreach (var q in o.Rooms)
                     if (wm.X >= q.X && wm.X < q.X1 && wm.Y >= q.Y && wm.Y < q.Y1)
@@ -65,7 +75,8 @@ namespace Arena
                 if (near.HasValue)
                     hits.Add(near.Value);
             }
-            hits.Sort((a, b) => a.Mid.DistanceTo(wm).CompareTo(b.Mid.DistanceTo(wm)));
+            gridNearFirst.To = wm;
+            hits.Sort(gridNearFirst);
             return hits;
         }
 

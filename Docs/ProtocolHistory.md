@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 New ids and cards need no bump (Session.IdsHash covers them): only a change to what is read or written does.
 
+- 552: the 11 retired `Msg` values (Practice, PracticeEdit, PracticeWave, Respawn, ExpandVote, ExpandDraw, ExpandCut, ExpandHall, ExpandOutline, WallPush, PlayCard) removed, so every message number after them moves (Hello = 1 and Reject = 200 stay); no field layout changed.
 - 551: Rock Gloves (DPS Elementalist ultimate, key 3): a player's snapshot adds `GlvT` (a float), then `GlvAge` and `GlvPunch` while it is above 0.
 - 550: Conduit Web (Healer Elementalist ultimate, key 3): a player's snapshot adds `CwT` (a float), then `CwLen` and `CwR` while it is above 0.
 - 549: Eye of Calm (Healer Elementalist ultimate, key 2): a player's snapshot adds `EyeT` (a float), then `EyeAge` and `EyeWallR` while it is above 0.

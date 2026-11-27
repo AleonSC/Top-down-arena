@@ -103,7 +103,7 @@ namespace Arena
             V2 a = k.From, b = k.From + V2.FromAngle(k.Ang) * k.Len;
             foreach (var p in Players.Values)
                 if (Hittable(p) && p.Pos.DistanceToSegment(a, b) < CrackHalfW + p.Def.HitR)
-                    Damage(p, CrackDamage, Defs.Get(e.Type).Name + " (crack)");
+                    Damage(p, CrackDamage, HitBy(Defs.Get(e.Type), "crack"));
             BroadcastFx(FxKind.Bolt, a, b, HurlerColor, 0f, 0.3f, Sfx.BossCrack);  // it erupts
             return false;
         }

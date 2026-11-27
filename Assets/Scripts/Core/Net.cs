@@ -80,7 +80,21 @@ namespace Arena
         Task connectTask;
         DateTime connectStarted;
         readonly Dictionary<int, Conn> conns = new Dictionary<int, Conn>();
-        public int PeerCount => conns.Count;  // connected guests (a run snapshot loads only with none, RunSnapshot.cs)
+        /// Host: the guests whose Hello the game accepted (Greet), not a connection still in its handshake (a run snapshot
+        /// loads only with none, RunSnapshot.cs; Session.HasPeers). A joiner: its link to the host, once connected.
+        public int PeerCount
+        {
+            get
+            {
+                if (!IsHost)
+                    return conns.Count;
+                int n = 0;
+                foreach (var c in conns.Values)
+                    if (c.Greeted && !c.Dead)
+                        n++;
+                return n;
+            }
+        }
         readonly List<NetEvent> events = new List<NetEvent>();
         int nextId = 2;
         /// The received messages' buffers, reused every Poll (a Data event's bytes live until the next Poll).
@@ -151,13 +165,24 @@ namespace Arena
             {
                 while (listener.Pending())
                 {
-                    var tcp = listener.AcceptTcpClient();
-                    if (conns.Count >= MaxClients)
+                    TcpClient tcp = null;
+                    try
                     {
-                        tcp.Close();
-                        continue;
+                        tcp = listener.AcceptTcpClient();
+                        if (conns.Count >= MaxClients)
+                        {
+                            tcp.Close();
+                            continue;
+                        }
+                        AddConn(nextId++, tcp);
                     }
-                    AddConn(nextId++, tcp);
+                    catch (Exception)
+                    {
+                        // Reset before we got to it (accepting, or setting the socket up): drop it, keep listening.
+                        tcp?.Close();
+                        if (tcp == null)
+                            break;  // (the listener itself failed: try again next Poll)
+                    }
                 }
             }
             if (connectTask != null)
@@ -167,8 +192,18 @@ namespace Arena
                     bool ok = !connectTask.IsFaulted && !connectTask.IsCanceled && pendingClient.Connected;
                     connectTask = null;
                     if (ok)
-                        AddConn(1, pendingClient);
-                    else
+                    {
+                        try
+                        {
+                            AddConn(1, pendingClient);
+                        }
+                        catch (Exception)
+                        {
+                            ok = false;  // (reset as soon as it connected)
+                            pendingClient.Close();
+                        }
+                    }
+                    if (!ok)
                         events.Add(new NetEvent { Type = NetEventType.ConnectFailed });
                     pendingClient = ok ? null : pendingClient;
                 }
@@ -264,11 +299,12 @@ namespace Arena
 
         void AddConn(int id, TcpClient tcp)
         {
-            tcp.NoDelay = true;
+            tcp.NoDelay = true;  // (any of these can throw on a link reset at once: the callers catch it)
             tcp.SendTimeout = SendTimeoutMs;  // a peer that stops reading can't freeze the game inside Send (it times out and is dropped)
             tcp.SendBufferSize = 1 << 18;
             tcp.ReceiveBufferSize = 1 << 18;
-            conns[id] = new Conn { Id = id, Tcp = tcp, Stream = tcp.GetStream() };
+            var stream = tcp.GetStream();
+            conns[id] = new Conn { Id = id, Tcp = tcp, Stream = stream };
             events.Add(new NetEvent { Type = NetEventType.Connected, Peer = id });
         }
 
@@ -367,11 +403,14 @@ namespace Arena
         static readonly byte[] keepAlive = new byte[0];
         readonly List<int> deadIds = new List<int>();  // reused by Poll
 
-        public void Send(int peer, byte[] data)
+        public void Send(int peer, byte[] data) => Send(peer, data, data.Length);
+
+        /// Send data[0..length): a reused buffer longer than the message (the snapshot's), copied before this returns.
+        public void Send(int peer, byte[] data, int length)
         {
             Conn c;
             if (conns.TryGetValue(peer, out c) && !c.Dead)
-                SendFrame(c, data, data.Length);
+                SendFrame(c, data, length);
         }
 
         void SendFrame(Conn c, byte[] data, int size)
@@ -416,12 +455,18 @@ namespace Arena
 
         readonly List<int> broadcastIds = new List<int>();  // reused by Broadcast
 
-        public void Broadcast(byte[] data)
+        public void Broadcast(byte[] data) => Broadcast(data, data.Length);
+
+        /// To every connection, except (host) one whose Hello the game hasn't accepted yet: it gets only the handshake's
+        /// direct replies (Welcome, Reject, Pong) until Greet, which comes before the Lobby broadcast that follows a Hello.
+        public void Broadcast(byte[] data, int length)
         {
             broadcastIds.Clear();
-            broadcastIds.AddRange(conns.Keys);
+            foreach (var c in conns.Values)
+                if (!IsHost || c.Greeted)
+                    broadcastIds.Add(c.Id);
             foreach (int id in broadcastIds)
-                Send(id, data);
+                Send(id, data, length);
         }
 
         public void Kick(int peer)

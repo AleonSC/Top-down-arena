@@ -167,8 +167,8 @@ namespace Arena
         /// The Colossus on the field, if any (for the pushes on each player's own game).
         Enemy TheColossus()
         {
-            foreach (var e in Enemies.Values)
-                if (e.Type == EnemyType.Colossus && e.Colossus != null && !IsSpawning(e))
+            foreach (var e in EnemiesOf(EnemyType.Colossus))  // (EnemyIndex.cs)
+                if (e.Colossus != null && !IsSpawning(e) && StillIn(e))
                     return e;
             return null;
         }

@@ -10,6 +10,14 @@ namespace Arena
     public partial class ArenaApp
     {
         int shopSel = -1;          // carousel item in the middle: a shelf card (0..count-1), then the services
+        readonly List<int> shopWheelOrder = new List<int>();
+        readonly FarFromTurnFirst shopFarFirst = new FarFromTurnFirst();
+        /// The shop wheel's draw order: the cards farthest from the carousel's position (Turn) first.
+        sealed class FarFromTurnFirst : IComparer<int>
+        {
+            public float Turn;
+            public int Compare(int a, int b) => Mathf.Abs(b - Turn).CompareTo(Mathf.Abs(a - Turn));
+        }
         float shopTurn;            // the carousel's position, easing toward shopSel
         int shopCountSeen;         // how many shelf cards there were last frame (Add stock moves the middle to the new ones)
         int shopGiveTo;            // teammate whose Give popup is open (0 = none)
@@ -155,10 +163,12 @@ namespace Arena
             if (shopCat >= 0)
             {
                 // The wheel: far cards first, so the middle one is on top. Each is drawn at full size, scaled about its own centre.
-                var order = new List<int>();
+                var order = shopWheelOrder;  // (its own list: the cards' drawing may use DrawScratch)
+                order.Clear();
                 for (int i = lo; i < hi; i++)
                     order.Add(i);
-                order.Sort((a, b) => Mathf.Abs(b - shopTurn).CompareTo(Mathf.Abs(a - shopTurn)));
+                shopFarFirst.Turn = shopTurn;
+                order.Sort(shopFarFirst);
                 float oldAlpha = Ui.Alpha;
                 int click = -1;
                 foreach (int i in order)

@@ -11,10 +11,8 @@ namespace Arena
         Hello = 1, Input, Ability, RoleRequest,
         // host -> clients
         Welcome, Lobby, Start, Spawn, Remove, ClearEnemyBullets, Fx, Snapshot, ToLobby,
-        // added later; kept at the end so existing values don't shift
         Pick, Upgrades, Reroll, WeaponRequest, AbilityRequest, KitRequest, Pause, BulletSync, RunStats, Steer, ReadyRequest, Ping, Pong,
         DevStats, SetKey, Sound,
-        Practice, PracticeEdit, PracticeWave,  // retired (Nov 24, the Practice Range removed): no longer sent or read
         PathOffer, PathChosen, PathPatch,  // divergent paths: the two on offer; the one the host took (Paths.cs)
         Teleport,  // host -> all: a player is moved (the Ninja's Substitution); only that player's own game applies it
         Shop, ShopGift,  // the Bazaar: a player's shop action (client -> host); gold given to a teammate (host -> all) (Shop.cs)
@@ -43,26 +41,18 @@ namespace Arena
         Carry,        // host -> all: (player id, where to, seconds, kind) a Knight ability carries a player (the Gauntlet's charge, Bladed Dive's rush); only that player's own game moves them
         UltRequest,   // client -> host: the key picked on the lobby's Ultimate row (Session.SetUlt; LobbyEntry.Ult)
         NetPings,     // host -> all: every player's round trip to the host, once a second, for the lag chart (LagNet.cs, Game/LagChartUi.cs)
-        Respawn,      // retired (Nov 24, the Practice Range removed): no longer sent or read
         ExpandState,  // host -> all: the Expanding arena's rooms bought, the offer on the table and the votes so far (ExpansionGame.cs)
-        ExpandVote,   // retired (Nov 18, Team vote building removed): no longer sent or read
-        ExpandDraw,   // retired (Nov 18, Free draw removed): no longer sent or read
         ExpandApply,  // client -> host: spend this room kit (index) on this bought room (index) (Docs/RoomModifiers.md, ExpansionGame.cs)
-        ExpandCut,    // retired (Nov 18, Open wall removed): no longer sent or read
         ExpandLink,   // client -> host: a portal pair this player proposes (ax, ay, bx, by) (Docs/RoomBuilding2.md step 2, ExpansionGame.cs)
-        ExpandHall,   // retired (hallways are gone: protocol 286); kept so the numbers after it stay put
         ExpandGate,   // client -> host: a shutter gate this player proposes on the door at (x, y) (Docs/RoomBuilding2.md step 3, Gates.cs)
         GateUse,      // client -> host: shut this gate (index) (Gates.cs)
         GateState,    // host -> all: a gate's clocks: index, seconds shut, seconds of cooldown (Gates.cs)
-        ExpandOutline, // retired (Nov 18, Free draw removed): no longer sent or read
         PlaceBuild,   // client -> host: put a trap from this player's stash on the map (kind, x, y) (Market.cs)
         Gadget,       // client -> host: (0 switch your gadget on or off / 1 throw it, where to / 2 take the gadget in bag slot at.X into your hand) (Gadgets.cs)
         HuntMapState, // host -> all: the hunt map: its seed, the nodes cleared, the one being fought, and the vote on the next so far (HuntMapGame.cs)
         HuntMapVote,  // client -> host: this player's vote on the next node (its index in the row, -1 for none) and whether they have locked it in (HuntMapGame.cs)
         StarThrow,    // client -> host: the Shuriken's Great Star thrown along a drawn route (a byte count, then the points); host -> all: (bullet id, owner, count, points) to fly it along (GreatStar.cs)
-        WallPush,     // retired (Nov 18, wall push removed): no longer sent or read
         MysteryDoor,  // client -> host: open or save the sealed door at (x, y) (x, y, save) (Docs/MysteryDoors.md, MysteryDoors.cs)
-        PlayCard,     // retired (Nov 18, Room cards removed): no longer sent or read
         KeepsakeVote, // client -> host: the room this player wants kept through the map reset (short: its first box) (Docs/MapReset.md, MapReset.cs)
         BuilderBuy,   // client -> host: buy the Builder Shop's card at this offer index (byte) (Docs/RoomCards.md, BuilderShop.cs)
         PieceShape,    // client -> host: place a piece (piece, orientation, x, y of its cell box's corner) (Docs/GridPieces.md, PieceShapes.cs)
@@ -82,7 +72,7 @@ namespace Arena
         HorseBoard,   // client -> host: Interact by or in a Trojan Horse (bool: true climb in, false drop out; TrojanHorse.cs)
         BallistaMount, // client -> host: Interact by a Ballista: get on it, or off the one you ride (Ballista.cs)
 
-        // Fixed value so every version can understand it, whatever else changes.
+        // Hello and Reject keep fixed values so every version can understand them, whatever else changes.
         Reject = 200,
     }
 
@@ -146,7 +136,7 @@ namespace Arena
         /// Bump this whenever the layout of the messages the two games send each other changes (a field read or written).
         /// Players on different versions can't play together; the host turns them away with a message. New ids and cards
         /// need no bump: `IdsHash` tells two builds with different ones apart by itself.
-        public const int ProtocolVersion = 551;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 552;  // history: Docs/ProtocolHistory.md
 
         static int idsHash;
 
@@ -210,7 +200,8 @@ namespace Arena
         public bool SurvivalMode => PlayMode == GameMode.Survival;    // Survival (Survival.cs, Docs/Survival.md): one clock, no waves
         public bool TrainingMode => PlayMode == GameMode.Training;    // Training (Training.cs, Docs/Training.md): drills, started from the page, not START
         public static bool QuickDefault = true;     // a new host starts on Quick Play unless its profile last picked another mode (the sim tests turn it off)
-        public EnemyType HuntBoss = EnemyType.Warden;
+        public const EnemyType DefaultHuntBoss = EnemyType.Warden;
+        public EnemyType HuntBoss = DefaultHuntBoss;
         public RunMod Modifiers;        // run modifiers (the lobby's Modifiers tab; the host picks)
         public Difficulty Diff = new Difficulty();  // the run's difficulty (the lobby's Difficulty tab; the host picks)
         public RunSave Resume;          // continuing a saved run: the host's save (clients get its seats in the lobby message)
@@ -321,9 +312,13 @@ namespace Arena
             Game.Hunt = null;
             Game.Quick = false;
             Mode = GameMode.Campaign;
+            HuntBoss = DefaultHuntBoss;
+            HuntMapMode = true;
+            HuntLong = true;
             Modifiers = RunMod.None;
             Diff = new Difficulty();
             Resume = null;
+            Game.PingMs = 0f;  // (the lag chart's own round trip: LagNet.cs)
             if (Net != null)
                 Net.Close();
             Net = null;
@@ -333,6 +328,10 @@ namespace Arena
             Avatars.Clear();
             Emotes.Clear();
             emoteLast.Clear();
+            emoteReadyAt = 0;
+            Shots.Clear();  // the Hangout's shots, hits and ability effects (LobbyCombat.cs)
+            Hits.Clear();
+            Fx.Clear();
             Pings.Clear();
             pingLast.Clear();
             Chat.Clear();
@@ -545,18 +544,29 @@ namespace Arena
                 Net.Send(1, msg);
         }
 
-        /// The host with at least one guest connected (playing alone, broadcasts reach nobody: skip building them).
+        /// The host with at least one guest in the lobby or run (playing alone, broadcasts reach nobody: skip building them).
+        /// A connection still in its handshake doesn't count: broadcasts skip it too (NetPeer.Broadcast).
         public bool HasPeers => Net != null && IsHost && Net.PeerCount > 0;
 
         public void Broadcast(byte[] msg)
         {
             if (Net != null && IsHost)
-            {
                 Net.Broadcast(msg);
-            }
+        }
+
+        /// msg[0..length): a reused buffer (the snapshot's), copied before this returns.
+        public void Broadcast(byte[] msg, int length)
+        {
+            if (Net != null && IsHost)
+                Net.Broadcast(msg, length);
         }
 
         // --- Host side ---------------------------------------------------------
+
+        /// What reading a garbled or other-version message throws (a string length past the end, an id outside its table, ...),
+        /// as opposed to a bug in handling a good one (Poll logs those and goes on).
+        static bool Garbled(Exception e) => e is EndOfStreamException || e is IOException || e is ArgumentException || e is FormatException
+            || e is IndexOutOfRangeException || e is KeyNotFoundException || e is InvalidDataException || e is OverflowException;
 
         void HandleHostEvent(NetEvent ev)
         {
@@ -567,7 +577,7 @@ namespace Arena
                     {
                         HandleHostMessage(ev.Peer, MessageReader(ev));
                     }
-                    catch (Exception e) when (e is EndOfStreamException || e is IOException || e is ArgumentException)
+                    catch (Exception e) when (Garbled(e))
                     {
                         // Garbled or old-format message: most likely a different version of the game.
                         Reject(ev.Peer, "Couldn't understand your game. Make sure you're both on the same version (the host is on " + VersionText + ").");
@@ -753,9 +763,6 @@ namespace Arena
                 case Msg.Pause:
                     Game.OnPause(peer, r);
                     break;
-                case Msg.RoleRequest:
-                    { int v = r.ReadByte(); if (!Game.InRun) SetRole(peer, v); }  // (a late lobby request mid-run is ignored; Practice is no run)
-                    break;
                 case Msg.HorseBoard:
                     Game.OnHorseBoard(peer, r);  // TrojanHorse.cs
                     break;
@@ -765,18 +772,6 @@ namespace Arena
                 case Msg.HangoutOpen:
                     if (!Game.Running && Screen == AppScreen.Lobby)
                         StartHangout();  // any player can open it; the host does (HangoutGame.cs)
-                    break;
-                case Msg.WeaponRequest:
-                    { int v = r.ReadByte(); if (!Game.InRun) SetWeapon(peer, v); }  // (a late lobby request mid-run is ignored; Practice is no run)
-                    break;
-                case Msg.AbilityRequest:
-                    { int v = r.ReadByte(); if (!Game.InRun) SetAbility(peer, v); }  // (a late lobby request mid-run is ignored; Practice is no run)
-                    break;
-                case Msg.UltRequest:
-                    { int v = r.ReadByte(); if (!Game.InRun) SetUlt(peer, v); }  // (a late lobby request mid-run is ignored; Practice is no run)
-                    break;
-                case Msg.KitRequest:
-                    { int v = r.ReadByte(); if (!Game.InRun) SetKit(peer, v); }  // (a late lobby request mid-run is ignored; Practice is no run)
                     break;
                 case Msg.WildcardRequest:
                 {
@@ -823,27 +818,21 @@ namespace Arena
                     break;
                 case Msg.Cosmetics:
                 {
-                    int rank = Math.Max(1, Math.Min(Arena.Rank.MaxRank, r.ReadInt32()));
-                    int frame = r.ReadByte(), trail = r.ReadByte(), card = r.ReadByte(), namefx = r.ReadByte();
-                    int xpPct = Math.Min(100, (int)r.ReadByte()), bestWave = Math.Max(0, Math.Min(9999, (int)r.ReadInt16()));
-                    int kills = Math.Max(0, r.ReadInt32()), bossKills = Math.Max(0, r.ReadInt32());
-                    var perkBytes = new List<byte>();
-                    for (int pn = r.ReadByte(); pn > 0; pn--)
-                        perkBytes.Add(r.ReadByte());
-                    var skins = ReadSkins(r);
-                    var chain = ReadVgChain(r);
+                    var got = new LobbyEntry();
+                    SyncCosmetics(null, r, got, ref got.ChosenPerks, true);
                     LobbyEntry who;
                     if (Lobby.TryGetValue(peer, out who))
                     {
+                        int rank = got.Rank;
                         who.Rank = rank;
-                        who.XpPct = (byte)xpPct; who.BestWave = (short)bestWave; who.Kills = kills; who.BossKills = bossKills;
-                        who.Frame = Arena.Rank.Owns(rank, Arena.Rank.FrameId(frame)) ? (byte)frame : (byte)0;  // only a frame or trail their rank has
-                        who.Trail = Arena.Rank.Owns(rank, Arena.Rank.TrailId(trail)) ? (byte)trail : (byte)0;
-                        who.CardBg = Arena.Rank.Owns(rank, Arena.Rank.CardBgId(card)) ? (byte)card : (byte)0;
-                        who.NameFx = Arena.Rank.Owns(rank, Arena.Rank.NameFxId(namefx)) ? (byte)namefx : (byte)0;
-                        who.ChosenPerks = Perks.Sanitize(perkBytes);
-                        who.Skins = skins;
-                        who.Chain = chain;
+                        who.XpPct = got.XpPct; who.BestWave = got.BestWave; who.Kills = got.Kills; who.BossKills = got.BossKills;
+                        who.Frame = Arena.Rank.Owns(rank, Arena.Rank.FrameId(got.Frame)) ? got.Frame : (byte)0;  // only a frame or trail their rank has
+                        who.Trail = Arena.Rank.Owns(rank, Arena.Rank.TrailId(got.Trail)) ? got.Trail : (byte)0;
+                        who.CardBg = Arena.Rank.Owns(rank, Arena.Rank.CardBgId(got.CardBg)) ? got.CardBg : (byte)0;
+                        who.NameFx = Arena.Rank.Owns(rank, Arena.Rank.NameFxId(got.NameFx)) ? got.NameFx : (byte)0;
+                        who.ChosenPerks = got.ChosenPerks;
+                        who.Skins = got.Skins;
+                        who.Chain = got.Chain;
                         BroadcastLobby();
                     }
                     break;
@@ -859,8 +848,29 @@ namespace Arena
                     peerPing[peer] = r.ReadUInt16();  // the client's last round trip, shared with everyone by Msg.NetPings (LagNet.cs)
                     break;
                 }
+                default:
+                {
+                    Action<Session, int, int> set;
+                    if (LobbyRequests.TryGetValue(type, out set))  // a one-byte lobby pick (Msg.RoleRequest, ...)
+                    {
+                        int v = r.ReadByte();
+                        if (!Game.InRun)  // (a late lobby request mid-run is ignored; Practice is no run)
+                            set(this, peer, v);
+                    }
+                    break;
+                }
             }
         }
+
+        /// The one-byte lobby picks a client asks the host for (Msg.RoleRequest, ...): what each sets, for (peer, value).
+        static readonly Dictionary<Msg, Action<Session, int, int>> LobbyRequests = new Dictionary<Msg, Action<Session, int, int>>
+        {
+            [Msg.RoleRequest] = (s, peer, v) => s.SetRole(peer, v),
+            [Msg.WeaponRequest] = (s, peer, v) => s.SetWeapon(peer, v),
+            [Msg.AbilityRequest] = (s, peer, v) => s.SetAbility(peer, v),
+            [Msg.UltRequest] = (s, peer, v) => s.SetUlt(peer, v),
+            [Msg.KitRequest] = (s, peer, v) => s.SetKit(peer, v),
+        };
 
         readonly Dictionary<int, float> peerPing = new Dictionary<int, float>();
 
@@ -1170,6 +1180,12 @@ namespace Arena
             LobbyEntry me;
             if (!IsHost || !Lobby.TryGetValue(MyId, out me))
                 return;
+            CosmeticsFromProfile(me);
+        }
+
+        /// This player's rank, equipped cosmetics, perks and public records, from the profile, into a lobby entry.
+        void CosmeticsFromProfile(LobbyEntry me)
+        {
             var p = Game.Profile;
             me.Rank = p.RankNow;
             me.Frame = Arena.Rank.Owns(me.Rank, p.Frame) ? Arena.Rank.FrameIndex(p.Frame) : (byte)0;
@@ -1196,23 +1212,10 @@ namespace Arena
                 BroadcastLobby();
                 return;
             }
-            var p = Game.Profile;
+            var mine = new LobbyEntry();
+            CosmeticsFromProfile(mine);
             var w = Proto.Begin(Msg.Cosmetics);
-            w.Write(p.RankNow);
-            w.Write(Arena.Rank.Owns(p.RankNow, p.Frame) ? Arena.Rank.FrameIndex(p.Frame) : (byte)0);
-            w.Write(Arena.Rank.Owns(p.RankNow, p.Trail) ? Arena.Rank.TrailIndex(p.Trail) : (byte)0);
-            w.Write(Arena.Rank.Owns(p.RankNow, p.CardBg) ? Arena.Rank.CardBgIndex(p.CardBg) : (byte)0);
-            w.Write(Arena.Rank.Owns(p.RankNow, p.NameFx) ? Arena.Rank.NameFxIndex(p.NameFx) : (byte)0);
-            w.Write((byte)Math.Round(Arena.Rank.Of(p.Xp).Fraction * 100f));
-            w.Write((short)Math.Min(9999, p.BestWave));
-            w.Write(p.Kills);
-            w.Write(p.BossKills);
-            var mine = Perks.Brought(p);
-            w.Write((byte)mine.Length);
-            foreach (var id in mine)
-                w.Write((byte)id);
-            WriteSkins(w, Expertise.Pack(p));
-            WriteVgChain(w, p.VgChain);
+            SyncCosmetics(w, null, mine, ref mine.ChosenPerks, true);
             SendToHost(Proto.End(w));
         }
 
@@ -1266,6 +1269,73 @@ namespace Arena
             return Expertise.Clean(raw);
         }
 
+        /// One seat of Msg.Lobby, both ways (one list, so the host's writer and a client's reader can't drift apart): pass
+        /// the writer or the reader, the other null.
+        static void SyncLobbyEntry(BinaryWriter w, BinaryReader r, LobbyEntry e)
+        {
+            var s = r != null ? new NetSync(r) : new NetSync(w);
+            s.Int(ref e.Id);
+            if (r != null)
+                e.Name = r.ReadString();
+            else
+                w.Write(e.Name);
+            int role = (int)e.Role, kit = (int)e.Kit, seat = e.Seat;
+            s.Byte(ref role);
+            s.Byte(ref kit);
+            s.Byte(ref e.Weapon);
+            s.Byte(ref e.Ability);
+            s.Byte(ref e.Wild);
+            s.Byte(ref e.Ult);
+            s.Bool(ref e.Ready);
+            s.SByte(ref seat);
+            e.Role = (Role)role;
+            e.Kit = (Kit)kit;
+            e.Seat = seat;
+            SyncCosmetics(w, r, e, ref e.PerkIds, false);
+        }
+
+        /// A seat's rank, cosmetics, perks and public records, both ways: every seat's in Msg.Lobby (host -> all, the rank
+        /// as a short, the perks it will bring) and your own in Msg.Cosmetics (client -> host, the rank as an int, the perks
+        /// you picked). Pass the writer or the reader, the other null. Reading clamps what a peer could send out of range
+        /// (the host also checks they own what they equip, Msg.Cosmetics).
+        static void SyncCosmetics(BinaryWriter w, BinaryReader r, LobbyEntry e, ref PerkId[] perks, bool wideRank)
+        {
+            var s = r != null ? new NetSync(r) : new NetSync(w);
+            if (wideRank)
+                s.Int(ref e.Rank);
+            else
+                s.Short(ref e.Rank);
+            s.Byte(ref e.Frame);
+            s.Byte(ref e.Trail);
+            s.Byte(ref e.CardBg);
+            s.Byte(ref e.NameFx);
+            s.Byte(ref e.XpPct);
+            int best = e.BestWave;
+            s.Short(ref best);
+            s.Int(ref e.Kills);
+            s.Int(ref e.BossKills);
+            if (r == null)
+            {
+                w.Write((byte)perks.Length);
+                foreach (var id in perks)
+                    w.Write((byte)id);
+                WriteSkins(w, e.Skins);
+                WriteVgChain(w, e.Chain);
+                return;
+            }
+            e.Rank = Math.Max(1, Math.Min(Arena.Rank.MaxRank, e.Rank));
+            e.XpPct = (byte)Math.Min(100, (int)e.XpPct);
+            e.BestWave = (short)Math.Max(0, Math.Min(9999, best));
+            e.Kills = Math.Max(0, e.Kills);
+            e.BossKills = Math.Max(0, e.BossKills);
+            var perkBytes = new List<byte>();
+            for (int pn = r.ReadByte(); pn > 0; pn--)
+                perkBytes.Add(r.ReadByte());
+            perks = Perks.Sanitize(perkBytes);
+            e.Skins = ReadSkins(r);
+            e.Chain = ReadVgChain(r);
+        }
+
         void BroadcastLobby()
         {
             SyncOwnCosmetics();
@@ -1275,32 +1345,7 @@ namespace Arena
             var w = Proto.Begin(Msg.Lobby);
             w.Write((byte)Lobby.Count);
             foreach (var e in Lobby.Values)
-            {
-                w.Write(e.Id);
-                w.Write(e.Name);
-                w.Write((byte)e.Role);
-                w.Write((byte)e.Kit);
-                w.Write(e.Weapon);
-                w.Write(e.Ability);
-                w.Write(e.Wild);
-                w.Write(e.Ult);
-                w.Write(e.Ready);
-                w.Write((sbyte)e.Seat);
-                w.Write((short)e.Rank);
-                w.Write(e.Frame);
-                w.Write(e.Trail);
-                w.Write(e.CardBg);
-                w.Write(e.NameFx);
-                w.Write(e.XpPct);
-                w.Write(e.BestWave);
-                w.Write(e.Kills);
-                w.Write(e.BossKills);
-                w.Write((byte)e.PerkIds.Length);
-                foreach (var id in e.PerkIds)
-                    w.Write((byte)id);
-                WriteSkins(w, e.Skins);
-                WriteVgChain(w, e.Chain);
-            }
+                SyncLobbyEntry(w, null, e);
             w.Write((int)Modifiers);
             Diff.Write(w);
             w.Write((byte)Mode);
@@ -1500,13 +1545,19 @@ namespace Arena
             if (!IsHost)
                 return;
             Broadcast(Proto.End(Proto.Begin(Msg.ToLobby)));
+            EndRunToLobby();
+            foreach (var e in Lobby.Values)
+                e.Ready = false;
+            BroadcastLobby();
+        }
+
+        /// The run is over: back to the lobby screen (the host's ReturnToLobby, a client's Msg.ToLobby).
+        void EndRunToLobby()
+        {
             Game.Stop();
             Game.Hunt = null;
             Game.Quick = false;
             Screen = AppScreen.Lobby;
-            foreach (var e in Lobby.Values)
-                e.Ready = false;
-            BroadcastLobby();
         }
 
         public void RequestWeapon(int weapon)
@@ -1633,7 +1684,7 @@ namespace Arena
                     {
                         HandleClientMessage(MessageReader(ev));
                     }
-                    catch (Exception e) when (e is EndOfStreamException || e is IOException || e is ArgumentException)
+                    catch (Exception e) when (Garbled(e))
                     {
                         Leave("Couldn't understand the host's game. Make sure you're both on the same version (you're on " + VersionText + ").");
                     }
@@ -1669,26 +1720,8 @@ namespace Arena
                     int n = r.ReadByte();
                     for (int i = 0; i < n; i++)
                     {
-                        var e = new LobbyEntry { Id = r.ReadInt32(), Name = r.ReadString(), Role = (Role)r.ReadByte(), Kit = (Kit)r.ReadByte(), Weapon = r.ReadByte(), Ability = r.ReadByte() };
-                        e.Wild = r.ReadByte();
-                        e.Ult = r.ReadByte();
-                        e.Ready = r.ReadBoolean();
-                        e.Seat = r.ReadSByte();
-                        e.Rank = Math.Max(1, Math.Min(Arena.Rank.MaxRank, (int)r.ReadInt16()));
-                        e.Frame = r.ReadByte();
-                        e.Trail = r.ReadByte();
-                        e.CardBg = r.ReadByte();
-                        e.NameFx = r.ReadByte();
-                        e.XpPct = (byte)Math.Min(100, (int)r.ReadByte());
-                        e.BestWave = Math.Max((short)0, r.ReadInt16());
-                        e.Kills = Math.Max(0, r.ReadInt32());
-                        e.BossKills = Math.Max(0, r.ReadInt32());
-                        var perkBytes = new List<byte>();
-                        for (int pn = r.ReadByte(); pn > 0; pn--)
-                            perkBytes.Add(r.ReadByte());
-                        e.PerkIds = Perks.Sanitize(perkBytes);
-                        e.Skins = ReadSkins(r);
-                        e.Chain = ReadVgChain(r);
+                        var e = new LobbyEntry();
+                        SyncLobbyEntry(null, r, e);
                         Lobby[e.Id] = e;
                     }
                     SyncAvatars();
@@ -1743,11 +1776,7 @@ namespace Arena
                     Recalls++;
                     break;
                 case Msg.ToLobby:
-                    Game.Stop();
-                            Game.Hunt = null;
-                    Game.Quick = false;
-            Game.Quick = false;
-                    Screen = AppScreen.Lobby;
+                    EndRunToLobby();
                     ShareCosmetics();  // the run may have raised the rank
                     break;
                 case Msg.Start:

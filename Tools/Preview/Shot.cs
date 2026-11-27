@@ -1006,7 +1006,6 @@ static partial class Shot {
     var glMat = typeof(ArenaApp).GetField("glMaterial", f2);
     if (glMat.GetValue(app) == null) glMat.SetValue(app, new Material(null));  // (as OnPostRender makes it: without it, everything after the glow pass, enemy shots included, stayed additive)
     typeof(ArenaApp).GetMethod("DrawWorld", f2).Invoke(app, null);
-    typeof(ArenaApp).GetMethod("InitStyles", f2).Invoke(app, null);
     Ui.Init();
     Event.current = new Event { mousePosition = new Vector2 { x = -100, y = -100 } };
     mode = args.Length > 4 ? args[4] : "hud";

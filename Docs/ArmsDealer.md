@@ -1,6 +1,6 @@
 # Arms Dealer and the boss card pick
 
-Status: **steps 1-3 built** (protocols 394-396): service cards, the Arms Dealer room, the boss card pick. Step 4 open. Planned Nov 17, 2026. Expanding arena with room cards on only. Builds on [`Pieces.md`](Pieces.md),
+Status: **steps 1-3 built** (protocols 394-396): service cards, the Arms Dealer room, the boss card pick. Step 4 open. Planned Nov 17, 2026. Expanding arena with room cards on only. Builds on [`RoomCards.md`](RoomCards.md) (the hand, now [`GridPieces.md`](GridPieces.md)),
 [`RoomModifiers.md`](RoomModifiers.md) (floor kits), [`MysteryDoors.md`](MysteryDoors.md) and [`Nodes.md`](Nodes.md) (the tiny shop / Black Market rooms).
 
 ## Decisions (owner)
@@ -19,7 +19,7 @@ Status: **steps 1-3 built** (protocols 394-396): service cards, the Arms Dealer 
 
 1. (built) **Service cards.** `PieceCard.Shop`, `Market`, `Arms` (added at the end of the enum); each plays a tiny 4 x 4 room (`SurpriseShape.Tiny`)
    of `RoomKind.Shop` / `Vendor` / `Arms` (new, at the end), already open. Card art in `PiecesUi.cs`. Sources as shape cards: the
-   1 in 4 wave drop and chest nodes can roll them, and the boss pick. Tests in suite `roomcards`.
+   1 in 4 wave drop and chest nodes can roll them, and the boss pick. Tests in suite `roomcards` (since removed; now suites `gridrooms` and `armsdealer`).
    Built: `Expansion.ServiceCards`, `IsServiceCard`, `CardRoomKind`, `DropCard` (1 in `ServiceCardChance` 5); the tiny room gets the floating rooms' mark
    (`RoomsLook.TinyService`, also mystery-door shops), the card a coin / plus / crosshair (`PiecesUi.DrawServiceIcon`). Preview `CARDROOM=arms`.
 2. (built) **Arms Dealer room.** `RoomKind.Arms`, `MysteryKind.Arms` (in the shop / Black Market slot of the door table), a stall look (`NodeLook.cs`),

@@ -360,10 +360,10 @@ namespace Arena
         bool ManageChip(Rect r, string text, bool danger, bool live)
         {
             bool hover = live && r.Contains(Event.current.mousePosition);
-            var line = danger ? new Color(0.9f, 0.33f, 0.33f) : new Color(0.4f, 0.64f, 1f);
-            var ink = danger ? new Color(1f, 0.54f, 0.54f) : new Color(0.81f, 0.878f, 1f);
+            var line = danger ? CrtStyle.Danger : CrtStyle.Ink;
+            var ink = danger ? new Color(1f, 0.54f, 0.54f) : CrtStyle.T(new Color(0.81f, 0.878f, 1f));
             float a = live ? 1f : 0.4f;
-            Ui.RoundBox(r, new Color(0.04f, 0.08f, 0.16f, 0.85f), 4);
+            Ui.RoundBox(r, CrtStyle.T(new Color(0.04f, 0.08f, 0.16f, 0.85f)), 4);
             if (hover)
                 Ui.RoundBox(r, line.WithAlpha(0.18f), 4);
             EdgeRing(r, 2f, line.WithAlpha(a));
