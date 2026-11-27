@@ -113,8 +113,13 @@ namespace Arena
             }
             else
             {
+                if (hitMarkMock < 0)
+                {
                 Arc(p.Disp, p.Def.HitR - 0.75f, 2.2f, new Rgba(1f, 1f, 1f, 0.9f), 20);
                 Circle(p.Disp, p.Def.HitR * 0.3f, col, 10);
+                }
+                else
+                    DrawHitMarkMock(p, col, t);  // Tools/Preview only (TankSoldierMock.cs)
             }
 
             if (!preview)  // menu previews (LobbyUi.cs) leave out the health bar
