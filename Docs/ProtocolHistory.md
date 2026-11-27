@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 New ids and cards need no bump (Session.IdsHash covers them): only a change to what is read or written does.
 
+- 549: Eye of Calm (Healer Elementalist ultimate, key 2): a player's snapshot adds `EyeT` (a float), then `EyeAge` and `EyeWallR` while it is above 0.
 - 548: Tactical Vest (DPS Soldier 4th choice): a floor gadget's snapshot adds `Fizzle` (a float: a vest drop's seconds left before it fizzles out, 0 never).
 - 547: the id lists (AbilityId, EnemyType, FxKind, MinionKind, Sfx, WeaponId, ZoneKind) are in name order, so every id has a new number; Hello sends `Session.IdsHash` (an int) after the version. From here on, new ids and cards need no bump (IdsHash covers them).
 - 546: Blood Ritual (Tank Hemomancer fourth ultimate): `AbilityId.BloodRitual`, `MinionKind.BloodImp`, `ZoneKind.BloodRitual` (all at the end); no new snapshot fields (the imps ride the minion sync, the sigil the zone sync).
