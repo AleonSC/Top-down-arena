@@ -183,8 +183,11 @@ namespace Arena
         void SyncRockGloves(NetSync s, Player p)
         {
             s.Float(ref p.GlvT);  // Rock Gloves
-            s.Float(ref p.GlvAge);
-            s.Float(ref p.GlvPunch);
+            if (p.GlvT > 0f)
+            {
+                s.Float(ref p.GlvAge);
+                s.Float(ref p.GlvPunch);
+            }
         }
     }
 }
