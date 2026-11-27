@@ -810,10 +810,11 @@ namespace Arena
             Tone(0.07f, Osc.Triangle, 950f, 560f, 0.16f, noise: 0.08f, lowpass: 0.35f, attack: 0.001f, decay: 4f);
         }
 
-        /// The menus' click (the main menu's two-step chirp), at the Effects volume.
-        public void PlayUiClick(float now)
+        /// The menus' click (the main menu's two-step chirp), at the Effects volume. lobby: the lobby's buttons, which play the main
+        /// menu Settings tiles' light tick (BayTick) instead.
+        public void PlayUiClick(float now, bool lobby = false)
         {
-            if (Play(Sfx.UiClick, MenuSoundVolume, now, -1))
+            if (lobby ? Play(Sfx.BayTick, 0.5f, now, -1) : Play(Sfx.UiClick, MenuSoundVolume, now, -1))
                 table[(int)Sfx.UiHover].Last = now;  // no hover tick right on top of the click
         }
 

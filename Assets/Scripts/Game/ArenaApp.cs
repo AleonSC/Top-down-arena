@@ -912,7 +912,7 @@ namespace Arena
             if (Ui.EndHoverFrame() && sounds != null && !clicked)
                 sounds.PlayUiHover(Time.unscaledTime, fxReduced);  // the glassy tick when the mouse moves onto a button
             if (clicked && sounds != null)
-                sounds.PlayUiClick(Time.unscaledTime);  // and the chirp when one is pressed
+                sounds.PlayUiClick(Time.unscaledTime, session.Screen == AppScreen.Lobby);  // and the click when one is pressed (the lobby's: the settings tiles' light tick)
         }
     }
 }
