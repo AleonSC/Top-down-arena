@@ -49,7 +49,7 @@ no hover tips.
 - **Elementalist**: spells (fire, frost, lightning, water, wind, earth and light), 85% health.
 - **Summoner**: minions that come with your weapon (they stay between waves), 90% health.
 - **Knight**: melee weapons that cut small bullets out of the air, armoured: 105% health plus a 15-point Chainmail shield, and a bigger parry shield (see below).
-- **Ninja**: thrown blades and quick melee with tricks and misdirection; fast (+12% move speed), 85% health (see
+- **Ninja**: thrown blades and quick melee with tricks and misdirection; fast (+12% move speed, a 30% shorter Dodge cooldown, a +70% sprint for 3.1 s), 85% health (see
   below).
 - **Hemomancer**: blood spells that drain and heal; every 1st ability costs health, it deals 15% more damage, hits harder the lower its
   health and never takes wounds; full health (see below).
@@ -125,7 +125,7 @@ How shot upgrades work on a melee weapon (the cards say so when you're a Knight)
 
 ### The Ninja
 
-Ninjas are quick (+12% move speed) and lightly protected (85% health). They mix thrown weapons with fast melee
+Ninjas are quick (+12% move speed; their Dodge comes back 30% sooner, 0.77 s, and their sprint is +70% over 3.1 s) and lightly protected (85% health). They mix thrown weapons with fast melee
 (the Kusarigama, Bo Staff and Katana swing like a Knight's weapons; the Bo Staff and Katana cut small bullets).
 
 | | Weapons | 1st abilities | Ultimate |
@@ -2002,7 +2002,7 @@ show too. A boss's perks share one slot, so equipping Contraband takes Riot Gear
 |---|---|
 | Move | WASD / arrow keys. Walking has a little weight: full speed in 0.06 s, and a stop or a turn of more than 90° in 0.04 s (dashes and dodges are unchanged; the Frozen Lake still slides). With Visual effects on, your body stretches along where you're heading (up to 14% walking, 32% in a dash) and leans ahead, squashes and wobbles back as you stop or land a dash, kicks up a puff of dust each step, a burst behind a dash and a skid puff on a hard turn; a dash leaves up to 5 fading copies of you behind it and kicks the camera 9 px ahead (with Camera lean on). Reduced effects keeps the dust and copies but leaves the body and camera still |
 | Aim | Mouse |
-| Dodge | Ctrl, or double tap a movement key (changeable). A tiny 95 px dash with 0.22 s of invulnerability; 1.1 s cooldown; a soft cloth swish plays. With no direction held it steps back from your aim. **Hold** the key (or the double-tapped movement key) after the dodge for 0.2 s to **sprint**: +50% move speed, fading away over 2.2 s, with a pale-blue wake everyone sees; a tap doesn't sprint. **Wall kick**: dodge into a wall or a solid prop (crate, barrel, pillar, a walled arena's edge) and you kick off it with a gold ring: a fresh 150 px dash, faster than the dodge (a dodge that would stop up to 70 px short of the wall reaches on to it), and the dodge comes back at once for one free dodge (that one can't kick again) |
+| Dodge | Ctrl, or double tap a movement key (changeable). A tiny 95 px dash with 0.22 s of invulnerability; 1.1 s cooldown (Ninjas 0.77 s); a soft cloth swish plays. With no direction held it steps back from your aim. **Hold** the key (or the double-tapped movement key) after the dodge for 0.2 s to **sprint**: +50% move speed, fading away over 2.2 s (Ninjas: +70% over 3.1 s), with a pale-blue wake everyone sees; a tap doesn't sprint. **Wall kick**: dodge into a wall or a solid prop (crate, barrel, pillar, a walled arena's edge) and you kick off it with a gold ring: a fresh 150 px dash, faster than the dodge (a dodge that would stop up to 70 px short of the wall reaches on to it), and the dodge comes back at once for one free dodge (that one can't kick again) |
 | Shoot | Hold left click (changeable) |
 | 1st ability | 1 (changeable) |
 | Parry | Hold right click (changeable) |

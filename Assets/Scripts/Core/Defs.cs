@@ -826,6 +826,10 @@ namespace Arena
         public static string KitName(Kit k) => Classes.Get(k).Name;
         public static float KitHpMult(Kit k) => Classes.Get(k).HpMult;
         public static float KitSpeedMult(Kit k) => Classes.Get(k).SpeedMult;
+        /// The class's Dodge cooldown, sprint boost and sprint length (KitDef; Dodge.cs).
+        public static float KitDodgeCd(Kit k) => Game.DodgeCd * Classes.Get(k).DodgeCdMult;
+        public static float KitSprintBoost(Kit k) => Game.SprintBoost * Classes.Get(k).SprintBoostMult;
+        public static float KitSprintTime(Kit k) => Game.SprintTime * Classes.Get(k).SprintTimeMult;
 
         /// XP needed to go from this level to the next.
         public static float XpToNext(int level) => 90f + 55f * (level - 1);

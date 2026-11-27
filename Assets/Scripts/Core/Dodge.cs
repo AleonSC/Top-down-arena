@@ -16,13 +16,15 @@ namespace Arena
     {
         public const float DodgeDist = 95f, DodgeTime = 0.11f, DodgeInvuln = 0.22f, DodgeCd = 1.1f;
         public const float SprintHold = 0.2f, SprintBoost = 0.5f, SprintTime = 2.2f;  // hold this long after the dodge; +50% speed fading over 2.2 s
+        // (DodgeCd, SprintBoost and SprintTime are the base; each class scales them: Defs.KitDodgeCd/KitSprintBoost/KitSprintTime)
 
         public float SprintT;          // your own game: seconds of sprint left
         float dodgeHoldT = -1f;        // seconds the dodge key has stayed down since the dodge; -1 = let go (no sprint)
         /// Your own move speed multiplier from the sprint: 1 + SprintBoost, easing back to 1 as it runs out.
-        public float SprintMult => SprintT > 0f ? 1f + SprintBoost * SprintFade : 1f;
+        public float SprintMult => SprintT > 0f ? 1f + sprintBoost * SprintFade : 1f;
         /// 1 at the start of a sprint, 0 at its end (slow at first, then quicker: an ease-in fade).
-        public float SprintFade => SprintT <= 0f ? 0f : 1f - (1f - SprintT / SprintTime) * (1f - SprintT / SprintTime);
+        public float SprintFade => SprintT <= 0f ? 0f : 1f - (1f - SprintT / sprintLen) * (1f - SprintT / sprintLen);
+        float sprintBoost = SprintBoost, sprintLen = SprintTime;  // the running sprint's boost and length (your class's, set when it starts)
 
         float dodgeCd;
         public int Dodges;      // your own game: dodges made, counted up (the floor's burst ripple watches it; FloorGridLook.cs)
@@ -59,7 +61,9 @@ namespace Arena
                     dodgeHoldT = -1f;  // a tap: no sprint
                 else if ((dodgeHoldT += dt) >= SprintHold)
                 {
-                    SprintT = SprintTime;
+                    sprintBoost = Defs.KitSprintBoost(me.Kit);
+                    sprintLen = Defs.KitSprintTime(me.Kit);
+                    SprintT = sprintLen;
                     dodgeHoldT = -1f;
                     AddFx(FxKind.Ring, me.Pos, new Rgba(0.75f, 0.85f, 1f), 30f, 0.3f);
                 }
@@ -70,7 +74,7 @@ namespace Arena
             DashDir = dir;
             dashSpeed = DodgeDist / DodgeTime;
             DashT = DodgeTime;
-            dodgeCd = DodgeCd;
+            dodgeCd = Defs.KitDodgeCd(me.Kit);
             bool free = kickFreeT > 0f;  // the dodge a wall kick gave back: it can't kick again
             kickFreeT = 0f;
             kickDash = !free;
@@ -114,7 +118,7 @@ namespace Arena
             dashSpeed = KickDist / KickTime;
             kickDash = false;
             dodgeCd = 0f;
-            kickFreeT = DodgeCd;
+            kickFreeT = Defs.KitDodgeCd(me.Kit);
             WallKicks++;
             WallKickAt = me.Pos - n * me.Def.HitR;
             Dodges++;  // the floor ripples again (FloorGridLook.cs)
@@ -159,7 +163,7 @@ namespace Arena
             float last;
             bool used;
             hostKickUsed.TryGetValue(peer, out used);
-            bool early = hostDodgeAt.TryGetValue(peer, out last) && hostClock - last < DodgeCd * 0.75f;
+            bool early = hostDodgeAt.TryGetValue(peer, out last) && hostClock - last < Defs.KitDodgeCd(p.Kit) * 0.75f;
             if (early && (!free || used))
                 return;  // faster than the cooldown allows (with slack for network jitter): a resent or tampered message
             hostKickUsed[peer] = early;  // one free dodge under the cooldown, then a full one again
