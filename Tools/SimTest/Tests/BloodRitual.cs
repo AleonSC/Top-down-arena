@@ -25,8 +25,8 @@ static partial class Program
         Check(Upgrades.Ultimate(Role.Dps, Kit.Hemomancer) == AbilityId.CrimsonHarvest && Upgrades.Ultimate(Role.Dps, Kit.Hemomancer, 1) == AbilityId.BloodRavager
             && Upgrades.Ultimate(Role.Dps, Kit.Hemomancer, 2) == AbilityId.BloodBoil && Upgrades.Ultimate(Role.Dps, Kit.Hemomancer, 3) == AbilityId.BloodRitual,
             "Crimson Harvest stays the default; Blood Ravager key 1, Blood Boil key 2, Blood Ritual key 3");
-        Check(Upgrades.ClampUlt(Role.Tank, Kit.Hemomancer, 3) == 0 && Upgrades.Ultimate(Role.Tank, Kit.Hemomancer, 3) == AbilityId.VeinTithe,
-            "the Tank Hemomancer's key 3 is empty now");
+        Check(Upgrades.Ultimate(Role.Tank, Kit.Hemomancer, 3) == AbilityId.SacrificialRitual,
+            "the Tank Hemomancer's key 3 is its own (Sacrificial Ritual), not Blood Ritual");
 
         int port = nextPort++;
         var host = new Session { AutoStart = 3, StartWave = 3 };

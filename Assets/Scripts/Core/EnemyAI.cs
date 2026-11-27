@@ -417,7 +417,7 @@ namespace Arena
                 return hunted.Id;  // Hunted: everyone goes for the quarry (Modifiers.cs)
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.VanishT > 0f || ApOn(p) || Jailed(p) || Riding(p))  // (ApOn: Astral Projection's body is ignored, AstralProjection.cs); a vanished Ninja can't be picked out (Ninja.cs); nor someone in a Holding Cell
+                if (p.Downed || p.VanishT > 0f || ApOn(p) || SacSpirit(p) || Jailed(p) || Riding(p))  // (ApOn: Astral Projection's body is ignored, AstralProjection.cs); a vanished Ninja can't be picked out (Ninja.cs); nor someone in a Holding Cell
                     continue;
                 alive.Add(p.Id);
                 if (p.Role == Role.Tank)
@@ -585,6 +585,7 @@ namespace Arena
                     Players.TryGetValue(e.TargetId, out target);
                 }
                 V2 tpos = target != null ? target.Pos : ArenaMid;
+                tpos = SacTarget(target, tpos);  // the blood spirit can't be seen: they go for its body (SacrificialRitual.cs)
                 tpos = NinjaTarget(e, target, tpos);  // Shadow Clones draw them off; Vanish loses them (Ninja.cs)
                 tpos = RobotTarget(e, tpos);  // an Engineer's robot draws in enemies near it (Engineer.cs)
                 tpos = DecoyTarget(e, tpos);  // a Decoy Dummy draws in enemies near it (DecoyDummy.cs)

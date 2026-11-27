@@ -947,6 +947,8 @@ namespace Arena
                 return;  // the Wyvern Staff's Wyrm Slam (WyvernStaff.cs)
             if (LocalBumbleBurst(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))
                 return;  // the Bumble Remote's Swarm Burst (BumbleRemote.cs)
+            if (SacOn(me))
+                return;  // Sacrificial Ritual: the spirit has no Alt (SacrificialRitual.cs)
             if (LocalGolemClot(me, aimAt, pressed && !me.Downed, dt))
                 return;  // Blood Golem: Alt is Hurl Clot, the weapon's own is put away (BloodGolem.cs)
             if (LocalTide(me, aimAt, pressed && !me.Downed && me.StunT <= 0f, dt))

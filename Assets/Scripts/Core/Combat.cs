@@ -26,6 +26,8 @@ namespace Arena
                 return;  // curled up in Iron Armadillo: nothing gets through the shell (IronArmadillo.cs)
             if (ApOn(p))
                 return;  // Astral Projection: the body can't be hurt, nor the spirit (AstralProjection.cs)
+            if (SacOn(p))
+                return;  // Sacrificial Ritual: the rite, the body and the spirit can't be hurt (SacrificialRitual.cs)
             if (InStaticBubble(p.Pos))
                 return;  // inside a Static Bubble nothing hostile reaches you (StaticBubble.cs)
             if (InBladedRun(p.Id))
@@ -115,6 +117,11 @@ namespace Arena
         {
             if (p.Hp > 0f || p.Downed)
                 return;
+            if (SacOn(p))
+            {
+                p.Hp = 1f;  // Sacrificial Ritual: you're already dead (SacrificialRitual.cs)
+                return;
+            }
             if (HangoutOn)
             {
                 HangoutRespawn(p);  // nobody goes down in the Hangout: beamed back in, full (HangoutGame.cs)
@@ -834,8 +841,8 @@ namespace Arena
             }
             foreach (var p in Players.Values)
             {
-                if (p.Downed || p.SwallowT > 0f)
-                    continue;  // (inside the Devourer, out of reach)
+                if (p.Downed || p.SwallowT > 0f || SacOn(p))
+                    continue;  // (inside the Devourer, out of reach; Sacrificial Ritual: shots pass through, SacrificialRitual.cs)
                 if (ShieldsStop(p, b))
                     break;
                 float r = p.Def.HitR + b.Radius;
