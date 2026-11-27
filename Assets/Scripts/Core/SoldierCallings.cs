@@ -93,7 +93,7 @@ namespace Arena
                 Speed = 480f, Life = 1.1f, Damage = 55f, BotRange = 340f, FireInterval = 1.25f, Name = "Siege Cannon", AreaDesc = "blasts 25% wider", ExtraDesc = "+1 bomblet round each blast",
                 Desc = "Primary Fire: Huge, slow shells that burst and knock enemies back. You move 12% slower carrying it.", Sound = Sfx.ShotCannon },
             new WeaponDef { Id = WeaponId.SlugBreacher, Calling = CallingId.SlugBreacher, Kit = Kit.Soldier, Role = Role.Tank, Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireSlug(p, dir, muzzle, dmg, extra),
-                Speed = 900f, Life = 0.55f, Damage = 38f, BotRange = 260f, FireInterval = 0.85f, Name = "Slug Breacher", ExtraDesc = "The slug goes through one more enemy and hits 15% harder",
+                Speed = 900f, Life = 0.55f, Damage = 38f, BotRange = 260f, FireInterval = 0.85f, Name = "Slug Breacher", ExtraDesc = "The slug goes through one more enemy and hits 25% harder",
                 Desc = "Primary Fire: One heavy slug that blows through enemies, stunning and shoving them.", Sound = Sfx.ShotShotgun },
             new WeaponDef { Id = WeaponId.DefibCannon, Calling = CallingId.DefibCannon, Kit = Kit.Soldier, Role = Role.Healer, Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireDefib(p, dir, muzzle, dmg, extra),
                 Speed = 700f, Life = 0.8f, Damage = 26f, BotRange = 360f, FireInterval = 0.9f, Name = "Defib Cannon", ExtraDesc = "The shock goes through one more enemy",
@@ -183,7 +183,7 @@ namespace Arena
         void FireSlug(Player p, V2 dir, V2 muzzle, float dmg, int extra)
         {
             var w = p.Weapon;
-            var b = SpawnBullet(Defs.SlugRound, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg * p.Stats.SlugDmgMult * (1f + 0.15f * extra), p.Id);
+            var b = SpawnBullet(Defs.SlugRound, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg * p.Stats.SlugDmgMult * (1f + 0.25f * extra), p.Id);
             b.Pierce += SlugPierceBase + p.Stats.SlugPierce + extra;
             b.CallShot = (byte)CallingId.SlugBreacher;
             if (p.CallingN > 0)
