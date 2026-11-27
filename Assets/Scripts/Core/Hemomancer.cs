@@ -713,9 +713,9 @@ namespace Arena
             new WeaponDef { Id = WeaponId.GoreMortar, Charge = true, Range = (g, p, w, x) => ClotDistance(g.LiveDraw(p)) * p.Stats.ShotSpeedMult, Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 1, Damage = 34f, BotRange = 380f, ExtraDesc = "+1 glob, fanned out", Name = "Gore Mortar", FireInterval = 0.75f,
                 Desc = "Primary Fire: Hold to charge, then lob a blood clot that leaves a slowing pool.",
                 Sound = Sfx.SpellArcane, AreaDesc = "splash and pool 25% wider" },
-            new WeaponDef { Id = WeaponId.LeechTendrils, Range = (g, p, w, x) => p.Def.BodyR + g.GraspReach(p), Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 80f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
+            new WeaponDef { Id = WeaponId.LeechTendrils, Cone = true, Range = (g, p, w, x) => p.Def.BodyR + g.GraspReach(p), Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 2, Damage = 80f, Reach = 160f, Grow = 20f, BotRange = 130f, ExtraDesc = "+1 tendril and +20 px reach", Name = "Leech Tendrils", FireInterval = 0.1f,
                 Desc = "Primary Fire: Hold to grab and stun nearby enemies; they burst when the blood builds up.",
-                Sound = Sfx.SpellArcane, AreaDesc = "the tendrils reach across a 25% wider arc", HomingDesc = "the tendrils reach across a 15% narrower arc and drain 10% harder per stack, instead of bending shots" },
+                Sound = Sfx.SpellArcane, AreaDesc = "the tendrils reach across a 25% wider arc", Mods = WeaponMods.Say(ModId.Homing, "the tendrils reach across a 15% narrower arc and drain 10% harder per stack, instead of bending shots") },
             new WeaponDef { Id = WeaponId.BloodBlast, Range = (g, p, w, x) => g.BlastNextReach(p), Kit = Kit.Hemomancer, Role = Role.Tank, Choice = 3, Damage = 22f, Reach = 115f, Melee = true, BotRange = 100f, ExtraDesc = "+15% damage and reach", Name = "Blood Blast", FireInterval = 0.42f,
                 Desc = "Primary Fire: A six-step blood sword combo; every hit marks enemies, and their deaths heal you." },
             // Healer
@@ -727,7 +727,7 @@ namespace Arena
             new WeaponDef { Id = WeaponId.VeinTether, Range = (g, p, w, x) => p.Def.BodyR + w.Reach * (1f + w.Grow * x) * p.Stats.ShotSpeedMult, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 2, Damage = 4f, Reach = 350f, Grow = 0.25f, ExtraDesc = "+25% beam length and +25% damage", Name = "Vein Tether", FireInterval = 0.08f,
                 Desc = "Primary Fire: A draining beam that hurts enemies and heals you and the nearest ally.",
                 Sound = Sfx.SpellArcane, AreaDesc = "the beam 25% wider" },
-            new WeaponDef { Id = WeaponId.HeartFlail, Range = (g, p, w, x) => g.HfSpinROf(p) + HfHeartR, BotAlt = HeartFlailBotAlt, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 3, Damage = 18f, Reach = 105f, Melee = true, BotRange = 110f, ExtraDesc = "+1 blood drop a hit and 10% more reach", Name = "Heart Flail", FireInterval = 0.45f,
+            new WeaponDef { Id = WeaponId.HeartFlail, Mods = WeaponMods.As(ModId.Homing, WeaponKind.Area), Range = (g, p, w, x) => g.HfSpinROf(p) + HfHeartR, BotAlt = HeartFlailBotAlt, Kit = Kit.Hemomancer, Role = Role.Healer, Choice = 3, Damage = 18f, Reach = 105f, Melee = true, BotRange = 110f, ExtraDesc = "+1 blood drop a hit and 10% more reach", Name = "Heart Flail", FireInterval = 0.45f,
                 Desc = "Primary Fire: Click to swing a living heart that makes enemies bleed and sprays healing blood; hold to spin it, healing allies near you with every heartbeat. Hits quicken the beat: at 180 the next beat is a Cardiac Burst.\n\nAlternative Fire: Open Heart: throw the heart to your cursor, where it roots and heals every ally near it through its veins.",
                 Sound = Sfx.SwingHeavy, AreaDesc = "the heartbeat pulses, the Cardiac Burst and Open Heart's veins reach 25% farther" },
             // DPS
