@@ -109,6 +109,8 @@ namespace Arena
         HeatDump,
         HiveCall,  // HiveCall: the Hive Censer's Alt calling every swarm of a player to a spot (Pos = the spot, Pos2.X = their id, Radius = the ring's size, Dur = Game.HiveCallTime; Core/HiveCenser.cs, Game/HiveCenserLook.cs)
         HolyCross,
+        HolyLanceRain,  // Holy Lance Rain's circle round the caster (HolyLanceRain.cs, HolyLanceRainLook.cs)
+        HolyLanceSpear,  // one spear of Holy Lance Rain: its warning, fall, impact and healing glow
         HoneyHarvest,
         Icicle,
         Implode,
@@ -922,6 +924,10 @@ namespace Arena
         public float RodT;                     // Lightning Rod: seconds of charge left (replicated; LightningRod.cs)
         public float EyeT, EyeAge, EyeWallR;  // Eye of Calm (EyeOfCalm.cs), replicated: time left (0 = off), seconds since the cast, the wall's full reach
         public float EyeTickT, EyeHumT, EyeHealed;  // host: the damage tick's clock, the hum's, HP healed this run (tests)
+        public float CwT, CwLen, CwR;  // Conduit Web (ConduitWeb.cs), replicated: time left (0 = off), its length, the field's full reach
+        public float CwPulseT, CwHealed;  // host: until the next pulse, HP healed this run (tests)
+        public bool CwUp, CwMastered;  // host
+        public int CwWired, CwPulses, CwMostWired;  // host: enemies wired, pulses, most wired at once this run (tests)
         public bool EyeUp, EyeMastered;  // host (EyeUp: it blows, so it gusts when it ends)
         public int EyeHits, EyeSwept, EyeFlung;  // host: damage hits landed, shots gone, enemies caught in the gust (tests)
         public float VortexT, VortexAge, VortexR;  // Vortex (Vortex.cs), replicated: time left (0 = off), seconds since the cast, its radius

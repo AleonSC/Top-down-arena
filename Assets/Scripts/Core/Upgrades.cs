@@ -50,6 +50,7 @@ namespace Arena
         CeremonialArmor,
         ChakraReserves,  // the Healer Ninja's 4th choice (ChakraReserves.cs), the lobby's 4th choice
         Claymore,  // Claymore (Claymore.cs) took Mark for Death's place (and number); Poison Dart (PoisonDart.cs) took Dash's place (and number); Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
+        ConduitWeb,  // the Healer Elementalist's fourth ultimate (ConduitWeb.cs), key 3 of the lobby's Ultimate row
         Consecrate,
         CrimsonHarvest,
         DeathLotus,
@@ -83,6 +84,7 @@ namespace Arena
         HealingDash,
         HealingRain,
         Heartbeat,  // the Healer Hemomancer's second ultimate (Heartbeat.cs), key 1 of the lobby's Ultimate row
+        HolyLanceRain,  // the Healer Knight's third ultimate (HolyLanceRain.cs), key 2 of the lobby's Ultimate row
         HoneyRaid,  // the Healer Summoner's second ultimate (HoneyRaid.cs), key 1 of the lobby's Ultimate row
         Hydra,
         IronArmadillo,  // the Tank Summoner's third ultimate (IronArmadillo.cs), key 2 of the lobby's Ultimate row
@@ -466,7 +468,7 @@ namespace Arena
         /// the card-only abilities), Minions.cs (Elementalist, Summoner), Ultimates.cs (their ultimates), Knight.cs, Ninja.cs,
         /// Hemomancer.cs, Stun.cs (the Warden's Stun Gun). An entry's Kit, Role and Choice place it in the lobby; the tables below are built from them.
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.RocketUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.TuskerUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.EyeUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.HeartbeatUltimates, Game.BannerUltimates, Game.GongUltimates, Game.FoamUltimates, Game.RitualUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.RocketUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.TuskerUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.EyeUltimates, Game.ConduitUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.HeartbeatUltimates, Game.BannerUltimates, Game.LanceRainUltimates, Game.GongUltimates, Game.FoamUltimates, Game.RitualUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 
