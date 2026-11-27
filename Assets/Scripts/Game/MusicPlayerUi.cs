@@ -36,6 +36,9 @@ namespace Arena
                 foreach (var bs in pack.Bosses)
                     if (bs != null)
                         ReplaceTrack(SoundBank.BossTrackId(bs.Boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : bs.Boss), bs.Music);
+                foreach (var fs in pack.Factions)
+                    if (fs != null)
+                        ReplaceTrack(SoundBank.FactionTrackId(fs.Boss == EnemyType.ReaperOfDawn ? EnemyType.ReaperOfDusk : fs.Boss), fs.Music);
             }
             foreach (var clip in Resources.LoadAll<AudioClip>("Music"))
                 AddProjectClip(entries, ids, used, null, clip, "Custom", 0.6f);

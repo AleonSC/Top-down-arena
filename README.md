@@ -2694,7 +2694,8 @@ list. Your pick, shuffle and repeat are saved. Tracks render in the background t
 **Your own music in Unity:** drop audio files into `Assets/Resources/Music` and they appear in the music player as
 *Custom* tracks, no setup (for long songs set the clip's Load Type to Streaming). For more control make a **Music Pack**
 (Assets > Create > Arena > Music Pack, saved as `Assets/Resources/MusicPack`): assign a clip to replace the **menu**
-theme, the **wave battle** track or any **boss's** theme (with a volume each), and list **Tracks** with your own title
+theme, the **wave battle** track or any **boss's** theme (with a volume each), give each **faction** its own battle
+track (**Factions**: pick the boss; it plays during the regular waves leading up to that boss), and list **Tracks** with your own title
 and mood. Anything you don't fill in stays generated. Code: `Game/MusicPack.cs`, `LoadMusicPack` in `MusicPlayerUi.cs`.
 
 **Your own music from files (no Unity needed):** in the Music player click **Open folder** (the game's `music` folder inside its save data folder; it is
