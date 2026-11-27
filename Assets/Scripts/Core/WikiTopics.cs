@@ -25,7 +25,7 @@ namespace Arena
             new Topic("Expertise", "A class's 0-10 level from the XP of runs played as it (account-wide, cosmetic); it unlocks the class's weapon skins."),
             new Topic("Companion", "The minion your weapon keeps (Golem, wolves, the Nimbus...)."),
             new Topic("Thrall", "An enemy chained to you by Force Pact: it fights near you, and comes back after it falls."),
-            new Topic("Wound", "20% of every hit you take is a wound: it can't be healed back. Wounds carry across waves but never take more than 30% of your max health; they clear when a boss falls, at a health shrine, with a Medkit gadget, the Medic's heal or at a Boss Hunt Rest."),
+            new Topic("Wound", "20% of every hit you take is a wound: it can't be healed back (a Hemomancer never takes wounds). Wounds carry across waves but never take more than 30% of your max health; they clear when a boss falls, at a health shrine, with a Medkit gadget, the Medic's heal or at a Boss Hunt Rest."),
             new Topic("Elite", "From wave 12 any enemy can spawn with a gold ring: 2.5x health, bigger, worth 3x XP, always drops an orb, and a trait shown over it (two traits from wave 35)."),
             new Topic("Health shrine", "A map node a room claims; one use per player: full health plus health past max."),
             new Topic("Vectors", "Every player's building budget in the Expanding arena: pieces are free; vectors pay for gates, mystery doors and the Builder Shop's cards."),

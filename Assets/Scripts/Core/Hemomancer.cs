@@ -610,6 +610,7 @@ namespace Arena
         /// The blood floor: no health cost, toggle or drain takes you under this share of your max health (only enemies
         /// can), so spending health never downs you. Shown as a line on the health bar.
         public const float HemoFloor = 0.2f;
+        public const float BloodMight = 0.15f;  // a Hemomancer's flat damage bonus (BloodDamageMult)
         public static float HealthFloor(Player p) => Math.Max(1f, p.MaxHp * HemoFloor);
         public static bool AtHealthFloor(Player p) => p.Hp <= HealthFloor(p) + 0.01f;
 
@@ -647,15 +648,19 @@ namespace Arena
                 BroadcastFx(FxKind.Bleed, p.Pos, new V2(p.Id, 0f), new Rgba(0.85f, 0.12f, 0.2f), castPaid, 0.55f, Sfx.None);
         }
 
-        /// Blood Price: a Hemomancer deals up to 40% more damage the more health it's missing (full bonus at the blood
-        /// floor, HemoFloor). Applied in HurtEnemy, with Blood Boil's share.
+        /// A real Hemomancer: its class, not a Wildcard with borrowed blood gear (class passives don't come with borrowed gear).
+        public static bool IsHemomancer(Player p) => p.Kit == Kit.Hemomancer && p.Role != Role.Wildcard;
+
+        /// Blood Price: a Hemomancer deals 15% more damage (BloodMight, owner Nov 26: pays for the risk of spending its own
+        /// health; class only, so a Wildcard with blood weapons doesn't get it), and up to 40% more
+        /// the more health it's missing (full bonus at the blood floor, HemoFloor). Applied in HurtEnemy, with Blood Boil's share.
         float BloodDamageMult(Player p)
         {
             float boil = BoilDmgMult(p);  // Blood Boil (BloodBoil.cs), whatever the class (a Wildcard can pick it)
-            if (p.Kit != Kit.Hemomancer || p.MaxHp <= 0f)
+            if (!IsHemomancer(p) || p.MaxHp <= 0f)
                 return boil;
             float missing = Math.Max(0f, Math.Min(1f, (1f - p.Hp / p.MaxHp) / (1f - HemoFloor)));
-            return (1f + BloodPriceMax * missing) * boil;
+            return (1f + BloodMight) * (1f + BloodPriceMax * missing) * boil;
         }
 
         /// Healing from damage dealt (HurtEnemy): Blood Debt's 15% while it runs, and a boss's blood paying the debt back
@@ -695,7 +700,7 @@ namespace Arena
         internal static readonly KitDef HemomancerKit = new KitDef
         {
             Id = Kit.Hemomancer, Name = "Hemomancer", Icon = "class_hemomancer",
-            Blurb = "Blood magic: health is your resource. Every 1st ability costs a share of your health (never below 20%: what you can't pay lengthens the cooldown), your kills drop health orbs only you can drink, and you hit harder the lower your health (up to +40%). Shorter cooldowns make up for it. Full health and normal speed: live on the edge.",
+            Blurb = "Blood magic: health is your resource. Every 1st ability costs a share of your health (never below 20%: what you can't pay lengthens the cooldown), your kills drop health orbs only you can drink, you deal 15% more damage and hit harder still the lower your health (up to +40% more), and you never take wounds. Shorter cooldowns make up for it. Full health and normal speed: live on the edge.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireBloodWeapon(p, aim, dir, muzzle, dmg, extra),
             Ability = (g, p, id, target) => g.BloodAbility(p, id, target),
             Tick = (g, dt) => g.TickHemomancers(dt),

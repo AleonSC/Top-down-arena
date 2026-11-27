@@ -102,7 +102,26 @@ namespace Arena
             p.Hand[p.Hand.Length - 1] = (int)PieceCard.None;
         }
 
-        /// Host, as a build round opens: anyone not dealt yet with an empty hand gets the starting piece pick (StartCardOffer: one of two, first),
+        /// Host, as a run starts (after a resume, whose seats were dealt): each player with an empty hand gets the starting piece pick now,
+        /// so it's made before the opening GET READY (the countdown waits while anyone picks, then runs OpeningCountdown: Waves.cs).
+        void DealStartPicks()
+        {
+            if (!IsHost || !ExpandingOn || !ModeRules.RunEvents)
+                return;
+            foreach (var p in Players.Values)
+                if (!p.CardsDealt)
+                {
+                    p.CardsDealt = true;
+                    if (HandCount(p) > 0)
+                        continue;
+                    p.StartPick = true;
+                    p.PendingCards++;
+                    if (p.Offer == null)
+                        NextOffer(p);
+                }
+        }
+
+        /// Host, as a build round opens: anyone not dealt yet (a seat the run start missed) with an empty hand gets the starting piece pick (StartCardOffer: one of two, first),
         /// then everyone a wave card pick (WaveCardOffer: take one of two, after any boss pick).
         void DealRoundCards()
         {

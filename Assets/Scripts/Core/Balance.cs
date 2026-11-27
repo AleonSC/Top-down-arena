@@ -26,6 +26,7 @@ namespace Arena
         public const float WoundCap = 0.7f;  // wounds carry across waves (owner Nov 20; cap 70% owner Nov 24) but never take more than this share of max health
 
         public const float LayoutEnemyMult = 1.3f;  // regular waves with an arena layout (Layouts.cs) have 30% more enemies: walls and gates make them predictable, so there is room for more
+        public const float OpeningCountdown = 3f;  // the opening GET READY after a pick held it (the starting piece, Head Start's levels): Waves.cs, LaunchIntro.cs
         public static float StartDelay = 3f;  // the opening GET READY; the Unity game raises it to LaunchFightAt (ArenaApp.Awake), which times its beam-in to it; the sim tests keep 3 s
         public const float IntermissionTime = 4f;
         public const int MaxWave = 50;
