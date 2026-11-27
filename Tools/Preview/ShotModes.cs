@@ -499,6 +499,8 @@ static partial class Shot {
         PreviewWho(); set("whoOpen", true); if (Environment.GetEnvironmentVariable("MANAGE") != null) set("whoManage", true); typeof(ArenaApp).GetMethod("WhoRefresh", f2).Invoke(app, null);
         typeof(ArenaApp).GetMethod("CarCenterOn", f2).Invoke(app, new object[] { ProfileStore.ActiveId });
         if (Environment.GetEnvironmentVariable("NEWDISK") != null) { typeof(ArenaApp).GetMethod("StartNewProfile", f2).Invoke(app, null); set("whoName", Environment.GetEnvironmentVariable("NEWDISK")); set("whoCarPos", typeof(ArenaApp).GetField("whoCarTarget", f2).GetValue(app)); set("whoFocus", false); }
+        // WHOBOOT=<clock 0..3.45>: the screen booting up as the game opens (WhoBoot.cs).
+        if (Environment.GetEnvironmentVariable("WHOBOOT") != null) { set("whoBootDone", true); set("whoBootT", float.Parse(Environment.GetEnvironmentVariable("WHOBOOT"), System.Globalization.CultureInfo.InvariantCulture)); }
         if (Environment.GetEnvironmentVariable("CARPOS") != null) { float cp = float.Parse(Environment.GetEnvironmentVariable("CARPOS"), System.Globalization.CultureInfo.InvariantCulture); set("whoCarPos", cp); set("whoCarTarget", cp); }
       }
       // records: the Records page, with made-up saves and a profile (SavesUi.cs).
@@ -579,6 +581,7 @@ static partial class Shot {
         Event.current.type = EventType.Repaint; Event.current.mousePosition = keepPos;
       }
       typeof(ArenaApp).GetMethod(mode == "menu" ? "DrawMenu" : mode == "records" || mode == "cosmetics" || mode == "profile" ? "DrawProfile" : mode == "settings" ? "DrawSettings" : mode == "who" ? "DrawWho" : mode == "pacman" ? "DrawPacman" : "DrawProfTr", f2).Invoke(app, null);
+      if (mode == "who") typeof(ArenaApp).GetMethod("DrawWhoBootFade", f2).Invoke(app, null);
       GL.ToUi = false;
     }
     else if (mode == "keys")

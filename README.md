@@ -2458,7 +2458,10 @@ with upgrades and abilities by name, so they keep working as the game changes.
 best score, time played, totals (kills, damage, healing, downs, revives), each boss beaten, and runs and wins per
 class. The host tells every player's game when a boss falls and when a run ends, so in co-op everyone's records
 grow. Runs where dev tools (F1) or the bot were used don't count.
-**Profiles:** the game asks **Who's playing?** at launch (`Docs/Mockups/whos-playing-carousel.html`): the monitor with
+**Profiles:** the game asks **Who's playing?** at launch (`Docs/Mockups/whos-playing-carousel.html`). It boots up first
+(3.45 s, `Docs/Mockups/whos-playing-load-in.html` C): the screen fades up from black, the monitor's glass powers on, boot lines
+type on it while the drive reads (READING PROFILES ... n FOUND), a flash brings up the title, the disks rise from below (middle one
+first, with a glint) and the keys and buttons rise in last; any key or click skips it (Reduced effects: a short fade). The monitor with
 WHO'S PLAYING? on its glass and the floppy drive in its chin, and under it one big floppy disk per profile on an endless
 side-scrolling carousel: the middle disk large, two either side smaller and fainter, fading out at the edges, wrapping round (with only 2 or 3 profiles the reel repeats, so a disk rolls smoothly off one side as its copy comes in on the other). Scroll with the **‹ ›** keys,
 the arrow keys (or A and D), the mouse wheel or by dragging the disks; click a side disk to bring it to the middle; click the middle one

@@ -1,0 +1,290 @@
+<title>Who's Playing Load-in</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Archivo:wght@500;700;900&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one 1280x720 stage (the game screen) scaled to fit, option tabs above, scrubber below. Single dark look, matching the game. */
+:root{
+  --bg:#05070f; --panel:#0e1220; --line:#232a40; --ink:#e6ecff; --mute:#8a93b0;
+  --gold:#f2c14e; --neon:#cfe3ff; --cyan:#2de0ff; --pink:#ff2d6b;
+  --disp:"Archivo","Arial Black",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+  --hand:"Permanent Marker","Comic Sans MS",cursive;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--disp);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 28px}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-size:20px;font-weight:900;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);font-size:13px;margin:2px 0 0}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tab{font:700 13px var(--disp);color:var(--mute);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer;text-align:left}
+.tab b{color:var(--gold);margin-right:6px}
+.tab[aria-pressed="true"]{color:var(--ink);border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.tab:focus-visible,.ctl:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.viewport{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;overflow:hidden;border-radius:10px;border:1px solid var(--line);background:#03040a}
+.stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#0b1124 0%,#04060d 70%)}
+#stars{position:absolute;inset:0}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.ctl{font:700 13px var(--disp);background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+#scrub{flex:1;min-width:140px;accent-color:var(--gold)}
+#time{font:500 12px var(--mono);color:var(--mute);font-variant-numeric:tabular-nums;min-width:92px;text-align:right}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:500 14px/1.5 var(--disp);color:var(--ink)}
+.note .beats{color:var(--mute);font:500 12.5px/1.6 var(--mono);margin-top:6px}
+.fine{color:var(--mute);font-size:12px}
+
+/* ---- monitor ---- */
+.mon{position:absolute;left:152px;top:20px;width:976px;height:218px;border-radius:14px;background:linear-gradient(#41444c,#22242a 60%,#1a1b20);box-shadow:0 10px 30px #000a, inset 0 1px 0 #ffffff22}
+.glass{position:absolute;left:14px;top:8px;width:948px;height:136px;border-radius:9px;border:2px solid #b9c3d6;background:#0a1330;overflow:hidden}
+.glass .on{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,#132457,#081028 80%);transform-origin:50% 50%}
+.glass .scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,#0000 0 2px,#00000055 2px 3px);pointer-events:none}
+.glass .edge{position:absolute;inset:0;box-shadow:inset 6px 0 0 #ff2d6b33, inset -6px 0 0 #2de0ff33;pointer-events:none}
+.title{position:absolute;left:0;right:0;top:24px;text-align:center;font:900 78px/1 var(--disp);letter-spacing:-.02em;color:var(--neon);text-shadow:-3px 0 var(--pink),3px 0 var(--cyan),0 0 18px #6fa8ff88;white-space:pre}
+.cursor{display:inline-block;width:32px;height:7px;background:#8fb2ff;margin-left:14px;vertical-align:baseline}
+.bios{position:absolute;left:30px;top:16px;font:500 17px/1.45 var(--mono);color:#9fe8ff;text-shadow:0 0 6px #2de0ff88;white-space:pre}
+.flash{position:absolute;inset:0;background:#dfe9ff;opacity:0}
+.chin-name{position:absolute;left:38px;top:160px;font:700 11px var(--disp);color:#aab0be;letter-spacing:.04em}
+.vent{position:absolute;top:184px;height:14px;width:218px;background:repeating-linear-gradient(90deg,#0b0c0f 0 6px,#0000 6px 12px)}
+.drive{position:absolute;left:324px;top:156px;width:328px;height:34px;border-radius:5px;background:#090a0d;box-shadow:inset 0 1px 0 #ffffff14}
+.drive .a{position:absolute;left:14px;top:10px;font:700 11px var(--disp);color:#8c93a3}
+.drive .slit{position:absolute;left:52px;top:12px;width:200px;height:9px;background:#000;border-bottom:1px solid #3a3d45}
+.drive .slit i{position:absolute;inset:0;background:linear-gradient(90deg,#0000,#ffd27a,#0000);opacity:0}
+.drive .led{position:absolute;left:264px;top:13px;width:7px;height:7px;border-radius:50%;background:#6b5420}
+.drive .bars{position:absolute;left:276px;top:12px;display:flex;gap:3px}
+.drive .bars span{width:7px;height:10px;background:#243055}
+.insert{position:absolute;left:0;right:0;top:196px;text-align:center;font:700 10px var(--disp);color:#9aa2b4;letter-spacing:.03em}
+.power{position:absolute;left:934px;top:166px;width:10px;height:10px;border-radius:50%;background:#1f3a24}
+
+/* ---- disks ---- */
+#disks{position:absolute;inset:0;clip-path:inset(194px 0 0 0)}
+.disk{position:absolute;left:0;top:0;width:260px;height:260px;will-change:transform,opacity}
+.disk .body{position:absolute;inset:0;border-radius:4px;clip-path:polygon(0 0,88% 0,100% 12%,100% 100%,0 100%);box-shadow:inset 0 0 0 2px #ffffff18}
+.disk.blue .body{background:linear-gradient(160deg,#3f7de0,#2a5bb6)}
+.disk.grey .body{background:linear-gradient(160deg,#8d93a3,#6c7282)}
+.disk .shut{position:absolute;left:59px;top:0;width:141px;height:78px;background:linear-gradient(90deg,#b9bdc9,#e2e5ee 30%,#c4c8d3 60%,#a9adb9);border-radius:0 0 3px 3px}
+.disk .shut::before{content:"";position:absolute;left:18px;top:28px;width:46px;height:3px;background:#8e94a3;box-shadow:0 9px 0 #8e94a3}
+.disk .shut::after{content:"";position:absolute;left:92px;top:12px;width:30px;height:48px;border-radius:5px;background:#0d0f14}
+.disk .lab{position:absolute;left:20px;top:91px;width:219px;height:143px;background:#f4efe0;border-radius:2px;overflow:hidden}
+.disk .lab .hd{height:22px;padding-left:12px;font:900 13px/22px var(--disp);color:#1a2340}
+.disk.blue .lab .hd{background:#5b97f5}.disk.grey .lab .hd{background:#a9afbe}
+.disk .nm{position:absolute;left:10px;top:28px;font:30px/1 var(--hand);color:#14204a}
+.disk .rk{position:absolute;left:11px;top:76px;font:700 17px var(--disp);color:#1c2a55}
+.disk .st{position:absolute;left:11px;top:104px;font:500 15px var(--disp);color:#6b7291}
+.disk .lu{position:absolute;right:8px;bottom:8px;font:900 13px var(--disp);color:#c0262c;border:2px solid #c0262c;padding:1px 4px}
+.disk .sh{position:absolute;right:12px;top:30px;width:36px;height:44px;background:#2a54a8;clip-path:polygon(0 0,100% 0,100% 60%,50% 100%,0 60%);color:#fff;font:900 15px/40px var(--disp);text-align:center}
+.disk.grey .sh{background:#6f7690}
+.disk .notch{position:absolute;bottom:12px;width:18px;height:18px;background:#0c0d12}
+.disk .glint{position:absolute;inset:0;background:linear-gradient(110deg,#0000 35%,#ffffff70 48%,#0000 60%);mix-blend-mode:screen;opacity:0;clip-path:polygon(0 0,88% 0,100% 12%,100% 100%,0 100%)}
+.disk .dim{position:absolute;inset:0;background:#05070f;clip-path:polygon(0 0,88% 0,100% 12%,100% 100%,0 100%);pointer-events:none}
+
+/* ---- carousel UI ---- */
+.ui{position:absolute}
+.arrow{width:48px;height:48px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#4a4e58,#1f2127);box-shadow:0 5px 0 #0b0c10,0 8px 12px #000a;color:#e8ecf5;font:900 22px/46px var(--disp);text-align:center}
+.plabel{font:700 12px var(--disp);color:#c8cfe0;letter-spacing:.03em;text-align:center;width:200px}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:8px}.dots i{width:6px;height:6px;border-radius:50%;background:#4a5068}.dots i:first-child{background:#e5ecff;box-shadow:0 0 0 2px #5b97f566}
+.btn{width:248px;height:56px;border-radius:6px;background:linear-gradient(#3c3f47,#202228);box-shadow:0 6px 0 #0b0c10;color:#eef1f8;font:700 15px/56px var(--disp);text-align:center;letter-spacing:.02em}
+@media (prefers-reduced-motion:reduce){.tab,.ctl{transition:none}}
+</style>
+
+<div class="wrap">
+  <div>
+    <h1>Who's playing? load-in</h1>
+    <p class="sub">Three ways the screen could arrive when the game opens. Each ends on the current screen. Approximate HTML mockup: the real draw code will look slightly different.</p>
+  </div>
+  <div class="tabs" role="group" aria-label="Animation option">
+    <button class="tab" id="tabA" data-opt="A" aria-pressed="true"><b>A</b>Dealt from the drive</button>
+    <button class="tab" id="tabB" data-opt="B" aria-pressed="false"><b>B</b>Carousel spin-up</button>
+    <button class="tab" id="tabC" data-opt="C" aria-pressed="false"><b>C</b>BIOS boot</button>
+  </div>
+
+  <div class="viewport" id="vp">
+    <div class="stage" id="stage">
+      <canvas id="stars" width="1280" height="720"></canvas>
+      <div class="mon" id="mon">
+        <div class="glass">
+          <div class="on" id="glassOn"></div>
+          <div class="bios" id="bios"></div>
+          <div class="title" id="title"></div>
+          <div class="flash" id="flash"></div>
+          <div class="scan"></div><div class="edge"></div>
+        </div>
+        <div class="chin-name">ARENA CRT-14</div>
+        <div class="vent" style="left:36px"></div><div class="vent" style="right:60px"></div>
+        <div class="drive"><span class="a">A:</span><div class="slit"><i id="slitGlow"></i></div><div class="led" id="led"></div><div class="bars" id="bars"><span></span><span></span><span></span><span></span></div></div>
+        <div class="insert" id="insert">INSERT: ANTHONY</div>
+        <div class="power" id="pwr"></div>
+      </div>
+      <div id="disks"></div>
+      <div class="ui arrow" id="uL" style="left:443px;top:551px">‹</div>
+      <div class="ui arrow" id="uR" style="left:789px;top:551px">›</div>
+      <div class="ui" id="uP" style="left:540px;top:568px"><div class="plabel">PROFILE 1 OF 3</div><div class="dots"><i></i><i></i><i></i></div></div>
+      <div class="ui btn" id="uM" style="left:380px;top:630px">⚙&nbsp;&nbsp; MANAGE PROFILES</div>
+      <div class="ui btn" id="uN" style="left:652px;top:630px">+&nbsp;&nbsp; NEW PROFILE</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctl" id="play">Pause</button>
+    <button class="ctl" id="replay">Replay</button>
+    <button class="ctl" id="slow">Speed 1×</button>
+    <input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Scrub timeline">
+    <span id="time">0.00 / 0.00 s</span>
+  </div>
+  <div class="note" id="note"></div>
+  <p class="fine">Any key or click would skip straight to the end, the same way the other intros skip.</p>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const stage=$('stage'),vp=$('vp');
+function fit(){const s=vp.clientWidth/1280;stage.style.transform=`scale(${s})`}
+new ResizeObserver(fit).observe(vp);fit();
+
+// stars
+(function(){const c=$('stars').getContext('2d');let s=7;const r=()=>(s=(s*16807)%2147483647)/2147483647;
+for(let i=0;i<260;i++){const a=r()*0.8+0.1;c.fillStyle=`rgba(200,215,255,${a})`;const z=r()<.08?2:1;c.fillRect(r()*1280,r()*720,z,z)}})();
+
+// ---- helpers ----
+const cl=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const seg=(t,a,b)=>cl((t-a)/(b-a));
+const eOut=x=>1-Math.pow(1-x,3);
+const eIn=x=>x*x*x;
+const eBack=x=>{const c=1.6;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const lerp=(a,b,u)=>a+(b-a)*u;
+
+// ---- carousel slots ----
+const SLOTS=[[87,435,.21,.25],[200,428,.4,.75],[375,416,.6,1],[640,392,1,1],[905,416,.6,1],[1080,428,.4,.75],[1190,435,.21,.25]];
+function slot(k){ // continuous k in [-3,3]; beyond fades out
+  const kk=cl(k,-3.999,3.999)+3, i=Math.min(5,Math.floor(kk)), u=kk-i;
+  const a=SLOTS[Math.max(0,i)],b=SLOTS[Math.min(6,i+1)];
+  let o=lerp(a[3],b[3],u); if(Math.abs(k)>3) o*=cl(1-(Math.abs(k)-3)*2);
+  return {x:lerp(a[0],b[0],u)+(k<-3?(k+3)*90:k>3?(k-3)*90:0),y:lerp(a[1],b[1],u),s:lerp(a[2],b[2],u),o};
+}
+const PROF=[
+  {nm:'Anthony',c:'blue',rk:'Challenger · Rank 14',st:'4 wins · 32 runs',sl:1,lv:14,lu:1},
+  {nm:'Little Bee',c:'grey',rk:'Recruit · Rank 3',st:'1 win · 7 runs',sl:2,lv:3},
+  {nm:'Sam',c:'grey',rk:'Recruit · Rank 6',st:'2 wins · 14 runs',sl:3,lv:6}];
+const disks={};
+for(let i=-4;i<=14;i++){
+  const p=PROF[((i%3)+3)%3],d=document.createElement('div');
+  d.className='disk '+p.c;
+  d.innerHTML=`<div class="body"></div><div class="shut"></div><div class="lab"><div class="hd">SLOT ${p.sl}</div><div class="nm">${p.nm}</div><div class="sh">${p.lv}</div><div class="rk">${p.rk}</div><div class="st">${p.st}</div>${p.lu?'<div class="lu">LAST USED</div>':''}</div><div class="notch" style="left:12px"></div><div class="notch" style="right:12px"></div><div class="glint"></div><div class="dim"></div>`;
+  $('disks').appendChild(d);disks[i]=d;
+}
+function put(i,st){ // st:{x,y,s,o,r,dim,glint,blur}
+  const d=disks[i];
+  if(!st||st.o<=0.002){d.style.display='none';return}
+  d.style.display='';
+  d.style.transform=`translate(${st.x-130}px,${st.y-130}px) rotate(${st.r||0}deg) scale(${st.s})`;
+  d.style.opacity=st.o;d.style.zIndex=Math.round(st.s*100);
+  d.querySelector('.dim').style.opacity=st.dim||0;
+  const g=d.querySelector('.glint');g.style.opacity=st.glint?1:0;if(st.glint)g.style.transform=`translateX(${(st.glint-0.5)*260}px)`;
+  d.style.filter=st.blur?`blur(${st.blur}px)`:'';
+}
+const restDim=k=>Math.abs(k)>=1?0.12:0;
+function rest(i){const s=slot(i);return {...s,dim:restDim(i)}}
+
+// ---- shared pieces ----
+const TITLE="WHO'S PLAYING?";
+function monitor(m){ // m: {y,o,on(0-1),title(0-1 chars),cur,bios,flash,led,slit,ins}
+  $('mon').style.transform=`translateY(${m.y||0}px)`;$('mon').style.opacity=m.o??1;
+  const on=m.on??1;$('glassOn').style.transform=`scale(${on<.5?lerp(.02,1,on*2):1},${on<.5?0.02:lerp(.02,1,(on-.5)*2)})`;
+  $('glassOn').style.opacity=on>0?1:0;
+  const n=Math.round((m.title??1)*TITLE.length);
+  $('title').innerHTML=TITLE.slice(0,n).replace(/ /g,'&nbsp;')+(m.cur!==false&&on>=1?'<span class="cursor"></span>':'');
+  $('title').style.transform=`translateX(${m.jit||0}px)`;
+  $('title').style.textShadow=m.split?`${-3-m.split}px 0 var(--pink),${3+m.split}px 0 var(--cyan),0 0 18px #6fa8ff88`:'';
+  $('bios').textContent=m.bios||'';
+  $('flash').style.opacity=m.flash||0;
+  $('led').style.background=m.led?'#ffcf5a':'#6b5420';$('led').style.boxShadow=m.led?'0 0 8px #ffcf5a':'none';
+  $('slitGlow').style.opacity=m.slit||0;
+  [...$('bars').children].forEach((b,j)=>b.style.background=(m.bars||0)>j?'#5b97f5':'#243055');
+  $('insert').style.opacity=m.ins??1;
+  $('pwr').style.background=on>0?'#45e06a':'#1f3a24';$('pwr').style.boxShadow=on>0?'0 0 10px #45e06a':'none';
+}
+function ui(t0,t){ // arrows, label, buttons rise in
+  [['uL',0],['uR',0],['uP',.06],['uM',.14],['uN',.2]].forEach(([id,d])=>{
+    const u=eOut(seg(t,t0+d,t0+d+.32));$(id).style.opacity=u;$(id).style.transform=`translateY(${(1-u)*18}px)`;
+  });
+}
+const cursorBlink=t=>Math.floor(t*2.4)%2===0;
+
+// ---- options ----
+const OPT={
+A:{dur:2.9,name:'Dealt from the drive',
+  note:'The monitor powers on and types its title, then the drive spits the disks out one at a time through its slit. The last-used disk comes first and lands centre; the rest fan out to their carousel spots, nearest first.',
+  beats:'0.0 screen on · 0.35 title types · 0.85 drive LED, disks dealt every 0.12 s (centre, then pairs outward) · 2.1 arrows + buttons rise',
+  f(t){
+    monitor({o:eOut(seg(t,0,.2)),on:seg(t,.05,.4),title:seg(t,.4,.9),cur:t<.9||cursorBlink(t),
+      led:t>.8&&t<2&&Math.floor(t*14)%2===0,slit:t>.85&&t<1.9?.5+.5*Math.sin(t*40):0,bars:t>.85?Math.min(4,Math.floor((t-.85)*6)):0,ins:seg(t,1.8,2.1)});
+    const order=[0,-1,1,-2,2,-3,3];
+    for(let i=-4;i<=14;i++){
+      const n=order.indexOf(i);if(n<0){put(i,null);continue}
+      const ts=.9+n*.12,u=seg(t,ts,ts+.6);if(u<=0){put(i,null);continue}
+      const R=rest(i),ue=eOut(u);
+      // quadratic path: out of the slit, then arc to the slot
+      const p0={x:640,y:120},p1={x:640+(R.x-640)*.25,y:330},bz=(a,b,c)=>(1-ue)*(1-ue)*a+2*(1-ue)*ue*b+ue*ue*c;
+      const s=lerp(.55,R.s,eBack(u)),r=(1-ue)*Math.sign(i)*-14;
+      const land=seg(t,ts+.6,ts+.8),sq=Math.sin(land*Math.PI)*.04;
+      put(i,{x:bz(p0.x,p1.x,R.x),y:bz(p0.y,p1.y,R.y),s:s*(1+sq),r,o:R.o,dim:R.dim*ue});
+    }
+    ui(2.1,t);
+  }},
+B:{dur:2.7,name:'Carousel spin-up',
+  note:'The monitor drops in with a thud and switches on. The carousel then spins in from the right like a slot reel, blurred while fast, and slows to a stop on the last-used disk with a small overshoot.',
+  beats:'0.0 monitor drops · 0.32 land shake · 0.45 screen on, title · 0.6 carousel spins 12 disks, eases out by 2.0 · 2.0 arrows + buttons rise',
+  f(t){
+    const dr=seg(t,0,.32),y=dr<1?lerp(-260,0,eIn(dr)):Math.sin((t-.32)*45)*7*Math.exp(-(t-.32)*12);
+    monitor({y,on:seg(t,.4,.7),title:seg(t,.6,1.1),cur:t<1.1||cursorBlink(t),led:t>.7&&t<2&&Math.floor(t*10)%2===0,bars:t>.7?4:0,ins:seg(t,1.8,2.1)});
+    const u=seg(t,.6,2.05);
+    // scroll: 12 disks to 0, eased, with a little overshoot
+    const sc=u<=0?14:12*(1-eBack(u))*1;
+    const vel=u>0&&u<1?Math.abs(12*(eBack(Math.min(1,u+.01))-eBack(u))/.01)/1.45:0;
+    for(let i=-4;i<=14;i++){
+      const k=i-sc;if(u<=0||Math.abs(k)>3.6){put(i,null);continue}
+      const S=slot(k);put(i,{...S,dim:Math.min(.12,Math.abs(k)*.12),blur:Math.min(6,vel*.35),glint:i===0&&t>2.05&&t<2.5?seg(t,2.05,2.5):0});
+    }
+    ui(2.0,t);
+  }},
+C:{dur:3.2,name:'BIOS boot',
+  note:'An old-PC power-on. The screen shows boot text while the drive reads, a white flash, then the title snaps in with an RGB split that settles. The disks rise from below, centre first, and a glint sweeps the last-used one.',
+  beats:'0.0 screen on · 0.3 boot lines type, drive reads · 1.35 flash, title with RGB jitter · 1.45 disks rise (0.08 s apart, centre out) · 2.2 glint · 2.35 arrows + buttons rise',
+  f(t){
+    const L=['ARENA CRT-14   BIOS v1.06','MEMORY TEST ........ 640K OK','DRIVE A: ........... READY','READING PROFILES ... '];
+    let txt='';const tt=seg(t,.3,1.25)*1;
+    const chars=Math.floor(tt*L.join('\n').length*1.05);
+    txt=L.join('\n').slice(0,chars);
+    if(tt>=.92){const f=Math.floor(seg(t,1.0,1.25)*3);txt+=['▮','▮▮','▮▮▮ 3 FOUND','▮▮▮ 3 FOUND'][Math.min(3,f)]}
+    const showTitle=t>=1.35,sp=showTitle?12*Math.exp(-(t-1.35)*6):0;
+    monitor({on:seg(t,0,.28),bios:showTitle?'':txt,title:showTitle?1:0,cur:showTitle&&(t<1.8||cursorBlink(t)),
+      flash:t>1.3?Math.max(0,1-(t-1.3)*7)*.85:0,jit:showTitle?(Math.random()-.5)*sp*.6:0,split:sp,
+      led:t>.6&&t<1.3&&Math.floor(t*16)%2===0,bars:t>.6?Math.min(4,Math.floor((t-.6)*6)):0,ins:seg(t,2.1,2.4)});
+    for(let i=-4;i<=14;i++){
+      if(Math.abs(i)>3){put(i,null);continue}
+      const ts=1.45+Math.abs(i)*.08+(i>0?.03:0),u=seg(t,ts,ts+.55);if(u<=0){put(i,null);continue}
+      const R=rest(i);
+      put(i,{...R,y:R.y+(1-eBack(u))*360,o:R.o*cl(u*3),glint:i===0&&t>2.2&&t<2.65?seg(t,2.2,2.65):0});
+    }
+    ui(2.35,t);
+  }}
+};
+
+// ---- player ----
+let opt='A',t=0,playing=true,speed=1,last=performance.now(),hold=0;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function choose(o){opt=o;t=0;hold=0;document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-pressed',b.dataset.opt===o));
+  $('note').innerHTML=`<b>${o} · ${OPT[o].name}.</b> ${OPT[o].note}<div class="beats">${OPT[o].beats}</div>`;draw()}
+function draw(){const O=OPT[opt];O.f(Math.min(t,O.dur+1));$('scrub').value=Math.round(t/O.dur*1000);$('time').textContent=`${Math.min(t,O.dur).toFixed(2)} / ${O.dur.toFixed(2)} s`}
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(playing){const O=OPT[opt];if(t<O.dur)t=Math.min(O.dur,t+dt*speed);else{hold+=dt;t=O.dur+Math.min(hold,1);if(hold>1.6){t=0;hold=0}}draw()}
+  else if(t>=OPT[opt].dur)draw();
+  requestAnimationFrame(loop)}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>choose(b.dataset.opt));
+$('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'Pause':'Play'};
+$('replay').onclick=()=>{t=0;hold=0;playing=true;$('play').textContent='Pause'};
+$('slow').onclick=()=>{speed=speed===1?.35:1;$('slow').textContent=speed===1?'Speed 1×':'Speed 0.35×'};
+$('scrub').oninput=e=>{playing=false;$('play').textContent='Play';t=e.target.value/1000*OPT[opt].dur;hold=0;draw()};
+choose('A');
+if(reduce){playing=false;$('play').textContent='Play';t=OPT.A.dur;draw()}
+requestAnimationFrame(loop);
+})();
+</script>
