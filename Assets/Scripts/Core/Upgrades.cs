@@ -397,6 +397,7 @@ namespace Arena
         public readonly WeaponId? Weapon;  // null: no weapon (weapon cards are never offered)
         public readonly bool Expanding;    // the Expanding arena (the vector cards)
         public readonly AbilityId Ult;     // your ultimate (F): cards for it (RequiresAbility) are offered too
+        public bool FieldTraining;         // a Soldier's class passive (Soldier.cs): one more card in every level-up offer
 
         /// `kit` defaults to the class of the 1st ability. A Wildcard has no class of its own: it counts as the class
         /// of its 1st ability, of its weapon and of its second ability (`second`, on 2nd, 3rd or 4th), so any of those
@@ -425,7 +426,7 @@ namespace Arena
 
         /// A player's offers: their role, class (a Wildcard: its gear's classes), 1st ability, picks and weapon.
         public static OfferCtx Of(Player p, bool expanding) =>
-            new OfferCtx(p.Role, p.FirstAbility, p.Taken, p.Weapon != null ? p.Weapon.Id : (WeaponId?)null, expanding, p.Kit, p.WildcardAbility, p.Slots[Upgrades.UltSlot].Id);
+            new OfferCtx(p.Role, p.FirstAbility, p.Taken, p.Weapon != null ? p.Weapon.Id : (WeaponId?)null, expanding, p.Kit, p.WildcardAbility, p.Slots[Upgrades.UltSlot].Id) { FieldTraining = Game.IsSoldier(p) };
     }
 
     public class UpgradeDef
@@ -1007,7 +1008,7 @@ namespace Arena
             var st = Compute(c.Taken);  // Fortune (rarer cards) and Wide Choice (more cards) are milestone upgrades
             float veryRare = Math.Min(10f, 3f + level * 0.5f) * (1f + st.RarityLuck);
             float rare = Math.Min(22f, 11f + level * 0.8f) * (1f + st.RarityLuck);
-            var offer = RollWeighted(rng, c, new[] { 55f, 28f * (1f + st.RarityLuck), rare, veryRare }, 3 + Math.Min(2, st.OfferExtra));
+            var offer = RollWeighted(rng, c, new[] { 55f, 28f * (1f + st.RarityLuck), rare, veryRare }, 3 + Math.Min(2, st.OfferExtra + (c.FieldTraining ? Game.FieldTrainingCards : 0)));  // (Field Training: Soldier.cs)
             return level == Game.CallingGuaranteeLevel ? WithCalling(rng, c, offer) : offer;
         }
 

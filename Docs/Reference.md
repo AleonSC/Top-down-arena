@@ -16,7 +16,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 
 | Class | Health | Speed | About |
 |---|---|---|---|
-| Soldier | x1 | x1 | Guns and gear. Straightforward firearms with an Alt trick each (a point-blank shell, a proximity mine, a grenade volley) and field kit for abilities. Full health and normal speed: the steady pick. |
+| Soldier | x1 | x1 | Guns and gear. Straightforward firearms with an Alt trick each (a point-blank shell, a proximity mine, a grenade volley) and field kit for abilities. Field Training: every level-up offer shows 1 more card, and each wave gives a free reroll (up to 3 held). Full health and normal speed: the steady pick. |
 | Elementalist | x0.85 | x1 | Spells of fire, frost, lightning, water, wind, earth and light. Elements combine: soaked enemies conduct lightning, earth cracks enemies so they take more damage (and frozen ones shatter), light dazzles them so their shots go wide. Big area damage, at 85% health. |
 | Summoner | x0.9 | x1 | Fights through minions. Your weapon brings its own creatures (wolves, wisps, imps, bees) that hunt, bite and soak hits, and they stay with you between waves. Point them at what matters. 90% health. |
 | Knight | x1.05 | x1 | Melee. Holding fire swings instead of shooting, hitting every enemy in the arc and cutting small bullets out of the air in front of you (big orbs, mines and red aimed shots still get through). Armoured for the thick of it: 105% health plus Chainmail, a 15-point shield that takes half of every hit and refills 3 s after the last one (on a Tank it adds to Ironhide). A bigger parry shield: 30% wider and reaching further out. |

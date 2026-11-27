@@ -51,8 +51,9 @@ namespace Arena
                 lines.Add(new StatLine { Label = "XP gain", Value = "+" + Math.Round((s.XpMult - 1f) * 100f) + "% XP" });
             if (s.ExtraPickChance > 0f)
                 lines.Add(new StatLine { Label = "Extra pick chance", Value = Math.Round(s.ExtraPickChance * 100f) + "%" });
-            if (s.OfferExtra > 0)
-                lines.Add(new StatLine { Label = "Cards per offer", Value = (3 + s.OfferExtra) + " cards" });
+            int extraCards = s.OfferExtra + (Game.IsSoldier(p) ? Game.FieldTrainingCards : 0);  // (Field Training: Soldier.cs)
+            if (extraCards > 0)
+                lines.Add(new StatLine { Label = "Cards per offer", Value = (3 + Math.Min(2, extraCards)) + " cards" });
             if (s.BossRerolls > 0)
                 lines.Add(new StatLine { Label = "Rerolls per boss", Value = (Game.BossRerolls + s.BossRerolls).ToString() });
             if (s.RarityLuck > 0f)
