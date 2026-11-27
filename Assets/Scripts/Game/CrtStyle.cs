@@ -10,32 +10,38 @@ namespace Arena
     {
         // --- Colours ----------------------------------------------------------------------------------------------------------------
 
-        // The phosphor colour is a setting (Settings > Visual effects > CRT colour); 0 is the original blue. Ink, Dim, Bg and Bezel follow it.
+        // The phosphor colour is a setting: one hue shared by Settings > Visual effects > CRT colour and the main menu's hue key
+        // (MenuBgHue.cs, which also turns the Holo Floor). -1 is the original blue. Ink, Dim, Bg and Bezel follow it.
         // The other colours below are drawn for the blue theme: where they should follow the setting too, the screen passes them
         // through T (CrtUi.T), which keeps their brightness and moves them to the chosen hue.
-        public static readonly string[] ThemeNames = { "Blue", "Green", "Amber", "Red", "Violet", "White" };
-        static readonly Color[] ThemeInk = { new Color(0.40f, 0.64f, 1f), new Color(0.35f, 0.95f, 0.5f), new Color(1f, 0.72f, 0.25f), new Color(1f, 0.42f, 0.42f), new Color(0.72f, 0.5f, 1f), new Color(0.88f, 0.92f, 0.96f) };
-        static int theme;
+        static readonly Color BlueInk = new Color(0.40f, 0.64f, 1f);
+        public const float InkSat = 0.6f;  // a picked hue's phosphor: this saturation at full brightness (the blue's own)
+        static float hue = -1f;
+        static Color ink = BlueInk;
 
-        public static int Theme
+        /// The picked hue (0..1), or -1 for the original blue.
+        public static float Hue
         {
-            get => theme;
-            set => theme = Mathf.Clamp(value, 0, ThemeInk.Length - 1);
+            get => hue;
+            set
+            {
+                hue = value < 0f ? -1f : Mathf.Clamp01(value);
+                ink = hue < 0f ? BlueInk : Color.HSVToRGB(hue, InkSat, 1f);
+            }
         }
 
-        public static Color Ink => ThemeInk[theme];                                           // the phosphor: text, outlines, lit keys
+        public static Color Ink => ink;                                                       // the phosphor: text, outlines, lit keys
         public static Color Dim => Color.Lerp(Ink, new Color(0.05f, 0.08f, 0.14f), 0.38f);   // dim text, locked keys, off switches
-        public static Color Bg => theme == 0 ? new Color(0.012f, 0.03f, 0.085f) : Tinted(0.045f, 0.12f);  // the screen
-        public static Color Bezel => theme == 0 ? new Color(0.05f, 0.07f, 0.14f) : Tinted(0.1f, 0.2f);    // the rim round a screen (CrtUi.Begin)
+        public static Color Bg => hue < 0f ? new Color(0.012f, 0.03f, 0.085f) : Tinted(0.045f, 0.12f);  // the screen
+        public static Color Bezel => hue < 0f ? new Color(0.05f, 0.07f, 0.14f) : Tinted(0.1f, 0.2f);    // the rim round a screen (CrtUi.Begin)
 
-        /// A colour drawn for the blue theme, moved to the chosen phosphor: same brightness and alpha, the theme's hue.
+        /// A colour drawn for the blue theme, moved to the chosen phosphor: same brightness, saturation and alpha, the picked hue.
         public static Color T(Color c)
         {
-            if (theme == 0)
+            if (hue < 0f)
                 return c;
             Color.RGBToHSV(c, out _, out float s, out float v);
-            Color.RGBToHSV(Ink, out float ih, out float isat, out _);
-            var o = Color.HSVToRGB(ih, Mathf.Clamp01(s * isat / 0.6f), v);
+            var o = Color.HSVToRGB(hue, s, v);
             o.a = c.a;
             return o;
         }

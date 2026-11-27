@@ -108,7 +108,7 @@ static partial class Shot {
     if (Environment.GetEnvironmentVariable("RANDOM") == null) Game.SeedForTests(1);  // the same rolls every run, so uishots.sh -r can compare pixels (RANDOM=1: as random as the game)
     Shot.args = args; wave = int.Parse(args[1]); seconds = float.Parse(args[2]); players = int.Parse(args[3]);
     UnityEngine.Screen.width = 1280; UnityEngine.Screen.height = 720;
-    if (Environment.GetEnvironmentVariable("CRTTHEME") != null) CrtUi.Theme = int.Parse(Environment.GetEnvironmentVariable("CRTTHEME"));  // CRT colour (CrtUi.ThemeNames)
+    if (Environment.GetEnvironmentVariable("CRTHUE") != null) CrtUi.Hue = float.Parse(Environment.GetEnvironmentVariable("CRTHUE"), System.Globalization.CultureInfo.InvariantCulture);  // CRT colour: the shared hue (0..1; -1 the blue)
     host = new Session { AutoStart = players, StartWave = wave }; host.Game.Bot = true;
     PerfRunSetup();  // PERFRUN=: Quick Play on the Expanding arena (ShotPerf.cs)
     melee = Environment.GetEnvironmentVariable("KNIGHT") ?? Environment.GetEnvironmentVariable("NINJA") ?? Environment.GetEnvironmentVariable("BLOOD");

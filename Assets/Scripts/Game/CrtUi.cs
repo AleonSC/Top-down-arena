@@ -10,11 +10,10 @@ namespace Arena
     {
         // The colours and the CRT colour setting (Settings > Visual effects) live in CrtStyle.cs; these names are kept for the many
         // screens that use them.
-        public static string[] ThemeNames => CrtStyle.ThemeNames;
-        public static int Theme
+        public static float Hue
         {
-            get => CrtStyle.Theme;
-            set => CrtStyle.Theme = value;
+            get => CrtStyle.Hue;
+            set => CrtStyle.Hue = value;
         }
         static Color Bezel => CrtStyle.Bezel;
 

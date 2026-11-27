@@ -1267,7 +1267,7 @@ With **Visual effects** on, regular enemies stand out from the floor: a soft dar
 
 With **Visual effects** on, anything that moves fast leaves an **air trail**: two thin streamlines off its shoulders that wobble and fade. It follows speed: none at or below 110 px/s (Grunts, Brutes, bosses), light for mid speeds (a Tank or Healer walking is about 10-25%), and full at 330 px/s and up (Hive Bombers, dashes, hard knockback). Players, enemies and minions all get it. Not sent over the network.
 
-**CRT colour** (Settings > Visual effects, saved on this machine): tints the CRT screens (menus, lobby, profile, run summary) Blue (default), Green, Amber, Red, Violet or White. The role, class and rarity colours keep their own meaning and stay as they are.
+**CRT colour** (Settings > Visual effects, saved on this machine): a rainbow hue strip that tints the CRT screens (menus, lobby, profile, run summary) any hue; **RESET** brings back the blue. It's the same setting as the main menu's hue key, so the two move together. The role, class and rarity colours keep their own meaning and stay as they are.
 
 With **Visual effects** on, the Ninja's **Shadow Step** is smoke: you burst into puffs that split into two halves, each following a pale eye round one side of the enemy, and meet again behind it to re-form as you strike (you aren't drawn for the first third of a second; the step and its damage are instant as before). Off, it's the plain ring and slash. The two ends of the step are sent over the network (`FxKind.ShadowStep`).
 
@@ -1590,7 +1590,7 @@ horizon (bass at the screen's edges), and each beat flares the horizon, brighten
 floor (any track, your own too; still with effects off or the background STILL, half as strong on Reduced). The **lobby** and the space **behind runs** show your own pick from the Look window >
 Background. Turn on **Override menu background** there to show your pick on the main menu too.
 Bring the pointer to the main menu's **top right corner** and a hue key fades in: click it for a rainbow strip that turns the Holo
-Floor to any colour (kept between sessions; **RESET** brings back its red).
+Floor and the CRT colour to any hue (one setting with Settings > Visual effects > CRT colour; kept between sessions; **RESET** brings back the floor's red and the CRT's blue).
 The picks are quiet and **reactive** (they answer your pointer and clicks gently in the menus), with no lines or grids so they
 never fight the arena floor's grid: **Deep Field** (the free default: three layers of drifting stars the pointer tilts and
 brightens; a click makes the stars it passes flare), **Nebula Drift** (rank 29: slow clouds of blue and violet light that

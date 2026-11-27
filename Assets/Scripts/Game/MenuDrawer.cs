@@ -627,9 +627,13 @@ namespace Arena
             int dim = WinChoices(new Rect(x + half + 36f, y + 28f, half, 34f), FloorDimNames, floorDim, lightDim);
             if (dim != floorDim) { floorDim = dim; changed = true; }
             float cy = y + 80f;
-            WinLabel(new Rect(x, cy, w, 24f), "CRT colour", null, false);
-            int theme = WinChoices(new Rect(x, cy + 26f, w, 34f), CrtUi.ThemeNames, CrtUi.Theme);
-            if (theme != CrtUi.Theme) { CrtUi.Theme = theme; changed = true; }
+            WinLabel(new Rect(x, cy, w, 24f), "CRT colour", null, false);  // the menu hue (MenuBgHue.cs), shared with the main menu's hue key
+            float pick = MenuBgHue;
+            float to = HueStrip(new Rect(x, cy + 26f, w - 124f, 34f), pick, CrtBaseHue, ref crtHueDrag, true);
+            if (DkKey(new Rect(x + w - 112f, cy + 26f, 112f, 34f), "RESET", pick < 0f, FxCalm, size: 18))
+                to = -1f;
+            if (to != pick)
+                SetMenuBgHue(to);
             if (changed)
                 SaveFxSettings();
         }

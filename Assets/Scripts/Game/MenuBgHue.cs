@@ -2,32 +2,62 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// The main menu's background hue: a hue-wheel key in the screen's top right corner, hidden until the pointer comes near,
-    /// opens a rainbow strip that turns the Holo Floor's colours to any hue (pref "menu_bg_hue"; RESET goes back to its red).
+    /// The menu hue, one setting in two places: the main menu's hue-wheel key (top right corner, hidden until the pointer comes
+    /// near) and Settings > Visual effects > CRT colour. Its rainbow strip turns the Holo Floor's colours and the CRT phosphor
+    /// (CrtStyle.Hue) to any hue (pref "menu_bg_hue"; RESET goes back to the floor's red and the CRT's blue).
     public partial class ArenaApp
     {
         const float HoloBaseHue = 0.981f;   // the Holo Floor's own hue (its grid red, 353°)
-        float menuBgHue = -1f;              // the picked hue (0..1; -1: the floor's own red), kept in PlayerPrefs
-        bool menuBgHueLoaded, menuBgHueOpen, menuBgHueDrag;  // (read from PlayerPrefs; the strip open; its strip being dragged)
+        const float CrtBaseHue = 0.6f;      // the CRT's own blue (CrtStyle's BlueInk, 216°)
+        bool menuBgHueOpen, menuBgHueDrag, crtHueDrag;  // (the menu's strip open; it being dragged; Settings' strip being dragged)
         float menuBgHueShown;               // the key's fade (0 hidden .. 1 shown)
 
-        float MenuBgHue
-        {
-            get
-            {
-                if (!menuBgHueLoaded)
-                {
-                    menuBgHue = PlayerPrefs.GetFloat("menu_bg_hue", -1f);
-                    menuBgHueLoaded = true;
-                }
-                return menuBgHue;
-            }
-        }
+        /// The picked hue (0..1; -1: the floor's own red, the CRT's own blue).
+        static float MenuBgHue => CrtStyle.Hue;
 
         void SetMenuBgHue(float h)
         {
-            menuBgHue = h;
-            PlayerPrefs.SetFloat("menu_bg_hue", h);
+            CrtStyle.Hue = h;
+            PlayerPrefs.SetFloat("menu_bg_hue", CrtStyle.Hue);
+            SavePrefsSoon();  // (a slider: Menus.cs)
+        }
+
+        /// Loads the hue (LoadFxSettings); an old CRT colour choice (Green, Amber, Red, Violet) becomes its hue.
+        static void LoadMenuHue()
+        {
+            float h = PlayerPrefs.GetFloat("menu_bg_hue", -1f);
+            if (h < 0f)
+            {
+                int old = PlayerPrefs.GetInt("crt_theme", 0);
+                float[] oldHues = { -1f, 0.37f, 0.105f, 0f, 0.74f, -1f };  // Blue, Green, Amber, Red, Violet, White
+                h = oldHues[Mathf.Clamp(old, 0, oldHues.Length - 1)];
+            }
+            CrtStyle.Hue = h;
+        }
+
+        /// A rainbow strip to click or drag along, with a thumb on the picked hue (on idle when none is picked). Returns the new
+        /// hue (pick itself when untouched).
+        static float HueStrip(Rect strip, float pick, float idle, ref bool drag, bool live)
+        {
+            var e = Event.current;
+            const int Segs = 48;
+            for (int i = 0; i < Segs; i++)
+                Ui.Fill(new Rect(strip.x + strip.width * i / Segs, strip.y + 3f, strip.width / Segs + 0.5f, strip.height - 6f), HueSwatch((i + 0.5f) / Segs));
+            if (e.type == EventType.MouseUp)
+                drag = false;
+            if (live && e.type == EventType.MouseDown && e.button == 0 && strip.Contains(e.mousePosition))
+                drag = true;
+            float to = pick;
+            if (live && drag && (e.type == EventType.MouseDown || e.type == EventType.MouseDrag))
+            {
+                to = Mathf.Clamp01((e.mousePosition.x - strip.x) / strip.width);
+                e.Use();
+            }
+            float h = to < 0f ? idle : to;  // the thumb: a white frame round the hue
+            var th = new Rect(strip.x + strip.width * h - 3f, strip.y, 6f, strip.height);
+            Ui.Fill(th, HueSwatch(h));
+            Ui.RectEdge(th, 1.5f, Color.white.WithAlpha(to < 0f ? 0.5f : 1f));
+            return to;
         }
 
         /// The Holo Floor's colour c turned to the picked hue (c itself with no pick).
@@ -68,35 +98,21 @@ namespace Arena
             if (menuBgHueOpen)
                 DrawMenuBgHuePanel(panel, pick);
             else if (key.Contains(e.mousePosition))
-                Ui.Label(new Rect(key.x - 160f, key.y, 152f, Key), "BACKGROUND HUE", 10, CrtStyle.Ink.WithAlpha(0.85f), TextAnchor.MiddleRight, true);
+                Ui.Label(new Rect(key.x - 160f, key.y, 152f, Key), "MENU HUE", 10, CrtStyle.Ink.WithAlpha(0.85f), TextAnchor.MiddleRight, true);
             Ui.Alpha = oldA;
             if (menuBgHueOpen && e.type == EventType.MouseDown && !panel.Contains(e.mousePosition) && !key.Contains(e.mousePosition))
                 menuBgHueOpen = false;  // a click anywhere else shuts it
         }
 
-        /// The strip: a rainbow to drag along (the floor's hue follows live) and a RESET key (back to the floor's own red).
+        /// The strip: a rainbow to drag along (the floor's and the CRT's hue follow live) and a RESET key (back to their own red and blue).
         void DrawMenuBgHuePanel(Rect panel, float pick)
         {
-            var e = Event.current;
             Ui.Fill(panel, new Color(0f, 0f, 0f, 0.8f));
             Ui.RectEdge(panel, 1f, CrtStyle.Ink.WithAlpha(0.45f));
             var strip = new Rect(panel.x + 8f, panel.y + 8f, panel.width - 74f, panel.height - 16f);
-            const int Segs = 48;
-            for (int i = 0; i < Segs; i++)
-                Ui.Fill(new Rect(strip.x + strip.width * i / Segs, strip.y + 3f, strip.width / Segs + 0.5f, strip.height - 6f), HueSwatch((i + 0.5f) / Segs));
-            if (e.type == EventType.MouseDown && e.button == 0 && strip.Contains(e.mousePosition))
-                menuBgHueDrag = true;
-            if (e.type == EventType.MouseUp)
-                menuBgHueDrag = false;
-            if (menuBgHueDrag && (e.type == EventType.MouseDown || e.type == EventType.MouseDrag))
-            {
-                SetMenuBgHue(Mathf.Clamp01((e.mousePosition.x - strip.x) / strip.width));
-                e.Use();
-            }
-            float h = pick < 0f ? HoloBaseHue : pick;  // the thumb: a white frame round the floor's hue
-            var th = new Rect(strip.x + strip.width * h - 3f, strip.y, 6f, strip.height);
-            Ui.Fill(th, HueSwatch(h));
-            Ui.RectEdge(th, 1.5f, Color.white);
+            float to = HueStrip(strip, pick, HoloBaseHue, ref menuBgHueDrag, true);
+            if (to != pick)
+                SetMenuBgHue(to);
             var reset = new Rect(panel.xMax - 60f, panel.y + 6f, 52f, panel.height - 12f);
             if (DkKey(reset, "RESET", Ui.Neutral, pick < 0f, 10))
                 SetMenuBgHue(-1f);
