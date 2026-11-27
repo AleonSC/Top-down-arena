@@ -81,9 +81,18 @@ static partial class Program
         var clientOrbIds = new HashSet<int>();
         int orbsHost = 0, orbsClient = 0;
         var recentEnemies = new Queue<int>();  // the host's enemy count over the last few ticks (a snapshot goes every 3)
+        var lastRerolls = new Dictionary<int, int>();
+        int rerollsUsed = 0;  // every drop in a player's rerolls (Field Training gives Soldiers more each wave, so not start minus end)
         for (int i = 0; i < seconds * 60; i++)
         {
             Step(host, dt);
+            foreach (var hp in host.Game.Players.Values)
+            {
+                int was;
+                if (lastRerolls.TryGetValue(hp.Id, out was) && hp.Rerolls < was)
+                    rerollsUsed += was - hp.Rerolls;
+                lastRerolls[hp.Id] = hp.Rerolls;
+            }
             recentEnemies.Enqueue(host.Game.Enemies.Count);
             if (recentEnemies.Count > 4)
                 recentEnemies.Dequeue();
@@ -156,12 +165,8 @@ static partial class Program
         }
         Check(sameUpgrades, "host and client agree on levels and picked upgrades");
         bool sameRerolls = true;
-        int rerollsUsed = 0;
         foreach (var hp in host.Game.Players.Values)
-        {
             sameRerolls &= hp.Rerolls == client.Game.Players[hp.Id].Rerolls;
-            rerollsUsed += Game.StartingRerolls - hp.Rerolls;
-        }
         Console.WriteLine("  rerolls used: {0}", rerollsUsed);
         Check(sameRerolls && rerollsUsed > 0, "rerolls get used and stay in sync");
         Check(host.Game.Players[1].Level > 1, "players levelled up");
