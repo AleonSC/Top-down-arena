@@ -92,7 +92,8 @@ namespace Arena
             p.Run.DamageTaken += Math.Min(amount, Math.Max(0f, p.Hp));
             DamageEvent?.Invoke(p, Math.Min(amount, Math.Max(0f, p.Hp)), source);
             lastTaken = Math.Max(0f, amount);
-            p.Wound = Math.Min(p.MaxHp * WoundCap, p.Wound + WoundShare * Math.Min(amount, Math.Max(0f, p.Hp)));  // a share no heal brings back until a boss falls or a shrine, Medic or Rest clears it (capped)
+            if (!IsHemomancer(p))  // a Hemomancer never takes wounds (owner Nov 26): its health is its resource
+                p.Wound = Math.Min(p.MaxHp * WoundCap, p.Wound + WoundShare * Math.Min(amount, Math.Max(0f, p.Hp)));  // a share no heal brings back until a boss falls or a shrine, Medic or Rest clears it (capped)
             p.Hp -= amount;
             p.InvulnT = D(DiffKnob.HitGrace);
             p.Flash = 0.1f;

@@ -231,7 +231,7 @@ namespace Arena
             bool tabKey = UpdatePauseStates(me);
             UpdateWikiKey();  // the Wiki key: tap for the wiki, hold for the eyedropper (WikiPick.cs)
             bool menuUp = pauseMenuOpen || (game.Paused && !tabPaused) || ModalScreenOpen;
-            bool choosing = me != null && me.Offer != null && !menuUp && !game.PickHeld(me);  // (cards held back while enemies are near: Game.PickHeld)
+            bool choosing = me != null && me.Offer != null && !menuUp && !game.PickHeld(me) && !LaunchHoldsPicker;  // (cards held back while enemies are near: Game.PickHeld)
             UpdatePointerAndBlocking(me, tabKey, menuUp, choosing);
             if (!menuUp)
                 ReadPlayKeys();

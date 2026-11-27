@@ -54,7 +54,7 @@ static partial class Program
         float ripped = near.MaxHp - near.Hp, ripFar = far.MaxHp - far.Hp;
         Console.WriteLine("  harvest: blood {0:0.0} (expected {1:0.0}); near took {2:0.0}, far {3:0.0}", me.HarvestBlood, expect, ripped, ripFar);
         Check(Math.Abs(me.HarvestBlood - expect) < 0.01f, "the ball holds the blood of every enemy in the arena");
-        Check(Math.Abs(ripped - Game.HarvestRipDmg * me.Stats.DmgMult) < 0.5f && Math.Abs(ripFar - ripped) < 0.5f, "each enemy, near or far, takes 20");
+        Check(Math.Abs(ripped - Game.HarvestRipDmg * me.Stats.DmgMult * Might) < 0.5f && Math.Abs(ripFar - ripped) < 0.5f, "each enemy, near or far, takes 20");
         Check(Game.HarvestHolding(me) && Game.HarvestLeft(me) > 4.5f, "the hold begins when the rip ends");
         Check(Math.Abs(me.Speed - me.Def.Speed * me.Stats.SpeedMult * Defs.KitSpeedMult(me.Kit) * Game.HarvestSlow) < 0.5f, "you move at 60% speed while the ball is up");
         for (int f = 0; f < 0.5f / dt; f++) { foreach (var kv in spots) kv.Key.Pos = kv.Value; me.Pos = mePos; me.Hp = me.MaxHp; host.Poll(); client.Poll(); g.FixedStep(dt, new PlayerInput { AimAt = aim }); }
@@ -62,7 +62,7 @@ static partial class Program
         Check(Game.HarvestRadius(46f) > Game.HarvestRadius(4f) && Game.HarvestBallR(46f) > Game.HarvestBallR(4f) && Game.HarvestDamage(46f) > Game.HarvestDamage(4f), "more blood: a bigger ball and a bigger blast");
 
         // The throw: a second press lands it at the cursor. Core takes full damage, the edge half, outside nothing.
-        float R = Game.HarvestRadius(me.HarvestBlood), D = Game.HarvestDamage(me.HarvestBlood) * me.Stats.DmgMult;
+        float R = Game.HarvestRadius(me.HarvestBlood), D = Game.HarvestDamage(me.HarvestBlood) * me.Stats.DmgMult * Might;
         g.Enemies.Clear(); spots.Clear(); g.Effects.Clear();
         V2 land = aim;
         var core = pin(land, EnemyType.Grunt); var edge = pin(land + new V2(R * 0.9f, 0f), EnemyType.Grunt); var outside = pin(land + new V2(0f, R + 120f), EnemyType.Grunt);

@@ -136,7 +136,7 @@ static partial class Program
         drained.Hp = drained.MaxHp;
         step(2f, false);
         float lost = drained.MaxHp - drained.Hp;
-        Check(lost > 10f && lost < 18f, "mastered: the veins drain about 6 a second, Blood Price on top (" + lost.ToString("0.0") + " in 2 s)");
+        Check(lost > 10f * Might && lost < 18f * Might, "mastered: the veins drain about 6 a second, Blood Price on top (" + lost.ToString("0.0") + " in 2 s)");
 
         // Bloodroot: +20% reach and 3 s longer.
         reset();

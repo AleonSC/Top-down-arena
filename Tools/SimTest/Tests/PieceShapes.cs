@@ -160,6 +160,30 @@ static partial class Program
         }
     }
 
+    // The starting piece pick comes as the run starts, before wave 1: the opening countdown waits for it, then runs Game.OpeningCountdown.
+    static void StartPickOpeningTest(float dt)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        int port = nextPort++;
+        var host = HostAs(new Session { AutoStart = 2, StartWave = 1 }, port, false, "Host", Role.Tank);
+        host.Diff.Set(DiffKnob.ArenaExpanding, 1f);
+        var client = JoinAs(port, false, "Friend", Role.Dps);
+        var s = new[] { host, client };
+        WaitForGame(host, client, dt);
+        var g = host.Game; var cg = client.Game;
+        Check(g.ExpandingOn && g.State == MatchState.Intermission && g.Players.Values.All(p => p.StartPick && p.OfferStart && p.Offer != null && p.Offer.Length == 2 && Game.HandCount(p) == 0),
+            "the run starts with each player's starting pick up (two pieces), before wave 1");
+        Run(s, dt, Game.StartDelay + 2f, null, null);
+        Check(g.State == MatchState.Intermission && g.StateTimer > Game.OpeningCountdown - 0.01f && cg.Players[2].OfferStart, "the opening countdown waits while anyone picks (" + g.StateTimer.ToString("0.0") + " s), and the friend's game sees the pick");
+        foreach (var id in g.Players.Keys.ToList())
+            typeof(Game).GetMethod("HostPick", flags).Invoke(g, new object[] { id, 0, 0 });
+        Check(g.Players.Values.All(p => Game.HandCount(p) == 1 && !p.StartPick && !p.OfferStart && p.PendingCards == 0), "each pick starts that player's hand");
+        Run(s, dt, 0.2f, null, null);
+        Check(g.State == MatchState.Intermission && g.StateTimer <= Game.OpeningCountdown + 0.01f, "then GET READY counts down from " + Game.OpeningCountdown + " s (" + g.StateTimer.ToString("0.0") + ")");
+        Run(s, dt, Game.OpeningCountdown + 1f, () => g.State == MatchState.Fighting, null);
+        Check(g.State == MatchState.Fighting && g.Wave == 1, "and wave 1 starts");
+    }
+
     static void PieceShapesGameTest(float dt)
     {
         var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
