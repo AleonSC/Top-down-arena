@@ -364,6 +364,7 @@ namespace Arena
             UpdateFloodSound();  // FloodLook.cs: Flood's stamp, lapping and drain
             UpdateCoverSound();  // DeployableCoverLook.cs: Deployable Cover's build and break
             UpdateDecoySound();  // DecoyDummyLook.cs: Decoy Dummy's throw, squeaks, pop and deflate
+            UpdateConduitWebLook(dt);  // ConduitWebLook.cs: each wired enemy's heat and sparks
             UpdateStaticShockLook(dt);  // StaticShockLook.cs: sparks off wired enemies and the Arc Cannon, Overcharge trails
 
             JuiceNewEffects(me);
@@ -1223,6 +1224,7 @@ namespace Arena
             DrawTessenGlow();  // the Twin Tessen's gust and full Breeze (TwinTessenLook.cs)
             DrawHeartGlow();  // the Heart Flail's beating heart and Cardiac Burst (HeartFlailLook.cs)
             DrawHiveGlow();  // the Hive Censer's insects (HiveCenserLook.cs)
+            DrawConduitWebGlow();  // Conduit Web's field, circuit and gold bolts (ConduitWebLook.cs)
             DrawStaticShockGlow();  // Static Shock's cone, circuit, Overcharge and Arc Cannon (StaticShockLook.cs)
             DrawBloodBlastGlow();  // the Blood Blast's Cleave, Tide and returning blood (BloodBlastLook.cs)
             DrawFrostLanceGlow();  // the Frost Lance's head, slams, shatters and Absolute Zero (FrostLanceLook.cs)
@@ -1230,8 +1232,10 @@ namespace Arena
             DrawSiegeBellGlow();  // Siege Bell's halo and shockwave (SiegeBellLook.cs)
             DrawCannonGlow();  // Cannon Call's flare, fuse and slam flash (CannonCallLook.cs)
             DrawOrbitalGlow();  // Orbital Laser's lock-on, beam and crater (OrbitalLaserLook.cs)
+            DrawLanceRainGlow();  // Holy Lance Rain's falling spears, flashes and healing glows (HolyLanceRainLook.cs)
             DrawDragonsDogmaGlow();  // Dragon's Dogma's light (DragonsDogmaLook.cs)
             DrawRodGlow();    // Lightning Rod's charge and bolts (LightningRodLook.cs)
+            DrawEyeOfCalmGlow();  // Eye of Calm's eye and gust (EyeOfCalmLook.cs)
             DrawStaticBubbleGlow();  // Static Bubble, its burst and Static Rush (StaticBubbleLook.cs)
             DrawLivingBoltGlow();  // Living Bolt's charge, dashes and residue (LivingBoltLook.cs)
             DrawBoilGlow();  // Blood Boil's heat and its end (BloodBoilLook.cs)

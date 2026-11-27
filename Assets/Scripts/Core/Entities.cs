@@ -73,6 +73,7 @@ namespace Arena
         Drain,
         EmbolusBlast,
         Exsanguinate,
+        EyeGust,  // EyeGust: an Eye of Calm's final gust (Pos = the caster, Pos2 = (their id, 1 mastered / 0), Radius = the wall's reach; Core/EyeOfCalm.cs, Game/EyeOfCalmLook.cs)
         FistShove,
         FlashFire,  // FlashFire: the DPS Elementalist's Flash Fire for its life (Pos = the middle, Pos2 = (the caster's id, the fire's life), Radius = its radius; Core/FlashFire.cs, Game/FlashFireLook.cs)
         ForbiddenPath,
@@ -106,6 +107,8 @@ namespace Arena
         HeatDump,
         HiveCall,  // HiveCall: the Hive Censer's Alt calling every swarm of a player to a spot (Pos = the spot, Pos2.X = their id, Radius = the ring's size, Dur = Game.HiveCallTime; Core/HiveCenser.cs, Game/HiveCenserLook.cs)
         HolyCross,
+        HolyLanceRain,  // Holy Lance Rain's circle round the caster (HolyLanceRain.cs, HolyLanceRainLook.cs)
+        HolyLanceSpear,  // one spear of Holy Lance Rain: its warning, fall, impact and healing glow
         HoneyHarvest,
         Implode,
         IonTrail,
@@ -913,6 +916,14 @@ namespace Arena
         public float SwallowT;      // inside the Devourer: hidden, can't fire or be hit from outside (replicated; your own game holds you in it)
         public float UltT;                     // ultimate time left (Fortress: its dome's time, too)
         public float RodT;                     // Lightning Rod: seconds of charge left (replicated; LightningRod.cs)
+        public float EyeT, EyeAge, EyeWallR;  // Eye of Calm (EyeOfCalm.cs), replicated: time left (0 = off), seconds since the cast, the wall's full reach
+        public float EyeTickT, EyeHumT, EyeHealed;  // host: the damage tick's clock, the hum's, HP healed this run (tests)
+        public float CwT, CwLen, CwR;  // Conduit Web (ConduitWeb.cs), replicated: time left (0 = off), its length, the field's full reach
+        public float CwPulseT, CwHealed;  // host: until the next pulse, HP healed this run (tests)
+        public bool CwUp, CwMastered;  // host
+        public int CwWired, CwPulses, CwMostWired;  // host: enemies wired, pulses, most wired at once this run (tests)
+        public bool EyeUp, EyeMastered;  // host (EyeUp: it blows, so it gusts when it ends)
+        public int EyeHits, EyeSwept, EyeFlung;  // host: damage hits landed, shots gone, enemies caught in the gust (tests)
         public float VortexT, VortexAge, VortexR;  // Vortex (Vortex.cs), replicated: time left (0 = off), seconds since the cast, its radius
         public float VortexTickT, VortexHumT;  // host: the damage tick's clock, the hum's
         public bool VortexUp, VortexMastered;  // host (VortexUp: it blows, so it flings when it ends)
@@ -923,6 +934,10 @@ namespace Arena
         public int ArmHits, ArmBashes, ArmRicochets, ArmSlams;  // host: counts (tests)
         public float BoltT, BoltAge;  // Living Bolt (LivingBolt.cs), replicated: time left (the channel included; 0 = off), seconds since the cast
         public float BoltLockT;       // host: until the next dash is taken
+        public float GlvT, GlvAge, GlvPunch;  // Rock Gloves (RockGloves.cs), replicated: time left (the gather included; 0 = off), seconds since the cast, the punch number + its swing 0..1
+        public float GlvCd, GlvSwingT = -1f;  // host: until the next punch is taken, the swing's clock (-1 = none)
+        public int GlvStep, GlvJabs, GlvHays, GlvHits;  // host: punches thrown; jabs, Haymakers and enemy hits this run (tests)
+        public bool GlvUp, GlvMastered;       // host (GlvUp: the fists are out, so they crumble when GlvT runs out)
         public bool BoltUp, BoltMastered;  // host (BoltUp: electrified, so it ends with the discharge)
         public float RvT, RvLen;  // Blood Ravager (BloodRavager.cs), replicated: seconds since the cast (0 = off), its length
         public float RvPw, RvLashCd;  // host: the ultimate's power at the cast, until the next lash is taken
@@ -1210,7 +1225,7 @@ namespace Arena
         public float RiotT;  // Riot Gear: seconds until the shield is back, 0 = ready (RiotGear.cs)
         public readonly AbilitySlot[] Slots = { new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot(), new AbilitySlot() };  // Upgrades.SlotCount
 
-        public float Speed => Def.Speed * Stats.SpeedMult * Game.MomentumMult(this) * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (OverchargeT > 0f ? Game.OverchargeMove : 1f) * (Game.Supplied(this) ? Game.SupplyMove : 1f) * Game.GustMult(GustT) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (CaltropT > 0f ? Game.CaltropSpeed : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (RepelPull ? Game.RepelPullSelfSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (NunGuard ? Game.NunGuardSlow : 1f) * (NodStance == 1 && Weapon.Id == WeaponId.Nodachi ? Game.NodGuardSlow : 1f) * (VgStance == 1 && Weapon.Id == WeaponId.Vowguard ? Game.VgSanctSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f) * Game.ColSpeed(this) * Game.GolSpeed(this) * Game.SpSpeed(this) * Game.BoltSpeed(this) * Game.RodentSpeed(this) * Game.RavagerSpeed(this) * Game.BoilSpeedMult(this) * (TankT > 0f ? Game.TankSlow : 1f) * (Game.RocketOn(this) ? Game.RocketSlow : 1f) * (Game.FoamOn(this) ? Game.FoamSlow : 1f) * (WcTempestT > 0f ? Game.TempestSlow : 1f) * (FlZeroT > Game.ZeroDur - Game.ZeroCharge ? Game.ZeroSlow : 1f) * (TitheClock > 0f ? Game.TitheSlow : 1f) * (BbBrace ? Game.BraceSlow : 1f) * (HbSet ? Game.PikeSlow : 1f) * (ShardGuard ? Game.ShardGuardSlow : 1f) * (TpLaserT > 0f ? Game.TpLaserSlow : 1f) * (Game.EnergyDrinkOn(this) ? Game.EnergySpeed : 1f) * (PvpSlowT > 0f ? PvpSlowMult : 1f) * Game.FpSpeed(this) * Game.ApSpeed(this) * Game.StaticRushSpeed(this) * (TtCharging ? Game.TtChargeSlow : 1f) * (TtTailT > 0f ? Game.TtTailSpeed : 1f) * Game.CrMoveMult(this);
+        public float Speed => Def.Speed * Stats.SpeedMult * Game.MomentumMult(this) * Defs.KitSpeedMult(Kit) * (AdrenalineT > 0f ? Game.AdrenalineSpeed : 1f) * (OverchargeT > 0f ? Game.OverchargeMove : 1f) * (Game.Supplied(this) ? Game.SupplyMove : 1f) * Game.GustMult(GustT) * (DashT > 0f ? Game.HealDashSpeed : 1f) * (SwiftT > 0f ? Game.HolySwiftMult : 1f) * (CaltropT > 0f ? Game.CaltropSpeed : 1f) * (HarvestHold > 0f ? Game.HarvestSlow : 1f) * (RepelPull ? Game.RepelPullSelfSlow : 1f) * (RapierGuard ? Game.RapierStanceSlow : 1f) * (KusariWhirl ? Game.KusariWhirlSlow : 1f) * (NunGuard ? Game.NunGuardSlow : 1f) * (NodStance == 1 && Weapon.Id == WeaponId.Nodachi ? Game.NodGuardSlow : 1f) * (VgStance == 1 && Weapon.Id == WeaponId.Vowguard ? Game.VgSanctSlow : 1f) * (JuggT > 0f ? Game.JuggSlow : 1f) * Game.ColSpeed(this) * Game.GolSpeed(this) * Game.SpSpeed(this) * Game.BoltSpeed(this) * Game.GlvSpeed(this) * Game.RodentSpeed(this) * Game.RavagerSpeed(this) * Game.BoilSpeedMult(this) * (TankT > 0f ? Game.TankSlow : 1f) * (Game.RocketOn(this) ? Game.RocketSlow : 1f) * (Game.FoamOn(this) ? Game.FoamSlow : 1f) * (WcTempestT > 0f ? Game.TempestSlow : 1f) * (FlZeroT > Game.ZeroDur - Game.ZeroCharge ? Game.ZeroSlow : 1f) * (TitheClock > 0f ? Game.TitheSlow : 1f) * (BbBrace ? Game.BraceSlow : 1f) * (HbSet ? Game.PikeSlow : 1f) * (ShardGuard ? Game.ShardGuardSlow : 1f) * (TpLaserT > 0f ? Game.TpLaserSlow : 1f) * (Game.EnergyDrinkOn(this) ? Game.EnergySpeed : 1f) * (PvpSlowT > 0f ? PvpSlowMult : 1f) * Game.FpSpeed(this) * Game.ApSpeed(this) * Game.StaticRushSpeed(this) * Game.EyeSpeed(this) * (TtCharging ? Game.TtChargeSlow : 1f) * (TtTailT > 0f ? Game.TtTailSpeed : 1f) * Game.CrMoveMult(this);
         public float BarrierRadius => Game.BarrierRadius * Stats.BarrierRadiusMult;
         public float AuraRange => Game.AuraRange * Stats.AuraRangeMult;
     }

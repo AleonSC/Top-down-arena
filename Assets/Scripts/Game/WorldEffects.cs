@@ -63,6 +63,8 @@ namespace Arena
             d[(int)FxKind.WarhornVolley] = (fx, f, t) => DrawWarhornGround(fx);  // WarhornVolleyLook.cs
             d[(int)FxKind.CannonCall] = (fx, f, t) => DrawCannonGround(fx);  // CannonCallLook.cs
             d[(int)FxKind.OrbitalLaser] = (fx, f, t) => DrawOrbitalGround(fx);  // OrbitalLaserLook.cs
+            d[(int)FxKind.HolyLanceRain] = (fx, f, t) => DrawLanceRainGround(fx);  // HolyLanceRainLook.cs
+            d[(int)FxKind.HolyLanceSpear] = (fx, f, t) => DrawLanceRainGround(fx);
             d[(int)FxKind.Airstrike] = (fx, f, t) => DrawAirstrikeFx(fx);  // AirstrikeLook.cs
             d[(int)FxKind.BsBlow] = (fx, f, t) => DrawBsBlowFx(fx);  // BloodBrawlerLook.cs
             d[(int)FxKind.EmbolusBlast] = (fx, f, t) => DrawEmbolusBlastFx(fx);  // EmbolusLook.cs
@@ -91,6 +93,7 @@ namespace Arena
             d[(int)FxKind.AbsoluteZero] = (fx, f, t) => DrawAbsoluteZeroFx(fx);  // FrostLanceLook.cs
             d[(int)FxKind.HalberdStep] = (fx, f, t) => DrawHalberdStepFx(fx, false);  // HalberdLook.cs
             d[(int)FxKind.HalberdPoke] = (fx, f, t) => DrawHalberdPokeFx(fx, false);  // HalberdLook.cs
+            d[(int)FxKind.EyeGust] = (fx, f, t) => DrawEyeGustFx(fx);  // EyeOfCalmLook.cs
             d[(int)FxKind.VortexWisp] = (fx, f, t) => DrawVortexWispFx(fx);  // VortexLook.cs
             d[(int)FxKind.LivingBolt] = (fx, f, t) => DrawLivingBoltFx(fx);
             d[(int)FxKind.StaticBurst] = (fx, f, t) => DrawStaticBurstFx(fx);  // StaticBubbleLook.cs  // LivingBoltLook.cs

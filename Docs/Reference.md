@@ -16,7 +16,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 
 | Class | Health | Speed | About |
 |---|---|---|---|
-| Soldier | x1 | x1 | Guns and gear. Straightforward firearms with an Alt trick each (a point-blank shell, a proximity mine, a grenade volley) and field kit for abilities. Full health and normal speed: the steady pick. |
+| Soldier | x1 | x1 | Guns and gear. Straightforward firearms with an Alt trick each (a point-blank shell, a proximity mine, a grenade volley) and field kit for abilities. Field Training: every level-up offer shows 1 more card, and each wave gives a free reroll (up to 3 held). Full health and normal speed: the steady pick. |
 | Elementalist | x0.85 | x1 | Spells of fire, frost, lightning, water, wind, earth and light. Elements combine: soaked enemies conduct lightning, earth cracks enemies so they take more damage (and frozen ones shatter), light dazzles them so their shots go wide. Big area damage, at 85% health. |
 | Summoner | x0.9 | x1 | Fights through minions. Your weapon brings its own creatures (wolves, wisps, imps, bees) that hunt, bite and soak hits, and they stay with you between waves. Point them at what matters. 90% health. |
 | Knight | x1.05 | x1 | Melee. Holding fire swings instead of shooting, hitting every enemy in the arc and cutting small bullets out of the air in front of you (big orbs, mines and red aimed shots still get through). Armoured for the thick of it: 105% health plus Chainmail, a 15-point shield that takes half of every hit and refills 3 s after the last one (on a Tank it adds to Ironhide). A bigger parry shield: 30% wider and reaching further out. |
@@ -219,6 +219,8 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Lumen Ward | Healer | 1st, choice 3 | 20 s | - | Also freezes enemies outside the light for as long as it lasts (not bosses). | A cone of light that heals allies and burns away enemy bullets. |
 | Sanctum | Healer | ultimate | 80 s | - | The dome is half again as wide (300 px). | A dome of light that blocks bullets, keeps allies up and heals them. |
 | Static Bubble | Healer | ultimate | 80 s | - | The burst reaches 240 px, and Static Rush lasts 8 s. | A bubble of static round you shoves enemies out, eats their shots and shields allies inside. What it touches feeds it until it bursts: Static Rush for everyone in the blast. |
+| Eye of Calm | Healer | ultimate | 85 s | - | The wall reaches 335 px instead of 280, and the final gust hits for 80. | A hurricane round you for 10 s: its wall grinds enemies and sweeps their shots away, and allies in its calm eye heal 12 a second, safe from bullets. It ends in a gust that flings them out. |
+| Conduit Web | Healer | ultimate | 80 s | - | The field reaches 420 px and lasts 6 s. | A 330 px field of static round you for 4 s: three conduits from your hand chain through every enemy in it, holding them stunned and shocking them harder the longer they're wired. Teammates in it heal 5 every half second. |
 | Water Ward | Healer | 1st, choice 5 | 3 s | - | Splashes and bursts reach 40% farther. | Water drops orbit you and splash enemies and eat shots. |
 | Meteor | Dps | 1st, choice 1 | 10 s | - | Leaves burning ground for 3 s. | Call a meteor down at your cursor. |
 | Blizzard | Dps | 1st, choice 2 | 14 s | - | Lasts 10 s. | A storm at your cursor that slows and damages enemies. |
@@ -226,6 +228,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Bullet Rain | Dps | ultimate | 70 s | - | Lasts 9 s. | A downpour of needles that hurts and soaks everything in a big square. |
 | Living Bolt | Dps | ultimate | 80 s | - | Lasts 13 s and the trail stays 5 s. | Become lightning for 10 s: every click blinks you to the cursor, shocking all you pass and leaving a live trail. |
 | Flash Fire | Dps | ultimate | 80 s | - | The fire burns 11 s. | A ring of fire rolls out around you and the ground burns for 8 s, hurting and slowing enemies; when it goes out they're left burning. |
+| Rock Gloves | Dps | ultimate | 80 s | - | Lasts 13 s and the Haymaker hits 25% wider. | Earth builds two giant floating fists for 10 s: hold Fire for rapid punches, and every 8th is a both-fisted Haymaker. |
 | Gale Wall | Dps | 1st, choice 5 | 18 s | - | The wall is 40% wider and holds up to 60 charges. | A wind wall that traps enemy shots, then unleashes them as a blast. |
 
 ### Summoner
@@ -271,6 +274,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Lay on Hands | Healer | 1st, choice 3 | 18 s | - | Also heals everyone else near them for half as much. | Heal the most hurt ally, or revive a downed one. |
 | Hallowed Blade | Healer | ultimate | 80 s | - | Three swords fall: one at your cursor and one either side. | A giant holy sword lands, healing allies and burning enemies for a while. |
 | Pilgrim's Standard | Healer | ultimate | 80 s | - | Allies inside heal 5% a second. | Plant a standard for 60 s: allies inside heal 4% of their max health a second. Press again to lift it. |
+| Holy Lance Rain | Healer | ultimate | 80 s | - | 32 spears instead of 24, and the glows last 6 s. | Spears of light rain down all around you for 3 s: each hurts the enemies where it lands and leaves a small healing glow. |
 | Sanctum Glass | Healer | 1st, choice 5 | 16 s | - | The pane is 40% wider and its motes heal 50% more. | Raise a pane of stained glass ahead that turns enemy shots passing through into healing. |
 | Bladed Dive | Dps | 1st, choice 1 | 10 s | - | Each kill heals you 5% of your health. | Rush forward untouchable with a spinning blade; a kill resets the cooldown. |
 | The Gauntlet | Dps | 1st, choice 2 | 9 s | - | The Challenge lasts 8 s, and the charge's impact stuns for 1 s. | Challenge an enemy and charge it; kill it in time to reset the cooldown. |

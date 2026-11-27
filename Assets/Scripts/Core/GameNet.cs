@@ -591,7 +591,10 @@ namespace Arena
             SyncKnight(s, p);  // Knight.cs
             s.Float(ref p.RodT);    // Lightning Rod's charge (LightningRod.cs)
             SyncVortex(s, p);  // Vortex.cs
+            SyncEye(s, p);  // EyeOfCalm.cs
+            SyncConduitWeb(s, p);  // ConduitWeb.cs
             SyncLivingBolt(s, p);  // LivingBolt.cs
+            SyncRockGloves(s, p);  // RockGloves.cs
             SyncArmadillo(s, p);  // IronArmadillo.cs
             SyncRavager(s, p);  // BloodRavager.cs
             SyncTrojanHorse(s, p);  // TrojanHorse.cs
