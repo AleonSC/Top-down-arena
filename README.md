@@ -48,7 +48,7 @@ no hover tips.
 - **Soldier**: guns and gear, full health.
 - **Elementalist**: spells (fire, frost, lightning, water, wind, earth and light), 85% health.
 - **Summoner**: minions that come with your weapon (they stay between waves), 90% health.
-- **Knight**: melee weapons that cut small bullets out of the air, armoured: 115% health (see below).
+- **Knight**: melee weapons that cut small bullets out of the air, armoured: 105% health plus a 15-point Chainmail shield, and a bigger parry shield (see below).
 - **Ninja**: thrown blades and quick melee with tricks and misdirection; fast (+12% move speed), 85% health (see
   below).
 - **Hemomancer**: blood spells that drain and heal; every 1st ability costs health, it deals 15% more damage, hits harder the lower its
@@ -79,7 +79,7 @@ unless you give one the Wildcard role by hand. Design notes: [`Docs/Wildcard.md`
 Generic upgrades (damage, fire rate, cooldowns, Extra Use, legendary cards) work for every class; minions
 use your damage and attack-speed bonuses too.
 
-**Tanks** (every class): **Ironhide**, the role passive. A 25-point shield takes **half of every hit** and your health takes the rest, so wounds still build but slower (it comes after an ability's shield, before a shrine's health past max). It refills at 25 a second once you've gone 3 s without taking damage; going down empties it, and you start every run with it full. Five steel plates on a ring round you show it (spent plates go faint, the one refilling grows back, and the ring flashes out when it breaks), with a steel "+25" beside your health (dim while the refill waits) and a steel stripe on the party health bars. A Wildcard has no Ironhide.
+**Tanks** (every class): **Ironhide**, the role passive. A 25-point shield takes **half of every hit** and your health takes the rest, so wounds still build but slower (it comes after an ability's shield, before a shrine's health past max). It refills at 25 a second once you've gone 3 s without taking damage; going down empties it, and you start every run with it full. Five steel plates on a ring round you show it (spent plates go faint, the one refilling grows back, and the ring flashes out when it breaks), with a steel "+25" beside your health (dim while the refill waits) and a steel stripe on the party health bars. A Wildcard has no Ironhide. Knights (every role) add their 15-point Chainmail to the same shield.
 
 **Ironhide cards** (Tanks only):
 
@@ -103,8 +103,10 @@ back up at 50% (the ward is a halo of 12 blood beads turning round them, one goi
 
 Knights fight up close. Holding fire **swings** instead of shooting: each swing hits every enemy in its arc
 (the Rapier only the nearest), and **cuts small bullets out of the air** in front of you. Big orbs and mines get
-through, and bosses' red aimed shots always do. Knights have 115%
-health to make up for standing in the thick of it.
+through, and bosses' red aimed shots always do. Knights have 105% health plus **Chainmail**: a 15-point shield that
+works like Ironhide (it takes half of every hit and refills at 25 a second 3 s after the last one; on a Tank Knight it
+adds to Ironhide for 40, and Shared Plating doesn't halve it). Their **parry shield** is 30% wider and sticks out
+32 px instead of 20.
 
 | | Weapons | 1st abilities | Ultimate |
 |---|---|---|---|
@@ -390,7 +392,7 @@ by, with a soft "tsip" on your screen, and your ultimate's key flashes pale blue
 
 ### Parry
 
-Hold **right click** (or your Parry key) to raise a small shield on the side facing your cursor. It blocks enemy bullets from that side
+Hold **right click** (or your Parry key) to raise a small shield on the side facing your cursor (a Knight's is 30% wider and reaches further out). It blocks enemy bullets from that side
 (including the red aimed shots that barriers can't stop) and melee enemies that run into it, sliding them back 45 px.
 A weapon strike (an Acolyte's sickle, a Scythe Wraith's reap) is blocked whenever the shield faces the
 striker, however far its blade reaches, and throws the striker back 120 px (armoured enemies and bosses stand firm). While

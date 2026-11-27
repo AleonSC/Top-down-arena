@@ -360,7 +360,7 @@ namespace Arena
                         continue;
                     float d = p.Pos.DistanceTo(e.Pos);
                     // A perfect parry as it arrives knocks it off balance (ParryContact still blocks the hit).
-                    if (p.ParryActive && d < e.Radius + p.Def.BodyR + ParryReach + 6f && InParryArc(p, e.Pos, e.Radius) && PerfectNow(p))
+                    if (p.ParryActive && d < e.Radius + p.Def.BodyR + ParryReachOf(p) + 6f && InParryArc(p, e.Pos, e.Radius) && PerfectNow(p))
                     {
                         s.StaggerT = StaggerTime;
                         s.Dash = DuelDash.None;

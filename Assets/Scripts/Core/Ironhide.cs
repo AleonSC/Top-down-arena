@@ -10,21 +10,27 @@ namespace Arena
     /// Cards (Tank only): Iron Plates (+IronPlatesBonus), Quick Refit (the wait IronRefitCut shorter, the refill
     /// IronRefitRegen faster) and Shared Plating (your whole shield halved, so every plate counts half; every other player
     /// gets a fixed IronShareGift shield that works like Ironhide at the base share, wait and refill; it never stacks).
+    /// Knights (every role) add Chainmail: KnightMail more on the same shield (same share, wait and refill; on a Tank Knight
+    /// it stacks with Ironhide, and Shared Plating doesn't halve it).
     /// The host works out each player's cap (Player.IronCap, in the snapshot) every tick.
     public partial class Game
     {
         public const float IronhideMax = 25f, IronhideShare = 0.5f, IronhideRegen = 25f, IronhideDelay = 3f;
+        public const float KnightMail = 15f;  // a Knight's Chainmail
         public const float IronPlatesBonus = 15f, IronRefitCut = 0.5f, IronRefitRegen = 0.25f, IronShareGift = 25f, IronShareKeep = 0.5f;
         /// Tools only: SimTest turns Ironhide off so the many tests that read a Tank's health loss stay exact
         /// (the `ironhide` test turns it back on). Never set in the game.
         public static bool IronhideOff;
 
-        /// The shield a player has now: 0 for anyone without one (a Tank, or an ally of a Tank with Shared Plating).
+        /// The shield a player has now: 0 for anyone without one (a Tank, a Knight, or an ally of a Tank with Shared Plating).
         public static float Ironhide(Player p) => IronhideOff ? 0f : Math.Max(0f, p.IronCap - p.IronLost);
 
-        /// A Tank's own Ironhide: the base plus Iron Plates, halved by Shared Plating.
-        public static float OwnIronCap(Player p) => p.Role != Role.Tank ? 0f
-            : (IronhideMax + p.Stats.IronBonus) * (p.Stats.SharedPlating ? IronShareKeep : 1f);
+        /// A player's own shield: a Tank's Ironhide (the base plus Iron Plates, halved by Shared Plating) plus a Knight's Chainmail.
+        public static float OwnIronCap(Player p) => (p.Role != Role.Tank ? 0f
+            : (IronhideMax + p.Stats.IronBonus) * (p.Stats.SharedPlating ? IronShareKeep : 1f)) + (p.Kit == Kit.Knight ? KnightMail : 0f);
+
+        /// The shield a role and class start with, before cards (the lobby's stats).
+        public static float StartShield(Role r, Kit k) => (r == Role.Tank ? IronhideMax : 0f) + (k == Kit.Knight ? KnightMail : 0f);
 
         /// The most a player's shield holds: their own Ironhide plus the Shared Plating gift from another Tank (once however
         /// many give it).

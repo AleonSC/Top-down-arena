@@ -660,9 +660,10 @@ namespace Arena
             previewPlayer.Weapon = wdef;
             float reach = game.WeaponRange(previewPlayer);
             float sy = r.y + BottomTop + 64f, sStep = Mathf.Max(26f, (r.yMax - 3f - 22f - sy) / 3f);  // the four bars spread down: the last ends on the detail box's bottom
-            if (me.Role == Role.Tank)  // the Tank's Ironhide shield (Ironhide.cs) as a steel segment on the end of the health
-                LobbyKit.StatBar(new Rect(lx, sy, lw, 22f), "Health", hp + " + " + (int)Game.IronhideMax, Mathf.Clamp01(hp / 340f), new Color(0.3f, 1f, 0.48f), calm,
-                    Game.IronhideMax / 340f, CrtStyle.Steel);
+            float shield = Game.StartShield(me.Role, me.Kit);
+            if (shield > 0f)  // the Tank's Ironhide and the Knight's Chainmail (Ironhide.cs) as a steel segment on the end of the health
+                LobbyKit.StatBar(new Rect(lx, sy, lw, 22f), "Health", hp + " + " + (int)shield, Mathf.Clamp01(hp / 340f), new Color(0.3f, 1f, 0.48f), calm,
+                    shield / 340f, CrtStyle.Steel);
             else
                 LobbyKit.StatBar(new Rect(lx, sy, lw, 22f), "Health", hp + " HP", Mathf.Clamp01(hp / 340f), new Color(0.3f, 1f, 0.48f), calm);
             float speed = Defs.Get(me.Role).Speed * Defs.KitSpeedMult(me.Kit);
@@ -1051,8 +1052,9 @@ namespace Arena
             {
                 float hpMult = classPage ? Defs.KitHpMult(me.Kit) : 1f, spMult = classPage ? Defs.KitSpeedMult(me.Kit) : 1f;
                 tiles.Add(new[] { Mathf.RoundToInt(roleDef.Hp * hpMult).ToString(), "HEALTH" });
-                if (me.Role == Role.Tank)
-                    tiles.Add(new[] { ((int)Game.IronhideMax).ToString(), "SHIELD" });  // Ironhide (Ironhide.cs)
+                float shield = Game.StartShield(me.Role, classPage ? me.Kit : Kit.Soldier);
+                if (shield > 0f)
+                    tiles.Add(new[] { ((int)shield).ToString(), "SHIELD" });  // Ironhide, plus the Knight's Chainmail on its class page (Ironhide.cs)
                 tiles.Add(new[] { Mathf.RoundToInt(roleDef.Speed * spMult).ToString(), "SPEED" });
             }
             else if (detailSel == 0)
