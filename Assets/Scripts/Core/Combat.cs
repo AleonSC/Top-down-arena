@@ -668,8 +668,8 @@ namespace Arena
             }
             foreach (var e in AllFoes(by: b.Owner))  // (with PvP on, the other players too: Pvp.cs)
             {
-                if (e.Id == b.LastHit || e.Id == b.PrevHit || DevourUnder(e) || GutwormUnder(e))
-                    continue;  // (the Devourer underground: shots pass over it)
+                if (e.Id == b.LastHit || e.Id == b.PrevHit || DevourUnder(e) || GutwormUnder(e) || FangBit(b, e))
+                    continue;  // (the Devourer underground: shots pass over it; a Dragon Fang over what it has bitten: DragonFang.cs)
                 float r = e.Radius + b.Radius;
                 if (b.Pos.DistanceSq(e.Pos) < r * r)
                 {
@@ -1360,6 +1360,7 @@ namespace Arena
             SenbonHit(b, e);    // a Senbon Seekers needle poisons it (SenbonSeekers.cs)
             CraneHit(b, e);     // a paper crane unfolds (HundredPaperCranes.cs)
             ShadowKunaiLanded(b, e.Pos);  // a shadow kunai marks where it hit (Ninja.cs)
+            DragonFangBite(b, e);  // the Dragon Fang Kunai bites and goes on to the next (DragonFang.cs)
             StarStuck(b, e);    // a Shuriken star sticks in it (Ninja.cs)
             SeedHit(b, e);      // Sprite Staff seeds and fireflies stick (KitWeapons.cs)
             ElementBallHit(b, e);  // the Waterball soaks, the Earthball stuns (ElementBalls.cs)

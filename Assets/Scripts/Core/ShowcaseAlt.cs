@@ -106,7 +106,7 @@ namespace Arena
             { WeaponId.Katana, (g, me, t, dt) => Tap(t, dt, 4f, 1.5f) },            // the stance switch
             { WeaponId.Nodachi, (g, me, t, dt) => Tap(t, dt, 4f, 1.5f) },
             { WeaponId.Vowguard, (g, me, t, dt) => Tap(t, dt, 4f, 1.5f) },        // the stance switch           // the stance switch
-            { WeaponId.Kunai, (g, me, t, dt) => Primed(t, dt, 3f, 1.5f, () => { var e = Dummy(g, me); if (e != null && me.KunaiMarkT <= 0f) { me.KunaiMark = e.Pos + new V2(45f, 35f); me.KunaiMarkT = 1f; } }) },             // blink to the mark
+            { WeaponId.DragonFangKunai, (g, me, t, dt) => Primed(t, dt, 3f, 1.5f, () => { var e = Dummy(g, me); if (e != null && me.KunaiMarkT <= 0f) { me.KunaiMark = e.Pos + new V2(45f, 35f); me.KunaiMarkT = 1f; } }) },             // blink to the mark
             { WeaponId.Shuriken, (g, me, t, dt) => Tap(t, dt, 8f, 1.5f) || Tap(t, dt, 8f, 5.5f) },  // the fan to the Great Star and back
             { WeaponId.Nunchaku, (g, me, t, dt) => Tap(t, dt, 8f, 1.5f) || Tap(t, dt, 8f, 5.5f) },  // the guard up, then down
             // --- Hemomancer ---

@@ -401,6 +401,24 @@ static partial class Shot {
         if (types[i] == EnemyType.Guard && act) { en.LarderStage = Game.BatonActing; en.LarderT = Game.BatonFlash * 0.45f; }
       }
     }
+    if (Environment.GetEnvironmentVariable("GRIDTRAPS") != null) {
+      // GRIDTRAPS=snap|loose: Dev Kit spike plates and slow fields round you, on the 50 px floor grid or at loose spots and sizes
+      // (RoomTraps.Tile, FloorGridLook.cs).
+      var gm = host.Game; gm.Enemies.Clear(); gm.Bullets.Clear();
+      bool snap = Environment.GetEnvironmentVariable("GRIDTRAPS") == "snap";
+      me.Pos = me.Disp = new V2(640f, 400f);
+      foreach (var pl in gm.Players.Values) { pl.Offer = null; pl.OfferStart = false; pl.PendingCards = pl.PendingPicks = 0; }
+      var list = (System.Collections.Generic.List<RoomTrap>)typeof(Game).GetField("devTraps", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(gm);
+      Action<TrapKind, float, float, float, float> put = (k, x, y, hx, hy) => list.Add(new RoomTrap { Kind = k, Pos = new V2(x, y), HalfX = hx, HalfY = hy });
+      if (snap) {
+        put(TrapKind.Spike, 800f, 300f, 50f, 50f); put(TrapKind.Spike, 475f, 525f, 75f, 25f); put(TrapKind.Spike, 425f, 275f, 25f, 25f);
+        put(TrapKind.Slow, 875f, 525f, 75f, 75f); put(TrapKind.Spike, 625f, 225f, 25f, 25f);
+      } else {
+        put(TrapKind.Spike, 812f, 287f, 42f, 42f); put(TrapKind.Spike, 470f, 541f, 64f, 24f); put(TrapKind.Spike, 418f, 262f, 24f, 24f);
+        put(TrapKind.Slow, 861f, 533f, 64f, 64f); put(TrapKind.Spike, 637f, 218f, 24f, 24f);
+      }
+      typeof(Game).GetMethod("DevTrapsChanged", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(gm, null);
+    }
     if (Environment.GetEnvironmentVariable("CROWD") != null) {
       // CROWD=<n>: a Warden breach mob of n round you (Rioters, Guards, Security Guards, Riot Shields, Thugs), all on screen,
       // for the crowd's draw cost (WorldRenderer.cs CrowdTol); prints the GL vertices of the frame. NINJA=0.
@@ -1190,6 +1208,7 @@ static partial class Shot {
     BloodTotemScene();  // TOTEM=<s since the last plant> [TOTEMCAP=1] (ShotBloodTotem.cs)
     ChakraScene();  // CHAKRA=<s since the cast> [CHAKRACAP=1] (ShotChakra.cs)
     OctopusScene();  // OCTO=<s since the cast> [OCTOHP=<0-1>] or OCTOPICK=1 (ShotOctopus.cs)
+    MendingWebScene();  // SPIDERWEB=<s since the cast> or SPIDERWEBPICK=1 (ShotMendingWeb.cs)
     FlashFireScene();  // FLASHFIRE=<s since the cast> [FLASHCAP=1] (ShotFlashFire.cs)
     RockGlovesScene();  // GLOVES=<s since the cast> [GLOVESIDLE=1] (ShotRockGloves.cs)
     BloodRavagerScene();  // RAVAGER=<s since the cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (ShotBloodRavager.cs)
@@ -1197,6 +1216,7 @@ static partial class Shot {
     RodentMinigunScene();  // RODENT=<s since the cast> [RODENTAIM=<deg>] (ShotRodentMinigun.cs)
     MammothFallScene();  // MAMMOTH=<s since the cast> (ShotMammothFall.cs)
     RocketDropScene();  // ROCKETDROP=<s since the cast> [ROCKETCAP=1]: the DPS Soldier's Rocket Drop (ShotRocketDrop.cs)
+    DragonFangScene();  // FANG=<bites> [FANGAFTER=<s>]: the DPS Ninja's Dragon Fang Kunai (ShotDragonFang.cs)
     HazardFoamScene();  // FOAM=<s since the cast> [FOAMCAP=1] [FOAMFIZZ=1]: the Healer Soldier's Hazard Foam (ShotHazardFoam.cs)
     BloodRitualScene();  // RITUAL=<s since the cast> [RITUALCAP=1]: the DPS Hemomancer's Blood Ritual (ShotBloodRitual.cs)
     KnightBannersScene();  // BANNER=aegis|pilgrim|war [BANNERT=<s>] [BANNERCAP=1]: the Knight banner ultimates (ShotKnightBanners.cs)

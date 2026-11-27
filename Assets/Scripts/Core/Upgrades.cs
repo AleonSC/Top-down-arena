@@ -107,6 +107,7 @@ namespace Arena
         Martyr,
         Medkit,
         MedPylon,
+        MendingWeb,
         MendPulse,
         Meteor,
         OctopusFamiliar,  // the Healer Summoner's 4th choice (OctopusFamiliar.cs), the lobby's 4th choice
@@ -139,7 +140,6 @@ namespace Arena
         SmokeBomb,
         SoulLantern,
         SpiritAvatar,  // the Tank Ninja's third ultimate (SpiritAvatar.cs), key 2 of the lobby's Ultimate row
-        SpiritSwarm,
         SpiritWard,
         Stampede,  // the Tank Summoner's 4th choice (Stampede.cs), the lobby's 4th choice
         Starburst,
@@ -272,7 +272,7 @@ namespace Arena
         public float GolemHpMult = 1f;                                     // Golem Wall: Basalt Hide
         public float QuakeBonusTime, QuakeDmgMult = 1f;                    // Earthquake: Deep Tremor
         public float PactHpMult = 1f, PactReturnCut;                       // Force Pact: Kindred Bond
-        public float SpriteHealMult = 1f, SpriteBonusTime;                 // Spirit Swarm: Sprite Choir
+        public float WebLenBonus, WebLifeBonus;                            // Mending Web: Silk Choir
         public float PhoenixBonusTime, PhoenixReviveBonus;                 // Phoenix: Rebirth Flame
         public float BatDmgMult = 1f, BatBonusTime;                        // Bat Swarm: Blood Bats
         public float HydraSlow, HydraBonusTime;                            // Hydra: Venom Glands
@@ -312,6 +312,7 @@ namespace Arena
         public float StarStickCut, StarReturnMult = 1f;                    // Shuriken: Barbed Stars
         public float BurstPushMult = 1f, CaltropBonusTime;                 // Katana: Honed Edge
         public float KunaiBlinkMult = 1f, KunaiMarkBonus;                  // Kunai: Shadow Mark
+        public int FangBites;                                              // Dragon Fang Kunai: Dragon's Hunger (more bites a throw)
         // Hemomancer weapon cards (Docs/UpgradePools.md step 9)
         public float LashReachMult = 1f, ClotCutBonus;                     // Blood Lash: Crimson Whip (and LashLinkBonus)
         public int LashLinkBonus;

@@ -72,6 +72,7 @@ namespace Arena
         DiveRush,
         DoubleBarrel,
         DragonBite,
+        DragonFangBite,  // a Dragon Fang Kunai bite: Pos the enemy, Pos2 (bullet id, bites so far; 0: it fades), Radius the flash (DragonFang.cs, Game/DragonFangLook.cs)
         Drain,
         EmbolusBlast,
         Exsanguinate,
@@ -707,7 +708,7 @@ namespace Arena
         public float NeedleHps;                       // host: how much each needle heals a second
         public int NeedleBy;                          // host: who placed the last one
         public float BloodletCd;                      // host: until Bloodletting can go again (AcupunctureNeedles.cs)
-        public V2 KunaiMark;                          // Kunai: where the last shadow kunai landed, to blink to (replicated)
+        public V2 KunaiMark;                          // Dragon Fang Kunai: where it bit last or stopped, to blink to (replicated)
         public float KunaiMarkT;                      //   for this much longer (replicated)
         public int KunaiCount;                        // host: kunai thrown (every KunaiShadowEvery-th is a shadow kunai)
         public int Light;                             // Lightbringer: its light gauge, hits landed toward a Radiant Noon or a Sunlance (replicated; Lightbringer.cs)
@@ -1603,6 +1604,6 @@ namespace Arena
         public bool Dodge;         // pressed: dodge (Ctrl or a double tap of a movement key; Dodge.cs); this machine only
         public bool DodgeHeld;     // held: the key that started the dodge is still down (keep holding to sprint; Dodge.cs); this machine only
         public byte Steer;         // the Arc Knuckles' click wheel: the way the cursor points from its centre (0 none, else an angle code; ArcKnucklesBrawl.cs); sent in Msg.Input
-        public bool WeaponAction;  // held: your weapon's secondary (Kunai blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl); this machine only
+        public bool WeaponAction;  // held: your weapon's secondary (Dragon Fang blink, Twin Blades lunge, Shuriken recall, Bo Staff vault, Kusarigama whirl); this machine only
     }
 }

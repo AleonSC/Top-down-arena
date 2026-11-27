@@ -129,14 +129,9 @@ namespace Arena
                 case AbilityId.LandShark:
                     CastLandShark(p, target, cap);  // LandShark.cs
                     break;
-                case AbilityId.SpiritSwarm:
-                {
-                    int sprites = cap ? 8 : 5;
-                    for (int i = 0; i < sprites; i++)
-                        SpawnMinion(MinionKind.Sprite, p, p.Pos + V2.FromAngle(MathX.Tau * i / sprites) * 20f, 6f + s.SpriteBonusTime).HealRate = 10f * pw * s.SpriteHealMult;  // Sprite Choir
-                    Sounds.Add(Sfx.Summon);
+                case AbilityId.MendingWeb:
+                    CastWeb(p, target, cap);  // MendingWeb.cs
                     break;
-                }
                 case AbilityId.Phoenix:
                     SpawnMinion(MinionKind.Phoenix, p, p.Pos, 10f + s.PhoenixBonusTime);  // Rebirth Flame
                     Sounds.Add(Sfx.Summon);
@@ -767,6 +762,11 @@ namespace Arena
                     if (z.Kind == ZoneKind.FieldHospital)
                         EndHospital(z);  // everyone out, the room off the map (FieldHospital.cs)
                     expired.Add(z);
+                    continue;
+                }
+                if (z.Kind == ZoneKind.MendingWeb)
+                {
+                    TickWeb(z, dt);  // a band between two walls, not a circle (MendingWeb.cs)
                     continue;
                 }
                 if (z.Kind == ZoneKind.LumenWard)

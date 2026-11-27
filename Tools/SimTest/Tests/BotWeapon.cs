@@ -76,7 +76,7 @@ static partial class Program
             WeaponId.Scattergun, WeaponId.FlakCannon, WeaponId.RiotRepeater, WeaponId.TwinRifle, WeaponId.Revolver, WeaponId.RepulsionCannon,
             WeaponId.FrostLance, WeaponId.StormHammer, WeaponId.Nimbus, WeaponId.ArcLightning, WeaponId.BoneGuard,
             WeaponId.Lance, WeaponId.Quarterstaff, WeaponId.Lightbringer, WeaponId.Censer, WeaponId.TwinBlades, WeaponId.Greatsword, WeaponId.Rapier,
-            WeaponId.Kusarigama, WeaponId.BoStaff, WeaponId.FumaShuriken, WeaponId.Katana, WeaponId.Kunai,
+            WeaponId.Kusarigama, WeaponId.BoStaff, WeaponId.FumaShuriken, WeaponId.Katana, WeaponId.DragonFangKunai,
             WeaponId.BloodLash, WeaponId.BloodBrawler,
             WeaponId.ArcKnuckles, WeaponId.TwinRifleAuto, WeaponId.OutOfAmmo, WeaponId.DoubleBarrel, WeaponId.Stonespear, WeaponId.GrenadeLauncher,
             WeaponId.HoneybeeStaff, WeaponId.Nunchaku, WeaponId.WindClash, WeaponId.EmbolusSpears, WeaponId.BulwarkBarrier, WeaponId.WyvernStaff, WeaponId.TwinPistols, WeaponId.StaticShock, WeaponId.TwinTessen, WeaponId.HeartFlail, WeaponId.HiveCenser,
@@ -91,10 +91,11 @@ static partial class Program
             Run(s, dt, 0.2f);
             bot.Pos = center;
             var mine = new System.Collections.Generic.List<Enemy>();
+            float spread = wid == WeaponId.HiveCenser ? 0.4f : 1.05f;  // Hive Call waits for a crowd (3 within 120 px): give it one (Spirit Swarm's sprites used to draw them in)
             for (int k = 0; k < 6; k++)
             {
                 float r = k < 4 ? 140f : 300f;
-                var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, center + V2.FromAngle(k * 1.05f) * r, 0f, -7, false });
+                var e = (Enemy)spawn.Invoke(g, new object[] { EnemyType.Grunt, center + V2.FromAngle(k * spread) * r, 0f, -7, false });
                 e.SpawnT = 0f; e.MaxHp = e.Hp = 99999f;
                 mine.Add(e);
             }

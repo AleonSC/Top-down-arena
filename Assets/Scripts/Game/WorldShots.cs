@@ -363,6 +363,11 @@ namespace Arena
                 DrawGreatStarShot(b, t);  // the Shuriken's Great Star (GreatStarLook.cs)
                 return true;
             }
+            if (b.Kind == Defs.DragonFang)
+            {
+                DrawDragonFangShot(b, t);  // the Dragon Fang Kunai and its fire dragon (DragonFangLook.cs)
+                return true;
+            }
             if (b.Kind == Defs.OfudaShot || b.Kind == Defs.BlastOfudaShot)
             {
                 DrawOfudaShot(b, t);  // the Ofuda's charms (OfudaLook.cs)

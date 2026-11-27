@@ -91,8 +91,8 @@ namespace Arena
                 Apply = s => s.LandSharkDmgMult += 0.4f },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.OctopusFamiliar, MaxStacks = 2, Name = "Three Hearts", Desc = "Octopus Familiar has 50% more health and slaps 25% harder",
                 Apply = s => { s.OctoHpMult += 0.5f; s.OctoDmgMult += 0.25f; } },
-            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.SpiritSwarm, MaxStacks = 2, Name = "Sprite Choir", Desc = "Spirit Swarm's sprites heal 40% more and last 2 s longer",
-                Apply = s => { s.SpriteHealMult += 0.4f; s.SpriteBonusTime += 2f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.MendingWeb, MaxStacks = 2, Name = "Silk Choir", Desc = "Mending Web reaches 140 px farther between walls and lasts 3 s longer",
+                Apply = s => { s.WebLenBonus += Game.WebChoirLen; s.WebLifeBonus += Game.WebChoirLife; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.Phoenix, MaxStacks = 2, Name = "Rebirth Flame", Desc = "The phoenix stays 4 s longer, and whoever it revives gets 25% more health",
                 Apply = s => { s.PhoenixBonusTime += 4f; s.PhoenixReviveBonus += 0.25f; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BatSwarm, MaxStacks = 2, Name = "Blood Bats", Desc = "Bat Swarm's bats bite 40% harder and hunt 2 s longer",
@@ -189,10 +189,11 @@ namespace Arena
             },
             new AbilityDef
             {
-                Id = AbilityId.SpiritSwarm, Kit = Kit.Summoner, Role = Role.Healer, Choice = 0,
-                Name = "Spirit Swarm", Icon = "regen2", Cooldown = 14f, Desc = "Release healing sprites.",
-                Capstone = "Releases 8 sprites.",
-                Bot = b => b.AllyHurt,
+                Id = AbilityId.MendingWeb, Kit = Kit.Summoner, Role = Role.Healer, Choice = 0, ExtraCharges = Game.WebCharges - 1,  // (MendingWeb.cs)
+                Name = "Mending Web", Icon = "spiderweb", Cooldown = Game.WebCooldown,
+                Desc = "Click a wall, then another: a spirit spider strings a web between them. Allies in it heal, enemies are slowed and poisoned.",
+                Capstone = "Webs heal and poison 40% more.",
+                Bot = b => b.AllyHurt || b.HaveTarget,
             },
             new AbilityDef
             {

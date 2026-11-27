@@ -1220,6 +1220,7 @@ namespace Arena
             bool oathClick = LocalOathPick(me, aimAt, input.Fire && !Bot, ref firing);  // Guardian's Oath: Fire picks the ally instead of shooting (GuardiansOath.cs)
             bool hospClick = LocalHospPick(me, aimAt, input.Fire && !Bot, ref firing);  // Field Hospital: Fire picks the door instead of shooting (FieldHospital.cs)
             bool octoClick = LocalOctoPick(me, aimAt, input.Fire && !Bot, ref firing);  // Octopus Familiar: Fire picks the player instead of shooting (OctopusFamiliar.cs)
+            bool webClick = LocalWebPick(me, aimAt, input.Fire && !Bot, ref firing);  // Mending Web: Fire sets the anchors instead of shooting (MendingWeb.cs)
             float bowRelease = LocalBow(me, firing && !Riding(me), dt);  // (in a Trojan Horse: arrows, no charge: TrojanHorse.cs)
             if (me.Downed)
                 DashT = 0f;
@@ -1361,6 +1362,25 @@ namespace Arena
                     }
                     pressed = octoClick;  // the click on a player is the cast
                 }
+                else if (WebPickSlot == slot)
+                {
+                    if (pressed)
+                    {
+                        WebPickSlot = -1;  // the key again: never mind
+                        WebFirst = null;
+                        continue;
+                    }
+                    pressed = webClick;  // the click on the second wall is the cast
+                }
+                else if (pressed && !Bot && !ShowcaseMode && me.Slots[slot].Id == AbilityId.MendingWeb && !me.Downed)
+                {
+                    if (me.Slots[slot].Charges > 0)
+                    {
+                        WebPickSlot = slot;  // now click a wall, then another
+                        WebFirst = null;
+                    }
+                    continue;
+                }
                 else if (pressed && !Bot && me.Slots[slot].Id == AbilityId.OctopusFamiliar && !me.Downed && Players.Count > 1)
                 {
                     if (me.Slots[slot].Charges > 0)
@@ -1430,6 +1450,15 @@ namespace Arena
                         OctoPickSlot = -1;
                         break;
                     }
+                    case AbilityId.MendingWeb:
+                        if (WebPickSlot >= 0 && WebFirst.HasValue)
+                        {
+                            castFrom = WebFirst.Value.At;  // MendingWeb.cs: the first anchor rides in the cast-from, the second is the target
+                            target = webSecond.At;
+                        }
+                        WebPickSlot = -1;
+                        WebFirst = null;
+                        break;
                     case AbilityId.FieldHospital:
                     {
                         var spot = Bot || HospPickSlot < 0 ? (HospSpot?)null : HospPickTarget(me, aimAt);

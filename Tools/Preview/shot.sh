@@ -22,7 +22,7 @@
 # SPRINT=<s> (the Dodge's held sprint that long in, running right with its fading wake; mode hud).
 # OVERLAYS=<role 0-2>|all [OVERBARS=1] (every class in a row at 60% health: the overhead stack, OverheadStack.cs; OVERBARS adds a wound and a vest; ZOOM=3.2 CAMAT=665,450, mode hud, wave 0).
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
-# MOMENTUM=<0-5> (the DPS passive's stack pips round you; mode hud, 2 players).
+# MOMENTUM=<0-5> (the DPS passive's power-up aura round you; mode hud, 2 players).
 # IRONHIDE=<shield 0-75>[,<wait s>] (the Tank's Ironhide plates; mode hud, 1 player, ZOOM=3).
 # HEALAURA=1|2 (the Healer aura, HealerAuraLook.cs: a Tank near the Healer (2: near the rim) and a DPS outside; mode hud, 3 players, ZOOM=2.2).
 # NONSHOOT=1 (the Hook Thrower caught mid-move: aiming, harpoon out, spinning, open after a miss).
@@ -132,6 +132,7 @@
 # JUGG=<s since cast> JUGGARMOR=<0-1> (the Tank Soldier's Juggernaut Suit: plates, armour bar, flak tracers; mode hud).
 # ARMORDROP=<s since the cast> [ARMORCAP=1] [ARMORHIT=<armor left>] (the Tank Soldier's Armor Drop: crate, vests, armor shell and bar; mode hud).
 # ROCKETDROP=<s since the cast> [ROCKETCAP=1] (the DPS Soldier's Rocket Drop: pod, launcher, rockets, blasts, fire; ShotRocketDrop.cs; ZOOM=1.1 CAMAT=780,480 shot.sh x hud 1 6 1).
+# FANG=<bites> [FANGAFTER=<s>] (the DPS Ninja's Dragon Fang Kunai: thrown through 13 grunts, stopped just after that many bites; ShotDragonFang.cs; ZOOM=1.25 CAMAT=760,450 shot.sh x hud 1 6 1).
 # FOAM=<s since the cast> [FOAMCAP=1] [FOAMFIZZ=1] (the Healer Soldier's Hazard Foam: sprayer, globs, a wall of foam soaking grunts' shots; ShotHazardFoam.cs; ZOOM=1.3 CAMAT=700,520 shot.sh x hud 1 6 3).
 # RITUAL=<s since the cast> [RITUALCAP=1] (the Tank Hemomancer's Blood Ritual: sigil, portal, imps; ShotBloodRitual.cs; ZOOM=1.4 CAMAT=700,440 shot.sh x hud 1 6 3).
 # BANNER=aegis|pilgrim|war [BANNERT=<s since the cast>] [BANNERCAP=1] (the Knight banner ultimates; ShotKnightBanners.cs; ZOOM=1.3 CAMAT=700,430 shot.sh x hud 1 6 3).

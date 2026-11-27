@@ -115,7 +115,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Twin Tessen | Healer | 0.2 s | 10 | - | 105 | 54 | Primary Fire: A five-step dance of two war fans that heals the allies it brushes and ends in a petal wave.  Alternative Fire: Hold to pull the fans back, let go for a massive gust that throws enemies back and heals allies. |
 | Shuriken | Dps | 0.35 s | 9 | 700 x 0.75 s | - | 140 | Primary Fire: Tight fans of stars that stick, then rip out and fly back.  Alternative Fire: Switch to a huge star thrown along a route you draw. |
 | Katana | Dps | 0.3 s | 20 | - | 120 | 65 | Primary Fire: Two stance combos: dashing slices, or cuts that end in caltrops.  Alternative Fire: Switch stance. |
-| Kunai | Dps | 0.7 s | 42 | 1400 x 0.5 s | - | 88 | Primary Fire: Slow, heavy throwing knives that leave a mark where they land.  Alternative Fire: Blink to the mark, and your next hit lands double. |
+| Dragon Fang Kunai | Dps | 0.5 s | 60 | 950 x 0.8 s | - | 84 | Primary Fire: One huge kunai with a fire dragon behind it. Dragon's Hunger cards let it bite up to 12 enemies in turn, 10% harder each bite, bouncing off walls to bite again; the 12th bite bursts.  Alternative Fire: Blink to where it bit last, and your next hit lands double. |
 | Nunchaku | Dps | 0.3 s | 20 | - | 95 | 95 | Primary Fire: A four-step twin-nunchaku combo that ends in a stunning slam.  Alternative Fire: Guard with spinning discs that swat shots back. |
 
 ### Hemomancer
@@ -243,7 +243,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Iron Armadillo | Tank | ultimate | 75 s | - | Rolls 13 s and the uncurl slam hits for 130. | Curl into a giant armoured ball for 10 s: roll over enemies, bounce their shots back, slam down as you uncurl. |
 | Tidal Tusker | Tank | ultimate | 75 s | - | Stays 16 s, and sprays two streams at once. | A spirit elephant rises beside you and follows you for 12 s. Enemies near it go for it instead of you, and its trunk hoses them with a steady stream that soaks and pushes them back. It ends with a splashing stomp. |
 | Stampede | Tank | 1st, choice 5 | 14 s | - | 9 beasts, and the herd turns and charges back. | A line of spirit beasts tramples everything ahead. |
-| Spirit Swarm | Healer | 1st, choice 1 | 14 s | - | Releases 8 sprites. | Release healing sprites. |
+| Mending Web | Healer | 1st, choice 1 | 8 s (+1 charges) | - | Webs heal and poison 40% more. | Click a wall, then another: a spirit spider strings a web between them. Allies in it heal, enemies are slowed and poisoned. |
 | Phoenix | Healer | 1st, choice 2 | 22 s | - | Revives at full health, and the phoenix keeps fighting. | A phoenix follows your cursor, shooting and healing, and revives anyone who goes down. |
 | Soul Lantern | Healer | 1st, choice 3 | 18 s | - | Lasts 9 s, and the linked player can't go down. | A lantern links to an ally, healing them and burning nearby enemies. |
 | World Tree | Healer | ultimate | 80 s | - | Lasts 16 s with 8 sprites. | Grow a tree that heals and slows around it and sends healing butterflies. |

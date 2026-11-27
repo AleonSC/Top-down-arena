@@ -31,7 +31,7 @@ static partial class Program
         anchor.Hp = anchor.MaxHp = 1e6f; anchor.SpawnT = 0f;
         Func<string, int> U = name => Array.FindIndex(Upgrades.All, u => u.Name == name);
         Check(new[] { "Eye of the Storm", "Permafrost", "Inferno", "Monsoon", "Jet Stream", "Dawnlight", "Cataclysm", "Whiteout", "Riptide",
-            "Basalt Hide", "Deep Tremor", "Kindred Bond", "Sprite Choir", "Rebirth Flame", "Blood Bats", "Venom Glands", "Pack Leader", "Field Surgeon" }
+            "Basalt Hide", "Deep Tremor", "Kindred Bond", "Silk Choir", "Rebirth Flame", "Blood Bats", "Venom Glands", "Pack Leader", "Field Surgeon" }
             .All(n => U(n) >= 0 && Upgrades.All[U(n)].Rarity == Rarity.Rare && Upgrades.All[U(n)].MaxStacks == 2), "all 18 ability cards exist, Rare, 2 stacks each");
 
         // Clear the field, put the ability on the 1st slot with `stacks` copies of its card, and cast it at `at`.
@@ -153,11 +153,11 @@ static partial class Program
         foreach (var p in g.Players.Values) { p.PactSet[0] = false; }
         foreach (int id in g.Minions.Values.Where(m => m.Kind == MinionKind.Thrall).Select(m => m.Id).ToList()) g.Minions.Remove(id);
 
-        castWith(AbilityId.SpiritSwarm, "Sprite Choir", 0, there);
-        var sp0 = mine(MinionKind.Sprite)[0]; float sD = sp0.Duration, sH = sp0.HealRate;
-        castWith(AbilityId.SpiritSwarm, "Sprite Choir", 2, there);
-        var sp2 = mine(MinionKind.Sprite)[0];
-        Check(near(sp2.Duration - sD, 4f, 0.01f) && near(sp2.HealRate / sH, 1.8f, 0.01f), "Sprite Choir: sprites heal 40% more and last 2 s longer per card");
+        castWith(AbilityId.MendingWeb, "Silk Choir", 0, there);
+        float wD = zone(ZoneKind.MendingWeb).Duration, wL = g.WebMaxLenFor(me);
+        castWith(AbilityId.MendingWeb, "Silk Choir", 2, there);
+        Check(near(zone(ZoneKind.MendingWeb).Duration - wD, 2f * Game.WebChoirLife, 0.01f) && near(g.WebMaxLenFor(me) - wL, 2f * Game.WebChoirLen, 0.01f),
+            "Silk Choir: webs reach 140 px farther and last 3 s longer per card");
 
         castWith(AbilityId.Phoenix, "Rebirth Flame", 0, there);
         float phD = mine(MinionKind.Phoenix)[0].Duration;
@@ -515,7 +515,7 @@ static partial class Program
         var hitMult = typeof(Game).GetMethod("NinjaHitMult", flags);
         Func<int, float[]> kunai = n =>
         {
-            arm(WeaponId.Kunai, "Shadow Mark", n);
+            arm(WeaponId.DragonFangKunai, "Shadow Mark", n);
             landed.Invoke(g, new object[] { new Bullet { ShadowKunai = true, Owner = me.Id }, there });
             float markT = me.KunaiMarkT;
             var e = enemyAt(there);
