@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Arena;
 
-// Shadow Clone Medics (ShadowCloneMedics.cs): key 2 of the Healer Ninja's Ultimate row reaching the run; the cast (a clone on
+// Shadow Clone Medics (ShadowCloneMedics.cs): key 3 of the Healer Ninja's Ultimate row reaching the run; the cast (a clone on
 // every player, you included, 10 s, 120 + 6 a wave health, on every screen); each heals its player 4 every 0.5 s; it steps onto
 // the line of a shot aimed at its player and stops it (red aimed shots too), never a shot aimed at someone else; broken at 0
 // health with its fade heal; a new cast replaces the old clones; it ends on time and between waves; mastered.
@@ -19,22 +19,22 @@ static partial class Program
 
         // --- The lobby: key 2 of the Ultimate row ----------------------------------------------------------------------
         var def = Upgrades.Ability(AbilityId.ShadowCloneMedics);
-        Check(def.Name == "Shadow Clone Medics" && def.Cooldown == 80f && def.Choice == AbilityDef.Ult && def.UltKey == 2 && def.Role == Role.Healer && def.Kit == Kit.Ninja,
-            "Shadow Clone Medics is the Healer Ninja's ultimate on key 2, 80 s");
+        Check(def.Name == "Shadow Clone Medics" && def.Cooldown == 80f && def.Choice == AbilityDef.Ult && def.UltKey == 3 && def.Role == Role.Healer && def.Kit == Kit.Ninja,
+            "Shadow Clone Medics is the Healer Ninja's ultimate on key 3, 80 s");
         Check(Upgrades.Ultimate(Role.Healer, Kit.Ninja) == AbilityId.BlossomStorm && Upgrades.Ultimate(Role.Healer, Kit.Ninja, 1) == AbilityId.AstralProjection
-            && Upgrades.Ultimate(Role.Healer, Kit.Ninja, 2) == AbilityId.ShadowCloneMedics,
-            "Blossom Storm stays the default and Astral Projection key 1; Shadow Clone Medics is key 2");
+            && Upgrades.Ultimate(Role.Healer, Kit.Ninja, 2) == AbilityId.PressurePointPress && Upgrades.Ultimate(Role.Healer, Kit.Ninja, 3) == AbilityId.ShadowCloneMedics,
+            "Blossom Storm stays the default and Astral Projection key 1; Pressure Point Press key 2; Shadow Clone Medics is key 3");
 
         int port = nextPort++;
         var host = new Session { AutoStart = 3, StartWave = 3 };
-        host.Host(port, "Medic", Role.Healer, 0, 0, Kit.Ninja, 0, 2);
+        host.Host(port, "Medic", Role.Healer, 0, 0, Kit.Ninja, 0, 3);
         var c1 = new Session();
         c1.Join("127.0.0.1", port, "Tank", Role.Tank, 0, 0, Kit.Soldier, 0, 0);
         var c2 = new Session();
         c2.Join("127.0.0.1", port, "Dps", Role.Dps, 0, 0, Kit.Knight, 0, 0);
         var s = new[] { host, c1, c2 };
         Run(s, dt, 3, () => host.Lobby.Count == 3 && c1.Lobby.Count == 3 && c2.Lobby.Count == 3 && !host.Game.Running);
-        Run(s, dt, 2, () => host.Lobby[1].Ult == 2);
+        Run(s, dt, 2, () => host.Lobby[1].Ult == 3);
         Check(host.Lobby[1].UltId == AbilityId.ShadowCloneMedics, "the pick reaches the host");
         host.StartMatch();
         WaitForGame(host, c1, dt);

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Arena;
 
-// CLONEMEDICS=<s since the cast>: Shadow Clone Medics, the Healer Ninja's third ultimate (Core/ShadowCloneMedics.cs,
+// CLONEMEDICS=<s since the cast>: Shadow Clone Medics, the Healer Ninja's fourth ultimate (Core/ShadowCloneMedics.cs,
 // Game/ShadowCloneMedicsLook.cs), cast and played through the real game: you (NINJA=0) in the middle, two teammates either
 // side, grunts round the edge sending a shot at a player every 0.2 s, so the clones step into them. CMHP=<0-1> sets every
 // clone's health. Use with mode hud, ZOOM=1.6; try 0.15 (stepping out of the smoke), 1.5, 9.5 (flickering out).

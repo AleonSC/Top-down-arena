@@ -302,6 +302,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Spirit Ward | Healer | 1st, choice 3 | 18 s | - | The ward follows you. | Plant a talisman that absorbs damage for allies, then heals them. |
 | Blossom Storm | Healer | ultimate | 80 s | - | Lasts 8 s. | Petals heal the whole party and erase enemy bullets. |
 | Astral Projection | Healer | ultimate | 70 s | - | Lasts 10 s and heals 40% more. | Leave your body safe and ignored for 8 s; your spirit rides a teammate, shoots astral bolts, and heals them and speeds them up. Right click: switch teammate. |
+| Pressure Point Press | Healer | ultimate | 70 s | - | Marks up to 12 enemies. | Mark up to 8 enemies near you, then blink to each: it's stunned 2 s and poisoned, and each press heals your most hurt teammate. |
 | Shadow Clone Medics | Healer | ultimate | 80 s | - | Lasts 12 s and clones have 40% more health. | A shadow clone medic follows every player for 10 s, you included: it heals them and steps into the shots aimed at them. |
 | Chakra Reserves | Healer | 1st, choice 5 | 28 s | - | A second thread reaches the next ally: half the heal and the full Surge. | Pour chakra into an ally: it heals them, speeds up their moving and attacks, and refreshes their cooldowns. |
 | Shadow Step | Dps | 1st, choice 1 | 7 s | - | +1 charge. | Teleport behind an enemy and strike it hard. |
@@ -327,6 +328,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Martyr | Healer | 1st, choice 3 | 16 s | 40% of max health | You're invulnerable for 2 s after the sacrifice. | Pay health to revive a downed ally, or ward the most hurt one. |
 | Sanguine Rain | Healer | ultimate | 80 s | - | Lasts 14 s and heals 4% a tick. | Rain healing circles that follow your allies. |
 | Heartbeat | Healer | ultimate | 80 s | - | The waves hit 40% harder. | Your heart beats three times, each beat costing 8% of your health: a wave of blood bursts 320 px out of you, hitting for 45. Every enemy it kills drops a blood orb. |
+| Heart of the Swarm | Healer | ultimate | 80 s | - | Each beat heals 11%. | A giant heart beats at your cursor six times, once every 1.5 s: each beat heals allies within 300 px of it 8% of their health and pulls enemies in. |
 | Arterial Spray | Dps | 1st, choice 1 | 8 s | - | The spray also washes away enemy bullets it touches. | Open a vein: a jet of blood hurts and bleeds everything in front of you. |
 | Blood Debt | Dps | 1st, choice 2 | 16 s | - | Kills repay 50% more. | Borrow health to heal on hit, and pay it back with kills. |
 | Vein Rush | Dps | 1st, choice 3 | 6 s | 10% of max health | The trail bursts after 1 s for 20 to everything on it. | Rush toward your cursor untouchable, bleeding enemies on the way. |

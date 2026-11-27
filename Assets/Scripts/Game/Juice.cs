@@ -1240,6 +1240,7 @@ namespace Arena
             DrawLivingBoltGlow();  // Living Bolt's charge, dashes and residue (LivingBoltLook.cs)
             DrawBoilGlow();  // Blood Boil's heat and its end (BloodBoilLook.cs)
             DrawHeartbeatGlow();  // Heartbeat's heart and wave crests (HeartbeatLook.cs)
+            DrawSwarmHeartGlow();  // Heart of the Swarm's heart (HeartOfTheSwarmLook.cs)
             DrawVgGlow();     // the Vowguard's blade, gem and shield core (VowguardLook.cs)
             DrawLightGlow();  // the Lightbringer's Sundial, Sunrise crescents, Spear, ward plates and marks (LightbringerFxLook.cs)
             foreach (var e in game.Enemies.Values)

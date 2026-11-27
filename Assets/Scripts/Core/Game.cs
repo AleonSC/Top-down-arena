@@ -359,6 +359,7 @@ namespace Arena
             Zones.Clear();
             Effects.Clear();
             FsgRuns.Clear();  // FiveShadowGong.cs
+            PppRuns.Clear();  // PressurePointPress.cs
             Sounds.Clear();
             ResetMeleeSounds();  // MeleeSounds.cs
             spawnQueue.Clear();
@@ -1666,10 +1667,12 @@ namespace Arena
             TickRavager(dt);  // Blood Ravager: its clock, the legs' walk and stomps, the ram and the lashes (BloodRavager.cs)
             TickBoil(dt);  // Blood Boil: its clock and the drain (BloodBoil.cs)
             TickForbiddenPath(dt);  // Forbidden Path: the beast's clock, drain, lock-on and combo stages (ForbiddenPath.cs)
+            TickPressurePoint(dt);  // Pressure Point Press: the presses and the Seal on each cast's clock (PressurePointPress.cs)
             TickShadowGong(dt);  // Five Shadow Gong: the strike, shadows, cuts, sheathe and smoke on each cast's clock (FiveShadowGong.cs)
             TickAstral(dt);  // Astral Projection: the spirit's clock, its host, lean and heal (AstralProjection.cs)
             TickRodentMinigun(dt);  // Rodent Minigun: the portal's clock, its turn after the aim and the rodents it spits (RodentMinigun.cs)
             TickHeartbeat(dt);  // Heartbeat: its clock, the beats' health and the waves' hits (Heartbeat.cs)
+            TickSwarmHeart(dt);  // Heart of the Swarm: its clock, the heart after the cursor, the beats' heals and pulls (HeartOfTheSwarm.cs)
             TickStaticBubble(dt);  // Static Bubble: its clock, growth, enemies put out, shots eaten, the burst (StaticBubble.cs)
             TickConduitWeb(dt);  // Conduit Web: its clock, the circuit, the stun, the shocks and the heal (ConduitWeb.cs)
             TickEye(dt);  // Eye of Calm: its clock, the heal, the wall, the shots and the gust (EyeOfCalm.cs)

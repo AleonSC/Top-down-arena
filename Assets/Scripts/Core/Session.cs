@@ -136,7 +136,7 @@ namespace Arena
         /// Bump this whenever the layout of the messages the two games send each other changes (a field read or written).
         /// Players on different versions can't play together; the host turns them away with a message. New ids and cards
         /// need no bump: `IdsHash` tells two builds with different ones apart by itself.
-        public const int ProtocolVersion = 552;  // history: Docs/ProtocolHistory.md
+        public const int ProtocolVersion = 553;  // history: Docs/ProtocolHistory.md
 
         static int idsHash;
 

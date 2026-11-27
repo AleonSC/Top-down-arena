@@ -18,7 +18,7 @@ namespace Arena
         Burrower,  // Earthquake's Burrower (the Tank Summoner's ability): breaks out at the cursor, tunnels through the pack hurting what it passes under (Burrower.cs)
         Butterfly,  // World Tree's healing butterfly: flutters to an ally (LinkTo) and heals them on arrival (WorldTree.cs)
         Clone,  // the Ninja's Shadow Clone: enemies target it; it bursts when it ends
-        CloneMedic,  // Shadow Clone Medics (the Healer Ninja's third ultimate): trails a player, heals them and stops the shots aimed at them (ShadowCloneMedics.cs)
+        CloneMedic,  // Shadow Clone Medics (the Healer Ninja's fourth ultimate): trails a player, heals them and stops the shots aimed at them (ShadowCloneMedics.cs)
         CloneWall,  // Shadow Clone: one of nine afterimages in a wall that soaks bullets and gets shoved by players; it does nothing else (CloneWall.cs)
         Demon,  // the Demon Calling's demon: hovers at its owner's shoulder hurling fireballs (Callings.cs)
         Fairy,  // the Fairy Calling's fairy: tends the most hurt ally, healing them; untargetable (Callings.cs)

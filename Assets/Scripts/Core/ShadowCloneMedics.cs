@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Arena
 {
-    /// Shadow Clone Medics: the Healer Ninja's third ultimate (lobby key 2 of the Ultimate row; Blossom Storm stays the default).
+    /// Shadow Clone Medics: the Healer Ninja's fourth ultimate (lobby key 3 of the Ultimate row; Blossom Storm stays the default).
     /// From its mockup (Docs/Mockups/shadow-clone-medics.html):
     ///   - The cast: a hand seal, and a puff of ink smoke beside every player (you included) out of which steps a shadow clone
     ///     medic (`MinionKind.CloneMedic`, LinkTo its player) for ScmTime s.
@@ -26,12 +26,12 @@ namespace Arena
         public const float ScmAimSlack = 18f;  // a shot is aimed at the player when its line passes this close to their body
         public static readonly Rgba ScmJade = new Rgba(0.37f, 0.88f, 0.63f), ScmInk = new Rgba(0.70f, 0.61f, 0.96f);
 
-        /// Shadow Clone Medics' entry: key 2 of the Healer Ninja's Ultimate row. Upgrades.Abilities gathers it.
+        /// Shadow Clone Medics' entry: key 3 of the Healer Ninja's Ultimate row. Upgrades.Abilities gathers it.
         internal static readonly AbilityDef[] ScmUltimates =
         {
             new AbilityDef
             {
-                Id = AbilityId.ShadowCloneMedics, Kit = Kit.Ninja, Role = Role.Healer, Choice = AbilityDef.Ult, UltKey = 2,
+                Id = AbilityId.ShadowCloneMedics, Kit = Kit.Ninja, Role = Role.Healer, Choice = AbilityDef.Ult, UltKey = 3,
                 Name = "Shadow Clone Medics", Cooldown = ScmCooldown,
                 Desc = "A shadow clone medic follows every player for 10 s, you included: it heals them and steps into the shots aimed at them.",
                 Capstone = "Lasts 12 s and clones have 40% more health.",

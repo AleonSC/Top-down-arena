@@ -97,6 +97,7 @@ namespace Arena
             d[(int)FxKind.VortexWisp] = (fx, f, t) => DrawVortexWispFx(fx);  // VortexLook.cs
             d[(int)FxKind.LivingBolt] = (fx, f, t) => DrawLivingBoltFx(fx);
             d[(int)FxKind.StaticBurst] = (fx, f, t) => DrawStaticBurstFx(fx);  // StaticBubbleLook.cs  // LivingBoltLook.cs
+            d[(int)FxKind.PressurePoint] = (fx, f, t) => DrawPressurePointFx(fx);  // PressurePointPressLook.cs
             d[(int)FxKind.ForbiddenPath] = (fx, f, t) => DrawForbiddenFx(fx, t);  // ForbiddenPathLook.cs (the crescents, claw marks and black sun are the floor pass: DrawForbiddenFloor)
             d[(int)FxKind.BambooGrove] = (fx, f, t) => { };  // drawn in the floor and body passes (BambooGroveLook.cs)
             d[(int)FxKind.OctoSlap] = (fx, f, t) => { };  // drawn with its octopus (OctopusFamiliarLook.cs)

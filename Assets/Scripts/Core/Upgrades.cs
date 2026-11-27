@@ -84,6 +84,7 @@ namespace Arena
         HealingDash,
         HealingRain,
         Heartbeat,  // the Healer Hemomancer's second ultimate (Heartbeat.cs), key 1 of the lobby's Ultimate row
+        HeartOfTheSwarm,  // the Healer Hemomancer's third ultimate (HeartOfTheSwarm.cs), key 2 of the lobby's Ultimate row
         HolyLanceRain,  // the Healer Knight's third ultimate (HolyLanceRain.cs), key 2 of the lobby's Ultimate row
         HoneyRaid,  // the Healer Summoner's second ultimate (HoneyRaid.cs), key 1 of the lobby's Ultimate row
         Hydra,
@@ -112,6 +113,7 @@ namespace Arena
         Phoenix,
         PilgrimsStandard,  // the Healer Knight's second ultimate (KnightBanners.cs), key 1
         PoisonDart,
+        PressurePointPress,  // the Healer Ninja's third ultimate (PressurePointPress.cs), key 2 of the lobby's Ultimate row
         Roar,
         RocketDrop,  // the DPS Soldier's fourth ultimate (RocketDrop.cs), key 3 of the lobby's Ultimate row
         RockGloves,  // the DPS Elementalist's fourth ultimate (RockGloves.cs), key 3 of the lobby's Ultimate row
@@ -126,7 +128,7 @@ namespace Arena
         ScytheThrow,  // the Twin Reapers' legendary: a 2nd, 3rd or 4th ability (ReaperLoot.cs)
         SenbonSeekers,  // the DPS Ninja's 4th choice (SenbonSeekers.cs), the lobby's 4th choice
         ShadowClone,
-        ShadowCloneMedics,  // the Healer Ninja's third ultimate (ShadowCloneMedics.cs), key 2 of the lobby's Ultimate row
+        ShadowCloneMedics,  // the Healer Ninja's fourth ultimate (ShadowCloneMedics.cs), key 3 of the lobby's Ultimate row
         ShadowStep,
         ShieldWall,
         Shockwave,
@@ -211,6 +213,7 @@ namespace Arena
         public float BladedDamage, BladedReach, GauntletRange = 1f, GauntletDamage = 1f, CaltropDamage; public int CaltropMore;  // the DPS Knight's cards: Coup de Grace, Iron Grip, Barbed Iron
         public float CannonDamage, CannonWide;  // Siege Powder (CannonCall.cs): +25% damage, +15% blast radius a stack
         public float FsgDmgMult = 1f, FsgSmokeMult = 1f;  // Temple Bronze (FiveShadowGong.cs): cuts +20%, smoke +25% wider a stack
+        public float PppDmgMult = 1f; public int PppMore;  // Hundred Meridians (PressurePointPress.cs): +20% press damage, +2 targets a stack
         public float ApBonusTime, ApDmgMult = 1f;  // Astral Bond (AstralProjection.cs): +2 s, +25% bolt damage a stack
         public float FpDmgMult = 1f, FpKillHealMult = 1f;  // Forbidden Hunger (ForbiddenPath.cs): +20% combo damage, kills heal twice as much, a stack
         public float SpBonusTime, SpWindCut;  // Kami Vessel (SpiritAvatar.cs): +2 s, a 0.2 s shorter cleave wind-up a stack
@@ -474,7 +477,7 @@ namespace Arena
         public static readonly AbilityDef[] Abilities = Registry(Concat(Classes.AbilityLists(),
             Game.ScmUltimates,  // (on its own line, as below)
             Game.OracleUltimates,  // (on its own line, so parallel sessions appending to the line below don't clash)
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.RocketUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.GloveUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.TuskerUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.EyeUltimates, Game.ConduitUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.HeartbeatUltimates, Game.BannerUltimates, Game.LanceRainUltimates, Game.GongUltimates, Game.FoamUltimates, Game.RitualUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.RocketUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.GloveUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.TuskerUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.EyeUltimates, Game.ConduitUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.HeartbeatUltimates, Game.SwarmHeartUltimates, Game.BannerUltimates, Game.LanceRainUltimates, Game.GongUltimates, Game.PressUltimates, Game.FoamUltimates, Game.RitualUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 
