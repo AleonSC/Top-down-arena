@@ -21,7 +21,7 @@ namespace Arena
         readonly float[] beatRaw = new float[BeatBandCount];
         readonly float[] beatWaves = { -100f, -100f, -100f, -100f };  // birth times (Time.unscaledTime); long ago = none
         int beatWaveNext;
-        float beatPulse, beatPeak = 1e-3f, bassAvg, bassPeak = 1e-3f, lastBeatAt = -10f;
+        float beatHit, beatPulse, beatPeak = 1e-3f, bassAvg, bassPeak = 1e-3f, lastBeatAt = -10f;
         bool beatFrozen = false;  // previews (Tools/Preview, by reflection): keep the values set from outside
 
         /// How strong the reaction is: 0 with effects off or the background STILL, half on Reduced effects.
@@ -35,9 +35,10 @@ namespace Arena
             if (beatFrozen)
                 return;
             float dt = Mathf.Min(Time.unscaledDeltaTime, 0.1f), now = Time.unscaledTime;
-            beatPulse *= Mathf.Exp(-4.5f * dt);
+            beatHit *= Mathf.Exp(-3f * dt);
+            beatPulse = Mathf.Lerp(beatPulse, beatHit, 1f - Mathf.Exp(-14f * dt));  // eased in and out (~70 ms), no one-frame flash
             bool live = sounds != null && BeatAmt > 0f && sounds.MusicSpectrum(beatSpec);
-            float fall = Mathf.Exp(-5f * dt);
+            float fall = Mathf.Exp(-2.2f * dt), rise = 1f - Mathf.Exp(-9f * dt);  // bars glide up and settle slowly
             if (!live)
             {
                 for (int i = 0; i < BeatBandCount; i++)
@@ -61,7 +62,7 @@ namespace Arena
             for (int i = 0; i < BeatBandCount; i++)
             {
                 float v = Mathf.Sqrt(Mathf.Clamp01(beatRaw[i] / beatPeak));
-                beatBands[i] = v > beatBands[i] ? Mathf.Lerp(beatBands[i], v, 0.7f) : Mathf.Max(v, beatBands[i] * fall);
+                beatBands[i] = v > beatBands[i] ? Mathf.Lerp(beatBands[i], v, rise) : Mathf.Max(v, beatBands[i] * fall);
             }
 
             // A beat: the bass (bins 1..4, ~40-200 Hz) well above its last half second's average.
@@ -72,7 +73,7 @@ namespace Arena
             if (hit)
             {
                 lastBeatAt = now;
-                beatPulse = Mathf.Max(beatPulse, Mathf.Clamp01(bass / bassPeak));
+                beatHit = Mathf.Max(beatHit, Mathf.Clamp01(bass / bassPeak));
                 beatWaves[beatWaveNext] = now;
                 beatWaveNext = (beatWaveNext + 1) % beatWaves.Length;
             }
