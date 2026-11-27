@@ -125,6 +125,7 @@ namespace Arena
             LoadCamZoom();     // CameraZoom.cs
             LoadHoverNames();  // EnemyTagLook.cs
             LoadNameLabels();
+            LoadHpBars();  // Settings > Gameplay > Health bars (OverheadStack.cs)
             LoadLagChart();  // LagChartUi.cs
             SetHudMode(SavedHudMode(), false);  // the HUD mode, remembered (HudModes.cs)
             LoadMapView();  // minimap, full map or off, remembered (MapView.cs)

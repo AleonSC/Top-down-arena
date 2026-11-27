@@ -545,16 +545,27 @@ namespace Arena
                     bool hover2 = SwitchRow(new Rect(x, y, halfW, 54f), hoverNames, "Enemy names on hover", "Point at an enemy for its name and job");
                     if (hover2 != hoverNames)
                         SetHoverNames(hover2);
-                    WinLabel(new Rect(x + halfW + 36f, y, halfW - 236f, 54f), "First-person", "Mouse turn speed (F8)");  // (FirstPerson.cs)
-                    float sens2 = FpSensSlider(new Rect(x + w - 226f, y + 3f, 226f, 48f), FpSensSetting);
-                    if (Mathf.Abs(sens2 - FpSensSetting) > 0.0001f)
-                        SetFpSens(sens2);
+                    // Health bars: which bodies show one (OverheadStack.cs), three lamp keys
+                    float hx = x + halfW + 36f;
+                    WinLabel(new Rect(hx, y, halfW - 252f, 54f), "Health bars", "Over whom");
+                    string[] hbShort = { "YOU", "TEAM", "ENEMY" };
+                    for (int i = 0; i < hbShort.Length; i++)
+                    {
+                        bool lit = (hpBars & 1 << i) != 0;
+                        if (DkKey(new Rect(hx + halfW - 248f + i * 84f, y + 10f, 80f, 34f), hbShort[i], false, FxCalm, size: 11, accent: lit ? CrtStyle.Ink : CrtStyle.Dim, lamp: true, lampLit: lit))
+                            SetHpBars(hpBars ^ 1 << i);
+                    }
+                    DashLine(hx, y + 54f, halfW);
                     y += 66f;
                     y += DrawLagSettingsRow(x, y, w);  // LagChartUi.cs
-                    WinLabel(new Rect(x, y + 6f, w - 396f, 48f), "Teammate shots", "How solid other players' bullets look (25% at least)");
-                    float mate = Mathf.Max(0.25f, WinSlider(new Rect(x + w - 376f, y + 6f, 376f, 48f), mateShotAlpha));
+                    WinLabel(new Rect(x, y + 6f, halfW - 226f, 48f), "Teammate shots", "Their bullets' opacity");
+                    float mate = Mathf.Max(0.25f, WinSlider(new Rect(x + halfW - 216f, y + 6f, 216f, 48f), mateShotAlpha));
                     if (Mathf.Abs(mate - mateShotAlpha) > 0.0001f)
                         SetMateShotAlpha(mate);
+                    WinLabel(new Rect(hx, y + 6f, halfW - 236f, 48f), "First-person", "Mouse turn speed (F8)");  // (FirstPerson.cs)
+                    float sens2 = FpSensSlider(new Rect(hx + halfW - 226f, y + 9f, 226f, 48f), FpSensSetting);
+                    if (Mathf.Abs(sens2 - FpSensSetting) > 0.0001f)
+                        SetFpSens(sens2);
                     DashLine(x, y + 60f, w);
                     y += 64f;
                     // The network port (it used to sit on the main menu): hosting and joining both use it.

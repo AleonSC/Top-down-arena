@@ -333,7 +333,7 @@ namespace Arena
             V2.Axes(e.Facing, out V2 dir, out V2 side);
             Circle(pos + dir * (r * 0.35f) + side * (r * 0.25f), 2.5f, new Rgba(1f, 0.2f, 0.25f), 6);
             Circle(pos + dir * (r * 0.35f) - side * (r * 0.25f), 2.5f, new Rgba(1f, 0.2f, 0.25f), 6);
-            if (e.Hp < e.MaxHp)
+            if (e.Hp < e.MaxHp && EnemyHpBarsOn)  // (Settings > Gameplay > Health bars)
                 GhostBar(pos + new V2(-20f, -r - 12f), 40f, 4f, e.Hp / Mathf.Max(1f, e.MaxHp), new Rgba(0.75f, 0.45f, 1f), EnemyKey(e.Id));  // HealthBars.cs
         }
 

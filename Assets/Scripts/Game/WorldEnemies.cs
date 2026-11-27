@@ -741,7 +741,7 @@ namespace Arena
             DrawJobMarker(e, pos, r);  // JobMarkerLook.cs
             DrawVarietyOnEnemy(e, pos, r, t);  // bubbles, trait markers (VarietyLook.cs)
             // Bosses get a bar at the top of the screen instead.
-            bool bar = e.Hp < e.MaxHp && !e.Def.IsBoss && !spawning && !Game.IsTrap(e.Type);
+            bool bar = e.Hp < e.MaxHp && !e.Def.IsBoss && !spawning && !Game.IsTrap(e.Type) && EnemyHpBarsOn;  // (Settings > Gameplay > Health bars)
             if (bar)
             {
                 float w = Mathf.Max(30f, r * 2f);

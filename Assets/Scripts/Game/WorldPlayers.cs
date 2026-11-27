@@ -118,13 +118,20 @@ namespace Arena
 
             if (!preview)  // menu previews (LobbyUi.cs) leave out the health bar
             {
-                GhostBar(p.Disp + new V2(-20f, -r - 12f), 40f, 4f, p.Hp / p.MaxHp, new Rgba(0.3f, 1f, 0.4f), PlayerKey(p.Id, false));  // HealthBars.cs
-                DrawWorldWound(p.Disp.X - 20f, p.Disp.Y - r - 12f, 40f, 4f, p);  // the wound: the bar's end that heals can't reach (HealthBars.cs)
-                DrawDebtBar(p, r, t);  // Blood Debt's ghost segment (BloodDebtLook.cs)
-                DrawJuggBar(p, r);     // the Juggernaut Suit's armour, over the health bar (JuggernautLook.cs)
-                DrawTankBar(p, r);     // A Literal Tank's armour and time (LiteralTankLook.cs)
+                // The overhead stack, bottom up, clear of the body and its rings (OverheadStack.cs); the name goes over it (Hud.cs)
+                BeginOverhead(p);
+                if (HpBarOn(p))  // (Settings > Gameplay > Health bars)
+                {
+                    float hy = OverheadRow(4f);
+                    GhostBar(p.Disp + new V2(-20f, hy), 40f, 4f, p.Hp / p.MaxHp, new Rgba(0.3f, 1f, 0.4f), PlayerKey(p.Id, false));  // HealthBars.cs
+                    DrawWorldWound(p.Disp.X - 20f, p.Disp.Y + hy, 40f, 4f, p);  // the wound: the bar's end that heals can't reach (HealthBars.cs)
+                    DrawDebtBar(p, hy, t);  // Blood Debt's ghost segment (BloodDebtLook.cs)
+                }
+                DrawArmorBar(p);       // an Armor Drop vest's armor, five steel segments (ArmorDropLook.cs)
+                DrawJuggBar(p);        // the Juggernaut Suit's armour (JuggernautLook.cs)
+                DrawTankBar(p);        // A Literal Tank's armour and time (LiteralTankLook.cs)
                 DrawArmBar(p);         // Iron Armadillo's time (IronArmadilloLook.cs)
-                DrawArmorBar(p, r);    // an Armor Drop vest's armor, five steel segments (ArmorDropLook.cs)
+                EndOverhead(p);
                 DrawSallyRing(p, t);   // Sally Forth, out of a Trojan Horse (TrojanHorseLook.cs)
             }
             if (p.Downed)

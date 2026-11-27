@@ -207,7 +207,7 @@ namespace Arena
             float roll = p.ArmT + p.ArmAge - Game.ArmCurl;
             float left = roll > 0f ? Mathf.Clamp01(p.ArmT / roll) : 0f;
             float w = 70f, h = 3f;
-            V2 at = p.Disp + new V2(-w / 2f, -Game.ArmR - 16f);
+            V2 at = p.Disp + new V2(-w / 2f, OverheadRow(h));  // (OverheadStack.cs)
             FillRect(at.X - 1f, at.Y - 1f, w + 2f, h + 2f, new Rgba(0f, 0f, 0f, 0.6f));
             FillRect(at.X, at.Y, w * left, h, (p.ArmT < 2f && Mathf.Repeat(Time.time * 6f, 1f) < 0.5f ? Game.ArmGold : Game.ArmSpirit).WithAlpha(0.9f));
         }

@@ -89,13 +89,14 @@ namespace Arena
                 if (LaunchHides(p))
                     continue;  // not landed yet (LaunchIntro.cs)
                 DrawLaunchIcon(p, at, r);
-                if (p.Id != game.MyId)  // (no text over your own player; the name rises over a Juggernaut Suit's armour bar)
-                    DrawName(new Rect(at.X - 100f, at.Y - r - 30f - (Game.JuggOn(p) ? 8f * UiWorldScale : 0f) - NameLift(p), 200f, 18f), p.Name, 12, NameFxOf(p.Id), Time.unscaledTime,
+                float over = Mathf.Max(-OverheadTop(p) * UiWorldScale, r + NameLift(p) + 6f);  // the top of the bars over them (OverheadStack.cs), or of an Aeroaegis bubble
+                if (p.Id != game.MyId)  // (no text over your own player; the name sits on top of the overhead stack)
+                    DrawName(new Rect(at.X - 100f, at.Y - over - 17f, 200f, 18f), p.Name, 12, NameFxOf(p.Id), Time.unscaledTime,
                     p.Def.Color.WithAlpha(0.95f).ToColor(), TextAnchor.MiddleCenter, true);  // their name effect, if any (NameEffects.cs)
                 if (p.LevelFlash > 0f)
                 {
                     float rise = (1.5f - p.LevelFlash) * 22f;
-                    Ui.Glitch(new Rect(at.X - 100f, at.Y - r - 58f - rise * (Juicy ? 2f : 1f), 200f, 30f), "LEVEL UP!", Juicy ? 25 : 19,
+                    Ui.Glitch(new Rect(at.X - 100f, at.Y - over - 46f - rise * (Juicy ? 2f : 1f), 200f, 30f), "LEVEL UP!", Juicy ? 25 : 19,
                         new Color(1f, 0.88f, 0.35f, Mathf.Min(1f, p.LevelFlash)), TextAnchor.MiddleCenter);
                 }
                 if (p.Downed)

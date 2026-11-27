@@ -141,14 +141,13 @@ namespace Arena
         }
 
         /// The armor bar over the health bar: five steel segments, 10 armor each. Over the Juggernaut Suit's bar when both show.
-        void DrawArmorBar(Player p, float r)
+        void DrawArmorBar(Player p)
         {
             if (!Game.Armored(p))
                 return;
             float frac = Mathf.Clamp01(p.Armor / Game.ArmorCap);
             float w = 40f, h = 4f, gap = 2f, sw = (w - gap * (VestSegs - 1)) / VestSegs;
-            float y = -r - 19f - (Game.JuggOn(p) ? 7f : 0f);
-            V2 at = p.Disp + new V2(-w / 2f, y);
+            V2 at = p.Disp + new V2(-w / 2f, OverheadRow(h));  // (OverheadStack.cs)
             FillRect(at.X - 1f, at.Y - 1f, w + 2f, h + 2f, new Rgba(0f, 0f, 0f, 0.65f));
             for (int i = 0; i < VestSegs; i++)
             {

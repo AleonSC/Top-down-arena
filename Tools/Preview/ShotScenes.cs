@@ -1161,6 +1161,7 @@ static partial class Shot {
   }
   static void ArenaScenes() {
     KnuckleWheelScene();  // KNWHEEL=r|l|u|d|c: the Arc Knuckles' click wheel open, the cursor on that side (with SWINGW=ArcKnuckles MOVE=<1-7>)
+    OverlaysScene();  // OVERLAYS=<role>|all [OVERBARS=1] (ShotOverlays.cs)
     DuelistSheetScene();  // DUELSHEET=<1-8>|all (ShotDuelist.cs)
     HoldingCellScene();  // HOLDCELL=<s> [HOLDCELLS=2], HOLDLOCK=1, HOLDNET=<s> (ShotHoldingCell.cs)
     ShockwaveScene();  // SHOCK=<s since the cast> [SHOCKCAP=1] [FXOFF=1] (ShotShockwave.cs)

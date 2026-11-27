@@ -20,6 +20,7 @@
 # OATHPICK=1|0 (Guardian's Oath waiting for the click: cursor on an ally, or off; mode hud, 3 players).
 # MOVEFEEL=walk|stop|dash [MFOFF=1] (movement feel, MoveFeel.cs: the stretch, dust, dash ghosts; MFOFF the before; mode hud, 2 players, ZOOM=2.5).
 # SPRINT=<s> (the Dodge's held sprint that long in, running right with its fading wake; mode hud).
+# OVERLAYS=<role 0-2>|all [OVERBARS=1] (every class in a row at 60% health: the overhead stack, OverheadStack.cs; OVERBARS adds a wound and a vest; ZOOM=3.2 CAMAT=665,450, mode hud, wave 0).
 # RIOT=ready|wait,17|block,0.1 (Riot Gear: the plate, the recharge, a block that long ago; use with mode hud).
 # MOMENTUM=<0-5> (the DPS passive's stack pips round you; mode hud, 2 players).
 # IRONHIDE=<shield 0-75>[,<wait s>] (the Tank's Ironhide plates; mode hud, 1 player, ZOOM=3).

@@ -102,7 +102,7 @@ namespace Arena
                     Line(back - side, tip, 2.5f, c);
                 }
 
-            if (e.Hp < e.MaxHp && !spawning && e.Phase != SpawnPortals.Closing)
+            if (e.Hp < e.MaxHp && !spawning && e.Phase != SpawnPortals.Closing && EnemyHpBarsOn)  // (Settings > Gameplay > Health bars)
             {
                 float w = Mathf.Max(30f, r * 2f);
                 GhostBar(pos + new V2(-w / 2f, -r - 18f), w, 4f, e.Hp / e.MaxHp, new Rgba(1f, 0.3f, 0.3f), EnemyKey(e.Id));  // HealthBars.cs

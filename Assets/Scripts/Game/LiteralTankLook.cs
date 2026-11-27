@@ -241,13 +241,13 @@ namespace Arena
         }
 
         /// The armour bar over the health bar, with the time left as a hairline under it.
-        void DrawTankBar(Player p, float r)
+        void DrawTankBar(Player p)
         {
             if (!Game.TankOn(p) || p.TankMax <= 0f)
                 return;
             float frac = Mathf.Clamp01(p.TankArmor / p.TankMax);
             float w = 56f, h = 5f;
-            V2 at = p.Disp + new V2(-w / 2f, -r - 50f);
+            V2 at = p.Disp + new V2(-w / 2f, OverheadRow(h + 3f));  // (and the time under it: OverheadStack.cs)
             FillRect(at.X - 1f, at.Y - 1f, w + 2f, h + 2f, new Rgba(0f, 0f, 0f, 0.65f));
             FillRect(at.X, at.Y, w * frac, h, TankBarFill);
             FillRect(at.X, at.Y, w * frac, 1f, new Rgba(1f, 1f, 1f, 0.5f));
