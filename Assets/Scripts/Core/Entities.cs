@@ -164,6 +164,7 @@ namespace Arena
         PistolWhip,
         PitFall,  // PitFall: a body falling into a pit (Pos = where it fell, Pos2 = the rim it climbed out on, Radius = its size, Color = its colour with A 1 a player (climbs out), 0.5 an enemy (dies); Core/Pits.cs, Game/PitLook.cs)
         PortalSeal,
+        PressurePoint,  // PressurePoint: a Pressure Point Press moment (Radius = Game.PppFx*; Core/PressurePointPress.cs, Game/PressurePointPressLook.cs)
         RailBeam,  // RailBeam: one stretch of a Railgun beam (Pos = from, Pos2 = to, Radius = its width, Color = gold for a perfect shot, A = 0.5 + charge / 2, Dur = the flash or the charged path after it); HeatDump: the Railgun's Heat Dump (Pos = the shooter, Pos2 = the cone's far middle, Radius = the heat dumped; Core/RailBeam.cs, Game/RailBeamLook.cs)
         RainRelease,
         RavagerLash,
@@ -989,6 +990,7 @@ namespace Arena
         public bool ApUp, ApMastered, ApParryWas;  // host (ApParryWas: the parry key was held last tick)
         public int ApBolts, ApSwaps;           // host: bolts and switches this run (tests)
         public float ApHealed;                 // host: HP healed this run (tests)
+        public int PppPresses;                 // Pressure Point Press (PressurePointPress.cs), host: presses this run (tests)
         public int FsgCuts, FsgKills;          // Five Shadow Gong (FiveShadowGong.cs), host: cuts and kills this run (tests)
         public float SpT, SpAge, SpWind, SpAng;  // Spirit Avatar (SpiritAvatar.cs), replicated: time left (0 = off), seconds since the cast, the cleave (0 none, 0..1 wind-up, 1..2 sweep), its heading
         public float SpCastT = -1f, SpCd;      // host: the cleave's clock (-1 = none), its cooldown
