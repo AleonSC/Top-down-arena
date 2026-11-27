@@ -277,6 +277,24 @@ namespace Arena
             return to;
         }
 
+        /// CRT colour: the menu hue's rainbow strip (MenuBgHue.cs; the main menu's hue key moves with it) and a RESET key (blue).
+        float SetHue(float y, float w, bool live, bool calm)
+        {
+            SetLabel(y, w, "CRT colour", "The menus' hue, and the main menu's floor");
+            float pick = MenuBgHue;
+            var reset = new Rect(w - 56f, y + 37f, 56f, 24f);
+            var strip = new Rect(0f, y + 37f, reset.x - 6f, 24f);
+            float to = HueStrip(strip, pick, CrtBaseHue, ref crtHueDrag, live);
+            if (DkKey(reset, "RESET", pick < 0f, calm, size: 11, rawSize: true) && live)
+                to = -1f;
+            if (to != pick)
+            {
+                SetMenuBgHue(to);
+                SetSaved();
+            }
+            return SetRule(y + 68f, w);
+        }
+
         /// A row of ON / OFF keys under the setting's name, any number lit (a bit mask; they take the whole width).
         int SetFlags(ref float y, float w, string title, string line, string[] names, int mask, bool live, bool calm)
         {
@@ -333,8 +351,7 @@ namespace Arena
             if (style != floorStyle) { floorStyle = style; changed = true; }
             bool bend = SetToggle(ref y, w, "Floor bending", "The grid dips under heavy hits", floorBend, live, calm);
             if (bend != floorBend) { floorBend = bend; changed = true; }
-            int theme = SetChoices(ref y, w, "CRT colour", "The menus' phosphor", CrtUi.ThemeNames, CrtUi.Theme, live, calm);
-            if (theme != CrtUi.Theme) { CrtUi.Theme = theme; changed = true; }
+            y = SetHue(y, w, live, calm);
             if (changed)
                 SaveFxSettings();
             return y;

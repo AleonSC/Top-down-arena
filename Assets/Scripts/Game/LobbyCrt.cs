@@ -32,13 +32,13 @@ namespace Arena
         static Texture2D lobbyScanTex, lobbyPhosTex, lobbyGlassTex;
         static GUIStyle lobbyGlassStyle;
 
-        static int lobbyTexTheme = -1;
+        static float lobbyTexHue = -2f;
 
         static void InitLobbyCrt()
         {
-            if (lobbyScanTex != null && lobbyTexTheme == CrtUi.Theme)
+            if (lobbyScanTex != null && Mathf.Abs(lobbyTexHue - CrtUi.Hue) < 0.01f)
                 return;
-            lobbyTexTheme = CrtUi.Theme;  // the CRT colour changed: build the textures again
+            lobbyTexHue = CrtUi.Hue;  // the CRT colour changed: build the textures again
             if (lobbyScanTex != null) Object.Destroy(lobbyScanTex);
             if (lobbyPhosTex != null) Object.Destroy(lobbyPhosTex);
             if (lobbyGlassTex != null) Object.Destroy(lobbyGlassTex);
