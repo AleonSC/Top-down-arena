@@ -723,7 +723,7 @@ static partial class Program
                 me.Weapon = w;
                 me.Stats.Fan = fan;
                 me.Stats.ExtraShots = extra;
-                me.RevCocked = true; me.RevCockT = 0f; me.WasFiring = false; me.TapQueued = false;  // a fresh trigger pull
+                me.RevCocked = true; me.RevCockT = 0f; me.WasFiring = false; me.TapQueued = false; me.FireCd = 0f;  // a fresh trigger pull (and no cooldown left from the weapon tried before)
                 var seen = new HashSet<int>();
                 var shots = new List<Bullet>();
                 for (int f = 0; f < 60 && shots.Count == 0; f++)
@@ -852,7 +852,7 @@ static partial class Program
                     if (inCone && !pastCone) pass++; else off.Add(w.Name + (extra > 0 ? " +2" : "") + " (inside " + inCone + ", outside " + pastCone + ")");
                     continue;
                 }
-                if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion || w.Id == WeaponId.BloodBrawler || w.Id == WeaponId.LeechTendrils || w.Id == WeaponId.RepulsionCannon || w.Id == WeaponId.ChainLight)
+                if (w.Id == WeaponId.VeinTether || w.Id == WeaponId.Implosion || w.Id == WeaponId.BloodBrawler || w.Id == WeaponId.LeechTendrils || w.Id == WeaponId.RepulsionCannon || w.Id == WeaponId.ChainLight || w.Id == WeaponId.NanoSprayer)
                 {
                     // A beam, an implosion, the Blood Brawler's string, a tendril, a repulsion blast or a cone of light has no shots to follow: an enemy just inside its range is hit, one just past it isn't.
                     Func<float, bool> Hits = edge =>

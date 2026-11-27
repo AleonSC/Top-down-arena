@@ -9,7 +9,7 @@ static partial class Program
     static void EnemyNumbersTest(float dt)
     {
         // The lobby's Damage stat: every weapon has a measured damage a second (run.sh 1 1 weapondps write).
-        var unmeasured = Defs.Weapons.Where(w => Defs.WeaponDps(w.Id) <= 0f).Select(w => w.Name).ToList();
+        var unmeasured = Defs.Weapons.Where(w => w.Calling == CallingId.None && Defs.WeaponDps(w.Id) <= 0f).Select(w => w.Name).ToList();  // (a Calling's weapon is never in the lobby: SoldierCallings.cs)
         Check(unmeasured.Count == 0, "every weapon has a measured damage a second for the lobby" + (unmeasured.Count > 0 ? " (missing: " + string.Join(", ", unmeasured) + ")" : ""));
 
         // The health a spawn is given matches SpawnHp.

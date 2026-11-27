@@ -93,13 +93,13 @@ namespace Arena
                 Speed = 480f, Life = 1.1f, Damage = 55f, BotRange = 340f, FireInterval = 1.25f, Name = "Siege Cannon", AreaDesc = "blasts 25% wider", ExtraDesc = "+1 bomblet round each blast",
                 Desc = "Primary Fire: Huge, slow shells that burst and knock enemies back. You move 12% slower carrying it.", Sound = Sfx.ShotCannon },
             new WeaponDef { Id = WeaponId.SlugBreacher, Calling = CallingId.SlugBreacher, Kit = Kit.Soldier, Role = Role.Tank, Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireSlug(p, dir, muzzle, dmg, extra),
-                Speed = 900f, Life = 0.55f, Damage = 38f, BotRange = 260f, FireInterval = 0.85f, Name = "Slug Breacher", ExtraDesc = "The slug goes through one more enemy",
+                Speed = 900f, Life = 0.55f, Damage = 38f, BotRange = 260f, FireInterval = 0.85f, Name = "Slug Breacher", ExtraDesc = "The slug goes through one more enemy and hits 15% harder",
                 Desc = "Primary Fire: One heavy slug that blows through enemies, stunning and shoving them.", Sound = Sfx.ShotShotgun },
             new WeaponDef { Id = WeaponId.DefibCannon, Calling = CallingId.DefibCannon, Kit = Kit.Soldier, Role = Role.Healer, Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireDefib(p, dir, muzzle, dmg, extra),
                 Speed = 700f, Life = 0.8f, Damage = 26f, BotRange = 360f, FireInterval = 0.9f, Name = "Defib Cannon", ExtraDesc = "The shock goes through one more enemy",
                 Desc = "Primary Fire: Shocks that stun enemies and heal allies they pass. Every 5th is a full charge: twice as hard, and it stands up a downed ally it touches.", Sound = Sfx.SpellZap },
             new WeaponDef { Id = WeaponId.NanoSprayer, Calling = CallingId.NanoSprayer, Kit = Kit.Soldier, Role = Role.Healer, Cone = true, Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireNano(p, aim, dmg, extra),
-                Range = (g, p, w, x) => p.Def.BodyR + NanoReachOf(p), Damage = NanoDmg, Reach = NanoReach, BotRange = 150f, FireInterval = 0.12f, Name = "Nano Sprayer", ExtraDesc = "+20% wider mist",
+                Range = (g, p, w, x) => p.Def.BodyR + NanoReachOf(p), Damage = NanoDmg, Reach = NanoReach, BotRange = 150f, FireInterval = 0.12f, Name = "Nano Sprayer", ExtraDesc = "+20% wider mist, 15% stronger",
                 Desc = "Primary Fire: A mist of nanites that heals allies in it and corrodes enemies.", Sound = Sfx.None },
             new WeaponDef { Id = WeaponId.Railspike, Calling = CallingId.Railspike, Kit = Kit.Soldier, Role = Role.Dps, Charge = true, Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireSpike(p, dir, muzzle, dmg, extra),
                 Range = (g, p, w, x) => p.Def.BodyR + w.Speed * w.Life * p.Stats.ShotSpeedMult, Speed = 1800f, Life = 0.8f, Damage = SpikeMax, BotRange = 520f, FireInterval = 0.6f, Name = "Railspike", ExtraDesc = "+15% damage",
@@ -183,7 +183,7 @@ namespace Arena
         void FireSlug(Player p, V2 dir, V2 muzzle, float dmg, int extra)
         {
             var w = p.Weapon;
-            var b = SpawnBullet(Defs.SlugRound, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg * p.Stats.SlugDmgMult, p.Id);
+            var b = SpawnBullet(Defs.SlugRound, muzzle, dir * w.Speed, 0f, w.Life, w.Damage * dmg * p.Stats.SlugDmgMult * (1f + 0.15f * extra), p.Id);
             b.Pierce += SlugPierceBase + p.Stats.SlugPierce + extra;
             b.CallShot = (byte)CallingId.SlugBreacher;
             if (p.CallingN > 0)
@@ -224,17 +224,16 @@ namespace Arena
         void FireNano(Player p, float aim, float dmg, int extra)
         {
             float reach = p.Def.BodyR + NanoReachOf(p), arc = NanoHalfArc * (1f + 0.2f * extra) * AreaMult(p);
-            float tick = p.Weapon.FireInterval;
             foreach (var e in FoesInCircle(p.Pos, reach, by: p.Id))
                 if (InArc(p.Pos, aim, arc, e.Pos))
                 {
-                    HurtEnemy(e, NanoDmg * dmg * p.Stats.NanoMult, p.Id);
+                    HurtEnemy(e, NanoDmg * dmg * p.Stats.NanoMult * (1f + 0.15f * extra), p.Id);
                     e.NanoT = 0.4f;  // (Gray Goo: it died in the mist)
                     e.NanoBy = p.Id;
                 }
             foreach (var q in Players.Values)
                 if (q != p && !q.Downed && q.Pos.CloserThan(p.Pos, reach) && InArc(p.Pos, aim, arc, q.Pos))
-                    Heal(q, NanoHeal * p.Stats.NanoMult * (tick / 0.12f), p, "Nano Sprayer");
+                    Heal(q, NanoHeal * p.Stats.NanoMult * (1f + 0.15f * extra), p, "Nano Sprayer");
         }
 
         static bool InArc(V2 from, float aim, float half, V2 at) => Math.Abs(MathX.WrapPi((at - from).Angle - aim)) <= half;
@@ -259,7 +258,7 @@ namespace Arena
             for (int i = 0; i < n; i++)
             {
                 float a = aim + (n == 1 ? 0f : (i / (n - 1f) - 0.5f) * PodSpread);
-                var b = SpawnBullet(Defs.PodRocket, muzzle, V2.FromAngle(a) * w.Speed * Rand(0.85f, 1.1f), 0f, w.Life, w.Damage * dmg * p.Stats.PodDmgMult, p.Id, homingTurn: PodTurn);
+                var b = SpawnBullet(Defs.PodRocket, muzzle, V2.FromAngle(a) * w.Speed * (i % 2 == 0 ? 1f : 0.88f), 0f, w.Life, w.Damage * dmg * p.Stats.PodDmgMult, p.Id, homingTurn: PodTurn);
                 b.Splash = PodBlast * AreaMult(p) * p.Stats.PodBlastMult;
                 b.Burst = 1;
                 b.CallShot = (byte)CallingId.RocketPod;
