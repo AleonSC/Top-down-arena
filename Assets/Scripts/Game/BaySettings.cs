@@ -277,6 +277,22 @@ namespace Arena
             return to;
         }
 
+        /// A row of ON / OFF keys under the setting's name, any number lit (a bit mask; they take the whole width).
+        int SetFlags(ref float y, float w, string title, string line, string[] names, int mask, bool live, bool calm)
+        {
+            SetLabel(y, w, title, line);
+            float gap = 3f, cw = (w - gap * (names.Length - 1)) / names.Length;
+            int to = mask;
+            for (int i = 0; i < names.Length; i++)
+                if (DkKey(new Rect(i * (cw + gap), y + 38f, cw, 22f), names[i].ToUpperInvariant(), (mask & 1 << i) != 0, calm, size: 9, rawSize: true, lamp: true, lampLit: (mask & 1 << i) != 0) && live)
+                {
+                    to = mask ^ 1 << i;
+                    SetSaved();
+                }
+            y = SetRule(y + 68f, w);
+            return to;
+        }
+
         float SetAudio(float y, float w, bool live, bool calm)
         {
             float m = sounds.Master, mu = sounds.Music, wp = sounds.Weapons, en = sounds.Enemies, ef = sounds.Effects;
@@ -344,6 +360,9 @@ namespace Arena
             bool labels = SetToggle(ref y, w, "Name labels", "A name over you and every enemy", nameLabels, live, calm, "N");
             if (labels != nameLabels)
                 SetNameLabels(labels);
+            int bars = SetFlags(ref y, w, "Health bars", "Which bodies show one over them", HpBarNames, hpBars, live, calm);
+            if (bars != hpBars)
+                SetHpBars(bars);  // (OverheadStack.cs)
             float mate = mateShotAlpha;
             y = SetBar(y, w, "Teammate shots", "How solid other players' bullets look", ref mate, live, calm, 0.25f);
             if (Mathf.Abs(mate - mateShotAlpha) > 0.0001f)

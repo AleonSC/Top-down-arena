@@ -180,14 +180,14 @@ namespace Arena
         }
 
         /// The armour bar over the health bar: six segments (one per plate), steel fill, a pale ghost where it just drained.
-        void DrawJuggBar(Player p, float r)
+        void DrawJuggBar(Player p)
         {
             if (p.JuggT <= 0f || p.Downed || p.JuggMax <= 0f)
                 return;
             float frac = Mathf.Clamp01(p.JuggArmor / p.JuggMax);
             float ghost = juggVis.TryGetValue(p.Id, out var v) ? Mathf.Max(frac, v.Ghost) : frac;
             float w = 40f, h = 4f;
-            V2 at = p.Disp + new V2(-w / 2f, -r - 19f);
+            V2 at = p.Disp + new V2(-w / 2f, OverheadRow(h + 2f));  // (and the time's hairline under it: OverheadStack.cs)
             FillRect(at.X - 1f, at.Y - 1f, w + 2f, h + 2f, new Rgba(0f, 0f, 0f, 0.65f));
             if (ghost > frac + 1e-3f)
                 FillRect(at.X, at.Y, w * ghost, h, new Rgba(1f, 0.9f, 0.7f, 0.55f));

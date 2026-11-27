@@ -18,11 +18,11 @@ namespace Arena
         // --- World ------------------------------------------------------------------------------------------------
 
         /// After the player's health bar (WorldPlayers.cs): the ghost segment of what's still owed, hatched and outlined.
-        void DrawDebtBar(Player p, float r, float t)
+        void DrawDebtBar(Player p, float y, float t)
         {
             if (p.Debt <= 0f || p.MaxHp <= 0f)
                 return;
-            V2 bar = p.Disp + new V2(-20f, -r - 12f);
+            V2 bar = p.Disp + new V2(-20f, y);  // (y: the health bar's row, OverheadStack.cs)
             const float w = 40f, h = 4f;
             float from = Mathf.Clamp01(p.Hp / p.MaxHp), to = Mathf.Clamp01((p.Hp + p.Debt) / p.MaxHp);
             if (to - from < 0.005f)

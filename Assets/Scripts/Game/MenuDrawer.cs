@@ -570,6 +570,15 @@ namespace Arena
                     if (Mathf.Abs(sens2 - FpSensSetting) > 0.0001f)
                         SetFpSens(sens2);
                     y += 66f;
+                    WinLabel(new Rect(x, y, w - 396f, 54f), "Health bars", "Which bodies show one over them");  // (OverheadStack.cs)
+                    for (int i = 0; i < HpBarNames.Length; i++)
+                    {
+                        bool lit = (hpBars & 1 << i) != 0;
+                        if (DkKey(new Rect(x + w - 376f + i * 128f, y + 10f, 120f, 34f), HpBarNames[i].ToUpperInvariant(), false, FxCalm, size: 14, accent: lit ? CrtStyle.Ink : CrtStyle.Dim, lamp: true, lampLit: lit))
+                            SetHpBars(hpBars ^ 1 << i);
+                    }
+                    DashLine(x, y + 54f, w);
+                    y += 66f;
                     y += DrawLagSettingsRow(x, y, w);  // LagChartUi.cs
                     WinLabel(new Rect(x, y + 6f, w - 396f, 48f), "Teammate shots", "How solid other players' bullets look (25% at least)");
                     float mate = Mathf.Max(0.25f, WinSlider(new Rect(x + w - 376f, y + 6f, 376f, 48f), mateShotAlpha));
