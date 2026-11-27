@@ -22,7 +22,7 @@ namespace Arena
         readonly float[] beatWaves = { -100f, -100f, -100f, -100f };  // birth times (Time.unscaledTime); long ago = none
         int beatWaveNext;
         float beatPulse, beatPeak = 1e-3f, bassAvg, bassPeak = 1e-3f, lastBeatAt = -10f;
-        bool beatFrozen;  // previews: keep the values set from outside
+        bool beatFrozen = false;  // previews (Tools/Preview, by reflection): keep the values set from outside
 
         /// How strong the reaction is: 0 with effects off or the background STILL, half on Reduced effects.
         float BeatAmt => !fxOn || !menuBgAnimate ? 0f : fxReduced ? 0.5f : 1f;
