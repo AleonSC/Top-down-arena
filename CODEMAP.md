@@ -650,6 +650,8 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `Tools/BalanceGrid/grid.sh`, `Tools/BalanceGrid/heatmap.py`, `Tools/SimTest/Tests/BalanceGrid.cs`: the balance grid (report `grid`: every role, class and weapon vs each listed boss in the Boss Lab, `LabFight` in `BossLab.cs`; run in parallel, drawn as a heatmap with outliers)
 - `Docs/History.md` (finished to-do entries, audit notes, changelog), `Docs/CodeNotes.md` (older detailed per-file notes, not maintained), `Docs/Mockups/`
 
+- `Tools/DesignMap/index.html`, `seed.js`, `seed.py`, `curated.py`: design-map app (open `index.html` in a browser; Map tab plus a Playbook tab to drag roles, enemies, abilities onto a test arena and draw heal/taunt/shield links): drag-and-drop node graph of roles, classes, weapons, abilities, enemies, bosses and systems, notes and status per node, autosave plus Save/Load JSON; `seed.py` regenerates `seed.js` from `Docs/Reference.md` plus the hand-written modes, mechanics and goals in `curated.py`
+
 ## Where to look for...
 | Task | Files |
 |---|---|
