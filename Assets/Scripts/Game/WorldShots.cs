@@ -173,6 +173,8 @@ namespace Arena
                 DrawWaterJet(b, t);  // ElementGunLook.cs
                 return;
             }
+            if (DrawCallingShot(b, t))
+                return;  // a Soldier Calling weapon's shot (SoldierCallingsLook.cs)
             if (b.Kind == Defs.RocketShell)
             {
                 DrawRocketShell(b, t);  // RocketDropLook.cs

@@ -387,6 +387,8 @@ namespace Arena
         void ReadPlayKeys()
         {
             // Dodge: its key, or a double tap of a movement key (also remembered between fixed steps).
+            if (Keybinds.Down(KeyAction.SwapWeapon))
+                wantSwap = true;  // a second-slot Calling (Core/SoldierCallings.cs)
             if (Keybinds.Down(KeyAction.Dodge))
             {
                 wantDodge = true;
@@ -712,10 +714,12 @@ namespace Arena
                 Parry = Keybinds.Held(KeyAction.Parry) && !parryBlocked,
                 WeaponAction = Keybinds.Held(KeyAction.WeaponAction),
                 Dodge = wantDodge,
+                SwapWeapon = wantSwap,
                 DodgeHeld = dodgeKey < 0 ? Keybinds.Held(KeyAction.Dodge) : Keybinds.MoveHeld((KeyAction)dodgeKey),
             };
             input.Steer = KnuckleWheelSteer(input.Fire);  // the Arc Knuckles' click wheel (ArcKnucklesWheel.cs)
             wantDodge = false;
+            wantSwap = false;
             for (int i = 0; i < wantAbility.Length; i++)
                 wantAbility[i] = false;
             if (pauseMenuOpen || game.Paused)
@@ -757,7 +761,7 @@ namespace Arena
             selectedCard = -1;
         }
 
-        bool wantDodge;
+        bool wantDodge, wantSwap;
         int lastTapAction = -1;
         int dodgeKey = -1;  // what started the last dodge: -1 the Dodge key, 0..3 a double-tapped movement key
         float lastTapTime;
