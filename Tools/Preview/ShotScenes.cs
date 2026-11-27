@@ -1208,6 +1208,7 @@ static partial class Shot {
     BloodTotemScene();  // TOTEM=<s since the last plant> [TOTEMCAP=1] (ShotBloodTotem.cs)
     ChakraScene();  // CHAKRA=<s since the cast> [CHAKRACAP=1] (ShotChakra.cs)
     OctopusScene();  // OCTO=<s since the cast> [OCTOHP=<0-1>] or OCTOPICK=1 (ShotOctopus.cs)
+    MendingWebScene();  // SPIDERWEB=<s since the cast> or SPIDERWEBPICK=1 (ShotMendingWeb.cs)
     FlashFireScene();  // FLASHFIRE=<s since the cast> [FLASHCAP=1] (ShotFlashFire.cs)
     RockGlovesScene();  // GLOVES=<s since the cast> [GLOVESIDLE=1] (ShotRockGloves.cs)
     BloodRavagerScene();  // RAVAGER=<s since the cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (ShotBloodRavager.cs)

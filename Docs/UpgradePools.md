@@ -108,7 +108,7 @@ and a sim check that the number changes. They go in the class's own list (`Game.
 | Golem Wall | Basalt Hide | Golems have 50% more health |
 | Earthquake | Deep Tremor | The Burrower tunnels 1.5 s longer and hits 50% harder |
 | Force Pact | Kindred Bond | Your pact enemy has 50% more health and comes back 5 s sooner |
-| Spirit Swarm | Sprite Choir | Sprites heal 40% more and last 2 s longer |
+| Mending Web | Silk Choir | Webs reach 140 px farther between walls and last 3 s longer |
 | Phoenix | Rebirth Flame | The phoenix stays 4 s longer, and the people it revives get 25% more health |
 | Bat Swarm | Blood Bats | Bats bite 40% harder and hunt 2 s longer |
 | Hydra | Venom Glands | The hydra's venom slows its target 30% for 1.5 s (60% with two), and the hydra stays 2 s longer |
