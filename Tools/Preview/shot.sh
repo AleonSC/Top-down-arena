@@ -33,6 +33,7 @@
 # HERALDSHEET=1 (the Storm Herald's body in its four phases, HeraldBodyLook.cs; ZOOM=1.38 CAMAT=640,360 shot.sh x hud 3 1 1); HERALDSHEET=poses:<1-12> one of its poses (ZOOM=2.2 CAMAT=herald). CAMAT=herald: a zoom centred on the Herald.
 # WARDENSHEET=all|<1-15> (the Warden's poses, WardenBodyLook.cs: all fifteen in a grid, or one in the middle; NINJA=0 ZOOM=2 shot.sh x hud 3 1 1).
 # TUSKER=<s since the cast> [TUSKERCAP=1] (Tidal Tusker, ShotTusker.cs; ZOOM=1.6 CAMAT=640,450 shot.sh x hud 1 6 1).
+# CAT=<s since the cast> [CATCAP=1] (Sleepy Cat, ShotSleepyCat.cs; ZOOM=1.3 CAMAT=560,500 shot.sh x hud 1 6 1).
 # ORACLE=<s since the cast> [ORACLECAP=1] (Tortoise Oracle, ShotTortoiseOracle.cs; ZOOM=1.3 CAMAT=720,520 shot.sh x hud 1 6 1).
 # FORBIDDEN=<s since the cast> [FPNEXT=<1-5>] (Forbidden Path, ShotForbiddenPath.cs; ZOOM=2.2 CAMAT=630,460 shot.sh x hud 1 6 1).
 # CROWD=<n> (a Warden mob of n round you, for a crowd's draw cost; NINJA=0, e.g. shot.sh x hud 3 1 2). VTXTRACE=1 (any shot: print the world frame's top vertex sources; run mono shot.exe in out/ to see it). VTXDEPTH=<n>: that many stack frames a source (default 5).

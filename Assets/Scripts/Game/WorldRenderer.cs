@@ -223,6 +223,7 @@ namespace Arena
             DrawHelis(t);      // the Attack Helicopter, flying over the arena's contents (AttackHelicopterLook.cs)
             DrawDeployTurrets(t);  // the DPS Soldier's Deployable Turret and its rounds (DeployTurretLook.cs)
             DrawLandSharks(t);  // the DPS Summoner's Land Shark mid-leap (LandSharkLook.cs)
+            DrawSleepyCats(t);  // the Healer Summoner's Sleepy Cat, running or napping (SleepyCatLook.cs)
             DrawHoneyRaids(t);  // the Healer Summoner's Honey Raid: the giant bee and its falling glob (HoneyRaidLook.cs)
             DrawMammoths(t);  // the DPS Summoner's Mammoth Fall: forming, diving, rampaging, leaving (MammothFallLook.cs)
             DrawTuskers(t);  // the Tank Summoner's Tidal Tusker: the elephant and its streams (TidalTuskerLook.cs)

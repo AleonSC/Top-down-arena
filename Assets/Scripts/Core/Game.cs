@@ -1873,6 +1873,10 @@ namespace Arena
                 {
                     // the blood legs are out: the weapon is put away, Fire lashes (sent by the player's own game: BloodRavager.cs)
                 }
+                else if (CatOn(p))
+                {
+                    // Sleepy Cat is prowling: the weapon is put away, a click meows (TickSleepyCat, SleepyCat.cs)
+                }
                 else if (ApOn(p))
                     AstralTrigger(p);  // Astral Projection: the weapon is put away, Fire shoots from the spirit (AstralProjection.cs)
                 else if (FpOn(p))

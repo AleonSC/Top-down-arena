@@ -287,6 +287,7 @@ namespace Arena
         BruteDie,
         BruteGrunt,
         BruteStep,
+        CatNap,  // Sleepy Cat (SleepyCatSoundBank.cs): the cat's yawn as it curls up, then a soft purr. Sent as the nap starts.
         CenserBell,
         CenserBless,
         CenserCatch,
@@ -446,6 +447,7 @@ namespace Arena
         MenuPlay,  // The main menu and saved-runs screen in the holo look (MenuSoundBank.cs): played by your own screen, never sent.
         MenuQuit,
         MenuRooms,
+        Meow,  // Sleepy Cat (SleepyCatSoundBank.cs): one meow, three takes. Sent with each meow.
         NeonSpark,
         NinjaBlink,
         NinjaFanBurst,
@@ -1338,6 +1340,9 @@ namespace Arena
         public float BsLiftT;               // host: thrown in the air by the Blood Brawler's Heart Lift (BloodBrawler.cs)
         public float StunT;                 // host: stunned (Daze.cs Stun): held like FrozenT, but shown as stars over its head, not ice
         public bool Dazed;                  // replicated, for the stars over its head
+        public int CatMark;                 // host: the Sleepy Cat (zone id) whose meow marked it, 0 none (SleepyCat.cs)
+        public float CatNapT;               // host: seconds left asleep after a Sleepy Cat's nap began (a Stun as long)
+        public byte CatNap;                 // replicated: 0, 1 marked by a prowling cat, 2 + tenths left asleep (SleepyCat.cs)
         public int LastHitBy;
         public bool HeartKill;              // host: a Heartbeat wave killed it, so it drops a blood orb (Heartbeat.cs)
         public bool Dormant;                // replicated: asleep in an unseen room until it is seen or hit (DormantGroups.cs): no moving, shooting or counting for the wave

@@ -130,6 +130,7 @@ namespace Arena
         Sanctum,
         SanctumSigil,
         ShockGrenade,
+        SleepyCat,
         Smoke,
         SmokeShell,
         Stampede,
@@ -299,6 +300,7 @@ namespace Arena
             [ZoneKind.ArmorDrop] = new ZoneDef { Name = "Armor Drop", Color = new Rgba(0.62f, 0.85f, 1f) },  // the Tank Soldier's fourth ultimate (ArmorDrop.cs): Pos the crate, Radius the landing's blast; its timer gives the phase (flare, landing, open, fold)
             [ZoneKind.TrojanHorse] = new ZoneDef { Name = "Trojan Horse", Color = new Rgba(0.69f, 0.48f, 0.27f) },  // the Tank Knight's second ultimate (TrojanHorse.cs): Pos the horse, Aim its heading, Radius its half width, BlockHp/SoakMax its health, Marched how far it rolled, Quiet parked
             [ZoneKind.Ballista] = new ZoneDef { Name = "Ballista", Color = Rgba.Gold },  // the DPS Knight's third ultimate (Ballista.cs): Pos the frame, Aim the bow, Radius the mount reach (0 = breaking), Rider, BoltsLeft, GunCd, GuardFrac its health
+            [ZoneKind.SleepyCat] = new ZoneDef { Name = "Sleepy Cat", Color = new Rgba(1f, 0.8f, 0.35f) },  // the Healer Summoner's fourth ultimate (SleepyCat.cs): Pos the cat, Aim its heading, Radius the meow's reach, Marched its speed, Quiet napping, BoltsLeft meows left, GunCd since the last meow
             [ZoneKind.TortoiseOracle] = new ZoneDef { Name = "Tortoise Oracle", Color = new Rgba(0.37f, 0.88f, 0.73f) },  // the Healer Summoner's third ultimate (TortoiseOracle.cs): Pos the tortoise, Radius the circle; slows enemies and their shots, speeds up allies
             [ZoneKind.HoneyRaid] = new ZoneDef { Name = "Honey Raid", Color = new Rgba(1f, 0.7f, 0.15f) },  // the Healer Summoner's second ultimate (HoneyRaid.cs): Pos the pool, Origin where the bee came in, Radius the pool; slows, hurts and heals by its own tick
             [ZoneKind.Caltrop] = new ZoneDef { Name = "Caltrop", Color = new Rgba(0.62f, 0.85f, 1f) },  // the DPS Knight's Caltrop Run (CaltropRun.cs): one caltrop, Pos where it lands, Aim the way it bounced, GuardFrac the catches left

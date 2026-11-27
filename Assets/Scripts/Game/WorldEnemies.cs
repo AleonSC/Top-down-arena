@@ -334,6 +334,9 @@ namespace Arena
                     return;
                 case ZoneKind.DeployTurret:
                     return;  // drawn over the arena's contents by DrawDeployTurrets (DeployTurretLook.cs)
+                case ZoneKind.SleepyCat:
+                    DrawSleepyCatFloor(z, t);  // SleepyCatLook.cs (the cat is drawn over the enemies: DrawSleepyCats)
+                    return;  // no timer ring: it draws its own
                 case ZoneKind.TortoiseOracle:
                     DrawTortoiseOracle(z, t);  // TortoiseOracleLook.cs
                     return;  // no timer ring: it draws its own
@@ -777,6 +780,8 @@ namespace Arena
                 }
             if (e.Dazed && !spawning)
                 DrawDazeStars(pos + new V2(0f, -r - 7f), r, t);
+            if (e.CatNap > 0 && !spawning)
+                DrawCatMarks(e, pos, r, t);  // a Sleepy Cat's paw, or its sleep (SleepyCatLook.cs)
             int rows = spawning ? 0 : DrawEffectBar(e, pos, r, bar);  // EffectBar.cs
             DrawStatusIcons(e, pos + new V2(0f, -r - (bar ? 25f : 17f) - rows * 5f), t);
         }

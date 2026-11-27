@@ -419,6 +419,7 @@ namespace Arena
                 BuildBloodBlast();  // BloodBlastSoundBank.cs
                 BuildWarhorn();  // WarhornSoundBank.cs
                 BuildSiegeBell();  // SiegeBellSoundBank.cs
+                BuildSleepyCat();  // SleepyCatSoundBank.cs
                 BuildTwinRifle();  // TwinRifleSoundBank.cs
                 BuildOrbital();  // OrbitalSoundBank.cs
                 BuildRodent();  // RodentSoundBank.cs

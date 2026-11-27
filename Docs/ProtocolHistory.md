@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 New ids and cards need no bump (Session.IdsHash covers them): only a change to what is read or written does.
 
+- 554: Sleepy Cat (Healer Summoner ultimate, key 3): an enemy's snapshot adds `CatNap` (a byte: marked, or tenths left asleep); a `SleepyCat` zone adds `Quiet`, the meows left (a byte), `GunCd` and `Marched`.
 - 553: Heart of the Swarm (Healer Hemomancer ultimate, key 2): a player's snapshot adds `HsT` (a float), then `HsPos` while it is above 0.
 - 552: the 11 retired `Msg` values (Practice, PracticeEdit, PracticeWave, Respawn, ExpandVote, ExpandDraw, ExpandCut, ExpandHall, ExpandOutline, WallPush, PlayCard) removed, so every message number after them moves (Hello = 1 and Reject = 200 stay); no field layout changed.
 - 551: Rock Gloves (DPS Elementalist ultimate, key 3): a player's snapshot adds `GlvT` (a float), then `GlvAge` and `GlvPunch` while it is above 0.
