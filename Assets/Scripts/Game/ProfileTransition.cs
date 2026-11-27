@@ -8,7 +8,7 @@ namespace Arena
     ///   0.35 s  Carry: the disk rises toward the drive in the monitor's chin, shrinking to the slit's width, with a small wobble as it lines up
     ///   1.05 s  Insert: it tips back and slides up in through the slit, the slit's lower lip over it; the slit flashes as it seats (1.72 s)
     ///   1.80 s  Read: DISK DETECTED, then READING <name>… with the light blinking amber and the cells filling; WHO'S PLAYING? backspaces away
-    ///   2.60 s  Retype: VECTOR COLOSSEUM types on; the drive says <name> READY in green (2.85 s)
+    ///   2.60 s  Retype: VECTOR SECTOR: ARENA types on; the drive says <name> READY in green (2.85 s)
     ///   2.90 s  Drop: the menu's case falls out from under the monitor, lands with a squash, a bounce, a neon flare, the monitor jolting
     ///           and dust off its feet (3.35 s; MenuMachine.cs)
     ///   3.75 s  Power on: POWER, DISK, the key lamps one by one, the profile screen switching on (to 4.45 s); the shutter rattles (4.4 s)
