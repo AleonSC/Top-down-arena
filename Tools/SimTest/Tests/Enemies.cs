@@ -261,6 +261,11 @@ static partial class Program
             if (Find(s[0], EnemyType.Duelist) != null)
                 foreach (var p in s[0].Game.Players.Values)
                     s[0].Game.DevSetGod(p.Id, true);
+            // The Devourer likewise: since Deployable Turret replaced Artillery Assault as the DPS Soldier's default ultimate, the simple
+            // bots die to it or run out of time (Nov 2026); its own test (devourer) checks the phases, this that it can be beaten.
+            if (Find(s[0], EnemyType.Devourer) != null)
+                foreach (var p in s[0].Game.Players.Values)
+                    s[0].Game.DevSetGod(p.Id, true);
             // (The Storm Herald gets longer: 475k health against a duo of Good bots doing about 1,000 a second on a slow seed.)
             Run(s, dt, boss == EnemyType.Lich ? 700 : boss == EnemyType.StormHerald ? 600 : 400, () => !BossAlive(s[0]) && s[0].Game.State != MatchState.Fighting || s[0].Game.State == MatchState.GameOver, () =>
             {
