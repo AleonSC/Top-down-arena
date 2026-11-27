@@ -333,7 +333,7 @@ namespace Arena
             float grow = EaseInOut(Seg(e, CrtGrowFrom, CrtGrowTo));
             if (growIn < 1f)
                 Ui.Fill(scr, new Color(0.7f, 0.85f, 1f, 0.15f * flare * flare * (1f - growIn)));
-            if (growIn > 0f && grow < 1f)
+            if (growIn > 0f && e < CrtGrowTo)  // (the clock, as LobbyCrtBackA uses: `grow < 1f` rounds to 1 about 1 ms early, and a frame there drew neither, flashing the menu background)
                 WithAlpha(growIn, () => DrawCrtGrowScreen(LerpRect(scr, full, grow), grow, e));
 
             // The link log, typed in the middle of the screen and fading out.
