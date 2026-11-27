@@ -300,16 +300,16 @@ namespace Arena
                 float v = BeatBand(i);
                 if (v < 0.02f)
                     continue;
-                float h = v * (230f - i * 5f) * (mirror ? 0.35f : 1f), edge = 1f - 0.5f * i / n;  // tall in the bass, lower and fainter toward the middle
+                float h = v * (170f - i * 3.5f) * (mirror ? 0.35f : 1f), edge = 1f - 0.5f * i / n;  // tall in the bass, lower and fainter toward the middle
                 for (int side = -1; side <= 1; side += 2)
                 {
                     float x = (side < 0 ? i * bw : W - (i + 1) * bw) + gap / 2f, w = bw - gap;
                     if (mirror)
-                        GradQuad(new V2(x, hz), new V2(x + w, hz), new V2(x + w, hz + h), new V2(x, hz + h), body.WithAlpha(0.22f * edge), body.WithAlpha(0f));
+                        GradQuad(new V2(x, hz), new V2(x + w, hz), new V2(x + w, hz + h), new V2(x, hz + h), body.WithAlpha(0.14f * edge), body.WithAlpha(0f));
                     else
                     {
-                        GradQuad(new V2(x, hz - h), new V2(x + w, hz - h), new V2(x + w, hz), new V2(x, hz), body.WithAlpha(0.3f * edge), body.WithAlpha(0.06f * edge));
-                        FillRect(x, hz - h - 2f, w, 2f, cap.WithAlpha(0.85f * edge));
+                        GradQuad(new V2(x, hz - h), new V2(x + w, hz - h), new V2(x + w, hz), new V2(x, hz), body.WithAlpha(0.22f * edge), body.WithAlpha(0.04f * edge));
+                        FillRect(x, hz - h - 2f, w, 2f, cap.WithAlpha(0.5f * edge));
                     }
                 }
             }
