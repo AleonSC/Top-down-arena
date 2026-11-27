@@ -32,13 +32,19 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Weapon | Role | Interval | Damage | Speed x life | Reach | Sim DPS | What it does |
 |---|---|---|---|---|---|---|---|
 | Scattergun | Tank | 0.45 s | 7 | 520 x 0.5 s | - | 154 | Primary Fire: A short-range shotgun spread, brutal up close.  Alternative Fire: Lob a shock grenade that stuns enemies where it lands. |
+| Siege Cannon | Tank | 1.25 s | 55 | 480 x 1.1 s | - | 0 | Primary Fire: Huge, slow shells that burst and knock enemies back. You move 12% slower carrying it. |
+| Slug Breacher | Tank | 0.85 s | 38 | 900 x 0.55 s | - | 0 | Primary Fire: One heavy slug that blows through enemies, stunning and shoving them. |
 | Flak Cannon | Tank | 0.8 s | 30 | 380 x 1.1 s | - | 36 | Primary Fire: Shells that burst in the air at your cursor and destroy enemy bullets.  Alternative Fire: Lay a proximity shell that bursts when an enemy steps on it. |
 | Riot Repeater | Tank | 0.18 s | 11 | 600 x 0.8 s | - | 60 | Primary Fire: Steady shots that suppress enemies so they shoot slower.  Alternative Fire: Lob tear gas that slows and suppresses. |
 | Grenade Launcher | Tank | 0.42 s | 34 | 900 x 0.42 s | - | 49 | Primary Fire: Lob a drum of grenades that burst where they land.  Alternative Fire: Swap to smoke that slows enemies and stops them attacking. |
+| Defib Cannon | Healer | 0.9 s | 26 | 700 x 0.8 s | - | 0 | Primary Fire: Shocks that stun enemies and heal allies they pass. Every 5th is a full charge: twice as hard, and it stands up a downed ally it touches. |
+| Nano Sprayer | Healer | 0.12 s | 2.2 | - | 170 | 0 | Primary Fire: A mist of nanites that heals allies in it and corrodes enemies. |
 | Repulsion Cannon | Healer | 0.7 s | 6 | - | 240 | 9 | Primary Fire: Blasts enemies away in a cone and knocks health orbs loose.  Alternative Fire: Hold to pull enemies in. |
 | Revolver | Healer | 0.5 s | 50 | 700 x 1.1 s | - | 100 | Primary Fire: Click to fire a hard, aimed shot, click again to pull the hammer back: it shoots as fast as you click.  Alternative Fire: Fan stance: click to Pistol Whip (stuns what it hits), click again to Fan the Hammer. Hold parry and click to fan any time; parry after a whip to whip again. |
 | Mender's Bow | Healer | 0.9 s | 0 | - | - | 40 | Primary Fire: Hold to draw, release to fire a piercing arrow that heals allies it passes. |
 | Twin Pistols | Healer | 0.16 s | 10 | 780 x 0.8 s | - | 60 | Primary Fire: A pistol in each hand, firing in turn; hits knock health orbs loose.  Alternative Fire: Laser Sights: both guns fire together for harder rounds. |
+| Railspike | Dps | 0.6 s | 180 | 1800 x 0.8 s | - | 0 | Primary Fire: Hold to charge a steel spike that pierces everything across the arena. A full charge pins what it passes. |
+| Rocket Pod | Dps | 1.8 s | 14 | 520 x 1.3 s | - | 0 | Primary Fire: A salvo of homing rockets that burst on what they hit. |
 | Twin Rifle | Dps | 0.13 s | 4 | 820 x 0.7 s | - | 90 | Primary Fire: Two rifles whose streams cross at your cursor for crossfire damage. |
 | Railgun | Dps | 0.7 s | 120 | 1600 x 0.7 s | - | 116 | Primary Fire: Hold to charge a beam that ricochets off walls.  Alternative Fire: Dump the gun's heat as a cone of fire. |
 | Burst SMG | Dps | 0.06 s | 5 | 760 x 0.8 s | - | 120 | Primary Fire: A very fast spray that tightens and hits harder the longer you fire. |

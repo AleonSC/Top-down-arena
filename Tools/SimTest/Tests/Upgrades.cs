@@ -297,7 +297,7 @@ static partial class Program
     // (saves find cards by name).
     static void ClassCardListsTest()
     {
-        var lists = new[] { Game.SoldierCards, Game.ElementalistCards, Game.SummonerCards, Game.KnightCards, Game.NinjaCards, Game.HemomancerCards, Game.EngineerCards, new UpgradeDef[0] /* the Arcanist has no cards of its own yet */ };
+        var lists = new[] { Game.SoldierCards.Concat(Game.SoldierCallingCards).ToArray() /* (its Callings: SoldierCallings.cs) */, Game.ElementalistCards, Game.SummonerCards, Game.KnightCards, Game.NinjaCards, Game.HemomancerCards, Game.EngineerCards, new UpgradeDef[0] /* the Arcanist has no cards of its own yet */ };
         bool own = lists.Length == Defs.KitCount, inAll = true;
         var bad = new List<string>();
         for (int k = 0; k < lists.Length; k++)
