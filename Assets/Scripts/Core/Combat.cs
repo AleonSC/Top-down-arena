@@ -457,7 +457,7 @@ namespace Arena
         /// Cone weapons (Chain Light, Leech Tendrils, the Repulsion Cannon): Homing Rounds condense the cone instead,
         /// 15% narrower and 10% stronger a stack, so a wide cone for crowds or a focused one is a choice.
         public const float HomingConeNarrow = 0.15f, HomingConeFocus = 0.1f;
-        public static bool ConeWeapon(WeaponId w) => w == WeaponId.ChainLight || w == WeaponId.LeechTendrils || w == WeaponId.RepulsionCannon;
+        public static bool ConeWeapon(WeaponId w) => Defs.WeaponOf(w).Cone;  // WeaponDef.Cone
         public static float ConeNarrow(Player p) => 1f - HomingConeNarrow * p.Stats.Homing / 2f;  // how wide the cone is, against its usual width
         public static float ConeFocus(Player p) => 1f + HomingConeFocus * p.Stats.Homing / 2f;    // how hard it hits, against usual
         static float HomingCost(Player p) => 1f - HomingDamageCost * p.Stats.Homing;

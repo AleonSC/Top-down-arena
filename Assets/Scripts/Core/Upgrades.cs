@@ -356,6 +356,7 @@ namespace Arena
 
         // Weapon mods, one picked after each boss (and its legendary).
         public float Homing;              // turn rate (radians per second) toward the nearest enemy
+        public float HomingReach;         // Homing Rounds on a melee weapon: swings reach this much farther (a fraction; Knight.MeleeReach)
         public int Ricochet;              // bounces to another enemy on hit
         public float BurnFrac;            // a hit adds this much of its damage to the enemy's burn, burned off over 3 s
         public float CryoSlow, FreezeChance;
@@ -441,6 +442,8 @@ namespace Arena
         public bool Unoffered;                      // kept (old saves, dev tools) but never offered: the Queen's and the Twin Reapers' old cards (Swarm Rounds, Royal Jelly, Brood Mother; Executioner, Twin Fang, Soul Harvest)
         public bool PicksSlot;                      // the Extra Use card: you choose the ability (1st-4th) it goes on when you pick it
         public Action<Stats> Apply;
+        public ModId Mod;                           // the weapon mod it is (WeaponMods.cs); None for every other card
+        public Dictionary<WeaponKind, KindEffect> ByKind;  // what it does instead for some kinds of weapon (WeaponMods.Kinds); a weapon's own Mods entry wins
     }
 
     public static class Upgrades
@@ -663,8 +666,9 @@ namespace Arena
                 Apply = s => s.SharedPlating = true },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Multishot", Desc = "+1 projectile: upgrades your weapon in its own way", Apply = s => s.ExtraShots += 1 },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 3, Name = "Barrage", Desc = "Every shot also fires a copy fanned out to the side, at 60% damage. Stack it into a wall of bullets",
-                Apply = s => s.Fan += 1 },
-            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Piercing Rounds", Desc = "Shots pass through two more enemies. Weapons whose shots already pass through everything, or that have none, reach 15% farther instead", Apply = s => s.Pierce += 2 },
+                Apply = s => s.Fan += 1, ByKind = WeaponMods.Kinds(WeaponKind.Melee, new KindEffect { Desc = "Every swing also throws a sword wave, fanned out to the side. Stack it into a wall of steel" }) },
+            new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Piercing Rounds", Desc = "Shots pass through two more enemies. Weapons whose shots already pass through everything, or that have none, reach 15% farther instead", Apply = s => s.Pierce += 2,
+                ByKind = WeaponMods.Kinds(WeaponKind.Melee, new KindEffect { Desc = "Your swings reach 15% farther per stack, and sword waves pass through more enemies" }) },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Riposte", Desc = "Perfect-parry window is 0.12 s longer and reflected shots deal double damage",
                 Apply = s => { s.PerfectBonus += 0.12f; s.ReflectMult += 1f; } },
             new UpgradeDef { Rarity = Rarity.Rare, MaxStacks = 2, Name = "Counterstance", Desc = "A perfect parry gives +50% fire rate for 2.5 s",
@@ -722,24 +726,7 @@ namespace Arena
             new UpgradeDef { Rarity = Rarity.Legendary, Boss = EnemyType.Singularity, MaxStacks = 3, Name = "Dark Matter", Desc = "Shots pierce 1 more enemy and deal 35% more damage",
                 Apply = s => { s.Pierce += 1; s.DmgMult += 0.35f; } },
 
-            // Weapon mods: one is picked after every boss, from the full list.
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Homing Rounds", Desc = "Shots bend toward an enemy close ahead of them (fixes near misses), but deal 5% less damage per stack. More stacks bend harder",
-                Apply = s => s.Homing += 2f },
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Ricochet", Desc = "Shots bounce to another nearby enemy after a hit (40% damage). +1 bounce per stack. Weapons whose hits can't bounce fling a bounce bolt instead",
-                Apply = s => s.Ricochet += 1 },
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Incendiary Rounds", Desc = "Hits set enemies on fire: each burns for another 40% of the hit's damage over 3 s, and burns from every hit add up",
-                Apply = s => s.BurnFrac += 0.4f },
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Cryo Rounds", Desc = "Hits chill enemies (20% slower) with a 6% chance to freeze them for 1 s",
-                Apply = s => { s.CryoSlow = Math.Min(0.6f, s.CryoSlow + 0.2f); s.FreezeChance += 0.06f; } },
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Shock Rounds", Desc = "25% chance per hit for lightning to arc to 2 more enemies (60% damage)",
-                Apply = s => s.ShockChance += 0.25f },
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Explosive Rounds", Desc = "Shots explode on impact, dealing 30% damage to enemies nearby",
-                Apply = s => s.ExplosiveRadius += s.ExplosiveRadius == 0f ? 40f : 15f },
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Mirror Guard", Desc = "Each bullet your parry blocks has a 25% chance to fly back at enemies",
-                Apply = s => s.MirrorChance = Math.Min(0.75f, s.MirrorChance + 0.25f) },
-            new UpgradeDef { Rarity = Rarity.Mod, MaxStacks = 3, Name = "Velocity Rounds", Desc = "Shots fly 30% faster and farther and deal 25% more damage",
-                Apply = s => { s.ShotSpeedMult += 0.3f; s.DmgMult += 0.25f; } },
-        }, ClassAbilityCards(), Milestones(), VectorCards(), Game.SoldierCards, Game.ElementalistCards, Game.SummonerCards,
+        }, WeaponMods.Cards(), ClassAbilityCards(), Milestones(), VectorCards(), Game.SoldierCards, Game.ElementalistCards, Game.SummonerCards,
             Game.KnightCards, Game.NinjaCards, Game.HemomancerCards, Game.EngineerCards);
 
         /// After a boss: every weapon mod you can still take, to choose from.
@@ -777,37 +764,20 @@ namespace Arena
             return new[] { own[0], own[1], own[2] };
         }
 
-        /// The card text for this weapon: Multishot says what an extra projectile does for it.
+        /// The card text for this weapon: Multishot and Barrage in its own words, the weapon mods (and other cards with a
+        /// ByKind row) as WeaponMods says.
         public static string DescFor(UpgradeDef u, WeaponDef weapon) => KeyText.Fill(DescForStock(u, weapon));
 
         static string DescForStock(UpgradeDef u, WeaponDef weapon)
         {
-            if (weapon == null || weapon.ExtraDesc == null)
+            if (weapon == null)
                 return u.Desc;
-            if (u.Name == "Multishot")
+            if (u.Name == "Multishot" && weapon.ExtraDesc != null)
                 return weapon.Name + ": " + weapon.ExtraDesc;
-            if (u.Name == "Homing Rounds" && weapon.HomingDesc != null)
-                return weapon.Name + ": " + weapon.HomingDesc;
-            if (u.Name == "Homing Rounds" && weapon.AreaDesc != null)
-                return weapon.Name + ": " + weapon.AreaDesc + " per stack, instead of bending shots. 5% less damage per stack";
             if (u.Name == "Barrage" && weapon.BarrageDesc != null)
                 return weapon.Name + ": " + weapon.BarrageDesc;
-            string knight;
-            if (weapon.Melee && KnightDesc.TryGetValue(u.Name, out knight))
-                return knight;
-            return u.Desc;
+            return WeaponMods.DescFor(u, weapon) ?? u.Desc;  // the weapon's own words, then its kind's (WeaponMods.cs)
         }
-
-        /// What shot-based upgrades do for a Knight's melee weapon instead.
-        static readonly Dictionary<string, string> KnightDesc = new Dictionary<string, string>
-        {
-            { "Piercing Rounds", "Your swings reach 10% further, and sword waves pass through one more enemy" },
-            { "Barrage", "Every swing also throws a sword wave, fanned out to the side. Stack it into a wall of steel" },
-            { "Homing Rounds", "Your sword waves bend toward enemies close ahead of them (10% less wave damage per stack). Swings aren't affected" },
-            { "Ricochet", "Your hits fling a bounce bolt at another nearby enemy (40% of the damage, up to 4 a second), and sword waves bounce. +1 bounce per stack" },
-            { "Explosive Rounds", "Your hits explode, dealing 30% damage to enemies nearby" },
-            { "Velocity Rounds", "Sword waves fly 30% faster and farther, and everything you do deals 15% more damage" },
-        };
 
         public static Rgba RarityColor(Rarity r)
         {
@@ -968,6 +938,8 @@ namespace Arena
                 return false;  // the vector cards are for the Expanding arena
             if (u.Weapons != null && (!c.Weapon.HasValue || Array.IndexOf(u.Weapons, c.Weapon.Value) < 0))
                 return false;
+            if (c.Weapon.HasValue && WeaponMods.Off(u, Defs.WeaponOf(c.Weapon.Value)))
+                return false;  // it would do nothing for your weapon (WeaponMods.cs)
             if (u.Kit.HasValue && !c.HasKit(u.Kit.Value))
                 return false;
             if (u.Role.HasValue && u.Role.Value != role)
@@ -1054,13 +1026,15 @@ namespace Arena
             return Array.IndexOf(offer, -1) < 0 ? offer : Array.FindAll(offer, id => id >= 0);  // every pool spent: fewer cards, never a -1 (HostPick would index All[-1])
         }
 
-        public static Stats Compute(List<int> taken)
+        /// Your stats from your picks; with your weapon, each card gives what it does for that weapon (WeaponMods.ApplyFor).
+        public static Stats Compute(List<int> taken, WeaponDef weapon = null)
         {
             var s = new Stats();
             var copies = new Dictionary<int, int>();
             foreach (int id in taken)
             {
-                if (All[id].Apply == null)
+                var apply = WeaponMods.ApplyFor(All[id], weapon);
+                if (apply == null)
                     continue;
                 int n;
                 copies.TryGetValue(id, out n);
@@ -1068,14 +1042,14 @@ namespace Arena
                 float f = CopyStrength(All[id], n);
                 if (f >= 0.999f)
                 {
-                    All[id].Apply(s);
+                    apply(s);
                     continue;
                 }
                 // Diminishing returns: this copy moves every number it touches only f of the way.
                 var before = new float[statFloats.Length];
                 for (int i = 0; i < statFloats.Length; i++)
                     before[i] = (float)statFloats[i].GetValue(s);
-                All[id].Apply(s);
+                apply(s);
                 for (int i = 0; i < statFloats.Length; i++)
                 {
                     float after = (float)statFloats[i].GetValue(s);
