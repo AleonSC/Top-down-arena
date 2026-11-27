@@ -1,6 +1,6 @@
 # Grid pieces: room cards as Tetris pieces on the grid
 
-Status: **plan agreed with the owner; steps 1-4 built, step 5 in part (Grid is the default)** (protocol 403, Nov 18, 2026). Builds on [`GridRooms.md`](GridRooms.md) (the lattice, the core, door spots) and replaces most of [`Pieces.md`](Pieces.md). Owner wants Grid to be the default and the cards reworked "like Tetris: pieces made to fit together, gaps filled with different pieces".
+Status: **plan agreed with the owner; steps 1-4 built, step 5 in part (Grid is the default)** (protocol 403, Nov 18, 2026). Builds on [`GridRooms.md`](GridRooms.md) (the lattice, the core, door spots) and replaces most of [`RoomCards.md`](RoomCards.md). Owner wants Grid to be the default and the cards reworked "like Tetris: pieces made to fit together, gaps filled with different pieces".
 
 ## Decisions (owner, Nov 18)
 

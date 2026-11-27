@@ -74,7 +74,7 @@ There is no to-do file; the owner sends requests per session. Design docs in `Do
 Assets/Scripts/Core/   plain C# game logic (namespace Arena); no UnityEngine dependency at all
 Assets/Scripts/Game/   the Unity front end: rendering (GL), IMGUI menus/HUD, sound and music synthesis
 Assets/Editor/         ArenaEditor.cs: scene setup and the Windows build menu item
-Tools/SimTest/         headless test suite (mono) that drives real Sessions over localhost TCP
+Tools/SimTest/         headless test suite (mono) that drives real Sessions over the in-memory `NetPeer.Loopback` (SIMTEST_TCP=1: real localhost TCP)
 Tools/Preview/         renders screens to PNG without Unity (stubs + Pillow)         [added in the audit]
 Tools/CompileCheck/    fast compile check with Unity stubs                           [added in the audit]
 Tools/CodeMap/         check.py: CODEMAP.md names every source file once, and no deleted one (CI) [added Nov 2026]

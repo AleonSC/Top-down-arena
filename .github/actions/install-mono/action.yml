@@ -1,15 +1,61 @@
 name: Install mono
-description: mono-mcs and mono-runtime for the compile check and the sim suites
+description: mono-mcs and mono-runtime for the compile check and the sim suites (plus any extra packages), with the downloaded .debs cached
+inputs:
+  extra-packages:
+    description: more apt packages to install with mono, space separated (e.g. the Enemy Forge's WinForms libraries and unzip)
+    required: false
+    default: ''
 runs:
   using: composite
   steps:
-    - shell: bash
-      # (the runners' apt mirrors sometimes fail to resolve: retry with short timeouts instead of hanging for minutes)
+    - id: pkgs
+      shell: bash
       run: |
+        pkgs="mono-mcs mono-runtime libmono-system-core4.0-cil ${{ inputs.extra-packages }}"
+        pkgs=$(echo $pkgs | tr ' ' '\n' | sort -u | tr '\n' ' ' | sed 's/ $//')
+        echo "list=$pkgs" >> "$GITHUB_OUTPUT"
+        echo "hash=$(echo "$pkgs" | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+        echo "dir=$RUNNER_TEMP/apt-debs" >> "$GITHUB_OUTPUT"
+    # The .debs from the latest earlier run, keyed on the runner image and the package list (each save adds the run id).
+    - id: cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ steps.pkgs.outputs.dir }}
+        key: apt-debs-${{ runner.os }}-${{ runner.arch }}-${{ env.ImageOS }}-${{ steps.pkgs.outputs.hash }}-${{ github.run_id }}
+        restore-keys: apt-debs-${{ runner.os }}-${{ runner.arch }}-${{ env.ImageOS }}-${{ steps.pkgs.outputs.hash }}-
+    - id: install
+      shell: bash
+      env:
+        PKGS: ${{ steps.pkgs.outputs.list }}
+        DEBS: ${{ steps.pkgs.outputs.dir }}
+      run: |
+        mkdir -p "$DEBS"
+        installed() { for p in $PKGS; do dpkg-query -W -f='${Status}' "$p" 2>/dev/null | grep -q 'install ok installed' || return 1; done; }
+        # 1. From the cache: dpkg installs the cached .debs straight away (no apt update, no mirror).
+        if ls "$DEBS"/*.deb >/dev/null 2>&1; then
+          if sudo dpkg -i "$DEBS"/*.deb >/dev/null && installed && command -v mcs >/dev/null && command -v mono >/dev/null; then
+            echo "installed from the cache"; echo "fresh=0" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "cached .debs didn't install cleanly: falling back to apt"
+        fi
+        # 2. From the mirrors (they sometimes fail to resolve: retry with short timeouts instead of hanging for minutes).
+        opts="-o Acquire::Retries=3 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 -o APT::Keep-Downloaded-Packages=true -o Binary::apt::APT::Keep-Downloaded-Packages=true"
         for i in 1 2 3 4; do
-          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 update \
-            && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y mono-mcs mono-runtime libmono-system-core4.0-cil \
+          sudo apt-get $opts update \
+            && sudo apt-get $opts install -y -f $PKGS \
             && break
           echo "apt failed (try $i), retrying"; sleep 20
         done
         command -v mcs && command -v mono
+        installed
+        # Keep what apt downloaded for the next run (saved below only when there's something new).
+        rm -f "$DEBS"/*.deb
+        if ls /var/cache/apt/archives/*.deb >/dev/null 2>&1; then
+          cp /var/cache/apt/archives/*.deb "$DEBS"/ && echo "fresh=1" >> "$GITHUB_OUTPUT"
+        fi
+    - if: steps.install.outputs.fresh == '1'
+      uses: actions/cache/save@v4
+      continue-on-error: true  # parallel jobs race to save the same key: only the first wins, the rest just warn
+      with:
+        path: ${{ steps.pkgs.outputs.dir }}
+        key: apt-debs-${{ runner.os }}-${{ runner.arch }}-${{ env.ImageOS }}-${{ steps.pkgs.outputs.hash }}-${{ github.run_id }}

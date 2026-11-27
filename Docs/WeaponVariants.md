@@ -1,6 +1,6 @@
 # Weapon variants: design plan
 
-Status: **plan, nothing built yet.** Decisions below were made with the owner (November 2026); the variants and
+Status: **superseded by [`Variants.md`](Variants.md)**, which tracks what's built: variants are whole other weapons picked in the base weapon's Variants window (`WeaponDef.Variant`, `Variants.VariantOf`): the Twin Rifle's Twin Rifle Auto (I) and Out of Ammo (II), the Fireball's Waterball (I) and Earthball (II), the Flamethrower's Water Gun (I) and Gale Gun (II). Kept as the first plan. Decisions below were made with the owner (November 2026); the variants and
 numbers are first guesses to tune in play-testing, the Boss Lab and the `weapondps` report.
 
 ## The idea
