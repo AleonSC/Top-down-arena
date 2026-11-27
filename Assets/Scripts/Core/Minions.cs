@@ -256,6 +256,7 @@ namespace Arena
                 TickHiveDrones(p, dt);  // the Hive Queen's Hive Drones and Bomber Escort (QueenLoot.cs)
                 TickBombers(p, dt);
                 TickTwinScythes(p, dt);  // the Twin Reapers' Twin Scythes (ReaperLoot.cs)
+                TickCallings(p, dt);  // the Calling's spider, fairy or demon (Callings.cs)
                 var w = p.Weapon;
                 var kind = CompanionKind(p);
                 int extra = ExtraShots(p);
@@ -268,7 +269,7 @@ namespace Arena
                     int want = CompanionCount(p), have = 0;
                     Minion surplus = null;
                     foreach (var m in Minions.Values)
-                        if (m.Owner == p.Id && m.Companion && m.Kind != MinionKind.WardenGuard && m.Kind != MinionKind.Thrall && m.Kind != MinionKind.HiveDrone && m.Kind != MinionKind.Scythe)
+                        if (m.Owner == p.Id && m.Companion && !OtherCompanion(m))
                         {
                             have++;
                             surplus = m;
@@ -351,6 +352,11 @@ namespace Arena
                 float reach = d.Range * m.Scale;
                 m.Cd -= dt * rate;
 
+                if (IsCalling(m.Kind))
+                {
+                    TickCalling(m, owner, dt, speed, dmg);  // Callings.cs
+                    continue;
+                }
                 if (m.Kind == MinionKind.Bee)
                 {
                     if (MoveBee(m, owner, dt))  // stung: spent (HoneybeeStaff.cs)

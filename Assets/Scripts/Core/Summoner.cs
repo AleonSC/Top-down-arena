@@ -13,6 +13,7 @@ namespace Arena
             Id = Kit.Summoner, Name = "Summoner", Icon = "class_summoner", HpMult = 0.9f,
             Blurb = "Fights through minions. Your weapon brings its own creatures (wolves, wisps, imps, bees) that hunt, bite and soak hits, and they stay with you between waves. Point them at what matters. 90% health.",
             Fire = (g, p, aim, dir, muzzle, dmg, extra) => g.FireKitWeapon(p, aim, dir, muzzle, dmg, extra),  // the Bear Totem has its own case
+            OnKill = (g, e) => g.CallingKill(e),  // Soul Feast (Callings.cs)
         };
 
         /// The Summoner's weapons (fired in FireKitWeapon; the Bear Totem in FireBearClaws).
@@ -122,6 +123,37 @@ namespace Arena
                 Apply = s => { s.HarvestBonus += 1; s.PuddleSizeMult += 0.2f; } },
             new UpgradeDef { Rarity = Rarity.Rare, Weapons = new[] { WeaponId.WyvernStaff }, MaxStacks = 2, Name = "Stormwing", Desc = "The Wyvern's gale shoves and slows 25% harder, and the Wyrm Slam is 25 px wider",
                 Apply = s => { s.WyvernPower += 0.25f; } },
+            // Callings (Callings.cs, Docs/Callings.md): tier 1 the Calling (summons the minion), tier 2 its cards, tier 3 the capstone
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Summoner, Calling = CallingId.Spider, CallingTier = 1, MaxStacks = 1, Name = "Call the Spider",
+                Desc = "Calling: a spider fights by your side for the rest of the run, leaping on enemies near you; its bites web them, 40% slower. Spider cards replace the other Callings",
+                Apply = s => s.Calling = (int)CallingId.Spider },
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Summoner, Calling = CallingId.Fairy, CallingTier = 1, MaxStacks = 1, Name = "Call the Fairy",
+                Desc = "Calling: a fairy tends the most hurt ally for the rest of the run, healing them; nothing can hit it. Fairy cards replace the other Callings",
+                Apply = s => s.Calling = (int)CallingId.Fairy },
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Summoner, Calling = CallingId.Demon, CallingTier = 1, MaxStacks = 1, Name = "Call the Demon",
+                Desc = "Calling: a demon hovers at your shoulder for the rest of the run, hurling fireballs that burst. Demon cards replace the other Callings",
+                Apply = s => s.Calling = (int)CallingId.Demon },
+
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Summoner, Calling = CallingId.Spider, CallingTier = 2, MaxStacks = 2, Name = "Silk Snare", Desc = "Your spider's webs hold 1 s longer and slow 15% more",
+                Apply = s => { s.WebBonusTime += 1f; s.WebBonusSlow += 0.15f; } },
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Summoner, Calling = CallingId.Spider, CallingTier = 2, MaxStacks = 2, Name = "Thick Carapace", Desc = "Your spider has 50% more health and comes back 2 s sooner",
+                Apply = s => { s.SpiderHpMult += 0.5f; s.SpiderRespawnCut += 2f; } },
+            new UpgradeDef { Rarity = Rarity.VeryRare, Kit = Arena.Kit.Summoner, Calling = CallingId.Spider, CallingTier = 3, MaxStacks = 1, Name = "Spider Queen", Desc = "Every 6 s your spider lays 3 spiderlings that each leap on an enemy and bite it once",
+                Apply = s => s.SpiderQueen = true },
+
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Summoner, Calling = CallingId.Fairy, CallingTier = 2, MaxStacks = 2, Name = "Pixie Dust", Desc = "Your fairy's dust burns enemies near the ally it tends, 10 damage a second",
+                Apply = s => s.FairyDust += 10f },
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Summoner, Calling = CallingId.Fairy, CallingTier = 2, MaxStacks = 2, Name = "Second Wind", Desc = "Your fairy heals 30% more, and 50% more again an ally under 30% health",
+                Apply = s => { s.FairyHealMult += 0.3f; s.FairyLowMult += 0.5f; } },
+            new UpgradeDef { Rarity = Rarity.VeryRare, Kit = Arena.Kit.Summoner, Calling = CallingId.Fairy, CallingTier = 3, MaxStacks = 1, Name = "Fairy Ring", Desc = "Once every 45 s your fairy flies to an ally who is down and stands them up at 40% health",
+                Apply = s => s.FairyRing = true },
+
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Summoner, Calling = CallingId.Demon, CallingTier = 2, MaxStacks = 2, Name = "Soul Feast", Desc = "Each kill near your demon makes it 5% stronger, up to 40%; the hunger fades 6 s after its last kill",
+                Apply = s => s.FeastPer += 0.05f },
+            new UpgradeDef { Rarity = Rarity.Rare, Kit = Arena.Kit.Summoner, Calling = CallingId.Demon, CallingTier = 2, MaxStacks = 2, Name = "Hellfire", Desc = "Your demon's fireballs leave the ground burning for 2 s",
+                Apply = s => s.Hellfire += 1 },
+            new UpgradeDef { Rarity = Rarity.VeryRare, Kit = Arena.Kit.Summoner, Calling = CallingId.Demon, CallingTier = 3, MaxStacks = 1, Name = "Infernal Pact", Desc = "Every 12 s your demon goes berserk for 4 s: it throws twice as fast and its fireballs burst 50% wider",
+                Apply = s => s.InfernalPact = true },
         };
 
         /// The Summoner's 1st abilities (its ultimates are in Ultimates.cs). (Upgrades.Abilities gathers every class's list.)

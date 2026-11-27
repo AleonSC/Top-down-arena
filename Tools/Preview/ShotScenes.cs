@@ -1210,6 +1210,7 @@ static partial class Shot {
     LightingScene();  // LIGHTING=1|2|3 [LIGHTS=0] [LIGHTSOFT=0|1] [FLOORDIM=0-2] (ShotLighting.cs)
     LightPerf();  // LIGHTPERF=<enemies>,<shots>[,<blasts>] (ShotLighting.cs)
     PhoenixScene();  // PHOENIX=<s since the cast> (ShotPhoenix.cs)
+    CallingsScene();  // CALLINGS=<s>: the Summoner's Calling minions (ShotCallings.cs)
     SentryNovaScene();  // TURRET=<s> or NOVA=<s> since the cast [ABILCAP=1] [TURRETEND=1] [FXOFF=1] (ShotSentryNova.cs)
     JuiceMomentScene();  // MOMENT=multi|clear|level|lowhp|marks [MOMENTN] [MOMENTT] [MULTISTYLE=1] (ShotJuice.cs)
     BowFocusScene();  // BOWFOCUS=rest|draw|bar|focus|miss|swing|scatter,<s> (ShotBowFocus.cs)

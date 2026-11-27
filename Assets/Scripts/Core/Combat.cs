@@ -1041,6 +1041,8 @@ namespace Arena
                 if (loud || !SplashFxNearby(b))
                     BroadcastFx(FxKind.Boom, b.Pos, Defs.BulletColor(b.Kind), b.Splash, b.Kind == Defs.TankShell ? 0.45f : 0.3f, loud ? Sfx.Explode : Sfx.None);
                 PropBlast(b.Pos, b.Splash, b.Owner);
+                if (b.Hellfire > 0)
+                    HellfireGround(b);  // a Calling demon's fireball (Callings.cs)
                 if (b.HealBurst > 0f)
                     CharmHeal(b);  // Ofuda (Ninja.cs)
             }

@@ -32,7 +32,7 @@ namespace Arena
 
         /// Companions a weapon keeps that aren't the weapon's own (legendaries and Force Pact: they stay).
         static bool OtherCompanion(Minion m) =>
-            m.Kind == MinionKind.WardenGuard || m.Kind == MinionKind.Thrall || m.Kind == MinionKind.HiveDrone || m.Kind == MinionKind.Scythe;
+            m.Kind == MinionKind.WardenGuard || m.Kind == MinionKind.Thrall || m.Kind == MinionKind.HiveDrone || m.Kind == MinionKind.Scythe || IsCalling(m.Kind);  // (and the Calling minions, Callings.cs)
 
         /// A pack wolf's full health this wave, for `size` wolves.
         float WolfMaxHp(Player p, int size) => WolfHp * size * EnemyDamageScale(Math.Max(1, Wave)) * p.Stats.MinionToughMult;
