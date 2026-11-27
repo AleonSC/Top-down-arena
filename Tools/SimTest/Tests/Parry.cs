@@ -90,6 +90,13 @@ static partial class Program
     // The parry upgrades: Reinforced, Wide and Light Guard, Riposte, Counterstance, Mirror Guard.
     static void ParryUpgradeTest(float dt)
     {
+        // A Knight's shield: 30% wider and reaching further out than anyone else's.
+        var soldier = new Player { Kit = Kit.Soldier, Def = Defs.Get(Role.Dps), Aim = 0f };
+        var knight = new Player { Kit = Kit.Knight, Def = Defs.Get(Role.Dps), Aim = 0f };
+        Check(Math.Abs(Game.ParryArc(knight) - Game.ParryArc(soldier) * Game.KnightParryArc) < 0.001f && Game.ParryReachOf(knight) > Game.ParryReachOf(soldier), "a Knight's parry shield is wider and longer");
+        V2 far = V2.FromAngle(1.1f) * (knight.Def.BodyR + 28f);  // past a Soldier's edge and reach, inside a Knight's
+        Check(Game.InParryArc(knight, far, 0f) && !Game.InParryArc(soldier, far, 0f), "it catches what a Soldier's shield misses");
+
         var s = StartBuffed(dt, 5, 0);
         Run(s, dt, 10, () => { var b = Find(s[0], EnemyType.Warden); return b != null && b.SpawnT <= 0f; });
         var me = s[0].Game.Players[1];

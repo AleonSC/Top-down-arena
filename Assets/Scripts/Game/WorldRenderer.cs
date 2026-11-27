@@ -701,7 +701,7 @@ namespace Arena
         /// The parry shield: an arc toward the cursor, with its durability gauge around the outside.
         void DrawParryShield(Player p, float t)
         {
-            float rr = p.Def.BodyR + Game.ParryReach * 0.55f;
+            float rr = p.Def.BodyR + Game.ParryReachOf(p) * 0.55f;
             var sc = new Rgba(0.55f, 0.9f, 1f);
             float from = p.Aim - Game.ParryArc(p), span = Game.ParryArc(p) * 2f;
             Arc(p.Disp, rr, 14f, sc.WithAlpha(0.45f), 20, from, span);                          // the shield's face
@@ -716,7 +716,7 @@ namespace Arena
         void DrawParryGauge(Player p, float t, float alpha)
         {
             float hp = Mathf.Clamp01(p.ParryHp / Game.ParryMax(p));
-            float rad = p.Def.BodyR + Game.ParryReach * 0.55f + 12.5f, half = Game.ParryArc(p);
+            float rad = p.Def.BodyR + Game.ParryReachOf(p) * 0.55f + 12.5f, half = Game.ParryArc(p);
             var gc = new Rgba(0.37f, 0.71f, 1f);
             var warn = new Rgba(1f, 0.42f, 0.42f);
             Arc(p.Disp, rad, 4f, new Rgba(0.02f, 0.03f, 0.07f, 0.55f * alpha), 20, p.Aim - half, half * 2f);  // dark backing

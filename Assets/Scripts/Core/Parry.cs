@@ -11,6 +11,7 @@ namespace Arena
         public const float ParryCapacity = 150f;    // damage it soaks before it breaks
         public const float ParryHalfArc = 0.95f;    // radians either side of your aim (about 110 degrees in all)
         public const float ParryReach = 20f;        // how far past your body it sticks out
+        public const float KnightParryArc = 1.3f, KnightParryReach = 32f;  // a Knight's shield: 30% wider, sticks out 32 px (ParryReachOf)
         const float ParrySlow = 0.7f;               // move speed while it's up
         public const float PerfectParry = 0.30f;    // seconds after raising that count as a perfect parry (0.22 before Nov 2026)
         const float PerfectRearm = 0.5f;            // it must have been down this long first (no spamming)
@@ -35,7 +36,10 @@ namespace Arena
         /// How much the shield soaks for this player (Reinforced Guard raises it).
         public static float ParryMax(Player p) => ParryCapacity * p.Stats.ParryCapacityMult;
 
-        static float HalfArc(Player p) => Math.Min(MathX.Pi * 0.8f, ParryHalfArc * p.Stats.ParryArcMult);
+        static float HalfArc(Player p) => Math.Min(MathX.Pi * 0.8f, ParryHalfArc * (p.Kit == Kit.Knight ? KnightParryArc : 1f) * p.Stats.ParryArcMult);
+
+        /// How far past this player's body the shield sticks out (a Knight's further).
+        public static float ParryReachOf(Player p) => p.Kit == Kit.Knight ? KnightParryReach : ParryReach;
 
         public static float ParryArc(Player p) => HalfArc(p);
 
@@ -69,7 +73,7 @@ namespace Arena
         public static bool InParryArc(Player p, V2 pos, float radius)
         {
             V2 d = pos - p.Pos;
-            float reach = p.Def.BodyR + ParryReach + radius;
+            float reach = p.Def.BodyR + ParryReachOf(p) + radius;
             if (d.LengthSq > reach * reach)
                 return false;
             return Facing(p, d);
@@ -106,7 +110,7 @@ namespace Arena
             {
                 p.ParryHp = 0f;
                 p.ParryBroken = ParryBreakTime;
-                BroadcastFx(FxKind.Shatter, p.Pos, p.Pos + V2.FromAngle(p.Aim) * (p.Def.BodyR + ParryReach * 0.55f), new Rgba(0.55f, 0.9f, 1f), HalfArc(p), ShatterTime, Sfx.Clang);
+                BroadcastFx(FxKind.Shatter, p.Pos, p.Pos + V2.FromAngle(p.Aim) * (p.Def.BodyR + ParryReachOf(p) * 0.55f), new Rgba(0.55f, 0.9f, 1f), HalfArc(p), ShatterTime, Sfx.Clang);
             }
             return p.Stats.MirrorChance > 0f && rng.NextDouble() < p.Stats.MirrorChance;  // Mirror Guard
         }

@@ -138,6 +138,7 @@ namespace Arena
         StunGun,  // the Warden's legendary: a 2nd, 3rd or 4th ability (Stun.cs)
         Substitution,
         SupplyDrop,  // the Healer Soldier's third ultimate (SupplyDrop.cs), key 2 of the lobby's Ultimate row
+        TacticalVest,  // the DPS Soldier's 4th choice (TacticalVest.cs), the lobby's 4th choice
         TelekineticCrush,
         ThornBloom,  // the DPS Hemomancer's 4th choice (ThornBloom.cs), the lobby's 4th choice
         ThousandClones,
