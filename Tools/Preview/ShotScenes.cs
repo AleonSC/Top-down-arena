@@ -1232,6 +1232,7 @@ static partial class Shot {
     EyeOfCalmScene();  // EYE=<s since the cast> [EYEMASTERED=1] [EYEGUST=<s>]: the Healer Elementalist's Eye of Calm (ShotEyeOfCalm.cs)
     StaticBubbleScene();  // BUBBLE=<s since the cast> [BUBFILL=<0-1>] [BUBBURST=<s>]: the Healer Elementalist's Static Bubble (ShotStaticBubble.cs)
     ShadowGongScene();  // GONG=<s since the cast>: the Tank Ninja's Five Shadow Gong (ShotShadowGong.cs)
+    CranesScene();  // CRANES=<s since the cast>: the DPS Ninja's Hundred Paper Cranes (ShotCranes.cs)
     PressurePointScene();  // PRESS=<s since the cast>: the Healer Ninja's Pressure Point Press (ShotPressurePoint.cs)
     AstralScene();  // ASTRAL=<s since the cast>: the Healer Ninja's Astral Projection, Fire held (ShotAstral.cs)
     SpiritAvatarScene();  // SPIRIT=<s since the cast>: the Tank Ninja's Spirit Avatar, Fire held (ShotSpiritAvatar.cs)

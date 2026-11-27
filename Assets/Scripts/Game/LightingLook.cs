@@ -187,7 +187,7 @@ namespace Arena
             lightCells.Clear();
             foreach (var b in game.Bullets.Values)
             {
-                if (b.Kind == Defs.Caltrop || b.Kind == Defs.RodentShot)
+                if (b.Kind == Defs.Caltrop || b.Kind == Defs.RodentShot || b.Kind == Defs.PaperCrane)
                     continue;  // (a Rodent Minigun rodent gives no light)
                 bool foe = Defs.IsEnemyShot(b.Kind);
                 int cx = Mathf.FloorToInt(b.Pos.X / LightCell), cy = Mathf.FloorToInt(b.Pos.Y / LightCell);

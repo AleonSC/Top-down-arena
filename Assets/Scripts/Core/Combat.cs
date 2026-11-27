@@ -283,7 +283,7 @@ namespace Arena
         /// Shots thrown in an arc (grenades, boulders, Gore Mortar clots, medkits): they fly over what's below and land.
         static bool Lobbed(byte kind) => kind == Defs.GrenadeShot || kind == Defs.BoulderShot || kind == Defs.ClotShot || kind == Defs.MedkitShot || kind == Defs.HoneyGlob || kind == Defs.FoamGlob;
 
-        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop && kind != Defs.HoneyGlob && kind != Defs.FoamGlob && kind != Defs.TankShell && kind != Defs.RocketShell && kind != Defs.HorseArrow && kind != Defs.RodentShot && kind != Defs.Senbon && kind != Defs.BallistaBolt;
+        static bool Moddable(byte kind) => !Defs.IsEnemyShot(kind) && kind != Defs.GrenadeShot && kind != Defs.SwarmShot && kind != Defs.MedkitShot && kind != Defs.TreantSeed && kind != Defs.SteelShard && kind != Defs.Caltrop && kind != Defs.HoneyGlob && kind != Defs.FoamGlob && kind != Defs.TankShell && kind != Defs.RocketShell && kind != Defs.HorseArrow && kind != Defs.RodentShot && kind != Defs.Senbon && kind != Defs.PaperCrane && kind != Defs.BallistaBolt;
 
         Bullet MakeBullet(int id, byte kind, int owner, V2 pos, V2 vel, float angVel, float life, bool fromBoss = false, float homing = 0f)
         {
@@ -319,6 +319,8 @@ namespace Arena
                 return Sfx.RodentSqueak;  // a Rodent Minigun rodent (RodentMinigun.cs, RodentSoundBank.cs)
             if (kind == Defs.Senbon)
                 return Sfx.Throw;  // a Senbon Seekers needle leaving the ring (SenbonSeekers.cs)
+            if (kind == Defs.PaperCrane)
+                return Sfx.None;  // (a hundred of them: the cast's flutter is enough; HundredPaperCranes.cs)
             Player p;
             if (!Players.TryGetValue(owner, out p))
                 return Sfx.ShotRifle;
@@ -384,6 +386,8 @@ namespace Arena
                     Steer(b, dt);
                 if (b.Senbon)
                     SteerSenbon(b, dt);  // a Senbon Seekers needle (host only: SenbonSeekers.cs)
+                else if (b.Crane)
+                    SteerCrane(b, dt);  // a Hundred Paper Cranes crane (host only: HundredPaperCranes.cs)
                 else if (b.HomeOn != 0)
                     SteerSpear(b, dt);  // a Stonespear volley spear (host only: Stonespear.cs)
                 else if (b.Talisman)
@@ -1354,6 +1358,7 @@ namespace Arena
             TwinShedHit(b, e);  // Twin Pistols rounds knock health orbs loose (TwinPistols.cs)
             BloodNeedleHit(b, e);  // a Bloodletting needle sticks and bleeds it (AcupunctureNeedles.cs)
             SenbonHit(b, e);    // a Senbon Seekers needle poisons it (SenbonSeekers.cs)
+            CraneHit(b, e);     // a paper crane unfolds (HundredPaperCranes.cs)
             ShadowKunaiLanded(b, e.Pos);  // a shadow kunai marks where it hit (Ninja.cs)
             DragonFangBite(b, e);  // the Dragon Fang Kunai bites and goes on to the next (DragonFang.cs)
             StarStuck(b, e);    // a Shuriken star sticks in it (Ninja.cs)
@@ -1390,9 +1395,9 @@ namespace Arena
                 return;
             if (b.Kind == Defs.ArcaneShot && p.Weapon.Id == WeaponId.IceShards && !Heavy(e))
                 Chill(e, 1, IceShardChillTime, 1f - IceShardSlow, gated: true);  // an ice shard: slowed and chilled, a stack a second (Chill.cs)
-            if (p.Stats.SplitShots > 0 && b.Kind != Defs.SwarmShot && b.Kind != Defs.RodentShot && b.Kind != Defs.Senbon)
+            if (p.Stats.SplitShots > 0 && b.Kind != Defs.SwarmShot && b.Kind != Defs.RodentShot && b.Kind != Defs.Senbon && b.Kind != Defs.PaperCrane)
                 splits.Add(new Bullet { Pos = b.Pos, Owner = b.Owner, Dmg = b.Dmg * 0.4f, Pierce = p.Stats.SplitShots, LastHit = e.Id });
-            if (p.Stats.ImpactSplash > 0f && b.Kind != Defs.SwarmShot && b.Kind != Defs.RodentShot && b.Kind != Defs.Senbon)
+            if (p.Stats.ImpactSplash > 0f && b.Kind != Defs.SwarmShot && b.Kind != Defs.RodentShot && b.Kind != Defs.Senbon && b.Kind != Defs.PaperCrane)
             {
                 splashes.Add(new Bullet { Pos = b.Pos, Owner = b.Owner, Kind = Defs.NovaShot, Splash = p.Stats.ImpactSplash, Dmg = b.Dmg * 0.67f, LastHit = e.Id });
                 HurtEnemy(e, b.Dmg * 0.67f * 0.6f * CollapseCore, b.Owner);  // the enemy shot is in the implosion too, at half its damage

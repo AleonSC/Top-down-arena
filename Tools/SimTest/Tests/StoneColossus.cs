@@ -46,10 +46,11 @@ static partial class Program
             "in the run both players' F is Stone Colossus, on both games");
         var save = new RunSave { Wave = 4 };
         save.Seats.Add(new SeatSave { Name = "Golem", Role = Role.Tank, Kit = Kit.Elementalist, Ult = 2 });
-        var bare = Content.RoleWithoutUlt(2);  // (a role and class with no key 2)
-        save.Seats.Add(new SeatSave { Name = "Bare", Role = bare.Role, Kit = bare.Kit, Ult = 2 });
+        int freeKey;
+        var bare = Content.RoleWithAFreeUltKey(out freeKey);  // (every class has a key 2 now: a role and class with some key empty)
+        save.Seats.Add(new SeatSave { Name = "Bare", Role = bare.Role, Kit = bare.Kit, Ult = freeKey });
         var back = RunSave.Parse(save.ToText());
-        Check(back.Seats[0].Ult == 2 && back.Seats[1].Ult == 0, "a saved run keeps key 2 (clamped for a class without it)");
+        Check(back.Seats[0].Ult == 2 && back.Seats[1].Ult == 0, "a saved run keeps key 2 (and clamps a key a class doesn't have)");
 
         // --- The golem on the host's game -------------------------------------------------------------------------------
         var me = g.Players[1];

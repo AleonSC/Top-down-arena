@@ -232,6 +232,9 @@ namespace Arena
                 case AbilityId.FiveShadowGong:  // Tank: Ninja, the fourth ultimate (FiveShadowGong.cs)
                     CastShadowGong(p, cap);
                     break;
+                case AbilityId.HundredPaperCranes:  // DPS: Ninja, the third ultimate (HundredPaperCranes.cs)
+                    CastCranes(p, cap);
+                    break;
                 case AbilityId.PressurePointPress:  // Healer: Ninja, the third ultimate (PressurePointPress.cs)
                     CastPressurePoint(p, cap);
                     break;
