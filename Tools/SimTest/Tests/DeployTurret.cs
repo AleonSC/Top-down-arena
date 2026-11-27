@@ -18,9 +18,9 @@ static partial class Program
         var def = Upgrades.Ability(AbilityId.DeployableTurret);
         Check(def.Name == "Deployable Turret" && def.Choice == AbilityDef.Ult && def.UltKey == 0 && def.Kit == Kit.Soldier && def.Role == Role.Dps && def.Cooldown == 60f,
             "Deployable Turret: the DPS Soldier's default ultimate, 60 s");
-        Check(Upgrades.Ultimate(Role.Dps, Kit.Soldier) == AbilityId.DeployableTurret && Upgrades.AbilityLimit(Role.Dps, Kit.Soldier) == 3
+        Check(Upgrades.Ultimate(Role.Dps, Kit.Soldier) == AbilityId.DeployableTurret && Upgrades.AbilityLimit(Role.Dps, Kit.Soldier) == 4 && Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 3) == AbilityId.TacticalVest
             && Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 0) == AbilityId.PoisonDart && Upgrades.FirstAbility(Role.Dps, Kit.Soldier, 2) == AbilityId.Claymore,
-            "the turret took Artillery Assault's place; the DPS Soldier has no 4th choice now, its first three unchanged");
+            "the turret took Artillery Assault's place; its first three unchanged and Tactical Vest the 4th choice");
         Check(!Upgrades.All.Any(u => u.ClassAbility && u.Grants == AbilityId.DeployableTurret) && Upgrades.All.Any(u => u.Name == "Overclocked Barrels" && u.RequiresAbility == AbilityId.DeployableTurret && u.Rarity == Rarity.Rare)
             && OldNames.Ability("ArtilleryAssault") == "DeployableTurret",
             "no ability card for the turret (an ultimate), Overclocked Barrels a Rare card for it; old saves' Artillery Assault loads as the turret");

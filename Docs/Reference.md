@@ -200,6 +200,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Attack Helicopter | Dps | ultimate | 70 s | - | A second gun on the wing: two targets at once. | A gunship locks enemies one at a time and can't be hit. |
 | Orbital Laser | Dps | ultimate | 90 s | - | The circle is 340 px wide instead of 260, and the beam ploughs 200 px on while it fires. | Call a laser down from orbit on your cursor: after a 1.9 s lock-on it kills every enemy in a huge circle (bosses lose 20%) and leaves the ground burning. |
 | Rocket Drop | Dps | ultimate | 80 s | - | 13 s, and each blast throws 3 bomblets. | Call in a pod with a rocket launcher, infinite ammo, for 10 s. Each rocket's blast is huge and leaves the ground burning. |
+| Tactical Vest | Dps | 1st, choice 5 | 20 s | - | Pops 4 gadgets, and they stay on the floor until you grab them. | Pop 3 random gadgets off your vest onto the floor to grab and use. |
 
 ### Elementalist
 
