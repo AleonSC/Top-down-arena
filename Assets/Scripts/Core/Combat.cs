@@ -756,6 +756,11 @@ namespace Arena
                 scratchIds.Add(b.Id);
                 return;
             }
+            if (CloneMedicStops(b))
+            {
+                scratchIds.Add(b.Id);  // a Shadow Clone Medic steps into a shot aimed at its player, red aimed shots too (ShadowCloneMedics.cs)
+                return;
+            }
             if (PhalanxStops(b))
             {
                 scratchIds.Add(b.Id);  // a Bone Phalanx's shields: everything from the front stops, red aimed shots too (BonePhalanx.cs)

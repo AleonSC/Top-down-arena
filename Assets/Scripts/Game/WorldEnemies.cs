@@ -483,6 +483,11 @@ namespace Arena
                 DrawWardenGuard(m, t);  // WardenLook.cs
                 return;
             }
+            if (m.Kind == MinionKind.CloneMedic)
+            {
+                DrawCloneMedic(m, t);  // ShadowCloneMedicsLook.cs
+                return;
+            }
             if (m.Kind == MinionKind.Octopus)
             {
                 DrawOctopus(m, t);  // OctopusFamiliarLook.cs

@@ -55,6 +55,7 @@ namespace Arena
         ChakraThread,  // ChakraThread: Chakra Reserves' thread and lotus (Pos = the caster, Pos2 = the teammate, Radius = their id + 0.5 when it refreshed their cooldowns, Dur = Game.CrFxDur; Core/ChakraReserves.cs, Game/ChakraReservesLook.cs)
         Claw,
         ClaymoreBlast,  // ClaymoreBlast: a Claymore going off (Pos = the mine, Pos2 = one px along its facing, Radius = the blast's reach; Core/Claymore.cs, Game/ClaymoreLook.cs)
+        CloneMedicPuff,  // Shadow Clone Medics' smoke (ShadowCloneMedics.cs): Radius 0 a clone steps out, 1 it goes, 2 a shot it stopped
         ClotShatter,  // a Clot Crystal breaking (Pos its spot, Pos2 (its owner's id, 0), Radius its size; Core/ClotCrystals.cs, Game/ClotCrystalsLook.cs)
         CoverBreak,
         CoverFold,
