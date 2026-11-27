@@ -410,7 +410,7 @@ namespace Arena
         /// every peer, so all derived values agree without being sent.
         void Recalc(Player p)
         {
-            p.Stats = Upgrades.Compute(p.Taken);
+            p.Stats = Upgrades.Compute(p.Taken, p.Weapon);  // (each card as it works for your weapon: WeaponMods.cs)
             if (p.Role == Role.Wildcard)
             {
                 p.Stats.DmgMult *= WildcardDmgMult;  // the price of mixing classes

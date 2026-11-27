@@ -32,7 +32,7 @@ namespace Arena
         /// baseRegen: the run's passive regeneration (its difficulty's; Game.PassiveRegen).
         public static List<StatLine> Describe(Player p, List<int> taken, int newKey = 0, float baseRegen = 0f)
         {
-            var s = Upgrades.Compute(taken);
+            var s = Upgrades.Compute(taken, p.Weapon);
             var lines = new List<StatLine>();
             lines.Add(new StatLine { Label = "Max HP", Value = ((int)(p.BaseHp + s.BonusHp)).ToString() });
             lines.Add(new StatLine { Label = "Damage", Value = Pct(s.DmgMult * (1f - Game.HomingDamageCost * s.Homing)) });  // Homing Rounds cost damage
