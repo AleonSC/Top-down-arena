@@ -323,6 +323,14 @@ namespace Arena
 
         // Reused by every swing (swings land one at a time, from ResolveSwings).
         readonly List<Enemy> swingHits = new List<Enemy>();
+        readonly EnemyByDistance swingByDist = new EnemyByDistance();
+
+        /// Nearest first from Origin (a reused comparer: no closure each swing).
+        sealed class EnemyByDistance : IComparer<Enemy>
+        {
+            public V2 Origin;
+            public int Compare(Enemy a, Enemy b) => a.Pos.DistanceSq(Origin).CompareTo(b.Pos.DistanceSq(Origin));
+        }
         readonly List<Bullet> swingDeflected = new List<Bullet>();
         readonly List<int> swingCut = new List<int>();
 
@@ -445,21 +453,29 @@ namespace Arena
                 });
             if (s.Sweep > 0)
             {
-                hits.RemoveAll(e => e.SweepMark == s.Sweep);  // already hit by an earlier step of this sweep
+                for (int i = hits.Count - 1; i >= 0; i--)
+                    if (hits[i].SweepMark == s.Sweep)
+                        hits.RemoveAt(i);  // already hit by an earlier step of this sweep
                 foreach (var e in hits)
                     e.SweepMark = s.Sweep;
             }
             if (s.OnlyEnemy != 0)
-                hits.RemoveAll(e => e.Id != s.OnlyEnemy);  // a locked-on hit (the Arc Knuckles' Rocket Dash)
+                for (int i = hits.Count - 1; i >= 0; i--)
+                    if (hits[i].Id != s.OnlyEnemy)
+                        hits.RemoveAt(i);  // a locked-on hit (the Arc Knuckles' Rocket Dash)
             if (s.MaxTargets > 0 && hits.Count > s.MaxTargets)
             {
-                hits.Sort((a, b) => a.Pos.DistanceSq(origin).CompareTo(b.Pos.DistanceSq(origin)));
+                swingByDist.Origin = origin;
+                hits.Sort(swingByDist);
                 hits.RemoveRange(s.MaxTargets, hits.Count - s.MaxTargets);
             }
 
-            p.Run.ShotsFired++;
-            if (hits.Count > 0)
-                p.Run.ShotsHit++;
+            if (s.FromWeapon)  // the session's accuracy counts the weapon's swings, not an ability's
+            {
+                p.Run.ShotsFired++;
+                if (hits.Count > 0)
+                    p.Run.ShotsHit++;
+            }
             if (s.LightKind > 0)  // a Lightbringer step: the gauge, its crescents or its ring's healing (Lightbringer.cs)
                 LightLanded(p, s, origin, circleAt, hits.Count);
             if (hits.Count > 0 && s.Staff)  // a Quarterstaff swipe landed: a Jab stack for every enemy hit, up to its limit

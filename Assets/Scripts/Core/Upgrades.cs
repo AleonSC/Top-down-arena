@@ -997,11 +997,11 @@ namespace Arena
             return -1;
         }
 
-        /// Roll three different upgrades. Higher levels make rare cards a bit likelier.
         /// A challenge room's prize: three cards, each rare or very rare (Challenges.cs).
         public static int[] PrizeOffer(Random rng, OfferCtx c) =>
             RollWeighted(rng, c, new[] { 0f, 0f, 55f, 45f }, 3);
 
+        /// Roll three different upgrades. Higher levels make rare cards a bit likelier.
         public static int[] RollOffer(Random rng, OfferCtx c, int level)
         {
             var st = Compute(c.Taken);  // Fortune (rarer cards) and Wide Choice (more cards) are milestone upgrades

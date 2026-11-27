@@ -648,11 +648,11 @@ namespace Arena
                 GuardContact(e, contact);  // Warden's Guards in the way get hurt too (Stun.cs)
                 if (!e.Def.IsBoss && !e.Def.Mini)
                 {
-                    DecoyContact(e, contact);
+                    DecoyContact(e, contact);  // a Decoy Dummy in the way gets bitten (DecoyDummy.cs)
                     TuskerContact(e, contact);  // a Tidal Tusker's elephant in the way gets bitten (TidalTusker.cs)
                 }
                 if (!e.Def.IsBoss)
-                    HorseContact(e, contact);  // a Trojan Horse in the way gets bitten (TrojanHorse.cs)  // a Decoy Dummy in the way gets bitten (DecoyDummy.cs)
+                    HorseContact(e, contact);  // a Trojan Horse in the way gets bitten (TrojanHorse.cs)
                 if ((e.Def.IsBoss || e.Def.Mini) && !BossDashing(e))
                     continue;  // bosses' and mini-bosses' bodies don't hurt heroes, so melee can stand close; only their telegraphed charges do (a boss still shoves you out: Game.cs)
                 foreach (var p in Players.Values)
@@ -670,7 +670,7 @@ namespace Arena
                                 continue;
                             p.BossContactT = BossContactEvery;
                         }
-                        Damage(p, contact, e.Def.Name + " (contact)");
+                        Damage(p, contact, HitBy(e.Def, "contact"));
                         if (CutsOnHit(e.Type) && lastTaken > 0f)
                             BleedCut(p);  // the Shiv's blade (and its kin's) cuts: a short bleed (WardenFaction.cs)
                         if (p.Relic == RelicId.Thorns)

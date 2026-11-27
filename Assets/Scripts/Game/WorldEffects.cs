@@ -53,7 +53,6 @@ namespace Arena
             d[(int)FxKind.HammerThrow] = DrawFxHammerThrow;
             d[(int)FxKind.KatanaStanceFx] = (fx, f, t) => DrawKatanaStanceFx(fx);  // KatanaLook.cs
             d[(int)FxKind.KatanaDash] = (fx, f, t) => DrawKatanaDashFx(fx);  // KatanaLook.cs (its light: DrawKatanaGlow)
-            d[(int)FxKind.KatanaHop] = DrawFxKatanaHop;
             d[(int)FxKind.KatanaSweep] = DrawFxKatanaHop;
             d[(int)FxKind.KatanaSlash] = DrawFxKatanaHop;
             d[(int)FxKind.KatanaBurst] = DrawFxKatanaHop;
@@ -203,7 +202,6 @@ namespace Arena
             d[(int)FxKind.ArcTag] = (fx, f, t) => DrawArcLockFlatFx(fx);  // Arc Lightning's lock-on chain with Visual effects off (ArcLockLook.cs)
             d[(int)FxKind.ArcLink] = (fx, f, t) => DrawArcLockFlatFx(fx);  // Arc Lightning's lock-on chain with Visual effects off (ArcLockLook.cs)
             d[(int)FxKind.ArcFork] = (fx, f, t) => DrawArcLockFlatFx(fx);  // Arc Lightning's lock-on chain with Visual effects off (ArcLockLook.cs)
-            d[(int)FxKind.ChainThrow] = (fx, f, t) => DrawChainThrowFx(fx, f);
             d[(int)FxKind.IonTrail] = (fx, f, t) => DrawIonTrailFx(fx);
             d[(int)FxKind.RailBeam] = (fx, f, t) => DrawRailBeamFx(fx);  // RailBeamLook.cs
             d[(int)FxKind.HeatDump] = (fx, f, t) => DrawHeatDumpFx(fx);
@@ -684,13 +682,6 @@ namespace Arena
             }
             Arc(b - dir * 4f, 7f, 2.5f, Rgba.White.WithAlpha(0.9f * alpha), 8, dir.Angle - MathX.Pi / 2f, MathX.Pi);  // the blade, curving round
             Line(b - dir * 6f, b - dir * 1f + side * 6f, 2f, Steel.WithAlpha(alpha));
-        }
-
-        /// The old Kusarigama's throw (the host no longer sends it: the throw is drawn from the player's state, KusarigamaLook.cs).
-        void DrawChainThrowFx(Effect fx, float f)
-        {
-            float run = Mathf.Min(1f, f / 0.35f), fade = fx.Radius > 0f ? 1f : 1f - Mathf.Max(0f, (f - 0.35f) / 0.65f);
-            DrawChain(fx.Pos, V2.Lerp(fx.Pos, fx.Pos2, run), fade);
         }
 
         /// Chain Light's cone: a flash of light fanning out from the caster, brightest at its edges, with rays

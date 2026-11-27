@@ -261,7 +261,7 @@ namespace Arena
                     continue;  // a raised guard takes it, and you keep your feet
                 if (p.InvulnT <= 0f)
                 {
-                    Damage(p, RiotBashDamage, e.Def.Name + " (bash)");
+                    Damage(p, RiotBashDamage, HitBy(e.Def, "bash"));
                     RodTouched(p, e);  // LightningRod.cs
                 }
                 KnockPlayer(p, fwd, RiotKnock);

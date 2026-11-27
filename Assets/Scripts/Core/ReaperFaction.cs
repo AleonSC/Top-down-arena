@@ -130,7 +130,7 @@ namespace Arena
                             continue;
                         if ((p.ParryActive || p.BbBrace) && ParryStrike(p, e, ScytheDamage))
                             continue;
-                        Damage(p, ScytheDamage, e.Def.Name + " (reap)");
+                        Damage(p, ScytheDamage, HitBy(e.Def, "reap"));
                         RodTouched(p, e);  // LightningRod.cs
                     }
                 }

@@ -87,8 +87,7 @@ namespace Arena
 
         /// The direction of your most recent shot, as the host fired it (the aim test checks it).
         public int LastShotId;
-        public float LastShotAngle, LastShotAim;
-        public V2 LastShotFrom;
+        public float LastShotAngle;
         long lastShotTicks;
 
         /// Keep the shot from the newest volley that's closest to where you're aiming (spreads fire several).
@@ -104,8 +103,6 @@ namespace Arena
             {
                 LastShotId = b.Id;
                 LastShotAngle = b.Vel.Angle;
-                LastShotAim = me.Aim;  // what you were aiming at when it showed up
-                LastShotFrom = b.Pos;
             }
             lastShotTicks = clock.ElapsedTicks;
         }
@@ -334,8 +331,8 @@ namespace Arena
         public void Stop(string how = "left")
         {
             if (Running)
-                LogQuitRun();  // (not while a retry is on offer or starting: the run isn't over)
-            SettleRetry(how);  // a retry left untaken ends the run for good (Checkpoints.cs)  // RunSaves.cs (the run you walk away from still shows in Recent runs)
+                LogQuitRun();  // RunSaves.cs: the run you walk away from still shows in Recent runs (not while a retry is on offer or starting: the run isn't over)
+            SettleRetry(how);  // a retry left untaken ends the run for good (Checkpoints.cs)
             if (Running)
                 SaveRun();  // between waves: keep the run to continue later (RunSaves.cs)
             Running = false;
@@ -343,6 +340,7 @@ namespace Arena
             Drill = -1;  // DrillGame.cs
             DrillRunners.Clear();
             State = MatchState.Idle;
+            botRerolledAt = -1;
             HuntedId = 0;
             Wave = 0;
             Leg = 0;
@@ -727,11 +725,11 @@ namespace Arena
             SendSnapshot();  // show the next offer right away
         }
 
-        /// Boss rewards come first (legendaries, then weapon mods or the boss card pick), then regular level-up picks.
         /// Who this player's card offers are for (role, class, 1st ability, picks, weapon, the Expanding arena):
         /// every offer and Upgrades.Available take one (Docs/UpgradePools.md step 2).
         public OfferCtx OfferFor(Player p) => OfferCtx.Of(p, ExpandingOn);
 
+        /// Boss rewards come first (legendaries, then weapon mods or the boss card pick), then regular level-up picks.
         void NextOffer(Player p)
         {
             p.PendingLegendary = p.LegendaryQueue.Count;
@@ -1701,6 +1699,11 @@ namespace Arena
             EnforcePens();    // Chalk.cs: enemies penned in by an ink loop stay inside it
             CheckGameOver();
 
+            if (!session.HasPeers)
+            {
+                pendingSpawns.Clear();  // playing alone: nobody to tell (no message built)
+                pendingRemoved.Clear();
+            }
             if (pendingSpawns.Count > 0)
             {
                 var w = Proto.Begin(Msg.Spawn);

@@ -24,7 +24,6 @@ namespace Arena
         public float BotDanger;  // how dangerous its best spot looked (above 2.5: get out)
         public bool AllyThreatened;  // a hurt or downed ally has enemies close on them (Roar draws those enemies off)
         public float DownedD;    // distance to the nearest downed ally (9999 with none)
-        public bool TargetMarked;  // its target already carries a Mark for Death
         public int NearEnemies;    // enemies within BotNearReach of it (Bloodbath wants several)
         public int Crowd;        // enemies within Game.JuggBotRange of it (the Juggernaut Suit's rule; only counted for that one)
         public int Shooters;       // how many enemies have shots in flight coming at it (Lightning Rod)
@@ -379,7 +378,6 @@ namespace Arena
             bool allyHurt = me.Hp < me.MaxHp * 0.55f || downed != null || lowest != null && lowest.Hp < lowest.MaxHp * 0.55f;
             float targetD = target != null ? target.Pos.DistanceTo(me.Pos) : 9999f;
             float downedD = downed != null ? downed.Pos.DistanceTo(me.Pos) : 9999f;
-            bool targetMarked = target != null && (target.Marked || target.MarkT > 0f);
             bool allyThreatened = AllyInTrouble(me);
             Player healSpot = downed ?? (lowest != null && lowest.Hp < lowest.MaxHp * 0.85f ? lowest : null);
             for (int slot = 0; slot < Upgrades.SlotCount; slot++)
@@ -392,7 +390,7 @@ namespace Arena
                     botHeldLast[slot] = false;  // release so the next press counts
                     continue;
                 }
-                if (!WantAbility(s.Id, me, inDanger, allyHurt, downed != null, targetD, target != null, allyThreatened, downedD, targetMarked))
+                if (!WantAbility(s.Id, me, inDanger, allyHurt, downed != null, targetD, target != null, allyThreatened, downedD))
                     continue;
                 held[slot] = botHeldLast[slot] = true;
                 if (s.Id == AbilityId.Blink)
@@ -459,7 +457,7 @@ namespace Arena
         }
 
         bool WantAbility(AbilityId id, Player me, bool danger, bool allyHurt, bool allyDown, float targetD, bool haveTarget,
-            bool allyThreatened = false, float downedD = 9999f, bool targetMarked = false)
+            bool allyThreatened = false, float downedD = 9999f)
         {
             var rule = Upgrades.Ability(id).Bot;
             if (rule == null)
@@ -468,7 +466,7 @@ namespace Arena
             {
                 Me = me, Danger = danger, AllyHurt = allyHurt, AllyDown = allyDown, TargetD = targetD, HaveTarget = haveTarget,
                 Players = Players.Count, BotDanger = BotDanger,
-                AllyThreatened = allyThreatened, DownedD = downedD, TargetMarked = targetMarked, NearEnemies = EnemiesNear(me.Pos, BotNearReach),
+                AllyThreatened = allyThreatened, DownedD = downedD, NearEnemies = EnemiesNear(me.Pos, BotNearReach),
                 Crowd = id == AbilityId.JuggernautSuit || id == AbilityId.StoneColossus || id == AbilityId.BloodGolem || id == AbilityId.SpiritAvatar || id == AbilityId.Vortex ? CrowdNear(me) : 0,
                 Shooters = id == AbilityId.LightningRod ? ShootersAt(me) : 0,  // (only worked out for the one ability that asks)
             });
@@ -547,6 +545,14 @@ namespace Arena
         }
 
         static readonly List<Bullet> botThreats = new List<Bullet>();
+        readonly BulletByDistance threatByDist = new BulletByDistance();
+
+        /// Nearest first from Origin (a reused comparer: no closure each tick).
+        sealed class BulletByDistance : IComparer<Bullet>
+        {
+            public V2 Origin;
+            public int Compare(Bullet x, Bullet y) => x.Pos.DistanceSq(Origin).CompareTo(y.Pos.DistanceSq(Origin));
+        }
         static readonly List<StompRing> stompRings = new List<StompRing>();
         static readonly List<ColCrack> quarryCracks = new List<ColCrack>();
 
@@ -676,8 +682,8 @@ namespace Arena
             }
             if (botThreats.Count > sk.Attention)
             {
-                V2 at = me.Pos;
-                botThreats.Sort((x, y) => x.Pos.DistanceSq(at).CompareTo(y.Pos.DistanceSq(at)));
+                threatByDist.Origin = me.Pos;
+                botThreats.Sort(threatByDist);
                 botThreats.RemoveRange(sk.Attention, botThreats.Count - sk.Attention);
             }
             // Misjudging where things are by a few pixels.
@@ -712,8 +718,8 @@ namespace Arena
             ms.laserSpin = ms.sing != null ? SingLaserSpin(ms.sing) : 0f;
 
             // The Colossus's stomp rings, landings, fissures and charge (Colossus.cs).
-            ms.col = TheColossus()?.Colossus;
-            ms.colossus = ms.col != null ? TheColossus() : null;
+            ms.colossus = TheColossus();
+            ms.col = ms.colossus?.Colossus;
             stompRings.Clear();
             quarryCracks.Clear();
             foreach (var se in Enemies.Values)

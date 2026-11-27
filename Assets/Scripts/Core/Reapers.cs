@@ -727,7 +727,7 @@ namespace Arena
                             float diff = Math.Abs(MathX.WrapPi((p.Pos - e.Pos).Angle - rp.A));
                             if (diff < ReapHalfArc)
                             {
-                                Damage(p, ReapDamage, e.Def.Name + " (reap)");
+                                Damage(p, ReapDamage, HitBy(e.Def, "reap"));
                                 RodTouched(p, e);  // LightningRod.cs
                             }
                         }

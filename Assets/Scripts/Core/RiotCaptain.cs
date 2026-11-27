@@ -231,7 +231,7 @@ namespace Arena
                     continue;
                 if (p.InvulnT <= 0f)
                 {
-                    Damage(p, CaptainBashDamage, e.Def.Name + " (shield charge)");
+                    Damage(p, CaptainBashDamage, HitBy(e.Def, "shield charge"));
                     RodTouched(p, e);
                 }
                 KnockPlayer(p, (fwd + to.Normalized()).Normalized(), CaptainKnock);

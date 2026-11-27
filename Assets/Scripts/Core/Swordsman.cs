@@ -87,7 +87,7 @@ namespace Arena
                                 continue;
                             if ((p.ParryActive || p.BbBrace) && ParryStrike(p, e, SwordDamageOf(e.Type)))
                                 continue;  // a raised guard takes it
-                            Damage(p, SwordDamageOf(e.Type), e.Def.Name + " (sword)");
+                            Damage(p, SwordDamageOf(e.Type), HitBy(e.Def, "sword"));
                             RodTouched(p, e);  // LightningRod.cs
                         }
                         BroadcastFx(FxKind.Spark, e.Pos + V2.FromAngle(e.Facing) * (SwordReachOf(e.Type) * 0.6f), new Rgba(1f, 0.93f, 0.8f), 14f, 0.15f, Sfx.SwingHeavy);

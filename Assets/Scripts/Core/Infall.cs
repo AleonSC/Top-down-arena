@@ -285,7 +285,7 @@ namespace Arena
                     e.Facing += e.Strafe * PulsarArc / PulsarSweep * dt;
                     foreach (var p in Players.Values)
                         if (Hittable(p) && PulsarBeamDistance(e, p.Pos) < PulsarBeamWidth / 2f + p.Def.HitR)
-                            Damage(p, PulsarDamage, e.Def.Name + " (beam)");
+                            Damage(p, PulsarDamage, HitBy(e.Def, "beam"));
                     if (e.PhaseT <= 0f)
                     {
                         e.Phase = 3;

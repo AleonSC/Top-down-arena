@@ -25,10 +25,10 @@ namespace Arena
             if (ArmOn(p))
                 return;  // curled up in Iron Armadillo: nothing gets through the shell (IronArmadillo.cs)
             if (ApOn(p))
-                return;
+                return;  // Astral Projection: the body can't be hurt, nor the spirit (AstralProjection.cs)
             if (InStaticBubble(p.Pos))
-                return;  // inside a Static Bubble nothing hostile reaches you (StaticBubble.cs)  // Astral Projection: the body can't be hurt, nor the spirit (AstralProjection.cs)
-            if (bladedRuns.Exists(r => r.Owner == p.Id))
+                return;  // inside a Static Bubble nothing hostile reaches you (StaticBubble.cs)
+            if (InBladedRun(p.Id))
                 return;  // mid-rush in Bladed Dive: nothing touches you, whatever checks InvulnT (BladedDive.cs)
             if (!tickDamage && RiotBlocks(p, source))
                 return;  // Riot Gear took the hit (RiotGear.cs)
@@ -149,7 +149,9 @@ namespace Arena
             p.InvulnT = 1.5f;
         }
 
-        Bullet SpawnBullet(byte kind, V2 pos, V2 vel, float angVel, float life, float dmg, int owner, bool fromBoss = false, float homingTurn = 0f)
+        /// secondary: a shot spawned from another one (ricochets, fragments, bounce bolts), whose speed, life and damage
+        /// already carry the owner's Velocity Rounds, Overcharge and Homing Rounds' cost, so they aren't applied again.
+        Bullet SpawnBullet(byte kind, V2 pos, V2 vel, float angVel, float life, float dmg, int owner, bool fromBoss = false, float homingTurn = 0f, bool secondary = false)
         {
             Player p;
             float homing = homingTurn;
@@ -158,15 +160,18 @@ namespace Arena
             if (modded)
             {
                 p = Players[owner];
-                vel *= p.Stats.ShotSpeedMult;  // Velocity Rounds
-                if (p.OverchargeT > 0f && !Lobbed(kind))
+                if (!secondary)
                 {
-                    vel *= OverchargeShot;  // Overcharge: faster shots, same reach (StaticShock.cs)
-                    life /= OverchargeShot;
+                    vel *= p.Stats.ShotSpeedMult;  // Velocity Rounds
+                    if (p.OverchargeT > 0f && !Lobbed(kind))
+                    {
+                        vel *= OverchargeShot;  // Overcharge: faster shots, same reach (StaticShock.cs)
+                        life /= OverchargeShot;
+                    }
+                    dmg *= HomingCost(p);  // Homing Rounds trade damage for forgiveness
                 }
                 if (!AreaWeapon(p.Weapon.Id))  // area weapons get bigger areas instead (AreaMult)
                     homing = Math.Max(homing, p.Stats.Homing);
-                dmg *= HomingCost(p);  // Homing Rounds trade damage for forgiveness
             }
             if (owner == 0 && Defs.IsEnemyShot(kind))
             {
@@ -217,6 +222,52 @@ namespace Arena
                 s.Source = source;
                 s.LastHit = lastHit;
             }
+        }
+
+        /// A landed boulder (KitWeapons.cs), clot (Hemomancer.cs), rocket (RocketDrop.cs), tank shell (LiteralTank.cs) or
+        /// flak shell (Weapons.cs) bursts, its damage credited to the weapon or the shot that threw it. False: none of those.
+        bool LandShell(Bullet b)
+        {
+            switch (b.Kind)
+            {
+                case Defs.BoulderShot: case Defs.ClotShot: case Defs.RocketShell: case Defs.TankShell: case Defs.FlakShell: break;
+                default: return false;
+            }
+            string landSrc = CreditTo(BulletSrc(b));
+            switch (b.Kind)
+            {
+                case Defs.BoulderShot: LandBoulder(b); break;
+                case Defs.ClotShot: LandClot(b); break;
+                case Defs.RocketShell: RocketBurst(b); break;
+                case Defs.TankShell: TankShellBurst(b); break;
+                default: FlakAirburst(b); break;
+            }
+            dmgSrc = landSrc;
+            return true;
+        }
+
+        readonly Dictionary<EnemyDef, Dictionary<string, string>> hitNames = new Dictionary<EnemyDef, Dictionary<string, string>>();
+
+        /// A damage source's name for an enemy's attack, "Riot Captain (shield charge)": built once per enemy and attack
+        /// (`what`, without brackets), not on every hit.
+        string HitBy(EnemyDef def, string what)
+        {
+            Dictionary<string, string> names;
+            if (!hitNames.TryGetValue(def, out names))
+                hitNames[def] = names = new Dictionary<string, string>();
+            string name;
+            if (!names.TryGetValue(what, out name))
+                names[what] = name = def.Name + " (" + what + ")";
+            return name;
+        }
+
+        /// Mid-rush in Bladed Dive (BladedDive.cs).
+        bool InBladedRun(int playerId)
+        {
+            for (int i = 0; i < bladedRuns.Count; i++)
+                if (bladedRuns[i].Owner == playerId)
+                    return true;
+            return false;
         }
 
         /// Shots thrown in an arc (grenades, boulders, Gore Mortar clots, medkits): they fly over what's below and land.
@@ -377,41 +428,8 @@ namespace Arena
                     LandFoam(b);  // a lump of foam (HazardFoam.cs)
                     continue;
                 }
-                if (b.Kind == Defs.BoulderShot)
-                {
-                    string landSrc = CreditTo(BulletSrc(b));
-                    LandBoulder(b);  // KitWeapons.cs
-                    dmgSrc = landSrc;
-                    continue;
-                }
-                if (b.Kind == Defs.ClotShot)
-                {
-                    string landSrc = CreditTo(BulletSrc(b));
-                    LandClot(b);  // Hemomancer.cs
-                    dmgSrc = landSrc;
-                    continue;
-                }
-                if (b.Kind == Defs.RocketShell)
-                {
-                    string landSrc = CreditTo(BulletSrc(b));
-                    RocketBurst(b);  // RocketDrop.cs
-                    dmgSrc = landSrc;
-                    continue;
-                }
-                if (b.Kind == Defs.TankShell)
-                {
-                    string landSrc = CreditTo(BulletSrc(b));
-                    TankShellBurst(b);  // LiteralTank.cs
-                    dmgSrc = landSrc;
-                    continue;
-                }
-                if (b.Kind == Defs.FlakShell)
-                {
-                    string landSrc = CreditTo(BulletSrc(b));
-                    FlakAirburst(b);  // Weapons.cs
-                    dmgSrc = landSrc;
-                    continue;
-                }
+                if (LandShell(b))
+                    continue;  // boulders, clots, rocket and tank shells, flak: a burst credited to the shot
                 if (b.Talisman)
                 {
                     TalismanBurst(b, null);  // a Healing Talisman bursts where its flight ends (Ofuda.cs)
@@ -965,11 +983,7 @@ namespace Arena
                     continue;
                 float speed = Math.Max(400f, rb.Vel.Length);
                 V2 dir = (next.Pos - rb.Pos).Normalized();
-                // SpawnBullet applies Velocity Rounds again, so undo it on the carried-over speed.
-                Player owner;
-                if (Players.TryGetValue(rb.Owner, out owner))
-                    speed /= owner.Stats.ShotSpeedMult;
-                var nb = SpawnBullet(rb.Kind, rb.Pos, dir * speed, 0f, 0.8f, rb.Dmg * RicochetMult, rb.Owner);
+                var nb = SpawnBullet(rb.Kind, rb.Pos, dir * speed, 0f, 0.8f, rb.Dmg * RicochetMult, rb.Owner, homingTurn: rb.Homing, secondary: true);
                 nb.LastHit = rb.LastHit;
                 nb.Pierce = 0;
                 nb.Bounces = rb.Bounces - 1;
@@ -992,7 +1006,7 @@ namespace Arena
                         ? baseAng + (i % 2 == 0 ? 1f : -1f) * (MathX.Pi / 2f - 0.25f * (i / 2))  // pairs out to either side, fanning forward
                         : offset + MathX.Tau * i / f.Frags;
                     V2 d = V2.FromAngle(a);
-                    var nb = SpawnBullet(f.FragKind, f.Pos + d * 6f, d * f.FragSpeed, 0f, f.FragLife, f.FragDmg, f.Owner);
+                    var nb = SpawnBullet(f.FragKind, f.Pos + d * 6f, d * f.FragSpeed, 0f, f.FragLife, f.FragDmg, f.Owner, secondary: true);
                     nb.LastHit = f.LastHit;
                     nb.Splash = f.FragSplash;
                     if (f.FragKind == Defs.GrenadeShot)  // lobbed bomblets: they fly over enemies and pop where they land
@@ -1010,7 +1024,19 @@ namespace Arena
                 if (next == null)
                     continue;
                 V2 dir = (next.Pos - bb.Pos).Normalized();
-                var nb = SpawnBullet(Defs.BoltShot, bb.Pos, dir * 650f, 0f, 0.8f, bb.Dmg, bb.Owner);
+                // A fresh bolt still flies with Velocity Rounds and Overcharge; its damage already carries Homing Rounds' cost.
+                float speed = 650f, life = 0.8f;
+                Player owner;
+                if (Players.TryGetValue(bb.Owner, out owner))
+                {
+                    speed *= owner.Stats.ShotSpeedMult;
+                    if (owner.OverchargeT > 0f)
+                    {
+                        speed *= OverchargeShot;
+                        life /= OverchargeShot;
+                    }
+                }
+                var nb = SpawnBullet(Defs.BoltShot, bb.Pos, dir * speed, 0f, life, bb.Dmg, bb.Owner, secondary: true);
                 nb.LastHit = bb.LastHit;
                 nb.Pierce = 0;
                 nb.Bounces = bb.Bounces;  // more stacks: it bounces on as an ordinary ricochet
@@ -1112,7 +1138,6 @@ namespace Arena
             Enemies.Remove(e.Id);
         }
 
-        /// All damage to enemies goes through here so marks and other modifiers apply.
         float tickDt = 1f / 60f;
 
         /// Blockers hold for their full duration against regular waves; only bosses' bullets wear them down.
@@ -1134,6 +1159,7 @@ namespace Arena
         bool BossImmune(Enemy e) =>
             WardenImmune(e) || QueenImmune(e) || ReaperImmune(e) || ColossusImmune(e) || LichImmune(e) || DuelImmune(e) || HeraldImmune(e) || DevourImmune(e) || EclipseImmune(e);
 
+        /// All damage to enemies goes through here so marks and other modifiers apply.
         void HurtEnemy(Enemy e, float dmg, int attacker)
         {
             if (DrillShieldsHit(e, attacker))

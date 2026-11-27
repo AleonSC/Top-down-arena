@@ -82,7 +82,6 @@ namespace Arena
             p.FpNext = 1;
             p.FpIdle = 0f;
             p.FpTarget = -1;
-            p.FpMastered = mastered;
             p.FpUp = true;
             p.UltT = p.FpT;
             p.InvulnT = Math.Max(p.InvulnT, FpShed);
