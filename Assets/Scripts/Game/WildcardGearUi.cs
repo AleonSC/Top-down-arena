@@ -2,32 +2,19 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// A candidate redesign of the Wildcard's gear picker (LobbyUi.DrawWildcardPicks), drawn with the real widgets for the
-    /// owner to judge: `wildLook` 1 = four slot cards; a click opens a pick window over the column with every class's
-    /// options for that slot. 0 keeps today's wheel. Preview: WILDCARD=1 WILDLOOK=1 [WILDSLOT=0-3: that slot's window open].
+    /// The Wildcard's gear (Docs/Wildcard.md): four slot cards in the loadout (weapon, 1st and 2nd ability, ultimate: class
+    /// icon, name, key). A click opens the pick window over the right column: one centred column of class labels, one class
+    /// open at a time (it opens on the class of the slot's pick), its options as keys. Hovering one plays it in the loadout
+    /// preview and describes it in the window's info box; a click picks it and closes the window (Esc or X closes too).
+    /// Preview: WILDCARD=1 [WILDSLOT=0-3: that slot's window open] [WILDOPEN=<class>] shot.sh x lobby.
     public partial class ArenaApp
     {
-        int wildLook;     // 0 today's wheel, 1 the slots mockup
-        int wildPickOpen = -1;
-        int wildHoverSlot = -1, wildHoverVal;
-        int wildOpenKit = -1, wildOpenFor = -1;  // the pick window's one open class, and the slot it was opened for  // the pick window's hovered option (last frame's): the preview plays it  // the slots mockup: the slot whose pick window is open (-1 none) (0 weapon, 1 1st ability, 2 2nd ability, 3 ultimate)
-
-        /// Fills x, y .. yEnd (the Gear and Ultimate rows' space) with the picked look.
-        void DrawWildMock(LobbyEntry me, Session tgt, bool self, float x, float y, float w, float yEnd)
-        {
-            DrawWildSlots(me, tgt, self, x, y, w, yEnd);
-        }
-
-        // ---- shared ----
+        int wildPickOpen = -1, wildPickFor = -1;  // the slot whose pick window is open (-1 none), and whose loadout it's for
+        int wildHoverSlot = -1, wildHoverVal;  // the pick window's hovered option (last frame's): the preview plays it
+        int wildOpenKit = -1, wildOpenFor = -1;  // the pick window's one open class, and the slot it was opened for
 
         int WildKitOf(LobbyEntry me, int slot, int second) =>
             slot == 0 ? (int)Defs.WildWeaponKit(me.Weapon) : slot == 1 ? me.Ability / 3 : slot == 2 ? second / 3 : (int)me.UltKit;
-
-        string WildSlotSub(int slot) =>
-            slot == 0 ? "WEAPON"
-            : slot == 1 ? "1ST · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ability1)).ToUpperInvariant()
-            : slot == 2 ? "2ND · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ability2)).ToUpperInvariant()
-            : "ULT · " + Keybinds.KeyName(Keybinds.Get(KeyAction.Ultimate)).ToUpperInvariant();
 
         void WildPickWeapon(LobbyEntry me, Session tgt, bool self, int idx, int second)
         {
@@ -74,11 +61,9 @@ namespace Arena
             detailSel = 2;
         }
 
-        // ---- the slot cards and the pick window ----
-
         /// The four slots (what you have) as cards in a 2 x 2 grid: what the slot is and its key on top, the class icon,
         /// the name. Click one to open the pick window for it.
-        void DrawWildSlots(LobbyEntry me, Session tgt, bool self, float x, float y, float w, float yEnd)
+        void DrawWildSlots(LobbyEntry me, float x, float y, float w, float yEnd)
         {
             bool calm = fxReduced;
             var ev = Event.current;
