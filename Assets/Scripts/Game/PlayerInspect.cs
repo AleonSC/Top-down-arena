@@ -15,6 +15,38 @@ namespace Arena
 
         const float InspectW = 460f, InspectH = 620f;
 
+        // The card's text, built when what it shows changes rather than on every OnGUI event.
+        readonly int[] inspectSig = new int[11], inspectNow = new int[11];
+        bool inspectSigSet;
+        string inspectTitle, inspectClass;
+        readonly string[] inspectVals = new string[3];
+        static readonly string[] InspectLabs = { "KILLS", "BEST WAVE", "BOSSES" };
+        readonly List<string> inspectChips = new List<string>();
+
+        void RefreshInspectText(LobbyEntry e)
+        {
+            var now = inspectNow;
+            now[0] = e.Id; now[1] = e.Rank; now[2] = e.Kills; now[3] = e.BestWave; now[4] = e.BossKills; now[5] = e.Frame;
+            now[6] = e.Trail; now[7] = e.CardBg; now[8] = e.NameFx; now[9] = (int)e.Kit; now[10] = (int)e.Role;
+            bool same = inspectSigSet;
+            for (int i = 0; i < now.Length && same; i++)
+                same = inspectSig[i] == now[i];
+            if (same)
+                return;
+            System.Array.Copy(now, inspectSig, now.Length);
+            inspectSigSet = true;
+            inspectTitle = (Rank.Title(e.Rank) + "  ·  RANK " + e.Rank).ToUpperInvariant();
+            inspectClass = Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name;
+            inspectVals[0] = e.Kills.ToString("N0");
+            inspectVals[1] = e.BestWave > 0 ? e.BestWave.ToString() : "-";
+            inspectVals[2] = e.BossKills.ToString("N0");
+            inspectChips.Clear();
+            AddChip(inspectChips, "Frame", CosmeticKind.Frame, e.Frame);
+            AddChip(inspectChips, "Trail", CosmeticKind.Trail, e.Trail);
+            AddChip(inspectChips, "Card", CosmeticKind.CardBackground, e.CardBg);
+            AddChip(inspectChips, "Name", CosmeticKind.NameEffect, e.NameFx);
+        }
+
         void OpenInspect(int id)
         {
             inspectId = id;
@@ -55,6 +87,8 @@ namespace Arena
                 inspectId = -1;
                 return;
             }
+            if (Event.current.type == EventType.Layout || !inspectSigSet || inspectSig[0] != e.Id)
+                RefreshInspectText(e);  // (checked once a frame; the text itself is only rebuilt when it changes)
             float t = Time.unscaledTime;
             float pop = fxReduced ? 1f : Mathf.Clamp01((t - inspectAt) / 0.28f);
             pop = 1f - (1f - pop) * (1f - pop) * (1f - pop);
@@ -65,8 +99,9 @@ namespace Arena
             if (pop < 1f)
                 GUI.color = new Color(1f, 1f, 1f, pop);
 
-            // The click catcher: outside the card closes it.
-            if (Ui.HitArea(new Rect(0, 0, W, H)) && !card.Contains(Event.current.mousePosition))
+            // The close key takes its click before the click catcher (which uses every press): outside the card closes it too.
+            var closeKey = new Rect(card.xMax - 112f, card.y + 12f, 98f, 24f);
+            if (Ui.HitArea(closeKey) || (Ui.HitArea(new Rect(0, 0, W, H)) && !card.Contains(Event.current.mousePosition)))
                 CloseInspect();
 
             // Frame and background (their equipped ones; else the class colour).
@@ -88,13 +123,13 @@ namespace Arena
             }
 
             float cx = card.center.x, y = card.y;
-            Ui.Label(new Rect(card.x, y + 18f, card.width, 18f), (Rank.Title(e.Rank) + "  ·  RANK " + e.Rank).ToUpperInvariant(), 12, tier, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(card.x, y + 18f, card.width, 18f), inspectTitle, 12, tier, TextAnchor.MiddleCenter, true);
             var badge = new Rect(cx - 65f, y + 40f, 130f, 130f);
             Ui.Glow(new Rect(badge.x + 10f, badge.y + 10f, badge.width - 20f, badge.height - 20f), tier, 0.5f);
             RankLook.Draw(badge, e.Rank);
 
             DrawName(new Rect(card.x + 20f, y + 176f, card.width - 40f, 44f), e.Name, 36, e.NameFx, t, Color.white, TextAnchor.MiddleCenter);
-            Ui.Label(new Rect(card.x, y + 220f, card.width, 26f), Defs.KitName(e.Kit) + " " + Defs.Get(e.Role).Name, 20, roleCol, TextAnchor.MiddleCenter, true);
+            Ui.Label(new Rect(card.x, y + 220f, card.width, 26f), inspectClass, 20, roleCol, TextAnchor.MiddleCenter, true);
 
             // The art box: their character, aiming around.
             var art = new Rect(cx - 115f, y + 252f, 230f, 160f);
@@ -125,8 +160,8 @@ namespace Arena
                 Ui.Pill(new Rect(xp.x, xp.y, Mathf.Max(8f, xp.width * e.XpPct / 100f), xp.height), tier);
 
             // Three records.
-            string[] vals = { e.Kills.ToString("N0"), e.BestWave > 0 ? e.BestWave.ToString() : "-", e.BossKills.ToString("N0") };
-            string[] labs = { "KILLS", "BEST WAVE", "BOSSES" };
+            var vals = inspectVals;
+            var labs = InspectLabs;
             float sw = (card.width - 60f - 16f) / 3f;
             for (int i = 0; i < 3; i++)
             {
@@ -138,11 +173,7 @@ namespace Arena
             }
 
             // What they have equipped, as chips.
-            var chips = new List<string>();
-            AddChip(chips, "Frame", CosmeticKind.Frame, e.Frame);
-            AddChip(chips, "Trail", CosmeticKind.Trail, e.Trail);
-            AddChip(chips, "Card", CosmeticKind.CardBackground, e.CardBg);
-            AddChip(chips, "Name", CosmeticKind.NameEffect, e.NameFx);
+            var chips = inspectChips;
             float chipX = card.x + 30f, chipY = y + 546f, right = card.xMax - 30f;
             foreach (var c in chips)
             {
@@ -162,12 +193,10 @@ namespace Arena
                 Ui.Label(new Rect(card.x, chipY, card.width, 22f), "NOTHING EQUIPPED", 10, Ui.Muted, TextAnchor.MiddleCenter, true);
 
             // Close key.
-            var x = new Rect(card.xMax - 112f, card.y + 12f, 98f, 24f);
+            var x = closeKey;
             Ui.Pill(x, new Color(0.11f, 0.15f, 0.31f, 0.95f));
             Ui.Rim(x, new Color(0.29f, 0.36f, 0.65f), 0.9f);
             Ui.Label(x, "CLOSE · ESC", 11, new Color(0.9f, 0.94f, 1f), TextAnchor.MiddleCenter, true);
-            if (Ui.HitArea(x))
-                CloseInspect();
             GUI.color = Color.white;
         }
 

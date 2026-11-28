@@ -153,9 +153,9 @@ namespace Arena
             Avatar a;
             if (!Avatars.TryGetValue(peer, out a) || Game.Running)
                 return;
-            SetPvp(a, pvp);
             if (a.Hp <= 0f)
-                return;  // knocked out: it stays where it fell
+                return;  // knocked out: it stays where it fell (and can't switch PvP off and on to skip the respawn)
+            SetPvp(a, pvp);
             a.Pos = ClampToRoom(pos);
             a.Aim = float.IsNaN(aim) || float.IsInfinity(aim) ? a.Aim : aim;
             avatarsDirty = true;

@@ -187,9 +187,7 @@ namespace Arena
             if (!skipped)
             {
                 var lines = ModeRelinkLog();
-                int ca = 0, cb = 0;
-                foreach (var l in CrtLogShown(lines, a, MbLogAt, MbLogCharS, MbLogPause)) ca += l.Length;
-                foreach (var l in CrtLogShown(lines, b, MbLogAt, MbLogCharS, MbLogPause)) cb += l.Length;
+                int ca = CrtLogTyped(lines, a, MbLogAt, MbLogCharS, MbLogPause), cb = CrtLogTyped(lines, b, MbLogAt, MbLogCharS, MbLogPause);
                 for (int i = 0, n = Mathf.Min(3, cb - ca); i < n; i++)
                     sounds.Play(Sfx.CrtType, 0.5f, now);
                 if (a < MbLogAt && b >= MbLogAt)

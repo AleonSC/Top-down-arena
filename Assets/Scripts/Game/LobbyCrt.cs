@@ -260,6 +260,16 @@ namespace Arena
         /// with the cursor blinking (CrtLogPause), then the rest ("> LINK" ... " ... ESTABLISHED.").
         string[][] CrtLogLines()
         {
+            if (crtLogCache != null && crtLogFor == nameText)
+                return crtLogCache;  // (built once per name: the boot reads it several times a frame)
+            crtLogFor = nameText;
+            return crtLogCache = BuildCrtLogLines();
+        }
+        string[][] crtLogCache;
+        string crtLogFor;
+
+        string[][] BuildCrtLogLines()
+        {
             string who = string.IsNullOrEmpty(nameText) ? "PLAYER" : nameText.ToUpperInvariant();
             if (who.Length > 16)
                 who = who.Substring(0, 16);
@@ -308,6 +318,38 @@ namespace Arena
             return shown.ToArray();
         }
 
+        /// How many characters of a typed log show e seconds in (CrtLogShown's lines, counted with nothing allocated: for the typing sounds).
+        static int CrtLogTyped(string[][] lines, float e, float at, float charS, float pause) => CrtLogTyped(lines, e, at, charS, pause, out _);
+
+        /// The same, plus how many lines have started (CrtLogShown's length).
+        static int CrtLogTyped(string[][] lines, float e, float at, float charS, float pause, out int rows)
+        {
+            int n = 0;
+            rows = lines.Length;
+            for (int i = 0; i < lines.Length; i++)
+                for (int j = 0; j < lines[i].Length; j++)
+                {
+                    float dur = lines[i][j].Length * charS;
+                    if (e < at + dur)
+                    {
+                        rows = i + 1;
+                        return n + Mathf.Max(0, Mathf.FloorToInt((e - at) / charS));
+                    }
+                    n += lines[i][j].Length;
+                    at += dur;
+                    if (j < lines[i].Length - 1)
+                    {
+                        if (e < at + pause)
+                        {
+                            rows = i + 1;
+                            return n;
+                        }
+                        at += pause;
+                    }
+                }
+            return n;
+        }
+
         /// The boot's sounds for the span a..b seconds in: a power-on thump as the screen flares, a key per typed log character and a beep as each
         /// line starts, the scan line's sweep with a tick per piece lighting up, and a chime at the end. A skip (the clock jumping) plays only the chime.
         void PlayCrtEntryCues(float a, float b)
@@ -320,16 +362,14 @@ namespace Arena
             {
                 if (a <= 0f && b > 0f)
                     sounds.Play(Sfx.CrtPower, 0.6f, now);
-                var before = CrtLogShown(a);
-                var after = CrtLogShown(b);
-                int ca = 0, cb = 0;
-                foreach (var l in before) ca += l.Length;
-                foreach (var l in after) cb += l.Length;
+                var log = CrtLogLines();
+                int ra, rb;
+                int ca = CrtLogTyped(log, a, CrtLogAt, CrtLogCharS, CrtLogPause, out ra), cb = CrtLogTyped(log, b, CrtLogAt, CrtLogCharS, CrtLogPause, out rb);
                 if (a < CrtLogFadeAt)
                 {
                     for (int i = 0, n = Mathf.Min(3, cb - ca); i < n; i++)
                         sounds.Play(Sfx.CrtType, 0.5f, now);
-                    if (after.Length > before.Length && b > CrtLogAt && before.Length > 0)
+                    if (rb > ra && b > CrtLogAt && ra > 0)
                         sounds.Play(Sfx.CrtLine, 0.5f, now);
                 }
                 if (a < CrtPiecesAt && b >= CrtPiecesAt)

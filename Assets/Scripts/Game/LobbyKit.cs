@@ -367,16 +367,27 @@ namespace Arena
         }
 
         /// Text with letter-spacing (IMGUI has none): each letter placed by hand, the row aligned left, centre or right in `r`.
-        static readonly System.Collections.Generic.Dictionary<string, float> advCache = new System.Collections.Generic.Dictionary<string, float>();
+        static readonly System.Collections.Generic.Dictionary<long, float> advCache = new System.Collections.Generic.Dictionary<long, float>();
+        static float[] spacedAdv = new float[64];  // (Spaced's per-letter advances, reused: the lobby draws these every event)
+        static readonly System.Collections.Generic.Dictionary<char, string> charText = new System.Collections.Generic.Dictionary<char, string>();
+
+        /// One letter as a string, made once (char.ToString allocates).
+        static string CharText(char ch)
+        {
+            string t;
+            if (!charText.TryGetValue(ch, out t))
+                charText[ch] = t = ch.ToString();
+            return t;
+        }
 
         /// One letter's advance at this size, measured between two bars so the label style's padding cancels out.
         static float Adv(char ch, int size, bool bold)
         {
-            string key = ch + "|" + size + (bold ? "b" : "n") + (Ui.MenuFont ? "m" : "d");
+            long key = ((long)ch << 32) | ((long)size << 2) | (bold ? 2L : 0L) | (Ui.MenuFont ? 1L : 0L);  // (no string: this runs per letter, per event)
             float v;
             if (advCache.TryGetValue(key, out v))
                 return v;
-            string mid = ch == ' ' ? "n" : ch.ToString();
+            string mid = ch == ' ' ? "n" : CharText(ch);
             v = Mathf.Max(1f, Ui.TextWidth("|" + mid + "|", size, bold) - Ui.TextWidth("||", size, bold));
             advCache[key] = v;
             return v;
@@ -386,7 +397,9 @@ namespace Arena
         {
             if (string.IsNullOrEmpty(text))
                 return;
-            var adv = new float[text.Length];
+            if (spacedAdv.Length < text.Length)
+                spacedAdv = new float[text.Length * 2];
+            var adv = spacedAdv;
             float total = 0f;
             for (int i = 0; i < text.Length; i++)
             {
@@ -398,7 +411,7 @@ namespace Arena
             for (int i = 0; i < text.Length; i++)
             {
                 if (text[i] != ' ')
-                    Ui.Label(new Rect(x - Ui.LabelPadLeft - 1f, r.y, adv[i] + 12f, r.height), text[i].ToString(), size, c, TextAnchor.MiddleLeft, bold);  // (the first letter sits flush at r.x)
+                    Ui.Label(new Rect(x - Ui.LabelPadLeft - 1f, r.y, adv[i] + 12f, r.height), CharText(text[i]), size, c, TextAnchor.MiddleLeft, bold);  // (the first letter sits flush at r.x)
                 x += adv[i] + spacing;
             }
         }

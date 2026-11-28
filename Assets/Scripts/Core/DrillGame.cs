@@ -469,8 +469,8 @@ namespace Arena
             Game.SettleRetry();
             ApplyMatchSetup();
             Game.DrillStart = i;
-            Game.HostStart();
-            Game.DrillStart = -1;
+            try { Game.HostStart(); }
+            finally { Game.DrillStart = -1; }  // (never left on: the next START would open the drill)
         }
     }
 }

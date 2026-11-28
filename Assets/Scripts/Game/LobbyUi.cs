@@ -117,7 +117,9 @@ namespace Arena
                 Event.current.Use();
             }
 
-            if (ascOpen >= 0 && Event.current.type == EventType.MouseDown)
+            if (ascOpen >= 0 && OnModeScreen)
+                ascOpen = -1;  // (not drawn on the Game Mode screen: its old buttons mustn't take clicks there)
+            if (ascOpen >= 0 && Event.current.type == EventType.MouseDown && Event.current.button == 0)
             {
                 if (ascBuyRect.Contains(Event.current.mousePosition))
                     Profile.Current.BuyVariant(ascWeapon);  // the Buy button keeps the window open
@@ -248,6 +250,8 @@ namespace Arena
         int modeTurn;
         float modeTurnPos;
         bool modeTurnSet;
+        int[] modeOrder = new int[0];
+        float[] modeDist = new float[0];
 
         static string ModeTitle(int i) => ModeDef.For((GameMode)i).Name.ToUpperInvariant();
         static string ModeSub(int i) => ModeDef.For((GameMode)i).Blurb;
@@ -296,8 +300,13 @@ namespace Arena
             float step = (bigW + smallW) / 2f + gap, cx = ix + iw / 2f;
             float oldAlpha = Ui.Alpha;
             // Draw the far ones first so the middle one is on top while they slide.
-            var order = new int[n];
-            var dist = new float[n];
+            if (modeOrder.Length != n)
+            {
+                modeOrder = new int[n];  // (reused: this runs every OnGUI event)
+                modeDist = new float[n];
+            }
+            var order = modeOrder;
+            var dist = modeDist;
             for (int i = 0; i < n; i++)
             {
                 float d = ((i - modeTurnPos) % n + n) % n;
@@ -306,7 +315,13 @@ namespace Arena
                 dist[i] = d;
                 order[i] = i;
             }
-            System.Array.Sort(order, (a, b) => Mathf.Abs(dist[b]).CompareTo(Mathf.Abs(dist[a])));
+            for (int i = 1; i < n; i++)  // farthest first (an insertion sort: five keys, no delegate)
+                for (int j = i; j > 0 && Mathf.Abs(dist[order[j]]) > Mathf.Abs(dist[order[j - 1]]); j--)
+                {
+                    int tmp = order[j];
+                    order[j] = order[j - 1];
+                    order[j - 1] = tmp;
+                }
             foreach (int i in order)
             {
                 float d = dist[i], ad = Mathf.Abs(d);
@@ -384,24 +399,31 @@ namespace Arena
         /// The mode's own tab keys right of the Saved star (Loadout and Perks have their own keys; Difficulty and Modifiers are rows over Ready).
         /// The tab row after Loadout: Difficulty and Modifiers (each naming what's set when it isn't the default), and Practice
         /// alone at the right end. A second click on an open tab goes back to the loadout.
+        int modsTabFor = -1;
+        string modsTabName;
+
         void DrawLobbyTabs()
         {
             int mods = Modifiers.Count(session.Modifiers);
-            var rects = new[] { LobbyDiffKey, LobbyModsKey, LobbyHangoutKey };
-            string[] names = { "DIFFICULTY", mods > 0 ? "MODIFIERS  (" + mods + ")" : "MODIFIERS", "PRACTICE" };
-            int[] tabs = { 3, 2, PracticeTab };
+            if (mods != modsTabFor)
+            {
+                modsTabFor = mods;  // (the label is made when the count changes, not every event)
+                modsTabName = mods > 0 ? "MODIFIERS  (" + mods + ")" : "MODIFIERS";
+            }
             for (int k = 0; k < 3; k++)
             {
-                bool on = lobbyTab == tabs[k];
-                LobbyGlowBox(rects[k]);
-                if (LobbyKit.FolderTab(rects[k], names[k], on))
+                var rect = k == 0 ? LobbyDiffKey : k == 1 ? LobbyModsKey : LobbyHangoutKey;
+                int tab = k == 0 ? 3 : k == 1 ? 2 : PracticeTab;
+                bool on = lobbyTab == tab;
+                LobbyGlowBox(rect);
+                if (LobbyKit.FolderTab(rect, k == 0 ? "DIFFICULTY" : k == 1 ? modsTabName : "PRACTICE", on))
                 {
                     if (k == 2 && !on)  // Practice: the party's shared room in this window (Session.StartHangout, HangoutUi.cs)
                     {
                         OpenPractice();
                         continue;
                     }
-                    lobbyTab = on ? 0 : tabs[k];
+                    lobbyTab = on ? 0 : tab;
                     CloseFavorites();
                 }
             }
@@ -412,6 +434,33 @@ namespace Arena
         readonly PartyBots partyBots = new PartyBots();  // bots in the open slots (PartyBots.cs)
         string botNameText = "";  // the name being typed for the chosen bot
         int botNameFor = -1;
+
+        /// A lobby opening from the menu starts with its windows shut and no typed bot name (bot ids restart at 2 each host).
+        void ResetLobbyUi()
+        {
+            ascOpen = -1;
+            ascEquipPick = -1;
+            ascBuyRect = ascEquipRects[0] = ascEquipRects[1] = default(Rect);
+            connInfoOpen = false;
+            showcaseHueOpen = showcaseHueDrag = false;
+            botNameFor = -1;
+            botNameText = "";
+            detailSel = 0;
+            detailSecond = false;
+            wildPickOpen = wildPickFor = -1;
+            vgEditOpen = false;
+            modeTurnSet = false;
+            inspectId = -1;
+        }
+
+        /// Esc in the lobby: shut its topmost small window, if one is open (true), before the lobby menu.
+        bool CloseLobbyPopup()
+        {
+            if (ascOpen >= 0) { ascOpen = -1; return true; }
+            if (connInfoOpen) { connInfoOpen = false; return true; }
+            if (showcaseHueOpen) { showcaseHueOpen = showcaseHueDrag = false; return true; }
+            return false;
+        }
         int editBotId = -1;  // the bot whose loadout the host is choosing (click its card); -1 = your own
 
         /// A player's card on the screen: today's card art (the role's rim or their earned frame, the synthwave or chosen background,
@@ -1048,7 +1097,7 @@ namespace Arena
                     CrtKit.SoftBox(eq, ec, variantOn, hv, false);
                     Ui.Label(eq, variantOn ? "USE " + baseDef.Name.ToUpperInvariant() : "EQUIP", 11, CrtKit.SoftText(ec, hv), TextAnchor.MiddleCenter, true);
                     ascEquipRects[i] = eq;
-                    ascEquipTo[i] = variantOn ? 0 : Defs.PickOf(me.Role, me.Kit, vid.Value);  // (the variants sit after the fourth weapon: picks 4 and 5 for the Soldier DPS)
+                    ascEquipTo[i] = variantOn ? Defs.PickOf(me.Role, me.Kit, baseDef.Id) : Defs.PickOf(me.Role, me.Kit, vid.Value);  // (the variants sit after the fourth weapon: picks 4 and 5 for the Soldier DPS)
                     continue;
                 }
                 if (got)

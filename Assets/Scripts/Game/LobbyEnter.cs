@@ -34,6 +34,7 @@ namespace Arena
                 return;
             leaveT = 0f;
             enterT = -1f;
+            crtEntry = false;  // (leaving mid New run boot: the next entrance is the plain one, and the leave isn't tinted blue)
             crtLeave = LobbyFxOn;  // with effects on: the CRT power-cycle (LobbyCrtLeave.cs)
             settingsOpen = false;
             // The card shrinks back into the menu's box; show the state the menu will reset to (the buttons, not the Play
@@ -59,7 +60,10 @@ namespace Arena
                 }
             }
             if (session.Screen == AppScreen.Lobby && enterLastScreen == AppScreen.Menu)
+            {
                 enterT = 0f;
+                ResetLobbyUi();  // (LobbyUi.cs: no window or typed name left over from the last lobby)
+            }
             enterLastScreen = session.Screen;
             if (enterT < 0f)
                 return;

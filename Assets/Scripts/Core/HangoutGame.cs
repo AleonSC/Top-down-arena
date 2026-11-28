@@ -40,6 +40,7 @@ namespace Arena
         {
             HangoutOn = on;
             practiceSent.Clear();
+            practiceRev = -1;
             if (!on)
                 return;
             Hunt = null;
@@ -74,6 +75,7 @@ namespace Arena
     public partial class Game
     {
         readonly Dictionary<int, string> practiceSent = new Dictionary<int, string>();  // host: each player's loadout as the room last had it
+        int practiceRev = -1;  // the lobby broadcast those were checked against (Session.LobbyRev): unchanged, nothing to check
 
         /// A lobby entry's loadout as one string, to notice a change (class, weapon, abilities, ultimate, perks, chains).
         string PracticeKey(LobbyEntry e)
@@ -94,10 +96,13 @@ namespace Arena
                 if (!Players.ContainsKey(e.Id))
                 {
                     HangoutStart = true;  // a newcomer has no room yet: a fresh start for everyone (Session.StartHangout)
-                    HostStart();
-                    HangoutStart = false;
+                    try { HostStart(); }
+                    finally { HangoutStart = false; }  // (never left on: the next START would open as Practice)
                     return;
                 }
+            if (practiceRev == session.LobbyRev)
+                return;  // (no lobby change since the last check: no loadout to re-pack)
+            practiceRev = session.LobbyRev;
             foreach (var e in session.Lobby.Values)
             {
                 string key = PracticeKey(e);
@@ -215,8 +220,8 @@ namespace Arena
             Game.SettleRetry();  // a retry left untaken ends the old run now (Checkpoints.cs)
             ApplyMatchSetup();
             Game.HangoutStart = true;
-            Game.HostStart();
-            Game.HangoutStart = false;
+            try { Game.HostStart(); }
+            finally { Game.HangoutStart = false; }  // (never left on: the next START would open as Practice)
         }
     }
 }

@@ -574,7 +574,10 @@ namespace Arena
                     MenuBack();  // a window closes first; then the lobby menu's Settings: back to its list
                 else if (lobbyMenuOpen)
                     CloseLobbyMenu();
-                else if (session.Screen == AppScreen.Lobby && OnModeScreen && !settingsOpen && GUIUtility.keyboardControl == 0)
+                else if (session.Screen == AppScreen.Lobby && GUIUtility.keyboardControl == 0 && CloseLobbyPopup())
+                {
+                }  // the Variants window, the "!" popup or the hue panel closes before the lobby menu opens (LobbyUi.cs)
+                else if (session.Screen == AppScreen.Lobby && OnModeScreen && !settingsOpen && !LobbyLeaving && GUIUtility.keyboardControl == 0)
                     ModeScreenBack();  // Esc on the Game Mode screen: the main menu if New run opened it, else the lobby (ModeBlink.cs)
                 else if (session.Screen == AppScreen.Lobby && !settingsOpen && !LobbyEntering && !LobbyLeaving && !LobbyReturning && GUIUtility.keyboardControl == 0)
                     OpenLobbyMenu();  // Esc in the lobby: its menu (MenuDrawer.cs)

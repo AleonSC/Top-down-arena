@@ -603,6 +603,8 @@ namespace Arena
             {
                 case Msg.Hello:
                 {
+                    if (Lobby.ContainsKey(peer))
+                        return;  // already in: a second Hello mustn't reset, reseat or kick them
                     int version = r.ReadInt32();
                     int ids = version == Version ? r.ReadInt32() : 0;
                     if (version != Version)
@@ -834,6 +836,8 @@ namespace Arena
                         who.Trail = Arena.Rank.Owns(rank, Arena.Rank.TrailId(got.Trail)) ? got.Trail : (byte)0;
                         who.CardBg = Arena.Rank.Owns(rank, Arena.Rank.CardBgId(got.CardBg)) ? got.CardBg : (byte)0;
                         who.NameFx = Arena.Rank.Owns(rank, Arena.Rank.NameFxId(got.NameFx)) ? got.NameFx : (byte)0;
+                        if (!Game.InRun && !System.Linq.Enumerable.SequenceEqual(who.ChosenPerks ?? Perks.Empty, got.ChosenPerks ?? Perks.Empty))
+                            who.Ready = false;  // a perk change takes back your Ready, like any loadout change
                         who.ChosenPerks = got.ChosenPerks;
                         who.Skins = got.Skins;
                         who.Chain = got.Chain;
@@ -1047,6 +1051,8 @@ namespace Arena
 
         /// Puts an entry's picks in range for its role: three weapons (four where the class has a fourth) and abilities for a normal role, eighteen for a Wildcard
         /// (plus a second ability that differs from the first, always on the 2nd ability key).
+        static bool WildAbilityGap(int pick) => Upgrades.AbilityGap(Role.Dps, (Kit)(pick / Upgrades.FirstAbilityChoices), pick % Upgrades.FirstAbilityChoices);
+
         static void ClampLoadout(LobbyEntry e)
         {
             if (e.Role == Role.Wildcard)
@@ -1057,8 +1063,8 @@ namespace Arena
                 if (Upgrades.AbilityGap(Role.Dps, (Kit)(Defs.WildSecond(e.Ability) / Upgrades.FirstAbilityChoices), Defs.WildSecond(e.Ability) % Upgrades.FirstAbilityChoices))
                     e.Ability = (byte)(Defs.WildSecond(e.Ability) / Upgrades.FirstAbilityChoices * Upgrades.FirstAbilityChoices);
                 int first = Defs.WildSecond(e.Ability), second = Defs.WildSecond(e.Wild);
-                if (second == first)
-                    second = (second + 1) % Defs.WildcardChoices;
+                for (int n = 0; n < Defs.WildcardChoices && (second == first || WildAbilityGap(second)); n++)
+                    second = (second + 1) % Defs.WildcardChoices;  // differs from the first, and never a locked place
                 e.Wild = Defs.MakeWild(second);
                 e.Ult = (byte)Upgrades.ClampUlt(Role.Wildcard, e.Kit, e.Ult);  // any class's DPS ultimate: class * UltKeys + key (Upgrades.WildUlt)
             }
@@ -1340,8 +1346,12 @@ namespace Arena
             e.Chain = ReadVgChain(r);
         }
 
+        /// Counts the host's lobby broadcasts: anything that reads the lobby every tick can skip the work while it's unchanged (SyncPractice).
+        public int LobbyRev { get; private set; }
+
         void BroadcastLobby()
         {
+            LobbyRev++;
             SyncOwnCosmetics();
             foreach (var le in Lobby.Values)
                 le.PerkIds = ShownPerks(le);
