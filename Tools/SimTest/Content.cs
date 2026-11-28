@@ -110,18 +110,25 @@ static partial class Program
             Pick("with an ultimate on key " + key, (r, k) => HasUlt(r, k, key), role, complete);
         public static RoleKit RoleWithoutUlt(int key, Role? role = null, bool complete = true) =>
             Pick("with no ultimate on key " + key, (r, k) => !HasUlt(r, k, key), role, complete);
-        /// A role and class with an empty key on its Ultimate row, and that key (the lowest 1-3 any class leaves free).
-        public static RoleKit RoleWithAFreeUltKey(out int key)
+        /// A role and class with an empty key on its Ultimate row, and that key (the lowest 1-3 any class leaves free);
+        /// null (key 0) when every class fills every key, so a test can skip its clamp check (NoFreeUltKey).
+        public static RoleKit? FindFreeUltKey(out int key)
         {
             for (key = 1; key < Upgrades.UltKeys; key++)
             {
                 int k = key;
                 var rk = Find((r, kt) => !HasUlt(r, kt, k));
                 if (rk != null)
-                    return rk.Value;
+                    return rk;
             }
-            key = 1;
-            return RoleWithoutUlt(1);
+            key = 0;
+            return null;
+        }
+        /// The skip note (true) for a clamp check with no subject: no class leaves `key` (0: any key) empty.
+        public static bool NoFreeUltKey(int key = 0)
+        {
+            Console.WriteLine("  (Content: every class has an ultimate on " + (key > 0 ? "key " + key : "keys 1-" + (Upgrades.UltKeys - 1)) + ", so that clamp has nothing to check)");
+            return true;
         }
 
         // --- The fall-backs, checked on whichever role and class lacks the thing (true, with a note, when none does) ---
