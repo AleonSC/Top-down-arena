@@ -98,10 +98,7 @@ namespace Arena
                 float old2 = Ui.Alpha;
                 Ui.Alpha = old2 * a;
                 Ui.Fill(tile, hot ? new Color(0.47f, 0.63f, 1f, 0.28f) : new Color(0.03f, 0.05f, 0.08f, 0.32f));
-                Ui.Fill(new Rect(tile.x, tile.y, tile.width, 1f), new Color(1f, 1f, 1f, hot ? 0.5f : 0.12f));
-                Ui.Fill(new Rect(tile.x, tile.yMax - 1f, tile.width, 1f), new Color(1f, 1f, 1f, hot ? 0.5f : 0.12f));
-                Ui.Fill(new Rect(tile.x, tile.y, 1f, tile.height), new Color(1f, 1f, 1f, hot ? 0.5f : 0.12f));
-                Ui.Fill(new Rect(tile.xMax - 1f, tile.y, 1f, tile.height), new Color(1f, 1f, 1f, hot ? 0.5f : 0.12f));
+                CrtKit.Frame(tile, 1f, new Color(1f, 1f, 1f, hot ? 0.5f : 0.12f));
                 GUI.BeginGroup(tile);
                 DrawEmote(own[i], new Vector2(tile.width / 2f, 46f), EmoteIconTime(own[i]), 0.62f);
                 GUI.EndGroup();

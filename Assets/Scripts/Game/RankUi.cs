@@ -23,8 +23,7 @@ namespace Arena
             if (up)
             {
                 var rim = CrtStyle.Gold.WithAlpha(0.9f);
-                Ui.Fill(new Rect(r.x, r.y, r.width, 2f), rim); Ui.Fill(new Rect(r.x, r.yMax - 2f, r.width, 2f), rim);
-                Ui.Fill(new Rect(r.x, r.y, 2f, r.height), rim); Ui.Fill(new Rect(r.xMax - 2f, r.y, 2f, r.height), rim);
+                CrtKit.Frame(r, 2f, rim);
             }
 
             // Badge on the left, then RANK n · title over the XP bar over the "how it was worked out" line, and the +XP at the right.

@@ -255,10 +255,7 @@ namespace Arena
         {
             Ui.Fill(new Rect(r.x - 2f, r.y - 2f, r.width + 4f, 7f), c.WithAlpha(0.1f));
             Ui.Fill(new Rect(r.x - 2f, r.yMax - 5f, r.width + 4f, 7f), c.WithAlpha(0.1f));
-            Ui.Fill(new Rect(r.x, r.y, r.width, 3f), c);
-            Ui.Fill(new Rect(r.x, r.yMax - 3f, r.width, 3f), c);
-            Ui.Fill(new Rect(r.x, r.y, 3f, r.height), c);
-            Ui.Fill(new Rect(r.xMax - 3f, r.y, 3f, r.height), c);
+            CrtKit.Frame(r, 3f, c);
         }
 
         /// How your lobby party card looks to others: your figure, name, title and badge in your frame. The role and class

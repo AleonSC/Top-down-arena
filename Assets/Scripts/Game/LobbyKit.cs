@@ -315,6 +315,7 @@ namespace Arena
         /// Returns true on a click.
         public static bool FolderTab(Rect r, string text, bool on, Texture2D icon = null, Color? iconTint = null)
         {
+            r = CrtKit.Snap(r);  // (its 1 px rims on whole pixels at any UI scale)
             bool hover = r.Contains(Event.current.mousePosition);
             if (Event.current.type == EventType.Repaint)
             {
@@ -415,6 +416,7 @@ namespace Arena
         /// mouse; the open one is a small lit pill (30% ink, a 1 px outline at 75%, white text). True on a click. Text shrinks to fit.
         public static bool QuietTab(Rect r, string text, bool on, bool enabled = true)
         {
+            r = CrtKit.Snap(r);  // (its 1 px outline on whole pixels at any UI scale)
             bool hover = enabled && GUI.enabled && r.Contains(Event.current.mousePosition);
             var ink = CrtStyle.Ink;
             if (on)
