@@ -799,6 +799,11 @@ namespace Arena
                     TickArmorDrop(z, dt);  // the landing, the vests (ArmorDrop.cs)
                     continue;
                 }
+                if (z.Kind == ZoneKind.BloodSapling)
+                {
+                    TickSapling(z, dt);  // the slow, the siphon, the bulb (BloodGarden.cs)
+                    continue;
+                }
                 if (z.Kind == ZoneKind.SupplyDrop)
                 {
                     TickSupplyDrop(z, dt);  // the landing, the buff, the health packs (SupplyDrop.cs)
