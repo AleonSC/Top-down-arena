@@ -1216,6 +1216,7 @@ static partial class Shot {
     BloodBoilScene();  // BOIL=<s since the cast> [BOILHP=<0-1>] [BOILEND=1] (ShotBloodBoil.cs)
     RodentMinigunScene();  // RODENT=<s since the cast> [RODENTAIM=<deg>] (ShotRodentMinigun.cs)
     MammothFallScene();  // MAMMOTH=<s since the cast> (ShotMammothFall.cs)
+    BroodQueenScene();  // BROOD=<s since the cast> (ShotBroodQueen.cs)
     RocketDropScene();  // ROCKETDROP=<s since the cast> [ROCKETCAP=1]: the DPS Soldier's Rocket Drop (ShotRocketDrop.cs)
     DragonFangScene();  // FANG=<bites> [FANGAFTER=<s>]: the DPS Ninja's Dragon Fang Kunai (ShotDragonFang.cs)
     HazardFoamScene();  // FOAM=<s since the cast> [FOAMCAP=1] [FOAMFIZZ=1]: the Healer Soldier's Hazard Foam (ShotHazardFoam.cs)

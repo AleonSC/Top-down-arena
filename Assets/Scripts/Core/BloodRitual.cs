@@ -269,7 +269,7 @@ namespace Arena
             if (e.ImpTauntT <= 0f || e.Def.IsBoss)
                 return tpos;
             Minion m;
-            return Minions.TryGetValue(e.ImpTauntId, out m) && m.Kind == MinionKind.BloodImp ? m.Pos : tpos;
+            return Minions.TryGetValue(e.ImpTauntId, out m) && (m.Kind == MinionKind.BloodImp || m.Kind == MinionKind.BroodQueen) ? m.Pos : tpos;  // (a Brood Queen taunts the same way: BroodQueen.cs)
         }
     }
 }
