@@ -1,6 +1,6 @@
 # Wildcard (4th role): design
 
-Status: **built** (Nov 2026, protocol 186; the class wheel and any class's DPS ultimate: protocol 246, `Docs/Mockups/wildcard-gear-carousel.html`). Final choices: Wildcard ability starts on the 2nd ability key (the lobby key picker was removed; move it in the Tab menu), same 5 slots; Hemomancer abilities keep their health cost; Wildcard is locked out of the lobby and Practice Range until unlocked; bots only get it by hand. The lobby already has a locked 4th role slot (`RoleSlots = 4`, `LobbyUi.cs`);
+Status: **built** (Nov 2026, protocol 186; any class's DPS ultimate: protocol 246; the lobby's Gear cards and pick window, `Game/WildcardGearUi.cs`, replaced the class wheel in Nov 2026). Final choices: Wildcard ability starts on the 2nd ability key (the lobby key picker was removed; move it in the Tab menu), same 5 slots; Hemomancer abilities keep their health cost; Wildcard is locked out of the lobby and Practice Range until unlocked; bots only get it by hand. The lobby already has a locked 4th role slot (`RoleSlots = 4`, `LobbyUi.cs`);
 `History.md` notes a Wildcard "pick any class's weapon/ability" was discussed for it.
 
 ## Decisions (owner, Nov 2026)

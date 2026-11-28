@@ -36,8 +36,8 @@ Ninja, Hemomancer), then one of that combination's three weapons (four for the S
 unique to their role and class. The **Ultimate** row under them shows the combination's ultimates: key 0 is its default
 ultimate and key 1 its second where it has one (so far the Tank Soldier: Juggernaut Suit, and on key 2 A Literal Tank and key 3 Armor Drop, the Tank Elementalist: Lightning Rod, with Stone Colossus on key 2 and Vortex on key 3, the Tank Summoner: Bone Phalanx, and on key 2 **Iron Armadillo** and key 3 **Tidal Tusker**, the Tank Ninja: Dragon's Dogma, with Spirit Avatar on key 2 and **Five Shadow Gong** on key 3, the Tank Hemomancer: **Bloodbath**, and on key 2 **Blood Golem** and key 3 **Sacrificial Ritual**, the Tank Knight: **Trojan Horse**, and on key 2 **Drawbridge** and key 3 **Aegis Standard**, the Healer Knight: **Pilgrim's Standard**, and on key 2 **Holy Lance Rain** and key 3 **Chalice of Life**, the DPS Soldier: Attack Helicopter, and on key 2 Orbital Laser and key 3 **Rocket Drop**, the DPS Elementalist: **Living Bolt**, and on key 2 **Flash Fire**, and on key 3 **Rock Gloves**, the Healer Soldier: Field Hospital, and on key 2 Supply Drop, and on key 3 Hazard Foam, and the DPS Knight: **Ballista**, and on key 2 **War Standard**, and key 3 **Excalibur**, and the DPS Ninja: **Forbidden Path**, and on key 2 **Hundred Paper Cranes** and key 3 **Oni Mask**, and the Healer Ninja: **Astral Projection** and, on key 2, **Pressure Point Press**, and on key 3 **Shadow Clone Medics**, and the Healer Elementalist: **Static Bubble** and, on key 2, **Eye of Calm**, and on key 3 **Conduit Web**, and the Healer Summoner: **Honey Raid**, and on key 2 **Tortoise Oracle** and key 3 **Sleepy Cat**, the DPS Hemomancer: **Blood Ravager**, and on key 2 **Blood Boil** and key 3 **Blood Ritual**, and the Healer Hemomancer: **Heartbeat**, and on key 2 **Heart of the Swarm** and key 3 **Blood Garden**); the
 other keys are locked. Click a key to pick it (inverse video, like the weapon and ability keys): the detail box and the
-preview show it. The pick goes back to the default when you change role or class; bots use the default, a Wildcard's
-row lists its class wheel's class, and a saved run's seats keep theirs.
+preview show it. The pick goes back to the default when you change role or class; bots use the default, a Wildcard
+picks its ultimate on its Gear cards, and a saved run's seats keep theirs.
 
 The **Class**, **Weapon**, **Ability** and **Ultimate** rows show four keys each, all the same size. The **Class** row slides
 sideways: click the arrow keys at its ends or roll the mouse wheel over it. It stops at its first and last class, where the
@@ -67,10 +67,7 @@ no hover tips.
 **Wildcard** (a fourth role, locked until you have won a run as a Tank, a Healer and a DPS; a co-op win counts): it
 has no class. You pick any class's DPS weapon, any DPS 1st ability, a Wildcard ability (any DPS ability)
 that starts on the 2nd ability key (movable in the Tab menu like any 2nd–4th ability), and any class's DPS ultimate.
-The lobby's Gear box has a class wheel (arrows, the mouse wheel or the dots turn it) with that class's DPS weapons (four for every class that has a fourth: Double Barrel, Stonespear, Honeybee Staff, Arc Knuckles, Nunchaku, Embolus Spears) and
-three abilities beside it, and the Ultimate row lists its ultimates. Under the wheel, the loadout shows each pick with its
-class's icon (click one to turn the wheel to it); the 1st and 2nd chips choose which slot an ability click fills (the
-other slot's ability swaps over), and the preview casts whichever you clicked last. 125 health, no role passive (no taunt, no aura). The price: 10% less damage
+The lobby's Gear box shows four cards: Weapon, 1st ability, 2nd ability and Ultimate, each with its pick, its class's icon and its key. Click a card to open its pick window over the loadout: one column of class labels, one class open at a time (it opens on the class you already use; click another label to open that one instead). Hover an option to watch it in the preview and read it in the window's info box; click it to pick it and close the window (Esc or X closes it too). An ability already on the other key is tagged with its number, and picking it swaps the two. 125 health, no role passive (no taunt, no aura). The price: 10% less damage
 and 25% slower ability cooldowns (ultimate included). Class passives don't come with borrowed gear (a Hemomancer ability
 costs its health but there is no Blood Price bonus); a weapon's own cards still appear, and borrowed abilities earn
 mastery as usual. It can't be picked in the lobby while locked. Bots keep their normal roles
@@ -267,7 +264,8 @@ The **DPS** Arcanist:
 
 - **Dancing Blades** (weapon): three enchanted swords hover behind you. Fire launches the one most in front at your cursor
   (up to 380 px; it homes onto the enemy nearest the cursor, within 70 px): it cuts what it passes (5), then dances on the
-  spot for 1 s, slashing everything within 42 px four times (10 each), and flies back. **Alt** calls every blade home at
+  spot for 1 s, slashing everything within 42 px four times (10 each; it dashes back and forth through the enemy in a star
+  of crossing cuts, one through the middle on each slash), and flies back. **Alt** calls every blade home at
   once, cutting on the way. Each extra projectile: +1 blade.
 - **Telekinetic Crush** (1st ability, a toggle on a **force meter**, no cooldown): press to open a 70 px grip at your cursor.
   It follows the cursor on a springy lag (up to 420 px from you) and lifts the regular enemies it touches, up to 6: they're
@@ -2582,6 +2580,7 @@ everyone the run's numbers about once a second, and again the moment the game pa
 Press **Esc** in a run to open the pause menu. Pausing **freezes the run for everyone** (your friend
 sees who paused) and either player can resume. The pause menu, **Settings**, **Profile** and **How to play**
 share one look, the **lobby loadout's box** (`Docs/Mockups/pause-settings-loadout-box.html`): a navy panel with a thin blue rim and bracket corners that slides out from the left (24 px in from the left, top and bottom) and stops 36 px short of the box beside it, the same gap the lobby's loadout box has to the screen's right edge; that is the standard placement for every drawer menu, and the window it opens takes the loadout box's place. The title ("PAUSED_", "SETTINGS_", "MENU_") and its sub-line sit straight on it over a thin rule, with the soft option keys below (a faint tint, brighter under the mouse, outlined when selected). The whole screen darkens softly toward its edges while one of these menus is up.
+In a run the **pause menu's box sits in the middle** of the screen, shorter (540 px), over the dimmed arena; when Settings or How to play opens a window beside it, it glides to the left edge (0.25 s) and back when you return to the list. The lobby's Esc menu stays at the left edge. Behind the pause menu the arena darkens over 1.5 s under a faint, moving static (Reduced effects: just the darkening); every menu box has a dark navy shade over its glass.
 What an option opens appears as a second loadout box to the right (the pause menu's run summary sits there until you pick something): it powers on in place
 the first time you pick something (the soft sweep below); picking another option while it is open only rewrites its text. A label that swaps to another (the list switching between the menu and Settings, a window's text) is overwritten in place: a cursor sweeps left to right with a few flickering scrambled glyphs at it, the new text behind and the old ahead (0.42 s); text that only appears or goes still types or backspaces. Esc
 (or the window's X key) slides it back in; Esc again goes back. Window controls are digital: ON/OFF keys, segment keys,

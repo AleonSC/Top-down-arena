@@ -73,6 +73,33 @@ static partial class Program
         Check(blades.Count(b => b.Sent) == 1, "a click launches one blade");
         step(0.8f);
         Check(target.Hp < hp0 - 2f * me.Weapon.Damage && blades.Any(b => b.Sent && b.Wind >= 1f), "it reaches the enemy and dances on it, slashing (" + (hp0 - target.Hp) + " damage)");
+
+        // The dance's look, Crossing Cuts (Game.BladeDanceAt): through the middle on each slash tick, a turn on each time, inside the
+        // slash circle, with no jumps.
+        {
+            V2 at = new V2(300f, 200f);
+            const float dIn = 0.7f;
+            bool mids = true, inside = true, smooth = true;
+            float h, hPrev, maxStep = 0f, maxTurn = 0f;
+            V2 prev = Game.BladeDanceAt(at, dIn, 0f, out hPrev);
+            for (int k = 0; k <= 4; k++)
+            {
+                V2 p = Game.BladeDanceAt(at, dIn, k / 4f, out h);
+                mids &= p.DistanceTo(at) < 0.01f && Math.Abs(MathX.WrapPi(h - (dIn + k * Game.BladeCutTurn))) < 0.01f;
+            }
+            for (int i = 1; i <= 240; i++)
+            {
+                V2 p = Game.BladeDanceAt(at, dIn, i / 240f, out h);
+                inside &= p.DistanceTo(at) <= Game.BladeSlashR + 0.5f;
+                maxStep = Math.Max(maxStep, p.DistanceTo(prev));
+                maxTurn = Math.Max(maxTurn, Math.Abs(MathX.WrapPi(h - hPrev)));
+                prev = p;
+                hPrev = h;
+            }
+            smooth = maxStep < 6f && maxTurn < 0.6f;
+            Check(mids && inside && smooth, "Crossing Cuts: through the middle on each tick, each cut a turn on, within the slash circle, no jumps (step "
+                + maxStep.ToString("0.0") + " px, turn " + maxTurn.ToString("0.00") + " rad at 240 fps)");
+        }
         hostDash.Invoke(g, new object[] { 1, 54, aim });
         Check(blades.Where(b => b.Sent).All(b => b.Returning), "Alt calls the blades home");
         step(1f);

@@ -29,7 +29,6 @@ namespace Arena
         int weaponChoice, abilityChoice;
         int ultChoice;  // the key picked on the lobby's Ultimate row (LobbyEntry.Ult; 0 the default ultimate)
         int wildSecond = 1;  // a Wildcard ability (0-17), on the 2nd ability key; see Defs.MakeWild
-        int wildTab;                      // the lobby's Wildcard picker: 0 edits the 1st ability, 1 the second
         Kit kitChoice = Kit.Soldier;
         bool pauseMenuOpen, settingsOpen, wasPaused;
         bool tabPaused;  // solo: holding Tab paused the run (released, it resumes)

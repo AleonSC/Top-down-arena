@@ -262,8 +262,7 @@ namespace Arena
                 if (prey != null)
                     m.Goal = prey.Pos;
                 m.Pos += (m.Goal - m.Pos).LimitLength(BladeOut * dt);
-                m.Wind = 1f;
-                m.Aim += 14f * dt;
+                m.Wind = 1f;  // (its Aim stays the way it came in: the look's Crossing Cuts turn from it, BladeDanceAt)
                 m.Cd -= dt;
                 if (Math.Floor((m.Cd + dt) / BladeSlashEvery) != Math.Floor(m.Cd / BladeSlashEvery) || m.Cd <= 0f)
                     BladeSlash(m, owner, dmg);
@@ -327,9 +326,44 @@ namespace Arena
             }
             if (any)
                 owner.Run.ShotsHit++;
-            float a = m.Aim;
-            BroadcastFx(FxKind.Slash, m.Pos, m.Pos + V2.FromAngle(a) * BladeSlashR, m.Def.Color, 1.1f, 0.18f, any ? Sfx.SwingLight : Sfx.None);
+            BroadcastFx(FxKind.Spark, m.Pos, m.Def.Color, BladeSlashR * 0.5f, 0.18f, any ? Sfx.SwingLight : Sfx.None);  // the cut itself is the look's
         }
+
+        /// The Dancing Blades' dance, Crossing Cuts (drawn by ArcanistLook.cs DrawArcBlade; the host only times the slashes): where a
+        /// blade is `u` (0..1) into its dance round `at`, having come in heading `d0`, and which way it points. Five curved cuts through
+        /// the middle, each turned BladeCutTurn from the last: the arrival's at u = 0, then one on each slash tick (u = 0.25 ... 1). Each
+        /// ends on the rim (BladeSlashR), where the blade flips round for the next; through the middle it goes about as fast as it flew in.
+        public static V2 BladeDanceAt(V2 at, float d0, float u, out float heading)
+        {
+            float w = u * 4f;
+            int k = (int)Math.Floor(w + 0.5f);
+            float s = w - k + 0.5f;  // 0..1 along cut k, its middle on the tick
+            V2 pos = BladeCut(at, d0, k, BladeEase(s), out heading);
+            const float flip = 0.18f;  // the flip at each end of a cut, as a share of it on either side
+            if (s < flip || s > 1f - flip)
+            {
+                int j = s < flip ? k : k + 1;  // the cut it flips into
+                float x = s < flip ? 0.5f + s / (2f * flip) : (s - (1f - flip)) / (2f * flip), hOut, hIn;
+                BladeCut(at, d0, j - 1, 1f, out hOut);
+                BladeCut(at, d0, j, 0f, out hIn);
+                heading = hOut + MathX.WrapPi(hIn - hOut) * x * x * (3f - 2f * x);
+            }
+            return pos;
+        }
+
+        public const float BladeCutTurn = MathX.Pi - 0.55f;  // ~148°: four cuts draw a star
+
+        /// Cut k of the dance at `e` (0..1) along it: a curve from the rim through `at` to the rim a turn on, heading d0 + k * BladeCutTurn in the middle.
+        static V2 BladeCut(V2 at, float d0, int k, float e, out float heading)
+        {
+            float a0 = d0 - MathX.Pi / 2f - BladeCutTurn / 2f + k * BladeCutTurn;
+            V2 s = at + V2.FromAngle(a0) * BladeSlashR, end = at + V2.FromAngle(a0 + BladeCutTurn) * BladeSlashR;
+            V2 c = at * 2f - (s + end) * 0.5f;  // so the middle of the curve is `at`
+            heading = ((c - s) * (2f * (1f - e)) + (end - c) * (2f * e)).Angle;
+            return s * ((1f - e) * (1f - e)) + c * (2f * e * (1f - e)) + end * (e * e);
+        }
+
+        static float BladeEase(float s) => s < 0.5f ? 4f * s * s * s : 1f - (float)Math.Pow(2f - 2f * s, 3) / 2f;
 
         // --- Alt: Shard Guard and the blades' recall (Msg.WeaponDash) ------------------------
 
