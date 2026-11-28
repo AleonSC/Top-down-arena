@@ -436,6 +436,19 @@ static partial class Shot {
         en.SpawnT = 0f; en.Spawning = false; en.Pos = en.Disp = at; en.Facing = (me.Pos - at).Angle + (float)(crng.NextDouble() - 0.5);
       }
     }
+    if (Environment.GetEnvironmentVariable("MAPFOES") != null) {
+      // MAPFOES=<n>: n enemies scattered over the map round you, for the minimap's sweep reveal (MapStyleLook.cs SweepReveal);
+      // with UTIME=<s> to set where the sweep is, e.g. GRIDCORE=1 EXPANDMAP=6 ZOOM=1 MAPFOES=40 UTIME=100.5 shot.sh x hud 8 3 3.
+      var gm = host.Game; gm.Bot = false; gm.Enemies.Clear();
+      int fn = int.Parse(Environment.GetEnvironmentVariable("MAPFOES"));
+      var spawn = typeof(Game).GetMethod("SpawnEnemyAt", BindingFlags.NonPublic | BindingFlags.Instance);
+      var frng = new System.Random(5);
+      for (int i = 0; i < fn; i++) {
+        var at = me.Pos + new V2((float)(frng.NextDouble() * 2 - 1) * 1300f, (float)(frng.NextDouble() * 2 - 1) * 700f);
+        var en = (Enemy)spawn.Invoke(gm, new object[] { i % 13 == 0 ? EnemyType.Thug : EnemyType.Rioter, at, 0f, 0, false });
+        en.SpawnT = 0f; en.Spawning = false; en.Pos = en.Disp = at;
+      }
+    }
     if (Environment.GetEnvironmentVariable("TURNKEY") != null) {
       // TURNKEY=1: the Turnkey (Turnkey.cs, TurnkeyLook.cs) running, planting and building (its Cell Doors in the wall: TKDOORS=1,
       // ShotCellDoor.cs); Floor Mines arming, armed and beeping; Shackle Traps open and snapped; a Mop Slick. NINJA=0 ZOOM=2.2.

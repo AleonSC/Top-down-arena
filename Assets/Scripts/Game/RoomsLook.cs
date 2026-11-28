@@ -442,9 +442,19 @@ namespace Arena
                 if (e.Hp <= 0f || game.FogHides(e.Pos))
                     continue;
                 V2 c = M(e.Disp);
-                if (MapStyle != 0) StyledEnemyHalo(c, e.Def.Mini || e.Def.IsBoss);
-                if (e.Def.Mini || e.Def.IsBoss) { MapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.62f, 0.3f)); continue; }
-                MapRect(c.X - 1f, c.Y - 1f, 2f, 2f, new Rgba(1f, 0.32f, 0.36f, 0.85f));
+                bool big = e.Def.Mini || e.Def.IsBoss;
+                float ping = 0f, sa = e.Def.IsBoss ? 1f : SweepReveal(c.X, ox, mw, out ping);  // Holo: the sweep reveals them, then they fade (bosses always show)
+                if (sa <= 0f)
+                    continue;
+                if (ping > 0f)  // just swept: a bright flash and a ring opening out
+                {
+                    float pr = (big ? 5f : 3f) + 5f * (1f - ping);
+                    MapFrame(c.X - pr, c.Y - pr, 2f * pr, 2f * pr, 1f, new Rgba(1f, 0.55f, 0.55f, 0.7f * ping));
+                    MapRect(c.X - 2f, c.Y - 2f, 4f, 4f, new Rgba(1f, 0.85f, 0.85f, ping));
+                }
+                if (MapStyle != 0) StyledEnemyHalo(c, big, sa);
+                if (big) { MapRect(c.X - 3f, c.Y - 3f, 6f, 6f, new Rgba(1f, 0.62f, 0.3f, sa)); continue; }
+                MapRect(c.X - 1f, c.Y - 1f, 2f, 2f, new Rgba(1f, 0.32f, 0.36f, 0.85f * sa));
             }
             foreach (var ch in game.Props.Values)  // unopened treasure chests: a square in the kind's ink
             {
