@@ -30,21 +30,61 @@ namespace Arena
             }
         }
 
-        public static Color Ink => ink;                                                       // the phosphor: text, outlines, lit keys
-        public static Color Dim => Color.Lerp(Ink, new Color(0.05f, 0.08f, 0.14f), 0.38f);   // dim text, locked keys, off switches
-        public static Color Bg => hue < 0f ? new Color(0.012f, 0.03f, 0.085f) : Tinted(0.045f, 0.12f);  // the screen
-        public static Color Bezel => hue < 0f ? new Color(0.05f, 0.07f, 0.14f) : Tinted(0.1f, 0.2f);    // the rim round a screen (CrtUi.Begin)
+        // A grey screen (the Game Mode screen, the lobby): while Accent is set, the screen, its bezel and its boxes are grey and the
+        // phosphor (Ink, T: text, keys, lines, corners) is that one colour (the mode's, the role's) instead of the CRT colour setting,
+        // so the player's own colour never reaches it. Set it round the screen's drawing and clear it after (null).
+        static Color? accent;
+        static float accentHue;
 
-        /// A colour drawn for the blue theme, moved to the chosen phosphor: same brightness, saturation and alpha, the picked hue.
+        /// The grey screen's one colour, or null for the CRT colour setting (see above).
+        public static Color? Accent
+        {
+            get => accent;
+            set
+            {
+                accent = value;
+                if (value is Color c)
+                    Color.RGBToHSV(c, out accentHue, out _, out _);
+            }
+        }
+
+        /// True while a grey screen is drawn (Accent set).
+        public static bool Greyed => accent != null;
+
+        public static Color Ink => accent ?? ink;                                             // the phosphor: text, outlines, lit keys
+        public static Color Dim => accent != null ? Color.Lerp(Ink, new Color(0.09f, 0.09f, 0.1f), 0.42f)
+            : Color.Lerp(Ink, new Color(0.05f, 0.08f, 0.14f), 0.38f);                        // dim text, locked keys, off switches
+        public static Color Bg => accent != null ? new Color(0.03f, 0.031f, 0.034f)
+            : hue < 0f ? new Color(0.012f, 0.03f, 0.085f) : Tinted(0.045f, 0.12f);           // the screen
+        public static Color Bezel => accent != null ? new Color(0.085f, 0.088f, 0.095f)
+            : hue < 0f ? new Color(0.05f, 0.07f, 0.14f) : Tinted(0.1f, 0.2f);                // the rim round a screen (CrtUi.Begin)
+
+        /// A colour drawn for the blue theme, moved to the chosen phosphor (or a grey screen's accent): same brightness, saturation and
+        /// alpha, the picked hue.
         public static Color T(Color c)
         {
-            if (hue < 0f)
+            float h = accent != null ? accentHue : hue;
+            if (h < 0f)
                 return c;
             Color.RGBToHSV(c, out _, out float s, out float v);
-            var o = Color.HSVToRGB(hue, s, v);
+            var o = Color.HSVToRGB(h, s, v);
             o.a = c.a;
             return o;
         }
+
+        /// A dark surface drawn for the blue theme: grey on a grey screen (same brightness), else moved like T.
+        public static Color Surface(Color c) => accent != null ? Grey(c) : T(c);
+
+        /// The colour as a neutral grey of the same brightness (alpha kept).
+        public static Color Grey(Color c)
+        {
+            float v = c.r * 0.3f + c.g * 0.59f + c.b * 0.11f;
+            v = Mathf.Max(v, Mathf.Max(c.r, Mathf.Max(c.g, c.b)) * 0.55f);  // a dark navy keeps about its depth, not just its luminance
+            return new Color(v, v * 1.02f, v * 1.08f, c.a);
+        }
+
+        /// On a grey screen: the colour drawn for the blue theme, moved to the accent (a fixed text colour such as Body or Head).
+        static Color OnScreen(Color c) => accent != null ? T(c) : c;
 
         /// A very dark screen with a breath of the phosphor colour in it.
         static Color Tinted(float darkness, float tint)
@@ -55,21 +95,23 @@ namespace Arena
 
         public static readonly Color Danger = new Color(0.78f, 0.3f, 0.34f);  // Quit, delete, leave (the one danger red; was also CrtStyle.Danger)
         public static readonly Color HudDanger = new Color(1f, 0.3f, 0.3f);  // the HUD's brighter red over the arena: downed players, low health, warning tags
-        public static readonly Color Body = new Color(0.76f, 0.80f, 0.91f);  // body text on a screen (the lobby)
-        public static readonly Color Desc = new Color(0.55f, 0.7f, 0.97f);   // small descriptions on a screen (the drawer menus)
-        public static readonly Color Head = new Color(0.35f, 0.85f, 0.91f);  // section headings (the mockup's teal)
+        public static Color Body => OnScreen(new Color(0.76f, 0.80f, 0.91f));  // body text on a screen (the lobby)
+        public static Color Desc => OnScreen(new Color(0.55f, 0.7f, 0.97f));   // small descriptions on a screen (the drawer menus)
+        public static Color Head => OnScreen(new Color(0.35f, 0.85f, 0.91f));  // section headings (the mockup's teal)
         public static readonly Color Gold = new Color(1f, 0.8f, 0.35f);       // number tiles, highlights, coins (the one gold; was also CrtStyle.Gold)
         public static readonly Color Steel = new Color(0.62f, 0.85f, 1f);     // the Tank's Ironhide shield on the HUD (Ironhide.cs; IronhideLook.cs draws the same in the world)
         public const float TextGlow = 0.16f;  // CrtUi.Text: the four faint copies round glowing text
 
         // The big boxes and the screen round them (the lobby, and the drawer menus that sit on its loadout box)
-        public static readonly Color Corner = new Color(0.36f, 0.6f, 1f);           // the bracket corners (LobbyKit.Corners)
-        public static readonly Color BoxWash = new Color(0.36f, 0.64f, 1f);         // the colour of its gradient wash (LobbyKit.Wash)
-        public static readonly Color BoxRim = new Color(0.19f, 0.32f, 0.55f);       // its thin rim
-        public static readonly Color ScreenGlow = new Color(0.05f, 0.13f, 0.32f);   // the glow in the middle of the lobby's screen (alpha 0.38)
-        public static readonly Color GlassSurround = new Color(0.02f, 0.03f, 0.07f), GlassBand = new Color(0.055f, 0.085f, 0.17f),
-            GlassLine = new Color(0.17f, 0.27f, 0.50f);                              // the lobby's rounded glass frame: outside, the navy band, the blue line
-        public static readonly Color ScreenFrame = new Color(0.15f, 0.21f, 0.37f);  // the thin line round the whole lobby screen
+        // (On a grey screen the boxes, glass and frame are grey: these pass through T, which keeps a grey grey.)
+        public static readonly Color Corner = new Color(0.36f, 0.6f, 1f);           // the bracket corners (LobbyKit.Corners; a grey screen's accent)
+        public static Color BoxWash => accent != null ? new Color(0.5f, 0.52f, 0.56f) : new Color(0.36f, 0.64f, 1f);  // the colour of its gradient wash (LobbyKit.Wash)
+        public static Color BoxRim => accent != null ? new Color(0.24f, 0.25f, 0.27f) : new Color(0.19f, 0.32f, 0.55f);  // its thin rim
+        public static Color ScreenGlow => accent != null ? new Color(0.1f, 0.1f, 0.11f) : new Color(0.05f, 0.13f, 0.32f);  // the glow in the middle of the lobby's screen (alpha 0.38)
+        public static Color GlassSurround => accent != null ? new Color(0.03f, 0.03f, 0.033f) : new Color(0.02f, 0.03f, 0.07f);
+        public static Color GlassBand => accent != null ? new Color(0.085f, 0.087f, 0.093f) : new Color(0.055f, 0.085f, 0.17f);
+        public static Color GlassLine => accent != null ? new Color(0.27f, 0.28f, 0.3f) : new Color(0.17f, 0.27f, 0.50f);  // the lobby's rounded glass frame: outside, the navy band, the blue line
+        public static Color ScreenFrame => accent != null ? new Color(0.2f, 0.21f, 0.22f) : new Color(0.15f, 0.21f, 0.37f);  // the thin line round the whole lobby screen
 
         // --- Soft keys (CrtKit.SoftBox / SoftText: CrtKit.Key, LobbyKit.Key, WinKey, DrawerRow, and the lobby's own boxes) --------
 

@@ -25,6 +25,22 @@ namespace Arena
         /// True while the lobby shows the mode screen.
         bool OnModeScreen => session.Resume == null && IsModeTab(lobbyTab);
 
+        /// The lobby's grey screen colour (CrtStyle.Accent): on the Game Mode screen the mode's, so the screen is grey with the mode's
+        /// colour on its header, keys, text, lines and corners, and the CRT colour setting never reaches it; null elsewhere (the CRT colour).
+        Color? LobbyAccent()
+        {
+            if (session == null || !OnModeScreen)
+                return null;
+            switch (session.Mode)
+            {
+                case GameMode.Quick: return QuickColor;  // each page's own colour (QuickPlayUi.cs, CampaignUi.cs, ...)
+                case GameMode.Hunt: return HuntColor;
+                case GameMode.Survival: return SurvivalColor;
+                case GameMode.Training: return TrainColor;
+                default: return CampaignColor;
+            }
+        }
+
         /// The lobby's mode card (left column, where the carousel was): the mode's name in its colour, its line, and CHANGE (the host)
         /// or VIEW (a guest), which opens the mode screen.
         void DrawModeCard(Rect r, float t)
@@ -51,14 +67,27 @@ namespace Arena
 
         /// GAME MODE, where the lobby's title sits (the menu's entrance flies VECTOR SECTOR: ARENA into it, LobbyEnter.cs). `a` fades it.
         void DrawModeScreenTitle(Rect r, float a) =>
-            LobbyKit.Spaced(new Rect(r.x, r.y, 300f, r.height), "GAME MODE", 16, new Color(0.56f, 0.71f, 1f, a), TextAnchor.MiddleLeft, 4.8f);
+            LobbyKit.Spaced(new Rect(r.x, r.y, 300f, r.height), "GAME MODE", 16, (CrtStyle.Accent ?? new Color(0.56f, 0.71f, 1f)).WithAlpha(a), TextAnchor.MiddleLeft, 4.8f);
 
         /// The mode screen itself (drawn by DrawLobbyContent in place of the lobby).
         void DrawModeScreen(float t)
         {
             bool calm = fxReduced;
             int m = (int)session.Mode;
-            Color acc = ModeAccent(m) ?? CrtStyle.Ink;
+            Color acc = CrtStyle.Accent ?? ModeAccent(m) ?? CrtStyle.Ink;
+            // The header's splash of the mode's colour: a soft glow from the top and a faint rule under it.
+            if (Event.current.type == EventType.Repaint)
+            {
+                Ui.RadialGlow(new Rect(W * 0.5f - 600f, -130f, 1200f, 260f), acc.WithAlpha(0.38f));
+                Ui.RadialGlow(new Rect(-200f, -60f, 520f, 150f), acc.WithAlpha(0.14f));
+                Ui.RadialGlow(new Rect(W - 320f, -60f, 520f, 150f), acc.WithAlpha(0.14f));
+                float ry = ModePageTop - 12f;
+                for (int i = 0; i < 12; i++)  // the rule fades out toward both ends
+                {
+                    float k = 1f - Mathf.Abs(i - 5.5f) / 6f;
+                    Ui.Fill(new Rect(PartyX + (W - 2f * PartyX) * i / 12f, ry, (W - 2f * PartyX) / 12f + 1f, 1f), acc.WithAlpha(0.35f * k));
+                }
+            }
             // Header: Back (to the lobby, never out of it), the title, the carousel in the middle.
             var back = new Rect(PartyX, LobbyHeadY, LobbyHeadKey, LobbyHeadKey);
             LobbyGlowBox(back);

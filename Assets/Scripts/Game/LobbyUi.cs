@@ -35,12 +35,21 @@ namespace Arena
             GUI.BeginGroup(new Rect(0f, -LobbyLift, W, H));
             var oldShift = uiShift;
             uiShift = new V2(oldShift.X, oldShift.Y - LobbyLift);  // its live models (GL) move with it
-            if (ModeBlinking)
-                DrawModeBlink();  // just left the Game Mode screen: the CRT blink (ModeBlink.cs)
-            else
-                DrawLobbyContent();
-            uiShift = oldShift;
-            GUI.EndGroup();
+            var oldAccent = CrtStyle.Accent;
+            CrtStyle.Accent = LobbyAccent();  // a grey screen in one colour (ModeScreenUi.cs)
+            try
+            {
+                if (ModeBlinking)
+                    DrawModeBlink();  // just left the Game Mode screen: the CRT blink (ModeBlink.cs)
+                else
+                    DrawLobbyContent();
+            }
+            finally
+            {
+                CrtStyle.Accent = oldAccent;
+                uiShift = oldShift;
+                GUI.EndGroup();
+            }
         }
 
         int lastLobbyMode = -1;  // the mode last drawn (a change opens that mode's tab)

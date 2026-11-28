@@ -223,7 +223,7 @@ namespace Arena
         {
             if (Event.current.type != EventType.Repaint)
                 return;
-            var c = CrtUi.T(CrtStyle.Corner);
+            var c = CrtStyle.Accent ?? CrtUi.T(CrtStyle.Corner);  // (a grey screen's corners wear its accent)
             float o = 4f, x0 = r.x - o, y0 = r.y - o, x1 = r.xMax + o, y1 = r.yMax + o;
             // A faint halo along each arm only (a halo round the whole corner square read as a bright spot).
             const float hs = 0.05f;
@@ -269,14 +269,17 @@ namespace Arena
         /// The mockup's `.grad #main` (Docs/Mockups/crt-lobby-softer.html), in strips that meet exactly: a dark diagonal wash running from about 20% of the
         /// role colour to near black (horizontal strips, with the slight lean to the right as a faint dark ramp), and over it a glow from the top left
         /// corner that is 32% of the role colour and fades out by 64% of the way (one soft radial texture).
-        public static void Wash(Rect r) => Wash(r, washCol);
+        public static void Wash(Rect r) => Wash(r, CrtStyle.Greyed ? CrtStyle.BoxWash : washCol);
+
+        /// The colour the lobby's keys and tabs wear: a grey screen's accent (CrtStyle.Accent), else the eased role colour.
+        public static Color RoleCol => CrtStyle.Accent ?? washCol;
 
         /// The same wash in a fixed colour (the cabinet menus' boxes: CrtKit.LoadoutBox).
         public static void Wash(Rect r, Color rc)
         {
             if (Event.current.type != EventType.Repaint)
                 return;
-            Color d0 = CrtUi.T(new Color(0.031f, 0.063f, 0.157f)), d1 = CrtUi.T(new Color(0.0196f, 0.039f, 0.110f)), d2 = CrtUi.T(new Color(0.0157f, 0.031f, 0.082f));
+            Color d0 = CrtStyle.Surface(new Color(0.031f, 0.063f, 0.157f)), d1 = CrtStyle.Surface(new Color(0.0196f, 0.039f, 0.110f)), d2 = CrtStyle.Surface(new Color(0.0157f, 0.031f, 0.082f));
             Color c0 = Mix(rc, 0.11f, d0), c1 = Mix(rc, 0.03f, d1), c2 = d2;
             // 165 degrees: t runs down and a little to the right. Strips take t along the left edge; the ramp below darkens toward the right.
             const float sin = 0.2588f, cos = 0.9659f;
@@ -312,7 +315,8 @@ namespace Arena
             bool hover = r.Contains(Event.current.mousePosition);
             if (Event.current.type == EventType.Repaint)
             {
-                Color d0 = CrtUi.T(new Color(0.031f, 0.063f, 0.157f));
+                Color d0 = CrtStyle.Surface(new Color(0.031f, 0.063f, 0.157f));
+                var washCol = RoleCol;
                 Color fill = on ? Mix(washCol, 0.24f, d0) : Mix(washCol, hover ? 0.10f : 0.05f, d0);
                 Ui.Fill(r, fill);
                 Color rim = on ? washCol : washCol.WithAlpha(hover ? 0.55f : 0.32f);
@@ -346,7 +350,7 @@ namespace Arena
             if (wash)
             {
                 Wash(r);
-                CrtKit.Frame(r, 1f, washCol.WithAlpha(0.55f));
+                CrtKit.Frame(r, 1f, CrtStyle.Greyed ? CrtStyle.BoxRim : washCol.WithAlpha(0.55f));
             }
             else
             {
