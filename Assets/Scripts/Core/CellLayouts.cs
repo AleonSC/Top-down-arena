@@ -22,6 +22,16 @@ namespace Arena
     {
         public const int Cell = 600;
 
+        /// Does a wall (x, y, w, h, cell-local) reach into one of the cell's four doorways: the door's width (Rooms.DoorW, in the middle of a
+        /// side) a square deep? A wall beside a door ends flush with its edge, so the door's frame and the wall line up.
+        public static bool InDoorway(int[] w)
+        {
+            float d0 = (Cell - Rooms.DoorW) / 2f, d1 = (Cell + Rooms.DoorW) / 2f, deep = RoomTraps.Tile;
+            int x0 = w[0], y0 = w[1], x1 = w[0] + w[2], y1 = w[1] + w[3];
+            bool acrossX = x0 < d1 && x1 > d0, acrossY = y0 < d1 && y1 > d0;
+            return (acrossX && (y0 < deep || y1 > Cell - deep)) || (acrossY && (x0 < deep || x1 > Cell - deep));
+        }
+
         static int[] W(int x, int y, int w, int h) => new[] { x, y, w, h };
         static int[] P(int x, int y) => new[] { x, y };
         static int[] T(int x, int y, int wall) => new[] { x, y, wall };
@@ -89,7 +99,7 @@ namespace Arena
                 Traps = new[] { T(300, 130, 0), T(300, 470, 0), T(130, 300, 0), T(470, 300, 0) },
                 Loot = new[] { P(480, 135), P(135, 465) } },
             new CellLayout { Name = "Corner Closets",
-                Walls = new[] { W(200, 0, 50, 200), W(0, 200, 50, 50), W(150, 200, 100, 50), W(350, 400, 50, 200), W(350, 350, 100, 50), W(550, 350, 50, 50) },
+                Walls = new[] { W(150, 0, 50, 200), W(0, 150, 50, 50), W(400, 400, 50, 200), W(550, 400, 50, 50) },  // (each closet's wall flush with the door beside it, Rooms.DoorW)
                 Sleepers = new[] { P(124, 124), P(476, 476) },
                 Traps = new[] { T(300, 60, 1), T(300, 540, 1), T(200, 325, 0), T(400, 275, 0) },
                 Loot = new[] { P(500, 110), P(110, 500) } },
@@ -99,12 +109,12 @@ namespace Arena
                 Traps = new[] { T(300, 60, 1), T(300, 540, 1), T(90, 300, 0), T(510, 300, 0) },
                 Loot = new[] { P(500, 100), P(100, 500) } },
             new CellLayout { Name = "Barracks",
-                Walls = new[] { W(0, 200, 250, 50), W(350, 200, 250, 50) },
+                Walls = new[] { W(0, 150, 250, 50), W(350, 150, 250, 50) },  // (flush with the side doors, Rooms.DoorW)
                 Sleepers = new[] { P(130, 100), P(470, 100) },
                 Traps = new[] { T(60, 400, 1), T(540, 400, 1), T(300, 420, 0), T(200, 320, 0) },
                 Loot = new[] { P(500, 500), P(100, 500) } },
             new CellLayout { Name = "Corner Vaults",
-                Walls = new[] { W(200, 0, 50, 200), W(0, 200, 50, 50), W(150, 200, 100, 50), W(350, 0, 50, 200), W(350, 200, 100, 50), W(550, 200, 50, 50), W(200, 400, 50, 200), W(0, 350, 50, 50), W(150, 350, 100, 50), W(350, 400, 50, 200), W(350, 350, 100, 50), W(550, 350, 50, 50) },
+                Walls = new[] { W(150, 0, 50, 200), W(0, 150, 50, 50), W(400, 0, 50, 200), W(550, 150, 50, 50), W(150, 400, 50, 200), W(0, 400, 50, 50), W(400, 400, 50, 200), W(550, 400, 50, 50) },  // (each vault's wall flush with the door beside it, Rooms.DoorW)
                 Sleepers = new[] { P(124, 124), P(476, 476) },
                 Traps = new[] { T(300, 60, 1), T(300, 540, 1), T(150, 300, 0), T(450, 300, 0) },
                 Loot = new[] { P(476, 124), P(124, 476) } },
