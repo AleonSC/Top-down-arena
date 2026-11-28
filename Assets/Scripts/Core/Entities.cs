@@ -873,7 +873,7 @@ namespace Arena
         public float BotSummonT;     // host: a robot was just summoned: no attack for this long (or until Fire is let go)
         public float DraftCarry;     // host: Engineer: Draftsman's part-vectors not yet paid
         // The Arcanist (Arcanist.cs). Replicated (SyncArcanist): the enemy Kinetic Grasp holds (0: none), the Orbit Shards' guard
-        // (Alt held), Runic Array's time left. Host: how long the grasp has held.
+        // (Alt held), Runic Array's time left (its rift). Host: how long the grasp has held.
         public int KgHeld;
         public bool ShardGuard;
         public float ArrayT, KgT;
@@ -1509,7 +1509,8 @@ namespace Arena
         public bool Senbon, SbHome;  // host only: a Senbon Seekers needle (SteerSenbon, poisons on a hit), flying back into the ring
         public float SbAge;       // host only: how long the needle (or paper crane) has steered (it turns harder)
         public bool Crane;        // host only: a Hundred Paper Cranes crane homing on HomeOn (SteerCrane; HundredPaperCranes.cs)
-        public int HomeOn;        // host only: a Stonespear volley spear: the enemy it curves in on (SteerSpear; Pulled sends its course)
+        public int HomeOn;        // host only: a Stonespear volley spear's or Runic Array blade's enemy it curves in on (SteerSpear; Pulled sends its course)
+        public bool ArrayBlade;   // host only: a Runic Array blade curving in on HomeOn (SteerArrayBlade, Arcanist.cs)
     }
 
     /// A health pickup dropped by a dead enemy.

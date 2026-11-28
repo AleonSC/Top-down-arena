@@ -279,8 +279,9 @@ The **DPS** Arcanist:
   up); it takes 25% to open. Run it dry and the grip lets go on its own and burns out for 1.5 s. The grip is a violet ring
   with a turning gold halo of runes and the meter round it, a tether of motes back to your hand, flickering red under 25%;
   the meter also rings your feet, and the key shows it as a percent ("ON" while open). Mastered: the grip is 40% wider.
-- **Runic Array** (ultimate, 65 s): four gold sigils open behind you for 6 s. Every Fire also sends a spectral blade from each
-  at your cursor (16, through one enemy), even while your blades are out. Mastered: 9 s.
+- **Runic Array** (ultimate, 65 s): a rune rift tears open behind you for 6 s. After 0.45 s it pours spectral swords on its
+  own, 10 a second (8 damage each), each curving in on the next enemy within 130 px of your cursor (a gold ring marks them);
+  with none there they fly straight at the cursor. Mastered: 9 s.
 
 ### Weapons
 

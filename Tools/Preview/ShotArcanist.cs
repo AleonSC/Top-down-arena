@@ -7,8 +7,8 @@ using Arena;
 // the game's own paths.
 //   tank: Orbit Shards round you (one flung at a grunt), Kinetic Grasp holding a Brute, a Grand Sigil with enemy shots frozen on its rim.
 //   healer: the Glyph Stylus (rune bolts in flight through an ally), a Sanctum Sigil with four of its six runes left.
-//   dps: Dancing Blades (one dancing on a Brute, DANCE=<s> into its Crossing Cuts, default 0.4; one flying, one waiting), Runic Array open
-//     with spectral blades out, a Telekinetic Crush grip open (three grunts lifted, three caught shots, the meter at 62%).
+//   dps: Dancing Blades (one dancing on a Brute, DANCE=<s> into its Crossing Cuts, default 0.4; one flying, one waiting), Runic Array's rift open
+//     with blades curving in, a Telekinetic Crush grip open (three grunts lifted, three caught shots, the meter at 62%).
 static partial class Shot {
   static void ArcanistScene() {
     string mode = Environment.GetEnvironmentVariable("ARCANIST");
@@ -75,9 +75,12 @@ static partial class Shot {
       var fly = companion(MinionKind.ArcBlade, me.Pos + (brute.Pos - me.Pos) * 0.45f); fly.Sent = true; fly.Wind = 0.5f; fly.Aim = me.Aim;
       var wait = companion(MinionKind.ArcBlade, me.Pos + V2.FromAngle(me.Aim + MathX.Pi) * Game.BladeHover); wait.Aim = me.Aim;
       me.ArrayT = 4f;
-      for (int k = 0; k < 4; k++) {
-        V2 from = Game.ArraySigil(me.Pos, me.Aim, k), to = brute.Pos - from;
-        shot(Defs.SpectralBlade, from + to.Normalized() * 120f, to.Normalized() * 900f, me.Id);
+      me.AimAt = brute.Pos; ArenaApp.ArrayOpenPreview = 1f;
+      for (int k = 0; k < 4; k++) {  // rift blades curving in on the Brute
+        V2 from = Game.ArrayRift(me.Pos, me.Aim), to = brute.Pos - from;
+        V2 side = new V2(-to.Y, to.X).Normalized() * ((k % 2) * 2f - 1f) * (60f - k * 12f);
+        V2 at = from + to * (0.25f + k * 0.18f) + side, dir = (brute.Pos - at).Normalized() - side.Normalized() * 0.4f;
+        shot(Defs.SpectralBlade, at, dir.Normalized() * 700f, me.Id);
       }
       var crush = zone(ZoneKind.ArcCrush, new V2(545f, 335f), Game.CrushGripR, Game.CrushZoneLife, Game.CrushZoneLife);  // the grip, open
       crush.Aim = 3f;  // three caught shots orbiting inside
