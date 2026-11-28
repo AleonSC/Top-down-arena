@@ -762,8 +762,8 @@ namespace Arena
                     z.Pos = follow.Pos;
                 if (z.T <= 0f)
                 {
-                    if (z.Kind == ZoneKind.GrandSigil || z.Kind == ZoneKind.ArcCrush)
-                        ArcZoneEnds(z);  // the sigil sends its frozen shots back, the crush slams (Arcanist.cs)
+                    if (z.Kind == ZoneKind.GrandSigil)
+                        ArcZoneEnds(z);  // the sigil sends its frozen shots back (Arcanist.cs)
                     if (z.Kind == ZoneKind.TrojanHorse)
                         EndHorse(z, false);  // Sally Forth (TrojanHorse.cs)
                     if (z.Kind == ZoneKind.FieldHospital)

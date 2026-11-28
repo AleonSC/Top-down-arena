@@ -431,6 +431,13 @@ namespace Arena
                     held[slot] = botHeldLast[slot] = true;
                 return true;
             }
+            if (s.Id == AbilityId.TelekineticCrush && me.CrushOn)
+            {
+                held[slot] = botHeldLast[slot] = false;
+                if (me.CrushT > 2.5f || me.CrushT > 1f && CrushHolding(me) >= 2 || me.CrushMeter < 0.3f)  // carried enough, or running dry: let go
+                    held[slot] = botHeldLast[slot] = true;
+                return true;
+            }
             if (s.Id == AbilityId.ArterialSpray && me.SprayOn)
             {
                 held[slot] = botHeldLast[slot] = false;
