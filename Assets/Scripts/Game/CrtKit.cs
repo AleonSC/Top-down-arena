@@ -42,6 +42,7 @@ namespace Arena
                 return;
             }
             // (the strengths and widths: CrtStyle.cs)
+            r = Snap(r);  // (the tint and the outline on the same whole pixels)
             Ui.Fill(r, c.WithAlpha((on ? CrtStyle.KeyTintOn : hover ? CrtStyle.KeyTintHover : CrtStyle.KeyTint) * FillFade));
             Frame(r, on ? CrtStyle.KeyRimOnW : CrtStyle.KeyRimW, c.WithAlpha(on ? CrtStyle.KeyRimOn : hover ? CrtStyle.KeyRimHover : CrtStyle.KeyRim));
             if (on)
@@ -230,8 +231,30 @@ namespace Arena
 
         // --- Frames, keys, chassis ------------------------------------------------------------------------------------
 
+        /// r with its edges moved to whole screen pixels (GUI.matrix scales the UI), so a 1 px line never lands half on a
+        /// pixel and draws thinner or fainter on one side than the other.
+        public static Rect Snap(Rect r)
+        {
+            var m = GUI.matrix;
+            float s = m.m00, ox = m.m03, oy = m.m13;
+            if (s <= 0f)
+                return r;
+            float x0 = Mathf.Round(r.x * s + ox), x1 = Mathf.Round(r.xMax * s + ox);
+            float y0 = Mathf.Round(r.y * s + oy), y1 = Mathf.Round(r.yMax * s + oy);
+            return new Rect((x0 - ox) / s, (y0 - oy) / s, (x1 - x0) / s, (y1 - y0) / s);
+        }
+
+        /// A line width of whole screen pixels (at least one).
+        static float SnapW(float w)
+        {
+            float s = GUI.matrix.m00;
+            return s <= 0f ? w : Mathf.Max(1f, Mathf.Round(w * s)) / s;
+        }
+
         public static void Frame(Rect r, float w, Color c)
         {
+            r = Snap(r);
+            w = SnapW(w);
             Ui.Fill(new Rect(r.x, r.y, r.width, w), c);
             Ui.Fill(new Rect(r.x, r.yMax - w, r.width, w), c);
             Ui.Fill(new Rect(r.x, r.y, w, r.height), c);
@@ -241,6 +264,8 @@ namespace Arena
         /// A dashed frame (locked keys and empty slots).
         public static void Dashed(Rect r, float w, Color c)
         {
+            r = Snap(r);
+            w = SnapW(w);
             for (float x = r.x; x < r.xMax; x += 10f)
             {
                 float len = Mathf.Min(6f, r.xMax - x);
