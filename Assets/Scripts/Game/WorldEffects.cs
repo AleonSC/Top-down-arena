@@ -154,6 +154,7 @@ namespace Arena
             d[(int)FxKind.ShellPop] = (fx, f, t) => DrawShellPopFx(fx, f);
             d[(int)FxKind.MartyrCast] = (fx, f, t) => DrawMartyrFx(fx, f);  // MartyrLook.cs
             d[(int)FxKind.Drain] = (fx, f, t) => DrawDrainFx(fx, f);
+            d[(int)FxKind.BloodSeed] = (fx, f, t) => DrawBloodSeedFx(fx, f);  // BloodGardenLook.cs
             d[(int)FxKind.DebtCoin] = (fx, f, t) => DrawDebtCoinFx(fx, f);  // BloodDebtLook.cs
             d[(int)FxKind.DebtSettle] = (fx, f, t) => DrawDebtSettleFx(fx, f);  // BloodDebtLook.cs (its stamp is on the HUD)
             d[(int)FxKind.VeinRush] = (fx, f, t) => DrawVeinRushFx(fx, t);  // VeinRushLook.cs
