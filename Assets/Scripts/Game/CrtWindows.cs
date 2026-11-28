@@ -75,12 +75,15 @@ namespace Arena
             // The soft sweep (HoloBoot, LobbyFx.cs): the box shows top-down under a feathered edge as it opens (EndDrawer).
             cabBootE = calm || Dock ? 99f : age;  // (closing, the pause menu's clock is stopped: a half-swept box slides out as it is; docking: no sweep)
             cabBootRect = new Rect(dx + CabX, CabY, CabW + 2f, CabH + 2f);
-            DockTrails(new Rect(CabX, CabY, CabW + 2f, CabH + 2f), a => DockDrawerIn(a), CrtStyle.Ink);  // (docking: WindowAnim.cs)
+            DockTrails(new Rect(CabX + CabCentreDX, CabY, CabW + 2f, CabH + 2f), a => DockDrawerIn(a) * CentreSlideScale, CrtStyle.Ink);  // (docking: WindowAnim.cs)
             float bootH = Mathf.Min(H, HoloBoot.SoftClip(cabBootRect, cabBootE));
             GUI.BeginGroup(new Rect(dx, 0f, CabX + CabW + 2f + 60f, bootH));
             CrtKit.LoadoutBox(new Rect(CabX, CabY, CabW + 2f, CabH + 2f), !CabNeon);
             if (cabGlass)  // the pause and lobby menus: the Tab screen's hologram glass (TabHolo.cs)
+            {
                 DrawHoloGlass(new Rect(CabX + 1f, CabY + 1f, CabW, CabH), WinNow);
+                CabShade(new Rect(CabX + 1f, CabY + 1f, CabW, CabH));
+            }
             GUI.BeginGroup(new Rect(CabX + 1f, CabY + 1f, CabW, CabH));  // the cabinet's inside: its own origin
 
             // The header screen: big phosphor text and a small line under it.
@@ -135,6 +138,9 @@ namespace Arena
             if (CabNeon)
                 DrawPanelNeon(cabBootRect, cabBootE, 7f, 1.4f);  // Settings and Profile: the neon edge and glowing corners (MenuHolo.cs)
         }
+
+        /// Over a menu box's glass, under its contents: a dark navy shade so the box reads darker than the glass alone.
+        static void CabShade(Rect r) => Ui.Fill(r, new Color(0.004f, 0.008f, 0.025f, 0.42f));
 
         bool cabGlass;  // the pause, lobby, Settings and Profile cabinets and the pause run card are hologram glass (their windows too) (set round their drawing, MenuDrawer.cs)
         float cabBootE = 99f;  // seconds into the cabinet's holo boot (99: none)
@@ -378,7 +384,10 @@ namespace Arena
             {
                 CrtKit.LoadoutBox(cabWinRect, !CabNeon);
                 if (cabKind != 0)  // a Settings section, How to play or a profile option: the Tab screen's hologram glass (TabHolo.cs)
+                {
                     DrawHoloGlass(new Rect(cabWinRect.x + 1f, cabWinRect.y + 1f, cabWinRect.width - 2f, cabWinRect.height - 2f), WinNow);
+                    CabShade(new Rect(cabWinRect.x + 1f, cabWinRect.y + 1f, cabWinRect.width - 2f, cabWinRect.height - 2f));
+                }
             }
             cabWinEnabledWas = GUI.enabled;
             if (!cabWinOn || cabWinOutAt >= 0f)

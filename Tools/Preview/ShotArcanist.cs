@@ -7,7 +7,7 @@ using Arena;
 // the game's own paths.
 //   tank: Orbit Shards round you (one flung at a grunt), Kinetic Grasp holding a Brute, a Grand Sigil with enemy shots frozen on its rim.
 //   healer: the Glyph Stylus (rune bolts in flight through an ally), a Sanctum Sigil with four of its six runes left.
-//   dps: Dancing Blades (one dancing on a Brute, one flying, one waiting), Runic Array open with spectral blades out, a Telekinetic Crush.
+//   dps: Dancing Blades (one dancing on a Brute, DANCE=<s> into its Crossing Cuts, default 0.4; one flying, one waiting), Runic Array open with spectral blades out, a Telekinetic Crush.
 static partial class Shot {
   static void ArcanistScene() {
     string mode = Environment.GetEnvironmentVariable("ARCANIST");
@@ -69,7 +69,8 @@ static partial class Shot {
       var brute = put(EnemyType.Brute, new V2(960f, 400f), MathX.Pi);
       brute.Hp = brute.MaxHp * 0.6f;
       me.Aim = (brute.Pos - me.Pos).Angle;
-      var dance = companion(MinionKind.ArcBlade, brute.Pos + new V2(-6f, 4f)); dance.Sent = true; dance.Wind = 1f; dance.Aim = 2.3f;
+      var dance = companion(MinionKind.ArcBlade, brute.Pos); dance.Sent = true; dance.Wind = 1f; dance.Aim = me.Aim;  // came in on your aim
+      float danceAt; if (float.TryParse(Environment.GetEnvironmentVariable("DANCE") ?? "0.4", System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out danceAt)) ArenaApp.BladeDancePreview = danceAt;
       var fly = companion(MinionKind.ArcBlade, me.Pos + (brute.Pos - me.Pos) * 0.45f); fly.Sent = true; fly.Wind = 0.5f; fly.Aim = me.Aim;
       var wait = companion(MinionKind.ArcBlade, me.Pos + V2.FromAngle(me.Aim + MathX.Pi) * Game.BladeHover); wait.Aim = me.Aim;
       me.ArrayT = 4f;

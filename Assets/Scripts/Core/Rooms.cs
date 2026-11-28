@@ -40,7 +40,7 @@ namespace Arena
     /// (SurvivalWorld.cs) are built from areas joined by doors. (The fixed Rooms map, Wings, was removed Nov 18.)
     public static class Rooms
     {
-        public const float DoorW = 160f, WallT = 24f, DoorPad = 60f;
+        public const float DoorW = 200f, WallT = 24f, DoorPad = 60f;  // (DoorW: four squares of the 50 px floor grid, so a grid door's edges sit on grid lines, 200 and 400 across a cell)
         public const float PortalR = 42f, PortalCooldown = 1.2f;
 
         /// No enemy comes in closer than SpawnClear to a player and, where there is a choice, no farther than SpawnReach.

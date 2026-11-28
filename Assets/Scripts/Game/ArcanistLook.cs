@@ -122,28 +122,131 @@ namespace Arena
                 Line(m.Disp - f * 8f, m.Disp - f * 22f, 2.2f, ArcViolet.WithAlpha(0.35f));
         }
 
-        /// A Dancing Blade: a gold-hilted sword pointing along its Aim; dancing (Wind 1) it spins and trails slash arcs.
+        /// A Dancing Blade: a gold-hilted sword pointing along its Aim; flying it leaves a short streak. Dancing (Wind 1) it is drawn
+        /// over the enemies instead (DrawArcBladesOver).
         void DrawArcBlade(Minion m, float t)
         {
-            V2 f = V2.FromAngle(m.Aim), s = new V2(-f.Y, f.X);
-            if (m.Wind >= 1f)
-            {
-                Circle(m.Disp, Game.BladeSlashR, ArcGold.WithAlpha(0.06f), 24);
-                for (int k = 0; k < 2; k++)
-                    Arc(m.Disp, Game.BladeSlashR - 6f - k * 8f, 2.2f - k * 0.8f, ArcGold.WithAlpha(0.55f - k * 0.2f), 16, m.Aim - 1.6f + k * MathX.Pi, 1.4f);
-            }
+            if (BladeDanceU(m, t) >= 0f)
+                return;
+            V2 f = V2.FromAngle(m.Aim);
+            if (m.Wind > 0f)  // flying out or home: a fading streak
+                for (int k = 0; k < 3; k++)
+                    Line(m.Disp - f * (10f + k * 12f), m.Disp - f * (22f + k * 12f), 3f - k * 0.8f, ArcGold.WithAlpha(0.3f - k * 0.09f));
             else
-                Circle(m.Disp, 10f, ArcGold.WithAlpha(m.Wind > 0f ? 0.16f : 0.08f), 12);
-            V2 tip = m.Disp + f * 22f, guard = m.Disp - f * 6f;
-            Line(guard, tip, 7f, ArcGold.WithAlpha(0.14f));                      // its glow
-            SetColor(ArcInk);
+                Circle(m.Disp, 10f, ArcGold.WithAlpha(0.08f), 12);
+            DrawBladeShape(m.Disp, m.Aim, 1f);
+        }
+
+        /// The dancing blades, over the enemies they cut through (WorldRenderer, after the enemies).
+        void DrawArcBladesOver(float t)
+        {
+            foreach (var m in game.Minions.Values)
+                if (m.Kind == MinionKind.ArcBlade && m.Wind >= 1f)
+                    DrawBladeDance(m, BladeDanceU(m, t));
+        }
+
+        /// A blade's dance, the Crossing Cuts (Core BladeDanceAt): curved dashes through the enemy with a crescent trail, afterimages,
+        /// a flip at each end and gold sparks on each cut. Timed from when this client first sees it dance (no snapshot field).
+        void DrawBladeDance(Minion m, float u)
+        {
+            V2 at = m.Disp;
+            float d0 = m.Aim, h;
+            Circle(at, Game.BladeSlashR, ArcGold.WithAlpha(0.05f), 28);
+            V2 pos = Game.BladeDanceAt(at, d0, u, out h);
+            // the crescent trail: the blade's edge over the last BladeTrail seconds, fading to violet
+            V2 prevTip = default, prevIn = default;
+            for (int k = 0; k <= BladeTrailN; k++)
+            {
+                float back = BladeTrail * k / BladeTrailN, uk = Mathf.Max(0f, u - back / Game.BladeSlashTime), hk;
+                V2 pk = Game.BladeDanceAt(at, d0, uk, out hk), tip = pk + V2.FromAngle(hk) * 22f, inner = pk + V2.FromAngle(hk) * 10f;
+                if (k > 0)
+                {
+                    float age = (float)k / BladeTrailN, a = 1f - age;
+                    SetColor(ArcPale.Mix(ArcViolet, age).WithAlpha(0.85f * a));
+                    Tri(prevTip, tip, inner);
+                    Tri(prevTip, inner, prevIn);
+                    Line(prevTip, tip, 0.4f + 1.6f * (1f - age), ArcGold.WithAlpha(0.9f * (1f - age) * (1f - age)));
+                }
+                prevTip = tip;
+                prevIn = inner;
+            }
+            // afterimages while it dashes, and gold motes shed from the tip
+            float hb, speed = (pos - Game.BladeDanceAt(at, d0, Mathf.Max(0f, u - 0.01f), out hb)).Length / (0.01f * Game.BladeSlashTime);
+            if (speed > 250f)
+                for (int k = 1; k <= 3; k++)
+                {
+                    float hg;
+                    V2 pg = Game.BladeDanceAt(at, d0, Mathf.Max(0f, u - 0.03f * k / Game.BladeSlashTime), out hg);
+                    DrawBladeShape(pg, hg, 0.32f - k * 0.08f);
+                }
+            for (int k = 0; k < 8; k++)  // one mote every 0.04 s of the dance, drifting off for 0.3 s
+            {
+                float born = (Mathf.Floor(u * Game.BladeSlashTime / 0.04f) - k) * 0.04f, age = u * Game.BladeSlashTime - born;
+                if (born < 0f || age > 0.3f)
+                    continue;
+                float hm, hm2;
+                V2 pm = Game.BladeDanceAt(at, d0, born / Game.BladeSlashTime, out hm);
+                if ((pm - Game.BladeDanceAt(at, d0, Mathf.Max(0f, born / Game.BladeSlashTime - 0.01f), out hm2)).Length < 2.5f)
+                    continue;  // only where it was going fast
+                float spin = (m.Id * 7.3f + born * 91f) % MathX.Tau, q = age / 0.3f;
+                Circle(pm + V2.FromAngle(hm) * 20f + V2.FromAngle(spin) * (8f + 22f * q), 0.4f + 1.4f * (1f - q), ArcGold.WithAlpha(1f - q), 6);
+            }
+            // each slash tick (u = 0.25 ... 1): gold sparks thrown along the cut for 0.2 s
+            for (int k = 1; k <= 4; k++)
+            {
+                float q = (u - k * 0.25f) * Game.BladeSlashTime / 0.2f;
+                if (q < 0f || q > 1f)
+                    continue;
+                float dir = d0 + k * Game.BladeCutTurn;
+                for (int i = 0; i < 6; i++)
+                {
+                    float a = dir + (i % 2 == 0 ? 1f : -1f) * (0.25f + 0.18f * i), d = 8f + 26f * Mathf.Sqrt(q);
+                    Line(at + V2.FromAngle(a) * d, at + V2.FromAngle(a) * (d + 7f * (1f - q)), 1.6f, ArcGold.WithAlpha(1f - q));
+                }
+            }
+            DrawBladeShape(pos, h, 1f);
+        }
+
+        const float BladeTrail = 0.14f;  // seconds of trail behind a dancing blade
+        const int BladeTrailN = 12;
+        readonly System.Collections.Generic.Dictionary<int, float> bladeDanceFrom = new System.Collections.Generic.Dictionary<int, float>();
+        /// Preview: a fixed time into every dance (Tools/Preview ShotArcanist.cs, `DANCE=<s>`); -1 off.
+        public static float BladeDancePreview = -1f;
+
+        /// How far into its dance (0..1) blade m is, from when this client first saw it dancing; -1 when it isn't.
+        float BladeDanceU(Minion m, float t)
+        {
+            if (m.Wind < 1f)
+            {
+                bladeDanceFrom.Remove(m.Id);
+                return -1f;
+            }
+            if (BladeDancePreview >= 0f)
+                return Mathf.Clamp01(BladeDancePreview / Game.BladeSlashTime);
+            float from;
+            if (!bladeDanceFrom.TryGetValue(m.Id, out from))
+            {
+                if (bladeDanceFrom.Count > 32)
+                    bladeDanceFrom.Clear();  // blades gone mid-dance
+                bladeDanceFrom[m.Id] = from = t;
+            }
+            return Mathf.Clamp01((t - from) / Game.BladeSlashTime);
+        }
+
+        /// The blade itself at `p` pointing along `ang`, at `a` opacity (afterimages are fainter).
+        void DrawBladeShape(V2 p, float ang, float a)
+        {
+            V2 f = V2.FromAngle(ang), s = new V2(-f.Y, f.X);
+            V2 tip = p + f * 22f, guard = p - f * 6f;
+            Line(guard, tip, 7f, ArcGold.WithAlpha(0.14f * a));                      // its glow
+            SetColor(ArcInk.WithAlpha(a));
             Tri(tip + f * 2f, guard + s * 4.6f, guard - s * 4.6f);
-            SetColor(ArcPale);
+            SetColor(ArcPale.WithAlpha(a));
             Tri(tip, guard + s * 3.3f, guard - s * 3.3f);
-            Line(m.Disp + f * 16f, guard, 1.2f, ArcViolet.WithAlpha(0.85f));     // the fuller glows
-            Line(guard + s * 7.5f, guard - s * 7.5f, 3.2f, ArcGold);              // crossguard
-            Line(guard, guard - f * 8f, 3f, new Rgba(0.42f, 0.28f, 0.16f));       // grip
-            Circle(guard - f * 9.5f, 2.4f, ArcGold, 8);                           // pommel
+            Line(p + f * 16f, guard, 1.2f, ArcViolet.WithAlpha(0.85f * a));          // the fuller glows
+            Line(guard + s * 7.5f, guard - s * 7.5f, 3.2f, ArcGold.WithAlpha(a));     // crossguard
+            Line(guard, guard - f * 8f, 3f, new Rgba(0.42f, 0.28f, 0.16f, a));        // grip
+            Circle(guard - f * 9.5f, 2.4f, ArcGold.WithAlpha(a), 8);                  // pommel
         }
 
         // --- The zones (DrawZone) -------------------------------------------------------------
