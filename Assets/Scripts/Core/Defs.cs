@@ -337,7 +337,7 @@ namespace Arena
             {
                 Name = "DPS", Ability = "Dash", Color = new Rgba(1f, 0.55f, 0.25f),
                 Hp = 110f, Speed = 240f, HitR = 6f, BodyR = 12f, FireInterval = 0.1f, AbilityCd = 3.5f,
-                Desc = "The damage. The lowest health but the fastest feet and the hardest-hitting weapons. Momentum: each kill adds a stack (up to 5) for +3% move speed and fire rate, and the stacks fade 4 s after your last kill, so keep the kills coming.",
+                Desc = "The damage. The lowest health but the fastest feet and the hardest-hitting weapons. Momentum: every 3 kills add a stack (up to 5) for +3% move speed and fire rate, and the stacks fade 4 s after your last kill, so keep the kills coming.",
             },
             new RoleDef
             {

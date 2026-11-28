@@ -654,8 +654,8 @@ namespace Arena
                 Arc(p.Disp, p.Def.BodyR + 7f + 2f * Mathf.Sin(t * 20f), 2.5f, new Rgba(1f, 0.4f, 0.3f, 0.8f), 32);
             if (p.SwiftT > 0f)
                 DrawSwiftness(p, t);  // cyan ring and speed streaks (HolyCrossLook.cs)
-            if (p.MomentumStacks > 0)
-                DrawMomentum(p, t);  // a gold power-up aura under you, fiercer per stack (MomentumLook.cs)
+            if (p.MomentumStacks > 0 || p.MomentumKills > 0 || p.MomentumShow > 0.01f)
+                DrawMomentum(p, t);  // a gold power-up aura under you, easing up with each kill (MomentumLook.cs)
             if (p.IronCap > 0f)
                 DrawIronhide(p, t);  // five steel plates on a ring (IronhideLook.cs; a Tank, or an ally with Shared Plating's gift)
             if (p.AdrenalineT > 0f)
