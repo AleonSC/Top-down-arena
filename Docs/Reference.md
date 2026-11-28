@@ -290,6 +290,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Warhorn Volley | Dps | ultimate | 70 s | - | The volley is 40% wider and the fire burns for 8 s. | A volley of fire arrows sweeps the field, burning and pinning enemies. |
 | Ballista | Dps | ultimate | 75 s | - | 10 bolts, and each one pins what it hits. | A giant ballista drops in front of you. Anyone can mount it (Interact) and fire 8 giant bolts that go through everything. |
 | War Standard | Dps | ultimate | 70 s | - | +55% attack speed and +35% damage. | Plant a standard for 60 s: allies inside attack 40% faster and hit 25% harder. Press again to lift it. |
+| Excalibur | Dps | ultimate | 70 s | - | Lasts 13 s and the shockwaves fly 30% farther. | Draw a giant glowing sword for 10 s: every swing throws a shockwave that goes through enemies, and every 4th is a Judgement. |
 | Cannon Call | Dps | 1st, choice 5 | 12 s | - | Two smaller balls land either side of the mark along your aim. | Flare a spot and a cannonball slams into it, blasting and stunning the pack; 3 kills give back half the cooldown. |
 
 ### Ninja
