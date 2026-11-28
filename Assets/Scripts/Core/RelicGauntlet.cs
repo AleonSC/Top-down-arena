@@ -31,8 +31,8 @@ namespace Arena
         // The void pits (u, v, length, width): the near cell keeps a middle lane for the lasers, the far cell is a slalom round the spinner.
         static readonly int[][] PitBoxes =
         {
-            new[] { 150, 40, 130, 190 }, new[] { 320, 370, 130, 190 }, new[] { 470, 40, 90, 120 }, new[] { 70, 440, 90, 120 },
-            new[] { 1250, 440, 130, 120 }, new[] { 1500, 40, 130, 120 }, new[] { 1660, 400, 100, 160 }, new[] { 1240, 50, 100, 100 },
+            new[] { 150, 50, 150, 150 }, new[] { 300, 400, 150, 150 }, new[] { 450, 50, 100, 100 }, new[] { 50, 450, 100, 100 },  // (on the 50 px floor grid)
+            new[] { 1250, 450, 150, 100 }, new[] { 1500, 50, 150, 100 }, new[] { 1650, 400, 100, 150 }, new[] { 1250, 50, 100, 100 },
         };
 
         // The turret posts (u, v): wall mounts in the outer cells.

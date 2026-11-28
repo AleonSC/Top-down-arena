@@ -818,7 +818,10 @@ namespace Arena
         /// A narrow room's obstacles: a pillar or block every ~StripCoverEvery px along it, alternating sides, StripCoverWall px off the
         /// side wall (so the far side keeps a wide lane), each centre CoverDoorMin from every door and bend.
         public const int StripMax = 300;
-        public const int StripCoverEvery = 500, StripCoverWall = 60, StripCoverR = 30;
+        public const int StripCoverEvery = 500, StripCoverWall = 60, StripCoverR = 25;  // (a square: cover sits on the 50 px floor grid)
+
+        /// A piece's middle on one axis so its edges (half `half` either side) lie on the 50 px floor grid (RoomTraps.SnapCentre).
+        static int OnGrid(float v, int half) => (int)RoomTraps.SnapCentre(v, half);
 
         static void AddStripCover(List<Solid> to, ExpansionRoom r, List<V2> doors)
         {
@@ -843,7 +846,7 @@ namespace Arena
                         ok &= c.FartherOrAt(d, CoverDoorMin);
                     if (!ok)
                         continue;
-                    int cx = (int)c.X, cy = (int)c.Y;
+                    int cx = OnGrid(c.X, StripCoverR), cy = OnGrid(c.Y, StripCoverR);
                     to.Add(pillar ? World.Pillar(cx, cy, StripCoverR) : World.Box(cx - StripCoverR, cy - StripCoverR, cx + StripCoverR, cy + StripCoverR));
                     break;
                 }
@@ -859,8 +862,8 @@ namespace Arena
             {
                 float along = k * len * 0.28f, side = k * 55f;
                 var at = wide ? new V2(cx + along, cy + side) : new V2(cx + side, cy + along);
-                int x = (int)at.X, y = (int)at.Y;
-                to.Add(k < 0 ? World.Box(x - 25, y - 25, x + 25, y + 25) : World.Pillar(x, y, 28));
+                int x = OnGrid(at.X, 25), y = OnGrid(at.Y, 25);
+                to.Add(k < 0 ? World.Box(x - 25, y - 25, x + 25, y + 25) : World.Pillar(x, y, 25));
             }
         }
 
@@ -901,16 +904,19 @@ namespace Arena
                 int hw, hh;
                 switch (kind)
                 {
-                    case 0: hw = hh = stage == 3 ? 30 : 30 + rng.Int(3) * 10; break;
-                    case 1: hw = horizontal ? 70 + rng.Int(4) * 25 : 20; hh = horizontal ? 20 : 70 + rng.Int(4) * 25; break;
-                    case 2: hw = hh = 90; break;
-                    default: hw = hh = 45; break;
+                    // (every size whole squares of the 50 px floor grid: a half side a multiple of 25)
+                    case 0: hw = hh = stage == 3 ? 25 : 25 + rng.Int(2) * 25; break;
+                    case 1: hw = horizontal ? 75 + rng.Int(4) * 25 : 25; hh = horizontal ? 25 : 75 + rng.Int(4) * 25; break;
+                    case 2: hw = hh = 100; break;
+                    default: hw = hh = 50; break;
                 }
                 int wall = stage >= 2 ? CoverTight : CoverWall;
                 int ix0 = r.X + wall + hw, ix1 = r.X + r.W - wall - hw, iy0 = r.Y + wall + hh, iy1 = r.Y + r.H - wall - hh;
                 if (ix1 <= ix0 || iy1 <= iy0)
                     continue;
-                int cx = ix0 + rng.Int((ix1 - ix0) / 10 + 1) * 10, cy = iy0 + rng.Int((iy1 - iy0) / 10 + 1) * 10;
+                int cx = OnGrid(ix0 + rng.Int((ix1 - ix0) / 10 + 1) * 10, hw), cy = OnGrid(iy0 + rng.Int((iy1 - iy0) / 10 + 1) * 10, hh);  // (onto the grid)
+                if (cx < ix0 - 25 || cx > ix1 + 25 || cy < iy0 - 25 || cy > iy1 + 25)
+                    continue;
                 int bx0 = cx - hw, by0 = cy - hh, bx1 = cx + hw, by1 = cy + hh;
                 int keepMid = stage == 0 ? CoverMid : stage == 1 ? CoverMidTight : CoverTight / 3, keepDoor = stage == 2 ? CoverDoorTight : CoverDoor;
                 bool ok = Math.Abs(cx - mid.X) > hw + keepMid || Math.Abs(cy - mid.Y) > hh + keepMid;
@@ -926,8 +932,8 @@ namespace Arena
                 {
                     case 0: to.Add(World.Pillar(cx, cy, hw)); break;
                     case 2:  // an L: one bar along the top and one down the left side
-                        to.Add(World.Box(bx0, by0, bx1, by0 + 36));
-                        to.Add(World.Box(bx0, by0, bx0 + 36, by1));
+                        to.Add(World.Box(bx0, by0, bx1, by0 + 50));
+                        to.Add(World.Box(bx0, by0, bx0 + 50, by1));
                         break;
                     default: to.Add(World.Box(bx0, by0, bx1, by1)); break;
                 }

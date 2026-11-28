@@ -428,6 +428,7 @@ static partial class Program
         Test("recentruns", "Records > Recent runs: the run's curve, its file, the profile's run log", () => RecentRunsTest(Dt)),
         Test("pacman", "the Pac-Man maze game: maze, steering, tunnel, dots and pellets, the four role ghosts, lives, levels, the ghost house, co-op", () => PacmanTest(Dt)),
         Test("corelayouts", "core layouts (Docs/Mockups/core-layouts.html): ten floor plans for the Grid core, door lanes and the gate floor clear, one a run, a new one each Campaign map, synced and saved", () => CoreLayoutsTest(Dt)),
+        Test("floorgrid", "the 50 px floor grid: the arena floor plans, cell layouts and pit variants, rolled room cover, the Survival room and the Wall Kick panels all sit on it", () => FloorGridTest()),
         Test("mapreset", "the Campaign map resets after each boss: kits kept, half the spent vectors back, saved", () => MapResetTest(Dt)),
         Test("longrun", "the 100-wave Campaign: two legs a track wave, the boss after every tenth, half XP, saves and continuing, the party's level at the first boss", () => LongRunTest(Dt), () => LongRunPaceTest(Dt)),
         Test("wardencycle", "the Campaign's Warden cycle: one lesson a wave (Rioters, guards, shields, gas, tasers, squads, the Riot line) (one guaranteed star enemy each)", () => WardenCycleTest(Dt)),
