@@ -9,7 +9,8 @@ namespace Arena
     {
         int wildLook;     // 0 today's wheel, 1 the slots mockup
         int wildPickOpen = -1;
-        int wildHoverSlot = -1, wildHoverVal;  // the pick window's hovered option (last frame's): the preview plays it  // the slots mockup: the slot whose pick window is open (-1 none) (0 weapon, 1 1st ability, 2 2nd ability, 3 ultimate)
+        int wildHoverSlot = -1, wildHoverVal;
+        readonly bool[] wildShut = new bool[Defs.KitCount];  // the pick window's folded classes  // the pick window's hovered option (last frame's): the preview plays it  // the slots mockup: the slot whose pick window is open (-1 none) (0 weapon, 1 1st ability, 2 2nd ability, 3 ultimate)
 
         /// Fills x, y .. yEnd (the Gear and Ultimate rows' space) with the picked look.
         void DrawWildMock(LobbyEntry me, Session tgt, bool self, float x, float y, float w, float yEnd)
@@ -115,6 +116,33 @@ namespace Arena
             }
         }
 
+        /// How many options class k has for a slot (gaps left out).
+        static int WildOptionCount(int slot, int k)
+        {
+            int n = slot == 0 ? Defs.WeaponCount(Role.Dps, (Kit)k) : slot == 3 ? Upgrades.UltKeys : 3, count = 0;
+            for (int c = 0; c < n; c++)
+            {
+                bool gapped = slot == 0 ? Defs.WeaponGap(Role.Dps, (Kit)k, c)
+                    : slot == 3 ? (c == 0 ? Upgrades.Ultimate(Role.Wildcard, (Kit)k) : Upgrades.AltUltimate(Role.Wildcard, (Kit)k, c)) == AbilityId.None
+                    : Upgrades.AbilityGap(Role.Dps, (Kit)k, c);
+                if (!gapped)
+                    count++;
+            }
+            return count;
+        }
+
+        /// A small solid triangle: pointing down (open) or right (folded), centred on c.
+        static void FoldArrow(Vector2 c, bool down, Color col)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                if (down)
+                    Ui.Fill(new Rect(Mathf.Round(c.x - 4f + i), Mathf.Round(c.y - 2f + i), 8f - 2f * i, 1f), col);
+                else
+                    Ui.Fill(new Rect(Mathf.Round(c.x - 2f + i), Mathf.Round(c.y - 4f + i), 1f, 8f - 2f * i), col);
+            }
+        }
+
         string WildSlotKey(int slot) => slot == 0 ? ""
             : Keybinds.KeyName(Keybinds.Get(slot == 1 ? KeyAction.Ability1 : slot == 2 ? KeyAction.Ability2 : KeyAction.Ultimate)).ToUpperInvariant();
 
@@ -140,27 +168,61 @@ namespace Arena
                 return;
             }
             int cur = slot == 0 ? me.Weapon : slot == 1 ? me.Ability : slot == 2 ? second : me.Ult;
-            const int cols = 2, rows = 4;
-            float gx = 12f, gy = 10f;
-            const float infoH = 92f;
-            float top = r.y + 50f, bw = (r.width - 32f - gx) / cols, bh = (r.yMax - 14f - infoH - 10f - top - gy * (rows - 1)) / rows;
+            const int cols = 2;
+            const float gx = 12f, infoH = 84f, headH = 20f, ks = 3f, blockGap = 8f;
+            float top = r.y + 50f, bw = (r.width - 32f - gx) / cols, room = r.yMax - 14f - infoH - 8f - top;
+            // The keys' height: 21 px, less when a column's open classes wouldn't fit above the info box.
+            float kh = 21f;
+            for (int col = 0; col < cols; col++)
+            {
+                float fixedH = 0f;
+                int keys = 0;
+                for (int k = col; k < Defs.KitCount; k += cols)
+                {
+                    fixedH += headH + blockGap + (wildShut[k] ? 0f : 3f);
+                    if (!wildShut[k])
+                        keys += WildOptionCount(slot, k);
+                }
+                if (keys > 0)
+                    kh = Mathf.Min(kh, Mathf.Max(14f, (room - fixedH) / keys - ks));
+            }
+            float[] colY = { top, top };  // each column flows down on its own, so a collapsed class pulls up the ones under it
             int hovSlot = -1, hovVal = 0, hovKit = 0;
             for (int k = 0; k < Defs.KitCount; k++)
             {
-                var blk = new Rect(r.x + 16f + (k % cols) * (bw + gx), top + (k / cols) * (bh + gy), bw, bh);
-                bool open = KitOpen((Kit)k);
-                Ui.Icon(new Rect(blk.x, blk.y + 1f, 16f, 16f), PixelArt.Get(Classes.Get((Kit)k).Icon), open ? Color.white : new Color(1f, 1f, 1f, 0.35f));
-                Ui.Label(new Rect(blk.x + 22f, blk.y, blk.width - 22f, 18f), Defs.KitName((Kit)k).ToUpperInvariant(), 11, (open ? CrtStyle.Ink : CrtStyle.Dim).WithAlpha(open ? 0.9f : 0.5f), TextAnchor.MiddleLeft, true);
+                int col = k % cols;
+                float bx = r.x + 16f + col * (bw + gx);
+                bool open = KitOpen((Kit)k), shut = wildShut[k];
+                // The class's label: a click folds or unfolds it (the arrow points down while open).
+                var hr = new Rect(bx, colY[col], bw, headH);
+                bool hhov = GUI.enabled && hr.Contains(ev.mousePosition);
+                if (hhov)
+                    Ui.Fill(hr, CrtStyle.Ink.WithAlpha(0.05f));
+                if (Ui.HitArea(hr))
+                    wildShut[k] = shut = !shut;
+                Color lc = (open ? CrtStyle.Ink : CrtStyle.Dim).WithAlpha(open ? (hhov ? 1f : 0.85f) : 0.5f);
+                FoldArrow(new Vector2(hr.x + 6f, hr.center.y), !shut, lc);
+                Ui.Icon(new Rect(hr.x + 16f, hr.y + 2f, 16f, 16f), PixelArt.Get(Classes.Get((Kit)k).Icon), open ? Color.white : new Color(1f, 1f, 1f, 0.35f));
+                Ui.Label(new Rect(hr.x + 38f, hr.y, bw - 38f, headH), Defs.KitName((Kit)k).ToUpperInvariant(), 11, lc, TextAnchor.MiddleLeft, true);
                 int n = slot == 0 ? Defs.WeaponCount(Role.Dps, (Kit)k) : slot == 3 ? Upgrades.UltKeys : 3;
-                float ky = blk.y + 22f, kh = Mathf.Min(26f, (blk.yMax - ky - 3f * (n - 1)) / n);
+                float ky = hr.yMax + 3f;
                 int shown = 0;
+                if (shut)
+                {
+                    // folded: the line under the label, and what you have from it tagged on the right
+                    Ui.Fill(new Rect(bx, hr.yMax, bw, 1f), CrtStyle.Ink.WithAlpha(0.15f));
+                    if (WildKitOf(me, slot, second) == k)
+                        Ui.Label(new Rect(bx, hr.y, bw - 4f, headH), "EQUIPPED", 9, wild, TextAnchor.MiddleRight, true);
+                    colY[col] = hr.yMax + blockGap;
+                    continue;
+                }
                 for (int c = 0; c < n; c++)
                 {
                     var id = slot == 3 ? (c == 0 ? Upgrades.Ultimate(Role.Wildcard, (Kit)k) : Upgrades.AltUltimate(Role.Wildcard, (Kit)k, c)) : AbilityId.None;
                     bool gapped = slot == 0 ? Defs.WeaponGap(Role.Dps, (Kit)k, c) : slot == 3 ? id == AbilityId.None : Upgrades.AbilityGap(Role.Dps, (Kit)k, c);
                     if (gapped)
                         continue;
-                    var b = new Rect(blk.x, ky + shown * (kh + 3f), blk.width, kh);
+                    var b = new Rect(bx, ky + shown * (kh + ks), bw, kh);
                     shown++;
                     if (!open)
                     {
@@ -192,6 +254,7 @@ namespace Arena
                     if (v == other)
                         SlotBadge(new Rect(b.xMax - 14f, b.center.y - 6f, 12f, 12f), slot == 1 ? 2 : 1, wild);
                 }
+                colY[col] = ky + shown * (kh + ks) + blockGap;
             }
             wildHoverSlot = hovSlot;
             wildHoverVal = hovVal;
