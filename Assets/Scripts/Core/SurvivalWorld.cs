@@ -17,21 +17,21 @@ namespace Arena
         public static Solid[] Cover()
         {
             var l = new List<Solid>();
-            float t = Rooms.WallT / 2f, cx = W / 2f, cy = H / 2f;
-            // The middle: four arms of a plus, 300 long, leaving a 140-wide gap at the centre for walking through.
-            l.Add(World.Box(cx - 440f, cy - t, cx - 70f, cy + t));
-            l.Add(World.Box(cx + 70f, cy - t, cx + 440f, cy + t));
-            l.Add(World.Box(cx - t, cy - 440f, cx + t, cy - 70f));
-            l.Add(World.Box(cx - t, cy + 70f, cx + t, cy + 440f));
-            // Each corner: an L bracket 360 long, 160 in from the walls.
-            const float inset = 160f, arm = 360f;
+            float cx = W / 2f, cy = H / 2f;  // (every piece on the 50 px floor grid, a square thick: RoomTraps.Tile)
+            // The middle: four arms of a plus, 350 long, each half a square off the middle line (a pinwheel), leaving a 200-wide square at the centre.
+            l.Add(World.Box(cx - 450f, cy - 50f, cx - 100f, cy));
+            l.Add(World.Box(cx + 100f, cy, cx + 450f, cy + 50f));
+            l.Add(World.Box(cx, cy - 450f, cx + 50f, cy - 100f));
+            l.Add(World.Box(cx - 50f, cy + 100f, cx, cy + 450f));
+            // Each corner: an L bracket 350 long, 150 in from the walls.
+            const float inset = 150f, arm = 350f, t = 50f;
             foreach (int sx in new[] { 0, 1 })
                 foreach (int sy in new[] { 0, 1 })
                 {
-                    float x = sx == 0 ? inset : W - inset, y = sy == 0 ? inset : H - inset;
-                    float dx = sx == 0 ? 1f : -1f, dy = sy == 0 ? 1f : -1f;
-                    l.Add(World.Box(Math.Min(x, x + dx * arm), y - t, Math.Max(x, x + dx * arm), y + t));
-                    l.Add(World.Box(x - t, Math.Min(y, y + dy * arm), x + t, Math.Max(y, y + dy * arm)));
+                    float x0 = sx == 0 ? inset : W - inset - arm, y0 = sy == 0 ? inset : H - inset - t;  // the bar along the wall
+                    l.Add(World.Box(x0, y0, x0 + arm, y0 + t));
+                    float vx = sx == 0 ? inset : W - inset - t, vy = sy == 0 ? inset : H - inset - arm;  // the bar down the wall
+                    l.Add(World.Box(vx, vy, vx + t, vy + arm));
                 }
             return l.ToArray();
         }

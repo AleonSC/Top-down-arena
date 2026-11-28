@@ -77,7 +77,7 @@ namespace Arena
 
     public static class Layouts
     {
-        public const float EdgeT = 24f, WallT = 24f, WayPad = 30f;
+        public const float EdgeT = 25f, WallT = 50f, WayPad = 30f;  // (on the 50 px floor grid, RoomTraps.Tile: walls a square thick, the edge wall half one)
         const float W = Game.Width, H = Game.Height;
 
         static readonly LayoutDef[] defs = Build();
@@ -104,13 +104,13 @@ namespace Arena
 
         static void Block(List<LayoutCrate> to, float cx, float cy)
         {
-            Pair(to, cx, cy - 22f, false); Pair(to, cx, cy + 22f, false);
+            Pair(to, cx, cy - 25f, false); Pair(to, cx, cy + 25f, false);
         }
 
         static void Pair(List<LayoutCrate> to, float cx, float cy, bool vertical)
         {
-            if (vertical) { to.Add(Crate(cx, cy - 22f)); to.Add(Crate(cx, cy + 22f)); }
-            else { to.Add(Crate(cx - 22f, cy)); to.Add(Crate(cx + 22f, cy)); }
+            if (vertical) { to.Add(Crate(cx, cy - 25f)); to.Add(Crate(cx, cy + 25f)); }  // (a square apart: each on a square's middle)
+            else { to.Add(Crate(cx - 25f, cy)); to.Add(Crate(cx + 25f, cy)); }
         }
 
         static EdgeSpan Span(int side, float from, float to) { return new EdgeSpan { Side = side, From = from, To = to }; }
@@ -123,12 +123,12 @@ namespace Arena
             switch (g)
             {
                 case EdgeGates.Centre:
-                    lrGate = new[] { new[] { 360f, 540f } }; tbGate = new[] { new[] { 700f, 900f } };
-                    lrFoe = new[] { new[] { 110f, 250f }, new[] { 650f, 790f } }; tbFoe = new[] { new[] { 250f, 450f }, new[] { 1150f, 1350f } };
+                    lrGate = new[] { new[] { 350f, 550f } }; tbGate = new[] { new[] { 700f, 900f } };
+                    lrFoe = new[] { new[] { 100f, 250f }, new[] { 650f, 800f } }; tbFoe = new[] { new[] { 250f, 450f }, new[] { 1150f, 1350f } };
                     break;
                 case EdgeGates.Twin:
-                    lrGate = new[] { new[] { 140f, 280f }, new[] { 620f, 760f } }; tbGate = new[] { new[] { 300f, 500f }, new[] { 1100f, 1300f } };
-                    lrFoe = new[] { new[] { 380f, 520f } }; tbFoe = new[] { new[] { 700f, 900f } };
+                    lrGate = new[] { new[] { 150f, 300f }, new[] { 600f, 750f } }; tbGate = new[] { new[] { 300f, 500f }, new[] { 1100f, 1300f } };
+                    lrFoe = new[] { new[] { 400f, 500f } }; tbFoe = new[] { new[] { 700f, 900f } };
                     break;
                 case EdgeGates.Sides:
                     lrGate = new[] { new[] { 300f, 600f } }; tbGate = new float[0][];
@@ -279,54 +279,52 @@ namespace Arena
             var open = new LayoutDef { Id = LayoutId.Open, Name = "Open arena", Blurb = "The plain arena.", Solids = new Solid[0], Crates = new LayoutCrate[0], PlayerGates = new EdgeSpan[0], EnemyGates = new EdgeSpan[0], Waypoints = new V2[0] };
             list[0] = open;
 
+            // Every plan sits on the 50 px floor grid (RoomTraps.Tile): wall edges on its lines, crates on square middles. The hub is 32 x 18 squares.
             // Pillar Ring: eight square wall pillars round an open middle, crate pairs in the corners.
             var s = new List<Solid>();
             var c = new List<LayoutCrate>();
-            for (int k = 0; k < 8; k++)
-            {
-                float a = MathX.Pi / 8f + k * MathX.Pi / 4f;
-                s.Add(Box(800f + 260f * (float)Math.Cos(a), 450f + 260f * (float)Math.Sin(a), 64f, 64f));
-            }
-            Pair(c, 330f, 200f, false); Pair(c, 1270f, 200f, false); Pair(c, 330f, 700f, false); Pair(c, 1270f, 700f, false);
+            foreach (var p in new[] { new[] { 575f, 375f }, new[] { 1025f, 375f }, new[] { 575f, 525f }, new[] { 1025f, 525f }, new[] { 725f, 225f }, new[] { 875f, 225f }, new[] { 725f, 675f }, new[] { 875f, 675f } })
+                s.Add(Box(p[0], p[1], 50f, 50f));
+            Pair(c, 350f, 175f, false); Pair(c, 1250f, 175f, false); Pair(c, 350f, 725f, false); Pair(c, 1250f, 725f, false);
             list[1] = Make(LayoutId.PillarRing, "Pillar Ring", "Eight pillars round an open middle. Loop through the gaps.", EdgeGates.Centre, s, c);
 
-            // Twin Lanes: two long walls with a door in the middle, a crate bar between them.
-            s = new List<Solid> { HWall(300f, 740f, 300f), HWall(860f, 1300f, 300f), HWall(300f, 740f, 600f), HWall(860f, 1300f, 600f) };
+            // Twin Lanes: two long walls with a door in the middle, a crate block between them.
+            s = new List<Solid> { HWall(300f, 750f, 275f), HWall(850f, 1300f, 275f), HWall(300f, 750f, 625f), HWall(850f, 1300f, 625f) };
             c = new List<LayoutCrate>();
-            Pair(c, 800f, 450f, true);
-            Pair(c, 800f, 150f, false); Pair(c, 800f, 750f, false);
+            Block(c, 800f, 450f);
+            Pair(c, 800f, 125f, false); Pair(c, 800f, 775f, false);
             list[2] = Make(LayoutId.TwinLanes, "Twin Lanes", "Two long walls make a corridor and two outer strips.", EdgeGates.Sides, s, c);
 
-            // Cross: a plus-shaped wall, four rooms, a 160 px hub.
-            s = new List<Solid> { HWall(160f, 720f, 450f), HWall(880f, 1440f, 450f), VWall(800f, 110f, 390f), VWall(800f, 510f, 790f) };
+            // Cross: a pinwheel of four walls (each arm half a square off the middle line, so it sits on the grid), four rooms, a hub between.
+            s = new List<Solid> { HWall(150f, 700f, 425f), HWall(900f, 1450f, 475f), VWall(825f, 100f, 400f), VWall(775f, 500f, 800f) };
             c = new List<LayoutCrate>();
-            Pair(c, 430f, 230f, true); Pair(c, 1170f, 230f, true); Pair(c, 430f, 670f, true); Pair(c, 1170f, 670f, true);
+            Pair(c, 425f, 200f, true); Pair(c, 1175f, 200f, true); Pair(c, 425f, 700f, true); Pair(c, 1175f, 700f, true);
             list[3] = Make(LayoutId.Cross, "Cross", "Four rooms round a small hub.", EdgeGates.Twin, s, c);
 
-            // Islands: crate clusters, nothing else but two small pillars.
+            // Islands: crate clusters, nothing else.
             s = new List<Solid>();
-            c = new List<LayoutCrate> { Crate(773f, 423f, true), Crate(827f, 423f, true), Crate(773f, 477f, true), Crate(827f, 477f, true) };
-            Pair(c, 800f, 130f, false); Pair(c, 800f, 770f, false);
-            Block(c, 362f, 212f); Block(c, 1238f, 212f); Block(c, 362f, 688f); Block(c, 1238f, 688f);
+            c = new List<LayoutCrate> { Crate(775f, 425f, true), Crate(825f, 425f, true), Crate(775f, 475f, true), Crate(825f, 475f, true) };
+            Pair(c, 800f, 125f, false); Pair(c, 800f, 775f, false);
+            Block(c, 350f, 200f); Block(c, 1250f, 200f); Block(c, 350f, 700f); Block(c, 1250f, 700f);
             list[4] = Make(LayoutId.Islands, "Islands", "Crate clusters that wear away as the wave goes on.", EdgeGates.Open, s, c);
 
             // Funnels: two gated walls near the sides; enemies only come in from the left and right.
-            s = new List<Solid> { VWall(260f, 0f, 240f), VWall(260f, 360f, 540f), VWall(260f, 660f, 900f),
-                VWall(1340f, 0f, 240f), VWall(1340f, 360f, 540f), VWall(1340f, 660f, 900f), Box(800f, 450f, 64f, 64f) };
+            s = new List<Solid> { VWall(275f, 0f, 200f), VWall(275f, 350f, 550f), VWall(275f, 700f, 900f),
+                VWall(1325f, 0f, 200f), VWall(1325f, 350f, 550f), VWall(1325f, 700f, 900f), Box(800f, 450f, 100f, 100f) };
             c = new List<LayoutCrate>();
-            Pair(c, 560f, 190f, false); Pair(c, 560f, 710f, false); Pair(c, 1040f, 190f, false); Pair(c, 1040f, 710f, false);
+            Pair(c, 550f, 175f, false); Pair(c, 550f, 725f, false); Pair(c, 1050f, 175f, false); Pair(c, 1050f, 725f, false);
             list[5] = Make(LayoutId.Funnels, "Funnels", "Two gated walls. Enemies stream in from the sides.", EdgeGates.Open, s, c, new[] { false, false, true, true });
 
             // Bunker: a walled fort with a door on each side and a hold point inside.
-            s = new List<Solid> { HWall(640f, 755f, 330f), HWall(845f, 960f, 330f), HWall(640f, 755f, 570f), HWall(845f, 960f, 570f),
-                VWall(640f, 330f, 405f), VWall(640f, 495f, 570f), VWall(960f, 330f, 405f), VWall(960f, 495f, 570f),
-                Box(330f, 200f, 64f, 64f), Box(1270f, 200f, 64f, 64f), Box(330f, 700f, 64f, 64f), Box(1270f, 700f, 64f, 64f) };
+            s = new List<Solid> { HWall(600f, 750f, 325f), HWall(850f, 1000f, 325f), HWall(600f, 750f, 575f), HWall(850f, 1000f, 575f),
+                VWall(625f, 350f, 400f), VWall(625f, 500f, 550f), VWall(975f, 350f, 400f), VWall(975f, 500f, 550f),
+                Box(325f, 175f, 50f, 50f), Box(1275f, 175f, 50f, 50f), Box(325f, 725f, 50f, 50f), Box(1275f, 725f, 50f, 50f) };
             c = new List<LayoutCrate>();
-            Pair(c, 480f, 450f, true); Pair(c, 1120f, 450f, true);
+            Pair(c, 475f, 450f, true); Pair(c, 1125f, 450f, true);
             list[6] = Make(LayoutId.Bunker, "Bunker", "A walled fort with four doors and a hold point.", EdgeGates.Centre, s, c);
             list[6].HasHold = true;
             list[6].HoldPos = new V2(800f, 450f);
-            list[6].HoldR = 46f;
+            list[6].HoldR = 50f;
             return list;
         }
     }

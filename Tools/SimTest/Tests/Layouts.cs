@@ -142,8 +142,8 @@ static partial class Program
 
         // Walls and pillars: you can't walk into them, and no shot gets through (yours or theirs).
         g.DevSetLayout(LayoutId.TwinLanes);
-        V2 pushed = g.PushOutOfSolids(new V2(500f, 300f), 10f);
-        Check(Math.Abs(pushed.Y - 300f) >= 22f - 0.1f, "a wall pushes you out (" + pushed.Y + ")");
+        V2 pushed = g.PushOutOfSolids(new V2(500f, 280f), 10f);  // (the top wall: y 250 to 300)
+        Check(pushed.Y <= 240f + 0.1f || pushed.Y >= 310f - 0.1f, "a wall pushes you out (" + pushed.Y + ")");
         var ring = Layouts.Get(LayoutId.PillarRing);
         g.DevSetLayout(LayoutId.PillarRing);
         var pil = ring.Solids.First(x => !x.Edge);  // (a square wall block now)

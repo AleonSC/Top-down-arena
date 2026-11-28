@@ -72,11 +72,11 @@ namespace Arena
         public const int KickWalls = 3, KickSteps = KickWalls + 1;
         public const float KickNear = 90f, FlagReach = 46f;
 
-        static readonly float[,] KickPanels = { { 0.3f, 0.52f, 16f, 120f }, { 0.55f, 0.24f, 130f, 16f }, { 0.76f, 0.62f, 16f, 120f } };  // centre x, y (of w, h), half width, half height
+        static readonly float[,] KickPanels = { { 0.3f, 0.52f, 25f, 125f }, { 0.55f, 0.24f, 125f, 25f }, { 0.76f, 0.62f, 25f, 125f } };  // centre x, y (of w, h), half width, half height
 
-        /// Kick panel i as a box (centre, half sizes) in an arena w x h.
+        /// Kick panel i as a box (centre, half sizes) in an arena w x h, moved onto the 50 px floor grid (RoomTraps.SnapCentre).
         public static Solid KickPanel(int i, float w, float h) =>
-            new Solid { Pos = new V2(KickPanels[i, 0] * w, KickPanels[i, 1] * h), HW = KickPanels[i, 2], HH = KickPanels[i, 3] };
+            new Solid { Pos = new V2(RoomTraps.SnapCentre(KickPanels[i, 0] * w, KickPanels[i, 2]), RoomTraps.SnapCentre(KickPanels[i, 1] * h, KickPanels[i, 3])), HW = KickPanels[i, 2], HH = KickPanels[i, 3] };
 
         /// The flag at the end.
         public static V2 KickFlag(float w, float h) => new V2(0.9f * w, 0.16f * h);

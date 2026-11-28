@@ -14,7 +14,7 @@ namespace Arena
         enum CellTool { Wall, Sleeper, Trap, WallTrap, Loot, Erase }
 
         static readonly string[] CellToolNames = { "WALL", "SLEEPER", "TRAP", "WALL TRAP", "LOOT", "ERASE" };
-        const int CellSnap = 10, CellMinWall = 20;
+        const int CellSnap = 25, CellWallSnap = 50, CellMinWall = 50;  // the floor grid (RoomTraps.Tile): wall corners on its lines, walls a square thick; spots on lines or square middles
 
         UiScreen screenCellEd;
         int cedIndex;
@@ -238,6 +238,7 @@ namespace Arena
         }
 
         static int CedSnapTo(float v) => Mathf.Clamp(Mathf.RoundToInt(v / CellSnap) * CellSnap, 0, CellLayouts.Cell);
+        static int CedWallSnapTo(float v) => Mathf.Clamp(Mathf.RoundToInt(v / CellWallSnap) * CellWallSnap, 0, CellLayouts.Cell);
 
         /// The wall a drag from `a` to `b` makes: at least 20 each way, inside the cell.
         static int[] CedWallOf(Vector2 a, Vector2 b)
@@ -506,7 +507,7 @@ namespace Arena
             var m = e.mousePosition;
             bool over = cell.Contains(m);
             float lx = (m.x - cell.x) / k, ly = (m.y - cell.y) / k;
-            int sx = CedSnapTo(lx), sy = CedSnapTo(ly);
+            int sx = CedSnapTo(lx), sy = CedSnapTo(ly), wx = CedWallSnapTo(lx), wy = CedWallSnapTo(ly);  // (spots, walls)
 
             if (e.type == EventType.MouseDown && over && GUI.enabled)
             {
@@ -531,7 +532,7 @@ namespace Arena
                     CedPush();  // grab a wall (hold Shift to draw a new one over it)
                     cedWallIdx = CedWallAt(l, lx, ly);
                     cedSel = cedWallIdx;
-                    cedWallGrab = new Vector2(sx, sy);
+                    cedWallGrab = new Vector2(wx, wy);
                     cedWallOrig = new Vector2(l.Walls[cedWallIdx][0], l.Walls[cedWallIdx][1]);
                 }
                 else if (e.button == 0)
@@ -540,7 +541,7 @@ namespace Arena
                     if (cedTool == CellTool.Wall)
                     {
                         cedDragging = true;
-                        cedFrom = cedTo = new Vector2(sx, sy);
+                        cedFrom = cedTo = new Vector2(wx, wy);
                     }
                     else
                     {
@@ -564,7 +565,7 @@ namespace Arena
             }
             else if (cedCorner >= 0 && (e.type == EventType.MouseDrag || e.type == EventType.MouseUp))
             {
-                l.Walls[cedSel] = CedWallOf(cedAnchor, new Vector2(sx, sy));
+                l.Walls[cedSel] = CedWallOf(cedAnchor, new Vector2(wx, wy));
                 if (e.type == EventType.MouseUp)
                     cedCorner = -1;
                 e.Use();
@@ -572,15 +573,15 @@ namespace Arena
             else if (cedWallIdx >= 0 && (e.type == EventType.MouseDrag || e.type == EventType.MouseUp))
             {
                 var wl = l.Walls[cedWallIdx];
-                wl[0] = Mathf.Clamp((int)(cedWallOrig.x + sx - cedWallGrab.x), 0, CellLayouts.Cell - wl[2]);
-                wl[1] = Mathf.Clamp((int)(cedWallOrig.y + sy - cedWallGrab.y), 0, CellLayouts.Cell - wl[3]);
+                wl[0] = Mathf.Clamp((int)(cedWallOrig.x + wx - cedWallGrab.x), 0, CellLayouts.Cell - wl[2]);
+                wl[1] = Mathf.Clamp((int)(cedWallOrig.y + wy - cedWallGrab.y), 0, CellLayouts.Cell - wl[3]);
                 if (e.type == EventType.MouseUp)
                     cedWallIdx = -1;
                 e.Use();
             }
             else if (cedDragging && (e.type == EventType.MouseDrag || e.type == EventType.MouseUp))
             {
-                cedTo = new Vector2(sx, sy);
+                cedTo = new Vector2(wx, wy);
                 if (e.type == EventType.MouseUp)
                 {
                     cedDragging = false;

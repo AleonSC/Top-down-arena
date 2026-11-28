@@ -13,7 +13,7 @@ namespace Arena
         enum HubTool { Wall, Crate, Heavy, Erase }
 
         static readonly string[] HubToolNames = { "WALL", "CRATE", "HEAVY CRATE", "ERASE" };
-        const int HubSnap = 10, HubMinWall = 24;
+        const int HubSnap = 50, HubMinWall = 50;  // the floor grid (RoomTraps.Tile): wall corners on its lines, a wall at least a square thick
         const float HubCrate = 40f;
 
         LayoutId hubId = LayoutId.PillarRing;
@@ -95,6 +95,7 @@ namespace Arena
         }
 
         static float HubSnapTo(float v, float max) => Mathf.Clamp(Mathf.Round(v / HubSnap) * HubSnap, 0f, max);
+        static float HubMiddleOf(float v, float max) => Mathf.Clamp(Mathf.Floor(v / HubSnap) * HubSnap + HubSnap / 2, HubSnap / 2, max - HubSnap / 2);  // a square's middle (crates)
 
         /// The part under a hub-local point: crates first, then pillars, then the newest box; kind 0 box, 1 crate, 2 pillar; false if none.
         static bool HubPartAt(HubLayoutData d, float x, float y, out int kind, out int idx)
@@ -212,7 +213,7 @@ namespace Arena
             var info = tc.Rest();
             Ui.Label(info, d.Boxes.Length + d.Pillars.Length + " walls, " + d.Crates.Length + " crates\n" + hubNote, 10, hubNote.Length > 0 ? CrtStyle.Head : Ui.Muted, TextAnchor.UpperLeft, false, true);
             Ui.Label(new Rect(body.x, canvas.yMax + 6f, canvas.width, 32f),
-                Layouts.Get(hubId).Blurb + "  Walls are 24 thick or more. The grey edge wall and its gates are fixed.", 10, Ui.Muted, TextAnchor.UpperLeft, false, true);
+                Layouts.Get(hubId).Blurb + "  Everything snaps to the 50 px floor grid; walls are a square thick or more. The grey edge wall and its gates are fixed.", 10, Ui.Muted, TextAnchor.UpperLeft, false, true);
         }
 
         void DrawHubCanvas(Rect cv, float k, HubLayoutData d)
@@ -290,7 +291,7 @@ namespace Arena
                     else
                     {
                         HubPush();
-                        d.Crates = HubAdd(d.Crates, new[] { sx, sy, hubTool == HubTool.Heavy ? 1f : 0f });
+                        d.Crates = HubAdd(d.Crates, new[] { HubMiddleOf(lx, Game.Width), HubMiddleOf(ly, Game.Height), hubTool == HubTool.Heavy ? 1f : 0f });
                     }
                 }
                 e.Use();
