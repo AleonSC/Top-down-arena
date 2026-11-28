@@ -695,6 +695,7 @@ namespace Arena
                 DrawFortressDome(p, t);
             DrawRiotGear(p, t);  // Riot Gear's plate (RiotGearLook.cs)
             DrawVanishSmoke(p, t);  // Vanish (NinjaLooks.cs)
+            DrawOniUnder(p, t);  // Oni Mask's flame aura and afterimages (OniMaskLook.cs)
             DrawCeremonialFloor(p, t);  // Ceremonial Armor's aura, rings and sigil (CeremonialArmorLook.cs)
             DrawSpiritBack(p, t);  // Spirit Avatar's ink body, seal, mask and the cleave's floor arc, under the model (SpiritAvatarLook.cs)
             if (p.CrSurgeT > 0f)  // a Chakra Surge: its ring and jade wake (ChakraReservesLook.cs)

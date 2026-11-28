@@ -196,6 +196,9 @@ namespace Arena
                 case AbilityId.MammothFall:  // DPS: Summoner, the third ultimate
                     CastMammothFall(p, target, cap);  // MammothFall.cs
                     break;
+                case AbilityId.BroodQueen:  // DPS: Summoner, the fourth ultimate
+                    CastBroodQueen(p, target, cap);  // BroodQueen.cs
+                    break;
                 case AbilityId.BloodRavager:  // DPS: Hemomancer, the second ultimate (BloodRavager.cs)
                     CastRavager(p, cap, castPower);
                     break;
@@ -231,6 +234,9 @@ namespace Arena
                     break;
                 case AbilityId.FiveShadowGong:  // Tank: Ninja, the fourth ultimate (FiveShadowGong.cs)
                     CastShadowGong(p, cap);
+                    break;
+                case AbilityId.OniMask:  // DPS: Ninja, the fourth ultimate (OniMask.cs)
+                    CastOniMask(p, cap);
                     break;
                 case AbilityId.HundredPaperCranes:  // DPS: Ninja, the third ultimate (HundredPaperCranes.cs)
                     CastCranes(p, cap);

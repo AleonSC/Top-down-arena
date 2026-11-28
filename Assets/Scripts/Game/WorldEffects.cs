@@ -100,6 +100,7 @@ namespace Arena
             d[(int)FxKind.VortexWisp] = (fx, f, t) => DrawVortexWispFx(fx);  // VortexLook.cs
             d[(int)FxKind.LivingBolt] = (fx, f, t) => DrawLivingBoltFx(fx);
             d[(int)FxKind.StaticBurst] = (fx, f, t) => DrawStaticBurstFx(fx);  // StaticBubbleLook.cs  // LivingBoltLook.cs
+            d[(int)FxKind.OniMask] = (fx, f, t) => DrawOniMaskFx(fx, t);  // OniMaskLook.cs
             d[(int)FxKind.PaperCrane] = (fx, f, t) => DrawPaperCraneFx(fx);  // HundredPaperCranesLook.cs
             d[(int)FxKind.PressurePoint] = (fx, f, t) => DrawPressurePointFx(fx);  // PressurePointPressLook.cs
             d[(int)FxKind.ForbiddenPath] = (fx, f, t) => DrawForbiddenFx(fx, t);  // ForbiddenPathLook.cs (the crescents, claw marks and black sun are the floor pass: DrawForbiddenFloor)
@@ -155,6 +156,7 @@ namespace Arena
             d[(int)FxKind.ShellPop] = (fx, f, t) => DrawShellPopFx(fx, f);
             d[(int)FxKind.MartyrCast] = (fx, f, t) => DrawMartyrFx(fx, f);  // MartyrLook.cs
             d[(int)FxKind.Drain] = (fx, f, t) => DrawDrainFx(fx, f);
+            d[(int)FxKind.BloodSeed] = (fx, f, t) => DrawBloodSeedFx(fx, f);  // BloodGardenLook.cs
             d[(int)FxKind.DebtCoin] = (fx, f, t) => DrawDebtCoinFx(fx, f);  // BloodDebtLook.cs
             d[(int)FxKind.DebtSettle] = (fx, f, t) => DrawDebtSettleFx(fx, f);  // BloodDebtLook.cs (its stamp is on the HUD)
             d[(int)FxKind.VeinRush] = (fx, f, t) => DrawVeinRushFx(fx, t);  // VeinRushLook.cs
