@@ -603,6 +603,7 @@ namespace Arena
             SyncBloodBoil(s, p);  // BloodBoil.cs
             SyncForbiddenPath(s, p);  // ForbiddenPath.cs
             SyncCranes(s, p);  // HundredPaperCranes.cs
+            SyncOniMask(s, p);  // OniMask.cs
             SyncAstralProjection(s, p);  // AstralProjection.cs
             SyncHeartbeat(s, p);  // Heartbeat.cs
             SyncSwarmHeart(s, p);  // HeartOfTheSwarm.cs
