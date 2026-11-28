@@ -267,7 +267,8 @@ static partial class Program
     {
         int port = nextPort++;
         int freeKey;
-        var plain = Content.RoleWithAFreeUltKey(out freeKey);  // (the host: a class with nothing on one of its keys)
+        var found = Content.FindFreeUltKey(out freeKey);  // (the host: a class with nothing on one of its keys, if any is left)
+        var plain = found ?? new RoleKit(Role.Tank, Kit.Soldier);
         var host = new Session();
         host.Host(port, "Host", plain.Role, 0, 0, plain.Kit);
         var client = new Session();
@@ -285,9 +286,12 @@ static partial class Program
         Check(settle(0), "a key with nothing on it (" + (free > 0 ? "key " + free : "past the row") + ") is clamped to the default");
         client.RequestUlt(1);
         settle(1);
-        host.RequestUlt(freeKey);
-        for (int i = 0; i < 20; i++) { Step(host, dt); Step(client, dt); }
-        Check(host.Lobby[1].Ult == 0 && client.Lobby[1].Ult == 0, "a pick on a key the class has nothing on keeps the default");
+        if (found != null)
+        {
+            host.RequestUlt(freeKey);
+            for (int i = 0; i < 20; i++) { Step(host, dt); Step(client, dt); }
+        }
+        Check(found == null ? Content.NoFreeUltKey() : host.Lobby[1].Ult == 0 && client.Lobby[1].Ult == 0, "a pick on a key the class has nothing on keeps the default");
         client.RequestKit(Kit.Knight);
         Check(settle(0), "changing class goes back to the default");
         client.RequestKit(Kit.Hemomancer);
