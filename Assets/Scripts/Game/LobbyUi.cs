@@ -730,6 +730,13 @@ namespace Arena
                 DrawFavorites(me, new Rect(x - 12f, r.y + 6f, w + 24f, r.height - 12f), calm);  // the Saved loadouts drawer (FavoritesUi.cs)
                 return;
             }
+            if (me.Role != Role.Wildcard || !self)
+                wildPickOpen = -1;
+            if (wildLook != 0 && wildPickOpen >= 0)
+            {
+                DrawWildPickWindow(me, tgt, self, new Rect(x - 12f, r.y + 6f, w + 24f, r.height - 12f), calm);  // the Wildcard's pick window (WildcardPicksMockup.cs)
+                return;
+            }
             const float gap = 6f;
             float quarter = (w - gap * 3f) / 4f;  // roles: 4 in a row
             LobbyKit.Heading(x, y, w, "Role", null, calm, 15);
