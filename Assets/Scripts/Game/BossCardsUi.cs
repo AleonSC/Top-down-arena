@@ -30,6 +30,24 @@ namespace Arena
             return new System.Collections.Generic.List<string> { "Your hand  " + held + " → " + (held + 1) + " / " + Expansion.HandMax };
         }
 
+        /// The biggest name size (30 down to 16) whose line fits the card.
+        static int BossCardNameSize(string name, float width)
+        {
+            int size = 30;
+            while (size > 16 && CrtUi.TitleWidth(name, size) > width)
+                size--;
+            return size;
+        }
+
+        /// The biggest blurb size (13 down to 10) whose wrapped lines fit above the card's strip.
+        static int BossCardBlurbSize(string desc, Rect r)
+        {
+            int size = 13;
+            while (size > 10 && Ui.TextHeight(desc, size, r.width) > r.height)
+                size--;
+            return size;
+        }
+
         void DrawBossCardTrophy(Player me, int index, int code, Rect slot, bool selected, bool behind, bool hover, float now)
         {
             if (me.OfferStart && IntroElapsed < IntroRevealed(me, index))
@@ -56,9 +74,10 @@ namespace Arena
 
             string name = BossCards.IsKit(code) ? Paths.Get(BossCards.FloorOf(code)).Name : Expansion.CardName(BossCards.CardOf(code));
             Color nameLow = selected ? Color.Lerp(rc, Color.white, 0.25f) : new Color(0.78f, 0.83f, 0.94f);
-            CrtUi.Title(new Rect(r.x + 8f, r.y + 148f, r.width - 16f, 36f), name, name.Length > 14 ? 25 : 30, Color.Lerp(nameLow, Color.white, 0.6f), TextAnchor.MiddleCenter, fxReduced);
+            CrtUi.Title(new Rect(r.x + 8f, r.y + 148f, r.width - 16f, 36f), name, BossCardNameSize(name, r.width - 28f), Color.Lerp(nameLow, Color.white, 0.6f), TextAnchor.MiddleCenter, fxReduced);
             string desc = BossCards.Blurb(code);
-            Ui.Label(new Rect(r.x + 14f, r.y + 188f, r.width - 28f, 90f), desc, desc.Length > 110 ? 12 : 13, selected ? Color.white : CrtStyle.Body, TextAnchor.UpperCenter, false, true);
+            var descRect = new Rect(r.x + 14f, r.y + 188f, r.width - 28f, r.yMax - 104f - (r.y + 188f));  // down to the strip
+            Ui.Label(descRect, desc, BossCardBlurbSize(desc, descRect), selected ? Color.white : CrtStyle.Body, TextAnchor.UpperCenter, false, true);
 
             // Where it goes, or why it can't be taken.
             if (usable)
