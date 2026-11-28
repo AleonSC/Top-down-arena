@@ -1,0 +1,278 @@
+<title>Dancing Blades Rework</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Inter:wght@400;500&display=swap">
+<style>
+/* Layout: a control strip over a 2x2 grid of looping arena canvases, one per dance style. Single dark look (the game's). */
+:root {
+  --bg: #0d0b16; --panel: #16132a; --line: #2c2650; --fg: #e9e4ff; --dim: #9a91c4;
+  --gold: #ffd973; --violet: #b88cff;
+  --display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --body: "Inter", system-ui, sans-serif;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--body); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 24px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 16px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: 1.6rem; margin: 0; letter-spacing: .02em; text-wrap: balance; }
+h1 span { color: var(--gold); }
+.sub { color: var(--dim); margin: 0; font-size: .9rem; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bar .lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); margin-right: 4px; }
+button { font: 500 .85rem var(--body); color: var(--fg); background: var(--panel); border: 1px solid var(--line);
+  padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+button[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
+button:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+.sep { width: 1px; height: 22px; background: var(--line); margin: 0 6px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 500px), 1fr)); gap: 14px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; min-width: 0; }
+.card.cur { opacity: .85; }
+.head { display: flex; gap: 10px; align-items: baseline; padding: 10px 14px 4px; }
+.tag { font: 700 .8rem var(--display); color: var(--bg); background: var(--gold); padding: 1px 7px; border-radius: 3px; }
+.cur .tag { background: var(--dim); }
+.head h2 { font: 700 1.05rem var(--display); margin: 0; }
+.card p { margin: 0; padding: 0 14px 10px; color: var(--dim); font-size: .85rem; }
+canvas { display: block; width: 100%; aspect-ratio: 520 / 300; max-width: 100%; }
+.note { color: var(--dim); font-size: .78rem; margin: 0; }
+</style>
+
+<div class="wrap">
+  <div>
+    <h1>Dancing Blades <span>· dance rework</span></h1>
+    <p class="sub">Each blade flies out, cuts 4 times in 1 s around its enemy (42 px), then flies home. Same timing as now; only the motion changes.</p>
+  </div>
+  <div class="bar" role="group" aria-label="Playback">
+    <span class="lbl">Speed</span>
+    <button id="s1" data-speed="1" aria-pressed="true">1×</button>
+    <button id="s2" data-speed="0.5">0.5×</button>
+    <button id="s3" data-speed="0.25">0.25×</button>
+    <button id="pause">Pause</button>
+    <span class="sep"></span>
+    <button id="path" aria-pressed="false">Show path</button>
+  </div>
+  <div class="grid">
+    <div class="card cur"><div class="head"><span class="tag">NOW</span><h2>Spin in place</h2></div>
+      <p>Today: the blade parks on the enemy and spins.</p><canvas data-style="current"></canvas></div>
+    <div class="card"><div class="head"><span class="tag">A</span><h2>Pendulum</h2></div>
+      <p>Wide sword swings back and forth through the enemy, like an invisible hand wielding it. Crescent trails.</p><canvas data-style="pendulum"></canvas></div>
+    <div class="card"><div class="head"><span class="tag">B</span><h2>Crossing Cuts</h2></div>
+      <p>Fast straight dashes through the enemy, a wrist-flip at each end; four cuts draw a star. Afterimages.</p><canvas data-style="crossing"></canvas></div>
+    <div class="card"><div class="head"><span class="tag">C</span><h2>Petal Waltz</h2></div>
+      <p>One unbroken looping flight: four petals, each loop slicing through the middle. Ribbon trail.</p><canvas data-style="rose"></canvas></div>
+  </div>
+  <p class="note">Approximate: drawn only with flat lines, triangles, circles and arcs (what Ui.cs can draw, no blur or glow), blade art copied from DrawArcBlade.</p>
+</div>
+
+<script>
+(() => {
+const TAU = Math.PI * 2, W = 520, H = 300, R = 42, STEP = 1 / 240, PERIOD = 2.6;
+const FLY = 0.34, DANCE = 1.0, BACK = 0.32, TRAIL = 0.14;
+const C = { gold: [255, 217, 115], violet: [184, 140, 255], ink: [41, 31, 82], pale: [237, 230, 255], grip: [107, 71, 41], white: [255, 255, 255] };
+const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${Math.max(0, Math.min(1, a))})`;
+const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+const V = a => [Math.cos(a), Math.sin(a)];
+const add = (a, b) => [a[0] + b[0], a[1] + b[1]], sub = (a, b) => [a[0] - b[0], a[1] - b[1]], mul = (a, s) => [a[0] * s, a[1] * s];
+const len = a => Math.hypot(a[0], a[1]);
+const wrap = a => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;
+const ease = s => s < .5 ? 4 * s * s * s : 1 - Math.pow(-2 * s + 2, 3) / 2;
+const bez2 = (a, c, b, t) => add(add(mul(a, (1 - t) * (1 - t)), mul(c, 2 * t * (1 - t))), mul(b, t * t));
+const bez3 = (a, b, c, d, t) => { const u = 1 - t; return add(add(mul(a, u * u * u), mul(b, 3 * u * u * t)), add(mul(c, 3 * u * t * t), mul(d, t * t * t))); };
+const bez3d = (a, b, c, d, t) => { const u = 1 - t; return add(add(mul(sub(b, a), 3 * u * u), mul(sub(c, b), 6 * u * t)), mul(sub(d, c), 3 * t * t)); };
+
+const PLAYER = [92, 160];
+const ENEMIES = [[392, 88], [440, 168], [388, 240]];
+
+// --- the dances: u in [0,1] over the 1 s dance; return position and heading --------------------------
+const DANCES = {
+  current: { hits: [.25, .5, .75, 1], rate: 60,
+    at(u, G, d0) { return { p: G, h: d0 + 14 * u }; } },
+  pendulum: { hits: [.125, .375, .625, .875], rate: 60, trailIn: 2,
+    at(u, G, d0) {
+      const k = Math.min(3, Math.floor(u * 4)), s = u * 4 - k, e = ease(s), dir = k % 2 ? -1 : 1;
+      const c = d0 + 0.45 * Math.sin(u * TAU), hd = 26 - 7 * Math.sin(Math.PI * s);
+      const hand = sub(G, mul(V(c), hd)), th = c + dir * (-1.25 + 2.5 * e);
+      return { p: add(hand, mul(V(th), 20)), h: th };
+    } },
+  crossing: { hits: [.125, .375, .625, .875], rate: 30, trailIn: 10, ghosts: true,
+    at(u, G, d0) {
+      const k = Math.min(3, Math.floor(u * 4)), s = u * 4 - k, step = Math.PI - 0.55;
+      const a0 = d0 + Math.PI / 2 + 0.3 + k * step, a1 = a0 + step;
+      const S = add(G, mul(V(a0), R)), E = add(G, mul(V(a1), R)), ch = sub(E, S);
+      const n = mul([-ch[1], ch[0]], (k % 2 ? 1 : -1) * 10 / len(ch));
+      const c1 = add(add(S, mul(ch, .33)), n), c2 = add(add(S, mul(ch, .67)), n), t = ease(s);
+      const d = bez3d(S, c1, c2, E, t);
+      return { p: bez3(S, c1, c2, E, t), h: Math.atan2(d[1], d[0]) };
+    } },
+  rose: { hits: [.25, .5, .75, 1], rate: 60, trailIn: 0, ribbon: true,
+    at(u, G, d0) {
+      const f = TAU * u, r = R * Math.sin(2 * f), dr = 2 * R * Math.cos(2 * f);
+      const lx = r * Math.cos(f), ly = r * Math.sin(f), dx = dr * Math.cos(f) - r * Math.sin(f), dy = dr * Math.sin(f) + r * Math.cos(f);
+      const cs = Math.cos(d0), sn = Math.sin(d0);
+      return { p: [G[0] + lx * cs - ly * sn, G[1] + lx * sn + ly * cs], h: d0 + Math.atan2(dy, dx) };
+    } },
+};
+
+// --- playback controls --------------------------------------------------------------------------------
+let speed = 1, paused = false, showPath = false;
+document.querySelectorAll("[data-speed]").forEach(b => b.addEventListener("click", () => {
+  speed = +b.dataset.speed;
+  document.querySelectorAll("[data-speed]").forEach(x => x.setAttribute("aria-pressed", x === b));
+}));
+const pb = document.getElementById("pause");
+pb.addEventListener("click", () => { paused = !paused; pb.textContent = paused ? "Play" : "Pause"; pb.setAttribute("aria-pressed", paused); });
+const pathB = document.getElementById("path");
+pathB.addEventListener("click", () => { showPath = !showPath; pathB.setAttribute("aria-pressed", showPath); });
+if (matchMedia("(prefers-reduced-motion: reduce)").matches) document.getElementById("s3").click();
+
+// --- one arena per canvas ------------------------------------------------------------------------------
+class Arena {
+  constructor(cv) {
+    this.cv = cv; this.ctx = cv.getContext("2d"); this.d = DANCES[cv.dataset.style]; this.style = cv.dataset.style;
+    this.T = 0.75; this.acc = 0; this.sparks = []; this.motes = []; this.flash = [0, 0, 0];
+    this.blades = [0, 1, 2].map(k => ({ k, aim: 0, hist: [], lastU: -1 }));
+    new ResizeObserver(() => this.resize()).observe(cv); this.resize();
+    for (let i = 0; i < 60; i++) this.step();  // warm the trails so the first frame is mid-action
+  }
+  resize() { const r = this.cv.getBoundingClientRect(), dpr = devicePixelRatio || 1; this.cv.width = Math.round(r.width * dpr); this.cv.height = Math.round(r.width * H / W * dpr); }
+  enemyAt(k) { const e = ENEMIES[k]; return [e[0] + Math.sin(this.T * 1.3 + k * 2) * 4, e[1] + Math.cos(this.T * 1.1 + k) * 3]; }
+  hoverAt(k, T) { return add(add(PLAYER, mul(V(Math.PI + (k - 1) * 0.8), 34)), [0, Math.sin(T * 2.2 + k * 1.7) * 3]); }
+  d0(k) { const g = sub(this.enemyAt(k), PLAYER); return Math.atan2(g[1], g[0]); }
+  state(b, T) {  // where blade b is at time T: {p, h (heading or null for velocity), phase, u}
+    const k = b.k, G = this.enemyAt(k), d0 = this.d0(k);
+    const local = ((T - k * 0.3) % PERIOD + PERIOD) % PERIOD;
+    const side = mul([-Math.sin(d0), Math.cos(d0)], (k - 1) * 46 + 18);
+    if (local < FLY) {
+      const s = local / FLY, e = 1 - Math.pow(1 - s, 2), A = this.hoverAt(k, T), B = this.d.at(0, G, d0).p;
+      return { p: bez2(A, add(mul(add(A, B), .5), side), B, e), h: null, phase: "fly" };
+    }
+    if (local < FLY + DANCE) { const u = (local - FLY) / DANCE, r = this.d.at(u, G, d0); return { p: r.p, h: r.h, phase: "dance", u }; }
+    if (local < FLY + DANCE + BACK) {
+      const s = (local - FLY - DANCE) / BACK, e = ease(s), A = this.d.at(1, G, d0).p, B = this.hoverAt(k, T);
+      return { p: bez2(A, sub(mul(add(A, B), .5), side), B, e), h: null, phase: "back" };
+    }
+    return { p: this.hoverAt(k, T), h: -0.25 + (k - 1) * 0.18, phase: "hover" };
+  }
+  step() {
+    const T = this.T + STEP;
+    for (const b of this.blades) {
+      const st = this.state(b, T);
+      let h = st.h;
+      if (h === null) { const n = this.state(b, T + 0.004).p; h = Math.atan2(n[1] - st.p[1], n[0] - st.p[0]); }
+      const rate = st.phase === "dance" ? this.d.rate : 22;
+      b.aim += wrap(h - b.aim) * (1 - Math.exp(-rate * STEP));
+      const f = V(b.aim), prev = b.p || st.p, spd = len(sub(st.p, prev)) / STEP;
+      b.p = st.p; b.phase = st.phase; b.spd = spd;
+      if (st.phase === "dance") {
+        for (const hu of this.d.hits) if (b.lastU < hu && st.u >= hu) this.hit(b.k, b.aim);
+        b.lastU = st.u;
+      } else b.lastU = -1;
+      const trailing = st.phase !== "hover" && !(this.style === "current" && st.phase === "dance");
+      if (trailing) b.hist.push({ t: T, tip: add(st.p, mul(f, 22)), mid: add(st.p, mul(f, this.d.trailIn ?? 4)), p: st.p, h: b.aim });
+      while (b.hist.length && T - b.hist[0].t > TRAIL) b.hist.shift();
+      if (st.phase === "dance" && spd > 320 && Math.random() < 0.12) {
+        const tip = add(st.p, mul(f, 20));
+        this.motes.push({ p: tip, v: mul(V(Math.random() * TAU), 20 + Math.random() * 30), t: 0, life: .35 + Math.random() * .2 });
+      }
+    }
+    for (const s of this.sparks) s.t += STEP;
+    this.sparks = this.sparks.filter(s => s.t < 0.3);
+    for (const m of this.motes) { m.t += STEP; m.p = add(m.p, mul(m.v, STEP)); m.v = mul(m.v, 0.985); }
+    this.motes = this.motes.filter(m => m.t < m.life);
+    for (let i = 0; i < 3; i++) this.flash[i] = Math.max(0, this.flash[i] - STEP);
+    this.T = T;
+  }
+  hit(k, dir) { this.sparks.push({ k, dir, t: 0, seed: Math.random() * 10 }); this.flash[k] = 0.1; }
+  frame(dt) {
+    if (!paused) { this.acc += Math.min(dt, 0.05) * speed; while (this.acc >= STEP) { this.step(); this.acc -= STEP; } }
+    this.draw();
+  }
+
+  // --- drawing (flat shapes only) -----------------------------------------------------------------------
+  line(a, b, w, col) { const x = this.ctx; x.strokeStyle = col; x.lineWidth = w; x.beginPath(); x.moveTo(a[0], a[1]); x.lineTo(b[0], b[1]); x.stroke(); }
+  tri(a, b, c, col) { const x = this.ctx; x.fillStyle = col; x.beginPath(); x.moveTo(a[0], a[1]); x.lineTo(b[0], b[1]); x.lineTo(c[0], c[1]); x.fill(); }
+  quad(a, b, c, d, col) { const x = this.ctx; x.fillStyle = col; x.beginPath(); x.moveTo(a[0], a[1]); x.lineTo(b[0], b[1]); x.lineTo(c[0], c[1]); x.lineTo(d[0], d[1]); x.fill(); }
+  circle(p, r, col) { const x = this.ctx; x.fillStyle = col; x.beginPath(); x.arc(p[0], p[1], r, 0, TAU); x.fill(); }
+  arc(p, r, w, col, a0 = 0, sw = TAU) { const x = this.ctx; x.strokeStyle = col; x.lineWidth = w; x.beginPath(); x.arc(p[0], p[1], r, a0, a0 + sw); x.stroke(); }
+  blade(p, ang, a = 1) {  // DrawArcBlade, line for line
+    const f = V(ang), s = [-f[1], f[0]], tip = add(p, mul(f, 22)), guard = sub(p, mul(f, 6));
+    this.line(guard, tip, 7, rgba(C.gold, .14 * a));
+    this.tri(add(tip, mul(f, 2)), add(guard, mul(s, 4.6)), sub(guard, mul(s, 4.6)), rgba(C.ink, a));
+    this.tri(tip, add(guard, mul(s, 3.3)), sub(guard, mul(s, 3.3)), rgba(C.pale, a));
+    this.line(add(p, mul(f, 16)), guard, 1.2, rgba(C.violet, .85 * a));
+    this.line(add(guard, mul(s, 7.5)), sub(guard, mul(s, 7.5)), 3.2, rgba(C.gold, a));
+    this.line(guard, sub(guard, mul(f, 8)), 3, rgba(C.grip, a));
+    this.circle(sub(guard, mul(f, 9.5)), 2.4, rgba(C.gold, a));
+  }
+  trail(b) {
+    const h = b.hist, n = h.length; if (n < 2) return;
+    const now = this.T;
+    for (let i = 1; i < n; i++) {
+      const age = (now - h[i].t) / TRAIL, a = Math.pow(1 - age, 1.6), col = mix(C.pale, C.violet, Math.min(1, age * 1.4));
+      if (this.d.ribbon && b.phase === "dance") {  // a ribbon either side of the path
+        const d = sub(h[i].p, h[i - 1].p), L = len(d) || 1, nrm = mul([-d[1] / L, d[0] / L], 5 * (1 - age));
+        const q0 = add(h[i - 1].p, mul(V(h[i - 1].h), 8)), q1 = add(h[i].p, mul(V(h[i].h), 8));
+        this.quad(add(q0, nrm), add(q1, nrm), sub(q1, nrm), sub(q0, nrm), rgba(col, a * .5));
+      } else this.quad(h[i - 1].tip, h[i].tip, h[i].mid, h[i - 1].mid, rgba(col, a * .45));
+    }
+    for (let i = 1; i < n; i++) {  // the bright edge
+      const age = (now - h[i].t) / TRAIL, a = Math.pow(1 - age, 2);
+      this.line(this.d.ribbon && b.phase === "dance" ? add(h[i - 1].p, mul(V(h[i - 1].h), 8)) : h[i - 1].tip,
+                this.d.ribbon && b.phase === "dance" ? add(h[i].p, mul(V(h[i].h), 8)) : h[i].tip, 1.6 * (1 - age) + .4, rgba(C.gold, a * .9));
+    }
+    if (this.d.ghosts && b.phase === "dance" && b.spd > 250)
+      for (const [age, a] of [[.03, .3], [.06, .18], [.09, .09]]) {
+        const g = h.find(e => now - e.t <= age); if (g) this.blade(g.p, g.h, a);
+      }
+  }
+  draw() {
+    const x = this.ctx, sc = this.cv.width / W;
+    x.setTransform(sc, 0, 0, sc, 0, 0); x.lineCap = "butt";
+    x.fillStyle = "#14112a"; x.fillRect(0, 0, W, H);
+    x.strokeStyle = "rgba(120,100,200,0.07)"; x.lineWidth = 1;
+    for (let gx = 0; gx <= W; gx += 40) { x.beginPath(); x.moveTo(gx, 0); x.lineTo(gx, H); x.stroke(); }
+    for (let gy = 0; gy <= H; gy += 40) { x.beginPath(); x.moveTo(0, gy); x.lineTo(W, gy); x.stroke(); }
+
+    if (showPath) for (let k = 0; k < 3; k++) {
+      const G = this.enemyAt(k), d0 = this.d0(k);
+      this.arc(G, R, 1, "rgba(255,217,115,0.18)");
+      for (let i = 0; i <= 160; i++) { const p = this.d.at(i / 160, G, d0).p; this.circle(p, 1, "rgba(184,140,255,0.55)"); }
+    }
+    for (let k = 0; k < 3; k++) {  // enemies
+      const G = this.enemyAt(k), fl = this.flash[k] / 0.1;
+      this.circle(add(G, [0, 4]), 14, "rgba(0,0,0,0.35)");
+      this.circle(G, 14, rgba(mix([150, 40, 60], C.white, fl * .8), 1));
+      this.circle(G, 10, rgba(mix([220, 70, 85], C.white, fl), 1));
+      this.circle(add(G, [-3, -3]), 3, "rgba(255,200,200,0.5)");
+    }
+    for (const b of this.blades) {  // current style's spin ring
+      if (this.style === "current" && b.phase === "dance") {
+        this.circle(b.p, R, rgba(C.gold, .06));
+        for (let k = 0; k < 2; k++) this.arc(b.p, R - 6 - k * 8, 2.2 - k * .8, rgba(C.gold, .55 - k * .2), b.aim - 1.6 + k * Math.PI, 1.4);
+      }
+    }
+    for (const b of this.blades) this.trail(b);
+    for (const s of this.sparks) {  // hit: a white ring, sparks along the cut, a number
+      const G = this.enemyAt(s.k), q = s.t / 0.3;
+      this.arc(G, 8 + 18 * q, 2 * (1 - q), rgba(C.white, (1 - q) * .8));
+      for (let i = 0; i < 6; i++) {
+        const a = s.dir + (i % 2 ? 1 : -1) * (0.25 + 0.18 * i) + Math.sin(s.seed + i) * .2, d = 8 + 26 * Math.sqrt(q), l = 7 * (1 - q);
+        this.line(add(G, mul(V(a), d)), add(G, mul(V(a), d + l)), 1.6, rgba(C.gold, 1 - q));
+      }
+      x.font = "700 11px 'Chakra Petch', sans-serif"; x.fillStyle = rgba(C.gold, 1 - q * q);
+      x.fillText("10", G[0] + 12 + (s.seed % 1) * 6, G[1] - 14 - 14 * q);
+    }
+    for (const m of this.motes) this.circle(m.p, 1.6 * (1 - m.t / m.life) + .4, rgba(C.gold, 1 - m.t / m.life));
+    // the Arcanist
+    this.circle(add(PLAYER, [0, 5]), 15, "rgba(0,0,0,0.35)");
+    this.circle(PLAYER, 15, rgba(C.ink, 1)); this.arc(PLAYER, 15, 2, rgba(C.violet, .9));
+    this.circle(add(PLAYER, [5, -2]), 4, rgba(C.pale, .9));
+    for (const b of this.blades) this.blade(b.p, b.aim);
+  }
+}
+
+const arenas = [...document.querySelectorAll("canvas[data-style]")].map(c => new Arena(c));
+let last = performance.now();
+function loop(now) { const dt = (now - last) / 1000; last = now; for (const a of arenas) a.frame(dt); requestAnimationFrame(loop); }
+requestAnimationFrame(loop);
+})();
+</script>

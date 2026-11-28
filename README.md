@@ -267,7 +267,8 @@ The **DPS** Arcanist:
 
 - **Dancing Blades** (weapon): three enchanted swords hover behind you. Fire launches the one most in front at your cursor
   (up to 380 px; it homes onto the enemy nearest the cursor, within 70 px): it cuts what it passes (5), then dances on the
-  spot for 1 s, slashing everything within 42 px four times (10 each), and flies back. **Alt** calls every blade home at
+  spot for 1 s, slashing everything within 42 px four times (10 each; it dashes back and forth through the enemy in a star
+  of crossing cuts, one through the middle on each slash), and flies back. **Alt** calls every blade home at
   once, cutting on the way. Each extra projectile: +1 blade.
 - **Telekinetic Crush** (1st ability, 9 s): lifts the enemies at your cursor (120 px, up to 400 px away) and pulls them
   together for half a second (bosses aren't lifted), then slams: 40 damage, +12 for each other enemy caught (up to +60), and a
