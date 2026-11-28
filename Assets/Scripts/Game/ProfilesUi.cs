@@ -385,10 +385,7 @@ namespace Arena
             {
                 var st = new Rect(lb.xMax - 66f * k, lb.yMax - 21f * k, 60f * k, 15f * k);
                 var red = new Color(0.7f, 0.15f, 0.12f);
-                Ui.Fill(new Rect(st.x, st.y, st.width, 1.5f), red);
-                Ui.Fill(new Rect(st.x, st.yMax - 1.5f, st.width, 1.5f), red);
-                Ui.Fill(new Rect(st.x, st.y, 1.5f, st.height), red);
-                Ui.Fill(new Rect(st.xMax - 1.5f, st.y, 1.5f, st.height), red);
+                CrtKit.Frame(st, 1.5f, red);
                 Ui.Label(st, "LAST USED", Mathf.Max(8, Mathf.RoundToInt(9f * k)), red, TextAnchor.MiddleCenter, true);
             }
         }
