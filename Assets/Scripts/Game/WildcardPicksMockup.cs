@@ -2,21 +2,18 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Two candidate redesigns of the Wildcard's gear picker (LobbyUi.DrawWildcardPicks), drawn with the real widgets for
-    /// the owner to choose from: `wildLook` 1 = slot first (pick a slot, then any class's options for it), 2 = class first
-    /// (the other roles' rows, with the ability keys' own E / 1 slot toggles). 0 keeps today's wheel. Preview: WILDCARD=1 WILDLOOK=1|2.
+    /// A candidate redesign of the Wildcard's gear picker (LobbyUi.DrawWildcardPicks), drawn with the real widgets for the
+    /// owner to judge: `wildLook` 1 = four slot cards and one scrolling row of options for the open slot. 0 keeps today's
+    /// wheel. Preview: WILDCARD=1 WILDLOOK=1 [WILDSLOT=0-3].
     public partial class ArenaApp
     {
-        int wildLook;     // 0 today's wheel, 1 slot first, 2 class first (mockups)
-        int wildSlot;     // look 1: the slot being edited (0 weapon, 1 1st ability, 2 2nd ability, 3 ultimate)
+        int wildLook;     // 0 today's wheel, 1 the slots mockup
+        int wildSlot;     // the slots mockup: the slot open (0 weapon, 1 1st ability, 2 2nd ability, 3 ultimate)
 
         /// Fills x, y .. yEnd (the Gear and Ultimate rows' space) with the picked look.
         void DrawWildMock(LobbyEntry me, Session tgt, bool self, float x, float y, float w, float yEnd)
         {
-            if (wildLook == 1)
-                DrawWildSlotFirst(me, tgt, self, x, y, w, yEnd);
-            else
-                DrawWildClassFirst(me, tgt, self, x, y, w, yEnd);
+            DrawWildSlots(me, tgt, self, x, y, w, yEnd);
         }
 
         // ---- shared ----
@@ -75,30 +72,31 @@ namespace Arena
             detailSel = 2;
         }
 
-        // ---- look 1: slot first ----
+        // ---- look 3: slots + one row ----
 
-        /// Four slot keys (weapon, 1st, 2nd, ultimate), each with its class's icon; the lit one is being edited. Under them,
-        /// every class's options for that slot: one row a class, its icon and name on the left.
-        void DrawWildSlotFirst(LobbyEntry me, Session tgt, bool self, float x, float y, float w, float yEnd)
+        /// Four slot cards (what you have: class icon, name, key); click one to open it. Under them one scrolling row of every
+        /// class's options for that slot (class icon over the name), so more gear only makes the row longer.
+        void DrawWildSlots(LobbyEntry me, Session tgt, bool self, float x, float y, float w, float yEnd)
         {
             bool calm = fxReduced;
             var ev = Event.current;
             var wild = (Defs.Get(Role.Wildcard).Color).ToColor();
             int second = Defs.WildSecond(me.Wild);
-            LobbyKit.Heading(x, y, w, "Loadout", "Click a slot, then pick from any class", calm, 15);
+            LobbyKit.Heading(x, y, w, "Gear", null, calm, 15);
             y += CarKeyY;
 
-            // The slots.
-            const float slotH = 38f, gap = 6f;
+            // The four slots.
+            const float gap = 6f;
+            float rowH = 62f, cardH = yEnd - y - rowH - 16f;
             float sw = (w - 3f * gap) / 4f;
-            int ns = 12;  // one size for the four names
+            int ns = 13;
             for (int i = 0; i < 4; i++)
-                ns = Mathf.Min(ns, LobbyKit.FitSize(ChipName(me, i, second).ToUpperInvariant(), 12, 8, sw - 33f));
+                ns = Mathf.Min(ns, LobbyKit.FitSize(ChipName(me, i, second).ToUpperInvariant(), 13, 8, sw - 12f));
             for (int i = 0; i < 4; i++)
             {
-                var b = new Rect(x + i * (sw + gap), y, sw, slotH);
+                var b = new Rect(x + i * (sw + gap), y, sw, cardH);
                 bool on = wildSlot == i;
-                if (DkKey(b, "", on, calm, accent: on ? wild : (Color?)null))
+                if (DkKey(b, "", on, calm, accent: wild))
                 {
                     wildSlot = i;
                     detailSel = i == 0 ? 0 : i == 3 ? 2 : 1;
@@ -106,204 +104,68 @@ namespace Arena
                 }
                 bool hover = GUI.enabled && b.Contains(ev.mousePosition);
                 Color tc = CrtKit.SoftText(on ? wild : CrtStyle.KeyColor(null, false), on || hover);
-                const float isz = 16f;
-                Ui.Icon(new Rect(b.x + 6f, b.center.y - isz / 2f, isz, isz), PixelArt.Get(Classes.Get((Kit)WildKitOf(me, i, second)).Icon), Color.white);
-                float tx = b.x + 6f + isz + 6f, tw = b.xMax - 5f - tx;
-                string name = ChipName(me, i, second).ToUpperInvariant();
-                CrtUi.Text(new Rect(tx, b.center.y - 16f, tw, 18f), LobbyKit.Truncate(name, ns, tw), ns, tc, TextAnchor.MiddleLeft, true, calm);
-                Ui.Label(new Rect(tx, b.center.y + 1f, tw, 15f), WildSlotSub(i), 9, tc.WithAlpha(0.75f), TextAnchor.MiddleLeft, false);
-                if (on)  // a notch under the lit slot, pointing at the list it fills
+                string key = i == 0 ? "" : WildSlotSub(i).Substring(WildSlotSub(i).IndexOf('·') + 2);
+                Ui.Label(new Rect(b.x + 7f, b.y + 5f, b.width - 14f, 14f), i == 0 ? "WEAPON" : i == 3 ? "ULTIMATE" : "ABILITY", 9, tc.WithAlpha(0.7f), TextAnchor.MiddleLeft, true);
+                if (key.Length > 0)  // its keybind, top right
                 {
-                    float nx = b.center.x;
+                    var kr = new Rect(b.xMax - 20f, b.y + 5f, 14f, 14f);
+                    CrtKit.Frame(kr, 1f, tc.WithAlpha(0.6f));
+                    Ui.Label(kr, key, 9, tc, TextAnchor.MiddleCenter, true);
+                }
+                float isz = Mathf.Min(48f, cardH - 60f);
+                Ui.Icon(new Rect(b.center.x - isz / 2f, b.y + (cardH - isz) / 2f - 4f, isz, isz), PixelArt.Get(Classes.Get((Kit)WildKitOf(me, i, second)).Icon), Color.white);
+                CrtUi.Text(new Rect(b.x + 4f, b.yMax - 24f, b.width - 8f, 18f), LobbyKit.Truncate(ChipName(me, i, second).ToUpperInvariant(), ns, b.width - 8f), ns, tc, TextAnchor.MiddleCenter, true, calm);
+                if (on)  // a notch under the open slot, pointing at the row
+                {
                     for (int k = 0; k < 5; k++)
-                        Ui.Fill(new Rect(nx - 5f + k, b.yMax + 2f + k, 10f - 2f * k, 1f), wild);
+                        Ui.Fill(new Rect(b.center.x - 5f + k, b.yMax + 3f + k, 10f - 2f * k, 1f), wild);
                 }
             }
-            y += slotH + 9f;
+            y += cardH + 16f;
 
-            // The list: one row a class.
-            int classes = Defs.KitCount;
-            float rowGap = 3f, rh = Mathf.Min(34f, (yEnd - y - (classes - 1) * rowGap) / classes);
-            const float labW = 96f;
-            int cols = wildSlot == 0 || wildSlot == 3 ? 4 : 3;
-            float kx = x + labW, kw = (w - labW - (cols - 1) * 4f) / cols;
-            for (int k = 0; k < classes; k++)
+            // The row: every class's options for the open slot, in class order.
+            var kits = new System.Collections.Generic.List<int>();
+            var vals = new System.Collections.Generic.List<int>();
+            for (int k = 0; k < Defs.KitCount; k++)
             {
-                float ry = y + k * (rh + rowGap);
-                bool mine = WildKitOf(me, wildSlot, second) == k;
-                Ui.Fill(new Rect(x, ry, w, rh), (mine ? wild : CrtStyle.Ink).WithAlpha(mine ? 0.07f : 0.025f));
-                const float isz = 16f;
-                Ui.Icon(new Rect(x + 6f, ry + (rh - isz) / 2f, isz, isz), PixelArt.Get(Classes.Get((Kit)k).Icon), mine ? Color.white : new Color(0.75f, 0.78f, 0.88f, 1f));
-                Ui.Label(new Rect(x + 28f, ry, labW - 30f, rh), LobbyKit.Truncate(Defs.KitName((Kit)k).ToUpperInvariant(), 9, labW - 32f), 9, (mine ? wild : CrtStyle.Dim).WithAlpha(mine ? 1f : 0.9f), TextAnchor.MiddleLeft, true);
-                for (int c = 0; c < cols; c++)
+                int n = wildSlot == 0 ? Defs.WeaponCount(Role.Dps, (Kit)k) : wildSlot == 3 ? Upgrades.UltKeys : 3;
+                for (int c = 0; c < n; c++)
                 {
-                    var b = new Rect(kx + c * (kw + 4f), ry, kw, rh);
-                    if (!KitOpen((Kit)k))
-                    {
-                        LockedSlot(b, EngineerLockText, true);
+                    bool gapped = wildSlot == 0 ? Defs.WeaponGap(Role.Dps, (Kit)k, c)
+                        : wildSlot == 3 ? (c == 0 ? Upgrades.Ultimate(Role.Wildcard, (Kit)k) : Upgrades.AltUltimate(Role.Wildcard, (Kit)k, c)) == AbilityId.None
+                        : Upgrades.AbilityGap(Role.Dps, (Kit)k, c);
+                    if (gapped)
                         continue;
-                    }
-                    if (wildSlot == 0)
-                    {
-                        if (c >= Defs.WeaponCount(Role.Dps, (Kit)k) || Defs.WeaponGap(Role.Dps, (Kit)k, c))
-                        {
-                            LockedSlot(b, null, true);
-                            continue;
-                        }
-                        int idx = Defs.WildWeaponPick((Kit)k, c);
-                        if (DkKey(b, Defs.Weapon(Role.Wildcard, Kit.Soldier, idx).Name.ToUpperInvariant(), me.Weapon == idx, calm, size: 11, minSize: 7, accent: wild))
-                            WildPickWeapon(me, tgt, self, idx, second);
-                    }
-                    else if (wildSlot == 3)
-                    {
-                        var id = c == 0 ? Upgrades.Ultimate(Role.Wildcard, (Kit)k) : Upgrades.AltUltimate(Role.Wildcard, (Kit)k, c);
-                        if (id == AbilityId.None)
-                        {
-                            LockedSlot(b, null, true);
-                            continue;
-                        }
-                        int pick = Upgrades.WildUlt((Kit)k, c);
-                        if (DkKey(b, Upgrades.Ability(id).Name.ToUpperInvariant(), me.Ult == pick, calm, size: 11, minSize: 7, accent: wild))
-                            WildPickUlt(me, tgt, self, pick);
-                    }
-                    else
-                    {
-                        if (Upgrades.AbilityGap(Role.Dps, (Kit)k, c))
-                        {
-                            LockedSlot(b, null, true);
-                            continue;
-                        }
-                        int idx = k * 3 + c;
-                        int inSlot = me.Ability == idx ? 1 : second == idx ? 2 : 0;
-                        if (DkKey(b, Upgrades.Ability(Upgrades.FirstAbility(Role.Wildcard, Kit.Soldier, idx)).Name.ToUpperInvariant(), inSlot == wildSlot, calm, size: 11, minSize: 7, accent: wild))
-                            WildPickAbility(me, tgt, self, idx, second, wildSlot - 1);
-                        if (inSlot > 0 && inSlot != wildSlot)  // the other ability slot's pick: tagged, a click swaps the two
-                            SlotBadge(new Rect(b.xMax - 13f, b.y + 2f, 11f, 11f), inSlot, wild);
-                    }
+                    kits.Add(k);
+                    vals.Add(wildSlot == 0 ? Defs.WildWeaponPick((Kit)k, c) : wildSlot == 3 ? Upgrades.WildUlt((Kit)k, c) : k * 3 + c);
                 }
             }
-        }
-
-        // ---- look 2: class first ----
-
-        /// The other roles' rows: Class (six keys, tagged with the slots whose gear comes from each), then that class's
-        /// Weapon, Abilities and Ultimate keys. Each ability key ends in two small slot keys named by their keybinds
-        /// (E, 1): click one to put the ability there; a click on the name fills the 1st.
-        void DrawWildClassFirst(LobbyEntry me, Session tgt, bool self, float x, float y, float w, float yEnd)
-        {
-            bool calm = fxReduced;
-            var ev = Event.current;
-            var wild = (Defs.Get(Role.Wildcard).Color).ToColor();
-            int second = Defs.WildSecond(me.Wild);
-            if (wildBrowseFor != me.Id)
+            int cur = wildSlot == 0 ? me.Weapon : wildSlot == 1 ? me.Ability : wildSlot == 2 ? second : me.Ult;
+            int sel = vals.IndexOf(cur);
+            BeginCarousel(CarWeapon, new Rect(x, y, w, rowH), vals.Count, KeysInView, sel, out int from, out int to);
+            for (int j = from; j <= to; j++)
             {
-                wildBrowseFor = me.Id;
-                wildBrowse = (int)Defs.WildWeaponKit(me.Weapon);
-                wildBrowsePos = wildBrowse;
-            }
-            int bk = WildBrowseKit;
-            float step = (yEnd - y) / 4f;  // four even rows: Class, Weapon, Abilities, Ultimate
-            float keyY = 26f, keyH = Mathf.Min(CarKeyH, step - keyY - 6f);
-
-            // Class: six keys, each tagged under its name with the slots it fills (W, E, 1, Q).
-            LobbyKit.Heading(x, y, w, "Class", "Browse · tags show where your gear comes from", calm, 15);
-            int n = Defs.KitCount;
-            float cw = (w - (n - 1) * 4f) / n;
-            string[] tags = { "W", Keybinds.KeyName(Keybinds.Get(KeyAction.Ability1)).ToUpperInvariant(), Keybinds.KeyName(Keybinds.Get(KeyAction.Ability2)).ToUpperInvariant(), Keybinds.KeyName(Keybinds.Get(KeyAction.Ultimate)).ToUpperInvariant() };
-            for (int k = 0; k < n; k++)
-            {
-                var b = new Rect(x + k * (cw + 4f), y + keyY, cw, keyH);
+                var b = CarItem(j);
+                int k = kits[j], v = vals[j];
                 if (!KitOpen((Kit)k))
                 {
                     LockedSlot(b, EngineerLockText, true);
                     continue;
                 }
-                if (DkKey(b, "", k == bk, calm, accent: wild))
-                    TurnWheelTo(k);
-                const float isz = 16f;
-                Ui.Icon(new Rect(b.center.x - isz / 2f, b.y + 3f, isz, isz), PixelArt.Get(Classes.Get((Kit)k).Icon), Color.white);
-                // under the icon: the slot tags (W, E, 1, Q) whose gear comes from this class, else its short name
-                int used = 0;
-                for (int s = 0; s < 4; s++)
-                    if (WildKitOf(me, s, second) == k)
-                        used++;
-                float tx = b.center.x - (used * 12f - 1f) / 2f, ty = b.yMax - 14f;
-                if (used == 0)
+                string name = wildSlot == 0 ? Defs.Weapon(Role.Wildcard, Kit.Soldier, v).Name
+                    : wildSlot == 3 ? Upgrades.Ability(Upgrades.Ultimate(Role.Wildcard, (Kit)k, v)).Name
+                    : Upgrades.Ability(Upgrades.FirstAbility(Role.Wildcard, Kit.Soldier, v)).Name;
+                if (DkKey(b, name.ToUpperInvariant(), v == cur, calm, PixelArt.Get(Classes.Get((Kit)k).Icon), stack: true, colorIcon: true, size: 12, minSize: 8))
                 {
-                    string nm = Defs.KitName((Kit)k).ToUpperInvariant();
-                    Ui.Label(new Rect(b.x, ty - 1f, b.width, 13f), LobbyKit.Truncate(nm, 8, b.width - 4f), 8,
-                        CrtKit.SoftText(k == bk ? wild : CrtStyle.KeyColor(null, false), k == bk).WithAlpha(0.8f), TextAnchor.MiddleCenter, true);
-                }
-                for (int s = 0, u = 0; s < 4; s++)
-                    if (WildKitOf(me, s, second) == k)
-                    {
-                        var tr = new Rect(tx + u * 12f, ty, 11f, 11f);
-                        Ui.Fill(tr, wild);
-                        Ui.Label(tr, tags[s], 8, new Color(0.05f, 0.02f, 0.1f), TextAnchor.MiddleCenter, true);
-                        u++;
-                    }
-            }
-            y += step;
-
-            // Weapon.
-            LobbyKit.Heading(x, y, w, "Weapon", Defs.KitName((Kit)bk), calm, 15);
-            int wn = Defs.WeaponCount(Role.Dps, (Kit)bk);
-            float ww = (w - 3f * 4f) / 4f;
-            for (int c = 0; c < 4; c++)
-            {
-                var b = new Rect(x + c * (ww + 4f), y + keyY, ww, keyH);
-                if (c >= wn || Defs.WeaponGap(Role.Dps, (Kit)bk, c))
-                {
-                    LockedSlot(b, null, true);
-                    continue;
-                }
-                int idx = Defs.WildWeaponPick((Kit)bk, c);
-                if (DkKey(b, Defs.Weapon(Role.Wildcard, Kit.Soldier, idx).Name.ToUpperInvariant(), me.Weapon == idx, calm, size: 13, minSize: 8))
-                    WildPickWeapon(me, tgt, self, idx, second);
-            }
-            y += step;
-
-            // Abilities: name key + two slot keys.
-            LobbyKit.Heading(x, y, w, "Abilities", "Pick two · click the key it goes on", calm, 15);
-            float aw = (w - 2f * 6f) / 3f;
-            for (int c = 0; c < 3; c++)
-            {
-                var b = new Rect(x + c * (aw + 6f), y + keyY, aw, keyH);
-                if (Upgrades.AbilityGap(Role.Dps, (Kit)bk, c))
-                {
-                    LockedSlot(b, null, true);
-                    continue;
-                }
-                int idx = bk * 3 + c;
-                int inSlot = me.Ability == idx ? 1 : second == idx ? 2 : 0;
-                const float sk = 22f;
-                var nb = new Rect(b.x, b.y, b.width - 2f * (sk + 2f), b.height);
-                if (DkKey(nb, Upgrades.Ability(Upgrades.FirstAbility(Role.Wildcard, Kit.Soldier, idx)).Name.ToUpperInvariant(), inSlot > 0, calm, size: 12, minSize: 7))
-                    WildPickAbility(me, tgt, self, idx, second, inSlot == 2 ? 1 : 0);
-                for (int s = 0; s < 2; s++)
-                {
-                    var sb = new Rect(nb.xMax + 2f + s * (sk + 2f), b.y, sk, b.height);
-                    if (DkKey(sb, tags[1 + s], inSlot == s + 1, calm, size: 11, minSize: 8, accent: wild))
-                        WildPickAbility(me, tgt, self, idx, second, s);
+                    if (wildSlot == 0)
+                        WildPickWeapon(me, tgt, self, v, second);
+                    else if (wildSlot == 3)
+                        WildPickUlt(me, tgt, self, v);
+                    else
+                        WildPickAbility(me, tgt, self, v, second, wildSlot - 1);
                 }
             }
-            y += step;
-
-            // Ultimate.
-            LobbyKit.Heading(x, y, w, "Ultimate", Defs.KitName((Kit)bk), calm, 15);
-            for (int c = 0; c < Upgrades.UltKeys; c++)
-            {
-                var b = new Rect(x + c * (ww + 4f), y + keyY, ww, keyH);
-                var id = c == 0 ? Upgrades.Ultimate(Role.Wildcard, (Kit)bk) : Upgrades.AltUltimate(Role.Wildcard, (Kit)bk, c);
-                if (id == AbilityId.None)
-                {
-                    LockedSlot(b, null, true);
-                    continue;
-                }
-                int pick = Upgrades.WildUlt((Kit)bk, c);
-                if (DkKey(b, Upgrades.Ability(id).Name.ToUpperInvariant(), me.Ult == pick, calm, size: 13, minSize: 8))
-                    WildPickUlt(me, tgt, self, pick);
-            }
+            EndCarousel();
         }
     }
 }
