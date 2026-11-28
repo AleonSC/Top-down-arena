@@ -12,7 +12,14 @@ namespace Arena
     public partial class ArenaApp
     {
         // The floating cabinet: 24 px in from the left, top and bottom; CabW x CabH is the inside of its 1 px outline.
-        const float CabX = 24f, CabY = 24f, CabW = 378f, CabH = 670f;
+        const float CabX = 24f, CabW = 378f, CabFullH = 670f;
+        // The pause menu's list sits in the middle of the screen, shorter (PauseCentreH); it moves to the left edge, full height, while a
+        // window is out beside it (Settings, How to play). cabCentreK: 0 at the edge, 1 centred (set round the pause menu's drawing, WindowAnim.cs).
+        const float PauseCentreH = 540f;
+        float cabCentreK;
+        float CabCentreDX => cabCentreK * ((1280f - CabW - 2f) / 2f - CabX);
+        float CabY => 24f + cabCentreK * ((720f - PauseCentreH - 2f) / 2f - 24f);
+        float CabH => Mathf.Lerp(CabFullH, PauseCentreH, cabCentreK);
         // The drawer stops short of whatever sits to its right by the margin that box has to the screen's other edge: the lobby's loadout box
         // is LobbyBodyRect (440 to 1244 of 1280), so a 36 px gap, and the window the drawer opens takes the same place (DrawerPanel). This is the
         // standard placement for every drawer menu; the drawer's contents are CabInW wide (rows CabRowW) inside it.

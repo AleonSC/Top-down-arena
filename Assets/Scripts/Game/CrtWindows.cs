@@ -75,7 +75,7 @@ namespace Arena
             // The soft sweep (HoloBoot, LobbyFx.cs): the box shows top-down under a feathered edge as it opens (EndDrawer).
             cabBootE = calm || Dock ? 99f : age;  // (closing, the pause menu's clock is stopped: a half-swept box slides out as it is; docking: no sweep)
             cabBootRect = new Rect(dx + CabX, CabY, CabW + 2f, CabH + 2f);
-            DockTrails(new Rect(CabX, CabY, CabW + 2f, CabH + 2f), a => DockDrawerIn(a), CrtStyle.Ink);  // (docking: WindowAnim.cs)
+            DockTrails(new Rect(CabX + CabCentreDX, CabY, CabW + 2f, CabH + 2f), a => DockDrawerIn(a) * CentreSlideScale, CrtStyle.Ink);  // (docking: WindowAnim.cs)
             float bootH = Mathf.Min(H, HoloBoot.SoftClip(cabBootRect, cabBootE));
             GUI.BeginGroup(new Rect(dx, 0f, CabX + CabW + 2f + 60f, bootH));
             CrtKit.LoadoutBox(new Rect(CabX, CabY, CabW + 2f, CabH + 2f), !CabNeon);

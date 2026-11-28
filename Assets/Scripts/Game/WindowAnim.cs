@@ -76,7 +76,10 @@ namespace Arena
 
         /// The drawer's slide (BeginDrawer): in from the left as it opens, out as it closes.
         /// With effects on it holo-boots in place instead of sliding in (CrtWindows.cs, BeginDrawer); it still slides out.
-        float DrawerSlide => (FxCalm ? -(1f - EaseOut(Mathf.Clamp01(WinT / 0.3f))) * DrawerSlideW : docking ? DockDrawerIn(WinT) : 0f) - EaseIn3(winCloseK) * DrawerSlideW;
+        /// Centred (the pause menu, cabCentreK), it slides that much further to be out of sight.
+        float DrawerSlide => ((FxCalm ? -(1f - EaseOut(Mathf.Clamp01(WinT / 0.3f))) * DrawerSlideW : docking ? DockDrawerIn(WinT) : 0f) - EaseIn3(winCloseK) * DrawerSlideW) * CentreSlideScale + CabCentreDX;
+
+        float CentreSlideScale => 1f + CabCentreDX / DrawerSlideW;
 
         // --- Docking (the pause menu and the lobby's Esc menu) ---------------------------------------------------------
 
@@ -175,6 +178,22 @@ namespace Arena
         }
 
         /// The pause menu with its slide: in as it opens, out as it closes (nothing in it can be clicked meanwhile).
+        float pauseCentre = 1f, pauseCentreAt = -10f;
+
+        /// The pause menu's list is centred; with a window out beside it (Settings, How to play) it glides to the left edge (0.25 s).
+        /// A frame after a gap (the menu just opened) snaps to where it belongs.
+        void StepPauseCentre()
+        {
+            float want = pauseSettings || pauseHowTo ? 0f : 1f;
+            float dt = WinNow - pauseCentreAt;
+            if (Event.current.type == EventType.Repaint)
+            {
+                pauseCentre = dt < 0f || dt > 0.1f ? want : Mathf.MoveTowards(pauseCentre, want, dt / 0.25f);
+                pauseCentreAt = WinNow;
+            }
+            cabCentreK = pauseCentre * pauseCentre * (3f - 2f * pauseCentre);
+        }
+
         void DrawPauseMenu()
         {
             bool closing = !PauseMenuWanted;
@@ -191,7 +210,9 @@ namespace Arena
             winFreeze = closing && pauseClosedAt >= 0f ? WinNow - pauseClosedAt : 0f;
             Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.55f * WindowVis));
             docking = true;
+            StepPauseCentre();
             DrawPauseWindow();
+            cabCentreK = 0f;  // (the lobby's menu and the rest stay at the edge)
             docking = false;
             winFreeze = 0f;
             if (closing)
