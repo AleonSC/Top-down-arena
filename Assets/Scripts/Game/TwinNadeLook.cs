@@ -18,7 +18,7 @@ namespace Arena
         class NadeSeen { public V2 Off; public float T, Puff; }
 
         const float NadeKickTime = 0.2f, NadeSettle = 0.12f, NadeLead = 0.12f, NadeShellIn = 0.17f, NadeSnap = 0.2f;
-        const float NadeShake = 0.25f, NadeBlurPx = 3f, NadeBlurTime = 0.14f;  // your own launch: shake trauma, the blur's offset each way and how long it fades
+        const float NadeShake = 0.5f, NadeBlurPx = 3f, NadeBlurTime = 0.14f;  // your own launch: shake trauma, the blur's offset each way and how long it fades
         static readonly Rgba NadeFlame = new Rgba(1f, 0.63f, 0.27f), NadeFlameCore = new Rgba(1f, 0.94f, 0.78f), NadeFlashCol = new Rgba(0.92f, 1f, 0.76f);
 
         readonly Dictionary<int, NadeSeen> nadeSeen = new Dictionary<int, NadeSeen>();
@@ -107,11 +107,11 @@ namespace Arena
                 NadeLaunchFeel(gd);
         }
 
-        /// Your own launch: a slight shake and a quick blur along the shot (LaunchBlur.cs).
+        /// Your own launch: a quick screen shake and a quick blur along the shot (LaunchBlur.cs).
         void NadeLaunchFeel(V2 gd)
         {
-            if (trauma < 0.3f)
-                Shake(NadeShake);
+            if (trauma < NadeShake)
+                Shake(NadeShake - trauma);  // a quick kick up to NadeShake (about 3 px, gone in 0.3 s), never stacking past it
             ScreenBlur(gd, NadeBlurPx, NadeBlurTime);
         }
 
