@@ -117,6 +117,7 @@ namespace Arena
                     : shown == AbilityId.AstralProjection ? Game.ApTime + 1.5f  // (the spirit snaps back before the next)
                     : shown == AbilityId.RodentMinigun ? Game.RmTotal(Game.RmFull) + 1.5f  // (the portal closes before the next)
                     : shown == AbilityId.MammothFall ? Game.MfTotal(Game.MfRampage) + 1.5f  // (it has run off before the next)
+                    : shown == AbilityId.BroodQueen ? Game.BqTotal(Game.BqTime) + 1.5f  // (she has climbed away before the next)
                     : shown == AbilityId.SpiritAvatar ? Game.SpRise + Game.SpTime + 1.5f  // (it bursts before the next)
                     : shown == AbilityId.Vortex ? Game.VortexWindup + Game.VortexTime + 1.5f  // (the dummies walk home before the next)
                     : shown == AbilityId.AttackHelicopter ? Game.HeliTime + 2f  // (it flies away before the next)

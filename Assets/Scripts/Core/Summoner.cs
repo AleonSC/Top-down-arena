@@ -85,6 +85,8 @@ namespace Arena
                 Apply = s => { s.RatShare += Game.RmPlagueShare; s.RatBleed += Game.RmPlagueBleed; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.MammothFall, MaxStacks = 2, Name = "Ice Age", Desc = "Mammoth Fall's shockwave reaches 25% farther and stuns 0.5 s longer",
                 Apply = s => { s.MammothWaveMult += Game.MfIceAgeWave; s.MammothStun += Game.MfIceAgeStun; } },
+            new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.BroodQueen, MaxStacks = 2, Name = "Hatchery", Desc = "A broodling's kill hatches 1 more broodling where the enemy fell (+1 a stack)",
+                Apply = s => s.BroodHatch++ },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.TidalTusker, MaxStacks = 2, Name = "Deep Trunk", Desc = "Tidal Tusker's stream reaches 25% farther and keeps enemies wet 1 s longer",
                 Apply = s => { s.TuskReachMult += Game.TkDeepReach; s.TuskWet += Game.TkDeepWet; } },
             new UpgradeDef { Rarity = Rarity.Rare, RequiresAbility = AbilityId.LandShark, MaxStacks = 2, Name = "Great White", Desc = "Land Shark bites 40% harder",

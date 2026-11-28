@@ -330,6 +330,12 @@ namespace Arena
                     TickClotCrystal(m, owner, dt);  // ClotCrystals.cs
                     continue;
                 }
+                if (m.Kind == MinionKind.BroodQueen || m.Kind == MinionKind.Broodling)
+                {
+                    if (m.Kind == MinionKind.BroodQueen ? TickBroodQueen(m, owner, dt) : TickBroodling(m, owner, dt))  // BroodQueen.cs
+                        expired.Add(m);
+                    continue;
+                }
                 if (m.Kind == MinionKind.BloodImp)
                 {
                     if (TickBloodImp(m, owner, dt))  // home, popped, or its portal gone (BloodRitual.cs)
@@ -655,6 +661,7 @@ namespace Arena
                     ExplodeMinion(m, m.Def.Damage * OwnerDmg(m) * m.Power * SentCost(m), m.Def.Range * m.Scale);  // a merged imp blasts wider
             foreach (var m in expired)
                 Minions.Remove(m.Id);
+            FlushBroodlings();  // broodlings hatched during the loop join now (BroodQueen.cs)
         }
 
         /// Homing Rounds' damage cost on an Imp Caller imp sent at something (the homing it pays for is in MoveSent).
@@ -680,7 +687,7 @@ namespace Arena
                 if (m.Kind == MinionKind.ClotCrystal ? !ClotCatches(m, b)  // a crystal jerks onto shots, so it eats what it touches, not just what flies in (ClotCrystals.cs)
                     : m.Def.BlockRadius <= 0f || m.StaggerT > 0f || m.BlockHp <= 0f || (IsTitanLike(m.Kind) && !TitanBlocking(m)) || !Enters(b, m.Pos, m.Def.BlockRadius * m.Scale))
                     continue;
-                m.BlockHp -= m.Kind == MinionKind.CloneWall || m.Kind == MinionKind.Clone || m.Kind == MinionKind.Wall || m.Kind == MinionKind.VectorBlock || m.Kind == MinionKind.BloodImp || m.Kind == MinionKind.ClotCrystal ? b.Dmg * EnemyDamageScale(Wave) : BlockerWear(b);  // a wall clone or a golem wears from every shot, not just a boss's
+                m.BlockHp -= m.Kind == MinionKind.CloneWall || m.Kind == MinionKind.Clone || m.Kind == MinionKind.Wall || m.Kind == MinionKind.VectorBlock || m.Kind == MinionKind.BloodImp || m.Kind == MinionKind.BroodQueen || m.Kind == MinionKind.ClotCrystal ? b.Dmg * EnemyDamageScale(Wave) : BlockerWear(b);  // a wall clone or a golem wears from every shot, not just a boss's
                 if (m.BlockHp <= 0f)
                 {
                     if (m.Companion)
@@ -889,6 +896,11 @@ namespace Arena
                 if (z.Kind == ZoneKind.Tusker)
                 {
                     TickTusker(z, dt);  // TidalTusker.cs
+                    continue;  // (its own tick: nothing below applies)
+                }
+                if (z.Kind == ZoneKind.BroodWeb)
+                {
+                    TickBroodWeb(z);  // BroodQueen.cs
                     continue;  // (its own tick: nothing below applies)
                 }
                 if (z.Kind == ZoneKind.Mammoth)

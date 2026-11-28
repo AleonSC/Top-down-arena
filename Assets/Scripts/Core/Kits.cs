@@ -14,6 +14,8 @@ namespace Arena
         Bear,
         Bee,  // the Honeybee Staff's bee: hatches at the cursor, stings the nearest enemy once and dies (HoneybeeStaff.cs)
         BloodImp,  // Blood Ritual (the DPS Hemomancer's fourth ultimate): pours out of the portal, circles an enemy clawing and taunting it, flies home at the close (BloodRitual.cs)
+        Broodling,  // Brood Queen's broodling: runs at an enemy she isn't biting, latches on and bites (BroodQueen.cs)
+        BroodQueen,  // Brood Queen (the DPS Summoner's fourth ultimate): drops on a thread, hunts and bites, taunts, spits webs, sends broodlings (BroodQueen.cs)
         BumbleBot,  // the Bumble Remote's robot bee: follows your cursor, shoots stingers, dives into a Swarm Burst; enemies ignore it (BumbleRemote.cs)
         Burrower,  // Earthquake's Burrower (the Tank Summoner's ability): breaks out at the cursor, tunnels through the pack hurting what it passes under (Burrower.cs)
         Butterfly,  // World Tree's healing butterfly: flutters to an ally (LinkTo) and heals them on arrival (WorldTree.cs)
@@ -89,6 +91,7 @@ namespace Arena
         BloodTotem,
         BloodWall,
         BoneSpear,
+        BroodWeb,  // a Brood Queen web (BroodQueen.cs): slows enemies on it
         BulletRain,
         Caltrop,
         Claymore,
@@ -222,6 +225,9 @@ namespace Arena
             [MinionKind.Thrall] = new MinionDef { Name = "Thrall", Radius = 14f, Sides = 6, Color = new Rgba(0.75f, 0.55f, 1f), Move = MinionMove.Escort, Speed = 180f },  // ForcePact.cs: its shape, speed and attack come from the enemy type it was
             [MinionKind.Burrower] = new MinionDef { Name = "Burrower", Radius = 18f, Sides = 8, Color = new Rgba(0.64f, 0.54f, 0.38f), Move = MinionMove.Static,
                 Speed = 190f, Damage = 30f, Range = 38f },  // tunnels and bites by Burrower.cs (Range: how close it has to pass to an enemy)
+            [MinionKind.BroodQueen] = new MinionDef { Name = "Brood Queen", Radius = 24f, Sides = 8, Color = new Rgba(0.72f, 0.49f, 1f), Move = MinionMove.Static, Speed = 120f,
+                BlockRadius = 26f, BlockCapacity = 900f },  // moved, biting and taunting by BroodQueen.cs (TickBroodQueen); BlockCapacity her health
+            [MinionKind.Broodling] = new MinionDef { Name = "Broodling", Radius = 8f, Sides = 8, Color = new Rgba(0.72f, 0.49f, 1f), Move = MinionMove.Static, Speed = 240f },  // run and latched by BroodQueen.cs (TickBroodling)
             [MinionKind.Bee] = new MinionDef { Name = "Bee", Radius = 5f, Sides = 3, Color = new Rgba(1f, 0.77f, 0.24f), Move = MinionMove.Static },  // flown by HoneybeeStaff.cs (MoveBee)
             [MinionKind.VectorBlock] = new MinionDef { Name = "Vector Block", Radius = 24f, Sides = 4, Color = new Rgba(0.36f, 0.88f, 1f), Move = MinionMove.Static,
                 BlockRadius = 24f, BlockCapacity = 400f },
@@ -268,6 +274,7 @@ namespace Arena
             [ZoneKind.OathWard] = new ZoneDef { Name = "Ward of Light", Color = new Rgba(1f, 0.85f, 0.4f) },  // Guardian's Oath (GuardiansOath.cs): allies inside take less damage (Zone.DamageCut) and downed ones revive faster
             [ZoneKind.VeinTrail] = new ZoneDef { Name = "Vein Trail", Color = new Rgba(0.85f, 0.12f, 0.2f), Slow = 0.3f },  // the blood a Vein Rush leaves behind (VeinRush.cs): slows enemies on it
             [ZoneKind.Drawbridge] = new ZoneDef { Name = "Drawbridge", Color = new Rgba(0.48f, 0.33f, 0.2f) },  // the Tank Knight's key-2 ultimate (Drawbridge.cs): Pos is the hinge, Aim the way it fell
+            [ZoneKind.BroodWeb] = new ZoneDef { Name = "Brood Web", Color = new Rgba(0.93f, 0.9f, 1f) },  // a Brood Queen web (BroodQueen.cs): Pos and Radius the web, slows by TickBroodWeb
             [ZoneKind.Bloodbath] = new ZoneDef { Name = "Bloodbath", Color = new Rgba(0.55f, 0.03f, 0.08f) },  // the Tank Hemomancer's second ultimate (Bloodbath.cs): slows, bleeds and guards by its own tick
             [ZoneKind.BloodWall] = new ZoneDef { Name = "Blood Wall", Color = new Rgba(0.7f, 0.07f, 0.14f) },  // one node of the tank Hemomancer's Blood Wall (BloodWall.cs): Aim is the node before it
             [ZoneKind.Phalanx] = new ZoneDef { Name = "Bone Phalanx", Color = new Rgba(0.93f, 0.9f, 0.8f) },  // the Tank Summoner's second ultimate (BonePhalanx.cs): Pos is the middle of the shield face, Aim the heading
