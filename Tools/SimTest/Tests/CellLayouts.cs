@@ -21,6 +21,7 @@ static partial class Program
                 foreach (var d in new[] { new[] { 300, 0 }, new[] { 300, 600 }, new[] { 0, 300 }, new[] { 600, 300 } })
                     if (hit(d[0], d[1], 50)) { bad++; Console.WriteLine(tag + "a door lane is walled"); }
                 if (t.Walls.Any(w => w[0] < 0 || w[1] < 0 || w[0] + w[2] > 600 || w[1] + w[3] > 600)) { bad++; Console.WriteLine(tag + "a wall leaves its cell"); }
+                if (t.Walls.Any(CellLayouts.InDoorway)) { bad++; Console.WriteLine(tag + "a wall reaches into a doorway"); }
                 foreach (var lo in t.Loot)
                     if (hit(lo[0], lo[1], 20) || Math.Abs(lo[0] - 300) + Math.Abs(lo[1] - 300) < 120) { bad++; Console.WriteLine(tag + "a loot slot is in a wall or on the chest"); }
                 if (t.Loot.Length == 0 || t.Sleepers.Length == 0 || t.Traps.Length == 0) { bad++; Console.WriteLine(tag + "no slots"); }

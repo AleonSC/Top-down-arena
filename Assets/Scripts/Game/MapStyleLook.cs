@@ -108,10 +108,29 @@ namespace Arena
         }
 
         /// An enemy's mark: Holo gives it a soft halo.
-        void StyledEnemyHalo(V2 c, bool big)
+        /// Holo's sweep: how far across the map window it is (0 left edge, 1 right), one pass every 1/SweepRate s.
+        const float SweepRate = 0.35f, SweepHold = 1f, SweepFade = 0.8f;
+        static float SweepPhase() => (Time.unscaledTime * SweepRate) % 1f;
+
+        /// Holo's sweep reveals enemies (owner Nov 28): how much of an enemy at window x shows: full as the line passes it
+        /// and for SweepHold s, then fading out over SweepFade s; 1 without the sweep (other styles). ping: 1 at the
+        /// crossing, gone by 0.25 s (the bright flash and ring).
+        float SweepReveal(float x, float ox, float mw, out float ping)
+        {
+            ping = 0f;
+            if (MapStyle != 1 || mw < 1f)
+                return 1f;
+            float since = (SweepPhase() - (x - ox) / mw) % 1f;  // the share of a pass since the line crossed x
+            if (since < 0f) since += 1f;
+            since /= SweepRate;
+            ping = Mathf.Clamp01(1f - since / 0.25f);
+            return since <= SweepHold ? 1f : Mathf.Clamp01(1f - (since - SweepHold) / SweepFade);
+        }
+
+        void StyledEnemyHalo(V2 c, bool big, float a = 1f)
         {
             if (MapStyle == 1)
-                MapRect(c.X - (big ? 6f : 3f), c.Y - (big ? 6f : 3f), big ? 12f : 6f, big ? 12f : 6f, new Rgba(1f, 0.3f, 0.32f, big ? 0.25f : 0.16f));
+                MapRect(c.X - (big ? 6f : 3f), c.Y - (big ? 6f : 3f), big ? 12f : 6f, big ? 12f : 6f, new Rgba(1f, 0.3f, 0.32f, (big ? 0.25f : 0.16f) * a));
         }
 
         /// A player inside the window: an arrow along their aim (yours with a pulsing ring), a dark edge under it.
@@ -181,7 +200,7 @@ namespace Arena
             {
                 for (float y = oy; y < oy + mh; y += 3f)
                     RoomMapRect(ox, y, mw, 1f, new Rgba(0f, 0f, 0f, 0.16f));
-                float sx = ox + ((Time.unscaledTime * 0.35f) % 1f) * mw;  // the sweep: a bright line with a fading wake
+                float sx = ox + SweepPhase() * mw;  // the sweep: a bright line with a fading wake
                 for (int i = 0; i < 10; i++)
                     MapRect(sx - (i + 1) * 4f, oy, 4f, mh, HoloInk.WithAlpha(0.06f * (1f - i / 10f)));
                 MapRect(sx, oy, 1.5f, mh, HoloInk.WithAlpha(0.55f));

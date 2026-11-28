@@ -14,6 +14,7 @@ namespace Arena
     ///           (glow, scanlines, dark corners, glass highlight and rounded bezel: DrawCrtGrowScreen), never a flat fill, and the
     ///           bezel and corners at the end are the lobby's own, so the hand-over to DrawLobbyCrtBack / Glass shows no change
     ///   0.7 s   a link log types itself in the middle (link, player, cat, opening lobby), parts typed with a one-second pause and blinking cursor between them, fading out between 5.6 and 5.9 s
+    ///   (the boot is the dark blue CRT throughout, CrtBootBlue; only the part of the screen the lobby has opened is its grey)
     ///   5.5 s   Power-on (DrawCalmLoadIn, crtStyle 4): the log squeezes into a bright line, the line stretches across the screen and
     ///           opens top and bottom, showing the whole lobby at once by 6.3 s
     /// Other ways into the lobby (Join, Continue, Back from a run) keep their own entrances and just fade the CRT in.
@@ -116,8 +117,24 @@ namespace Arena
             if (a <= 0f || Event.current.type != EventType.Repaint)
                 return;
             var oldAccent = CrtStyle.Accent;
-            CrtStyle.Accent = LobbyAccent();  // grey behind a grey screen (ModeScreenUi.cs)
+            CrtStyle.Accent = CrtBootBlue ? null : LobbyAccent();  // grey behind a grey screen (ModeScreenUi.cs); New run's boot stays blue (LobbyRevealed opens the grey)
             try { DrawLobbyCrtBackNow(a); }
+            finally { CrtStyle.Accent = oldAccent; }
+        }
+
+        /// New run's boot: the screen is the dark blue CRT (CrtStyle with no accent) until the lobby opens, and only the opened part is grey.
+        bool CrtBootBlue => crtEntry && enterT < EnterCrtLen;  // (crtEntry clears when the boot ends)
+
+        /// The lobby's grey screen and glow, for the part of a boot's screen the lobby has opened (LobbyRevealed's group clips it).
+        void DrawLobbyGreyBack(float a)
+        {
+            var oldAccent = CrtStyle.Accent;
+            CrtStyle.Accent = LobbyAccent();
+            try
+            {
+                Ui.Fill(new Rect(0f, 0f, W, H), LobbyBg.WithAlpha(LobbyCrtBgAlpha * a));
+                Ui.RadialGlow(new Rect(-W * 0.1f, -H * 0.1f, W * 1.2f, H * 1.2f), CrtUi.T(CrtStyle.ScreenGlow.WithAlpha(0.38f * a)));
+            }
             finally { CrtStyle.Accent = oldAccent; }
         }
 
@@ -203,7 +220,7 @@ namespace Arena
             if (a <= 0f || Event.current.type != EventType.Repaint)
                 return;
             var oldAccent = CrtStyle.Accent;
-            CrtStyle.Accent = LobbyAccent();  // a grey screen's glass is grey (ModeScreenUi.cs)
+            CrtStyle.Accent = CrtBootBlue && enterT < CrtPiecesAt + 0.8f ? null : LobbyAccent();  // a grey screen's glass is grey (ModeScreenUi.cs); blue until the boot has opened the lobby
             try { DrawLobbyCrtGlassNow(t, a); }
             finally { CrtStyle.Accent = oldAccent; }
         }
@@ -493,6 +510,8 @@ namespace Arena
             var at = new Rect(shown.x + dx, shown.y + dy, shown.width, shown.height);
             GUI.BeginGroup(at);
             GUI.BeginGroup(new Rect(-shown.x, -shown.y, W, H));
+            if (CrtBootBlue)
+                DrawLobbyGreyBack(a);  // the grey screen opens over the boot's blue one
             pieceGlOn = true;
             pieceGlClip = at;
             uiShift = new V2(dx, dy);
