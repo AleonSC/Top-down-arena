@@ -5,7 +5,7 @@ namespace Arena
     /// The Game Mode screen: the mode carousel and the mode's own page (Quick Play, Campaign, Boss Hunt,
     /// Survival, Training) on a full screen of their own, so they never share the big screen with the loadout. It's a view inside the lobby
     /// (the party, readiness and connection stay as they are): the host lands on it when a lobby opens, CHANGE on the lobby's mode
-    /// card comes back to it (VIEW for guests), and Back, Esc or TO THE LOBBY go back to the lobby. Open while `lobbyTab` is one of
+    /// card comes back to it (VIEW for guests), and TO THE LOBBY (or Back and Esc, except on the screen New run opened, where they leave to the main menu) go back to the lobby. Open while `lobbyTab` is one of
     /// the mode tabs (IsModeTab). Preview: `LOBBYTAB=8 shot.sh x lobby` (Quick Play; 4 Boss Hunt with HUNT=1).
     public partial class ArenaApp
     {
@@ -45,6 +45,7 @@ namespace Arena
             if (DkKey(key, session.IsHost ? "CHANGE" : "VIEW", false, calm, size: 13, minSize: 10))
             {
                 lobbyTab = ModeTabNow();
+                modeScreenFirst = false;  // opened from the lobby: Back returns to it
                 CloseFavorites();
             }
         }
@@ -59,11 +60,11 @@ namespace Arena
             bool calm = fxReduced;
             int m = (int)session.Mode;
             Color acc = ModeAccent(m) ?? CrtStyle.Ink;
-            // Header: Back (to the lobby, never out of it), the title, the carousel in the middle.
+            // Header: Back (to the main menu on the screen New run opened, else to the lobby), the title, the carousel in the middle.
             var back = new Rect(PartyX, LobbyHeadY, LobbyHeadKey, LobbyHeadKey);
             LobbyGlowBox(back);
             if (DkKey(back, "", false, calm, PixelArt.Get("ui_back"), size: 22))
-                LeaveModeScreen();  // (the CRT blink, ModeBlink.cs)
+                ModeScreenBack();  // (ModeBlink.cs)
             DrawModeScreenTitle(LobbyTitleRect, 1f);
             DrawModeSwitch(new Rect(W / 2f - 260f, 24f, 520f, 52f), t);
             // Back to the lobby at the right end, with who's in it (the lobby is still open behind this).
