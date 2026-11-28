@@ -339,6 +339,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Sanguine Rain | Healer | ultimate | 80 s | - | Lasts 14 s and heals 4% a tick. | Rain healing circles that follow your allies. |
 | Heartbeat | Healer | ultimate | 80 s | - | The waves hit 40% harder. | Your heart beats three times, each beat costing 8% of your health: a wave of blood bursts 320 px out of you, hitting for 45. Every enemy it kills drops a blood orb. |
 | Heart of the Swarm | Healer | ultimate | 80 s | - | Each beat heals 11%. | A giant heart beats at your cursor six times, once every 1.5 s: each beat heals allies within 300 px of it 8% of their health and pulls enemies in. |
+| Blood Garden | Healer | ultimate | 80 s | 30% of current health | Fling 16 seeds. | Pay 30% of your health to fling 12 blood seeds around you. Their saplings slow and siphon nearby enemies, then burst into healing orbs. |
 | Clot Crystals | Healer | 1st, choice 5 | 18 s | 15% of max health | A 4th crystal. | Grow three blood crystals round you that jerk at enemy bullets and eat them. |
 | Arterial Spray | Dps | 1st, choice 1 | 8 s | - | The spray also washes away enemy bullets it touches. | Open a vein: a jet of blood hurts and bleeds everything in front of you. |
 | Blood Debt | Dps | 1st, choice 2 | 16 s | - | Kills repay 50% more. | Borrow health to heal on hit, and pay it back with kills. |

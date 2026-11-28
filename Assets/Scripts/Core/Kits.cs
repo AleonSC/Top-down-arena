@@ -88,6 +88,7 @@ namespace Arena
         Bloodbath,
         BloodPool,
         BloodRitual,  // the DPS Hemomancer's fourth ultimate (BloodRitual.cs): see its ZoneDef
+        BloodSapling,  // a Blood Garden sapling (BloodGarden.cs): see its ZoneDef
         BloodTotem,
         BloodWall,
         BoneSpear,
@@ -322,6 +323,7 @@ namespace Arena
             [ZoneKind.GongSmoke] = new ZoneDef { Name = "Gong Smoke", Color = new Rgba(0.72f, 0.61f, 1f), Slow = Game.FsgSmokeSlow },  // a Five Shadow Gong shadow's smoke grenade (FiveShadowGong.cs): Pos, Radius; slows enemies in it, moving and shooting (Enemy.FsgSmokeT)
             [ZoneKind.HazardFoam] = new ZoneDef { Name = "Hazard Foam", Color = Game.FoamCream },  // a lump of the Healer Soldier's Hazard Foam (HazardFoam.cs): Pos, Radius; solid to everyone and every shot; Soak/SoakMax its health (GuardFrac replicated), Aim its bubbles' turn
             [ZoneKind.BloodTotem] = new ZoneDef { Name = "Blood Totem", Color = new Rgba(0.88f, 0.29f, 0.37f) },  // the Tank Hemomancer's totem (BloodTotem.cs): its veins slow by their own tick; Radius is the reach
+            [ZoneKind.BloodSapling] = new ZoneDef { Name = "Blood Sapling", Color = Game.BgRed },  // a Healer Hemomancer's Blood Garden sapling (BloodGarden.cs): Pos, Radius its aura; Aim (replicated) the age its seed lands at; Soaked (host) health siphoned, GuardFrac its share of the bulb
             [ZoneKind.BloodRitual] = new ZoneDef { Name = "Blood Ritual", Color = new Rgba(0.86f, 0.1f, 0.2f) },  // the DPS Hemomancer's fourth ultimate (BloodRitual.cs): Pos the sigil, Radius its size, its age the phase; Side (host) imps poured out, TickT the next one, Landed opened, Cap mastered
         });
 
