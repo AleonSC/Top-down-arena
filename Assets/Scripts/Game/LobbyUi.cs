@@ -670,7 +670,7 @@ namespace Arena
             previewPlayer.Kit = me.Kit;
             previewPlayer.Weapon = wdef;
             float reach = game.WeaponRange(previewPlayer);
-            float sy = r.y + BottomTop + 64f, sStep = Mathf.Max(26f, (r.yMax - 3f - 22f - sy) / 3f);  // the four bars spread down: the last ends on the detail box's bottom
+            float sy = r.y + BottomTop + 64f, sStep = Mathf.Max(26f, (r.yMax - 16f - 22f - sy) / 3f);  // the four bars spread down: the last ends level with the detail box's bottom, clear of the window edge
             float shield = Game.StartShield(me.Role, me.Kit);
             if (shield > 0f)  // the Tank's Ironhide and the Knight's Chainmail (Ironhide.cs) as a steel segment on the end of the health
                 LobbyKit.StatBar(new Rect(lx, sy, lw, 22f), "Health", hp + " + " + (int)shield, Mathf.Clamp01(hp / 340f), new Color(0.3f, 1f, 0.48f), calm,
