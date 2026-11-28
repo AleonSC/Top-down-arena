@@ -9,7 +9,7 @@ namespace Arena
     ///               reads (its light blinking amber, the cells filling; DiskRead);
     ///   1.9 s       a white flash and WHO'S PLAYING? snaps in with a red / cyan split that settles (CrtReady);
     ///   2.0 s       the disks rise from below, the middle one first, then each pair outwards 0.08 s apart (DiskSlide);
-    ///   2.75 s      a glint sweeps the middle disk; 2.9 s the ‹ › keys, PROFILE n OF m and the two buttons rise in.
+    ///   2.75 s      a soft slanted glint sweeps the middle disk (kept to its outline); 2.9 s the ‹ › keys, PROFILE n OF m and the two buttons rise in.
     /// Only at launch, and once. Any key or click skips to the end under the channel flip (SkipStatic.cs). Nothing takes a click until
     /// it's over. Reduced effects or Visual effects off: a 0.45 s fade from black instead.
     public partial class ArenaApp
@@ -194,15 +194,20 @@ namespace Arena
         {
             if (!WhoBootPlaying || !WhoBootFull || whoBootT < WbGlintAt || whoBootT > WbGlintAt + WbGlintLen)
                 return;
-            float u = Seg(whoBootT, WbGlintAt, WbGlintAt + WbGlintLen), x = Mathf.Lerp(-0.5f, 1.3f, EaseOut3(u)) * r.width;
-            GUI.BeginGroup(r);
-            var old = GUI.matrix;
-            GUIUtility.RotateAroundPivot(20f, new Vector2(x, r.height / 2f));
-            float a = Mathf.Sin(u * Mathf.PI);
-            Ui.Fill(new Rect(x - 22f, -r.height, 44f, r.height * 3f), new Color(1f, 1f, 1f, 0.12f * a));
-            Ui.Fill(new Rect(x - 7f, -r.height, 14f, r.height * 3f), new Color(1f, 1f, 1f, 0.22f * a));
-            GUI.matrix = old;
-            GUI.EndGroup();
+            // A soft slanted band of light, drawn as 2 px rows so it keeps to the disk's own outline (the chamfered top-right
+            // corner included) with no rotation, and fades off at its edges instead of ending in a hard line.
+            float u = Seg(whoBootT, WbGlintAt, WbGlintAt + WbGlintLen), a = Mathf.Sin(u * Mathf.PI);
+            float k = r.width / 200f, ch = 24f * k, slant = 0.36f, x0 = Mathf.Lerp(-0.4f, 1.4f, u * u * (3f - 2f * u)) * r.width;
+            for (float y = 0f; y < r.height; y += 2f)
+            {
+                float right = y < ch ? r.width - ch + y : r.width, cx = x0 + (r.height / 2f - y) * slant;
+                for (int j = 0; j < 4; j++)
+                {
+                    float hw = (4f + j * 7f) * k, l = Mathf.Max(0f, cx - hw), rr = Mathf.Min(right, cx + hw);
+                    if (rr > l)
+                        Ui.Fill(new Rect(r.x + l, r.y + y, rr - l, 2f), new Color(1f, 1f, 1f, 0.08f * a));
+                }
+            }
         }
 
         /// The keys and buttons under the carousel rising in (delay: their place in the stagger): the y shift, and the alpha to draw at.
