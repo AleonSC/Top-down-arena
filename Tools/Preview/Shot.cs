@@ -326,6 +326,7 @@ static partial class Shot {
     VectorGainScene();  // VECGAIN=<s since> [VECGAINN=10] (ShotScenes.cs)
     EngineerScene();  // ENGINEER=strider|pylon|breach [ENGT=<s>] (ShotEngineer.cs)
     CellDoorScene();  // TKDOORS=1 (ShotCellDoor.cs)
+    ArrayMockScene();  // MOCK
     ArcanistScene();  // ARCANIST=tank|healer|dps (ShotArcanist.cs)
     ColossusSheetScene();  // COLSHEET=1 COLLOOK=0-3 (ShotColossusLook.cs)
     // WARDENINTRO=<s>: the Warden's entrance that far in (WardenIntro.cs): a clean arena, the Warden held in the middle (still "spawning", so it gets the entrance, not the card).
