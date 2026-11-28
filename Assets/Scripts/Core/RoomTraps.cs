@@ -114,20 +114,30 @@ namespace Arena
         }
 
         /// A plate moved onto the grid: the spot nearest the slot (at most a square away) that stays clear of walls; false if none.
-        public static bool SnapPlate(int[][] walls, ref float x, ref float y, float hx, float hy)
+        public static bool SnapPlate(int[][] walls, ref float x, ref float y, float hx, float hy, List<float[]> others = null)
         {
             float cx = SnapCentre(x, hx), cy = SnapCentre(y, hy), best = float.MaxValue, bx = 0f, by = 0f;
             for (int i = -1; i <= 1; i++)
                 for (int j = -1; j <= 1; j++)
                 {
                     float px = cx + i * Tile, py = cy + j * Tile, d = (px - x) * (px - x) + (py - y) * (py - y);
-                    if (d < best && RectFree(walls, px, py, hx, hy, SnapGap))
+                    if (d < best && RectFree(walls, px, py, hx, hy, SnapGap) && !Overlaps(others, px, py, hx, hy))
                     { best = d; bx = px; by = py; }
                 }
             if (best == float.MaxValue)
                 return false;
             x = bx; y = by;
             return true;
+        }
+
+        /// Does a plate here overlap one of `others` (each: x, y, half x, half y)? Plates may touch, never overlap.
+        public static bool Overlaps(List<float[]> others, float x, float y, float hx, float hy)
+        {
+            if (others != null)
+                foreach (var o in others)
+                    if (Math.Abs(x - o[0]) < hx + o[2] - 0.5f && Math.Abs(y - o[1]) < hy + o[3] - 0.5f)
+                        return true;
+            return false;
         }
 
         public const float SnapGap = 2f;  // (a snapped plate may come this close to a wall: grid lines don't follow the walls)
@@ -180,6 +190,54 @@ namespace Arena
         public static bool Eligible(ExpansionRoom r)
             => r.Kind == RoomKind.Combat && !r.Floating && r.Surprise == 0 && CellLayouts.OnLattice(r) && !Expansion.IsGridCore(r);
 
+        /// One cell's traps, in the cell's own frame (0..600): each trap slot rolls a kind (seeded from the cell's place cx, cy), a plate
+        /// its size, snapped onto the floor grid clear of the walls and the cell's other plates.
+        public static List<RoomTrap> CellTraps(CellLayouts.CellPlan plan, int cx, int cy)
+        {
+            var list = new List<RoomTrap>();
+            var turned = CellLayouts.TurnedOf(plan);
+            var slots = turned.Traps;
+            var sizeRng = new DetRandom(cx * 40503 ^ cy * 69069 ^ 0x1b873593);  // (its own stream: the kinds roll as before)
+            var rng = new DetRandom(cx * 83492791 ^ cy * 2654435 ^ 0x2545f491);
+            var plates = new List<float[]>();  // (this cell's plates so far: a new one never overlaps them)
+            foreach (var s in slots)
+            {
+                var kind = Roll(rng, s[2] == 1);
+                if (!kind.HasValue)
+                    continue;
+                float hx = 0f, hy = 0f;
+                if (kind.Value != TrapKind.Turret)
+                {
+                    bool spike = kind.Value == TrapKind.Spike;
+                    var sizes = spike ? SpikeSizes : SlowSizes;
+                    PickSize(turned.Walls, s[0], s[1], sizes, spike ? SpikeLongs : SlowLongs, sizeRng, out hx, out hy);
+                    float x = s[0], y = s[1];
+                    if (!SnapPlate(turned.Walls, ref x, ref y, hx, hy, plates))  // (onto the floor grid, clear of the walls and this cell's other plates)
+                    {
+                        bool placed = false;  // too tight there: the next square size down, down to the smallest, or none
+                        for (int k = sizes.Length - 1; k >= 0 && !placed; k--)
+                        {
+                            if (sizes[k] >= Math.Max(hx, hy))
+                                continue;
+                            x = s[0]; y = s[1];
+                            if (SnapPlate(turned.Walls, ref x, ref y, sizes[k], sizes[k], plates))
+                            {
+                                hx = hy = sizes[k];
+                                placed = true;
+                            }
+                        }
+                        if (!placed)
+                            continue;
+                    }
+                    plates.Add(new[] { x, y, hx, hy });
+                    list.Add(new RoomTrap { Pos = new V2(x, y), Kind = kind.Value, HalfX = hx, HalfY = hy });
+                    continue;
+                }
+                list.Add(new RoomTrap { Pos = new V2(s[0], s[1]), Kind = kind.Value, HalfX = hx, HalfY = hy });
+            }
+            return list;
+        }
+
         public static List<RoomTrap> For(IList<ExpansionRoom> rooms)
         {
             var list = new List<RoomTrap>();
@@ -200,34 +258,8 @@ namespace Arena
                     CellLayouts.CellOf(o.X + 1, o.Y + 1, out int cx, out int cy);
                     if (!CellLayouts.TryPlan(plans, cx, cy, out var plan))
                         continue;
-                    var turned = CellLayouts.TurnedOf(plan);
-                    var slots = turned.Traps;
-                    var sizeRng = new DetRandom(cx * 40503 ^ cy * 69069 ^ 0x1b873593);  // (its own stream: the kinds roll as before)
-                    var rng = new DetRandom(cx * 83492791 ^ cy * 2654435 ^ 0x2545f491);
-                    foreach (var s in slots)
-                    {
-                        var kind = Roll(rng, s[2] == 1);
-                        if (!kind.HasValue)
-                            continue;
-                        float hx = 0f, hy = 0f;
-                        if (kind.Value != TrapKind.Turret)
-                        {
-                            bool spike = kind.Value == TrapKind.Spike;
-                            var sizes = spike ? SpikeSizes : SlowSizes;
-                            PickSize(turned.Walls, s[0], s[1], sizes, spike ? SpikeLongs : SlowLongs, sizeRng, out hx, out hy);
-                            float x = s[0], y = s[1];
-                            if (!SnapPlate(turned.Walls, ref x, ref y, hx, hy))  // (onto the floor grid; too tight there: the smallest square, or none)
-                            {
-                                hx = hy = sizes[0];
-                                x = s[0]; y = s[1];
-                                if (!SnapPlate(turned.Walls, ref x, ref y, hx, hy))
-                                    continue;
-                            }
-                            list.Add(new RoomTrap { Pos = new V2(o.X + x, o.Y + y), Kind = kind.Value, HalfX = hx, HalfY = hy });
-                            continue;
-                        }
-                        list.Add(new RoomTrap { Pos = new V2(o.X + s[0], o.Y + s[1]), Kind = kind.Value, HalfX = hx, HalfY = hy });
-                    }
+                    foreach (var t in CellTraps(plan, cx, cy))
+                        list.Add(new RoomTrap { Pos = new V2(o.X + t.Pos.X, o.Y + t.Pos.Y), Kind = t.Kind, HalfX = t.HalfX, HalfY = t.HalfY });
                 }
             }
             return list;

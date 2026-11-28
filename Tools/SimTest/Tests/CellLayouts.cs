@@ -132,6 +132,20 @@ static partial class Program
                 fits &= RoomTraps.PickHalf(RoomTraps.SlowSizes, fit, rr) <= Math.Max(fit, RoomTraps.SlowSizes[0]) && RoomTraps.PickHalf(RoomTraps.SpikeSizes, fit, rr) <= Math.Max(fit, RoomTraps.SpikeSizes[0]);
             }
         Check(fits, "a plate never outgrows the room around its slot");
+        int overlaps = 0, platesSeen = 0;  // no two plates overlap, over many cells: every layout and variant, turned every way, many seeds
+        for (int li = 0; li < CellLayouts.All.Length; li++)
+            for (int vi = 0; vi <= CellLayouts.VariantsOf(li).Length; vi++)
+                for (int rot = 0; rot < 4; rot++)
+                    for (int seed = 0; seed < 12; seed++)
+                    {
+                        var cellPlates = RoomTraps.CellTraps(new CellLayouts.CellPlan { Layout = li, Rot = rot, Variant = vi }, li * 7 + seed * 31, vi * 13 + rot * 17 + seed).Where(t => t.Kind != TrapKind.Turret).ToList();
+                        platesSeen += cellPlates.Count;
+                        for (int i = 0; i < cellPlates.Count; i++)
+                            for (int j = i + 1; j < cellPlates.Count; j++)
+                                if (Math.Abs(cellPlates[i].Pos.X - cellPlates[j].Pos.X) < cellPlates[i].HalfX + cellPlates[j].HalfX - 0.5f && Math.Abs(cellPlates[i].Pos.Y - cellPlates[j].Pos.Y) < cellPlates[i].HalfY + cellPlates[j].HalfY - 0.5f)
+                                    overlaps++;
+                    }
+        Check(platesSeen > 1000 && overlaps == 0, "no two spike plates or slow fields in a cell overlap (" + platesSeen + " plates, " + overlaps + " overlapping pairs)");
         bool stripsOk = true; int strips = 0;
         foreach (var l in CellLayouts.All)
             foreach (var s in l.Traps)
