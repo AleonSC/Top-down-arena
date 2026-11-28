@@ -51,6 +51,7 @@ namespace Arena
         CavalryCall,
         CeremonialArmor,
         ChakraReserves,  // the Healer Ninja's 4th choice (ChakraReserves.cs), the lobby's 4th choice
+        ChaliceOfLife,  // the Healer Knight's fourth ultimate (ChaliceOfLife.cs), key 3 of the lobby's Ultimate row
         Claymore,  // Claymore (Claymore.cs) took Mark for Death's place (and number); Poison Dart (PoisonDart.cs) took Dash's place (and number); Medkit (Medkit.cs) took Soul Link's place (and number); Adrenaline (Adrenaline.cs) took Haven's; Airstrike (Airstrike.cs) the Cluster Grenade's
         ClotCrystals,  // the Healer Hemomancer's 4th choice (ClotCrystals.cs), the lobby's 4th choice
         ConduitWeb,  // the Healer Elementalist's fourth ultimate (ConduitWeb.cs), key 3 of the lobby's Ultimate row
@@ -500,6 +501,7 @@ namespace Arena
             Game.ScmUltimates,  // (on its own line, as below)
             Game.OniUltimates,  // (on its own line, as below)
             Game.GardenUltimates,  // (on its own line, as below)
+            Game.ChaliceUltimates,  // (on its own line, as below)
             Game.OracleUltimates, Game.CatUltimates,  // (on its own line, so parallel sessions appending to the line below don't clash)
             Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.RocketUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.GloveUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.BroodQueenUltimates, Game.TuskerUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.ExcaliburUltimates, Game.FpUltimates, Game.CraneUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.EyeUltimates, Game.ConduitUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.SacrificeUltimates, Game.HeartbeatUltimates, Game.SwarmHeartUltimates, Game.BannerUltimates, Game.LanceRainUltimates, Game.GongUltimates, Game.PressUltimates, Game.FoamUltimates, Game.RitualUltimates));  // the classes' own, then the shared and boss-loot ones
 

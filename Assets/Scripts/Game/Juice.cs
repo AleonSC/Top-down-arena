@@ -1231,6 +1231,7 @@ namespace Arena
             DrawSiegeBellGlow();  // Siege Bell's halo and shockwave (SiegeBellLook.cs)
             DrawCannonGlow();  // Cannon Call's flare, fuse and slam flash (CannonCallLook.cs)
             DrawOrbitalGlow();  // Orbital Laser's lock-on, beam and crater (OrbitalLaserLook.cs)
+            DrawChaliceGlow();  // Chalice of Life's warm light and the drinkers' flashes (ChaliceOfLifeLook.cs)
             DrawLanceRainGlow();  // Holy Lance Rain's falling spears, flashes and healing glows (HolyLanceRainLook.cs)
             DrawDragonsDogmaGlow();  // Dragon's Dogma's light (DragonsDogmaLook.cs)
             DrawRodGlow();    // Lightning Rod's charge and bolts (LightningRodLook.cs)

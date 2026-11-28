@@ -1189,6 +1189,7 @@ static partial class Shot {
     HeliScene();  // HELI=<s since the cast> [HELICAP=1] [FXOFF=1] (ShotHeli.cs)
     OrbitalScene();  // ORBITAL=<s since the cast> [ORBCAP=1] [FXOFF=1] (ShotOrbital.cs)
     TankLookScene();  // TANKLOOK=<-1|0-2> (ShotTankLook.cs)
+    ChaliceScene();  // CHALICE=<s since the cast> [FXOFF=1] (ShotChalice.cs)
     LanceRainScene();  // LANCERAIN=<s since the cast> [LRCAP=1] [FXOFF=1] (ShotLanceRain.cs)
     TankScene();  // TANK=<s since the cast> [TANKCAP=1] [FXOFF=1] (ShotTank.cs)
     HorseScene();  // HORSE=<s since the cast> [HORSEALL=1] [HORSEWEAR=<0-1>] [HORSEEND=broke|sally] (ShotTrojanHorse.cs)

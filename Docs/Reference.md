@@ -284,6 +284,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Hallowed Blade | Healer | ultimate | 80 s | - | Three swords fall: one at your cursor and one either side. | A giant holy sword lands, healing allies and burning enemies for a while. |
 | Pilgrim's Standard | Healer | ultimate | 80 s | - | Allies inside heal 5% a second. | Plant a standard for 60 s: allies inside heal 4% of their max health a second. Press again to lift it. |
 | Holy Lance Rain | Healer | ultimate | 80 s | - | 32 spears instead of 24, and the glows last 6 s. | Spears of light rain down all around you for 3 s: each hurts the enemies where it lands and leaves a small healing glow. |
+| Chalice of Life | Healer | ultimate | 90 s | - | The shield is 60 and lasts 6 s. | Summon a chalice for 12 s. Each player drinks from it once: a full heal that clears wounds, 20 health past max and a 40 shield for 4 s. |
 | Sanctum Glass | Healer | 1st, choice 5 | 16 s | - | The pane is 40% wider and its motes heal 50% more. | Raise a pane of stained glass ahead that turns enemy shots passing through into healing. |
 | Bladed Dive | Dps | 1st, choice 1 | 10 s | - | Each kill heals you 5% of your health. | Rush forward untouchable with a spinning blade; a kill resets the cooldown. |
 | The Gauntlet | Dps | 1st, choice 2 | 9 s | - | The Challenge lasts 8 s, and the charge's impact stuns for 1 s. | Challenge an enemy and charge it; kill it in time to reset the cooldown. |
