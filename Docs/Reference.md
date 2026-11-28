@@ -372,7 +372,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Grand Sigil | Tank | ultimate | 75 s | - | It lasts 12 s. | A rune circle around you binds and slows enemies and freezes their bullets, then fires them back. |
 | Arcane Tether | Healer | 1st, choice 1 | 12 s | - | It heals twice as much. | Pull the ally nearest your cursor to your side, safe and healed. |
 | Sanctum Sigil | Healer | ultimate | 80 s | - | It lasts 12 s. | A healing circle follows you and its runes burst on enemies. |
-| Telekinetic Crush | Dps | 1st, choice 1 | 9 s | - | It grabs 40% wider. | Lift enemies at your cursor, pull them together and slam them. |
+| Telekinetic Crush | Dps | 1st, choice 1 | 8.5 s | - | The grip is 40% wider. | Toggle a grip at your cursor that lifts enemies and drags them round, on a force meter. Let go to slam them together, or fling them into walls. |
 | Runic Array | Dps | ultimate | 65 s | - | It lasts 9 s. | Four sigils behind you fire a spectral blade with every shot. |
 
 ## Enemies
