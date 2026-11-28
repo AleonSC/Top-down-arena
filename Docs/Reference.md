@@ -318,6 +318,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Death Lotus | Dps | ultimate | 65 s | - | Strikes up to 14 enemies. | A flurry of cuts on up to 8 enemies near your cursor. |
 | Forbidden Path | Dps | ultimate | 75 s | - | The beast lasts 11 s. | Become a shadow beast for 8 s: it locks onto the strongest enemy near and Fire tears through a five-part area combo. Drains your health. |
 | Hundred Paper Cranes | Dps | ultimate | 75 s | - | 130 cranes. | 100 paper cranes swirl round you, then peel off one by one over 3 s and home in on enemies, the healthiest first: 10 each. |
+| Oni Mask | Dps | ultimate | 75 s | - | 0.75 s a kill, up to 30 s. | Put on a demon mask for 10 s: 30% faster, 40% more damage and 50% more max health. Each kill adds 0.5 s (a heavy 2 s), up to 25 s. |
 | Senbon Seekers | Dps | 1st, choice 5 | 6 s | - | Holds up to 12 needles. | Three poisoned needles circle you and fly at enemies that come close. Stacks to 9. |
 
 ### Hemomancer
