@@ -36,9 +36,10 @@ namespace Arena
 
         static void InitLobbyCrt()
         {
-            if (lobbyScanTex != null && Mathf.Abs(lobbyTexHue - CrtUi.Hue) < 0.01f)
+            float key = CrtStyle.Greyed ? -5f : CrtUi.Hue;  // (a grey screen's glass and lines are grey whatever its accent)
+            if (lobbyScanTex != null && Mathf.Abs(lobbyTexHue - key) < 0.01f)
                 return;
-            lobbyTexHue = CrtUi.Hue;  // the CRT colour changed: build the textures again
+            lobbyTexHue = key;  // the CRT colour changed: build the textures again
             if (lobbyScanTex != null) Object.Destroy(lobbyScanTex);
             if (lobbyPhosTex != null) Object.Destroy(lobbyPhosTex);
             if (lobbyGlassTex != null) Object.Destroy(lobbyGlassTex);
@@ -52,8 +53,9 @@ namespace Arena
             // Phosphor lines: a faint cyan row every four (stretched like the scanlines).
             lobbyPhosTex = new Texture2D(1, 720, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
             var phos = new Color[720];
+            var phosCol = CrtStyle.Greyed ? new Color(0.7f, 0.72f, 0.75f) : CrtStyle.Ink;
             for (int y = 0; y < phos.Length; y++)
-                phos[y] = y % 4 == 0 ? CrtStyle.Ink : CrtStyle.Ink.WithAlpha(0f);
+                phos[y] = y % 4 == 0 ? phosCol : phosCol.WithAlpha(0f);
             lobbyPhosTex.SetPixels(phos);
             lobbyPhosTex.Apply();
             // The glass frame, meant to be 9-sliced: a rounded rectangle filling the whole texture; outside its curve the dark screen surround, then a
@@ -113,6 +115,14 @@ namespace Arena
             float a = LobbyCrtBackA();
             if (a <= 0f || Event.current.type != EventType.Repaint)
                 return;
+            var oldAccent = CrtStyle.Accent;
+            CrtStyle.Accent = LobbyAccent();  // grey behind a grey screen (ModeScreenUi.cs)
+            try { DrawLobbyCrtBackNow(a); }
+            finally { CrtStyle.Accent = oldAccent; }
+        }
+
+        void DrawLobbyCrtBackNow(float a)
+        {
             InitLobbyCrt();
             var full = new Rect(0f, 0f, W, H);
             Ui.Fill(full, LobbyBg.WithAlpha(LobbyCrtBgAlpha * a));
@@ -192,6 +202,14 @@ namespace Arena
             float a = LobbyCrtGlassA();
             if (a <= 0f || Event.current.type != EventType.Repaint)
                 return;
+            var oldAccent = CrtStyle.Accent;
+            CrtStyle.Accent = LobbyAccent();  // a grey screen's glass is grey (ModeScreenUi.cs)
+            try { DrawLobbyCrtGlassNow(t, a); }
+            finally { CrtStyle.Accent = oldAccent; }
+        }
+
+        void DrawLobbyCrtGlassNow(float t, float a)
+        {
             InitLobbyCrt();
             var full = new Rect(0f, 0f, W, H);
             CrtScanlines(full, a);  // scanlines and the rolling bar sit over the panels, like a screen's glass (the mockup's .glass)

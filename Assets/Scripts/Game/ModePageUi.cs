@@ -43,10 +43,14 @@ namespace Arena
             public bool ShowLocked;   // locked rows still show their model (name hidden) and can be hovered (Campaign)
         }
 
+        /// A grey screen's hologram glass (CrtStyle.Greyed), and the records' values and the rules: the mode's colour there, gold elsewhere.
+        static readonly Color HoloGrey = new Color(0.55f, 0.57f, 0.61f);
+        static Color ValueCol => CrtStyle.Accent ?? CrtStyle.Gold;
+
         void DrawModePage(Rect r, float t, ModePage p)
         {
             LobbyKit.Panel(r);
-            DrawHoloGlass(new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f), Time.unscaledTime, p.Acc);  // the Tab screen's hologram glass
+            DrawHoloGlass(new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f), Time.unscaledTime, CrtStyle.Greyed ? HoloGrey : p.Acc);  // the Tab screen's hologram glass (grey on a grey screen)
             float top = ModeHeadBand(r, p) + 6f;
             float x = r.x + 20f, w = r.width - 40f, bottom = r.yMax - 18f;
             const float listW = 270f, gap = 22f;
@@ -80,7 +84,7 @@ namespace Arena
                 if (i % 2 == 0)
                     Ui.Fill(rr, CrtStyle.Ink.WithAlpha(0.05f));
                 Ui.Label(new Rect(rr.x + 10f, rr.y, sideW * 0.6f, rr.height), f.RecLabels[i], 11, CrtStyle.Dim, TextAnchor.MiddleLeft, true);
-                LobbyKit.Fit(new Rect(rr.x + sideW * 0.45f, rr.y, sideW * 0.55f - 10f, rr.height), f.RecVals[i], 15, 10, CrtStyle.Gold, TextAnchor.MiddleRight, fxReduced, false);
+                LobbyKit.Fit(new Rect(rr.x + sideW * 0.45f, rr.y, sideW * 0.55f - 10f, rr.height), f.RecVals[i], 15, 10, ValueCol, TextAnchor.MiddleRight, fxReduced, false);
                 sy += 27f;
             }
             sy += 14f;
@@ -89,8 +93,8 @@ namespace Arena
             foreach (var rule in p.Rules)
             {
                 bool takes = rule.StartsWith("NO ");
-                Ui.Fill(new Rect(sx + 4f, sy + 7f, 6f, 6f), takes ? CrtStyle.Dim.WithAlpha(0.5f) : CrtStyle.Gold);
-                Ui.Label(new Rect(sx + 18f, sy, sideW - 18f, 20f), rule, 11, takes ? CrtStyle.Ink.WithAlpha(0.7f) : CrtStyle.Gold, TextAnchor.MiddleLeft, true);
+                Ui.Fill(new Rect(sx + 4f, sy + 7f, 6f, 6f), takes ? CrtStyle.Dim.WithAlpha(0.5f) : ValueCol);
+                Ui.Label(new Rect(sx + 18f, sy, sideW - 18f, 20f), rule, 11, takes ? CrtStyle.Ink.WithAlpha(0.7f) : ValueCol, TextAnchor.MiddleLeft, true);
                 sy += 22f;
             }
             if (!string.IsNullOrEmpty(p.Note))

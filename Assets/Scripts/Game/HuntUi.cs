@@ -16,10 +16,7 @@ namespace Arena
 
         static void HuntBox(Rect r, Color c)
         {
-            Ui.Fill(new Rect(r.x, r.y, r.width, 1f), c);
-            Ui.Fill(new Rect(r.x, r.yMax - 1f, r.width, 1f), c);
-            Ui.Fill(new Rect(r.x, r.y, 1f, r.height), c);
-            Ui.Fill(new Rect(r.xMax - 1f, r.y, 1f, r.height), c);
+            CrtKit.Frame(r, 1f, c);  // (snapped to whole pixels)
         }
 
         /// A small outlined status tag ("WON x2", "OPEN", ...), right-aligned to xRight. Returns its width.

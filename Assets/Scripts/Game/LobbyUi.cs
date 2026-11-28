@@ -35,12 +35,38 @@ namespace Arena
             GUI.BeginGroup(new Rect(0f, -LobbyLift, W, H));
             var oldShift = uiShift;
             uiShift = new V2(oldShift.X, oldShift.Y - LobbyLift);  // its live models (GL) move with it
-            if (ModeBlinking)
-                DrawModeBlink();  // just left the Game Mode screen: the CRT blink (ModeBlink.cs)
-            else
-                DrawLobbyContent();
-            uiShift = oldShift;
-            GUI.EndGroup();
+            TickLobbyWash();
+            var oldAccent = CrtStyle.Accent;
+            CrtStyle.Accent = LobbyAccent();  // a grey screen in one colour (ModeScreenUi.cs)
+            try
+            {
+                if (ModeBlinking)
+                    DrawModeBlink();  // just left the Game Mode screen: the CRT blink (ModeBlink.cs)
+                else
+                    DrawLobbyContent();
+            }
+            finally
+            {
+                CrtStyle.Accent = oldAccent;
+                uiShift = oldShift;
+                GUI.EndGroup();
+            }
+        }
+
+        /// The lobby wears the shown role's colour (the bot's while the host is choosing its loadout), easing to a new role over about
+        /// 0.7 s (LobbyKit.WashTo): its keys and text, on a grey screen (LobbyAccent).
+        void TickLobbyWash()
+        {
+            if (session == null)
+                return;
+            LobbyEntry washFor;
+            session.Lobby.TryGetValue(session.MyId, out washFor);
+            var washBot = session.IsHost ? partyBots.Find(editBotId) : null;
+            LobbyEntry washBotEntry;
+            if (washBot != null && session.Lobby.TryGetValue(washBot.Id, out washBotEntry))
+                washFor = washBotEntry;
+            if (washFor != null)
+                LobbyKit.WashTo((Defs.Get(washFor.Role).Color).ToColor(), fxReduced);
         }
 
         int lastLobbyMode = -1;  // the mode last drawn (a change opens that mode's tab)
@@ -81,14 +107,6 @@ namespace Arena
             }
             if (session.Resume != null && IsModeTab(lobbyTab))
                 lobbyTab = 0;  // a saved run being resumed has no mode to pick
-            // The big boxes wear the shown role's colour (the bot's while the host is choosing its loadout), easing to a new role over about 0.7 s.
-            LobbyEntry washFor = me;
-            var washBot = session.IsHost ? partyBots.Find(editBotId) : null;
-            LobbyEntry washBotEntry;
-            if (washBot != null && session.Lobby.TryGetValue(washBot.Id, out washBotEntry))
-                washFor = washBotEntry;
-            if (washFor != null)
-                LobbyKit.WashTo((Defs.Get(washFor.Role).Color).ToColor(), calm);
             var infoButton = LobbyInfoKey;  // the connection key: hidden until the mouse is over it (or its popup is open)
             var infoPanel = ConnInfoRect(infoButton);
             if (connInfoOpen && Event.current.type == EventType.MouseDown && !infoButton.Contains(Event.current.mousePosition))
@@ -121,6 +139,12 @@ namespace Arena
                 if (connInfoOpen)
                     connInfoOpen = false;
                 return;
+            }
+
+            if (CrtStyle.Accent is Color headAcc && Event.current.type == EventType.Repaint)  // a grey screen: the header's splash of the role's colour
+            {
+                Ui.RadialGlow(new Rect(-260f, -110f, 980f, 220f), headAcc.WithAlpha(0.3f));
+                Ui.RadialGlow(new Rect(W * 0.5f - 200f, -100f, 1000f, 200f), headAcc.WithAlpha(0.2f));
             }
 
             // --- Left column, top: Back, LOBBY_ and the "!" key (Leaving, Settings and the Field guide are in the Esc menu, MenuDrawer.cs),
@@ -202,7 +226,7 @@ namespace Arena
         /// Docs/Mockups/crt-lobby-headers.html option 2). `a` fades it (the entrance).
         void DrawLobbyTitle(Rect r, float a, bool calm, float t)
         {
-            var ink = new Color(0.56f, 0.71f, 1f, a);
+            var ink = (CrtStyle.Accent ?? new Color(0.56f, 0.71f, 1f)).WithAlpha(a);  // (a grey screen: its colour)
             const int size = 16;
             const float sp = 4.8f;
             float tw = LobbyKit.SpacedWidth("LOBBY", size, sp);
@@ -639,6 +663,11 @@ namespace Arena
             float lx = r.x + 16f;
             const float lw = 300f;
             var view = ShowcaseRect(r);
+            if (CrtStyle.Greyed && Event.current.type == EventType.Repaint)  // a grey screen: the role's colour glows softly from behind the preview
+            {
+                float gw = view.width * 0.85f, gh = view.height * 0.75f;
+                Ui.RadialGlow(new Rect(view.center.x - gw, view.center.y - gh, gw * 2f, gh * 2f), LobbyKit.RoleCol.WithAlpha(0.3f));
+            }
             DrawShowcase(me, view, roleColor);
             DrawPreviewRunner(view, roleColor, t);
             DrawLoadoutSeparator(view.x, r.x + 334f + 454f, r.y + SeparatorY, roleColor, t);  // across the loadout, over the bottom boxes (LobbyFx.cs)  // the neon dot running round the frame (LobbyFx.cs)
@@ -670,7 +699,7 @@ namespace Arena
             previewPlayer.Kit = me.Kit;
             previewPlayer.Weapon = wdef;
             float reach = game.WeaponRange(previewPlayer);
-            float sy = r.y + BottomTop + 64f, sStep = Mathf.Max(26f, (r.yMax - 3f - 22f - sy) / 3f);  // the four bars spread down: the last ends on the detail box's bottom
+            float sy = r.y + BottomTop + 64f, sStep = Mathf.Max(26f, (r.yMax - 16f - 22f - sy) / 3f);  // the four bars spread down: the last ends level with the detail box's bottom, clear of the window edge
             float shield = Game.StartShield(me.Role, me.Kit);
             if (shield > 0f)  // the Tank's Ironhide and the Knight's Chainmail (Ironhide.cs) as a steel segment on the end of the health
                 LobbyKit.StatBar(new Rect(lx, sy, lw, 22f), "Health", hp + " + " + (int)shield, Mathf.Clamp01(hp / 340f), new Color(0.3f, 1f, 0.48f), calm,

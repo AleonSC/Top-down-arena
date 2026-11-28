@@ -51,14 +51,18 @@ static partial class Program
         for (int i = 0; i < 60 && client.Lobby[2].Ult != 1; i++) { Program.Step(host, dt); Program.Step(client, dt); Nap(2); }
         Check(host.Lobby[2].Ult == 1 && client.Lobby[2].Ult == 1, "...and back to everyone");
         int bareKey;
-        var bare = Content.RoleWithAFreeUltKey(out bareKey);  // (a role and class with nothing on one of its keys)
+        var found = Content.FindFreeUltKey(out bareKey);  // (a role and class with nothing on one of its keys, if any is left)
+        var bare = found ?? new RoleKit(Role.Tank, Kit.Soldier);  // (none: still change class, and the clamp check skips)
         client.RequestRole(bare.Role);
         client.RequestKit(bare.Kit);
         for (int i = 0; i < 60 && !(client.Lobby[2].Kit == bare.Kit && client.Lobby[2].Role == bare.Role); i++) { Program.Step(host, dt); Program.Step(client, dt); Nap(2); }
         Check(host.Lobby[2].Ult == 0, "changing class resets the pick");
-        client.RequestUlt(bareKey);
-        for (int i = 0; i < 30; i++) { Program.Step(host, dt); Program.Step(client, dt); Nap(2); }
-        Check(host.Lobby[2].Ult == 0, "the host clamps a pick the class doesn't have (" + bare + ")");
+        if (found != null)
+        {
+            client.RequestUlt(bareKey);
+            for (int i = 0; i < 30; i++) { Program.Step(host, dt); Program.Step(client, dt); Nap(2); }
+        }
+        Check(found == null ? Content.NoFreeUltKey() : host.Lobby[2].Ult == 0, "the host clamps a pick the class doesn't have (" + bare + ")");
         client.RequestRole(Role.Tank);
         client.RequestKit(Kit.Summoner);
         for (int i = 0; i < 60 && !(client.Lobby[2].Kit == Kit.Summoner && client.Lobby[2].Role == Role.Tank); i++) { Program.Step(host, dt); Program.Step(client, dt); Nap(2); }

@@ -106,7 +106,8 @@ namespace Arena
             bool dip = !FxCalm && ((t >= 0.94f && t < 0.96f) || t >= 0.98f);
             float oldAlpha = Ui.Alpha;
             Ui.Alpha = oldAlpha * (dip ? 0.82f : 0.9f);  // see-through: the arena shows a little
-            Ui.Picture(r, CardArt.Holo(Color.Lerp(ink, new Color(0.02f, 0.05f, 0.12f), 0.35f)));
+            Ui.Picture(r, CrtStyle.Greyed ? CardArt.Holo(Color.Lerp(ink, new Color(0.06f, 0.06f, 0.065f), 0.35f), true)
+                : CardArt.Holo(Color.Lerp(ink, new Color(0.02f, 0.05f, 0.12f), 0.35f)));
             Ui.Alpha = oldAlpha;
             var line = ink.WithAlpha(0.11f);
             for (float y = Mathf.Round(r.yMax) - 1f; y >= r.y; y -= 4f)
@@ -123,8 +124,9 @@ namespace Arena
                 GUI.EndGroup();
                 GUI.color = old;
             }
-            Ui.Fill(new Rect(r.x, r.y, 2f, r.height), new Color(1f, 60f / 255f, 200f / 255f, 0.35f));
-            Ui.Fill(new Rect(r.xMax - 2f, r.y, 2f, r.height), new Color(60f / 255f, 240f / 255f, 1f, 0.35f));
+            bool grey = CrtStyle.Greyed;  // (a grey screen: no colour fringes)
+            Ui.Fill(new Rect(r.x, r.y, 2f, r.height), grey ? ink.WithAlpha(0.25f) : new Color(1f, 60f / 255f, 200f / 255f, 0.35f));
+            Ui.Fill(new Rect(r.xMax - 2f, r.y, 2f, r.height), grey ? ink.WithAlpha(0.25f) : new Color(60f / 255f, 240f / 255f, 1f, 0.35f));
         }
 
         // --- Text on the glass -------------------------------------------------------------------------------------------------------

@@ -24,9 +24,9 @@ namespace Arena
         /// glass at the top, fading to the dark screen colour by 70% down, with the colour glowing in from the edges. Baked at
         /// half the level-up card's size (135 x 192) and stretched; the scanlines, the drifting band and the colour fringe
         /// are drawn on top each frame.
-        public static Texture2D Holo(Color rc)
+        public static Texture2D Holo(Color rc, bool grey = false)
         {
-            int key = (Mathf.RoundToInt(rc.r * 255f) << 16) | (Mathf.RoundToInt(rc.g * 255f) << 8) | Mathf.RoundToInt(rc.b * 255f);
+            int key = (Mathf.RoundToInt(rc.r * 255f) << 16) | (Mathf.RoundToInt(rc.g * 255f) << 8) | Mathf.RoundToInt(rc.b * 255f) | (grey ? 1 << 24 : 0);
             Texture2D tex;
             if (holoCache.TryGetValue(key, out tex) && tex != null)
                 return tex;
@@ -34,8 +34,8 @@ namespace Arena
             const float sigma = 9.5f;  // the mockup's 3cqw inset blur (38 px on a 270 px card) is 19 px of spread, 9.5 texels here
             tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
             var px = new Color[w * h];
-            var back = new Color(0.006f, 0.016f, 0.04f);       // the dimmed arena the card sits on
-            var screen = new Color(3f / 255f, 8f / 255f, 20f / 255f);  // #030814
+            var back = grey ? new Color(0.018f, 0.018f, 0.02f) : new Color(0.006f, 0.016f, 0.04f);       // the dimmed arena the card sits on
+            var screen = grey ? new Color(0.022f, 0.022f, 0.025f) : new Color(3f / 255f, 8f / 255f, 20f / 255f);  // #030814 (grey: a grey screen, CrtStyle.Greyed)
             var mid = Color.Lerp(screen, rc, 0.1f);            // 10% rarity colour at the 70% stop
             for (int y = 0; y < h; y++)
             {
