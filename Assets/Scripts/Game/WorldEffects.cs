@@ -90,6 +90,7 @@ namespace Arena
             d[(int)FxKind.ArcBurst] = (fx, f, t) => DrawArcBurstPlain(fx);
             d[(int)FxKind.BlastCut] = (fx, f, t) => DrawBlastCut(fx);  // BloodBlastLook.cs
             d[(int)FxKind.BlastTide] = (fx, f, t) => DrawBlastTide(fx);  // BloodBlastLook.cs
+            d[(int)FxKind.Excalibur] = (fx, f, t) => DrawExcalibur(fx);  // ExcaliburLook.cs
             d[(int)FxKind.BlastReturn] = (fx, f, t) => DrawBlastReturn(fx);  // BloodBlastLook.cs
             d[(int)FxKind.FrostStep] = (fx, f, t) => DrawFrostStepFx(fx);  // FrostLanceLook.cs
             d[(int)FxKind.FrostBurst] = (fx, f, t) => DrawFrostBurstFx(fx);  // FrostLanceLook.cs
