@@ -27,7 +27,8 @@ namespace Arena
             V2 lo = new V2(-1e9f, -1e9f), hi = new V2(1e9f, 1e9f);
             if (CamZoomed)  // a big room: only what's near the view
             {
-                float vx = AW / (2f * camZoom) + SpillWide, vy = AH / (2f * camZoom) + SpillWide;
+                V2 vh = ViewHalf();  // (the turned screen's reach, CameraRotate.cs)
+                float vx = vh.X + SpillWide, vy = vh.Y + SpillWide;
                 lo = new V2(camFocus.X - vx, camFocus.Y - vy);
                 hi = new V2(camFocus.X + vx, camFocus.Y + vy);
             }

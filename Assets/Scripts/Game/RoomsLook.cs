@@ -493,7 +493,8 @@ namespace Arena
                 MapRect(c.X - 2.5f, c.Y - 2.5f, 5f, 5f, p.Downed ? new Rgba(1f, 0.3f, 0.3f) : p.Def.Color);
             }
             // The box your screen shows.
-            float hx = AW / (2f * camZoom), hy = AH / (2f * camZoom);
+            V2 vh = ViewHalf();  // (turned: the screen's bounding box, CameraRotate.cs)
+            float hx = vh.X, hy = vh.Y;
             V2 v0 = M(camFocus - new V2(hx, hy)), v1 = M(camFocus + new V2(hx, hy));
             if (MapStyle != 0) StyledViewBox(v0.X, v0.Y, v1.X, v1.Y);
             else MapFrame(v0.X, v0.Y, v1.X - v0.X, v1.Y - v0.Y, 1f, new Rgba(1f, 1f, 1f, 0.5f));
