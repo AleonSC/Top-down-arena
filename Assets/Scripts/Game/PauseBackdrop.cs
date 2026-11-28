@@ -2,21 +2,21 @@ using UnityEngine;
 
 namespace Arena
 {
-    /// Behind the pause menu: the arena darkens over the first 1.5 s the menu is open (0.5 to 0.8 black) under a faint, moving
-    /// static (sparse blue-white grains, four pre-made frames cycled, and a soft band rolling down). Reduced effects or Visual effects
+    /// Behind the pause menu and the lobby's Esc menu: the arena darkens over the first 1.5 s the menu is open (0.5 to 0.8 black) under a faint, moving
+    /// static (sparse grey-white grains, four pre-made frames cycled, and a soft band rolling down). Reduced effects or Visual effects
     /// off: the darkening only. Fades with the menu (WindowVis).
     public partial class ArenaApp
     {
         const int PauseSnowW = 320, PauseSnowH = 180, PauseSnowFrames = 4;
         static Texture2D[] pauseSnow;
 
-        void DrawPauseBackdrop()
+        void DrawMenuBackdrop()
         {
             if (Event.current.type != EventType.Repaint)
                 return;
             float vis = WindowVis;
             float k = EaseOut(Mathf.Clamp01(WinT / 1.5f));
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0.005f, 0.008f, 0.02f, Mathf.Lerp(0.5f, 0.8f, k) * vis));
+            Ui.Fill(new Rect(0, 0, W, H), new Color(0.008f, 0.008f, 0.01f, Mathf.Lerp(0.5f, 0.8f, k) * vis));
             if (FxCalm)
                 return;
             var snow = PauseSnow();
@@ -30,7 +30,7 @@ namespace Arena
             for (int i = 0; i < 12; i++)
             {
                 float a = Mathf.Sin((i + 0.5f) / 12f * Mathf.PI) * 0.025f * k * vis;
-                Ui.Fill(new Rect(0, by + i * 10f, W, 10f), new Color(0.6f, 0.75f, 1f, a));
+                Ui.Fill(new Rect(0, by + i * 10f, W, 10f), new Color(0.8f, 0.8f, 0.82f, a));
             }
         }
 
@@ -49,7 +49,7 @@ namespace Arena
                     if (rng.NextDouble() < 0.16)
                     {
                         byte v = (byte)(150 + rng.Next(106));
-                        px[i] = new Color32((byte)(v * 0.85f), (byte)(v * 0.92f), v, (byte)(120 + rng.Next(136)));
+                        px[i] = new Color32(v, v, v, (byte)(120 + rng.Next(136)));
                     }
                     else
                         px[i] = new Color32(0, 0, 0, 0);
