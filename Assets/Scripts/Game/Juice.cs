@@ -42,7 +42,6 @@ namespace Arena
             floorDim = Mathf.Clamp(PlayerPrefs.GetInt("floor_dim", 0), 0, FloorDimNames.Length - 1);
             floorBend = PlayerPrefs.GetInt("floor_bend", 1) == 1;  // FloorGridLook.cs
             floorStyle = Mathf.Clamp(PlayerPrefs.GetInt("floor_style", 0), 0, FloorStyleNames.Length - 1);  // FloorStylesLook.cs
-            LoadMenuHue();  // the CRT colour, shared with the main menu's hue key (MenuBgHue.cs)
             mateShotAlpha = Mathf.Clamp(PlayerPrefs.GetFloat("mate_shot_alpha", 1f), 0.25f, 1f);
         }
 
