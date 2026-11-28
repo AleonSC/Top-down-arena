@@ -27,6 +27,7 @@ namespace Arena
         Bleed,
         BloodCoat,
         BloodFreeze,
+        BloodSeed,  // a Blood Garden seed flying from Pos to Pos2 over Dur (BloodGarden.cs, Game/BloodGardenLook.cs)
         BloodShell,
         BoilEnd,  // BoilEnd: Blood Boil ending, a burst of steam off the Hemomancer (Pos = where, Pos2.X = their id; Core/BloodBoil.cs, Game/BloodBoilLook.cs)
         Bolt,
@@ -999,6 +1000,7 @@ namespace Arena
         public int HbBeatCount, HbHits, HbOrbs; // host: beats, wave hits and blood orbs from its kills this run (tests)
         public float HbPaid;                    // host: health the beats have cost this run (tests)
         public float HsT;                       // Heart of the Swarm (HeartOfTheSwarm.cs), replicated: seconds since the cast (0 = off)
+        public int BgBursts;                    // host: Blood Garden saplings of yours that burst into an orb (BloodGarden.cs; tests)
         public V2 HsPos;                        // ...the heart, following the cursor (replicated while on)
         public bool HsMastered;                 // host
         public int HsBeatCount, HsPulls;        // host: beats and enemy pulls this run (tests)

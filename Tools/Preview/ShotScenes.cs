@@ -1228,6 +1228,7 @@ static partial class Shot {
     TortoiseOracleScene();  // ORACLE=<s since the cast> [ORACLECAP=1]: the Healer Summoner's Tortoise Oracle (ShotTortoiseOracle.cs)
     CloneMedicsScene();  // CLONEMEDICS=<s since the cast> [CMHP=<0-1>]: the Healer Ninja's Shadow Clone Medics (ShotCloneMedics.cs)
     HeartbeatScene();  // HEARTBEAT=<s since the cast>: the Healer Hemomancer's Heartbeat (ShotHeartbeat.cs)
+    BloodGardenScene();  // GARDEN=<s since the cast> [GARDENCAP=1]: the Healer Hemomancer's Blood Garden (ShotBloodGarden.cs)
     SwarmHeartScene();  // SWARMHEART=<s since the cast>: the Healer Hemomancer's Heart of the Swarm (ShotSwarmHeart.cs)
     ConduitWebScene();  // WEB=<s since the cast> [WEBMASTERED=1]: the Healer Elementalist's Conduit Web (ShotConduitWeb.cs)
     EyeOfCalmScene();  // EYE=<s since the cast> [EYEMASTERED=1] [EYEGUST=<s>]: the Healer Elementalist's Eye of Calm (ShotEyeOfCalm.cs)
