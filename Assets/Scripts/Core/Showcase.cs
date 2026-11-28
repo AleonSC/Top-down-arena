@@ -97,6 +97,7 @@ namespace Arena
                     : shown == AbilityId.StoneColossus ? Game.ColRise + Game.ColTime + Game.ColRollTime + 1.5f  // (it crumbles before the next)
                     : shown == AbilityId.SacrificialRitual ? Game.SacRite + Game.SacTime + 1.5f  // (the spirit is back in its body before the next)
                     : shown == AbilityId.BloodGolem ? Game.GolGather + Game.GolTime + Game.GolCollapseDur + 1f  // (it bursts before the next)
+                    : shown == AbilityId.Excalibur ? Game.ExcDraw + Game.ExcTime + 1.5f  // (the burst fades before the next)
                     : shown == AbilityId.RockGloves ? Game.GlvGather + Game.GlvTime + Game.ColRollTime + 1.5f  // (the shards land before the next)
                     : shown == AbilityId.LivingBolt ? Game.BoltChannel + Game.BoltTime + 1.5f  // (the trails fade before the next)
                     : shown == AbilityId.BloodRavager ? Game.RvTime + 1.5f  // (the legs fold away before the next)

@@ -597,6 +597,7 @@ namespace Arena
             SyncConduitWeb(s, p);  // ConduitWeb.cs
             SyncLivingBolt(s, p);  // LivingBolt.cs
             SyncRockGloves(s, p);  // RockGloves.cs
+            SyncExcalibur(s, p);  // Excalibur.cs
             SyncArmadillo(s, p);  // IronArmadillo.cs
             SyncRavager(s, p);  // BloodRavager.cs
             SyncTrojanHorse(s, p);  // TrojanHorse.cs

@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 New ids and cards need no bump (Session.IdsHash covers them): only a change to what is read or written does.
 
+- 559: Excalibur (the DPS Knight's key-3 ultimate): the player sync adds `ExcT` (float), then `ExcAge` and `ExcSwing` (floats) while it's above 0, after Rock Gloves' fields.
 - 558: Momentum takes 3 kills a stack: the player sync adds `MomentumKills` (byte) after `MomentumT`.
 - 557: Sacrificial Ritual (Tank Hemomancer fourth ultimate, key 3): the player sync adds `SacT` after Blood Golem's fields, then `SacAge`, `SacBody`, `SacKills` while it is on.
 - 556: Soldier Callings (SoldierCallings.cs): a player's snapshot adds `SecondOut` (bool), `MountAim` (float), `MountSpin`, `TetherTo` and `CallingN` (bytes); new client -> host `Msg.CallingSwap` (no body).
