@@ -420,7 +420,7 @@ namespace Arena
             ApplyStatOverrides(p);
             p.VectorCap = VectorCapBase + p.Stats.VectorCap;  // the Expanding arena's vector cap (ExpansionGame.cs)
             float oldMax = p.MaxHp;
-            p.MaxHp = p.BaseHp + p.Stats.BonusHp;
+            p.MaxHp = (p.BaseHp + p.Stats.BonusHp) * OmHpMult(p);  // (Oni Mask: OniMask.cs)
             if (p.MaxHp > oldMax && !p.Downed)
                 p.Hp += p.MaxHp - oldMax;
 
@@ -1700,6 +1700,7 @@ namespace Arena
             TickLivingBolt(dt);  // Living Bolt: its clock, the discharge and the residue's damage (LivingBolt.cs)
             TickRavager(dt);  // Blood Ravager: its clock, the legs' walk and stomps, the ram and the lashes (BloodRavager.cs)
             TickBoil(dt);  // Blood Boil: its clock and the drain (BloodBoil.cs)
+            TickOniMask(dt);  // Oni Mask: its time running out (OniMask.cs)
             TickCranes(dt);  // Hundred Paper Cranes: the ring's clock and the cranes peeling off it (HundredPaperCranes.cs)
             TickForbiddenPath(dt);  // Forbidden Path: the beast's clock, drain, lock-on and combo stages (ForbiddenPath.cs)
             TickPressurePoint(dt);  // Pressure Point Press: the presses and the Seal on each cast's clock (PressurePointPress.cs)

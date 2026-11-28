@@ -1162,6 +1162,7 @@ namespace Arena
                 GrantGold(e);  // Shop.cs
             GrantVectorKill(killer, e.Pos);  // and a vector pickup every VectorKillEvery kills (ExpansionGame.cs)
             MomentumKill(killer, e);  // DPS role passive (Momentum.cs)
+            OniKill(killer, e);  // an Oni Mask kill adds time (OniMask.cs)
             if (e.Def.Xp > 0)
                 PackKill(killer);  // the Wolf Whistle's pack grows (WolfPack.cs)
             DropOrbs(e, bossReward);
@@ -1236,6 +1237,7 @@ namespace Arena
                 dmg *= Modifiers.GlassCannonDealt;
             dmg *= SallyMult(attacker);  // Sally Forth, out of a Trojan Horse (TrojanHorse.cs)
             dmg *= WarDmgMult(attacker);  // standing at a War Standard (KnightBanners.cs)
+            dmg *= OniDmgMult(attacker);  // wearing an Oni Mask (OniMask.cs)
             if (casting)
             {
                 dmg *= castPower;
