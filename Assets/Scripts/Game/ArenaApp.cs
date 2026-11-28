@@ -331,9 +331,6 @@ namespace Arena
         /// What the mouse and the Fire / Parry keys are for this frame: a menu, the emote bar, the ping wheel, the chat, or the run; and the pointer.
         void UpdatePointerAndBlocking(Player me, bool tabKey, bool menuUp, bool choosing)
         {
-            // The Hangout's ability press is caught here, every frame, and used by its next draw (a key press read only inside OnGUI could be missed).
-            if (session.Screen == AppScreen.Lobby && lobbyTab == HangoutTab && (Keybinds.Down(KeyAction.Ability1) || Keybinds.Down(KeyAction.Parry)))
-                hangoutCastLatch = true;
             // Clicks on menus (upgrade cards, pause menu, end-of-run screen) shouldn't also shoot or
             // parry: a press that starts while one is up is ignored until the button is released.
             // Holding Tab opens the loadout, which has buttons (moving abilities between keys). It works
@@ -346,8 +343,7 @@ namespace Arena
             bool pathChoice = session.Screen == AppScreen.Game && (game.PathOffer != null || game.HuntMapVoting || ExpandWindowUp);
             bool shopping = session.Screen == AppScreen.Game && (ShopScreenUp(me) || PedestalSellUp(me));  // the Bazaar's shop covers the arena (ShopUi.cs)
             bool overlay = menuUp || wikiPicking || choosing || tabHeld || pathChoice || shopping || game.State == MatchState.GameOver || game.State == MatchState.Victory || MouseOnDock() || WaveBoxShown(me) || MouseOnWcStrip(me) || MouseOnBuilderShop(me);  // (the Builder Shop's shelf, BuilderShopUi.cs; the Wave cleared box has buttons: a click on Ready must not fire, ping or emote)
-            if (!(session.Screen == AppScreen.Lobby && lobbyTab == HangoutTab))  // (the Hangout ticks its own, in OnGUI)
-                TickEmoteBar(session.Screen == AppScreen.Game && me != null && !me.Downed && !overlay);  // EmoteBar.cs: while it's open a click picks an emote
+            TickEmoteBar(session.Screen == AppScreen.Game && me != null && !me.Downed && !overlay);  // EmoteBar.cs: while it's open a click picks an emote
             TickPing(session.Screen == AppScreen.Game && me != null && !me.Downed && !overlay && !emoteBarOpen);  // PingLooks.cs: tap to ping, hold for the wheel
             TickChat(session.Screen == AppScreen.Game && me != null && !menuUp && !choosing && !tabHeld && !pathChoice && !shopping);  // ChatBox.cs: Enter opens the chat line
             if (devMenuOpen && GUIUtility.keyboardControl != 0)

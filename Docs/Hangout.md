@@ -6,7 +6,8 @@
 > party column, Ready and Start work. Each player views it on their own; the room is shared. A loadout change swaps just that player
 > (`Msg.PracticePlayer`, `Game.SyncPractice`); a newcomer restarts it; Start replaces it. No target dummies, PvP always on (the PVP switch
 > is gone), control from the first frame. Spawners as below (`Core/HangoutSpawners.cs`).
-> The room described at the end of this file (`LobbyCombat.cs`, `LobbyRoom.cs`) is retired; its code is kept until the owner says to remove it.
+> The room described at the end of this file is retired: its screen (`Game/LobbyRoom.cs`) is removed; the host side (`Core/LobbyAvatars.cs`,
+> `Core/LobbyCombat.cs`, its messages) is still in, kept until the owner says to remove it.
 
 ## The Hangout mode
 
@@ -75,9 +76,7 @@ Mockups: [`Mockups/hangout-pvp.html`](Mockups/hangout-pvp.html) (layout B picked
 |---|---|
 | `Core/LobbyCombat.cs` | PvP, shots, health, knock-out and respawn (`FireMyShot`, `SetMyPvp`, `StepLobbyCombat`, `ShotStats`) |
 | `Core/LobbyAvatars.cs` | `Avatar`, the room's size, `MoveMyAvatar`, `StepAvatars`, sending and receiving the two messages |
-| `Game/LobbyRoom.cs` | the Hangout tab: movement keys, the floor, drawing each character, its trail and name plate |
 | `Tools/SimTest/Tests/Hangout.cs` | `run.sh 1 30 hangout`: spawn spots, moves each way, the walls, NaN, leaving |
-| `Tools/Preview` | `HANGOUT=trail-void,trail-prism,trail-storm Tools/Preview/shot.sh hang lobby` |
 
 ## Ideas for later
 

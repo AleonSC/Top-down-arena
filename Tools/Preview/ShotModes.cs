@@ -299,50 +299,6 @@ static partial class Shot {
           set("practiceFxAt", 20f - float.Parse(Environment.GetEnvironmentVariable("PRACTICEFX"), System.Globalization.CultureInfo.InvariantCulture));
         }
       }
-      // HANGOUT=<trail,trail,trail>: the lobby's Hangout tab (LobbyRoom.cs) with three characters, each wearing that trail id and
-      // mid-stride (so the trail shows), e.g. HANGOUT=trail-void,trail-prism,trail-frost.
-      if (Environment.GetEnvironmentVariable("HANGOUT") != null) {
-        var tr = Environment.GetEnvironmentVariable("HANGOUT").Split(',');
-        set("lobbyTab", 6);
-        // HANGOUTANIM=<0..1>: freeze the Loadout -> Hangout transition part-way (0.5 = the window half grown); the Loadout tab is the start.
-        if (Environment.GetEnvironmentVariable("HANGOUTANIM") != null) { set("lobbyTab", 6); set("hangoutLastTab", 6); set("hangoutAnim", float.Parse(Environment.GetEnvironmentVariable("HANGOUTANIM"))); }
-        host.Lobby[3] = new LobbyEntry { Id = 3, Name = "Sam", Role = Role.Healer, Kit = Kit.Summoner, Weapon = 0, Ability = 0, Rank = 14, Frame = 1 };
-        Time.unscaledTime = 10f;
-        var tpType = typeof(ArenaApp).GetNestedType("TrailPoint", BindingFlags.NonPublic);
-        var rt = new System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<object>>();
-        var rtField = typeof(ArenaApp).GetField("roomTrails", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(app);
-        var spots = new[] { new V2(250f, 300f), new V2(520f, 210f), new V2(380f, 400f) };
-        int n = 0;
-        foreach (var le in host.Lobby.Values) {
-          if (n < tr.Length) le.Trail = Rank.TrailIndex(tr[n]);
-          var pos = spots[n]; var av = new Avatar { Pos = pos, Disp = pos, Aim = n == 1 ? 3.14f : 0.2f - n * 0.4f }; host.Avatars[le.Id] = av;
-          var listType = rtField.GetType(); var list = Activator.CreateInstance(listType.GetGenericArguments()[1]);
-          for (int i = 24; i >= 0; i--) {
-            var tp = Activator.CreateInstance(tpType);
-            float dir = n == 1 ? 1f : -1f;
-            tpType.GetField("At").SetValue(tp, new V2(pos.X + dir * i * 7f, pos.Y + (float)Math.Sin(i * 0.35f + n) * 9f));
-            tpType.GetField("T").SetValue(tp, 10f - i * 0.036f);
-            list.GetType().GetMethod("Add").Invoke(list, new object[] { tp });
-          }
-          if (le.Trail != 0) listType.GetMethod("set_Item").Invoke(rtField, new object[] { le.Id, list });
-          n++;
-        }
-        // A walk for the Light Cycle (it keeps corners, not the points above): right, then down, then right again, ending at the spots.
-        if (Array.IndexOf(tr, "trail-lightcycle") >= 0) {
-          var tick = typeof(ArenaApp).GetMethod("TickRoomTrails", BindingFlags.NonPublic | BindingFlags.Instance);
-          for (int f = 0; f <= 150; f++) {
-            float tt = 10f - (150 - f) * 0.016f, u = f / 150f;
-            int ni = 0;
-            foreach (var le in host.Lobby.Values) {
-              var spot = spots[ni++]; var av2 = host.Avatars[le.Id];
-              V2 pp = u < 0.45f ? new V2(spot.X - 220f + 220f * (u / 0.45f) / 1f, spot.Y - 90f) : u < 0.75f ? new V2(spot.X, spot.Y - 90f + 90f * ((u - 0.45f) / 0.3f)) : new V2(spot.X + 150f * ((u - 0.75f) / 0.25f), spot.Y);
-              av2.Pos = av2.Disp = pp;
-            }
-            tick.Invoke(app, new object[] { tt, 0.016f });
-          }
-        }
-        host.MyId = 1;
-      }
       // DIFF=Hard (a preset) or DIFF=Custom (Hard with a few numbers changed): the lobby's Difficulty tab (LOBBYTAB=3).
       if (Environment.GetEnvironmentVariable("DIFF") != null) { var dl = (DifficultyLevel)Enum.Parse(typeof(DifficultyLevel), Environment.GetEnvironmentVariable("DIFF")); host.Diff = Difficulty.Of(dl == DifficultyLevel.Custom ? DifficultyLevel.Hard : dl); if (dl == DifficultyLevel.Custom) { host.Diff.Set(DiffKnob.EnemyDamage, 1.8f); host.Diff.Set(DiffKnob.Regen, 0.5f); host.Diff.Set(DiffKnob.ReviveTime, 2.5f); } }
       // HUNT=<n>: Boss Hunt mode, its tab (the Warden's hunt open, won once), the nth boss on top (n > 1: a never-met "???" boss).
@@ -423,7 +379,6 @@ static partial class Shot {
       // CRT=<seconds>: that far into New run's CRT boot (LobbyCrt.cs). Every lobby shot has the CRT screen and glass round it.
       var crtIn = Environment.GetEnvironmentVariable("CRT");
       if (crtIn != null) set("crtEntry", true);
-      if (Environment.GetEnvironmentVariable("CRTSTYLE") != null) set("crtStyle", int.Parse(Environment.GetEnvironmentVariable("CRTSTYLE")));
       if (crtIn != null) set("enterT", float.Parse(crtIn, System.Globalization.CultureInfo.InvariantCulture));
       Action<string> crtDraw = n => { Event.current.type = EventType.Repaint; typeof(ArenaApp).GetMethod(n, f2, null, new[] { typeof(float) }, null).Invoke(app, new object[] { 7.3f }); };
       // LOBBYCRTOUT=<seconds>: that far into leaving for the menu through the CRT power-cycle (LobbyCrtLeave.cs; 0 to 1.05).

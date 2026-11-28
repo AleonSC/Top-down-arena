@@ -9,7 +9,7 @@ namespace Arena
     ///
     /// Today's numbers are Docs/Mockups/crt-lobby-softer.html (1280 x 720): a 36 px margin all round; the party column is 376 wide at
     /// x=36 (header 30..70, the mode card 82..134, the Party line 146..168, cards from 176, Ready 586..634 over Start 640..684); the big
-    /// screen runs 440..1244 by 70..684; above it at y=34 the Saved star, the Loadout, Difficulty and Modifiers tabs, and the Hangout tab at the right end.
+    /// screen runs 440..1244 by 70..684; above it at y=34 the Saved star, the Loadout, Difficulty and Modifiers tabs, and the Practice tab at the right end.
     public partial class ArenaApp
     {
         // --- Left column: header, mode keys, the party, Ready and Start -------------------------------------------------------------
@@ -39,7 +39,7 @@ namespace Arena
         /// The big screen's rectangle (the loadout, the tabs' bodies and the Hangout); the menu card grows into it (LobbyEnter.cs).
         static readonly Rect LobbyBodyRect = new Rect(440f, LobbyBodyTop, 804f, 614f);
         /// The tab row: folder tabs standing on the big screen's top edge, as tall as the header row's keys: the Saved star, Loadout,
-        /// Difficulty and Modifiers from the left, the Hangout alone at the right end. (The modes' own pages are on the Game Mode
+        /// Difficulty and Modifiers from the left, Practice alone at the right end. (The modes' own pages are on the Game Mode
         /// screen, ModeScreenUi.cs.)
         const float LobbyTabY = 34f, LobbyTabH = LobbyBodyTop - LobbyTabY;
         const float LobbyLoadoutKeyW = 150f, LobbySavedW = 40f;
@@ -51,8 +51,8 @@ namespace Arena
         /// Difficulty and Modifiers, Loadout-sized, right after the Loadout tab.
         static Rect LobbyDiffKey => new Rect(LobbyLoadoutKey.xMax + LobbyTabKeyGap, LobbyTabY, LobbyLoadoutKeyW, LobbyTabH);
         static Rect LobbyModsKey => new Rect(LobbyDiffKey.xMax + LobbyTabKeyGap, LobbyTabY, LobbyLoadoutKeyW, LobbyTabH);
-        /// The Hangout (LobbyRoom.cs), alone at the big screen's right end.
-        static Rect LobbyHangoutKey => new Rect(LobbyBodyRect.xMax - 30f - LobbyLoadoutKeyW, LobbyTabY, LobbyLoadoutKeyW, LobbyTabH);
+        /// Practice (HangoutUi.cs), alone at the big screen's right end.
+        static Rect LobbyPracticeKey => new Rect(LobbyBodyRect.xMax - 30f - LobbyLoadoutKeyW, LobbyTabY, LobbyLoadoutKeyW, LobbyTabH);
 
         // --- The Game Mode screen (ModeScreenUi.cs): its page under the header row, down to the big screen's bottom ----------------
 

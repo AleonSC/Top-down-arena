@@ -210,13 +210,6 @@ namespace Arena
             Ui.Fill(new Rect(x, y + 27f, w, 1f), CrtStyle.Head.WithAlpha(0.4f));
         }
 
-        /// A small label in the dim ink (the mockup's .lab).
-        public static void Lab(Rect r, string text, int size, bool calm, bool bright = false)
-        {
-            string t = text.ToUpperInvariant();
-            Ui.Label(r, Truncate(t, size, r.width), size, bright ? CrtStyle.Ink : CrtStyle.Dim, TextAnchor.MiddleLeft, true);
-        }
-
         /// The blue corner brackets of the lobby's boxes (as on the original's ability box): an L on every corner, 3 px thick,
         /// bright blue with a soft glow behind, hugging the box from just outside.
         public static void Corners(Rect r, float arm = 26f, float th = 3f)

@@ -24,8 +24,6 @@ namespace Arena
         static readonly bool[] CarScrolls = { true, false, false, false };
         /// The detail box's role and class pages (`detailSel`; 0-2 are the weapon, ability and ultimate).
         public const int DetailRole = 3, DetailClass = 4;
-        /// The role and class keys' hover tips, retired for now (the detail box shows them on a click). False brings them back.
-        static readonly bool LoadoutHoverTipsRetired = true;
         const float CarArrowW = 18f, CarGap = 6f, CarPad = 4f;  // CarPad: room above and below the keys for their glow
 
         readonly int[] carFirst = new int[CarRows];    // the first key in view (the target)

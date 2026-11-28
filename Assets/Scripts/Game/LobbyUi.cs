@@ -26,15 +26,9 @@ namespace Arena
         bool showcaseHueLoaded, showcaseHueOpen, showcaseHueDrag;  // (read from PlayerPrefs; the hue panel open; its strip being dragged)
         float showcaseSeen;        // when the hero card last drew it (it's stopped once nobody looks)
 
-        /// The lobby's content used to sit 14 px higher than its layout numbers said. The softer layout (Docs/Mockups/crt-lobby-softer.html) runs 28..684
-        /// with a 36 px margin and needs no lift; the group stays so DrawLobby's click handling is unchanged.
-        const float LobbyLift = 0f;
-
         void DrawLobby()
         {
-            GUI.BeginGroup(new Rect(0f, -LobbyLift, W, H));
-            var oldShift = uiShift;
-            uiShift = new V2(oldShift.X, oldShift.Y - LobbyLift);  // its live models (GL) move with it
+            GUI.BeginGroup(new Rect(0f, 0f, W, H));  // (the group stays so DrawLobby's click handling is unchanged)
             TickLobbyWash();
             var oldAccent = CrtStyle.Accent;
             CrtStyle.Accent = LobbyAccent();  // a grey screen in one colour (ModeScreenUi.cs)
@@ -48,7 +42,6 @@ namespace Arena
             finally
             {
                 CrtStyle.Accent = oldAccent;
-                uiShift = oldShift;
                 GUI.EndGroup();
             }
         }
@@ -189,11 +182,8 @@ namespace Arena
 
             // --- Right: the tab keys, then your loadout.
             var body = LobbyBodyRect;
-            TickHangoutAnim();  // LobbyRoom.cs
             TickPracticeSwap();  // HangoutUi.cs: a swap to or from Practice glitches
-            if (hangoutAnim > 0f && hangoutAnim < 1f && me != null && session.Resume == null)
-                DrawHangoutTransition(me, body, t);  // the preview window growing into the Hangout (or shrinking back)
-            else if (PracticeFxOn)
+            if (PracticeFxOn)
                 DrawPracticeSwap(me, body, t, tab => DrawLobbyBody(tab, me, body, t));  // HangoutUi.cs
             else
                 DrawLobbyBody(lobbyTab, me, body, t);
@@ -341,13 +331,6 @@ namespace Arena
                 Ui.Alpha = oldAlpha;
                 if (click && i != mode)
                     turnTo = modeTurn + (d > 0f ? 1 : -1);
-                if (ModeHoverTips && ad < 0.5f && kr.Contains(ev.mousePosition))  // the description is a hover tip, on the middle mode only
-                {
-                    TipStart(kr, ModeTitle(gm), CrtStyle.Ink);
-                    TipAdd(ModeSub(gm), 13, Ui.Text);
-                    if (!host)
-                        TipAdd("Only the host can switch the mode.", 11, Ui.Muted);
-                }
             }
             // The arrows at the ends.
             for (int side = -1; side <= 1; side += 2)
@@ -376,8 +359,6 @@ namespace Arena
                 DrawDifficulty(body, t);  // DifficultyUi.cs
             else if (tab == PerkTab)
                 DrawPerks(body, t);  // PerksUi.cs
-            else if (tab == HangoutTab)
-                DrawHangout(body, t);  // LobbyRoom.cs (retired)
             else if (tab == PracticeTab)
                 DrawPractice(body, t);  // HangoutUi.cs
             else if (session.Resume != null)
@@ -412,7 +393,7 @@ namespace Arena
             }
             for (int k = 0; k < 3; k++)
             {
-                var rect = k == 0 ? LobbyDiffKey : k == 1 ? LobbyModsKey : LobbyHangoutKey;
+                var rect = k == 0 ? LobbyDiffKey : k == 1 ? LobbyModsKey : LobbyPracticeKey;
                 int tab = k == 0 ? 3 : k == 1 ? 2 : PracticeTab;
                 bool on = lobbyTab == tab;
                 LobbyGlowBox(rect);
@@ -427,6 +408,12 @@ namespace Arena
                     CloseFavorites();
                 }
             }
+        }
+
+        /// The Loadout's preview window (the live mini-arena on the hero card).
+        static Rect ShowcaseRect(Rect body)
+        {
+            return new Rect(body.x + 16f, body.y + PreviewTop, 300f, PreviewEnd - PreviewTop);  // its top level with the Role heading's letters
         }
 
         // --- Party ----------------------------------------------------------------
@@ -736,7 +723,7 @@ namespace Arena
                 botNameText = Ui.BareField(new Rect(nameBox.x + 4f, nameBox.y, nameBox.width - 8f, nameBox.height), botNameText, 16, 14);
                 if (botNameText.Trim().Length > 0 && Session.CleanName(botNameText) != bot.Name)
                     partyBots.Rename(session, bot, botNameText);  // (the box keeps what you typed, spaces and all)
-            }  // (LobbyRoom.cs: the Hangout grows out of this window)
+            }
             // The role / class title (look B: the role small over the class), then the stats.
             DrawRoleClassTitle(new Rect(lx, r.y + BottomTop, lw, 58f), me, roleColor, calm);
             if (self && session.Resume == null)
@@ -805,11 +792,6 @@ namespace Arena
                     LockedSlot(b, WildcardLockText);  // the role can't be picked until it's unlocked
                     continue;
                 }
-                if (!LoadoutHoverTipsRetired && b.Contains(Event.current.mousePosition))  // (retired: the detail box shows the role on a click)
-                {
-                    TipStart(b, Defs.Roles[i].Name, (Defs.Roles[i].Color).ToColor());
-                    TipAdd(Defs.Roles[i].Desc, 13, Ui.Text);
-                }
                 if (DkKey(b, Defs.Roles[i].Name.ToUpperInvariant(), (int)me.Role == i, calm, PixelArt.Get(RoleIcons[i]), colorIcon: true, size: 17, minSize: 11, accent: (Defs.Roles[i].Color).ToColor()))
                 {
                     tgt.RequestRole((Role)i);
@@ -859,11 +841,6 @@ namespace Arena
                     {
                         LockedSlot(b, Defs.KitName((Kit)i) + ": DPS only for now", true);  // a class still being built (the Engineer)
                         continue;
-                    }
-                    if (!LoadoutHoverTipsRetired && b.Contains(Event.current.mousePosition))  // (retired: the detail box shows the class on a click)
-                    {
-                        TipStart(b, Defs.KitName((Kit)i), Ui.Text);
-                        TipAdd(KitBlurb((Kit)i), 13, Ui.Text);
                     }
                     if (DkKey(b, Defs.KitName((Kit)i).ToUpperInvariant(), me.Kit == (Kit)i, calm, PixelArt.Get(Classes.Get((Kit)i).Icon), stack: true, colorIcon: true, size: 13, minSize: 9))
                     {
@@ -1295,9 +1272,6 @@ namespace Arena
         static readonly string[] Numerals = { "I", "II", "III", "IV", "V" };
 
         /// The "Coming soon" tooltip over the hovered locked slot (call after everything else is drawn).
-        /// Retired for now: the mode window describes the mode, so its button shows no hover tip. Set true to bring it back.
-        static readonly bool ModeHoverTips = false;
-
         void DrawLockedTip()
         {
             if (!lockedTipOn)
@@ -1467,7 +1441,7 @@ namespace Arena
         /// The zoom meter along the preview's lower edge (a slider, "-" and "+" steps, and the mouse wheel over the window).
         void DrawShowcaseZoom(Rect view, Color roleColor)
         {
-            if ((uiGlBlocked && !pieceGlOn) || hangoutAnim > 0f)
+            if (uiGlBlocked && !pieceGlOn)
                 return;  // (pieceGlOn: a lobby piece sliding in shows it with the preview)
             const float Min = 0.5f, Max = 2f;
             var e = Event.current;
@@ -1542,8 +1516,8 @@ namespace Arena
         /// The live mini-arena on the hero card: your loadout in action, zoomed out to fit the dummies.
         void DrawShowcase(LobbyEntry me, Rect view, Color roleColor)
         {
-            if ((uiGlBlocked && !pieceGlOn) || hangoutAnim > 0f)
-                return;  // (hangoutAnim: the window is turning into the Hangout, which draws its own floor and ship; pieceGlOn: the lobby's entrance fades the preview in with the loadout)
+            if (uiGlBlocked && !pieceGlOn)
+                return;  // (pieceGlOn: the lobby's entrance fades the preview in with the loadout)
             // the lobby sliding away as a run launches: no live preview (it would start up again) (LaunchIntro.cs)
             int shown = ShownAbility(me);
             bool ult = detailSel == 2;  // what you last clicked (a weapon, an ability or the ultimate) is what it shows

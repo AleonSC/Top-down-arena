@@ -15,7 +15,7 @@ namespace Arena
     ///           bezel and corners at the end are the lobby's own, so the hand-over to DrawLobbyCrtBack / Glass shows no change
     ///   0.7 s   a link log types itself in the middle (link, player, cat, opening lobby), parts typed with a one-second pause and blinking cursor between them, fading out between 5.6 and 5.9 s
     ///   (the boot is the dark blue CRT throughout, CrtBootBlue; only the part of the screen the lobby has opened is its grey)
-    ///   5.5 s   Power-on (DrawCalmLoadIn, crtStyle 4): the log squeezes into a bright line, the line stretches across the screen and
+    ///   5.5 s   Power-on (DrawPowerOnOpen): the log squeezes into a bright line, the line stretches across the screen and
     ///           opens top and bottom, showing the whole lobby at once by 6.3 s
     /// Other ways into the lobby (Join, Continue, Back from a run) keep their own entrances and just fade the CRT in.
     /// Reduced effects and Visual effects off skip the boot and use the normal entrance.
@@ -27,8 +27,6 @@ namespace Arena
         const float LobbyGlassR = 34f;           // the glass's corner radius (the mockup's 36 px)
         const float LobbyRimBand = 5f, LobbyRimLine = 1f;  // a 7 px dark navy band, then a 2 px blue line inside it (the mockup's inset shadows)
 
-        int crtStyle = 4;   // see DrawLobbyEnteringCrt (4, Power-on, is the game's); the preview sets it (CRTSTYLE)
-        bool pieceQuiet, pieceFade;  // LobbyPiece: no holo-boot line/flicker; fade in place instead of the holo wipe
         bool crtEntry;  // the lobby is opening from New run: DrawLobbyEnteringCrt instead of DrawLobbyEntering
         static Texture2D lobbyScanTex, lobbyPhosTex, lobbyGlassTex;
         static GUIStyle lobbyGlassStyle;
@@ -374,12 +372,6 @@ namespace Arena
                 }
                 if (a < CrtPiecesAt && b >= CrtPiecesAt)
                     sounds.Play(Sfx.CrtSweep, 0.5f, now);
-                for (int i = 0; i < (crtStyle >= 4 ? 0 : 6); i++)  // the lobby's pieces lighting up, one by one (the older styles)
-                {
-                    float at = CrtPiecesAt + 0.2f + 0.14f * i;
-                    if (a < at && b >= at)
-                        sounds.Play(Sfx.BayTick, 0.5f, now);
-                }
             }
             if (a < EnterCrtLen - 0.9f && b >= EnterCrtLen - 0.9f || skipped && b >= EnterCrtLen)
                 sounds.Play(Sfx.CrtReady, 0.55f, now);
@@ -416,9 +408,8 @@ namespace Arena
 
             // The link log, typed in the middle of the screen and fading out.
             float pe = e - CrtPiecesAt;
-            bool calm = crtStyle >= 4;  // the calmer load-ins: the log clears before the lobby starts, one motion, no per-piece lines
-            float logA = Seg(e, CrtLogAt, CrtLogAt + 0.15f) * (calm ? (crtStyle == 4 ? 1f : 1f - Seg(pe, 0f, 0.2f)) : 1f - Seg(e, CrtLogFadeAt, CrtLogFadeAt + 0.3f));
-            float squeeze = crtStyle == 4 ? EaseIn(Seg(pe, 0f, 0.2f)) : 0f;  // power-on: the log squeezes into a line
+            float logA = Seg(e, CrtLogAt, CrtLogAt + 0.15f);
+            float squeeze = EaseIn(Seg(pe, 0f, 0.2f));  // power-on: the log squeezes into a line
             if (squeeze >= 1f)
                 logA = 0f;
             if (squeeze > 0f && logA > 0f)
@@ -443,85 +434,10 @@ namespace Arena
                 GUI.EndGroup();
                 GUI.EndGroup();
             }
-            if (calm)
-            {
-                DrawCalmLoadIn(pe);
-                return;
-            }
-
-            // How the lobby itself loads in after the log (crtStyle, for choosing): 0 pieces holo-boot with a sweeping scan line,
-            // 1 the whole lobby fades up, 2 one soft top-down wipe (no line, no flicker), 3 pieces fade up in place, a short stagger.
-            if (crtStyle == 0)
-            {
-                DrawLobbyPieces(e - (CrtPiecesAt - 0.45f), true);
-                float sw = Seg(e, CrtPiecesAt, CrtPiecesAt + 1.0f);
-                if (sw > 0f && sw < 1f)
-                {
-                    float by = Mathf.Lerp(-130f, H + 20f, sw);
-                    for (int i = 0; i < 8; i++)
-                        Ui.Fill(new Rect(0f, by + 130f * i / 8f, W, 130f / 8f + 1f), new Color(0.7f, 0.85f, 1f, 0.03f + 0.18f * Mathf.Pow((i + 1f) / 8f, 3f)));
-                    Ui.Fill(new Rect(0f, by + 128f, W, 2f), new Color(0.9f, 0.95f, 1f, 0.4f));
-                }
-            }
-            else if (crtStyle == 1 || crtStyle == 2)
-            {
-                uiGlBlocked = true;
-                pieceQuiet = true;
-                pieceFade = crtStyle == 1;
-                LobbyPiece(full, pe, 0f, crtStyle == 1 ? 0.6f : 0.8f, 0f, 0f, true);
-                pieceQuiet = pieceFade = false;
-                uiGlBlocked = false;
-            }
-            else
-            {
-                pieceFade = true;
-                DrawLobbyPieces(pe * 1.8f + 0.45f, true);  // the same order, squeezed into about 0.8 s
-                pieceFade = false;
-            }
+            DrawPowerOnOpen(pe);  // the lobby opens like a CRT warming up
         }
 
-        /// The calmer load-ins after the log (crtStyle 4-6), pe seconds after CrtPiecesAt. Each is one motion over the whole lobby:
-        ///   4 Power-on: the log squeezes into a bright line (0-0.2 s), the line stretches across the screen (0.2-0.35 s) and opens
-        ///     top and bottom like a CRT warming up, showing the whole lobby at once (0.35-0.8 s), a glow settling after
-        ///   5 One sweep: the log fades (0-0.2 s), then a single soft scan line falls down the screen showing the lobby above it (0.2-0.95 s)
-        ///   6 Three blocks: the log fades (0-0.2 s), then the header row, the party column and the loadout each fade up 10 px, in turn
-        void DrawCalmLoadIn(float pe)
-        {
-            var ink = LobbyInk;
-            uiGlBlocked = true;
-            if (crtStyle == 4)
-                DrawPowerOnOpen(pe);
-            else if (crtStyle == 5)
-            {
-                float k = EaseInOut(Seg(pe, 0.2f, 0.95f));
-                float y = Mathf.Lerp(0f, H, k);
-                if (k > 0f)
-                    LobbyRevealed(new Rect(0f, 0f, W, y), 1f);
-                if (k > 0f && k < 1f)
-                {
-                    for (int i = 0; i < 8; i++)  // a soft tail just above the line
-                        Ui.Fill(new Rect(0f, y - 64f + 8f * i, W, 8f), new Color(0.7f, 0.85f, 1f, 0.06f * (i + 1f) / 8f));
-                    Ui.Glow(new Rect(0f, y - 3f, W, 6f), ink, 0.3f);
-                    Ui.Fill(new Rect(0f, y - 1f, W, 2f), new Color(0.92f, 0.96f, 1f, 0.6f));
-                }
-            }
-            else
-            {
-                var head = new Rect(0f, 0f, W, LobbyTabsBandEnd);
-                var left = new Rect(0f, LobbyTabsBandEnd, LobbySplit, H - LobbyTabsBandEnd);
-                var body = new Rect(LobbySplit, LobbyTabsBandEnd, W - LobbySplit, H - LobbyTabsBandEnd);
-                Rect[] blocks = { head, left, body };
-                for (int i = 0; i < 3; i++)
-                {
-                    float k = EaseOut(Seg(pe, 0.2f + 0.14f * i, 0.55f + 0.14f * i));
-                    if (k > 0f)
-                        LobbyRevealed(blocks[i], k, 0f, 10f * (1f - k));
-                }
-            }
-            uiGlBlocked = false;
-        }
-
-        /// The Power-on (crtStyle 4), pe seconds in: a bright line, log-wide then the whole width (0.12-0.35 s), opening top and bottom like
+        /// The Power-on, pe seconds after CrtPiecesAt: a bright line, log-wide then the whole width (0.12-0.35 s), opening top and bottom like
         /// a CRT warming up onto the whole lobby (0.35-0.8 s), its brightness settling by 1.1 s. The Game Mode screen's way back too (ModeBlink.cs).
         void DrawPowerOnOpen(float pe)
         {
