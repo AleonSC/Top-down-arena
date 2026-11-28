@@ -20,7 +20,7 @@ namespace Arena
     public partial class ArenaApp
     {
         const float CabOpenEnd = 3.5f;  // seconds after opening: the opening is over, nothing animates any more
-        static readonly Color CabSoft = CrtStyle.Desc;       // small descriptions on a screen (CrtStyle.cs)
+        static Color CabSoft => CrtStyle.Desc;       // small descriptions on a screen (CrtStyle.cs)
         static readonly Color CabDanger = CrtStyle.Danger;
         static readonly Color CabWarm = new Color(1f, 0.82f, 0.45f);         // a changed key
 
@@ -75,7 +75,7 @@ namespace Arena
             // The soft sweep (HoloBoot, LobbyFx.cs): the box shows top-down under a feathered edge as it opens (EndDrawer).
             cabBootE = calm || Dock ? 99f : age;  // (closing, the pause menu's clock is stopped: a half-swept box slides out as it is; docking: no sweep)
             cabBootRect = new Rect(dx + CabX, CabY, CabW + 2f, CabH + 2f);
-            DockTrails(new Rect(CabX + CabCentreDX, CabY, CabW + 2f, CabH + 2f), a => DockDrawerIn(a) * CentreSlideScale, CrtStyle.Ink);  // (docking: WindowAnim.cs)
+            DockTrails(new Rect(CabX, CabY, CabW + 2f, CabH + 2f), a => DockDrawerIn(a), CrtStyle.Ink);  // (docking: WindowAnim.cs)
             float bootH = Mathf.Min(H, HoloBoot.SoftClip(cabBootRect, cabBootE));
             GUI.BeginGroup(new Rect(dx, 0f, CabX + CabW + 2f + 60f, bootH));
             CrtKit.LoadoutBox(new Rect(CabX, CabY, CabW + 2f, CabH + 2f), !CabNeon);
@@ -140,7 +140,7 @@ namespace Arena
         }
 
         /// Over a menu box's glass, under its contents: a dark navy shade so the box reads darker than the glass alone.
-        static void CabShade(Rect r) => Ui.Fill(r, new Color(0.004f, 0.008f, 0.025f, 0.42f));
+        static void CabShade(Rect r) => Ui.Fill(r, CrtStyle.Greyed ? new Color(0.01f, 0.01f, 0.012f, 0.42f) : new Color(0.004f, 0.008f, 0.025f, 0.42f));
 
         bool cabGlass;  // the pause, lobby, Settings and Profile cabinets and the pause run card are hologram glass (their windows too) (set round their drawing, MenuDrawer.cs)
         float cabBootE = 99f;  // seconds into the cabinet's holo boot (99: none)
@@ -187,6 +187,8 @@ namespace Arena
 
         bool DrawerKey(Rect r, int i, Texture2D icon, string name, string line, string key, string tag, Color col, bool on, Color? tagColor, bool danger)
         {
+            if (CrtStyle.Greyed && !danger)
+                col = CrtStyle.Ink;  // a grey screen (the pause and lobby menus): every key in its one colour, like the Game Mode screen
             string slot = "cab.r" + i;
             // The texts are there as soon as the key is (blank keys read as broken while they typed in); they still retype when the list switches.
             string n = CrtKit.Typed(slot + ".n", name, WinNow, FxCalm, -10f);
