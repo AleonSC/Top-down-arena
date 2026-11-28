@@ -1744,7 +1744,15 @@ namespace Arena
             showcaseDemo = demo;
             showcaseHasAlt = ShowcaseAlt.Has(Defs.Weapon(me.Role, me.Kit, me.Weapon).Id);
             showcase.AltFire = showcaseAlt && !demo;
-            showcase.Show(me.Role, me.Kit, me.Weapon, Upgrades.FirstAbility(me.Role, me.Kit, shown), demo, ult, me.Ult);
+            int pw = me.Weapon, pu = me.Ult;
+            if (me.Role == Role.Wildcard && wildPickOpen >= 0 && wildHoverSlot >= 0)  // the Wildcard's pick window: play the hovered option (WildcardPicksMockup.cs)
+            {
+                if (wildHoverSlot == 0) { pw = wildHoverVal; demo = ult = false; }
+                else if (wildHoverSlot == 3) { pu = wildHoverVal; demo = ult = true; }
+                else { shown = wildHoverVal; demo = true; ult = false; }
+                showcaseDemo = demo;
+            }
+            showcase.Show(me.Role, me.Kit, pw, Upgrades.FirstAbility(me.Role, me.Kit, shown), demo, ult, pu);
             showcaseSeen = Time.unscaledTime;
             if (!BeginUiGl())
                 return;

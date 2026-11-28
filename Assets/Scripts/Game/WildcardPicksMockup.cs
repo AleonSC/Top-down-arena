@@ -8,7 +8,8 @@ namespace Arena
     public partial class ArenaApp
     {
         int wildLook;     // 0 today's wheel, 1 the slots mockup
-        int wildPickOpen = -1;  // the slots mockup: the slot whose pick window is open (-1 none) (0 weapon, 1 1st ability, 2 2nd ability, 3 ultimate)
+        int wildPickOpen = -1;
+        int wildHoverSlot = -1, wildHoverVal;  // the pick window's hovered option (last frame's): the preview plays it  // the slots mockup: the slot whose pick window is open (-1 none) (0 weapon, 1 1st ability, 2 2nd ability, 3 ultimate)
 
         /// Fills x, y .. yEnd (the Gear and Ultimate rows' space) with the picked look.
         void DrawWildMock(LobbyEntry me, Session tgt, bool self, float x, float y, float w, float yEnd)
@@ -133,6 +134,7 @@ namespace Arena
                 || (ev.type == EventType.KeyDown && ev.keyCode == KeyCode.Escape))
             {
                 wildPickOpen = -1;
+                wildHoverSlot = -1;
                 if (ev.type == EventType.KeyDown)
                     ev.Use();
                 return;
@@ -140,7 +142,9 @@ namespace Arena
             int cur = slot == 0 ? me.Weapon : slot == 1 ? me.Ability : slot == 2 ? second : me.Ult;
             const int cols = 2, rows = 4;
             float gx = 12f, gy = 10f;
-            float top = r.y + 50f, bw = (r.width - 32f - gx) / cols, bh = (r.yMax - 14f - top - gy * (rows - 1)) / rows;
+            const float infoH = 92f;
+            float top = r.y + 50f, bw = (r.width - 32f - gx) / cols, bh = (r.yMax - 14f - infoH - 10f - top - gy * (rows - 1)) / rows;
+            int hovSlot = -1, hovVal = 0, hovKit = 0;
             for (int k = 0; k < Defs.KitCount; k++)
             {
                 var blk = new Rect(r.x + 16f + (k % cols) * (bw + gx), top + (k / cols) * (bh + gy), bw, bh);
@@ -177,11 +181,42 @@ namespace Arena
                         else
                             WildPickAbility(me, tgt, self, v, second, slot - 1);
                         wildPickOpen = -1;
+                        hovSlot = -1;
+                    }
+                    if (GUI.enabled && b.Contains(ev.mousePosition))
+                    {
+                        hovSlot = slot;
+                        hovVal = v;
+                        hovKit = k;
                     }
                     if (v == other)
                         SlotBadge(new Rect(b.xMax - 14f, b.center.y - 6f, 12f, 12f), slot == 1 ? 2 : 1, wild);
                 }
             }
+            wildHoverSlot = hovSlot;
+            wildHoverVal = hovVal;
+
+            // The info box: the hovered option (else the slot's pick), named with its class, and what it does.
+            int iv = hovSlot >= 0 ? hovVal : cur, ik = hovSlot >= 0 ? hovKit : WildKitOf(me, slot, second);
+            var ib = new Rect(r.x + 16f, r.yMax - 14f - infoH, r.width - 32f, infoH);
+            CrtKit.SoftBox(ib, wild, false, false, false);
+            string iname, idesc;
+            if (slot == 0)
+            {
+                var wd = Defs.Weapon(Role.Wildcard, Kit.Soldier, iv);
+                iname = wd.Name;
+                idesc = KeyText.Fill(wd.Desc);
+            }
+            else
+            {
+                var ad = Upgrades.Ability(slot == 3 ? Upgrades.Ultimate(Role.Wildcard, (Kit)ik, iv) : Upgrades.FirstAbility(Role.Wildcard, Kit.Soldier, iv));
+                iname = ad.Name;
+                idesc = KeyText.Fill(ad.Desc);
+            }
+            Ui.Icon(new Rect(ib.x + 10f, ib.y + 9f, 16f, 16f), PixelArt.Get(Classes.Get((Kit)ik).Icon), Color.white);
+            LobbyKit.Fit(new Rect(ib.x + 32f, ib.y + 6f, ib.width - 140f, 22f), iname, 16, 10, Color.white, TextAnchor.MiddleLeft, calm);
+            Ui.Label(new Rect(ib.xMax - 110f, ib.y + 6f, 100f, 22f), hovSlot >= 0 && iv != cur ? "PREVIEWING" : "EQUIPPED", 9, wild, TextAnchor.MiddleRight, true);
+            FitText(new Rect(ib.x + 10f, ib.y + 30f, ib.width - 20f, ib.height - 36f), idesc, 12, Ui.Text);
         }
     }
 }
