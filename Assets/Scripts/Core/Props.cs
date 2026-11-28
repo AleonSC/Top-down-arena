@@ -239,7 +239,7 @@ namespace Arena
         }
 
         /// Host: which way a walking enemy heads with crates and barrels about. Straight on if nothing is in the way;
-        /// otherwise the nearest turn (up to a little past sideways) that is clear of props and walls. If no way round
+        /// otherwise along a path round them (PropRouteDir), or, with no searches left this tick, the nearest turn (up to a little past sideways) that is clear of props and walls. If no way round
         /// exists, it keeps going straight and shoves the prop.
         V2 PropDir(Enemy e, V2 dir)
         {
@@ -247,7 +247,11 @@ namespace Arena
             if (dir.IsZero)
                 return dir;
             var near = PropsNear(e.Pos, PropLook + r, aheadNear);
-            if (near.Count == 0 || !PropAhead(near, e.Pos, dir, r))
+            bool ahead = near.Count > 0 && PropAhead(near, e.Pos, dir, r);
+            V2 routed;
+            if (PropRouteDir(e, dir, r, ahead, out routed))  // a path round them (PropRoute.cs)
+                return routed;
+            if (!ahead)
                 return dir;
             var layout = LayoutOn ? ActiveLayout : null;
             float first = (e.Id & 1) == 0 ? 1f : -1f;  // each enemy keeps to its own side, so they don't dither
