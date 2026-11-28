@@ -351,6 +351,9 @@ namespace Arena
                     return;  // no timer ring: it draws its own
                 case ZoneKind.Tusker:
                     return;  // drawn by DrawTuskerFloor and DrawTuskers (TidalTuskerLook.cs): it's its own clock
+                case ZoneKind.BroodWeb:
+                    DrawBroodWebFloor(z, t);  // BroodQueenLook.cs
+                    return;  // no timer ring: it fades on its own
                 case ZoneKind.Mammoth:
                     DrawMammothFloor(z, t);  // MammothFallLook.cs (the mammoth is drawn over the enemies: DrawMammoths)
                     return;  // no timer ring: it's its own clock
@@ -555,6 +558,16 @@ namespace Arena
             if (m.Kind == MinionKind.BloodImp)
             {
                 DrawBloodImp(m, t);  // BloodRitualLook.cs
+                return;
+            }
+            if (m.Kind == MinionKind.BroodQueen)
+            {
+                DrawBroodQueen(m, t);  // BroodQueenLook.cs
+                return;
+            }
+            if (m.Kind == MinionKind.Broodling)
+            {
+                DrawBroodling(m, t);  // BroodQueenLook.cs
                 return;
             }
             if (m.Kind == MinionKind.Bat)

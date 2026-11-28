@@ -263,6 +263,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Legion | Dps | ultimate | 70 s | - | Summons 7 wolves and 7 bats. | A blood moon: wolves and bats circle you, you run faster and your minions frenzy. |
 | Rodent Minigun | Dps | ultimate | 70 s | - | Fires 2 s longer. | A portal opens in front of you and spins up into a minigun of mice, rats and hamsters, following your aim. |
 | Mammoth Fall | Dps | ultimate | 75 s | - | Rampages 1.5 s longer. | Summon a woolly mammoth in the sky, aim it, and it slams down, stunning everything around, then rampages through enemies. |
+| Brood Queen | Dps | ultimate | 75 s | - | She stays 13 s. | Drop a giant spider at your cursor. She bites and webs the pack and sends broodlings after other enemies. |
 | Land Shark | Dps | 1st, choice 5 | 14 s | - | A 30% wider puddle, and the bite hits for 160. | A puddle opens at your cursor and a shark leaps out, biting everything in it. |
 
 ### Knight
