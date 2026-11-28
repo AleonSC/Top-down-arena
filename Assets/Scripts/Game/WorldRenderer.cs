@@ -383,6 +383,7 @@ namespace Arena
             DrawImplodeMark(t);
             DrawTauntMarks(t);  // enemies a taunt has turned on its caster (AbilityLooks.cs)
             DrawKnightDpsOver(t);  // the Drawbridge falling, the Gauntlet's crests (KnightDpsLook.cs)
+            DrawArcBladesOver(t);  // the Dancing Blades' dance, over what they cut (ArcanistLook.cs)
             DrawColossusAir(t);  // what the Colossus threw, in flight (ColossusLook.cs)
             DrawClotAir(t);      // the Gore Mortar's drops falling (GoreMortarLook.cs)
             DrawBulletRainAir(t);  // Bullet Rain's rounds falling, landing rings and sparks (BulletRainLook.cs)
