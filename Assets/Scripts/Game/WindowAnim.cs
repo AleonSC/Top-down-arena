@@ -208,7 +208,7 @@ namespace Arena
             winOpenAt = closing ? pauseOpenedAt + WinNow - (pauseClosedAt >= 0f ? pauseClosedAt : WinNow) : pauseOpenedAt;
             winCloseK = closing ? 1f - pauseAnim : 0f;
             winFreeze = closing && pauseClosedAt >= 0f ? WinNow - pauseClosedAt : 0f;
-            Ui.Fill(new Rect(0, 0, W, H), new Color(0.01f, 0.01f, 0.03f, 0.55f * WindowVis));
+            DrawPauseBackdrop();  // the arena darkening under faint static (PauseBackdrop.cs)
             docking = true;
             StepPauseCentre();
             DrawPauseWindow();

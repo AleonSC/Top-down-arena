@@ -80,7 +80,10 @@ namespace Arena
             GUI.BeginGroup(new Rect(dx, 0f, CabX + CabW + 2f + 60f, bootH));
             CrtKit.LoadoutBox(new Rect(CabX, CabY, CabW + 2f, CabH + 2f), !CabNeon);
             if (cabGlass)  // the pause and lobby menus: the Tab screen's hologram glass (TabHolo.cs)
+            {
                 DrawHoloGlass(new Rect(CabX + 1f, CabY + 1f, CabW, CabH), WinNow);
+                CabShade(new Rect(CabX + 1f, CabY + 1f, CabW, CabH));
+            }
             GUI.BeginGroup(new Rect(CabX + 1f, CabY + 1f, CabW, CabH));  // the cabinet's inside: its own origin
 
             // The header screen: big phosphor text and a small line under it.
@@ -135,6 +138,9 @@ namespace Arena
             if (CabNeon)
                 DrawPanelNeon(cabBootRect, cabBootE, 7f, 1.4f);  // Settings and Profile: the neon edge and glowing corners (MenuHolo.cs)
         }
+
+        /// Over a menu box's glass, under its contents: a dark navy shade so the box reads darker than the glass alone.
+        static void CabShade(Rect r) => Ui.Fill(r, new Color(0.004f, 0.008f, 0.025f, 0.42f));
 
         bool cabGlass;  // the pause, lobby, Settings and Profile cabinets and the pause run card are hologram glass (their windows too) (set round their drawing, MenuDrawer.cs)
         float cabBootE = 99f;  // seconds into the cabinet's holo boot (99: none)
@@ -378,7 +384,10 @@ namespace Arena
             {
                 CrtKit.LoadoutBox(cabWinRect, !CabNeon);
                 if (cabKind != 0)  // a Settings section, How to play or a profile option: the Tab screen's hologram glass (TabHolo.cs)
+                {
                     DrawHoloGlass(new Rect(cabWinRect.x + 1f, cabWinRect.y + 1f, cabWinRect.width - 2f, cabWinRect.height - 2f), WinNow);
+                    CabShade(new Rect(cabWinRect.x + 1f, cabWinRect.y + 1f, cabWinRect.width - 2f, cabWinRect.height - 2f));
+                }
             }
             cabWinEnabledWas = GUI.enabled;
             if (!cabWinOn || cabWinOutAt >= 0f)

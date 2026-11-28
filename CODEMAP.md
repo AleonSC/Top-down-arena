@@ -629,6 +629,7 @@ front-end `partial class`. Older, more detailed per-file notes (not maintained):
 - `SoundBank.cs`: the sound table (one `Entry` per `Sfx`: takes, gap, pitch wander; `Categories()` puts each on a volume slider), the 32-voice pool (`PlayClip`: a sound per source, oldest stolen; music priority 0), the recipes built on a background thread at startup (`BuildAll`, `Ready`; `PumpClips` makes the clips a few a frame), your own sounds (`OwnSoundFiles`, `LoadProjectSounds`, `DecodeOwnSounds`: `<Sfx name>[_n].wav` in persistentDataPath/sounds or AudioClips in `Assets/Resources/Sfx` replace a sound), the music's two crossfading voices (renders copied into clips 2 s a frame, `UploadMusic`), and the core recipes; each `*SoundBank.cs` adds its system's recipes
 - `GameMusic.cs`, `MenuMusic.cs`: in-run and menu music
 - `MusicPack.cs`: the Inspector asset for your own clips (replace menu / battle / boss music, a battle track per faction (`Factions`, `SoundBank.FactionTrackId`), extra tracks); `CustomMusic.cs`: the music folder scan and WAV decoder for your own tracks; `MusicLibrary.cs`: every track the music player lists (extra mood recipes) and the `Jukebox` selection logic; `MusicPlayerUi.cs`: Settings > Audio > Music player
+- `PauseBackdrop.cs`: behind the pause menu: the arena darkening over 1.5 s under faint moving static (`DrawPauseBackdrop`; Reduced effects: the darkening only)
 - `PickSounds.cs`, `PauseGlitch.cs`: upgrade picker and pause-menu sounds
 
 ## Tools and docs (repo root)
