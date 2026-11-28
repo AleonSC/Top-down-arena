@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Arena
 {
     /// The Arcanist's looks (Core/Arcanist.cs): violet telekinesis and gold runes. Over the model: the Kinetic Field's faint ring,
-    /// Shard Guard, Kinetic Grasp's hold and Runic Array's sigils (KitLook.Body); its rune bolts and spectral blades (KitLook.Shot);
+    /// Shard Guard, Kinetic Grasp's hold and Runic Array's rift (KitLook.Body; the lock ring at your cursor, DrawArrayLock); its rune bolts and spectral blades (KitLook.Shot);
     /// the Orbit Shards and Dancing Blades (DrawMinion); the Grand Sigil, Sanctum Sigil and Telekinetic Crush (DrawZone); the held
     /// stylus and casting glyphs (WeaponLook.Held, WeaponLooks.cs). Preview: `ARCANIST=tank|healer|dps shot.sh x hud` (Tools/Preview/ShotArcanist.cs).
     public partial class ArenaApp
@@ -55,24 +55,99 @@ namespace Arena
                 for (int k = 0; k < 3; k++)
                     DrawRune(held.Disp + V2.FromAngle(t * 2f + MathX.Tau * k / 3f) * (held.Radius + 12f), 3.5f, t * 3f, ArcGold.WithAlpha(0.8f));
             }
-            if (p.ArrayT > 0f)  // Runic Array: four sigils turning behind you
+            if (p.ArrayT > 0f)  // Runic Array: the rift behind you
+                DrawArrayRift(p, t);
+            else
+                arraySeen.Remove(p.Id);  // (the next one opens from shut)
+        }
+
+        // --- Runic Array -------------------------------------------------------------------
+
+        readonly System.Collections.Generic.Dictionary<int, float> arraySeen = new System.Collections.Generic.Dictionary<int, float>();  // when this client first saw each player's rift
+
+        public static float ArrayOpenPreview = -1f;  // Tools/Preview: how open the rift is (-1: timed as in the game)
+
+        static float ArrayEase(float x) { x = Mathf.Clamp01(x); return 1f - (1f - x) * (1f - x) * (1f - x); }
+
+        /// How open a player's rift is: eases open over Game.ArrayOpen from when this client first sees it, shuts over its last 0.4 s.
+        float ArrayOpenness(Player p, float t)
+        {
+            if (ArrayOpenPreview >= 0f)
+                return ArrayOpenPreview * Mathf.Clamp01(p.ArrayT / 0.4f);
+            float seen;
+            if (!arraySeen.TryGetValue(p.Id, out seen) || seen > t)
+                arraySeen[p.Id] = seen = t;
+            return ArrayEase((t - seen) / Game.ArrayOpen) * Mathf.Clamp01(p.ArrayT / 0.4f);
+        }
+
+        /// Runic Array's rift: an upright tear behind you, dark inside with light rippling up it, a gold rim and eight runes round it,
+        /// a faint thread back to you.
+        void DrawArrayRift(Player p, float t)
+        {
+            float open = ArrayOpenness(p, t), tall = ArrayEase(open * 1.5f);
+            if (open <= 0.01f)
+                return;
+            V2 c = Game.ArrayRift(p.Disp, p.Aim);
+            float rx = 15f * open, ry = Game.ArrayRiftH * tall;
+            const int segs = 28;
+            System.Func<int, float, float, V2> at = (i, sx, sy) =>
             {
-                float fade = Mathf.Clamp01(p.ArrayT / 0.4f);
-                for (int k = 0; k < 4; k++)
-                {
-                    V2 at = Game.ArraySigil(p.Disp, p.Aim, k);
-                    float spin = t * (k % 2 == 0 ? 1.6f : -1.6f);
-                    Circle(at, 12f, ArcViolet.WithAlpha(0.12f * fade), 18);
-                    Arc(at, 10f, 1.4f, ArcGold.WithAlpha(0.85f * fade), 18);
-                    for (int s = 0; s < 8; s++)  // tick marks round the ring
-                    {
-                        V2 d = V2.FromAngle(spin + MathX.Tau * s / 8f);
-                        Line(at + d * 10f, at + d * 13f, 1f, ArcGold.WithAlpha(0.6f * fade));
-                    }
-                    DrawRune(at, 5.5f, -spin * 1.5f, ArcPale.WithAlpha(0.95f * fade));
-                    Line(at, at + V2.FromAngle(p.Aim) * 15f, 1.2f, ArcViolet.WithAlpha(0.5f * fade));  // the way its blades fly
-                }
+                float a = MathX.Tau * i / segs, pinch = 1f - 0.35f * Mathf.Abs(Mathf.Cos(a));
+                return c + new V2(Mathf.Sin(a) * sx * pinch, -Mathf.Cos(a) * sy);
+            };
+            SetColor(ArcViolet.WithAlpha(0.10f * open));
+            for (int i = 0; i < segs; i++)
+                Tri(c, at(i, rx + 14f, ry + 14f), at(i + 1, rx + 14f, ry + 14f));
+            SetColor(ArcInk.WithAlpha(0.95f * open));
+            for (int i = 0; i < segs; i++)
+                Tri(c, at(i, rx, ry), at(i + 1, rx, ry));
+            for (int k = 0; k < 4; k++)  // light rippling up the middle
+            {
+                float y = ((t * 0.8f + k * 0.25f) % 1f) * 2f - 1f;
+                Line(c + new V2(-rx * 0.5f, y * ry * 0.8f), c + new V2(rx * 0.5f, y * ry * 0.8f - 4f), 1.2f, ArcViolet.WithAlpha(0.6f * open));
             }
+            for (int i = 0; i < segs; i++)
+                Line(at(i, rx, ry), at(i + 1, rx, ry), 2.2f, ArcGold.WithAlpha(0.95f * open));
+            for (int k = 0; k < 8; k++)
+                DrawRune(at(k * segs / 8 + 1, rx + 11f, ry + 9f), 3.8f, t * 1.4f + k, ArcPale.WithAlpha(0.95f * open));
+            Line(p.Disp, c + new V2(0f, ry), 1f, ArcViolet.WithAlpha(0.35f * open));  // tethered to you
+        }
+
+        /// Your own Runic Array: a slow gold rune ring at the cursor (Game.ArrayLock: the blades go for enemies inside it) and a lock
+        /// bracket on each of them.
+        void DrawArrayLock(Player p, V2 cursor, float t)
+        {
+            float open = ArrayOpenness(p, t);
+            if (open <= 0.01f || game == null)
+                return;
+            float R = Game.ArrayLock;
+            Circle(cursor, R, ArcViolet.WithAlpha(0.05f * open), 48);
+            for (int k = 0; k < 24; k++)
+                Arc(cursor, R, 1.4f, ArcGold.WithAlpha(0.45f * open), 3, t * 0.3f + MathX.Tau * k / 24f, MathX.Tau / 60f);
+            for (int k = 0; k < 4; k++)
+                DrawRune(cursor + V2.FromAngle(-t * 0.5f + MathX.Tau * k / 4f) * R, 4.5f, t, ArcGold.WithAlpha(0.8f * open));
+            foreach (var e in game.Enemies.Values)
+            {
+                if (e.Hp <= 0f || e.SpawnT > 0f || !e.Disp.CloserThan(cursor, R + e.Radius))
+                    continue;
+                float r = e.Radius + 9f;
+                for (int k = 0; k < 4; k++)
+                    Arc(e.Disp, r, 2f, ArcGold.WithAlpha(0.85f * open), 6, t * 1.5f + MathX.Tau * k / 4f - 0.3f, 0.6f);
+            }
+        }
+
+        /// A spectral sword: pale blade, gold guard and grip, a violet ghost round it, pointing along `d`.
+        void DrawSpectralSword(V2 at, V2 d, float len, float a)
+        {
+            V2 n = new V2(-d.Y, d.X);
+            SetColor(ArcViolet.WithAlpha(0.28f * a));
+            Tri(at + d * (len * 0.62f), at - d * (len * 0.5f) + n * 5f, at - d * (len * 0.5f) - n * 5f);
+            SetColor(ArcPale.WithAlpha(0.95f * a));
+            Tri(at + d * (len * 0.55f), at - d * (len * 0.12f) + n * 2.4f, at - d * (len * 0.12f) - n * 2.4f);
+            Line(at, at + d * (len * 0.4f), 0.8f, ArcViolet.WithAlpha(0.6f * a));  // the fuller
+            Line(at - d * (len * 0.14f) + n * 5.5f, at - d * (len * 0.14f) - n * 5.5f, 2f, ArcGold.WithAlpha(0.95f * a));
+            Line(at - d * (len * 0.14f), at - d * (len * 0.38f), 2f, ArcGold.WithAlpha(0.7f * a));
+            Circle(at - d * (len * 0.4f), 1.8f, ArcGold.WithAlpha(0.9f * a), 6);
         }
 
         // --- KitLook.Shot ---------------------------------------------------------------------
@@ -88,14 +163,16 @@ namespace Arena
                 DrawRune(b.Pos, 5.5f, t * 8f + b.Id, ArcGold);
                 return true;
             }
-            if (b.Kind == Defs.SpectralBlade)  // a ghostly violet blade along its flight
+            if (b.Kind == Defs.SpectralBlade)  // a spectral sword along its flight, a fading violet trail behind
             {
-                V2 f = b.Vel.LengthSq > 1f ? b.Vel.Normalized() : V2.FromAngle(0f), s = new V2(-f.Y, f.X);
-                SetColor(ArcViolet.WithAlpha(0.35f));
-                Tri(b.Pos + f * 10f, b.Pos - f * 12f + s * 4f, b.Pos - f * 12f - s * 4f);
-                SetColor(ArcPale.WithAlpha(0.9f));
-                Tri(b.Pos + f * 9f, b.Pos - f * 6f + s * 2f, b.Pos - f * 6f - s * 2f);
-                Line(b.Pos - f * 7f + s * 4f, b.Pos - f * 7f - s * 4f, 1.6f, ArcGold.WithAlpha(0.8f));
+                V2 f = b.Vel.LengthSq > 1f ? b.Vel.Normalized() : V2.FromAngle(0f);
+                float trail = Mathf.Clamp(b.Vel.Length * 0.035f, 8f, 34f);
+                for (int k = 6; k >= 1; k--)
+                {
+                    float w = 1f - k / 7f;
+                    Line(b.Pos - f * (trail * k / 6f + 8f), b.Pos - f * (trail * (k - 1) / 6f + 8f), 3.2f * w, ArcViolet.WithAlpha(0.45f * w));
+                }
+                DrawSpectralSword(b.Pos, f, 30f, 1f);
                 return true;
             }
             return false;

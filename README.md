@@ -270,8 +270,9 @@ The **DPS** Arcanist:
 - **Telekinetic Crush** (1st ability, 9 s): lifts the enemies at your cursor (120 px, up to 400 px away) and pulls them
   together for half a second (bosses aren't lifted), then slams: 40 damage, +12 for each other enemy caught (up to +60), and a
   0.4 s stun. Mastered: it grabs 40% wider.
-- **Runic Array** (ultimate, 65 s): four gold sigils open behind you for 6 s. Every Fire also sends a spectral blade from each
-  at your cursor (16, through one enemy), even while your blades are out. Mastered: 9 s.
+- **Runic Array** (ultimate, 65 s): a rune rift tears open behind you for 6 s. After 0.45 s it pours spectral swords on its
+  own, 10 a second (8 damage each), each curving in on the next enemy within 130 px of your cursor (a gold ring marks them);
+  with none there they fly straight at the cursor. Mastered: 9 s.
 
 ### Weapons
 

@@ -105,15 +105,31 @@ static partial class Program
         step(1f);
         Check(blades.All(b => !b.Sent), "and they come back to wait behind you");
 
-        // Runic Array: every click also sends four spectral blades.
+        // Runic Array: a rift behind you pours blades on its own, each curving in on an enemy near the cursor.
+        g.Enemies.Clear();
+        var away = make(EnemyType.Brute, new V2(1500f, 880f));
+        var t1 = make(EnemyType.Brute, aim + new V2(0f, -60f));
+        var t2 = make(EnemyType.Brute, aim + new V2(40f, 70f));
+        float awayHp = away.Hp, t1Hp = t1.Hp, t2Hp = t2.Hp;
         ready(Upgrades.UltSlot);
         hostAbility.Invoke(g, new object[] { 1, Upgrades.UltSlot, aim, false });
-        Check(me.ArrayT > 5f, "Runic Array opens its sigils for 6 s");
-        int before = g.Bullets.Values.Count(b => b.Kind == Defs.SpectralBlade);
-        fire = true; step(0.05f); fire = false;
-        Check(g.Bullets.Values.Count(b => b.Kind == Defs.SpectralBlade) >= before + 4, "a click with the Array open sends four spectral blades");
+        Check(me.ArrayT > 5f, "Runic Array opens its rift for 6 s");
         step(0.3f);
-        Check(client.Game.Players[1].ArrayT > 0f, "the client sees the Array (for its sigils)");
+        Check(g.Bullets.Values.All(b => b.Kind != Defs.SpectralBlade), "no blades while the rift is still opening (0.45 s)");
+        step(0.5f);
+        var flying = g.Bullets.Values.Where(b => b.Kind == Defs.SpectralBlade).ToList();
+        Check(flying.Count >= 2 && flying.All(b => b.ArrayBlade && (b.HomeOn == t1.Id || b.HomeOn == t2.Id)), "with no Fire it sends blades, each homing on an enemy near the cursor ("
+            + flying.Count + ")");
+        Check(flying.Any(b => b.HomeOn == t1.Id) && flying.Any(b => b.HomeOn == t2.Id), "taking the enemies there in turn");
+        step(1.5f);
+        Check(t1.Hp < t1Hp && t2Hp > t2.Hp, "the blades curve in and hit both");
+        Check(away.Hp == awayHp, "and leave an enemy away from the cursor alone");
+        Check(client.Game.Players[1].ArrayT > 0f, "the client sees the Array (for its rift)");
+        step(4f);
+        Check(me.ArrayT == 0f, "it shuts after 6 s");
+        int left = g.Bullets.Values.Count(b => b.Kind == Defs.SpectralBlade);
+        step(2f);
+        Check(g.Bullets.Values.Count(b => b.Kind == Defs.SpectralBlade) == 0, "and sends no more blades (" + left + " were still out)");
         me.ArrayT = 0f;
         step(1.2f);
 

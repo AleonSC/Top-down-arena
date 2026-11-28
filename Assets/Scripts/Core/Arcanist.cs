@@ -16,7 +16,7 @@ namespace Arena
     ///     runes on its rim each bursting on the first enemy that touches it).
     ///   DPS: Dancing Blades (MinionKind.ArcBlade companions hover behind you; Fire launches one to slash at the cursor, Alt recalls
     ///     them all), Telekinetic Crush (1st: lift the enemies at the cursor, pull them together, slam), Runic Array (ultimate:
-    ///     four sigils behind you; every Fire also sends a spectral blade from each).
+    ///     a rune rift opens behind you and pours spectral blades on its own, each curving in on an enemy near your cursor).
     public partial class Game
     {
         internal static readonly KitDef ArcanistKit = new KitDef
@@ -46,7 +46,8 @@ namespace Arena
         public const int SanctumRunes = 6;
         public const float CrushRange = 400f, CrushRadius = 120f, CrushTime = 0.5f, CrushPull = 420f, CrushDmg = 40f, CrushPer = 12f, CrushStun = 0.4f;
         public const int CrushPerMax = 5;
-        public const float ArrayTime = 6f, ArrayShotSpeed = 900f, ArrayShotLife = 0.5f, ArrayShotDmg = 16f, ArraySigilR = 38f;
+        public const float ArrayTime = 6f, ArrayOpen = 0.45f, ArrayEvery = 0.1f, ArrayLock = 130f, ArrayShotDmg = 8f;
+        public const float ArrayLaunch = 380f, ArrayTop = 1000f, ArrayShotLife = 1.6f, ArrayBehind = 50f, ArrayLift = 22f, ArrayRiftH = 46f;
 
         internal static readonly WeaponDef[] ArcanistWeapons =
         {
@@ -108,7 +109,7 @@ namespace Arena
             {
                 Id = AbilityId.RunicArray, Kit = Kit.Arcanist, Role = Role.Dps, Choice = AbilityDef.Ult, FillsGaps = true,
                 Name = "Runic Array", Cooldown = 65f,
-                Desc = "Four sigils behind you fire a spectral blade with every shot.",
+                Desc = "Open a rune rift behind you that pours homing blades at enemies near your cursor.",
                 Capstone = "It lasts 9 s.",
             },
         };
@@ -138,8 +139,6 @@ namespace Arena
                 }
                 case WeaponId.DancingBlades:
                     SendArcane(p, MinionKind.ArcBlade, BladeReach);
-                    if (p.ArrayT > 0f)
-                        ArrayVolley(p, dmg);
                     break;
             }
         }
@@ -175,17 +174,88 @@ namespace Arena
             return set;
         }
 
-        /// Where the k-th of Runic Array's four sigils hangs, behind `pos` facing `aim` (the look draws them here too).
-        public static V2 ArraySigil(V2 pos, float aim, int k) => pos + V2.FromAngle(aim + MathX.Pi + (k < 2 ? -1f : 1f) * (k % 2 == 0 ? 0.55f : 1.15f)) * ArraySigilR;
+        /// The middle of Runic Array's rift: behind `pos` facing `aim`, lifted a little (the look draws it here too).
+        public static V2 ArrayRift(V2 pos, float aim) => pos - V2.FromAngle(aim) * ArrayBehind + new V2(0f, -ArrayLift);
 
-        void ArrayVolley(Player p, float dmg)
+        class ArrayRun { public float Since, Next; public int N; }
+        readonly Dictionary<int, ArrayRun> arrayRuns = new Dictionary<int, ArrayRun>();
+
+        /// Host, from TickArcanist: after ArrayOpen the rift lets out a blade every ArrayEvery, each to the next enemy near the
+        /// cursor in turn (nearest first); with none there it flies straight at the cursor.
+        void TickArray(Player p, float dt)
         {
-            for (int k = 0; k < 4; k++)
+            ArrayRun run;
+            if (p.ArrayT <= 0f || p.Downed)
             {
-                V2 from = ArraySigil(p.Pos, p.Aim, k), to = p.AimAt - from;
-                var b = SpawnBullet(Defs.SpectralBlade, from, (to.Length > 1f ? to.Normalized() : V2.FromAngle(p.Aim)) * ArrayShotSpeed, 0f, ArrayShotLife, ArrayShotDmg * dmg, p.Id);
-                b.Pierce += 1;
+                arrayRuns.Remove(p.Id);
+                return;
             }
+            if (!arrayRuns.TryGetValue(p.Id, out run))
+                arrayRuns[p.Id] = run = new ArrayRun { Next = ArrayOpen };
+            run.Since += dt;
+            while (run.Since >= run.Next && p.ArrayT > 0.25f)
+            {
+                run.Next += ArrayEvery;
+                ArrayBlade(p, run.N++);
+            }
+        }
+
+        readonly List<Enemy> arrayMarks = new List<Enemy>();
+
+        void ArrayBlade(Player p, int n)
+        {
+            arrayMarks.Clear();
+            foreach (var e in AllFoes(by: p.Id))
+                if (Targetable(e) && e.Pos.CloserThan(p.AimAt, ArrayLock + e.Radius))
+                    arrayMarks.Add(e);
+            arrayMarks.Sort((x, y) => x.Pos.DistanceTo(p.AimAt).CompareTo(y.Pos.DistanceTo(p.AimAt)));
+            float side = n % 2 == 0 ? -1f : 1f;
+            V2 rift = ArrayRift(p.Pos, p.Aim);
+            V2 from = rift + new V2(0f, ((n * 7) % 9 / 4f - 1f) * ArrayRiftH * 0.7f);  // up and down the rift's height
+            V2 f = V2.FromAngle(p.Aim), s = new V2(-f.Y, f.X) * side;
+            float dmg = ArrayShotDmg * p.Stats.DmgMult;
+            if (arrayMarks.Count == 0)
+            {
+                V2 to = p.AimAt - from;
+                SpawnBullet(Defs.SpectralBlade, from, (to.Length > 1f ? to.Normalized() : f) * ArrayTop, 0f, ArrayShotLife * 0.6f, dmg, p.Id);
+                return;
+            }
+            var b = SpawnBullet(Defs.SpectralBlade, from, (f * 0.4f + s).Normalized() * ArrayLaunch, 0f, ArrayShotLife, dmg, p.Id);
+            b.HomeOn = arrayMarks[n % arrayMarks.Count].Id;
+            b.Homing = 0f;
+            b.ArrayBlade = true;
+            b.Pulled = true;  // the host sends its course
+        }
+
+        /// Host, from MoveBullets: a rift blade curves in on its enemy, turning harder and speeding up as it goes. If that one
+        /// dies first it takes the nearest other within ArrayLock x 2; with none it flies on straight.
+        void SteerArrayBlade(Bullet b, float dt)
+        {
+            Enemy e;
+            if (!TryFoe(b.HomeOn, out e) || !Targetable(e))
+            {
+                e = null;
+                float bestD = ArrayLock * 2f;
+                foreach (var o in AllFoes(by: b.Owner))
+                {
+                    float d = o.Pos.DistanceTo(b.Pos);
+                    if (Targetable(o) && d < bestD)
+                    {
+                        bestD = d;
+                        e = o;
+                    }
+                }
+                b.HomeOn = e != null ? e.Id : 0;
+                if (e == null)
+                {
+                    b.ArrayBlade = false;
+                    return;
+                }
+            }
+            float age = b.Life0 - b.Life;
+            float have = b.Vel.Angle, diff = MathX.WrapPi((e.Pos - b.Pos).Angle - have);
+            float speed = Math.Min(ArrayTop, b.Vel.Length + dt * 1500f);
+            b.Vel = V2.FromAngle(have + diff * Math.Min(1f, dt * (3f + age * 16f))) * speed;
         }
 
         // --- The shards and blades (from TickMinions) --------------------------------------
@@ -457,7 +527,8 @@ namespace Arena
                 }
                 case AbilityId.RunicArray:
                     p.ArrayT = castMastered ? 9f : ArrayTime;
-                    BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.78f, 0.62f, 1f), ArraySigilR + 20f, 0.4f, Sfx.SpellArcane);
+                    arrayRuns.Remove(p.Id);  // (a fresh rift opens again)
+                    BroadcastFx(FxKind.Ring, ArrayRift(p.Pos, p.Aim), new Rgba(0.78f, 0.62f, 1f), ArrayRiftH + 20f, 0.4f, Sfx.SpellArcane);
                     return true;
             }
             return false;
@@ -694,6 +765,7 @@ namespace Arena
             {
                 if (p.ArrayT > 0f)
                     p.ArrayT = Math.Max(0f, p.ArrayT - dt);
+                TickArray(p, dt);
                 if (p.ShardGuard && (p.Weapon.Id != WeaponId.OrbitShards || p.Downed || p.StunT > 0f))
                     p.ShardGuard = false;
                 if (p.ShardGuard)

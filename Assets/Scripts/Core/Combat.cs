@@ -395,6 +395,8 @@ namespace Arena
                     SteerSenbon(b, dt);  // a Senbon Seekers needle (host only: SenbonSeekers.cs)
                 else if (b.Crane)
                     SteerCrane(b, dt);  // a Hundred Paper Cranes crane (host only: HundredPaperCranes.cs)
+                else if (b.ArrayBlade)
+                    SteerArrayBlade(b, dt);  // a Runic Array blade (host only: Arcanist.cs)
                 else if (b.HomeOn != 0)
                     SteerSpear(b, dt);  // a Stonespear volley spear (host only: Stonespear.cs)
                 else if (b.Talisman)

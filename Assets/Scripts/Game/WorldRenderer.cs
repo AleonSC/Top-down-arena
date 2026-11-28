@@ -170,6 +170,8 @@ namespace Arena
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.WolfWhistle)
                     DrawPackPips(p);  // WolfLook.cs
+            if (game.Me != null && !game.Me.Downed && game.Me.ArrayT > 0f)
+                DrawArrayLock(game.Me, cursor, t);  // Runic Array's lock ring (ArcanistLook.cs)
             foreach (var p in game.Players.Values)
                 if (p.Weapon.Id == WeaponId.HoneybeeStaff)
                     DrawHoneyMeter(p);  // HoneybeeLook.cs
