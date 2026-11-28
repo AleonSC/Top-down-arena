@@ -55,21 +55,29 @@ namespace Arena
         void ModeScope(Rect scope, string left, string right)
         {
             var glow = ScopeGlow();
-            Ui.Fill(scope, new Color(0.025f, 0.03f, 0.05f, 1f));
+            bool grey = CrtStyle.Greyed;
+            if (grey)  // a grey screen: the accent glows softly from behind the scope, and the scope's own light is grey
+            {
+                float gw = scope.width * 0.75f, gh = scope.height * 0.85f;
+                Ui.RadialGlow(new Rect(scope.center.x - gw, scope.center.y - gh, gw * 2f, gh * 2f), glow.WithAlpha(0.32f));
+            }
+            Ui.Fill(scope, grey ? new Color(0.03f, 0.031f, 0.034f, 1f) : new Color(0.025f, 0.03f, 0.05f, 1f));
             GUI.BeginGroup(scope);  // (clips the light to the screen)
             float rr = scope.height * 0.62f, rw = rr * 1.15f;
             var c = new Vector2(scope.width / 2f, scope.height / 2f + 6f);
-            Ui.RadialGlow(new Rect(c.x - rw, c.y - rr, rw * 2f, rr * 2f), glow.WithAlpha(0.24f));
+            Ui.RadialGlow(new Rect(c.x - rw, c.y - rr, rw * 2f, rr * 2f), grey ? new Color(0.62f, 0.64f, 0.68f, 0.2f) : glow.WithAlpha(0.24f));
             Ui.RadialGlow(new Rect(c.x - rr * 0.43f, c.y - rr * 0.43f, rr * 0.86f, rr * 0.86f), new Color(1f, 1f, 1f, 0.05f));
             GUI.EndGroup();
             HuntBox(scope, glow.WithAlpha(0.45f));
             LobbyKit.Spaced(new Rect(scope.x + 10f, scope.y + 6f, scope.width * 0.5f, 16f), left, 11, glow, TextAnchor.MiddleLeft, 2f);
-            LobbyKit.Spaced(new Rect(scope.center.x, scope.y + 6f, scope.width * 0.5f - 10f, 16f), right, 11, CrtStyle.Gold, TextAnchor.MiddleRight, 2f);
+            LobbyKit.Spaced(new Rect(scope.center.x, scope.y + 6f, scope.width * 0.5f - 10f, 16f), right, 11, grey ? glow : CrtStyle.Gold, TextAnchor.MiddleRight, 2f);
         }
 
         /// The scope's light: the same colour as your loadout preview's.
         Color ScopeGlow()
         {
+            if (CrtStyle.Accent is Color acc)
+                return acc;  // a grey screen's (the mode's) colour
             LobbyEntry me;
             var role = session.Lobby.TryGetValue(session.MyId, out me) ? me.Role : Role.Dps;
             return ShowcaseGlow(Defs.Get(role).Color.ToColor());
