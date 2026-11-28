@@ -1212,6 +1212,7 @@ static partial class Shot {
     MendingWebScene();  // SPIDERWEB=<s since the cast> or SPIDERWEBPICK=1 (ShotMendingWeb.cs)
     FlashFireScene();  // FLASHFIRE=<s since the cast> [FLASHCAP=1] (ShotFlashFire.cs)
     RockGlovesScene();  // GLOVES=<s since the cast> [GLOVESIDLE=1] (ShotRockGloves.cs)
+    ExcaliburScene();  // EXCALIBUR=<s since the cast> [EXCIDLE=1] [EXCEND=1] (ShotExcalibur.cs)
     BloodRavagerScene();  // RAVAGER=<s since the cast> [RAVAGERCLICK=0] [RAVAGERSTILL=1] (ShotBloodRavager.cs)
     BloodBoilScene();  // BOIL=<s since the cast> [BOILHP=<0-1>] [BOILEND=1] (ShotBloodBoil.cs)
     RodentMinigunScene();  // RODENT=<s since the cast> [RODENTAIM=<deg>] (ShotRodentMinigun.cs)

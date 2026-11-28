@@ -64,6 +64,7 @@ namespace Arena
         DragPylon,  // the Engineer's 1st ability (Engineer.cs)
         Drawbridge,
         Earthquake,
+        Excalibur,  // the DPS Knight's fourth ultimate (Excalibur.cs), key 3 of the lobby's Ultimate row
         Exsanguinate,
         EyeOfCalm,  // the Healer Elementalist's third ultimate (EyeOfCalm.cs), key 2 of the lobby's Ultimate row
         FieldHospital,  // the Healer Soldier's second ultimate (FieldHospital.cs), picked on the lobby's Ultimate row
@@ -500,7 +501,7 @@ namespace Arena
             Game.OniUltimates,  // (on its own line, as below)
             Game.GardenUltimates,  // (on its own line, as below)
             Game.OracleUltimates, Game.CatUltimates,  // (on its own line, so parallel sessions appending to the line below don't clash)
-            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.RocketUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.GloveUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.BroodQueenUltimates, Game.TuskerUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.FpUltimates, Game.CraneUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.EyeUltimates, Game.ConduitUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.SacrificeUltimates, Game.HeartbeatUltimates, Game.SwarmHeartUltimates, Game.BannerUltimates, Game.LanceRainUltimates, Game.GongUltimates, Game.PressUltimates, Game.FoamUltimates, Game.RitualUltimates));  // the classes' own, then the shared and boss-loot ones
+            Game.UltimateAbilities, Game.WardenAbilities, Game.QueenAbilities, Game.ReaperAbilities, Game.SecondUltimates, Game.DogmaUltimates, Game.TankUltimates, Game.ColossusUltimates, Game.VortexUltimates, Game.BoltUltimates, Game.SpiritUltimates, Game.SupplyUltimates, Game.ArmorUltimates, Game.RocketUltimates, Game.OrbitalUltimates, Game.FireUltimates, Game.GloveUltimates, Game.RodentUltimates, Game.MammothUltimates, Game.BroodQueenUltimates, Game.TuskerUltimates, Game.HoneyUltimates, Game.RavagerUltimates, Game.BoilUltimates, Game.BallistaUltimates, Game.ExcaliburUltimates, Game.FpUltimates, Game.CraneUltimates, Game.AstralUltimates, Game.ArmUltimates, Game.StaticBubbleUltimates, Game.EyeUltimates, Game.ConduitUltimates, Game.HorseUltimates, Game.GolemUltimates, Game.SacrificeUltimates, Game.HeartbeatUltimates, Game.SwarmHeartUltimates, Game.BannerUltimates, Game.LanceRainUltimates, Game.GongUltimates, Game.PressUltimates, Game.FoamUltimates, Game.RitualUltimates));  // the classes' own, then the shared and boss-loot ones
 
         static readonly HashSet<int> spaceGaps = new HashSet<int>(), ultGaps = new HashSet<int>();  // (before the tables: LobbyTable fills them)
 
