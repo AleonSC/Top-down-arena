@@ -44,8 +44,16 @@ namespace Arena
             }
         }
 
-        void NeonRect(Rect r, float a) =>
-            NeonPath(new[] { new V2(r.x, r.y), new V2(r.xMax, r.y), new V2(r.xMax, r.yMax), new V2(r.x, r.yMax) }, true, a);
+        readonly V2[] neonRectPts = new V2[4];
+
+        void NeonRect(Rect r, float a)
+        {
+            neonRectPts[0] = new V2(r.x, r.y);
+            neonRectPts[1] = new V2(r.xMax, r.y);
+            neonRectPts[2] = new V2(r.xMax, r.yMax);
+            neonRectPts[3] = new V2(r.x, r.yMax);
+            NeonPath(neonRectPts, true, a);
+        }
 
         /// GL: glowing corner brackets just outside a panel (the settings windows' look, Docs/Mockups/settings-holo.html): a soft halo
         /// under a bright 3 px stroke, 22 px along each side, 9 px out from the panel's neon edge.
@@ -54,10 +62,10 @@ namespace Arena
             if (a <= 0f)
                 return;
             UiModelAt(V2.Zero, 1f);
-            float x0 = r.x - gap, x1 = r.xMax + gap, y0 = r.y - gap, y1 = r.yMax + gap;
-            foreach (var corner in new[] { new V2(x0, y0), new V2(x1, y0), new V2(x0, y1), new V2(x1, y1) })
+            for (int i = 0; i < 4; i++)
             {
-                float sx = corner.X < r.center.x ? 1f : -1f, sy = corner.Y < r.center.y ? 1f : -1f;
+                float sx = (i & 1) == 0 ? 1f : -1f, sy = i < 2 ? 1f : -1f;
+                var corner = new V2(sx > 0f ? r.x - gap : r.xMax + gap, sy > 0f ? r.y - gap : r.yMax + gap);
                 V2 h = corner + new V2(sx * len, 0f), v = corner + new V2(0f, sy * len), back = new V2(-sx * 1.5f, 0f), up = new V2(0f, -sy * 1.5f);
                 Line(corner + back, h, 9f, HoloHalo.WithAlpha(0.14f * a));
                 Line(corner + up, v, 9f, HoloHalo.WithAlpha(0.14f * a));

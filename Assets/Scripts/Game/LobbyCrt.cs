@@ -361,7 +361,6 @@ namespace Arena
                 WithAlpha(1f - away, () =>
                 {
                     DrawMenuMachine(99f, false, t);
-                    DrawMenuSecondary(t, false);
                 });
 
             // The saved-runs screen flares, then grows to the whole window and turns from green to cyan.

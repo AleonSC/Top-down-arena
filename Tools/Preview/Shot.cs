@@ -101,6 +101,12 @@ static partial class Shot {
   static ArenaApp app;
   static BindingFlags f2;
   static Action<string, object> set;
+  /// The main menu's bay on page p (MenuMachine.cs BayPage: None, Play, Join, Settings, Wiki); shown: the screen shows it too.
+  static void Bay(string p, bool shown = true) {
+    var bt = typeof(ArenaApp).GetNestedType("BayPage", BindingFlags.NonPublic);
+    set("bayPage", Enum.Parse(bt, p));
+    if (shown) set("bayShown", Enum.Parse(bt, p));
+  }
   static float launchAt, recallAt, endingAt;
   static readonly System.Collections.Generic.HashSet<int> rodMine = new System.Collections.Generic.HashSet<int>();  // ROD=: the scene's grunts
   static readonly V2 RodHome = new V2(Game.Width / 2f - 300f, Game.Height / 2f + 190f);

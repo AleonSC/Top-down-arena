@@ -10,7 +10,6 @@ namespace Arena
     /// flashes SAVED. The values and their saving are Settings' own (MenuDrawer.cs); the lobby and pause menus keep the drawer.
     public partial class ArenaApp
     {
-        bool menuSetOpen;          // Settings rolled the shutter up
         int menuSetGroup = -1;     // the group on the screen: -1 the tiles, 0 Audio, 1 Visual effects, 2 Gameplay, 3 Keybinds
         int menuSetShown = -1;     // what the screen shows (follows menuSetGroup once the tube is off)
         int menuSetSel;            // the tile the arrow keys are on
@@ -23,10 +22,9 @@ namespace Arena
         /// SETTINGS on the case: roll the shutter up onto the tiles, or back down.
         void ToggleMenuSettings()
         {
-            menuSetOpen = !menuSetOpen;
+            SetBay(menuSetOpen ? BayPage.None : BayPage.Settings);
             if (menuSetOpen)
             {
-                menuPlayOpen = menuJoinOpen = menuWikiOpen = false;
                 menuSetGroup = menuSetShown = -1;
                 menuSetShownAt = Time.unscaledTime;
                 menuSetScroll = 0f;

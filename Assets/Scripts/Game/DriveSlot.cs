@@ -36,7 +36,7 @@ namespace Arena
         static DriveState DriveAt(float T, string name)
         {
             var s = DriveEmpty("INSERT: " + name.ToUpperInvariant());
-            if (T >= 2.85f)
+            if (T >= BootDiskReadAt)
                 return DriveLoaded(name);
             if (T >= 1.8f)
             {

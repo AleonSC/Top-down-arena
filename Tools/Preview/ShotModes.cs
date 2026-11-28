@@ -509,9 +509,9 @@ static partial class Shot {
       // menu: PLAY=1 shows the saved-runs picker in the box after Play (NOSAVES=1: with no saves; MORE=1: extra saves; SCROLL=n: scroll the list n px).
       if (mode == "menu" && Environment.GetEnvironmentVariable("PLAY") != null) {
         if (Environment.GetEnvironmentVariable("MORE") != null) { for (int i = 0; i < 6; i++) { var x = new RunSave { Id = "m" + i, SavedAt = Shot.Now.AddDays(-3 - i), Wave = 3 + i, Score = 900 * (i + 1), RunTime = 300f * (i + 1) }; x.Seats.Add(new SeatSave { Name = "Anthony", Role = Role.Dps, Kit = Kit.Ninja, Weapon = 0, Ability = 0, Level = 3 + i }); SaveStore.Write(x); } }
-        typeof(ArenaApp).GetMethod("OpenPlayPicker", f2).Invoke(app, null); set("menuPlayK", 1f);
+        typeof(ArenaApp).GetMethod("OpenPlayPicker", f2).Invoke(app, null); set("bayK", 1f);
         // PLAYK=<0..1>: the shutter that far up (MenuMachine.cs); PLAYBACK=1: rolling back down instead.
-        if (Environment.GetEnvironmentVariable("PLAYK") != null) { set("menuPlayK", float.Parse(Environment.GetEnvironmentVariable("PLAYK"), System.Globalization.CultureInfo.InvariantCulture)); if (Environment.GetEnvironmentVariable("PLAYBACK") != null) set("menuPlayOpen", false); }
+        if (Environment.GetEnvironmentVariable("PLAYK") != null) { set("bayK", float.Parse(Environment.GetEnvironmentVariable("PLAYK"), System.Globalization.CultureInfo.InvariantCulture)); if (Environment.GetEnvironmentVariable("PLAYBACK") != null) Bay("None", false); }
         if (Environment.GetEnvironmentVariable("NOSAVES") != null) set("savedRuns", new System.Collections.Generic.List<RunSave>());
         if (Environment.GetEnvironmentVariable("SCROLL") != null) { float sc = float.Parse(Environment.GetEnvironmentVariable("SCROLL"), System.Globalization.CultureInfo.InvariantCulture); set("menuListScroll", sc); set("menuListShown", sc); }
       }
@@ -565,10 +565,12 @@ static partial class Shot {
       // BG=<n>: the menu background behind the menu, Who's playing? and the boot sequence (0: the Holo Floor, the game's own).
       if ((mode == "menu" || mode == "who" || mode == "whotr") && Environment.GetEnvironmentVariable("BG") != null) { set("menuBg", int.Parse(Environment.GetEnvironmentVariable("BG"))); set("menuBgOverride", true); set("bgProfile", Profile.Current); }
       // MENUSET=<-1..3>: Settings on the bay's screen (BaySettings.cs): -1 the tiles, 0 Audio, 1 Visual effects, 2 Gameplay, 3 Keybinds; SETSCROLL=<px>.
-      if (mode == "menu" && Environment.GetEnvironmentVariable("MENUSET") != null) { int sg = int.Parse(Environment.GetEnvironmentVariable("MENUSET")); set("menuSetOpen", true); set("menuSetGroup", sg); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); set("menuSetShown", sg); set("menuSetShownAt", -100f); set("menuPlayK", 1f); if (Environment.GetEnvironmentVariable("SETSCROLL") != null) set("menuSetScroll", float.Parse(Environment.GetEnvironmentVariable("SETSCROLL"))); }
+      if (mode == "menu" && Environment.GetEnvironmentVariable("MENUSET") != null) { int sg = int.Parse(Environment.GetEnvironmentVariable("MENUSET")); Bay("Settings"); set("menuSetGroup", sg); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); set("menuSetShown", sg); set("menuSetShownAt", -100f); set("bayK", 1f); if (Environment.GetEnvironmentVariable("SETSCROLL") != null) set("menuSetScroll", float.Parse(Environment.GetEnvironmentVariable("SETSCROLL"))); }
       // WIKI=<query>: the Wiki on the bay's screen (BayWiki.cs) searching for it ("" for everything); WIKIPAGE=<name>: that entry's page.
-      if (mode == "menu" && Environment.GetEnvironmentVariable("WIKI") != null) { set("menuWikiOpen", true); set("wikiQuery", Environment.GetEnvironmentVariable("WIKI")); set("wikiOpenedAt", -100f); set("menuPlayK", 1f); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); if (Environment.GetEnvironmentVariable("WIKIPAGE") != null) set("wikiPage", Wiki.Find(Environment.GetEnvironmentVariable("WIKIPAGE"))); }
-      if (Environment.GetEnvironmentVariable("JOINOPEN") != null) { set("menuJoinOpen", true); set("menuPlayK", 1f); }
+      if (mode == "menu" && Environment.GetEnvironmentVariable("WIKI") != null) { Bay("Wiki"); set("wikiQuery", Environment.GetEnvironmentVariable("WIKI")); set("wikiOpenedAt", -100f); set("bayK", 1f); set("sounds", System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(SoundBank))); if (Environment.GetEnvironmentVariable("WIKIPAGE") != null) set("wikiPage", Wiki.Find(Environment.GetEnvironmentVariable("WIKIPAGE"))); }
+      if (Environment.GetEnvironmentVariable("JOINOPEN") != null) { Bay("Join"); set("bayK", 1f); }
+      // BAYDOWN=<0..1>: the bay's page (WIKI=, MENUSET=, JOINOPEN=) closed, the shutter that far up as it rolls back down over it.
+      if (mode == "menu" && Environment.GetEnvironmentVariable("BAYDOWN") != null) { Bay("None", false); set("bayK", float.Parse(Environment.GetEnvironmentVariable("BAYDOWN"), System.Globalization.CultureInfo.InvariantCulture)); }
       // MENUT=<s>: the menu's clock (Time.unscaledTime).
       if (Environment.GetEnvironmentVariable("MENUT") != null) Time.unscaledTime = float.Parse(Environment.GetEnvironmentVariable("MENUT"), System.Globalization.CultureInfo.InvariantCulture);
       // WHEEL=<x>,<y>,<dy>: a mouse-wheel event there first (one draw on it), then the shot: to check scrolling.
