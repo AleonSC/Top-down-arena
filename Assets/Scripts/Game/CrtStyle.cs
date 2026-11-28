@@ -10,10 +10,9 @@ namespace Arena
     {
         // --- Colours ----------------------------------------------------------------------------------------------------------------
 
-        // The phosphor colour is a setting: one hue shared by Settings > Visual effects > CRT colour and the main menu's hue key
-        // (MenuBgHue.cs, which also turns the Holo Floor). -1 is the original blue. Ink, Dim, Bg and Bezel follow it.
-        // The other colours below are drawn for the blue theme: where they should follow the setting too, the screen passes them
-        // through T (CrtUi.T), which keeps their brightness and moves them to the chosen hue.
+        // The phosphor colour: -1, the original blue, in the game (there's no setting for it any more); a preview can set another
+        // hue (CRTHUE). Ink, Dim, Bg and Bezel follow it. The other colours below are drawn for the blue theme: where they should
+        // follow it too, the screen passes them through T (CrtUi.T), which keeps their brightness and moves them to the hue.
         static readonly Color BlueInk = new Color(0.40f, 0.64f, 1f);
         public const float InkSat = 0.6f;  // a picked hue's phosphor: this saturation at full brightness (the blue's own)
         static float hue = -1f;
