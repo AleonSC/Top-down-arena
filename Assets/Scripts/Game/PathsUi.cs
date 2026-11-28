@@ -515,7 +515,9 @@ namespace Arena
         {
             if (!CamZoomed)
                 return new Rect(0f, 0f, AW, AH);
-            float hx = AW / (2f * camZoom) + LeanMaxX + cell, hy = AH / (2f * camZoom) + LeanMaxY + cell;
+            V2 vh = ViewHalf();  // (the turned screen's reach, CameraRotate.cs)
+            float lx = camAng == 0f ? LeanMaxX : Mathf.Max(LeanMaxX, LeanMaxY), ly = camAng == 0f ? LeanMaxY : lx;
+            float hx = vh.X + lx + cell, hy = vh.Y + ly + cell;
             float x0 = Mathf.Floor((camFocus.X - hx) / cell) * cell, y0 = Mathf.Floor((camFocus.Y - hy) / cell) * cell;
             float x1 = Mathf.Ceil((camFocus.X + hx) / cell) * cell, y1 = Mathf.Ceil((camFocus.Y + hy) / cell) * cell;
             return new Rect(x0, y0, x1 - x0, y1 - y0);
