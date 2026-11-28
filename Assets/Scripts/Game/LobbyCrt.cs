@@ -117,13 +117,15 @@ namespace Arena
             if (a <= 0f || Event.current.type != EventType.Repaint)
                 return;
             var oldAccent = CrtStyle.Accent;
-            CrtStyle.Accent = CrtBootBlue ? null : LobbyAccent();  // grey behind a grey screen (ModeScreenUi.cs); New run's boot stays blue (LobbyRevealed opens the grey)
+            CrtStyle.Accent = CrtBlue ? null : LobbyAccent();  // grey behind a grey screen (ModeScreenUi.cs); New run's boot stays blue (LobbyRevealed opens the grey)
             try { DrawLobbyCrtBackNow(a); }
             finally { CrtStyle.Accent = oldAccent; }
         }
 
         /// New run's boot: the screen is the dark blue CRT (CrtStyle with no accent) until the lobby opens, and only the opened part is grey.
         bool CrtBootBlue => crtEntry && enterT < EnterCrtLen;  // (crtEntry clears when the boot ends)
+        bool CrtBlue => CrtBootBlue || ModeRelinkBlue;  // ... or the Game Mode screen's way back (ModeBlink.cs)
+        System.Action revealDraw;  // what LobbyRevealed draws (null: DrawLobby; ModeBlink.cs, already inside DrawLobby, passes DrawLobbyContent)
 
         /// The lobby's grey screen and glow, for the part of a boot's screen the lobby has opened (LobbyRevealed's group clips it).
         void DrawLobbyGreyBack(float a)
@@ -220,7 +222,7 @@ namespace Arena
             if (a <= 0f || Event.current.type != EventType.Repaint)
                 return;
             var oldAccent = CrtStyle.Accent;
-            CrtStyle.Accent = CrtBootBlue && enterT < CrtPiecesAt + 0.8f ? null : LobbyAccent();  // a grey screen's glass is grey (ModeScreenUi.cs); blue until the boot has opened the lobby
+            CrtStyle.Accent = CrtBootBlue && enterT < CrtPiecesAt + 0.8f || ModeRelinkGlassBlue ? null : LobbyAccent();  // a grey screen's glass is grey (ModeScreenUi.cs); blue until the boot has opened the lobby
             try { DrawLobbyCrtGlassNow(t, a); }
             finally { CrtStyle.Accent = oldAccent; }
         }
@@ -271,20 +273,21 @@ namespace Arena
         }
 
         /// What the log shows e seconds into the boot: the lines typed so far, the last one carrying the cursor.
-        string[] CrtLogShown(float e)
+        string[] CrtLogShown(float e) => CrtLogShown(CrtLogLines(), e, CrtLogAt, CrtLogCharS, CrtLogPause);
+
+        /// Any typed log e seconds in: typing starts at `at`, `charS` a character, `pause` between a line's parts (ModeBlink.cs types one too).
+        static string[] CrtLogShown(string[][] lines, float e, float at, float charS, float pause)
         {
-            var lines = CrtLogLines();
             var shown = new System.Collections.Generic.List<string>();
-            float at = CrtLogAt;
             for (int i = 0; i < lines.Length; i++)
             {
                 string text = "";
                 for (int j = 0; j < lines[i].Length; j++)
                 {
-                    float dur = lines[i][j].Length * CrtLogCharS;
+                    float dur = lines[i][j].Length * charS;
                     if (e < at + dur)
                     {
-                        text += lines[i][j].Substring(0, Mathf.Max(0, Mathf.FloorToInt((e - at) / CrtLogCharS)));
+                        text += lines[i][j].Substring(0, Mathf.Max(0, Mathf.FloorToInt((e - at) / charS)));
                         shown.Add(text);
                         return shown.ToArray();
                     }
@@ -292,12 +295,12 @@ namespace Arena
                     at += dur;
                     if (j < lines[i].Length - 1)
                     {
-                        if (e < at + CrtLogPause)  // waiting, cursor blinking
+                        if (e < at + pause)  // waiting, cursor blinking
                         {
                             shown.Add(text);
                             return shown.ToArray();
                         }
-                        at += CrtLogPause;
+                        at += pause;
                     }
                 }
                 shown.Add(text);
@@ -447,28 +450,7 @@ namespace Arena
             var ink = LobbyInk;
             uiGlBlocked = true;
             if (crtStyle == 4)
-            {
-                float across = EaseOut(Seg(pe, 0.18f, 0.35f)), open = EaseInOut(Seg(pe, 0.35f, 0.8f));
-                if (pe > 0.12f && open < 1f)  // the line: log-wide, then the whole width
-                {
-                    float lw = Mathf.Lerp(700f, W, across), la = pe < 0.2f ? Seg(pe, 0.12f, 0.2f) : 1f - Seg(open, 0.5f, 1f);
-                    float half = open * H / 2f;
-                    for (int s = -1; s <= 1; s += 2)
-                    {
-                        float y = H / 2f + s * half;
-                        Ui.Glow(new Rect(W / 2f - lw / 2f, y - 3f, lw, 6f), ink, 0.35f * la);
-                        Ui.Fill(new Rect(W / 2f - lw / 2f, y - 1f, lw, 2f), new Color(0.92f, 0.96f, 1f, 0.75f * la));
-                    }
-                }
-                if (open > 0f)
-                {
-                    float half = open * H / 2f;
-                    LobbyRevealed(new Rect(0f, H / 2f - half, W, half * 2f), 1f);
-                    float flash = 1f - Seg(pe, 0.5f, 1.1f);  // the screen's brightness settling
-                    if (flash > 0f)
-                        Ui.Fill(new Rect(0f, H / 2f - half, W, half * 2f), new Color(0.55f, 0.75f, 1f, 0.12f * flash));
-                }
-            }
+                DrawPowerOnOpen(pe);
             else if (crtStyle == 5)
             {
                 float k = EaseInOut(Seg(pe, 0.2f, 0.95f));
@@ -499,6 +481,36 @@ namespace Arena
             uiGlBlocked = false;
         }
 
+        /// The Power-on (crtStyle 4), pe seconds in: a bright line, log-wide then the whole width (0.12-0.35 s), opening top and bottom like
+        /// a CRT warming up onto the whole lobby (0.35-0.8 s), its brightness settling by 1.1 s. The Game Mode screen's way back too (ModeBlink.cs).
+        void DrawPowerOnOpen(float pe)
+        {
+            var ink = LobbyInk;
+            bool oldBlocked = uiGlBlocked;
+            uiGlBlocked = true;
+            float across = EaseOut(Seg(pe, 0.18f, 0.35f)), open = EaseInOut(Seg(pe, 0.35f, 0.8f));
+            if (pe > 0.12f && open < 1f)  // the line: log-wide, then the whole width
+            {
+                float lw = Mathf.Lerp(700f, W, across), la = pe < 0.2f ? Seg(pe, 0.12f, 0.2f) : 1f - Seg(open, 0.5f, 1f);
+                float half = open * H / 2f;
+                for (int s = -1; s <= 1; s += 2)
+                {
+                    float y = H / 2f + s * half;
+                    Ui.Glow(new Rect(W / 2f - lw / 2f, y - 3f, lw, 6f), ink, 0.35f * la);
+                    Ui.Fill(new Rect(W / 2f - lw / 2f, y - 1f, lw, 2f), new Color(0.92f, 0.96f, 1f, 0.75f * la));
+                }
+            }
+            if (open > 0f)
+            {
+                float half = open * H / 2f;
+                LobbyRevealed(new Rect(0f, H / 2f - half, W, half * 2f), 1f);
+                float flash = 1f - Seg(pe, 0.5f, 1.1f);  // the screen's brightness settling
+                if (flash > 0f)
+                    Ui.Fill(new Rect(0f, H / 2f - half, W, half * 2f), new Color(0.55f, 0.75f, 1f, 0.12f * flash));
+            }
+            uiGlBlocked = oldBlocked;
+        }
+
         /// The whole lobby drawn into `shown` only (a part of the screen) at alpha a, moved by (dx, dy), its live models with it.
         void LobbyRevealed(Rect shown, float a, float dx = 0f, float dy = 0f)
         {
@@ -510,14 +522,15 @@ namespace Arena
             var at = new Rect(shown.x + dx, shown.y + dy, shown.width, shown.height);
             GUI.BeginGroup(at);
             GUI.BeginGroup(new Rect(-shown.x, -shown.y, W, H));
-            if (CrtBootBlue)
+            if (CrtBlue)
                 DrawLobbyGreyBack(a);  // the grey screen opens over the boot's blue one
             pieceGlOn = true;
             pieceGlClip = at;
-            uiShift = new V2(dx, dy);
-            DrawLobby();
+            var oldShift = uiShift;
+            uiShift = new V2(oldShift.X + dx, oldShift.Y + dy);
+            (revealDraw ?? DrawLobby)();
             pieceGlOn = false;
-            uiShift = V2.Zero;
+            uiShift = oldShift;
             GUI.EndGroup();
             GUI.EndGroup();
             Ui.Alpha = 1f;

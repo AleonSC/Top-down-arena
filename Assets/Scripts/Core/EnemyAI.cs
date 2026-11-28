@@ -488,6 +488,7 @@ namespace Arena
         {
             float rate = WaveFireRate(Wave) * D(DiffKnob.FireRate);
             PullStrength = 0f;
+            propPlansLeft = PropPlansPerTick;  // route searches round crates this tick (PropRoute.cs)
             CountEnemyShots();
             PrepareVariety();  // squads and Commanders (Variety.cs)
             PrepareAccretion();  // the Accretion rings' bands (Infall.cs)

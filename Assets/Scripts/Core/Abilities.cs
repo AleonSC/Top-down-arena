@@ -88,6 +88,12 @@ namespace Arena
                 ThrowGrasp(p);
                 return;
             }
+            if (CrushRelease(p, slot))  // Telekinetic Crush pressed again: the grip lets go, slamming or flinging (TelekineticCrush.cs)
+            {
+                p.Run.AbilitiesUsed++;
+                CloseCrush(p, false, false);
+                return;
+            }
             if ((p.StandOn || Seated(p)) && MovesYou(p.Slots[slot].Id))
                 return;  // planted: nothing that would carry you off
             if (!consumed && p.Slots[slot].Id == AbilityId.WaterWard && WwFull(p))

@@ -9,7 +9,11 @@ namespace Arena
     {
         // --- Neon ---------------------------------------------------------------------------------------------------------
 
-        static readonly Rgba HoloHalo = new Rgba(0.43f, 0.6f, 1f), HoloCore = new Rgba(0.66f, 0.8f, 1f), HoloHot = new Rgba(0.9f, 0.95f, 1f);
+        static readonly Rgba HoloHaloBlue = new Rgba(0.43f, 0.6f, 1f), HoloCoreBlue = new Rgba(0.66f, 0.8f, 1f), HoloHotBlue = new Rgba(0.9f, 0.95f, 1f);
+        // On a grey screen (CrtStyle.Accent: the pause and lobby menus) the neon is the screen's one colour.
+        static Rgba HoloHalo => CrtStyle.Accent is Color c ? new Rgba(c.r, c.g, c.b) : HoloHaloBlue;
+        static Rgba HoloCore => CrtStyle.Accent is Color c ? new Rgba(c.r, c.g, c.b).Mix(Rgba.White, 0.4f) : HoloCoreBlue;
+        static Rgba HoloHot => CrtStyle.Accent is Color c ? new Rgba(c.r, c.g, c.b).Mix(Rgba.White, 0.75f) : HoloHotBlue;
 
         /// A neon tube's brightness at time t: 1, with two quick dips near the end of each `period` seconds (a tube flickering).
         float NeonFlicker(float t, float period, float offset)

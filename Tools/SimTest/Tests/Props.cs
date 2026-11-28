@@ -240,6 +240,7 @@ static partial class Program
         g.Props.Clear();
         var foeA = new Enemy { Id = 2, Type = EnemyType.Grunt, Pos = new V2(Game.Width / 2f, Game.Height / 2f) };
         foeA.Def = Defs.Get(EnemyType.Grunt);
+        foeA.Radius = foeA.Def.Radius;
         V2 ahead = new V2(1f, 0f);
         g.AddProp(PropKind.Crate, foeA.Pos + new V2(45f, 0f));
         V2 turned = (V2)propDir.Invoke(g, new object[] { foeA, ahead });
@@ -249,6 +250,40 @@ static partial class Program
             g.AddProp(PropKind.Crate, foeA.Pos + V2.FromAngle(i * MathX.Pi * 2f / 12f) * 60f);
         V2 boxed = (V2)propDir.Invoke(g, new object[] { foeA, ahead });
         Check(boxed.DistanceTo(ahead) < 0.001f, "boxed in by crates, it walks straight on (and shoves)");
+        // They path round a long row of crates, and back out of a pocket of them, without touching one (PropRoute.cs).
+        var plans = typeof(Game).GetField("propPlansLeft", flags);
+        Func<V2, V2, bool> walksRound = (from, to) =>
+        {
+            foeA.Pos = from;
+            foeA.T = 0f;
+            for (int i = 0; i < 60 * 12; i++)
+            {
+                plans.SetValue(g, 12);
+                V2 d = (V2)propDir.Invoke(g, new object[] { foeA, (to - foeA.Pos).Normalized() });
+                foeA.Pos += d * 120f / 60f;
+                foeA.T += 1f / 60f;
+                foreach (var p in g.Props.Values)
+                    if (Game.PropCovers(p, foeA.Pos, foeA.Radius * 0.5f))
+                        return false;
+                if (foeA.Pos.DistanceTo(to) < 20f)
+                    return true;
+            }
+            return false;
+        };
+        foreach (var id in g.Props.Keys.ToList()) g.Props.Remove(id);
+        V2 cmid = new V2(Game.Width / 2f, Game.Height / 2f);
+        for (int i = -3; i <= 3; i++)
+            g.AddProp(PropKind.Crate, cmid + new V2(0f, i * Game.CrateSize));
+        Check(walksRound(cmid - new V2(200f, 0f), cmid + new V2(200f, 0f)), "an enemy walks round a long row of crates to you");
+        foreach (var id in g.Props.Keys.ToList()) g.Props.Remove(id);
+        for (int i = -2; i <= 2; i++)
+            g.AddProp(PropKind.Crate, cmid + new V2(0f, i * Game.CrateSize));
+        for (int i = 1; i <= 2; i++)
+        {
+            g.AddProp(PropKind.Crate, cmid + new V2(-i * Game.CrateSize, -2f * Game.CrateSize));
+            g.AddProp(PropKind.Crate, cmid + new V2(-i * Game.CrateSize, 2f * Game.CrateSize));
+        }
+        Check(walksRound(cmid - new V2(40f, 0f), cmid + new V2(220f, 0f)), "an enemy inside a pocket of crates finds its way out and round");
         g.Props.Clear();
         host.Leave(""); client.Leave("");
 

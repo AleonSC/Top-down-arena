@@ -877,6 +877,14 @@ namespace Arena
         public int KgHeld;
         public bool ShardGuard;
         public float ArrayT, KgT;
+        // Telekinetic Crush (TelekineticCrush.cs). Replicated: the grip is open, and the force meter (0-1). Host: the grip's zone and
+        // velocity, how long it has been open, the time since it closed (recharge waits CrushDelay), the burnout lockout, its mastery.
+        public bool CrushOn;
+        public float CrushMeter = 1f;
+        public int CrushZone;
+        public V2 CrushVel;
+        public float CrushT, CrushOff, CrushLockT;
+        public bool CrushMastered;
         public float TwinAutoCd;     // host: Alt can't lock or let go again for this long
         public byte AmmoMove, AmmoSeq;   // Out of Ammo: the rifle arms' move running (1-4: left bash, right bash, left bash, rifle clap; 0 none) and a count that rises with every move started (replicated; OutOfAmmo.cs)
         public byte KnifeMove, KnifeSeq; // Out of Ammo: the knife's move running (1-3: cross cut, reverse cut, lunge stab; 0 none) and its count (replicated)

@@ -113,7 +113,8 @@ namespace Arena
             {
                 // Following you round a big room (Rooms, Survival): only the lines in view, cut on the same grid and
                 // segment marks, so what shows is drawn exactly as before (a ripple bent every line of the whole room).
-                float vx = AW / (2f * camZoom) + FloorViewPad, vy = AH / (2f * camZoom) + FloorViewPad;
+                V2 vh = ViewHalf();  // (the turned screen's reach, CameraRotate.cs)
+                float vx = vh.X + FloorViewPad, vy = vh.Y + FloorViewPad;
                 float x0 = camFocus.X - vx, x1 = camFocus.X + vx, y0 = camFocus.Y - vy, y1 = camFocus.Y + vy;
                 if (x0 > first.X)
                     first.X += Mathf.Floor((x0 - first.X) / FloorStep) * FloorStep;

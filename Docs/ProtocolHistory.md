@@ -5,6 +5,7 @@ One line per bump, newest first. When you bump `Session.ProtocolVersion`, add yo
 Before bumping, `git fetch origin main` and take main's number + 1, so two sessions don't ship the same number.
 New ids and cards need no bump (Session.IdsHash covers them): only a change to what is read or written does.
 
+- 561: Telekinetic Crush becomes a toggle on a force meter: the Arcanist player sync adds `CrushOn` (bool) and `CrushMeter` (float) after `ArrayT`.
 - 560: Excalibur (the DPS Knight's key-3 ultimate): the player sync adds `ExcT` (float), then `ExcAge` and `ExcSwing` (floats) while it's above 0, after Rock Gloves' fields.
 - 559: Oni Mask: the player sync adds `OmT` (float) after the Hundred Paper Cranes fields, then `OmLen` (float) while it is on.
 - 558: Momentum takes 3 kills a stack: the player sync adds `MomentumKills` (byte) after `MomentumT`.

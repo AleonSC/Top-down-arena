@@ -4,7 +4,7 @@ namespace Arena
 {
     /// The Arcanist's looks (Core/Arcanist.cs): violet telekinesis and gold runes. Over the model: the Kinetic Field's faint ring,
     /// Shard Guard, Kinetic Grasp's hold and Runic Array's rift (KitLook.Body; the lock ring at your cursor, DrawArrayLock); its rune bolts and spectral blades (KitLook.Shot);
-    /// the Orbit Shards and Dancing Blades (DrawMinion); the Grand Sigil, Sanctum Sigil and Telekinetic Crush (DrawZone); the held
+    /// the Orbit Shards and Dancing Blades (DrawMinion); the Grand Sigil, Sanctum Sigil and Telekinetic Crush's grip (DrawZone); the held
     /// stylus and casting glyphs (WeaponLook.Held, WeaponLooks.cs). Preview: `ARCANIST=tank|healer|dps shot.sh x hud` (Tools/Preview/ShotArcanist.cs).
     public partial class ArenaApp
     {
@@ -54,6 +54,13 @@ namespace Arena
                 Arc(held.Disp, held.Radius + 7f, 2f, ArcViolet.WithAlpha(0.85f), 20, t * 4f, MathX.Tau * 0.75f);
                 for (int k = 0; k < 3; k++)
                     DrawRune(held.Disp + V2.FromAngle(t * 2f + MathX.Tau * k / 3f) * (held.Radius + 12f), 3.5f, t * 3f, ArcGold.WithAlpha(0.8f));
+            }
+            if (p.CrushOn || p.CrushMeter < 0.995f)  // Telekinetic Crush's force meter, round your feet (TelekineticCrush.cs)
+            {
+                bool low = p.CrushMeter < Game.CrushMinOn;
+                Rgba mc = p.CrushOn ? (low ? ArcViolet.Mix(CrushRed, 0.65f) : ArcViolet) : low ? CrushRed : ArcGold;
+                Arc(p.Disp, r + 9f, 2.5f, mc.WithAlpha(0.15f * col.A), 32);
+                Arc(p.Disp, r + 9f, 2.5f, mc.WithAlpha(0.9f * col.A), 32, -MathX.Pi / 2f, MathX.Tau * Mathf.Clamp01(p.CrushMeter));
             }
             if (p.ArrayT > 0f)  // Runic Array: the rift behind you
                 DrawArrayRift(p, t);
@@ -374,22 +381,137 @@ namespace Arena
             Arc(z.Pos, r + 5f, 2f, ArcGold.WithAlpha(0.6f * a), 56, -MathX.Pi / 2f, MathX.Tau * Mathf.Clamp01(z.T / Mathf.Max(0.01f, z.Duration)));
         }
 
-        /// Telekinetic Crush: violet rings closing on the middle, tighter as the slam nears.
+        static readonly Rgba CrushRed = new Rgba(1f, 0.33f, 0.41f);
+        readonly System.Collections.Generic.Dictionary<int, V2> crushShown = new System.Collections.Generic.Dictionary<int, V2>();
+        readonly System.Collections.Generic.Dictionary<int, V2> crushShownVel = new System.Collections.Generic.Dictionary<int, V2>();
+        int crushShownFrame = -1;
+
+        /// Where a Telekinetic Crush grip is drawn: its replicated place, smoothed (it moves every tick on the host but arrives in
+        /// snapshots), and how fast it's going (for its afterimages). Once a frame for each grip.
+        V2 CrushShown(Zone z, out V2 vel)
+        {
+            V2 at;
+            float dt = Time.deltaTime;
+            if (crushShownFrame != Time.frameCount)
+            {
+                crushShownFrame = Time.frameCount;
+                if (crushShown.Count > 8)
+                {
+                    crushShown.Clear();
+                    crushShownVel.Clear();
+                }
+            }
+            if (dt <= 0f || !crushShown.TryGetValue(z.Id, out at) || at.FartherThan(z.Pos, 300f))
+                at = z.Pos;  // (the preview, or a fresh grip: straight there)
+            V2 next = at + (z.Pos - at) * Mathf.Clamp01(dt * 24f);
+            V2 v = dt > 0f ? (next - at) / dt : V2.Zero, pv;
+            vel = crushShownVel.TryGetValue(z.Id, out pv) ? pv + (v - pv) * Mathf.Clamp01(dt * 10f) : v;
+            crushShown[z.Id] = next;
+            crushShownVel[z.Id] = vel;
+            return next;
+        }
+
+        /// Telekinetic Crush's grip (TelekineticCrush.cs; mockup in its header): a violet ring with a turning gold halo of runes,
+        /// ripples closing on a swirling core, the caster's force meter round it, the shots it has caught orbiting inside and a tether
+        /// of motes back to the caster's hand. The enemies it holds glow in force. Under a quarter of the meter it flickers red.
         void DrawArcCrush(Zone z, float t)
         {
-            float k01 = 1f - Mathf.Clamp01(z.T / Mathf.Max(0.01f, z.Duration));
-            Circle(z.Pos, z.Radius, ArcViolet.WithAlpha(0.06f + 0.1f * k01), 40);
-            for (int i = 0; i < 3; i++)
+            V2 vel;
+            V2 c = CrushShown(z, out vel);
+            float R = z.Radius;
+            Player owner = null;
+            if (game != null)
+                game.Players.TryGetValue(z.Owner, out owner);
+            float meter = owner != null ? owner.CrushMeter : 1f;
+            bool low = meter < Game.CrushMinOn;
+            float flick = low ? (Mathf.Sin(t * 38f) > 0f ? 1f : 0.55f) : 1f;
+            Rgba main = low ? ArcViolet.Mix(CrushRed, 0.65f) : ArcViolet;
+            if (owner != null && !owner.Downed)
+                DrawCrushTether(owner, c, R, t, main);
+            float sp = vel.Length;
+            if (sp > 150f)  // afterimages trailing a fast sweep
+                for (int k = 1; k <= 3; k++)
+                    Arc(c - vel * (0.02f * k), R, 2f, main.WithAlpha(0.2f * (1f - k / 4f) * flick * Mathf.Clamp01((sp - 150f) / 400f)), 40);
+            GlowDisc(c, R * 1.7f, main, 0.3f * flick);
+            Circle(c, R, main.WithAlpha(0.08f), 40);
+            for (int i = 0; i < 3; i++)  // ripples closing on the middle (the old crush rings, now running all the time)
             {
-                float ph = Mathf.Repeat(k01 * 1.5f + i / 3f, 1f);
-                Arc(z.Pos, z.Radius * (1f - ph), 2.4f, ArcViolet.WithAlpha(0.7f * (1f - ph * 0.5f)), 36);
+                float ph = Mathf.Repeat(t * 0.8f + i / 3f, 1f);
+                Arc(c, R * (1f - ph), 1.5f, main.WithAlpha(0.45f * ph * flick), 36);
             }
-            for (int k = 0; k < 6; k++)
+            for (int k = 0; k < 3; k++)  // three swirling arms
             {
-                V2 d = V2.FromAngle(MathX.Tau * k / 6f + t);
-                Line(z.Pos + d * z.Radius, z.Pos + d * (z.Radius * (1f - k01) * 0.8f + 8f), 1.4f, ArcGold.WithAlpha(0.6f));
+                float a0 = t * 2.5f + MathX.Tau * k / 3f;
+                V2 prev = c + V2.FromAngle(a0) * (R * 0.15f);
+                for (int s = 1; s <= 12; s++)
+                {
+                    float u = s / 12f;
+                    V2 at = c + V2.FromAngle(a0 + u * 1.9f) * (R * (0.15f + 0.6f * u));
+                    Line(prev, at, 2f, ArcPale.WithAlpha(0.22f * flick * (0.4f + 0.6f * u)));
+                    prev = at;
+                }
             }
-            DrawRune(z.Pos, 9f + 6f * k01, t * 4f, ArcGold);
+            Arc(c, R, 3f, main.WithAlpha(0.95f * flick), 48);
+            Arc(c, R - 4f, 1f, ArcPale.WithAlpha(0.35f * flick), 48);
+            for (int k = 0; k < 16; k++)  // the gold halo's dashes, turning the other way
+                Arc(c, R + 9f, 1.6f, ArcGold.WithAlpha(0.6f * flick), 4, -t * 0.6f + MathX.Tau * k / 16f, MathX.Tau / 30f);
+            for (int k = 0; k < 6; k++)  // six runes riding the halo
+            {
+                float a = -t * 0.7f + MathX.Tau * k / 6f;
+                DrawRune(c + V2.FromAngle(a) * (R + 20f), 5f * (1f + 0.15f * Mathf.Sin(t * 5f + k)), a + t, ArcGold.WithAlpha(0.9f * flick));
+            }
+            Arc(c, R + 30f, 2f, main.WithAlpha(0.15f), 48);  // the force meter, hugging the grip
+            Arc(c, R + 30f, 2.5f, (low ? CrushRed : ArcGold).WithAlpha(0.85f), 48, -MathX.Pi / 2f, MathX.Tau * Mathf.Clamp01(meter));
+            DrawRune(c, 7f + 1.5f * Mathf.Sin(t * 6f), t * 3f, ArcGold.WithAlpha(flick));
+            for (int k = 0; k < 10; k++)  // motes drifting round
+            {
+                float a = t * (1.2f + k * 0.13f) + k, rr = R * (0.3f + 0.06f * ((k * 37) % 10));
+                Circle(c + V2.FromAngle(a) * rr, 1.4f, ArcPale.WithAlpha(0.7f * flick), 6);
+            }
+            int shots = (int)z.Aim;
+            for (int k = 0; k < shots; k++)  // the shots it has caught, orbiting inside
+            {
+                V2 at = c + V2.FromAngle(t * 4f + MathX.Tau * k / shots) * (R * (0.25f + 0.035f * ((k * 37) % 10)));
+                GlowDisc(at, 9f, ArcGold, 0.7f);
+                Circle(at, 3f, ArcGold, 8);
+            }
+            if (game == null)
+                return;
+            foreach (var e in game.Enemies.Values)  // what it holds, wrapped in force
+            {
+                if (e.Def.IsBoss || e.Def.Heavy || e.Disp.FartherThan(c, R + e.Radius * 0.4f + 6f))
+                    continue;
+                GlowDisc(e.Disp, e.Radius * 2.2f, ArcViolet, 0.35f);
+                for (int k = 0; k < 8; k++)
+                    Arc(e.Disp, e.Radius + 5f, 1.2f, ArcViolet.WithAlpha(0.8f), 3, t * 3f + MathX.Tau * k / 8f, MathX.Tau / 20f);
+            }
+        }
+
+        /// The tether from the caster's hand to the grip: a soft curve that sways, and motes running down it.
+        void DrawCrushTether(Player p, V2 c, float R, float t, Rgba main)
+        {
+            V2 hand = p.Disp + V2.FromAngle(p.Aim) * (p.Def.BodyR + 4f);
+            V2 d = c - hand;
+            float len = d.Length;
+            if (len < R + 8f)
+                return;
+            V2 dir = d / len, n = new V2(-dir.Y, dir.X), end = c - dir * R;
+            V2 ctl = (hand + end) * 0.5f + n * (Mathf.Sin(t * 2.7f) * 26f);
+            V2 prev = hand;
+            for (int s = 1; s <= 16; s++)
+            {
+                float u = s / 16f;
+                V2 at = hand * ((1f - u) * (1f - u)) + ctl * (2f * (1f - u) * u) + end * (u * u);
+                Line(prev, at, 5f, main.WithAlpha(0.16f));
+                Line(prev, at, 1.2f, ArcPale.WithAlpha(0.35f));
+                prev = at;
+            }
+            for (int i = 0; i < 18; i++)
+            {
+                float u = Mathf.Repeat(i / 18f + t * 0.9f, 1f), bulge = Mathf.Sin(u * MathX.Pi);
+                V2 at = hand * ((1f - u) * (1f - u)) + ctl * (2f * (1f - u) * u) + end * (u * u);
+                Circle(at, 1.2f + 2f * bulge, (i % 4 == 0 ? ArcGold : ArcViolet).WithAlpha(0.85f * bulge), 6);
+            }
         }
 
         // --- The model's held things (BuildHeldDraws) ------------------------------------------
