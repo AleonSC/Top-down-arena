@@ -784,6 +784,7 @@ static partial class Shot {
         me.Hand[0] = (int)PieceCard.Box; me.Hand[1] = (int)PieceCard.Hall;
         if (Environment.GetEnvironmentVariable("BOSSFULL") != null) for (int hi = 0; hi < me.Hand.Length; hi++) me.Hand[hi] = (int)PieceCard.Box;
         me.Offer = new[] { (int)PieceCard.Ring, (int)PieceCard.Arms, BossCards.KitCode(PathId.SniperRidge), (int)PieceCard.MiniBoss, (int)PieceCard.LHall }; me.OfferCards = true; me.PendingCards = 1;
+        if (Environment.GetEnvironmentVariable("LONGNAMES") != null) me.Offer = new[] { (int)PieceCard.Market, (int)PieceCard.BuilderShop, BossCards.KitCode(PathId.BurningGrounds), BossCards.KitCode(PathId.EliteGauntlet), (int)PieceCard.Arms };  // LONGNAMES=1: the longest names
         if (Environment.GetEnvironmentVariable("WAVECARDS") != null) { me.Offer = new[] { (int)Expansion.GridRoundCard(new DetRandom(3), 3), (int)Expansion.MakePieceCard(PieceShape.TetT) }; me.OfferWave = true; me.WavePicks = 1; }  // WAVECARDS=1: the wave card pick
         if (Environment.GetEnvironmentVariable("STARTCARDS") != null) { me.Hand[0] = me.Hand[1] = 0; me.Offer = Array.ConvertAll(Expansion.GridStartOffer(int.Parse(Environment.GetEnvironmentVariable("STARTCARDS"))), c => (int)c); me.OfferWave = me.OfferStart = true; me.WavePicks = 1; me.PendingCards = 2; } }  // STARTCARDS=<seed>: the starting piece pick (INTRO=<s> for its roll)
       else if (mode == "legendary") { me.Offer = new[] { U("Warden's Guard"), U("Stun Gun"), U("Searchlight") }; me.OfferLegendary = true; }
