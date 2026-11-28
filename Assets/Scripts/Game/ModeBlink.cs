@@ -19,6 +19,7 @@ namespace Arena
         const float ModeBlinkLen = 0.9f, MbOffEnd = 0.28f, MbLineEnd = 0.36f, MbOnEnd = 0.74f;
         float modeBlinkT = -1f;   // seconds into the blink (capped steps, TickModeBlink); below 0 when not blinking
         int modeBlinkFrom;        // the mode screen's page, drawn while it closes
+        bool modeScreenFirst;     // the mode screen New run opened (HostGame): Back and Esc leave to the main menu, not the lobby
 
         float ModeBlinkT => modeBlinkT;
         bool ModeBlinking => modeBlinkT >= 0f && modeBlinkT < ModeBlinkLen;
@@ -36,12 +37,26 @@ namespace Arena
         /// Back to the lobby from the Game Mode screen (TO THE LOBBY, Back, Esc).
         void LeaveModeScreen()
         {
+            modeScreenFirst = false;
             if (fxOn && !fxReduced && OnModeScreen)
             {
                 modeBlinkT = 0f;
                 modeBlinkFrom = lobbyTab;
             }
             lobbyTab = 0;
+        }
+
+        /// Back and Esc on the Game Mode screen: out to the main menu when New run opened it (nothing seen of the lobby yet),
+        /// else back to the lobby.
+        void ModeScreenBack()
+        {
+            if (modeScreenFirst && session.IsHost)
+            {
+                modeScreenFirst = false;
+                StartLobbyLeave();  // LobbyEnter.cs
+            }
+            else
+                LeaveModeScreen();
         }
 
         /// In place of DrawLobbyContent while blinking (inside DrawLobby's group).

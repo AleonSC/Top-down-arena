@@ -277,7 +277,7 @@ namespace Arena
                 FillRect(0, hz - 3f, W, 6f, HoloHue(new Rgba(1f, 0.55f, 0.6f, 0.14f * pulse)));
             FillRect(0, hz - 1f, W, 2f, HoloHue(new Rgba(1f, 0.55f + 0.12f * pulse, 0.6f + 0.12f * pulse, 0.75f + 0.12f * pulse)));
             GradQuad(new V2(0, hz), new V2(W, hz), new V2(W, hz + 60f), new V2(0, hz + 60f), HoloHue(new Rgba(0.25f, 0.075f, 0.09f, 0.8f)), HoloHue(new Rgba(0.25f, 0.075f, 0.09f, 0f)));
-            var mote = HoloHue(new Rgba(1f, 0.59f, 0.63f));  // (every colour turned to the picked hue, MenuBgHue.cs)
+            var mote = HoloHue(new Rgba(1f, 0.59f, 0.63f));  // (every colour turned to the floor's dark blue, HoloHue)
             for (int i = 0; i < 40; i++)  // motes drifting up off the floor
             {
                 float sp = 0.3f + Hash(i * 5 + 2), span = H - hz + 80f;
@@ -332,5 +332,16 @@ namespace Arena
 
         static V2 LaneAt(int lane, float e, float hz) =>
             new V2(Mathf.Lerp(W / 2f + lane * 8f, W / 2f + lane * 150f, e), hz + (H - hz) * e);
+
+        const float HoloBaseHue = 0.981f;  // the Holo Floor's colours are drawn red (its grid, 353°)...
+        const float HoloHueTo = 0.6f;      // ...and shown in the CRT's dark blue (216°)
+
+        /// The Holo Floor's colour c (drawn red) turned to the menu's dark blue: same saturation and brightness.
+        static Rgba HoloHue(Rgba c)
+        {
+            Color.RGBToHSV(new Color(c.R, c.G, c.B), out float h, out float s, out float v);
+            var o = Color.HSVToRGB(MathX.Fmod(h + HoloHueTo - HoloBaseHue + 1f, 1f), s, v);
+            return new Rgba(o.r, o.g, o.b, c.A);
+        }
     }
 }

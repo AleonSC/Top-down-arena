@@ -207,6 +207,7 @@ namespace Arena
             {
                 addressList = string.Join(", ", NetPeer.LocalAddresses().ToArray());
                 lobbyTab = ModeTabNow();  // a new lobby opens on the Game Mode screen (ModeScreenUi.cs)
+                modeScreenFirst = true;   // whose Back goes back to the main menu (ModeBlink.cs)
             }
         }
 
@@ -575,7 +576,7 @@ namespace Arena
                 else if (lobbyMenuOpen)
                     CloseLobbyMenu();
                 else if (session.Screen == AppScreen.Lobby && OnModeScreen && !settingsOpen && GUIUtility.keyboardControl == 0)
-                    LeaveModeScreen();  // Esc on the Game Mode screen: back to the lobby (never out of it; ModeBlink.cs)
+                    ModeScreenBack();  // Esc on the Game Mode screen: the main menu if New run opened it, else the lobby (ModeBlink.cs)
                 else if (session.Screen == AppScreen.Lobby && !settingsOpen && !LobbyEntering && !LobbyLeaving && !LobbyReturning && GUIUtility.keyboardControl == 0)
                     OpenLobbyMenu();  // Esc in the lobby: its menu (MenuDrawer.cs)
                 else if (settingsOpen)

@@ -92,6 +92,12 @@ namespace Arena
             if (Hit(300, 0, 50) || Hit(300, 600, 50) || Hit(0, 300, 50) || Hit(600, 300, 50))
                 list.Add("a wall blocks a door lane (the middle of a side)");
             foreach (var w in l.Walls)
+                if (CellLayouts.InDoorway(w))
+                {
+                    list.Add("a wall reaches into a doorway (keep it flush with the door's edge)");
+                    break;
+                }
+            foreach (var w in l.Walls)
                 if (w[0] < 0 || w[1] < 0 || w[0] + w[2] > CellLayouts.Cell || w[1] + w[3] > CellLayouts.Cell)
                 {
                     list.Add("a wall leaves the cell");
