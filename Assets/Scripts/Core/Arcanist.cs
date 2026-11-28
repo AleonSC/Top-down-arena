@@ -15,7 +15,8 @@ namespace Arena
     ///     your cursor to your side, untouchable on the way, healed), Sanctum Sigil (ultimate: a healing circle that follows you, six
     ///     runes on its rim each bursting on the first enemy that touches it).
     ///   DPS: Dancing Blades (MinionKind.ArcBlade companions hover behind you; Fire launches one to slash at the cursor, Alt recalls
-    ///     them all), Telekinetic Crush (1st: lift the enemies at the cursor, pull them together, slam), Runic Array (ultimate:
+    ///     them all), Telekinetic Crush (1st, a toggle on a meter: a grip at the cursor that
+    ///     carries enemies; let go to slam or fling them; TelekineticCrush.cs), Runic Array (ultimate:
     ///     four sigils behind you; every Fire also sends a spectral blade from each).
     public partial class Game
     {
@@ -44,8 +45,7 @@ namespace Arena
         public const float TetherRange = 480f, TetherHeal = 30f;
         public const float SanctumRadius = 170f, SanctumTime = 8f, SanctumRuneR = 22f, SanctumBurst = 70f, SanctumBurstDmg = 50f, SanctumSpin = 0.9f;
         public const int SanctumRunes = 6;
-        public const float CrushRange = 400f, CrushRadius = 120f, CrushTime = 0.5f, CrushPull = 420f, CrushDmg = 40f, CrushPer = 12f, CrushStun = 0.4f;
-        public const int CrushPerMax = 5;
+        // (Telekinetic Crush's numbers: TelekineticCrush.cs)
         public const float ArrayTime = 6f, ArrayShotSpeed = 900f, ArrayShotLife = 0.5f, ArrayShotDmg = 16f, ArraySigilR = 38f;
 
         internal static readonly WeaponDef[] ArcanistWeapons =
@@ -99,10 +99,10 @@ namespace Arena
             new AbilityDef
             {
                 Id = AbilityId.TelekineticCrush, Kit = Kit.Arcanist, Role = Role.Dps, Choice = 0, FillsGaps = true,
-                Name = "Telekinetic Crush", Icon = "telekineticcrush", Cooldown = 9f,
-                Desc = "Lift enemies at your cursor, pull them together and slam them.",
-                Capstone = "It grabs 40% wider.",
-                Bot = b => b.HaveTarget && b.TargetD < CrushRange,
+                Name = "Telekinetic Crush", Icon = "telekineticcrush", Cooldown = 8.5f,  // (the meter's refill, empty to full: TelekineticCrush.cs)
+                Desc = "Toggle a grip at your cursor that lifts enemies and drags them round, on a force meter. Let go to slam them together, or fling them into walls.",
+                Capstone = "The grip is 40% wider.",
+                Bot = b => b.HaveTarget && b.TargetD < CrushLeash,
             },
             new AbilityDef
             {
@@ -449,12 +449,8 @@ namespace Arena
                     return true;
                 }
                 case AbilityId.TelekineticCrush:
-                {
-                    V2 at = ClampToArena(p.Pos + (target - p.Pos).LimitLength(CrushRange), 10f);
-                    AddZone(ZoneKind.ArcCrush, p, at, CrushRadius * (castMastered ? 1.4f : 1f), CrushTime);
-                    BroadcastFx(FxKind.Implode, at, Kits.Get(ZoneKind.ArcCrush).Color, CrushRadius, CrushTime, Sfx.SpellArcane);
+                    OpenCrush(p, target);  // TelekineticCrush.cs: a toggle on a meter
                     return true;
-                }
                 case AbilityId.RunicArray:
                     p.ArrayT = castMastered ? 9f : ArrayTime;
                     BroadcastFx(FxKind.Ring, p.Pos, new Rgba(0.78f, 0.62f, 1f), ArraySigilR + 20f, 0.4f, Sfx.SpellArcane);
@@ -707,6 +703,7 @@ namespace Arena
                 }
             }
             TickGrasps(dt);
+            TickCrush(dt);  // TelekineticCrush.cs
             for (int i = tethers.Count - 1; i >= 0; i--)
             {
                 var r = tethers[i];
@@ -738,15 +735,6 @@ namespace Arena
                     }
                     case ZoneKind.SanctumSigil:
                         TickSanctumRunes(z);
-                        break;
-                    case ZoneKind.ArcCrush:
-                        foreach (var e in AllFoes(by: z.Owner))
-                            if (Targetable(e) && !e.Def.IsBoss && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius))
-                            {
-                                Stun(e, 0.15f);
-                                e.KnockLeft = V2.Zero;
-                                KnuckleCarry(e, e.Pos + (z.Pos - e.Pos).LimitLength(CrushPull * dt));
-                            }
                         break;
                 }
         }
@@ -786,35 +774,11 @@ namespace Arena
             z.Aim = left;
         }
 
-        /// TickZones, as a Telekinetic Crush ends: the slam.
-        void CrushSlam(Zone z)
-        {
-            int caught = 0;
-            foreach (var e in AllFoes(by: z.Owner))
-                if (Targetable(e) && e.Pos.CloserThan(z.Pos, z.Radius + e.Radius))
-                    caught++;
-            if (caught == 0)
-            {
-                BroadcastFx(FxKind.Ring, z.Pos, z.Def.Color, z.Radius * 0.5f, 0.3f, Sfx.None);
-                return;
-            }
-            float dmg = (CrushDmg + CrushPer * Math.Min(CrushPerMax, caught - 1)) * z.DmgMult;
-            foreach (var e in FoesInCircle(z.Pos, z.Radius, by: z.Owner))
-            {
-                HurtEnemy(e, dmg, z.Owner);
-                if (!e.Def.IsBoss)
-                    Stun(e, CrushStun);
-            }
-            BroadcastFx(FxKind.Boom, z.Pos, z.Def.Color, z.Radius * 0.6f, 0.4f, Sfx.BigExplode);
-        }
-
         /// TickZones: an Arcanist zone has just ended.
         void ArcZoneEnds(Zone z)
         {
             if (z.Kind == ZoneKind.GrandSigil)
                 ReleaseSigil(z);
-            else if (z.Kind == ZoneKind.ArcCrush)
-                CrushSlam(z);
         }
 
         // --- Network: the player's Arcanist fields (SyncPlayer) ---------------------------------
@@ -824,6 +788,8 @@ namespace Arena
             s.Int(ref p.KgHeld);
             s.Bool(ref p.ShardGuard);
             s.Float(ref p.ArrayT);
+            s.Bool(ref p.CrushOn);  // Telekinetic Crush (TelekineticCrush.cs)
+            s.Float(ref p.CrushMeter);
         }
     }
 }

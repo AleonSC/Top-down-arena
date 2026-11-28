@@ -117,19 +117,75 @@ static partial class Program
         me.ArrayT = 0f;
         step(1.2f);
 
-        // Telekinetic Crush: lifts the enemies at the cursor, pulls them in, slams.
+        // Telekinetic Crush (TelekineticCrush.cs): a toggle grip on a force meter that carries enemies round; let go to slam or fling.
+        V2 aimWas = aim;
         g.Enemies.Clear();
         make(EnemyType.Grunt, new V2(1500f, 880f));
-        var a1 = make(EnemyType.Grunt, aim + new V2(-80f, 0f));
-        var a2 = make(EnemyType.Grunt, aim + new V2(80f, 30f));
-        float d0 = a1.Pos.DistanceTo(a2.Pos), h1 = a1.Hp;
-        ready(0);
+        var a1 = make(EnemyType.Grunt, aim + new V2(-30f, 0f));
+        var a2 = make(EnemyType.Grunt, aim + new V2(30f, 20f));
+        me.CrushMeter = 1f; me.CrushLockT = 0f;
+        step(0.05f);
+        Check(me.Slots[0].Charges == 1 && !me.CrushOn, "Telekinetic Crush is ready with a full meter");
+        hostAbility.Invoke(g, new object[] { 1, 0, aim, false });
+        step(0.4f);
+        var grip = g.Zones.Values.FirstOrDefault(z => z.Kind == ZoneKind.ArcCrush && z.Owner == 1);
+        Check(me.CrushOn && grip != null && g.CrushHolding(me) == 2, "pressed, a grip opens at the cursor and lifts the two grunts in it");
+        Check(me.CrushMeter < 0.95f && me.CrushMeter > 0.8f, "the meter drains while it's open (" + me.CrushMeter.ToString("0.00") + ")");
+        Check(client.Game.Players[1].CrushOn && client.Game.Zones.Values.Any(z => z.Kind == ZoneKind.ArcCrush), "the client sees the grip");
+        aim = new V2(800f, 300f);
+        step(0.8f);
+        Check(grip.Pos.DistanceTo(aim) < 30f && a1.Pos.CloserThan(grip.Pos, grip.Radius) && a2.Pos.CloserThan(grip.Pos, grip.Radius),
+            "it follows the cursor, carrying them along");
+        var caughtShot = enemyShot(grip.Pos + new V2(-120f, 0f), new V2(500f, 0f));
+        step(0.4f);
+        Check(!g.Bullets.ContainsKey(caughtShot.Id) && grip.Aim >= 1f, "an enemy shot that enters the grip is caught");
+        float h1 = a1.Hp;
+        int gripBlades0 = g.Bullets.Values.Count(b => b.Kind == Defs.SpectralBlade);
+        hostAbility.Invoke(g, new object[] { 1, 0, aim, false });
+        step(0.05f);
+        float slam = Game.CrushSlamDmg + Game.CrushSlamPer;
+        Check(!me.CrushOn && h1 - a1.Hp >= slam * 0.9f && a1.StunT > 0.3f, "let go with the grip still: a slam, 30 +10 for the other one (" + (h1 - a1.Hp) + ")");
+        Check(g.Bullets.Values.Count(b => b.Kind == Defs.SpectralBlade) > gripBlades0, "and the caught shot flies back out as a spectral blade");
+        float closedAt = me.CrushMeter;
+        step(0.6f);
+        Check(me.CrushMeter == closedAt, "closed, the meter waits a moment...");
+        step(0.8f);
+        Check(me.CrushMeter > closedAt + 0.05f, "...then refills (" + closedAt.ToString("0.00") + " to " + me.CrushMeter.ToString("0.00") + ")");
+
+        // Fling: whip the grip toward a wall and let go on the move.
+        g.Enemies.Clear();
+        make(EnemyType.Grunt, new V2(1500f, 880f));
+        aim = new V2(780f, 450f);
+        var f1 = make(EnemyType.Grunt, aim);
+        me.CrushMeter = 1f;
+        hostAbility.Invoke(g, new object[] { 1, 0, aim, false });
+        step(0.4f);
+        Check(g.CrushHolding(me) == 1, "a new grip lifts the grunt");
+        aim = new V2(500f, 0f);
+        float fh = f1.Hp;
+        step(0.12f);
+        float whip = me.CrushVel.Length;
+        hostAbility.Invoke(g, new object[] { 1, 0, aim, false });
+        step(1.2f);
+        Check(whip >= Game.CrushFlingMin && fh - f1.Hp >= Game.CrushImpact * 0.9f && fh - f1.Hp < slam,
+            "let go on the move: it's flung on and slams into the wall for 25 (" + (fh - f1.Hp) + " at " + whip.ToString("0") + " px/s)");
+
+        // Heavies are only slowed; running the meter dry burns it out.
+        g.Enemies.Clear();
+        aim = new V2(780f, 450f);
+        var brute = make(EnemyType.RiotCaptain, aim);  // (a heavy mini-boss)
+        me.CrushMeter = 0.3f;
         hostAbility.Invoke(g, new object[] { 1, 0, aim, false });
         step(0.3f);
-        Check(a1.Pos.DistanceTo(a2.Pos) < d0 - 40f, "Telekinetic Crush pulls the enemies together");
-        step(0.4f);
-        float want = Game.CrushDmg + Game.CrushPer;
-        Check(h1 - a1.Hp >= want * 0.9f && !g.Zones.Values.Any(z => z.Kind == ZoneKind.ArcCrush), "then slams them: 40 +12 for the other one caught (" + (h1 - a1.Hp) + ")");
+        Check(me.CrushOn && brute.Def.Heavy && g.CrushHolding(me) == 0 && brute.SlowT > 0f, "a heavy enemy isn't lifted, only slowed");
+        step(1.5f);
+        Check(!me.CrushOn && me.CrushMeter == 0f && me.Slots[0].Charges == 0, "run dry, the grip lets go on its own");
+        hostAbility.Invoke(g, new object[] { 1, 0, aim, false });
+        step(0.05f);
+        Check(!me.CrushOn, "and it's burnt out: it won't open again yet");
+        me.CrushMeter = 1f; me.CrushLockT = 0f;
+        aim = aimWas;
+        step(0.2f);
 
         // Kinetic Field: enemy shots near an Arcanist slow down.
         g.Enemies.Clear();

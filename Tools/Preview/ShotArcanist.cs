@@ -7,7 +7,8 @@ using Arena;
 // the game's own paths.
 //   tank: Orbit Shards round you (one flung at a grunt), Kinetic Grasp holding a Brute, a Grand Sigil with enemy shots frozen on its rim.
 //   healer: the Glyph Stylus (rune bolts in flight through an ally), a Sanctum Sigil with four of its six runes left.
-//   dps: Dancing Blades (one dancing on a Brute, DANCE=<s> into its Crossing Cuts, default 0.4; one flying, one waiting), Runic Array open with spectral blades out, a Telekinetic Crush.
+//   dps: Dancing Blades (one dancing on a Brute, DANCE=<s> into its Crossing Cuts, default 0.4; one flying, one waiting), Runic Array open
+//     with spectral blades out, a Telekinetic Crush grip open (three grunts lifted, three caught shots, the meter at 62%).
 static partial class Shot {
   static void ArcanistScene() {
     string mode = Environment.GetEnvironmentVariable("ARCANIST");
@@ -78,10 +79,12 @@ static partial class Shot {
         V2 from = Game.ArraySigil(me.Pos, me.Aim, k), to = brute.Pos - from;
         shot(Defs.SpectralBlade, from + to.Normalized() * 120f, to.Normalized() * 900f, me.Id);
       }
-      var crush = zone(ZoneKind.ArcCrush, new V2(640f, 230f), Game.CrushRadius, Game.CrushTime, 0.2f);
-      put(EnemyType.Grunt, crush.Pos + new V2(-40f, 10f), 0f).StunT = 0.3f;
-      put(EnemyType.Grunt, crush.Pos + new V2(35f, -20f), 0f).StunT = 0.3f;
-      put(EnemyType.Grunt, crush.Pos + new V2(10f, 45f), 0f).StunT = 0.3f;
+      var crush = zone(ZoneKind.ArcCrush, new V2(545f, 335f), Game.CrushGripR, Game.CrushZoneLife, Game.CrushZoneLife);  // the grip, open
+      crush.Aim = 3f;  // three caught shots orbiting inside
+      me.CrushOn = true; me.CrushMeter = 0.62f; me.CrushZone = crush.Id;
+      put(EnemyType.Grunt, crush.Pos + new V2(-22f, 8f), 0f).StunT = 0.3f;
+      put(EnemyType.Grunt, crush.Pos + new V2(20f, -16f), 0f).StunT = 0.3f;
+      put(EnemyType.Grunt, crush.Pos + new V2(6f, 26f), 0f).StunT = 0.3f;
       put(EnemyType.Sniper, new V2(1050f, 640f), MathX.Pi * 1.2f);
     }
     Console.Error.WriteLine("arcanist: " + mode);

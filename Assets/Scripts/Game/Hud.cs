@@ -637,6 +637,13 @@ namespace Arena
             Ui.CrtFont = was;
         }
 
+        /// Telekinetic Crush's meter as a percent, its text rebuilt only when the number changes.
+        string CrushPct(int i, float fill)
+        {
+            int pct = Mathf.FloorToInt(fill * 100f);
+            return tileTimer[i].Cached(3, pct) ?? tileTimer[i].Set(pct + "%");
+        }
+
         /// An inverse-video key cap: the key's name, dark on a block of the key's colour.
         void DrawCrtCap(Rect at, string key, Color c)
         {
@@ -665,6 +672,9 @@ namespace Arena
             bool ready = slot.Charges > 0;
             float cd = game.Cooldown(me, i);
             float fill = slot.Charges >= slot.MaxCharges ? 1f : Mathf.Clamp01(1f - slot.Timer / Mathf.Max(0.01f, cd));
+            bool crush = slot.Id == AbilityId.TelekineticCrush;  // a toggle on a force meter: the shade and the strip show the meter (TelekineticCrush.cs)
+            if (crush)
+                fill = Mathf.Clamp01(me.CrushMeter);
             float pulse = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 4f);
             Color keyCol = ultimate ? CrtStyle.Gold : ready ? KeyGreen : CrtStyle.Ink;  // gold ultimate, green when ready, blue while it recharges
             CrtKeyBox(r, keyCol.WithAlpha(ready ? (ultimate ? 0.65f + 0.35f * pulse : 1f) : 0.7f), false);
@@ -701,7 +711,13 @@ namespace Arena
                 float rin = look.ReadyIn;  // sliding in from the right as the tile pops
                 if (rin > 0f)
                     DkTitle(new Rect(r.x + 8f + 14f * (1f - rin), r.y + 5f, r.width - 16f, 20f), ultimate ? "READY!" : "READY", 15, lo.ScaleAlpha(rin), TextAnchor.MiddleRight);
+                else if (crush && fill < 0.995f)  // ready to open, the meter not yet full
+                    DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), CrushPct(i, fill), 16, lo.WithAlpha(0.8f), TextAnchor.MiddleRight);
             }
+            else if (crush && me.CrushOn)  // the grip is open: press again to let go
+                DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), tileCount[i].Cached(Mathf.FloorToInt(fill * 100f), -7) ?? tileCount[i].Set("ON · " + Mathf.FloorToInt(fill * 100f) + "%"), 16, fill < Game.CrushMinOn ? CrtStyle.HudDanger : new Color(0.72f, 0.55f, 1f), TextAnchor.MiddleRight);
+            else if (crush)  // refilling to a quarter (or burnt out)
+                DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), CrushPct(i, fill), 19, Color.Lerp(new Color(0.7f, 0.8f, 1f), CrtStyle.HudDanger, look.Red), TextAnchor.MiddleRight);
             else if (slot.Id == AbilityId.LastStand && me.StandOn)  // planted: press it again to come down (its cooldown starts then)
                 DkTitle(new Rect(r.x + 8f, r.y + 4f, r.width - 16f, 20f), "PRESS TO CANCEL", 15, new Color(0.55f, 0.78f, 1f), TextAnchor.MiddleRight);
             else if (slot.Id == AbilityId.BloodWall && me.BloodWallOn)  // the wall is up (press it again to stop; its cooldown starts then; BloodWall.cs)

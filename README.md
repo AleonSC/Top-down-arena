@@ -267,9 +267,18 @@ The **DPS** Arcanist:
   spot for 1 s, slashing everything within 42 px four times (10 each; it dashes back and forth through the enemy in a star
   of crossing cuts, one through the middle on each slash), and flies back. **Alt** calls every blade home at
   once, cutting on the way. Each extra projectile: +1 blade.
-- **Telekinetic Crush** (1st ability, 9 s): lifts the enemies at your cursor (120 px, up to 400 px away) and pulls them
-  together for half a second (bosses aren't lifted), then slams: 40 damage, +12 for each other enemy caught (up to +60), and a
-  0.4 s stun. Mastered: it grabs 40% wider.
+- **Telekinetic Crush** (1st ability, a toggle on a **force meter**, no cooldown): press to open a 70 px grip at your cursor.
+  It follows the cursor on a springy lag (up to 420 px from you) and lifts the regular enemies it touches, up to 6: they're
+  carried round inside it, can't move or shoot, and take 6 damage a second. Heavy enemies are only slowed 60%; bosses aren't
+  touched. Enemy shots that enter it (not unblockable ones) are caught and orbit inside, up to 10. Press again to let go:
+  with the grip nearly still (under 220 px/s) it **slams** everything held together for 30, +10 for each other enemy (up to
+  +40), and a 0.6 s stun; on the move it **flings** them on at the grip's speed, and one that hits a wall, a prop or another
+  enemy at 220 px/s or more takes 25 and the enemy it hits 15, both stunned. Either way the caught shots fly back out as
+  spectral blades (8 each): along the throw, or all round on a slam. The meter drains 22% a second, +3% for each enemy held
+  (an empty grip lasts about 4.5 s), and refills 0.8 s after the grip closes, empty to full in 8.5 s (cooldown cards speed it
+  up); it takes 25% to open. Run it dry and the grip lets go on its own and burns out for 1.5 s. The grip is a violet ring
+  with a turning gold halo of runes and the meter round it, a tether of motes back to your hand, flickering red under 25%;
+  the meter also rings your feet, and the key shows it as a percent ("ON" while open). Mastered: the grip is 40% wider.
 - **Runic Array** (ultimate, 65 s): four gold sigils open behind you for 6 s. Every Fire also sends a spectral blade from each
   at your cursor (16, through one enemy), even while your blades are out. Mastered: 9 s.
 
