@@ -263,6 +263,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Legion | Dps | ultimate | 70 s | - | Summons 7 wolves and 7 bats. | A blood moon: wolves and bats circle you, you run faster and your minions frenzy. |
 | Rodent Minigun | Dps | ultimate | 70 s | - | Fires 2 s longer. | A portal opens in front of you and spins up into a minigun of mice, rats and hamsters, following your aim. |
 | Mammoth Fall | Dps | ultimate | 75 s | - | Rampages 1.5 s longer. | Summon a woolly mammoth in the sky, aim it, and it slams down, stunning everything around, then rampages through enemies. |
+| Brood Queen | Dps | ultimate | 75 s | - | She stays 13 s. | Drop a giant spider at your cursor. She bites and webs the pack and sends broodlings after other enemies. |
 | Land Shark | Dps | 1st, choice 5 | 14 s | - | A 30% wider puddle, and the bite hits for 160. | A puddle opens at your cursor and a shark leaps out, biting everything in it. |
 
 ### Knight
@@ -319,6 +320,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Death Lotus | Dps | ultimate | 65 s | - | Strikes up to 14 enemies. | A flurry of cuts on up to 8 enemies near your cursor. |
 | Forbidden Path | Dps | ultimate | 75 s | - | The beast lasts 11 s. | Become a shadow beast for 8 s: it locks onto the strongest enemy near and Fire tears through a five-part area combo. Drains your health. |
 | Hundred Paper Cranes | Dps | ultimate | 75 s | - | 130 cranes. | 100 paper cranes swirl round you, then peel off one by one over 3 s and home in on enemies, the healthiest first: 10 each. |
+| Oni Mask | Dps | ultimate | 75 s | - | 0.75 s a kill, up to 30 s. | Put on a demon mask for 10 s: 30% faster, 40% more damage and 50% more max health. Each kill adds 0.5 s (a heavy 2 s), up to 25 s. |
 | Senbon Seekers | Dps | 1st, choice 5 | 6 s | - | Holds up to 12 needles. | Three poisoned needles circle you and fly at enemies that come close. Stacks to 9. |
 
 ### Hemomancer
@@ -339,6 +341,7 @@ Numbers are before upgrades. Player-facing prose is in [README.md](../README.md)
 | Sanguine Rain | Healer | ultimate | 80 s | - | Lasts 14 s and heals 4% a tick. | Rain healing circles that follow your allies. |
 | Heartbeat | Healer | ultimate | 80 s | - | The waves hit 40% harder. | Your heart beats three times, each beat costing 8% of your health: a wave of blood bursts 320 px out of you, hitting for 45. Every enemy it kills drops a blood orb. |
 | Heart of the Swarm | Healer | ultimate | 80 s | - | Each beat heals 11%. | A giant heart beats at your cursor six times, once every 1.5 s: each beat heals allies within 300 px of it 8% of their health and pulls enemies in. |
+| Blood Garden | Healer | ultimate | 80 s | 30% of current health | Fling 16 seeds. | Pay 30% of your health to fling 12 blood seeds around you. Their saplings slow and siphon nearby enemies, then burst into healing orbs. |
 | Clot Crystals | Healer | 1st, choice 5 | 18 s | 15% of max health | A 4th crystal. | Grow three blood crystals round you that jerk at enemy bullets and eat them. |
 | Arterial Spray | Dps | 1st, choice 1 | 8 s | - | The spray also washes away enemy bullets it touches. | Open a vein: a jet of blood hurts and bleeds everything in front of you. |
 | Blood Debt | Dps | 1st, choice 2 | 16 s | - | Kills repay 50% more. | Borrow health to heal on hit, and pay it back with kills. |

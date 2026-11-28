@@ -103,6 +103,7 @@ namespace Arena
                     if (!golem)
                         DrawColossus(p, t, col.A);  // the rise: rocks gathering onto you (StoneColossusLook.cs)
                     DrawGolemGather(p, modelR, t, col.A);  // Blood Golem's gather: coats piling onto you (BloodGolemLook.cs)
+                    DrawOniMask(p, t, col.A);  // Oni Mask on the head and its timer ring (OniMaskLook.cs)
                     DrawJuggernaut(p, modelR, t, col.A);  // the Juggernaut Suit's plates (JuggernautLook.cs)
                     DrawDebtRing(p, modelR, t, col.A);  // Blood Debt and Arterial Spray: any class can have them (Wildcard)
                     DrawSpray(p, modelR, t, col.A);
