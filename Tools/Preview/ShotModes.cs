@@ -370,6 +370,8 @@ static partial class Shot {
       set("glMaterial", new Material(null));
       set("addressList", "100.123.48.122, 192.168.1.163");
       if (Environment.GetEnvironmentVariable("INFO") != null) set("connInfoOpen", true);
+      if (Environment.GetEnvironmentVariable("WILDLOOK") != null) set("wildLook", int.Parse(Environment.GetEnvironmentVariable("WILDLOOK")));  // WILDLOOK=1|2 (with WILDCARD=1): the Wildcard picker mockups; WILDSLOT=0-3 look 1's slot
+      if (Environment.GetEnvironmentVariable("WILDSLOT") != null) set("wildSlot", int.Parse(Environment.GetEnvironmentVariable("WILDSLOT")));
       if (Environment.GetEnvironmentVariable("VGEDIT") != null) { set("vgEditOpen", true); if (Environment.GetEnvironmentVariable("VGEDIT") != "1") { set("vgSelSt", 0); set("vgSelIdx", int.Parse(Environment.GetEnvironmentVariable("VGEDIT"))); } }  // VGEDIT=1: the Vowguard's chain editor open (LOADOUT=1,3,3,0); VGEDIT=<n>: with Valor step n selected
       // The hero card's live mini-arena: run it for a moment first. LOADOUT=role,kit,weapon,ability[,ultimate pick]; ABILITY=n clicks that ability key: it's picked, its detail box opens and the preview casts it (the lobby has no hover state since the declutter).
       var lo = Environment.GetEnvironmentVariable("LOADOUT");

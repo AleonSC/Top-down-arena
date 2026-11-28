@@ -777,7 +777,10 @@ namespace Arena
             if (me.Role == Role.Wildcard)
             {
                 ultY = r.y + LoadoutTop + RoleRowStep + (LoadoutRows - 2f) * CarRowStep;  // (the Ultimate row where the others have it)
-                DrawWildcardPicks(me, tgt, self, x, y, w, ultY - 6f);
+                if (wildLook != 0)
+                    DrawWildMock(me, tgt, self, x, y, w, ultY + CarKeyY + CarKeyH);  // (mockups: they draw the Ultimate row too)
+                else
+                    DrawWildcardPicks(me, tgt, self, x, y, w, ultY - 6f);
             }
             else
             {
@@ -888,6 +891,8 @@ namespace Arena
 
             // The ultimate: key 0 is the role and class's default one, keys 1-3 the others it has (the Tank Soldier's Juggernaut Suit on
             // key 1), locked while empty. Click one to pick it (inverse video, like the weapon and ability keys) and watch it in the preview.
+            if (me.Role != Role.Wildcard || wildLook == 0)
+            {
             LobbyKit.Heading(x, ultY, w, "Ultimate", me.Role == Role.Wildcard ? Defs.KitName((Kit)WildBrowseKit) + "'s ultimates" : null, calm, 15);
             bool wildRow = me.Role == Role.Wildcard;  // a Wildcard: the class wheel's class's DPS ultimates (pick = class * UltKeys + key)
             var rowKit = wildRow ? (Kit)WildBrowseKit : me.Kit;
@@ -919,6 +924,7 @@ namespace Arena
                     LiveKeyMark(b, roleColor, t, calm);
             }
             EndCarousel();
+            }
 
             float dy = r.y + BottomTop + 3f;  // level with the class title's letters
             var ability = Upgrades.Ability(Upgrades.FirstAbility(me.Role, me.Kit, ShownAbility(me)));
