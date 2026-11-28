@@ -1012,6 +1012,9 @@ namespace Arena
                 case AbilityId.Ballista:
                     CastBallista(p, target, cap);  // Ballista.cs (key 1)
                     return true;
+                case AbilityId.ChaliceOfLife:
+                    CastChalice(p, target, cap);  // ChaliceOfLife.cs (the Healer Knight's key 3)
+                    return true;
                 case AbilityId.HolyLanceRain:
                     CastLanceRain(p, cap);  // HolyLanceRain.cs (the Healer Knight's key 2)
                     return true;
