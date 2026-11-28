@@ -110,7 +110,8 @@ static partial class Program
             Pick("with an ultimate on key " + key, (r, k) => HasUlt(r, k, key), role, complete);
         public static RoleKit RoleWithoutUlt(int key, Role? role = null, bool complete = true) =>
             Pick("with no ultimate on key " + key, (r, k) => !HasUlt(r, k, key), role, complete);
-        /// A role and class with an empty key on its Ultimate row, and that key (the lowest 1-3 any class leaves free).
+        /// A role and class with an empty key on its Ultimate row, and that key (the lowest 1-3 any class leaves free; when every
+        /// class fills all three, the first class and Upgrades.UltKeys, a key past the row that clamps to 0 the same way).
         public static RoleKit RoleWithAFreeUltKey(out int key)
         {
             for (key = 1; key < Upgrades.UltKeys; key++)
@@ -120,8 +121,8 @@ static partial class Program
                 if (rk != null)
                     return rk.Value;
             }
-            key = 1;
-            return RoleWithoutUlt(1);
+            key = Upgrades.UltKeys;
+            return Pick("that is finished", (r, kt) => true);
         }
 
         // --- The fall-backs, checked on whichever role and class lacks the thing (true, with a note, when none does) ---

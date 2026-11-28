@@ -44,8 +44,9 @@ static partial class Program
             "in the run both players' ultimate is Vortex, on both games");
         var save = new RunSave { Wave = 4 };
         save.Seats.Add(new SeatSave { Name = "Storm", Role = Role.Tank, Kit = Kit.Elementalist, Ult = 3 });
-        var bare = Content.RoleWithoutUlt(3);  // (a role and class with no key 3)
-        save.Seats.Add(new SeatSave { Name = "Bare", Role = bare.Role, Kit = bare.Kit, Ult = 3 });
+        int freeKey;
+        var bare = Content.RoleWithAFreeUltKey(out freeKey);  // (a role and class with some key empty)
+        save.Seats.Add(new SeatSave { Name = "Bare", Role = bare.Role, Kit = bare.Kit, Ult = freeKey });
         var back = RunSave.Parse(save.ToText());
         Check(back.Seats[0].Ult == 3 && back.Seats[1].Ult == 0, "a saved run keeps key 3 (clamped for a class without it)");
 
