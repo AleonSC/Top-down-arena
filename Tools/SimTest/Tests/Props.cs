@@ -50,6 +50,10 @@ static partial class Program
         waveProps.Invoke(g, null);
         int cluttered = g.Props.Values.Count(p => Game.IsCrate(p));
         g.Mods &= ~RunMod.Cluttered;
+        Func<float, bool> mid = v => Math.Abs((v - RoomTraps.Tile / 2f) / RoomTraps.Tile - Math.Round((v - RoomTraps.Tile / 2f) / RoomTraps.Tile)) < 0.001f;
+        var crateList = g.Props.Values.Where(p => Game.IsCrate(p)).ToList();
+        Check(crateList.Count > 0 && crateList.All(p => mid(p.Pos.X) && mid(p.Pos.Y)) && crateList.Select(p => p.Pos.X + "," + p.Pos.Y).Distinct().Count() == crateList.Count,
+            "wave crates land on square middles of the 50 px floor grid, one a square (" + crateList.Count + " crates)");
         Console.WriteLine("  Cluttered wave 9: {0} crates (target {1})", cluttered, Game.ClutterTarget(9));
         Check(cluttered >= Game.ClutterTarget(9) * 3 / 4 && g.Props.Values.All(p => g.Players.Values.All(pl => pl.Pos.DistanceTo(p.Pos) > 100f)),
             "Cluttered: the wave fills the arena with crates, none on a player");

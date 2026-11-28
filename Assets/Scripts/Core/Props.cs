@@ -77,7 +77,7 @@ namespace Arena
 
     public partial class Game
     {
-        public const float CrateSize = 44f, HeavyCrateSize = 54f, BarrelR = 17f, ChestW = 48f, ChestH = 34f;
+        public const float CrateSize = 44f, HeavyCrateSize = 48f, BarrelR = 17f, ChestW = 48f, ChestH = 34f;
         public const float BarrelBlast = 120f, BarrelFuse = 0.4f, BarrelChainFuse = 0.15f;
         public const float LootReach = 30f;   // how close (plus your body) you must stand to an item to take it
         const float ChestStayOpen = 2.5f;     // an opened chest stays this long, then goes
@@ -316,14 +316,14 @@ namespace Arena
             {
                 var kind = Wave >= (clutter ? 8 : 12) && rng.NextDouble() < 0.35 ? PropKind.HeavyCrate : PropKind.Crate;
                 V2 at;
-                if (!FreeSpot(HalfW(kind), out at))
+                if (!FreeSpot(HalfW(kind), out at, true))  // (on a square of the floor grid, RoomTraps.Tile)
                     break;
                 AddProp(kind, at);
                 crates++;
                 // Often a second one alongside: a little wall to hide behind.
                 if (crates < crateGoal && rng.NextDouble() < 0.45)
                 {
-                    float step = HalfW(kind) * 2f + 2f;
+                    const float step = RoomTraps.Tile;  // (the next square over)
                     V2 next = at + (rng.Next(2) == 0 ? new V2(rng.Next(2) == 0 ? step : -step, 0f) : new V2(0f, rng.Next(2) == 0 ? step : -step));
                     if (SpotClear(next, HalfW(kind), 0f))
                     {
@@ -399,11 +399,14 @@ namespace Arena
             return p;
         }
 
-        bool FreeSpot(float size, out V2 at)
+        /// A random free spot; onGrid: the middle of a square of the 50 px floor grid (wave crates, so they line up with the core plans').
+        bool FreeSpot(float size, out V2 at, bool onGrid = false)
         {
             for (int i = 0; i < 40; i++)
             {
                 at = RandomInArena(110f);
+                if (onGrid)
+                    at = new V2(RoomTraps.SnapCentre(at.X, RoomTraps.Tile / 2f), RoomTraps.SnapCentre(at.Y, RoomTraps.Tile / 2f));
                 if (SpotClear(at, size, 170f))
                     return true;
             }
