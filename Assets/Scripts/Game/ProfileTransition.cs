@@ -45,8 +45,7 @@ namespace Arena
             whoCarPos = whoCarTarget = slot;  // the picked disk is the one in the middle
             menuIntroDone = true;  // this is the menu's intro now
             menuIntroT = 0f;
-            menuPlayOpen = menuJoinOpen = menuSetOpen = menuWikiOpen = false;
-            menuPlayK = 0f;
+            ShutBay();
         }
 
         /// Update (from TickMenuIntro): run the clock and its sounds, and hand the menu its place in its intro.
@@ -69,7 +68,7 @@ namespace Arena
                 PlayMachineCues(profTrPrev, profTrT);
             }
             profTrPrev = profTrT;
-            menuIntroT = Mathf.Clamp(profTrT - 2.6f, 0f, MenuIntroLen - 0.001f);
+            menuIntroT = Mathf.Clamp(profTrT - BootMenuAt, 0f, MenuIntroLen - 0.001f);
             if (profTrT >= ProfTrLen)
             {
                 profTr = false;
@@ -88,7 +87,7 @@ namespace Arena
             if (b <= a || sounds == null)
                 return;
             float now = Time.unscaledTime;
-            TitleFlapCues(WhoTitleText, a, b, 1.95f, 2.45f, false);
+            TitleFlapCues(WhoTitleText, a, b, BootEraseAt, BootEraseEnd, false);
             for (int i = 0; i < ProfCueAt.Length; i++)
                 if (a < ProfCueAt[i] && ProfCueAt[i] <= b)
                     sounds.Play(ProfCueSfx[i], ProfCueVol[i], now);

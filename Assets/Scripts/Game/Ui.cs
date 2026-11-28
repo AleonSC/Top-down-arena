@@ -208,11 +208,8 @@ namespace Arena
         static bool hoverFound, hoverHadLast;
 
         /// An invisible click area over something drawn by hand (cards, tabs, swatches). Counts for the hover sound.
-        /// Set while a button is drawn a second time for show (MenuVhs.cs ghost copies): it must not take a control id or click.
+        /// Set while a screen is drawn for show only (the CRT moves between screens): it must not take a click or light a hover.
         public static bool NoHit;
-
-        /// Set while a MenuVhs button is drawn: its sideways lurch moves the rect, which would read as a new button and tick again. MenuVhs plays its own tick.
-        public static bool SilentHover;
 
         public static bool HitArea(Rect r)
         {
@@ -266,7 +263,7 @@ namespace Arena
 
         public static void NoteHover(Rect r)
         {
-            if (SilentHover || Event.current.type != EventType.Repaint || !GUI.enabled || !r.Contains(Event.current.mousePosition))
+            if (Event.current.type != EventType.Repaint || !GUI.enabled || !r.Contains(Event.current.mousePosition))
                 return;
             var p = GUIUtility.GUIToScreenPoint(new Vector2(r.x, r.y));  // screen space, so rects inside groups compare fairly
             hoverNow = new Rect(p.x, p.y, r.width, r.height);

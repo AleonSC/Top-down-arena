@@ -9,7 +9,6 @@ namespace Arena
     /// ‹ BACK steps back through the pages opened; Esc does too, then rolls the shutter down. WIKI again rolls it down.
     public partial class ArenaApp
     {
-        bool menuWikiOpen;                 // Wiki rolled the shutter up
         string wikiQuery = "", wikiShownQuery;
         List<WikiEntry> wikiResults;
         WikiEntry wikiPage;                // the open page, null: the list
@@ -20,10 +19,9 @@ namespace Arena
         /// WIKI on the case: roll the shutter up onto the wiki, or back down.
         void ToggleMenuWiki()
         {
-            menuWikiOpen = !menuWikiOpen;
+            SetBay(menuWikiOpen ? BayPage.None : BayPage.Wiki);
             if (menuWikiOpen)
             {
-                menuPlayOpen = menuJoinOpen = menuSetOpen = false;
                 wikiOpenedAt = Time.unscaledTime;
             }
             GUIUtility.keyboardControl = 0;

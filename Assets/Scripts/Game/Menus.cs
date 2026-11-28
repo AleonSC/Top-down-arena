@@ -10,17 +10,14 @@ namespace Arena
     {
         // The main menu is the machine (Docs/Mockups/main-menu-machines.html, design B, and disk-boot-sequence.html): the monitor with the
         // title and the floppy drive in its chin (PcMonitor.cs, DriveSlot.cs; the eject key beside the drive goes back to Who's playing?,
-        // DiskEject.cs), and under it the case (MenuMachine.cs): Play, Join game, Settings and Quit as keycaps, the bay whose shutter rolls up
-        // onto your saved runs (DrawPlayPicker, SavesUi.cs) or the Join address, and your profile on a small screen. Its entrance is the end
+        // DiskEject.cs), and under it the case (MenuMachine.cs): Play, Join game and Wiki as keycaps, Settings and Quit as small round keys,
+        // the bay whose shutter rolls up onto your saved runs (DrawPlayPicker, SavesUi.cs), the Join address, Settings or the Wiki, and your
+        // profile on a small screen. Its entrance is the end
         // of the disk boot sequence (MenuIntro.cs, ProfileTransition.cs).
         const float MenuTitleY = 96f, MenuTitleSize = 60f;
         /// The bay's screen behind the shutter (the saved runs, Join): also where New run's CRT grows from and the lobby's panel grows
         /// out of (LobbyCrt.cs, LobbyEnter.cs).
         static Rect MenuCard => new Rect(BayRect.x + 10f, BayRect.y + 10f, BayRect.width - 20f, BayRect.height - 20f);
-        bool menuJoinOpen;    // Join game rolled the shutter up onto the host address
-        bool menuPlayOpen;    // Play rolled it up onto the saved runs (SavesUi.cs)
-        float menuPlayK;      // how far the shutter is up: 0 shut, 1 open (MenuMachine.cs)
-        const float MenuPlayLen = 0.9f;  // seconds for the shutter to roll up or down
 
         void DrawMenu()
         {
@@ -40,7 +37,7 @@ namespace Arena
             DrawLandingDust(T);
             DrawMachineCase(T, drop, squash, 1f, live, t);
             MonitorShakeAt(T);
-            DrawMonitor(title ? MenuTitleAt(T) : new MonTitle { text = CrtTitleText, typed = 0, flat = true }, DriveForMenu(), T >= 2.85f, live);  // (the eject key comes up with the disk read)
+            DrawMonitor(title ? MenuTitleAt(T) : new MonTitle { text = CrtTitleText, typed = 0, flat = true }, DriveForMenu(), T >= BootDiskReadAt, live);  // (the eject key comes up with the disk read)
             monShakeX = monShakeY = 0f;
         }
 
@@ -49,11 +46,11 @@ namespace Arena
         {
             if (T >= MachEnd || !(MenuIntroPlaying && MenuIntroFull) && !profTr)
                 return TitleAll(CrtTitleText);
-            if (profTr && T < 1.95f)
+            if (profTr && T < BootEraseAt)
                 return TitleAll(WhoTitleText);
-            if (profTr && T < 2.45f)
-                return new MonTitle { text = WhoTitleText, typed = Mathf.RoundToInt(WhoTitleText.Length * (1f - Seg(T, 1.95f, 2.45f))), flat = true };
-            if (T < 2.6f)
+            if (profTr && T < BootEraseEnd)
+                return new MonTitle { text = WhoTitleText, typed = Mathf.RoundToInt(WhoTitleText.Length * (1f - Seg(T, BootEraseAt, BootEraseEnd))), flat = true };
+            if (T < BootMenuAt)
                 return new MonTitle { text = CrtTitleText, typed = 0, flat = true };
             float typeK = Seg(menuIntroT, CrtTypeAt, CrtTypeAt + CrtTypeLen);
             int n = menuIntroT >= CrtTypeAt + CrtTypeLen + CrtFlipLen ? -1 : Mathf.FloorToInt(typeK * CrtTitleText.Length);
@@ -65,14 +62,8 @@ namespace Arena
         {
             if (!live && Event.current.type != EventType.Repaint)
                 return;
-            if (ShutterOpen <= 0f)
-                return;
-            if (menuSetOpen)
-                DrawBaySettings(MenuCard, false);
-            else if (menuJoinOpen)
-                DrawBayJoin(MenuCard, false);
-            else
-                DrawPlayPicker(t, false);
+            if (ShutterOpen > 0f)
+                DrawBayScreen(t, false);  // MenuMachine.cs
         }
 
         void JoinGame()
@@ -81,21 +72,13 @@ namespace Arena
             session.Join(addressText, Port(), nameText, joinRole, weaponChoice, abilityChoice, kitChoice, Defs.MakeWild(wildSecond), ultChoice);
         }
 
-        /// What's left outside the box: the tooltip (the profile switch is the drive's eject key now, DiskEject.cs). live = false draws it only (Repaint),
-        /// for the intro and the move into the lobby.
+        /// What's left outside the case: the tooltip, once the menu takes clicks (the profile switch is the drive's eject key, DiskEject.cs).
         void DrawMenuSecondary(float t, bool live)
         {
-            if (!live && Event.current.type != EventType.Repaint)
+            if (!live)
                 return;
-            float k = MenuIntroK(2.1f, 2.5f);
-            if (k <= 0f)
-                return;
-            GUI.BeginGroup(new Rect(0f, 100f * (1f - EaseOut(k)), W, H));
-            if (live)
-                TipClear();  // the rank badge's hover card (RankUi.cs)
-            if (live)
-                DrawTip();
-            GUI.EndGroup();
+            TipClear();  // the rank badge's hover card (RankUi.cs)
+            DrawTip();
         }
 
         /// Your name and the port are kept between sessions (unless given on the command line).
@@ -119,10 +102,10 @@ namespace Arena
         void DrawPlotCorners(Rect r, float gap, float len, Rgba c)
         {
             UiModelAt(V2.Zero, 1f);
-            float x0 = r.x - gap, x1 = r.xMax + gap, y0 = r.y - gap, y1 = r.yMax + gap;
-            foreach (var corner in new[] { new V2(x0, y0), new V2(x1, y0), new V2(x0, y1), new V2(x1, y1) })
+            for (int i = 0; i < 4; i++)
             {
-                float sx = corner.X < r.center.x ? 1f : -1f, sy = corner.Y < r.center.y ? 1f : -1f;
+                float sx = (i & 1) == 0 ? 1f : -1f, sy = i < 2 ? 1f : -1f;
+                var corner = new V2(sx > 0f ? r.x - gap : r.xMax + gap, sy > 0f ? r.y - gap : r.yMax + gap);
                 Line(corner, corner + new V2(sx * len, 0f), 2f, c);
                 Line(corner, corner + new V2(0f, sy * len), 2f, c);
             }
@@ -175,8 +158,6 @@ namespace Arena
             { "After a run (host)", "R again · L lobby · C keep going" },
             { "Developer tools", "and the Boss Lab" },
         };
-
-        /// How to play, as the side drawer (MenuDrawer.cs).
 
         /// The small drawing beside each How to play tip.
         void DrawTipGlyph(int i, V2 c, float t)
@@ -305,8 +286,7 @@ namespace Arena
                 game.RequestPause(false);
         }
 
-        // The pause menu is the side drawer (DrawPauseWindow, MenuDrawer.cs): Resume, Run stats, Field guide, Settings,
-        // Leave game, the party, and the run's card. DrawPauseMenu (WindowAnim.cs) slides it in and out.
+        // The pause menu is the side drawer (DrawPauseWindow, MenuDrawer.cs; its rows: PauseMenuRows), the party, and the run's card. DrawPauseMenu (WindowAnim.cs) slides it in and out.
 
         /// Settings (main menu, lobby; the pause menu's opens from its drawer), as the side drawer (MenuDrawer.cs).
         void DrawSettings() { if (!SkipWhileClosing) DrawSettingsWindow(); }

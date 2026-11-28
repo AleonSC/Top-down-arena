@@ -49,20 +49,16 @@ namespace Arena
         {
             savedRuns = SaveStore.List();
             deleteArmed = null;
-            menuJoinOpen = menuSetOpen = menuWikiOpen = false;
             menuListScroll = menuListShown = 0f;
             menuListDrag = false;
-            menuPlayOpen = true;
+            SetBay(BayPage.Play);
         }
 
         /// Esc, or Play / Join game again: the shutter rolls back down.
         void PlayPickerBack()
         {
             deleteArmed = null;
-            menuPlayOpen = false;
-            menuJoinOpen = false;
-            menuSetOpen = false;
-            menuWikiOpen = false;
+            SetBay(BayPage.None);
         }
 
         /// Starts a fresh run: what Play used to do.

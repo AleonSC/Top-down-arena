@@ -32,8 +32,7 @@ namespace Arena
             bool onMenu = session.Screen == AppScreen.Menu;
             if (onMenu && menuLastScreen != AppScreen.Menu)
             {
-                menuPlayOpen = menuJoinOpen = menuSetOpen = menuWikiOpen = false;  // the case's shutter is down (MenuMachine.cs)
-                menuPlayK = 0f;
+                ShutBay();  // the case's shutter is down (MenuMachine.cs)
             }
             menuLastScreen = session.Screen;
             if (profTr)
@@ -62,7 +61,7 @@ namespace Arena
                 float before = menuIntroT;
                 menuIntroT += dt;
                 if (MenuIntroFull)
-                    PlayMachineCues(2.6f + before, 2.6f + menuIntroT);  // the case's drop and power-on (MenuMachine.cs)
+                    PlayMachineCues(BootMenuAt + before, BootMenuAt + menuIntroT);  // the case's drop and power-on (MenuMachine.cs)
                 TickTitleTyping();
             }
         }
@@ -105,8 +104,7 @@ namespace Arena
                 Ui.Fill(new Rect(0f, 0f, W, H), new Color(0.01f, 0.01f, 0.03f, 1f - Seg(menuIntroT, 0f, 0.4f)));
         }
 
-
-        static readonly Color CrtGreen = new Color(0.62f, 0.78f, 1f), CrtGlow = new Color(0.25f, 0.5f, 1f);  // (blue now; the names are from when it was green)
+        static readonly Color CrtTitleBlue = new Color(0.62f, 0.78f, 1f), CrtGlow = new Color(0.25f, 0.5f, 1f);  // the title's phosphor and its glow
         const float CrtTypeAt = 0f, CrtTypeLen = 0.7f;  // intro seconds: the title types on the monitor (boot 2.6 to 3.3 s)
         static int crtTyped = -1;      // letters typed so far; -1 = all of them
         static string crtFull = CrtTitleText;  // the line on the screen (WHO'S PLAYING? while the moves to and from the picker retype it)
@@ -117,12 +115,19 @@ namespace Arena
         /// rim inside it and a soft glow towards the middle.
         void DrawCrtBack()
         {
-            var box = CrtBox;
-            Ui.RoundBox(new Rect(box.x - 3f, box.y - 3f, box.width + 6f, box.height + 6f), new Color(0.039f, 0.043f, 0.055f), 8);
-            Ui.RoundBox(box, CrtUi.T(new Color(0.016f, 0.039f, 0.094f)), 6);
-            Ui.RadialGlow(new Rect(box.x + 40f, box.y + 4f, box.width - 80f, box.height - 8f), CrtUi.T(new Color(0.235f, 0.43f, 0.86f)).WithAlpha(0.2f));
-            EdgeRing(new Rect(box.x + 1f, box.y + 1f, box.width - 2f, box.height - 2f), 1f, CrtUi.T(new Color(0.102f, 0.141f, 0.251f)));
-            DrawHoloGlass(new Rect(box.x + 1f, box.y + 1f, box.width - 2f, box.height - 2f), Time.unscaledTime);  // the Tab screen's hologram glass (TabHolo.cs)
+            DrawGlassScreen(CrtBox, 6, 40f, 4f, 0.2f);
+        }
+
+        /// A dark blue screen of glass (the monitor's, the profile screen's): a thin dark border, a faint blue rim inside it, a soft glow
+        /// toward the middle (inset glowX, glowY from the edges) and the Tab screen's hologram glass (TabHolo.cs) over it.
+        void DrawGlassScreen(Rect r, int radius, float glowX, float glowY, float glowA)
+        {
+            Ui.RoundBox(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), new Color(0.039f, 0.043f, 0.055f), radius + 2);
+            Ui.RoundBox(r, CrtUi.T(new Color(0.016f, 0.039f, 0.094f)), radius);
+            Ui.RadialGlow(new Rect(r.x + glowX, r.y + glowY, r.width - 2f * glowX, r.height - 2f * glowY), CrtUi.T(new Color(0.235f, 0.43f, 0.86f)).WithAlpha(glowA));
+            var inner = new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f);
+            EdgeRing(inner, 1f, CrtUi.T(new Color(0.102f, 0.141f, 0.251f)));
+            DrawHoloGlass(inner, Time.unscaledTime);
         }
 
         /// Over the text: rolling scanlines, a glow along the screen's edge, a glare, and a blinking cursor in the bottom corner.
@@ -141,18 +146,19 @@ namespace Arena
             {
                 // Typing: the cursor sits after the last letter typed (blinking), the way a terminal does.
                 string full = text;
-                float fw = Ui.TextWidth(full, (int)MenuTitleSize, true), cx = W / 2f - fw / 2f + Ui.TextWidth(full.Substring(0, crtTyped), (int)MenuTitleSize, true);
+                CrtWidths(full, out var prefix, out var letter);
+                int typed = Mathf.Min(crtTyped, full.Length);
+                float fw = prefix[full.Length], cx = W / 2f - fw / 2f + prefix[typed];
                 // The cursor is as wide as the letter it sits under (the next one to type; an M once the line is done).
-                string under = crtTyped < full.Length && full[crtTyped] != ' ' ? full[crtTyped].ToString() : "M";
-                float cw = Ui.TextWidth(under, (int)MenuTitleSize, true);
+                float cw = typed < full.Length && full[typed] != ' ' ? letter[typed] : Ui.TextWidth("M", (int)MenuTitleSize, true);
                 if ((int)(t * 8f) % 2 == 0)
-                    Ui.Fill(new Rect(cx, MenuTitleY + 14f, cw, 8f), CrtGreen.WithAlpha(0.9f));
+                    Ui.Fill(new Rect(cx, MenuTitleY + 14f, cw, 8f), CrtTitleBlue.WithAlpha(0.9f));
             }
             else if ((int)(t * 1.2f) % 2 == 0)
             {
                 // Typed out: the cursor waits just after the last letter, on the line it was typed on.
                 float fw = Ui.TextWidth(text, (int)MenuTitleSize, true);
-                Ui.Fill(new Rect(W / 2f + fw / 2f + 10f, MenuTitleY + 15f, 30f, 7f), CrtGreen.WithAlpha(0.85f));
+                Ui.Fill(new Rect(W / 2f + fw / 2f + 10f, MenuTitleY + 15f, 30f, 7f), CrtTitleBlue.WithAlpha(0.85f));
             }
         }
 
@@ -161,25 +167,25 @@ namespace Arena
         {
             float t = Time.unscaledTime;
             float flick = (t % 3f) > 2.9f ? 0.7f : (t % 7f) > 6.95f ? 0.85f : 1f;
-            var c = CrtGreen.WithAlpha(flick);
+            var c = CrtTitleBlue.WithAlpha(flick);
             if (crtTyped < 0)
             {
                 Ui.Glitch(r, crtFull, (int)MenuTitleSize, c, TextAnchor.MiddleCenter, CrtGlow);
                 return;
             }
             string full = crtFull;
-            float fw = Ui.TextWidth(full, (int)MenuTitleSize, true), x0 = W / 2f - fw / 2f;
+            CrtWidths(full, out var prefix, out var letter);
+            float x0 = W / 2f - prefix[full.Length] / 2f;
             // Each letter flips in as it's typed (Docs/Mockups/menu-holo-floor.html): it drops a little and unfolds from a sliver
             // about its middle line, overshooting a touch, over CrtFlipLen.
-            for (int i = 0; i < crtTyped; i++)
+            for (int i = 0; i < crtTyped && i < full.Length; i++)
             {
                 if (full[i] == ' ')
                     continue;
                 float typedAt = CrtTypeAt + CrtTypeLen * i / full.Length;
                 float k = crtFlat ? 1f : Mathf.Clamp01((menuIntroT - typedAt) / CrtFlipLen);
                 float sy = Mathf.Max(0.05f, EaseBack(k)), dy = -18f * (1f - EaseOut(k));
-                float lx = x0 + Ui.TextWidth(full.Substring(0, i), (int)MenuTitleSize, true);
-                var lr = new Rect(lx, r.y + dy, Ui.TextWidth(full[i].ToString(), (int)MenuTitleSize, true) + 30f, r.height);
+                var lr = new Rect(x0 + prefix[i], r.y + dy, letter[i] + 30f, r.height);
                 var old = GUI.matrix;
                 if (sy != 1f)
                     GUIUtility.ScaleAroundPivot(new Vector2(1f, sy), new Vector2(lr.x, lr.center.y));
@@ -189,5 +195,26 @@ namespace Arena
         }
 
         const float CrtFlipLen = 0.3f;  // seconds for a typed letter to flip into place
+
+        static string crtWidthsFor;
+        static float[] crtPrefixW, crtLetterW;
+
+        /// The title line's widths at the title's size, worked out once per line: prefix[i] is its first i letters', letter[i] letter i's.
+        static void CrtWidths(string text, out float[] prefix, out float[] letter)
+        {
+            if (crtWidthsFor != text)
+            {
+                int size = (int)MenuTitleSize;
+                crtPrefixW = new float[text.Length + 1];
+                crtLetterW = new float[text.Length];
+                for (int i = 0; i <= text.Length; i++)
+                    crtPrefixW[i] = Ui.TextWidth(text.Substring(0, i), size, true);
+                for (int i = 0; i < text.Length; i++)
+                    crtLetterW[i] = Ui.TextWidth(text[i].ToString(), size, true);
+                crtWidthsFor = text;
+            }
+            prefix = crtPrefixW;
+            letter = crtLetterW;
+        }
     }
 }

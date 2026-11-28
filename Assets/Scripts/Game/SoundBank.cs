@@ -744,7 +744,7 @@ namespace Arena
             Set(Sfx.TitleEnter, Finish(Mix(Tone(0.014f, Osc.Sine, 1400f, 1400f, 0.22f, noise: 0.9f, lowpass: 0.5f, attack: 0.001f, decay: 3f),
                 Tone(0.12f, Osc.Sine, 110f, 55f, 0.4f, attack: 0.002f, decay: 3f)), 0.34f), 0f);
 
-            // A main menu button being hovered (MenuVhs.cs): a dry tick with a puff of tape hiss, like a head touching the tape. Three takes, rotated.
+            // A saved run's row being hovered (RunRowHover, MenuHolo.cs): a dry tick with a puff of tape hiss, like a head touching the tape. Three takes, rotated.
             var hover = new float[3][];
             float[] hoverHz = { 0.95f, 1f, 1.06f };
             for (int k = 0; k < 3; k++)
@@ -752,7 +752,7 @@ namespace Arena
                     Tone(0.018f, Osc.Sine, 1200f * hoverHz[k], 900f, 0.09f, attack: 0.001f, decay: 3f)), 0.14f);
             Set(Sfx.MenuHover, hover, 0.04f);
 
-            // The menu's Play transition (MenuServo.cs): two beeps (takes rotated), the doors' servo whine and its reverse, a clamp click, the screen's
+            // The main menu's bay (MenuMachine.cs): two beeps (takes rotated), the doors' servo whine and its reverse, a clamp click, the screen's
             // power-on zap, a falling whirr for each key leaving, a ratchet tick as it lands, the box lifting, its seating thud, and a flap click per header letter.
             Set(Sfx.BayBeep, new[] { Finish(Tone(0.07f, Osc.Sine, 1320f, 1320f, 0.3f, attack: 0.004f, decay: 2.5f), 0.26f),
                 Finish(Tone(0.07f, Osc.Sine, 1760f, 1760f, 0.3f, attack: 0.004f, decay: 2.5f), 0.26f) }, 0.04f);
@@ -841,7 +841,7 @@ namespace Arena
                 table[(int)Sfx.UiHover].Last = now;  // no hover tick right on top of the click
         }
 
-        /// The main menu's hover tick and key volume (ArenaApp's MenuVhs.OnHover, MenuHolo's MenuSound); every menu's hover and click play at it.
+        /// The main menu's hover tick and key volume (MenuHolo's MenuSound and RunRowHover); every menu's hover and click play at it.
         public const float MenuSoundVolume = 0.7f;
 
         /// The menus' hover tick (the main menu's glassy tick), at the Effects volume; half as loud when calm (Reduced effects).

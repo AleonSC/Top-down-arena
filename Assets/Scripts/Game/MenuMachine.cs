@@ -23,34 +23,47 @@ namespace Arena
         static readonly Rect BayRect = new Rect(424f, 288f, 432f, 376f);
         static readonly Rect ProfScreenRect = new Rect(886f, 290f, 214f, 150f);
         const float MachEnd = 4.8f;       // the boot sequence's length; past it the menu is settled
+        // The boot sequence's moments on the machine clock (MachT, seconds):
+        const float BootEraseAt = 1.95f, BootEraseEnd = 2.45f;  // WHO'S PLAYING? erased letter by letter (ProfileTransition.cs)
+        const float BootMenuAt = 2.6f;      // the menu's own entrance starts: MenuIntro.cs's second 0
+        const float BootDiskReadAt = 2.85f; // the disk is read: the drive's light, the eject key comes up (DriveSlot.cs)
+        const float BootFallAt = 2.9f;      // the case starts falling out from under the monitor
+        const float BootLandAt = 3.35f;     // it lands: squash, bounce, neon flare, the monitor's jolt, dust
+        const float BootPowerAt = 3.75f, BootDiskAt = 3.85f;  // the POWER and DISK lights
+        const float BootLampsAt = 3.95f, BootLampGap = 0.1f;  // the key lamps light one by one (Play, Join game, Wiki)...
+        const float BootLampsOutAt = 4.25f; // ...then Join game's and Wiki's go out again
+        const float BootProfAt = 4.0f;      // the profile screen's tube comes on (0.3 s), its contents fading in from 0.25 s
+        const float BootRattleAt = 4.4f;    // the shutter rattles (0.2 s)
+        const float CaseHiddenY = -470f;    // the case's drop before it falls: up behind the monitor
 
         /// The machine clock: seconds into the disk boot sequence (ProfileTransition.cs), the menu's own entrance from 2.6 s on, or
         /// past the end once it has settled.
-        float MachT => profTr && !profEj ? profTrT : MenuIntroPlaying && MenuIntroFull ? 2.6f + menuIntroT : 99f;
+        float MachT => profTr && !profEj ? profTrT : MenuIntroPlaying && MenuIntroFull ? BootMenuAt + menuIntroT : 99f;
 
         /// How far the case is from home (negative: up behind the monitor) and how squashed it is, at boot time T.
         static float CaseDrop(float T, out float squash)
         {
             squash = 1f;
-            if (T < 2.9f)
-                return -470f;
-            float fall = Seg(T, 2.9f, 3.35f);
-            if (T < 3.35f)
-                return Mathf.Lerp(-470f, 0f, fall * fall * fall);
-            if (T < 3.45f)
+            const float SquashEnd = BootLandAt + 0.1f, BounceEnd = BootLandAt + 0.35f;
+            if (T < BootFallAt)
+                return CaseHiddenY;
+            float fall = Seg(T, BootFallAt, BootLandAt);
+            if (T < BootLandAt)
+                return Mathf.Lerp(CaseHiddenY, 0f, fall * fall * fall);
+            if (T < SquashEnd)
             {
-                squash = 1f - 0.035f * Mathf.Sin(Seg(T, 3.35f, 3.45f) * Mathf.PI);
+                squash = 1f - 0.035f * Mathf.Sin(Seg(T, BootLandAt, SquashEnd) * Mathf.PI);
                 return 0f;
             }
-            if (T < 3.7f)
-                return -11.2f * Mathf.Sin(Seg(T, 3.45f, 3.7f) * Mathf.PI);
+            if (T < BounceEnd)
+                return -11.2f * Mathf.Sin(Seg(T, SquashEnd, BounceEnd) * Mathf.PI);
             return 0f;
         }
 
         /// The monitor's jolt as the case lands (boot time T).
         static void MonitorShakeAt(float T)
         {
-            float sh = Seg(T, 3.35f, 3.6f), amp = sh > 0f && sh < 1f ? 4f * (1f - sh) : 0f;
+            float sh = Seg(T, BootLandAt, BootLandAt + 0.25f), amp = sh > 0f && sh < 1f ? 4f * (1f - sh) : 0f;
             monShakeX = Mathf.Sin(T * 90f) * amp * 0.5f;
             monShakeY = Mathf.Cos(T * 77f) * amp;
         }
@@ -58,7 +71,7 @@ namespace Arena
         /// The case at boot time T (power: how far its lights are on, 0 to 1, for the eject's power-down). live: its keys take clicks.
         void DrawMachineCase(float T, float drop, float squash, float power, bool live, float t)
         {
-            if (drop <= -469f)
+            if (drop <= CaseHiddenY + 1f)
                 return;
             // Two groups: the outer clips to below the monitor; the inner puts the coordinates back, moved by the drop.
             GUI.BeginGroup(new Rect(0f, CaseClipTop, W, H - CaseClipTop));
@@ -66,7 +79,7 @@ namespace Arena
             var oldM = GUI.matrix;
             if (squash != 1f)
                 GUIUtility.ScaleAroundPivot(new Vector2(1f, squash), new Vector2(W / 2f, CaseRect.yMax));
-            float hit = Seg(T, 3.35f, 3.38f) * (1f - Seg(T, 3.38f, 3.9f));
+            float hit = Seg(T, BootLandAt, BootLandAt + 0.03f) * (1f - Seg(T, BootLandAt + 0.03f, BootLandAt + 0.55f));  // the neon flaring as it lands
             Metal(CaseRect, 12);
             NeonBox(CaseRect, 1f, hit, 12);
             DrawCaseKeys(T, power, live);
@@ -74,7 +87,7 @@ namespace Arena
             DrawBay(T, live, t);
             DrawProfScreen(T, power, live, t);
             HVent(new Rect(886f, 524f, 214f, 138f));
-            bool pw = T >= 3.75f && power > 0.5f, dk = T >= 3.85f && power > 0.5f;
+            bool pw = T >= BootPowerAt && power > 0.5f, dk = T >= BootDiskAt && power > 0.5f;
             DrawStrip(pw, dk);
             DrawRoundKeys(T, power, live);
             GUI.matrix = oldM;
@@ -82,22 +95,23 @@ namespace Arena
             GUI.EndGroup();
         }
 
-        /// The key lamps during the power-on: each lights in turn, then Join and Settings go out again.
-        static int BootLamp(float T, float on, int settled)
+        /// Key i's lamp (0 Play, 1 Join game, 2 Wiki) during the power-on: each lights in turn, then Join game's and Wiki's go out
+        /// again; settled is its lamp once the menu has settled.
+        static int BootLamp(float T, int i, int settled)
         {
             if (T >= MachEnd)
                 return settled;
-            if (T < on)
+            if (T < BootLampsAt + i * BootLampGap)
                 return 0;
-            return on > 4f && T >= 4.25f ? settled : 1;
+            return i > 0 && T >= BootLampsOutAt ? settled : 1;
         }
 
         /// Play, Join game and Wiki down the case's left.
         void DrawCaseKeys(float T, float power, bool live)
         {
             bool on = power > 0.5f;
-            int playLamp = on ? BootLamp(T, 3.95f, 1) : 0;
-            int joinLamp = on ? BootLamp(T, 4.05f, menuJoinOpen ? 1 : 0) : 0;
+            int playLamp = on ? BootLamp(T, 0, 1) : 0;
+            int joinLamp = on ? BootLamp(T, 1, menuJoinOpen ? 1 : 0) : 0;
             if (MachKey(PlayKeyRect, "PLAY", 20, live, playLamp, null, true))
             {
                 MenuSound(Sfx.MenuPlay);
@@ -111,11 +125,9 @@ namespace Arena
             if (MachKey(JoinKeyRect, "JOIN GAME", 15, live, joinLamp))
             {
                 MenuSound(Sfx.MenuKey);
-                menuJoinOpen = !menuJoinOpen;
-                if (menuJoinOpen)
-                    menuPlayOpen = menuSetOpen = menuWikiOpen = false;
+                SetBay(menuJoinOpen ? BayPage.None : BayPage.Join);
             }
-            int wikiLamp = on ? BootLamp(T, 4.15f, menuWikiOpen ? 1 : 0) : 0;
+            int wikiLamp = on ? BootLamp(T, 2, menuWikiOpen ? 1 : 0) : 0;
             if (MachKey(WikiKeyRect, "WIKI", 15, live, wikiLamp))
             {
                 MenuSound(Sfx.MenuKey);
@@ -131,7 +143,7 @@ namespace Arena
             Ui.RoundBox(new Rect(r.x, r.y + 1f, r.width, r.height), new Color(1f, 1f, 1f, 0.07f), 9);  // the lit lip under the recess
             Ui.RoundBox(r, new Color(0.035f, 0.038f, 0.047f), 9);
             Ui.RoundBox(new Rect(r.x + 1f, r.y + 2f, r.width - 2f, r.height - 3f), new Color(0.071f, 0.075f, 0.09f), 8);
-            foreach (float x in new[] { 928f, 1057f })
+            foreach (float x in StripDividers)
             {
                 Ui.Fill(new Rect(x, r.y + 9f, 1f, r.height - 18f), new Color(0f, 0f, 0f, 0.55f));
                 Ui.Fill(new Rect(x + 1f, r.y + 9f, 1f, r.height - 18f), new Color(1f, 1f, 1f, 0.06f));
@@ -139,6 +151,8 @@ namespace Arena
             StripLight(966f, "POWER", LampGreen, pw);
             StripLight(1020f, "DISK", LampAmber, dk);
         }
+
+        static readonly float[] StripDividers = { 928f, 1057f };
 
         static void StripLight(float cx, string label, Color c, bool on)
         {
@@ -158,8 +172,46 @@ namespace Arena
                 QuitWithSound();  // MenuHolo.cs: the tube switching off, then quit
         }
 
+        /// What the bay's screen behind the shutter is for.
+        enum BayPage { None, Play, Join, Settings, Wiki }
+        BayPage bayPage;   // what a key rolled the shutter up onto (None: it is down, or rolling down)
+        BayPage bayShown;  // what the screen shows: bayPage, kept while the shutter rolls back down over it
+        float bayK;        // how far the shutter is up: 0 shut, 1 open
+        const float BayRollLen = 0.9f;  // seconds for the shutter to roll up or down
+        bool menuPlayOpen => bayPage == BayPage.Play;
+        bool menuJoinOpen => bayPage == BayPage.Join;
+        bool menuSetOpen => bayPage == BayPage.Settings;
+        bool menuWikiOpen => bayPage == BayPage.Wiki;
+
+        /// Rolls the shutter up onto page p (None: back down; the screen keeps the last page until it's shut).
+        void SetBay(BayPage p)
+        {
+            bayPage = p;
+            if (p != BayPage.None)
+                bayShown = p;
+        }
+
+        /// The shutter down at once, nothing on the screen (a fresh menu: the intro, the boot, the move from the lobby).
+        void ShutBay()
+        {
+            bayPage = bayShown = BayPage.None;
+            bayK = 0f;
+        }
+
         /// How far the shutter is rolled up (0 shut, 1 open), with its ease (slow start, quick middle, soft stop).
-        float ShutterOpen => EaseInOut(Mathf.Clamp01(menuPlayK));
+        float ShutterOpen => EaseInOut(Mathf.Clamp01(bayK));
+
+        /// The bay's screen: the page it shows (the saved runs when none has been picked).
+        void DrawBayScreen(float t, bool live)
+        {
+            switch (bayShown)
+            {
+                case BayPage.Settings: DrawBaySettings(MenuCard, live); break;
+                case BayPage.Wiki: DrawBayWiki(MenuCard, live); break;
+                case BayPage.Join: DrawBayJoin(MenuCard, live); break;
+                default: DrawPlayPicker(t, live); break;
+            }
+        }
 
         /// The bay: its recess, the screen inside (runs or join), the roller shutter over it, and the shadow at its top.
         void DrawBay(float T, bool live, float t)
@@ -168,31 +220,23 @@ namespace Arena
             Ui.RoundBox(b, new Color(0.039f, 0.043f, 0.055f), 6);
             if (live && Event.current.type == EventType.Repaint)
             {
-                float target = menuPlayOpen || menuJoinOpen || menuSetOpen || menuWikiOpen ? 1f : 0f;
-                float before = menuPlayK;
-                menuPlayK = fxOn && !fxReduced ? Mathf.MoveTowards(menuPlayK, target, Time.unscaledDeltaTime / MenuPlayLen) : target;
-                if (before == 0f && menuPlayK > 0f)
+                float target = bayPage != BayPage.None ? 1f : 0f;
+                float before = bayK;
+                bayK = fxOn && !fxReduced ? Mathf.MoveTowards(bayK, target, Time.unscaledDeltaTime / BayRollLen) : target;
+                if (before == 0f && bayK > 0f)
                     MenuSound(Sfx.BayServo, 0.55f);
-                else if (before == 1f && menuPlayK < 1f)
+                else if (before == 1f && bayK < 1f)
                     MenuSound(Sfx.BayServoBack, 0.55f);
-                else if (before < 1f && menuPlayK >= 1f || before > 0f && menuPlayK <= 0f)
+                else if (before < 1f && bayK >= 1f || before > 0f && bayK <= 0f)
                     MenuSound(Sfx.BayClack, 0.5f);
+                if (bayK <= 0f && bayPage == BayPage.None)
+                    bayShown = BayPage.None;
             }
             float open = ShutterOpen;
             if (open > 0f)
-            {
-                bool screenLive = live && menuPlayK >= 1f;
-                if (menuSetOpen)
-                    DrawBaySettings(MenuCard, screenLive);
-                else if (menuWikiOpen)
-                    DrawBayWiki(MenuCard, screenLive);
-                else if (menuJoinOpen)
-                    DrawBayJoin(MenuCard, screenLive);
-                else
-                    DrawPlayPicker(t, screenLive);
-            }
+                DrawBayScreen(t, live && bayK >= 1f && bayPage != BayPage.None);
             // The shutter: ribbed slats rolling up into the top of the bay, a handle at its foot.
-            float jig = T > 4.4f && T < 4.6f ? Mathf.Sin(Seg(T, 4.4f, 4.6f) * Mathf.PI * 3f) * 2f : 0f;
+            float jig = T > BootRattleAt && T < BootRattleAt + 0.2f ? Mathf.Sin(Seg(T, BootRattleAt, BootRattleAt + 0.2f) * Mathf.PI * 3f) * 2f : 0f;
             GUI.BeginGroup(b);
             float top = -open * b.height + jig;
             if (open < 1f)
@@ -258,12 +302,8 @@ namespace Arena
         void DrawProfScreen(float T, float power, bool live, float t)
         {
             var r = ProfScreenRect;
-            Ui.RoundBox(new Rect(r.x - 3f, r.y - 3f, r.width + 6f, r.height + 6f), new Color(0.039f, 0.043f, 0.055f), 7);
-            Ui.RoundBox(r, CrtUi.T(new Color(0.016f, 0.039f, 0.094f)), 5);
-            Ui.RadialGlow(new Rect(r.x + 10f, r.y + 6f, r.width - 20f, r.height - 12f), CrtUi.T(new Color(0.235f, 0.43f, 0.86f)).WithAlpha(0.18f));
-            EdgeRing(new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f), 1f, CrtUi.T(new Color(0.102f, 0.141f, 0.251f)));
-            DrawHoloGlass(new Rect(r.x + 1f, r.y + 1f, r.width - 2f, r.height - 2f), Time.unscaledTime);  // the Tab screen's hologram glass (TabHolo.cs)
-            float crt = Seg(T, 4.0f, 4.3f), shown = Seg(T, 4.25f, 4.45f) * power;
+            DrawGlassScreen(r, 5, 10f, 6f, 0.18f);  // MenuIntro.cs
+            float crt = Seg(T, BootProfAt, BootProfAt + 0.3f), shown = Seg(T, BootProfAt + 0.25f, BootProfAt + 0.45f) * power;
             if (crt > 0f && crt < 1f)  // the tube coming on: a line across, then it opens top and bottom
             {
                 float w = r.width * EaseOut(crt), h = 2f + (crt > 0.7f ? (crt - 0.7f) / 0.3f * (r.height - 2f) : 0f);
@@ -314,7 +354,7 @@ namespace Arena
         /// Dust off the case's feet as it lands: soft puffs blowing out along the floor either side and fading (boot time T).
         static void DrawLandingDust(float T)
         {
-            float dk = Seg(T, 3.35f, 3.95f);
+            float dk = Seg(T, BootLandAt, BootLandAt + 0.6f);
             if (dk <= 0f || dk >= 1f)
                 return;
             for (int i = 0; i < 10; i++)
@@ -326,9 +366,13 @@ namespace Arena
             }
         }
 
-        static readonly Sfx[] MachCueSfx = { Sfx.BossWhoosh, Sfx.StoneSlam, Sfx.LaunchLand, Sfx.BayClack, Sfx.BayTick, Sfx.BayTick, Sfx.BayTick, Sfx.BayTick, Sfx.CrtPower, Sfx.BayClamp };
-        static readonly float[] MachCueAt = { 2.9f, 3.35f, 3.37f, 3.75f, 3.85f, 3.95f, 4.05f, 4.15f, 4.0f, 4.4f };
-        static readonly float[] MachCueVol = { 0.35f, 0.6f, 0.45f, 0.55f, 0.5f, 0.45f, 0.45f, 0.45f, 0.5f, 0.35f };
+        static readonly (float At, Sfx Sfx, float Vol)[] MachCues =
+        {
+            (BootFallAt, Sfx.BossWhoosh, 0.35f), (BootLandAt, Sfx.StoneSlam, 0.6f), (BootLandAt + 0.02f, Sfx.LaunchLand, 0.45f),
+            (BootPowerAt, Sfx.BayClack, 0.55f), (BootDiskAt, Sfx.BayTick, 0.5f),
+            (BootLampsAt, Sfx.BayTick, 0.45f), (BootLampsAt + BootLampGap, Sfx.BayTick, 0.45f), (BootLampsAt + 2f * BootLampGap, Sfx.BayTick, 0.45f),
+            (BootProfAt, Sfx.CrtPower, 0.5f), (BootRattleAt, Sfx.BayClamp, 0.35f),
+        };
 
         /// The machine's sounds for boot time a to b (going forward): the case's drop and landing, POWER, DISK, the key lamps, the
         /// profile screen coming on, the shutter's rattle.
@@ -337,9 +381,9 @@ namespace Arena
             if (b <= a || sounds == null)
                 return;
             float now = Time.unscaledTime;
-            for (int i = 0; i < MachCueAt.Length; i++)
-                if (a < MachCueAt[i] && MachCueAt[i] <= b)
-                    sounds.Play(MachCueSfx[i], MachCueVol[i], now);
+            foreach (var c in MachCues)
+                if (a < c.At && c.At <= b)
+                    sounds.Play(c.Sfx, c.Vol, now);
         }
     }
 }

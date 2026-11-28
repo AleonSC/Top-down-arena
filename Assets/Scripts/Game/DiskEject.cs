@@ -90,7 +90,7 @@ namespace Arena
             profTrAge = 0f;
             profTrSlot = slot;
             whoCarPos = whoCarTarget = slot;
-            menuPlayOpen = menuJoinOpen = menuSetOpen = menuWikiOpen = false;
+            SetBay(BayPage.None);
             menuIntroT = MenuIntroLen - 0.001f;  // the menu takes no clicks
         }
 

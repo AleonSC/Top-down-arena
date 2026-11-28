@@ -251,7 +251,7 @@ namespace Arena
         ArcHum,
         ArcTag,  // Arc Lightning's lock-on (ArcLockSoundBank.cs): a tag, a hop, letting go, a Forked Volley bolt, a fizzle, and the charge hum (a loop). Never sent.
         BayBack,
-        BayBeep,  // The menu's Play transition (MenuServo.cs, version 2 of Docs/Mockups/menu-bay-doors.html): beeps, the doors' servo whine (and backwards),; a clamp, the screen's power-on zap, the keys' whirr and tick, the box's lift, its seating thud, and a flap click per header letter. Never sent.
+        BayBeep,  // The main menu's bay (MenuMachine.cs, version 2 of Docs/Mockups/menu-bay-doors.html): beeps, the doors' servo whine (and backwards),; a clamp, the screen's power-on zap, the keys' whirr and tick, the box's lift, its seating thud, and a flap click per header letter. Never sent.
         BayClack,
         BayClamp,
         BayLift,
@@ -451,7 +451,7 @@ namespace Arena
         LungerPad,  // their footsteps
         LungerTell,
         MenuEject,
-        MenuHover,  // A main menu button being hovered (MenuVhs.cs, look A of Docs/Mockups/menu-hover-sounds.html): a tape-head tick. Never sent.
+        MenuHover,  // A saved run's row being hovered (RunRowHover in MenuHolo.cs, look A of Docs/Mockups/menu-hover-sounds.html): a tape-head tick. Never sent.
         MenuKey,
         MenuPlay,  // The main menu and saved-runs screen in the holo look (MenuSoundBank.cs): played by your own screen, never sent.
         MenuQuit,
