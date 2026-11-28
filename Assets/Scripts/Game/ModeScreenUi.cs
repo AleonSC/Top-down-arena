@@ -25,12 +25,18 @@ namespace Arena
         /// True while the lobby shows the mode screen.
         bool OnModeScreen => session.Resume == null && IsModeTab(lobbyTab);
 
-        /// The lobby's grey screen colour (CrtStyle.Accent): on the Game Mode screen the mode's, so the screen is grey with the mode's
-        /// colour on its header, keys, text, lines and corners, and the CRT colour setting never reaches it; null elsewhere (the CRT colour).
+        /// The lobby's grey screen colour (CrtStyle.Accent), so the CRT colour setting never reaches it: on the Game Mode screen the mode's
+        /// (its header, keys, text, lines and corners), in the lobby the shown role's, eased as it changes (LobbyKit.WashTo).
         Color? LobbyAccent()
         {
-            if (session == null || !OnModeScreen)
+            if (session == null)
                 return null;
+            return OnModeScreen ? ModeColor() : LobbyKit.WashCol;
+        }
+
+        /// The session's mode in its page's colour.
+        Color ModeColor()
+        {
             switch (session.Mode)
             {
                 case GameMode.Quick: return QuickColor;  // each page's own colour (QuickPlayUi.cs, CampaignUi.cs, ...)
@@ -47,18 +53,18 @@ namespace Arena
         {
             bool calm = fxReduced;
             int m = (int)session.Mode;
-            Color acc = ModeAccent(m) ?? CrtStyle.Ink;
+            Color acc = ModeColor();  // (the mode's colour, whatever the role's)
             DkSub(r, acc.WithAlpha(0.07f));
             CrtKit.Frame(r, 1f, acc.WithAlpha(0.55f));
             Ui.Fill(new Rect(r.x, r.y, 3f, r.height), acc);
             const float keyW = 104f;
             float tw = r.width - keyW - 30f;
-            LobbyKit.Spaced(new Rect(r.x + 14f, r.y + 5f, 80f, 12f), "MODE", 9, CrtStyle.Dim, TextAnchor.MiddleLeft, 1.3f);
+            LobbyKit.Spaced(new Rect(r.x + 14f, r.y + 5f, 80f, 12f), "MODE", 9, acc.WithAlpha(0.6f), TextAnchor.MiddleLeft, 1.3f);
             LobbyKit.Fit(new Rect(r.x + 14f, r.y + 15f, tw, 22f), ModeTitle(m), 18, 12, acc, TextAnchor.MiddleLeft, calm);
-            Ui.Label(new Rect(r.x + 14f, r.y + 35f, tw, 14f), LobbyKit.Truncate(ModeSub(m).ToUpperInvariant(), 9, tw), 9, CrtStyle.Ink.WithAlpha(0.6f), TextAnchor.MiddleLeft, true);
+            Ui.Label(new Rect(r.x + 14f, r.y + 35f, tw, 14f), LobbyKit.Truncate(ModeSub(m).ToUpperInvariant(), 9, tw), 9, acc.WithAlpha(0.6f), TextAnchor.MiddleLeft, true);
             var key = new Rect(r.xMax - keyW - 10f, r.y + 12f, keyW, 28f);
             LobbyGlowBox(key);
-            if (DkKey(key, session.IsHost ? "CHANGE" : "VIEW", false, calm, size: 13, minSize: 10))
+            if (DkKey(key, session.IsHost ? "CHANGE" : "VIEW", false, calm, size: 13, minSize: 10, accent: acc))
             {
                 lobbyTab = ModeTabNow();
                 CloseFavorites();

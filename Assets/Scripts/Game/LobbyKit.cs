@@ -271,6 +271,9 @@ namespace Arena
         /// corner that is 32% of the role colour and fades out by 64% of the way (one soft radial texture).
         public static void Wash(Rect r) => Wash(r, CrtStyle.Greyed ? CrtStyle.BoxWash : washCol);
 
+        /// The shown role's colour, eased (WashTo): the lobby's grey screen colour (ArenaApp.LobbyAccent).
+        public static Color WashCol => washCol;
+
         /// The colour the lobby's keys and tabs wear: a grey screen's accent (CrtStyle.Accent), else the eased role colour.
         public static Color RoleCol => CrtStyle.Accent ?? washCol;
 
